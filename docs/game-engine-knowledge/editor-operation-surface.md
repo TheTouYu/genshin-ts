@@ -58,6 +58,8 @@
 | **分母 A** | `python3 tools/ys-docops/ys_docops.py extract` | 从官方文档抽操作点 → `ops-inventory-doc.tsv`（**458 点**） |
 | **分母 B** | `tools/ys-editor/ys-enum <帧.png> --json` | 从界面帧枚举候选（**P 65–85% / R 83–85%**，只能当雷达） |
 | **台账** | `tools/ys-editor/ys-ops add --id X --control 名字 --text 名字` | 点一次 + 记一行（调用方式 / 观测差异 / 判据值） |
+| **面板驱动** | `tools/ys-editor/ys-cover [面板名]` | 归位 → `ys-pick` 算入口 → 点进去 → 面板内逐点覆盖（不按 ESC） |
+| **入口定位** | `tools/ys-editor/ys-pick <look.json> <名字>` | 从 bbox 现算可点中心，`tile > row > button` 优先 |
 | **爬取器** | `tools/ys-editor/ys-crawl --from-look --by-name --goto-text <标记>` | 自己归位 → 自己枚举 → 逐个点 → 自己回退 |
 | **覆盖率** | `tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv` | 按控件名把台账对齐到分母，输出百分比与未覆盖清单 |
 
@@ -76,7 +78,7 @@ covered(P) ⟺ 台账里存在一行 P，且该行同时有：
 |---|---|
 | 分母 A | **458** |
 | 台账行数 | 40+ |
-| 覆盖率 | **26 / 458 = 5.68%**（分批推进中） |
+| 覆盖率 | 见 `ys-ops coverage` 实时读数（分批推进中） |
 | 单点耗时 | 约 6–15s（含抓帧 ×2、名字解析、点击、回退） |
 | 全量预估 | 458 点 ≈ **46–115 分钟**纯机器时间 |
 
@@ -86,7 +88,10 @@ covered(P) ⟺ 台账里存在一行 P，且该行同时有：
 2. **编辑器里点开的是「页签」不是弹窗**：一次 `ESC` 会把页签和系统菜单一起关掉 ⇒ 回退要**最多按 3 次、每次比一次基线帧**。
 3. **枚举前必须归位**：ESC 先关页签、都关完才开系统菜单。不归位会在别的界面枚举出噪声名字（实测抓到「久」「UI」「max:」）。
 4. **噪声过滤**：DXVK 叠加层的 `FPS:` / `GPU:` / 纯数字 / `{X}` 残片不是操作点，必须过滤。
-5. **`ys-state` 在编辑器里只粗分**：它把各种面板报成 MENU / GAME_WORLD / EDITOR，**与具体面板无关** ⇒ 面板级判据只能靠屏上文字。
+5. **进面板要用「look 的 bbox 现算中心」（`ys-pick`），不要用预存坐标也不要裸名字**：
+   预存坐标实测只差 **0.007 帧差**（= 没打开，菜单滚动位置会变）；裸名字在页签已开时**歧义**（磁贴 + 页签名都命中 ⇒ 解析器 fail-closed）。
+   从 bbox 取中心 + `tile > row > button` 优先，实测入口 diff **0.99**（面板真开了）。
+6. **`ys-state` 在编辑器里只粗分**：它把各种面板报成 MENU / GAME_WORLD / EDITOR，**与具体面板无关** ⇒ 面板级判据只能靠屏上文字。
 
 ## 六、危险操作（C 级，只允许在一次性存档里做）
 

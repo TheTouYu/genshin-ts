@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""ys-pick —— 从一次 look 的 JSON 里按名字挑出一个可点坐标（2026-10-19 建）
+
+为什么单独做：进面板时「预存坐标」会因菜单滚动位置变化而点到空处（实测帧差 0.007 = 没打开），
+「裸名字」会在页签已开时歧义（磁贴 + 页签名都命中 ⇒ 解析器 fail-closed rc=1）。
+从 look 的 bbox 现算中心，同时保留"按 kind 优先"这条裁决，比两者都稳。
+
+用法：ys-pick <look.json> <名字子串>      输出 "x,y"；挑不到退出码 1
+优先级：tile > row > button > 其它；同类里取面积最大的（磁贴比页签名更可能是入口）
+"""
+import json
+import sys
+
+
+def rank(kind):
+    return {"tile": 0, "row": 1, "button": 2, "chip": 3}.get(kind, 4)
+
+
+def main():
+    if len(sys.argv) < 3:
+        print("usage: ys-pick <look.json> <name>", file=sys.stderr)
+        return 2
+    path, want = sys.argv[1], sys.argv[2]
+    try:
+        d = json.load(open(path))
+    except Exception as e:
+        print(f"cannot read {path}: {e}", file=sys.stderr)
+        return 2
+    cand = []
+    for o in d.get("objects") or []:
+        t = " ".join(o.get("text") or [])
+        if not t:
+            continue
+        if t == want or t.startswith(want):
+            score = 0
+        elif want in t:
+            score = 1
+        else:
+            continue
+        x, y, w, h = o["bbox"]
+        cand.append((score, rank(o.get("kind")), -w * h, x, y, w, h))
+    if not cand:
+        print(f"no object matches {want!r}", file=sys.stderr)
+        return 1
+    cand.sort()
+    _, _, _, x, y, w, h = cand[0]
+    print(f"{int(x + w / 2)},{int(y + h / 2)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

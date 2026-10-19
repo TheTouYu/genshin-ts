@@ -1,0 +1,58 @@
+#!/bin/bash
+# ys-cover —— 多面板批量覆盖驱动（2026-10-19 建）
+# 流程：归位到系统菜单 → 从 look 的 bbox 算入口坐标点进去 → 面板内枚举逐点覆盖(不按 ESC) → 回场景
+# 用法：ys-cover [面板名子串]   （不给参数 = 跑内置清单）
+set -u
+HERE=$(cd "$(dirname "$0")" && pwd)
+OPS="$HERE/ys-ops"; CRAWL="$HERE/ys-crawl"; PICK="$HERE/ys-pick"
+export DISPLAY="${DISPLAY:-:1}"
+set -a; . "$HERE/ys-env.sh" >/dev/null 2>&1 || true; set +a
+WIN=0x1800001
+MARK=计时器管理
+WS=/home/h/genshin-ts/.scratch/gui-service/worldsvc.py
+LOOK=/tmp/cover-look.json
+
+do_look() { rm -f "$LOOK"; timeout 90 python3 "$WS" look --live --backend daemon-world --json-out "$LOOK" >/dev/null 2>&1; [ -s "$LOOK" ]; }
+esc1() { timeout 20 "$HERE/ys-gui-slot" $WIN 8 bash -c 'ydotool key 1:1 1:0' >/dev/null 2>&1; }
+mark_on_screen() {
+  python3 -c "
+import json,sys
+d=json.load(open('$LOOK'))
+t=' '.join(' '.join(o.get('text') or []) for o in (d.get('objects') or []))
+sys.exit(0 if '$1' in t else 1)" 2>/dev/null
+}
+reset_menu() {
+  local i
+  for i in 1 2 3 4 5; do
+    if do_look && mark_on_screen "$MARK"; then return 0; fi
+    esc1; sleep 2
+  done
+  return 1
+}
+run_panel() {
+  local name=$1 at
+  reset_menu || { echo "[cover] 归位失败，跳过 $name"; return 1; }
+  at=$("$PICK" "$LOOK" "$name" 2>/dev/null)
+  if [ -z "${at:-}" ]; then echo "[cover] 屏上找不到入口 $name，跳过"; return 1; fi
+  echo "[cover] 入口 $name @ $at"
+  "$OPS" add --id "PANEL-$name" --path "编辑器 > 系统菜单" --control "$name" --action click --at "$at" --risk A 2>/dev/null | tail -1
+  sleep 4
+  "$CRAWL" --from-look --by-name --restore none --max-items 40 --settle 1.2 2>&1 | grep -vE "Deprecation|px = list" | tail -8
+}
+PANELS="关卡设置
+界面控件组管理
+主镜头管理
+外围系统管理
+货币与背包
+奇域礼盒管理
+计时器管理
+关卡变量管理
+预设点管理
+技能资源管理
+背景音乐管理"
+[ $# -gt 0 ] && PANELS=$(printf '%s\n' "$PANELS" | grep -E "$1")
+while IFS= read -r name; do
+  [ -z "$name" ] && continue
+  echo "=== $name ==="
+  run_panel "$name"
+done <<< "$PANELS"
