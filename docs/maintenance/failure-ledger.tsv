@@ -6,7 +6,7 @@ F-2-04	2026-10-17	环境	命令里把仓库路径写成 /home/genshin-ts（漏 /
 F-2-05	2026-10-17	环境	槽外设剪贴板（无 DISPLAY）静默失败 + xclip -loops 1 首读后自杀 → 粘进聊天文本	复盘第二部 #5	契约 §12：常驻 xclip + 槽内 Ctrl+V；P2 domain.json	guards		prevented	等 domain-guard 交付 guard=G-CLIPBOARD
 F-2-06	2026-10-17	身份	pkill -f "xclip ..." 匹配到发起它的 bash 自身，把自己杀了	复盘第二部 #6	pkill -x；P2 ys-safe-kill（排除自身）	guards		prevented	等 domain-guard 交付 guard=G-PKILL
 F-2-07	2026-10-17	判据	ys-state --json 返回 frame:null 后仍 cp 共享临时路径 → 旧帧当"切换后画面"	复盘第二部 #7	P1 evidence{fresh}+sha；replay 缺 sha 报 ERROR	identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	prevented	identity-gate 交付：replay 无 sha/无时刻/sha 不符 ⇒ ERROR
-F-2-08	2026-10-17	归因	把"探针全超时"归因成"判据太严"，真因是 daemon 把 0..1 浮点喂给按 0..255 写死的判据	复盘第二部 #8 / D355	单位护栏 + fail-closed + 探针矩阵			open	探针矩阵覆盖单位错，但无注入用例证明其非空转 ⇒ 降回 open
+F-2-08	2026-10-17	归因	把"探针全超时"归因成"判据太严"，真因是 daemon 把 0..1 浮点喂给按 0..255 写死的判据	复盘第二部 #8 / D355	单位护栏 + fail-closed + 探针矩阵			open	[纪律] 接受靠纪律：归因前先问「是判据还是数据」并各取一个读数
 F-1-01	2026-10-17	判据	sleep 22/30 冒充同步（一轮 426s 里 92% 是仪器开销）	复盘第一部 #1	ys-wait 谓词等待 + ys-round 零固定 sleep	guards		prevented	无注入用例（round-check 无法被安全注入）⇒ 按纪律降回 open guard=G-SLEEP
 F-1-02	2026-10-17	判据	import -window root 失败返回 0 字节，把失败耗时 18ms 当快路径	复盘第一部 #2	契约：耗时必须带产物校验	guards		prevented	无机械防线 guard=G-CAPTURE-EMPTY
 F-1-03	2026-10-17	静默	profile 只存 name/state/tpl/margin，缺 x/y/patch → ROI 全落 (0,0)，判态静默回退慢路径	复盘第一部 #3	字段补全 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
@@ -16,8 +16,8 @@ F-1-06	2026-10-17	静默	自愈引用未定义变量 _ENVSH，NameError 被 exce
 F-1-07	2026-10-17	判据	账本窗口数字虚高 20 倍（守护与手动 scan 并发重复记账）	复盘第一部 #7	flock + callId 去重 + 读侧兜底	guards		prevented	无机械防线（可加账本自检） guard=G-LEDGER-DEDUP
 F-1-08	2026-10-17	判据	锚点用 best-case（同态最高分）挖 → 过拟合单帧，在同态其它版式上崩	复盘第一部 #8	改 worst-case 选锚 + 回归	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
 F-1-09	2026-10-17	判据	0.9 阈值跨 CPU 0.9371 / GPU 0.8997，同一对样本判态相反	复盘第一部 #9	弃单阈值改几何一致性（锚图 inlier）	gate1	bash tools/ys-editor/tests/ledger-inject.sh regress-neg	prevented	
-F-1-10	2026-10-17	归因	GLM 首次评审零实测（没跑实验/查论文/GitHub）却给出严密结论	复盘第一部 #10	委托任务书写取证义务：每条结论带命令+输出			open	靠流程，非机械
-F-1-11	2026-10-17	归因	实验全跑在 CPU，生产 ncc() 在 work>3e9 时走 GPU —— 复跑一致≠路径正确	复盘第一部 #11	复跑 GPU 版 + 把"路径核对"写进判据			open	
+F-1-10	2026-10-17	归因	GLM 首次评审零实测（没跑实验/查论文/GitHub）却给出严密结论	复盘第一部 #10	委托任务书写取证义务：每条结论带命令+输出			open	[纪律] 接受靠纪律：下结论前必须先跑一次最小实验并贴读数
+F-1-11	2026-10-17	归因	实验全跑在 CPU，生产 ncc() 在 work>3e9 时走 GPU —— 复跑一致≠路径正确	复盘第一部 #11	复跑 GPU 版 + 把"路径核对"写进判据	guards		prevented	 guard=G-DEVICE
 F-2-09	2026-10-17	归因	把「命令里路径漏 /h」归因成「槽内文件系统不同/绝对路径不存在」，并写进契约与技能	复盘 §7 #4 的首次结论；domain-guard 用 stat dev:inode 对拍证伪（49:2794949 两域相同）	任何 rc≠0 先读消息文本并逐字核对其中路径；结论写进契约前需第二通道对拍	domain-selftest	bash tools/ys-editor/tests/ledger-inject.sh path-typo	prevented	用户/队友纠错后被证伪；契约 §12 与技能已作废旧结论
 F-2-10	2026-10-17	判据	未测量就写死数值/区域：铅笔按钮写 (523,96)（实测 (518,86)）、遮挡区写"覆盖 (0,0)-(400,120)"（实测 80x50 小框）、还把改名前的帧起名「云阶」	screen-digest 交付用数值逐条否证；我复跑两帧 controls 对比确认	给下游的坐标/区域必须由工具量出来并贴数值；fixture 文件名即断言（名字含什么，帧里就必须有什么）	screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	prevented	坐标由工具量出（circle@516,86 / @518,86 两帧实测）；fixture 名与帧内文本一致（云阶帧确实含云阶）
 F-3-01	2026-10-18	身份	连领奖励时用固定 y 坐标循环，领一次列表滚动→后半段全点空	领奖面板点前/点后 OCR 行位置变化（10000/14000 行上移）	列表类一律"行标签+offset"，禁止固定坐标连点	layer	bash tools/ys-editor/tests/layer-selftest.sh	prevented	ys-layer 能报"哪一层/有无 scrim/是否 modal"；列表滚动口径见 EC-M004
@@ -32,6 +32,6 @@ F-20261019-30	2026-10-19	身份	ys-snap --window 按类名/窗口 id 选择直�
 F-20261019-31	2026-10-19	身份	ys-snap --window idx:N 的序号会随窗口堆叠变化，抓到的是 nvtop 而不是游戏	2026-10-19 04:30 idx:5 抓到 nvtop 终端	抓游戏一律用窗口 id 或类名，禁用 idx（序号不是身份）；工具侧对 idx 打印警告	guards		prevented	 guard=G-IDX
 F-20261019-32	2026-10-19	静默	ys-capture serve 起来后 latest 报 STALE_FRAME（环缓冲无可读帧），没有提示该等多久/该做什么	2026-10-19 04:31 serve 后 4s 取帧失败	serve 启动后应等待首帧就绪再返回（带超时与明确状态）；latest 的 STALE_FRAME 要给出'环内最新帧年龄'与建议	guards		prevented	 guard=G-STALE
 F-20261019-33	2026-10-19	判据	把实测值当及格线：滚动 7-8s / 读屏 0.11s 都被我说成'可以了'，而 AGI-BAR 写的是单次 ≤50ms	用户点破『一个操作要重复 1 万次，不要随意放低标准』；复核 §十 实测 slot 1.38-2.31s=28-46×	工具输出带 budget{target_ms,actual_ms,over}，超预算在第一屏打印 ⚠️（ys-list/ys-scroll 已实现）	guards		prevented	 guard=G-BUDGET
-F-20261019-34	2026-10-19	归因	信任子代理自述不复核它的原始 trace（它说 410s，实际工具只占 46%、read_image 9 次）	翻 session jsonl 原始事件才发现 read_image×9、盲滚 clicks 200/300/500	task-trace-review 技能新增『DSH 子代理原始 trace 提取』节：四张必出读数			open	
+F-20261019-34	2026-10-19	归因	信任子代理自述不复核它的原始 trace（它说 410s，实际工具只占 46%、read_image 9 次）	翻 session jsonl 原始事件才发现 read_image×9、盲滚 clicks 200/300/500	task-trace-review 技能新增『DSH 子代理原始 trace 提取』节：四张必出读数			open	[纪律] 接受靠纪律：引用子代理结论前先跑 task-trace-review 的四张读数
 F-20261019-35	2026-10-19	身份	pkill -f "<关键字>" 匹配到发起它的 bash 自身，把自己杀了（F-2-06 复发）	2026-10-19 11:0x pkill -f "ys_capture.py serve" → bash 被 SIGTERM	写进工具习惯：用 pgrep -af 'ys_capture[.]py' 这类正则断开自匹配	guards		prevented	 guard=G-PKILL
 F-20261019-36	2026-10-19	环境	取焦点租约后跑完不归还，用户在旁边干等（怕打断而不敢动）	2026-10-19 12:1x 基准动作项：租约 60s 未 release，桌面一直停在游戏窗	ys-focus-guard 看门狗：每 2s 检查租约，过期/持有者进程已死 ⇒ 自动还原 prev 焦点（回落 firefox）并清租约；owner_pid 已写进租约			prevented	guard=ys-focus-guard

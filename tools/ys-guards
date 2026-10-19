@@ -201,11 +201,29 @@ def g_capture_empty():
                 bad.append(f"{name}: 缺 {t}（未校验抓帧产物非空）")
     return (not bad), bad, "抓帧后必须检查字节数/像素数组长度，0 字节 ⇒ 报 EMPTY_CAPTURE 而不是 ok:true"
 
+
+def g_device_path():
+    """G-DEVICE：生产路径的 GPU/CPU 分支必须存在且有测试覆盖（账本 F-1-11：实验全 CPU、生产走 GPU）。"""
+    p = os.path.join(YSE, "ys_look.py")
+    txt = read(p)
+    bad = []
+    if "work <= 3e9" not in txt:
+        bad.append("ys_look.ncc 的 GPU/CPU 分支不见了（阈值 work<=3e9）")
+    tests = os.path.join(YSE, "tests")
+    covered = False
+    if os.path.isdir(tests):
+        for n in os.listdir(tests):
+            if n.endswith((".py", ".sh")) and "ncc" in read(os.path.join(tests, n)):
+                covered = True
+    if not covered:
+        bad.append("没有测试覆盖 ncc 的 CPU/GPU 分支（复跑一致 ≠ 路径正确）")
+    return (not bad), bad, "为 ncc 的两条分支各建一个最小用例（大 work 走 GPU、小 work 走 CPU），断言实际 backend"
+
 GUARDS = {
     "G-SLEEP": g_sleep, "G-PKILL": g_pkill, "G-IDX": g_idx_window,
     "G-BUDGET": g_budget, "G-SNAP": g_snap_fields, "G-STALE": g_stale_hint,
     "G-BBOX": g_bbox_doc,
-    "G-CLIPBOARD": g_clipboard, "G-CAPTURE-EMPTY": g_capture_empty, "G-LEDGER-DEDUP": g_ledger_dedup,
+    "G-CLIPBOARD": g_clipboard, "G-CAPTURE-EMPTY": g_capture_empty, "G-DEVICE": g_device_path, "G-LEDGER-DEDUP": g_ledger_dedup,
 }
 
 
