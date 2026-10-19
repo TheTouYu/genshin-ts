@@ -47,6 +47,9 @@ _CACHE = {}          # path -> (mtime, tensor)：只缓存**模板**（小、稳
 #   · 默认**关**（max_age_ms 缺省/0 ⇒ 每次新抓）。用过期帧判态=静默错误，绝不能默认开。
 #   · 只对同一 (roi, profile) 生效；换了 ROI/profile 一律视为未命中。
 _LAST_FRAME = {"It": None, "t": 0.0, "key": None}
+_PARTS = {}          # 分项耗时（grab/gpu/probe/anchor/decide/uid）：判态要能说清慢在哪一步
+_XGRAB = {"g": None, "win": None}   # 进程内 XShm 抓帧器（2–12ms）；ImageMagick 子进程 ~116ms
+_FULL = {"rgb": None, "roi": None}  # 单次请求内复用整帧（ROI 裁剪与 UID 小条同源，只抓一次）
 _FRAME_CACHE = {}    # path -> ((mtime_ns, size), tensor)：**离线帧**缓存（活体帧不缓存）
 _FRAME_CACHE_MAX = 2
 
@@ -96,6 +99,22 @@ def _cached(path, cuda=True):
         _CACHE.pop(k)
     return t
 
+def _full_shot():
+    """整窗一次 XShm 抓帧（实测 2–12ms）；同一请求内复用。失败抛异常 → 调用方回退 ImageMagick。"""
+    if _FULL.get("rgb") is not None:
+        return _FULL["rgb"]
+    import ys_capture as CAP
+    disp = os.environ.get("DISPLAY") or ":1"
+    key = int(str(YL.WIN), 0) if not isinstance(YL.WIN, int) else YL.WIN
+    if _XGRAB["g"] is None or _XGRAB["win"] != key:
+        _XGRAB["g"] = CAP.XShmGrabber(disp, key, 2560, 1440)
+        _XGRAB["win"] = key
+    rgb, ms = _XGRAB["g"].grab()
+    _FULL["rgb"] = rgb
+    _PARTS["xshm_ms"] = round(ms, 1)
+    return rgb
+
+
 def _load_frame(req):
     """取帧一次，转成 GPU 张量（C,H,W float）——批量请求里所有锚点共用这一份。"""
     import numpy as np, torch
@@ -113,6 +132,25 @@ def _load_frame(req):
     if req.get("frame"):                       # 离线/基准：读 PNG（带 (mtime,size) 缓存）
         return _frame_tensor(req["frame"])
     else:                                      # 在线：抓窗口区域（原始像素，无 PNG 编解码）
+        _t_grab = time.time()
+        _t0x = time.time()
+        try:                                   # 首选：进程内 XShm（整窗一次，ROI 就地裁）
+            import numpy as _np
+            _full = _full_shot()
+            if req.get("region"):
+                X, Y, W, H = map(int, req["region"])
+            else:
+                X, Y, W, H = 0, 0, _full.shape[1], _full.shape[0]
+            arr = _full[Y:Y + H, X:X + W].astype(_np.float32) / 255.0
+            _FULL["roi"] = arr                    # 判据取点直接用这份，省一次 GPU→CPU 回传
+            req["_origin"] = (X, Y)
+            _PARTS["grab_ms"] = round((time.time() - _t0x) * 1000, 1)
+            _t_gpu = time.time()
+            t = torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+            _PARTS["gpu_ms"] = round((time.time() - _t_gpu) * 1000, 1)
+            return t
+        except Exception as _e:                # noqa: BLE001 —— XShm 不可用（窗口没了/无 MIT-SHM）回退
+            _PARTS["xshm_error"] = f"{type(_e).__name__}: {_e}"[:80]
         if req.get("region"):
             X, Y, W, H = map(int, req["region"])
             arr = YL.grab(X, Y, W, H)
@@ -133,7 +171,15 @@ def _load_frame(req):
                 X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
                 arr = YL.grab(X, Y, W, H)
         req["_origin"] = (X, Y)
-    return torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+        _PARTS["grab_ms"] = round((time.time() - _t_grab) * 1000, 1)
+        _t_gpu = time.time()
+        t = torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+        _PARTS["gpu_ms"] = round((time.time() - _t_gpu) * 1000, 1)
+        return t
+    _t_gpu = time.time()
+    t = torch.from_numpy(arr).permute(2, 0, 1).contiguous().cuda()
+    _PARTS["gpu_ms"] = round((time.time() - _t_gpu) * 1000, 1)
+    return t
 
 
 def _tpl_tensor(path, scales, cuda=True):
@@ -193,6 +239,7 @@ def _state(req):
       · 判据/阈值/状态名/投票：`ys-state` 模块（import 进来，不复制）
     """
     t0 = time.time()
+    _PARTS.clear()
     YS = ys_state()
     prof_path = req.get("profile") or YS.PROFILE_DEFAULT
     prof = YS.load_profile(prof_path)
@@ -235,14 +282,20 @@ def _state(req):
             "value": f"实际 {geom_w}x{geom_h}（缩放帧/抓帧失败态）", "passed": False, "kind": "pixel"}
     else:
         import numpy as np
+        _t_probe = time.time()
         pts = YS.all_probe_points()
-        arr = (It.permute(1, 2, 0).cpu().numpy() * 255).round().astype("uint8")
+        if _FULL.get("roi") is not None and _FULL["roi"].shape[:2] == (H, W):
+            arr = (_FULL["roi"] * 255).round().astype("uint8")   # 活体 XShm 路径：免 24MB 回传
+        else:
+            arr = (It.permute(1, 2, 0).cpu().numpy() * 255).round().astype("uint8")
         cells = {}
         for x, y in pts:
             rx, ry = x - ox, y - oy
             if 0 <= rx < W and 0 <= ry < H:
                 cells[(x, y)] = tuple(int(v) for v in arr[ry, rx])
         readings.update(YS.pixel_readings(YS.CellsPixels(cells, geom_w, geom_h)))
+        _PARTS["probe_ms"] = round((time.time() - _t_probe) * 1000, 1)
+        _t_anc = time.time()
         jobs, state_of = YS.anchor_jobs(prof)
         if ox or oy:                                       # 锚点 ROI 平移到裁剪坐标系
             for j in jobs:
@@ -250,19 +303,28 @@ def _state(req):
         r = _batch_on(It, jobs, -ox, -oy)
         scores = {x["id"]: (x["best"]["score"] if x.get("best") else -1.0) for x in r["results"]}
         readings.update(YS.anchor_readings_from_scores(scores, state_of))
-    res = YS.decide(readings)   # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
+        _PARTS["anchor_ms"] = round((time.time() - _t_anc) * 1000, 1)
+    _t_dec = time.time()
+    res = YS.decide(readings)
+    _PARTS["decide_ms"] = round((time.time() - _t_dec) * 1000, 1)
+    # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
     # 而本体判据要看右下 UID（x≈2370，在裁剪外）。改由 ys-state 在 UNKNOWN 时用全帧兜底。
     # 本体态补判（2026-10-19）：fast ROI 裁到 x≤1400，右下 UID 行不在内 ⇒ 世界里会判成
     # PLAYTEST/UNKNOWN。这里抓一条 UID 小条、用常驻 OCR 引擎识别，并按**帧 sha 缓存 2s**。
     # 关键：OCR 用 _ocr_array + monkey-patch YS._ocr_boxes（与 _world 同法），
     # **绝不调用会重入 daemon RPC 的路径**（那会自锁，e676e698 已踩）。
     if is_live and res.get("state") in ("UNKNOWN", "PLAYTEST"):
+        _t_uid = time.time()
         try:
             import hashlib as _hl
             import numpy as _np
             _bx, _by, _bw, _bh = 2200, 1340, 360, 100
-            _strip = YL.grab(_bx, _by, _bw, _bh)
-            _a8 = (_np.clip(_strip, 0, 1) * 255).round().astype(_np.uint8)
+            try:                                   # 同一张 XShm 整帧裁条：0ms（避免第二次抓帧 ~50ms）
+                _strip = _full_shot()[_by:_by + _bh, _bx:_bx + _bw]
+                _a8 = _strip.astype(_np.uint8)
+            except Exception:                      # noqa: BLE001 —— 整帧不可用时退回单抓
+                _strip = YL.grab(_bx, _by, _bw, _bh)
+                _a8 = (_np.clip(_strip, 0, 1) * 255).round().astype(_np.uint8)
             _sha = "t"      # 画面持续渲染 ⇒ 像素 sha 每帧都变，改按**时间**缓存（UID 只在切场景时变）
             _now = time.monotonic()
             _hit = _UID_CACHE.get(_sha)
@@ -285,6 +347,7 @@ def _state(req):
                 res["ambiguous"] = False
         except Exception as _e:                             # noqa: BLE001
             res["world_check_error"] = f"{type(_e).__name__}: {_e}"
+        _PARTS["uid_ms"] = round((time.time() - _t_uid) * 1000, 1)
     readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings,
                 "ms": round((time.time() - t0) * 1000),
@@ -292,7 +355,7 @@ def _state(req):
                 "judge_ms": round((time.time() - t_load) * 1000),
                 "roi": [ox, oy, W, H], "frame_bytes": int(W * H * 3),
                 "reused": reused, "frame_age_ms": age_ms,
-                "via": "daemon"})
+                "via": "daemon", "parts": dict(_PARTS)})
     return res
 
 
@@ -1874,6 +1937,8 @@ def _grab_geo():
 
 
 def handle(req):
+    _FULL["rgb"] = None                     # 每请求只复用同一张整帧，不跨请求（画面会变）
+    _FULL["roi"] = None
     cmd = req.get("cmd")
     YL.WIN = req.get("win", WIN)
     if cmd == "px":
