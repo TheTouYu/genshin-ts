@@ -102,6 +102,19 @@
 - **爬取器**：`ys-crawl --from-look --by-name --goto-text <屏标记>`：自己归位 → 自己枚举 → 逐个点 → 自适应回退
 - **未闭合**：`--enter-text` 用名字进面板时解析失败（rc=1），进面板目前靠坐标；`ys-state` 只粗分编辑器面板
 
+
+### 编辑器操作面覆盖率工作流（goal，2026-10-19 19:0x 起）
+- **口径与交接**：`docs/game-engine-knowledge/editor-operation-surface.md`（十二节是机器状态表 + 下一步）
+- **当前读数**：覆盖率 **33 / 458 = 7.21%**（命令：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv`）
+- **九个工具全绿**：ys-docops（分母458）· ys-enum（帧枚举雷达）· ys-rowclass（行分类）· ys-ops（台账/覆盖）·
+  ys-crawl · ys-cover · ys-goto（进面板）· ys-pick（bbox 取点）· cov-field.py（字段级覆盖）
+- **三条关键判据**（都是被实测打回来才定下的）：
+  ① 进面板用 **bbox 现算中心**（坐标 0.007 / 裸名字歧义 / bbox 0.95）
+  ② 归位标记只看 **y≥60** 的对象（顶部页签带里也有「计时器管理 ×」）
+  ③ 字段证据区取 **两个矩形的最大**（行条带对小控件、向下扩展对下拉）
+- **最大风险**：判据错位时机器会稳定产出"看起来正确"的假行 ⇒ 批量收尾前抽 3 行回原始帧复核
+- 上下文极度紧张时优先读这一节 + 知识文档第十二节，不要重新摸索工具用法
+
 ### 正在跑
 - `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
 - `perception`：world_hud 3 个「不像 glyph_icon」单元（元素能量/护盾条 325×20、生命值条 305×26、
