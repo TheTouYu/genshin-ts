@@ -81,7 +81,12 @@
 - 验证：`gui-det-contract` 两权重 fails=0；`gui-service selftest` **90/90 PASS**。
 
 ### 待办（按价值排序）
-1. **row 解码 cap12**（trainer 已给单变量证据：v4 新 val 2/33→9/33，旧 val 101→103，v2 噪声级不动）——已批，等落地。
+1. ~~**row 解码 cap12**~~ ✅ 已落地并生效（`f94562c3` + `30a41b97`）：`hcells = min(hcells, 1.2 * h_reg)`，删该行即回退。
+   验收：契约 fails=0（v2+world）；新 val 行 R **.061→.273**（33 GT/3 界面，方向性）；旧 val .500→.510；
+   **生产入口 `Detector.detect()` 19/24=.79**；线上菜单模型三项一字不变。
+   菜单行是另一种病（10px 高 / 长宽比 12.4 / 阈值降到 .10 峰数仍恒 1–2）⇒ 表示层缺口，需重训，本轮不动。
+   **实测已重启 lookd 生效**：live world `row` 5 个，高度 **46.5/49.5/65.6/47.5/59.2px**（修复前是 ~1.93× 即 90–130px），
+   `objects=59`（glyph_icon 39 / button 8 / panel 5 / row 5 / chip 1 / card 1）。
 2. **`act(text)` 在世界里不可用**：`free_text` 在 daemon 侧已字符串化、无 bbox。修法=新增 `text_boxes`（带 bbox）
    + resolver 回退到"文本自身 bbox 中心"，需动 daemon `_KEYS` / `schema.new_world` / `_TOP_ALLOWED` / worldsvc 四处白名单。**本轮未做**。
 3. `_WORLD_CACHE` 键含整帧 sha ⇒ 活体画面几乎不命中（与判态那次同一个坑）。
