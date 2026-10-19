@@ -327,8 +327,10 @@ def cmd_covered(a):
         if not ic:
             continue
         src = list(ctl.get(ic, []))
-        for alt in _load_aliases().get(ic, ()):
-            src += ctl.get(alt, [])
+        # 别名表是「屏上名 → 文档名」，而 ctl 的键是**屏上名** ⇒ 必须反向找：
+        for _screen, _docs in _load_aliases().items():
+            if ic in _docs:
+                src += ctl.get(_screen, [])
         if src:
             out.append((it["id"], it["control"], src[-1]["control"], src[-1].get("note", "")[:60]))
     for i, c, sc, note in out:
