@@ -36,7 +36,7 @@ def ys_state():
     return _YS_MOD
 
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
-WIN = os.environ.get("YS_WIN", "0x01400001")
+WIN = os.environ.get("YS_WIN") or __import__("ys_look")._resolve_win()
 
 
 

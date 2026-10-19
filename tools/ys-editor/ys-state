@@ -1354,13 +1354,21 @@ def regress(channels, as_json=False):
 
 
 def _has_game_window(timeout=2.0):
-    """游戏窗口是否存在（快速探测；无窗时不要傻等 90s 超时）。"""
+    """游戏窗口是否存在（快速探测；无窗时不要傻等 90s 超时）。
+
+    ⚠ 2026-10-19 实测坑：本机 X 访问需要 XAUTHORITY，缺它时 `xdotool search` 会打印
+    "Authorization required" 并返回空 —— 那是**探测失败**，不是"没有窗口"。
+    ⇒ 探测失败一律按"有窗口"处理（fail-open），把真正的失败交给后续取帧路径报错。
+    """
     import subprocess as _sp
     try:
         r = _sp.run(["xdotool", "search", "--class", "yuanshen"], capture_output=True, text=True, timeout=timeout)
+        if r.returncode != 0 or "Authorization" in (r.stderr or ""):
+            return True                                  # 探测不可用 ⇒ 不拦
         return bool(r.stdout.strip())
     except Exception:                                    # noqa: BLE001
-        return True                                      # 探测失败时不拦截（交给后续路径报错）
+        return True
+
 
 def main(argv):
     args = list(argv)
