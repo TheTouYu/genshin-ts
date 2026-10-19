@@ -243,7 +243,7 @@ def run_gui(display, snap, want=""):
             lb.insert("end", label + "  " + (w.get("title") or w.get("name") or "")[:26])
         if want:
             for i, w in enumerate(wins):
-                if want.lower() in w["class"].lower():
+                if want.lower() in (w.get("class") or "").lower():
                     lb.selection_set(i)
                     lb.see(i)
                     break

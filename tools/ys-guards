@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+"""ys-guards — 失败账本的**机械防线**集合（每条 guard 对应一个已知失败类别）。
+
+存在理由（2026-10-19 元复盘）：账本 32 条里 12 条「没有机械防线」，于是同一类错反复复发
+（判据滑动、pkill 自匹配、序号当身份…）。这份工具把能静态/轻量检查的那部分变成**可执行守卫**，
+接进 `tools/failure-ledger check`（任何 FAIL ⇒ 退出码 1）。
+
+用法：
+  tools/ys-guards            # 跑全部 guard，打印 PASS/FAIL
+  tools/ys-guards --json     # 机读
+  tools/ys-guards --only G-SLEEP,G-PKILL
+
+每条 guard 的三要素：**检查什么 / 为什么（对应账本 id）/ 失败时怎么办**。
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TOOLS = os.path.join(ROOT, "tools")
+YSE = os.path.join(TOOLS, "ys-editor")
+
+
+def read(p):
+    try:
+        return open(p, encoding="utf-8", errors="replace").read()
+    except Exception:                                    # noqa: BLE001
+        return ""
+
+
+def files_under(d, exts=(".py", ".sh", ".bash")):
+    out = []
+    for base, _dirs, names in os.walk(d):
+        if "__pycache__" in base or "/models" in base:
+            continue
+        for n in names:
+            if n.endswith(exts) or n.startswith("ys-"):
+                out.append(os.path.join(base, n))
+    return out
+
+
+# ── guards ────────────────────────────────────────────────────────────────────
+
+def g_sleep():
+    """G-SLEEP：不许用固定 sleep ≥5s 冒充同步（账本 F-1-01 / F-20261019-29）。"""
+    bad = []
+    for f in files_under(YSE):
+        if os.path.abspath(f) == os.path.abspath(__file__):
+            continue
+        for i, line in enumerate(read(f).splitlines(), 1):
+            st = line.strip()
+            if st.startswith("#") or st.startswith('"') or st.startswith("'"):
+                continue
+            if re.search(r"\bsleep\s+([5-9]|\d{2,})\b", line) and "for " not in line and "while " not in line:
+                bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:80]}")
+    return (not bad), bad[:8], "改成轮询 + 可满足判据（wait_until），或把长等待移出同步路径"
+
+
+def g_pkill():
+    """G-PKILL：`pkill -f <串>` 会匹配到发起它的 shell 自身（账本 F-2-06 / F-20261019-35）。"""
+    bad = []
+    for f in files_under(TOOLS):
+        if os.path.abspath(f) == os.path.abspath(__file__) or "/tests/" in f:
+            continue
+        for i, line in enumerate(read(f).splitlines(), 1):
+            st = line.strip()
+            if st.startswith("#") or st.startswith("print(") or st.startswith('\"\"\"'):
+                continue
+            m = re.search(r"pkill\s+-f\s+['\"]?([^'\";|]+)", line)
+            if not m:
+                continue
+            pat = m.group(1)
+            if "[" in pat or "]" in pat:     # 已用字符类断开自匹配（ys_capture[.]py）
+                continue
+            bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:90]}")
+    return (not bad), bad[:8], "用字符类断开自匹配（`ys_capture[.]py`），或先 pgrep 再按 pid 杀"
+
+
+def g_idx_window():
+    """G-IDX：窗口 `idx:N` 会随堆叠漂移，不能当身份（账本 F-20261019-31）。"""
+    bad = []
+    for f in files_under(TOOLS):
+        if os.path.abspath(f) == os.path.abspath(__file__):
+            continue
+        txt = read(f)
+        for i, line in enumerate(txt.splitlines(), 1):
+            if line.strip().startswith("#"):
+                continue
+            if "--window idx:" in line or "window=idx:" in line:
+                bad.append(f"{os.path.relpath(f, ROOT)}:{i}: {line.strip()[:90]}")
+    return (not bad), bad[:8], "用窗口 id（0x…）或类名；idx 只在交互式列表里给人看"
+
+
+def g_budget():
+    """G-BUDGET：GUI 工具必须输出 budget{target_ms,actual_ms,over}（账本 F-20261019-33）。"""
+    need = ["ys-list", "ys-scroll"]
+    bad = []
+    for n in need:
+        p = os.path.join(YSE, n)
+        if not os.path.exists(p):
+            bad.append(f"缺工具：{n}")
+            continue
+        if '"budget"' not in read(p):
+            bad.append(f"{n}: 没有 budget 字段")
+    return (not bad), bad, "在工具输出里加 budget{target_ms,actual_ms,over}，超预算第一屏打印 ⚠️"
+
+
+def g_snap_fields():
+    """G-SNAP：ys-snap 的窗口条目字段访问要兜底（账本 F-20261019-30 KeyError）。"""
+    p = os.path.join(ROOT, "tools", "ys-snap")
+    txt = read(p)
+    bad = []
+    for pat in ('w["name"]', 'w["id"]', 'w["class"]'):
+        if pat in txt:
+            bad.append(f'ys-snap 仍直接索引 {pat}（窗口条目可能缺该字段）')
+    return (not bad), bad, '改成 w.get("name") 等兜底访问'
+
+
+def g_stale_hint():
+    """G-STALE：抓帧失败要说明"帧多旧/该等多久"，不能只报错误码（账本 F-20261019-32）。"""
+    p = os.path.join(YSE, "ys_capture.py")
+    txt = read(p)
+    has = ("STALE_FRAME" in txt and ("age" in txt or "帧龄" in txt or "frame_age" in txt))
+    return has, ([] if has else ["ys_capture.py 的 STALE_FRAME 没有帧龄/等待提示"]), \
+        "STALE_FRAME 时回传环内最新帧年龄与建议等待"
+
+
+def g_bbox_doc():
+    """G-BBOX：bbox 口径必须在工具里显式归一（本会话踩了 5 次）。"""
+    checks = {
+        "ys-list": ["xyxy", "xywh"],
+        "ys_lookd.py": ["xyxy"],
+    }
+    bad = []
+    for name, tokens in checks.items():
+        p = os.path.join(YSE, name)
+        txt = read(p)
+        for t in tokens:
+            if t not in txt:
+                bad.append(f"{name} 没写明 {t} 口径（易再次踩坑）")
+    return (not bad), bad, "在工具里显式转换并注释两套口径（daemon=xywh / ys-screen=xyxy）"
+
+
+
+def g_clipboard():
+    """G-CLIPBOARD：调 xclip 的脚本必须显式给 DISPLAY（槽外无 DISPLAY 会静默失败）。"""
+    bad = []
+    for f in files_under(TOOLS):
+        txt = read(f)
+        if "xclip" not in txt:
+            continue
+        invokes = any(re.search(r"(^|[;|&]\s*)(xclip|\$\{?XCLIP)", ln.strip())
+                      and not ln.strip().startswith("#")
+                      for ln in txt.splitlines())
+        if invokes and "DISPLAY" not in txt:
+            bad.append(f"{os.path.relpath(f, ROOT)}: 用了 xclip 但没设置 DISPLAY")
+    return (not bad), bad[:5], "调 xclip 前显式 export DISPLAY=:1（或统一走 ys-clip 包装器）"
+
+
+def g_ledger_dedup():
+    """G-LEDGER-DEDUP：命令遥测里同一 callId 只能记一次（账本 F-1-07 数字虚高 20 倍）。"""
+    import collections
+    path = os.path.expanduser("~/.dsh/cmdlog/commands.jsonl")
+    if not os.path.exists(path):
+        return True, [], ""
+    ids = collections.Counter()
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - 2_000_000))
+            import time as _t
+            cutoff = (int(_t.time()) - 1800) * 1000        # 只看近 30 分钟：历史重复是已知存量
+            for line in fh.read().decode("utf-8", "replace").splitlines():
+                if '"callId"' in line:
+                    try:
+                        o = json.loads(line)
+                        if (o.get("ts") or 0) >= cutoff:
+                            ids[o.get("callId")] += 1
+                    except Exception:                    # noqa: BLE001
+                        pass
+    except Exception:                                    # noqa: BLE001
+        return True, [], ""
+    dup = [k for k, v in ids.items() if v > 1]
+    return (not dup), [f"重复 callId {len(dup)} 个（最多重复 {max(ids.values()) if ids else 0} 次）"] if dup else [], \
+        "写入端按 callId 去重；统计端也要按 callId 去重后再汇总"
+
+GUARDS = {
+    "G-SLEEP": g_sleep, "G-PKILL": g_pkill, "G-IDX": g_idx_window,
+    "G-BUDGET": g_budget, "G-SNAP": g_snap_fields, "G-STALE": g_stale_hint,
+    "G-BBOX": g_bbox_doc,
+    "G-CLIPBOARD": g_clipboard, "G-LEDGER-DEDUP": g_ledger_dedup,
+}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", default="")
+    ap.add_argument("--json", action="store_true")
+    a = ap.parse_args()
+    names = [n.strip() for n in a.only.split(",") if n.strip()] or list(GUARDS)
+    results = []
+    for n in names:
+        fn = GUARDS.get(n)
+        if not fn:
+            results.append({"guard": n, "ok": False, "detail": ["未知 guard"]})
+            continue
+        ok, bad, hint = fn()
+        results.append({"guard": n, "ok": ok, "fail": bad, "hint": hint})
+    if a.json:
+        print(json.dumps(results, ensure_ascii=False, indent=1))
+    else:
+        for r in results:
+            print(f"{'PASS' if r['ok'] else 'FAIL'}  {r['guard']}")
+            for b in (r.get("fail") or [])[:5]:
+                print(f"        - {b}")
+            if not r["ok"]:
+                print(f"        → {r.get('hint')}")
+    fails = [r for r in results if not r["ok"]]
+    return 0 if not fails else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

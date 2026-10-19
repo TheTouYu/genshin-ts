@@ -25,7 +25,7 @@ if [ "${1:-}" = "--nav" ]; then
   for _ in 1 2 3 4 5 6; do
     S=$(judge)
     [ "$S" = SAVE ] && { echo SAVE; exit 0; }
-    if [ "$S" = MENU ]; then "$HERE/ys-pointer-click" 39 170 >/dev/null 2>&1; sleep 5
+    if [ "$S" = MENU ]; then "$HERE/ys-pointer-click" 39 170 >/dev/null 2>&1; "$HERE/ys-wait" --until "$HERE/ys-state --fast" --expect MENU --timeout 20 --label ui-state || true
     else "$HERE/ys-esc" >/dev/null 2>&1 || true; sleep 3; fi
   done
   judge; exit 0

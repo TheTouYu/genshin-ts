@@ -68,7 +68,7 @@ click() { local rc=0; ./ys-pointer-click "$1" "$2" >/dev/null || rc=$?; [ "$rc" 
     echo "✗ 到不了存档选择页（末态 $(st)）" >&2; return 1
   }
 
-  load_card2() { click "$C2X" "$C2Y"; sleep 3.5; click "$CFX" "$CFY"; sleep 20; }
+  load_card2() { click "$C2X" "$C2Y"; sleep 3.5; click "$CFX" "$CFY"; "$HERE/ys-wait" --until "$HERE/ys-state --fast" --expect EDITOR --timeout 45 --label reload || true; }
 
   echo "▶ 起点 state=$(st)"
   to_savelist || exit 4

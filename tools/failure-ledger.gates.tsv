@@ -22,3 +22,4 @@ slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断�
 brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）
 probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）
 gui-skills	bash .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本
+guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）
