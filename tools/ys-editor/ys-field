@@ -88,6 +88,8 @@ def main():
     ap.add_argument("--field", required=True)
     ap.add_argument("--clicks", type=int, default=1)
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--probe", action="store_true",
+                    help="只判「这一行右边有没有可操作控件」，不点击。用来把说明行从分母里剔出去")
     a = ap.parse_args()
 
     objs = look()
@@ -123,13 +125,32 @@ def main():
         print(f"[ys-field] 屏上找不到字段 {a.field!r}（对象与 OCR 都没有）", file=sys.stderr)
         return 2
     x, y, w, h = hit["bbox"]
-    # 值区 = 该行右半段（标签在左、值/控件在右）；编辑器属性行普遍是"标签……值"布局。
-    box = (int(x + w * 0.45), int(y - 2), int(w * 0.55) + 120, int(h + 4))
-    cx, cy = int(x + w * 0.80), int(y + h / 2)
+    # 值区 = **标签右边缘右侧的一条带**（不是从行中间切）。
+    # 为什么改：从 45% 处切会把标签自身的文字含进来，方差被文字撑高，
+    # 「说明行（右侧纯背景）」会被误判成"有控件"（实测 stdev 21，肉眼却明明没有控件）。
+    vx = int(x + w + 10)
+    vw = max(60, min(360, 2560 - vx))
+    box = (vx, int(y - 4), vw, int(h + 8))
+    cx, cy = int(vx + vw * 0.35), int(y + h / 2)
     print(f"[ys-field] {a.field}: bbox={[round(v) for v in hit['bbox']]} 值区={box} 点={cx},{cy}",
           file=sys.stderr)
-    if a.dry:
-        return 0
+    if a.probe or a.dry:
+        # 可操作性判据：值区里有没有"控件样"的结构。
+        # 说明行右侧是纯背景（亮度方差很小、也没有高对比团块）；开关/下拉/输入框会有边框或色块。
+        png = grab(os.path.join(TMP, "probe.png"))
+        if not png:
+            print("[ys-field] 抓帧失败", file=sys.stderr)
+            return 2
+        import statistics
+        from PIL import Image as _I
+        x, y, w, h = box
+        px = list(_I.open(png).convert("L").crop((x, y, x + w, y + h)).getdata())
+        sd = round(statistics.pstdev(px), 2)
+        rng = max(px) - min(px)
+        operable = "yes" if (sd >= 6.0 or rng >= 60) else "no"
+        print(json.dumps({"field": a.field, "value_region": [round(v) for v in box],
+                          "stdev": sd, "range": rng, "operable": operable}, ensure_ascii=False))
+        return 0 if operable == "yes" else 1
 
     ok = 0
     for i in range(1, a.clicks + 1):
