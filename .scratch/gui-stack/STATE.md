@@ -104,3 +104,34 @@
 2. D2 队友重跑（内存受限，需 640×360 轻量配置）；
 3. 端到端"行级可用"还差得远（F1 0.065 整框 / 0.519 y 带）——是继续 D3 还是先修 D2；
 4. 主线闸门：三个游戏 game① 试过 24 轮栽在"验收标准=循环不崩"，回主线第一件事是重写验收。
+
+## 八、进行中：dsh-guard 执行前守卫（2026-10-19 14:0x 派出）
+
+**任务板 task-7 → 队友 `guard-dev` 独立执行**（Lead 只验收）。设计裁决与已核实事实如下，压缩后靠本节恢复：
+
+### 已核实的 seam（源码，勿再猜）
+```ts
+ctx.on('tools/pre-execute', async (exec, next) => PreToolDecision, { prepend: true })
+PreToolDecision = {kind:'allow'} | {kind:'deny', reason, info?} | {kind:'cancel'} | {kind:'ask', reason, displayReason?}
+// reason 是给模型看的 ⇒ 「拦截 + 正确引导」一次完成
+// exec 可读：name / arguments(已解析JSON, bash={command}) / agent / callId
+ctx.on('tools/post-execute', ...) => PostToolDecision // accept/换投影/additionalContexts/把纠正反馈变 error
+```
+- 参考实现：`.../dsh-experimental-auto-review/lib/index.js:461`（`inject:['approval','llm','permissionPresets','sessions','tools','workingDirectory']`）
+- 现有插件层次：memo-river / dsh-coach = `agent/pre-step` 尾注入（只能提醒不能拦）；skill-rec = 0.8B 服务 `127.0.0.1:8122`（**此刻未运行**，spec p99 400ms）
+
+### 成本（本机实测）
+- L0 规则层：6 条正则 × 20 万命令 = 207ms ⇒ **1.03µs/次**；参数抽取 1.08µs
+- L2 0.8B 模型：**400ms/次** ⇒ v1 不接；模型只做**离线规则生成器**（归因"失败但没被规则命中"的样本）
+
+### 四条设计裁决
+1. v1 = L0 规则 + L1 上下文判据，不接模型
+2. 默认 deny + **逃生舱**：reason 带正确替代命令 + `--guard-force`；同规则被 force 放行 2 次 ⇒ 降级 ask
+3. 插件异常 **fail-open**（放行 + telemetry），护栏不得卡死会话
+4. 匹配**命令结构**非裸字符串（`grep "sleep 30"` 必须放行）——今天夹具触发守卫的教训
+
+### 预设
+能力表是数据文件 `~/dsh-plugins/dsh-preset-composer/lib/capabilities.json`，加一行 `exec-guard`（hostBundles=["@dsh-external/dsh-guard"]），再 `preset_compose` 组合 `river-acp-guard` = 现有能力 + exec-guard。
+
+### 交付判据
+注入用例（正例 deny/负例 allow）＋延迟 p50/p99<100µs＋**新端口（3081+，绝不碰 3080）用户级取证**；完成后通知用户重启生产服务（**重启由用户执行**）。
