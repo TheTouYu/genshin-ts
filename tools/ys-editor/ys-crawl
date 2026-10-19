@@ -140,7 +140,7 @@ def enumerate_from_look(a):
         x, y, w, h = o["bbox"]
         rows.append({"id": f"A{len(rows)+1:03d}", "path": "编辑器 > 系统菜单",
                      "control": key, "x": str(int(x + w / 2)), "y": str(int(y + h / 2)),
-                     "risk": "A", "restore": "esc"})
+                     "risk": "A", "restore": a.restore})
         if len(rows) >= a.max_items:
             break
     print(f"[ys-crawl] --from-look 枚举到 {len(rows)} 个带名字的可点对象（kinds={sorted(kinds)}）",
@@ -175,6 +175,9 @@ def main():
     ap.add_argument("--enter-text", help="枚举前先按名字点一次入口（比如磁贴「界面控件组管理」）")
     ap.add_argument("--goto-text", help="枚举前先归位：按 ESC 直到 look 的对象文字里出现这个标记（最多 --goto-tries 次）")
     ap.add_argument("--goto-tries", type=int, default=5)
+    ap.add_argument("--restore", default="esc", choices=["esc", "none"],
+                    help="点完怎么回退：esc=按 ESC 回基线（适合磁贴/菜单项）；"
+                         "none=不按（适合**面板内部**的导航/页签——它们只换内容不换界面，按 ESC 反而把整个面板关掉）")
     ap.add_argument("--by-name", action="store_true",
                     help="用名字寻址（act --text，点击那一刻解析）而不是预存坐标——坐标是位置，名字才是身份")
     ap.add_argument("--max-risk", default="A", choices=["A", "B", "C"])
