@@ -116,6 +116,20 @@ def analyze(rows, window_ms=WINDOW_MS):
         if len(rs) >= 2:
             tips.append((60 * len(rs), f"「{p}」连续失败 {len(rs)} 次 —— 换策略（先读错误原文，别再重试同一条）"))
 
+    # R8 用肉眼读屏（绕过结构化读取）
+    ri = [r for r in recent if (r.get("tool") == "read_image")]
+    if len(ri) >= 3:
+        tips.append((40 * len(ri), f"近 15 分钟 read_image {len(ri)} 次 —— 你在用肉眼读整屏；改用 `ys-list --live`（结构化条目）"
+                                   f"或 `ys-lookd cmd=world`（state+objects+structure），少猜多算"))
+
+    # R9 盲滚（大格数/高频滚动）
+    sc = [r for r in recent if "ys-scroll" in (r.get("cmd") or "")]
+    big = [r for r in sc if re.search(r"--clicks\s+(\d{3,})", r.get("cmd") or "")]
+    if len(sc) >= 4 or big:
+        why = f"其中 {len(big)} 次单次 ≥100 格" if big else "次数偏多"
+        tips.append((25 * max(len(sc), 1), f"近 15 分钟 ys-scroll {len(sc)} 次（{why}）——滚轮是非线性的：先标定"
+                                           f"「N 格 = 几行」，再按 `--by items=K --pitch P` 滚；大步盲滚会跳区段"))
+
     # R7 内存
     avail = mem_available_gb()
     if avail is not None and avail < 3.0:
@@ -143,10 +157,15 @@ def main():
     ap.add_argument("--watch", type=int, default=0)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--window-min", type=int, default=15)
+    ap.add_argument("--hint", action="store_true", help="只输出 1–2 条最该看的提示（给工具内联用，<50ms）")
     a = ap.parse_args()
     while True:
         rows = tail_jsonl(CMDLOG)
         res = analyze(rows, a.window_min * 60 * 1000)
+        if a.hint:
+            for t in res["tips"][:2]:
+                print("hint: " + t)
+            break
         if a.json:
             print(json.dumps(res, ensure_ascii=False))
             break

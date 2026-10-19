@@ -99,6 +99,8 @@ def main():
     ap.add_argument("--dir", choices=["down", "up"], default="down")
     ap.add_argument("--window", default="auto")
     ap.add_argument("--no-verify", action="store_true")
+    ap.add_argument("--delay", type=int, default=30, help="每格间隔 ms（慢速滚动保持线性；实测 8ms 会非线性加速）")
+    ap.add_argument("--hint", action="store_true", default=True, help="执行后附带教练提示（默认开）")
     a = ap.parse_args()
 
     t0 = time.time()
@@ -117,7 +119,7 @@ def main():
     btn = 5 if a.dir == "down" else 4
     # 一次调用滚完（--repeat），减少 N 次进程启停
     script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
-              f"xdotool click --repeat {clicks} --delay 8 {btn}")
+              f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
     p = subprocess.run([SLOT, "0x01400001", "60", "bash", "-c", script],
                        capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
@@ -127,7 +129,15 @@ def main():
         fb = capture(a.window, os.path.join(tmp, "b.png"))
         if fa and fb:
             moved = shift_px(fa, fb)
-    out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks,
+    hint = None
+    if a.hint:
+        try:
+            hp = subprocess.run([os.path.join(os.path.dirname(HERE), "coach"), "--hint"],
+                                capture_output=True, text=True, timeout=8)
+            hint = hp.stdout.strip() or None
+        except Exception:                                # noqa: BLE001
+            hint = None
+    out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "ms": round((time.time() - t0) * 1000, 1),
            "frame_before": fa, "frame_after": fb}
