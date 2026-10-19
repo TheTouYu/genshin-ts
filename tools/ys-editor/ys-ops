@@ -34,7 +34,21 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 LEDGER = os.path.join(REPO, ".scratch/gui-stack/ops-ledger.tsv")
 ALIASES = os.path.join(REPO, ".scratch/gui-stack/ops-aliases.tsv")
 EVID = os.path.join(REPO, ".scratch/gui-stack/ops-evidence")
-WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+def _resolve_win():
+    """默认窗口：动态解析编辑器主窗（写死 id 会在换代后静默失效，2026-10-20 踩过）。"""
+    import subprocess as _sp
+    for name in ("千星", "资源管理器"):
+        try:
+            r = _sp.run(["wmctrl", "-l"], capture_output=True, text=True, timeout=10,
+                        env={**os.environ, "DISPLAY": ":1"})
+            for line in (r.stdout or "").splitlines():
+                if name in line:
+                    return line.split()[0]
+        except Exception:
+            pass
+    return "0x03200008"
+
+WIN = os.environ.get("YS_OPS_WIN") or _resolve_win()
 
 COLS = ("ts", "id", "path", "control", "action", "invoke", "effect", "reading",
         "status", "risk", "evidence", "note")
