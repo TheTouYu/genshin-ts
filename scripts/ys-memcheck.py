@@ -33,16 +33,28 @@ HEAD_KEEP = 6          # 即便截断也保留开头几条：会话开头定义�
 CUE = re.compile(r"去|看|查|试|问|不要|应该|可能|为什么|怎么|？|\?|记住|注意|提醒|不是")
 
 
+def _artifact(d: pathlib.Path) -> pathlib.Path | None:
+    """会话目录 -> 转录文件。v4/v3/v0 都认（2026-10-19：只认 v4 会漏掉未迁移的老会话）。"""
+    for nm in ("session.v4.jsonl.zstd", "session.v3.jsonl.zstd", "session.jsonl.zstd"):
+        p = d / nm
+        if p.is_file():
+            return p
+    return None
+
+
 def pick_session(sid: str | None) -> pathlib.Path | None:
     if sid:
         p = BASE / sid
-        if (p / "session.v4.jsonl.zstd").is_file():
+        if _artifact(p):
             return p
     env = os.environ.get("DSH_SESSION_ID")
-    if env and (BASE / env / "session.v4.jsonl.zstd").is_file():
+    if env and _artifact(BASE / env):
         return BASE / env
-    dirs = [d for d in BASE.glob("session-*") if (d / "session.v4.jsonl.zstd").is_file()]
-    dirs.sort(key=lambda d: d.stat().st_mtime, reverse=True)   # ← 必须按时间
+    # 🔴 两种目录形态都要认：主会话 `session-<uuid>` + 子代理**裸 `<uuid>`**。
+    #    2026-10-19 实测：本机 61 个会话目录里 37 个是裸 UUID；只 glob("session-*")
+    #    会静默丢掉 61% 的会话（交付 dsh-guard 的那轮就是裸 UUID，直接被漏掉）。
+    dirs = [d for d in BASE.iterdir() if d.is_dir() and _artifact(d)]
+    dirs.sort(key=lambda d: _artifact(d).stat().st_mtime, reverse=True)   # ← 必须按时间
     return dirs[0] if dirs else None
 
 
@@ -66,7 +78,10 @@ def main() -> int:
     if not d:
         print(f"找不到会话目录：{BASE}", file=sys.stderr)
         return 2
-    f = d / "session.v4.jsonl.zstd"
+    f = _artifact(d)
+    if f is None:
+        print(f"会话目录里没有转录文件：{d}", file=sys.stderr)
+        return 2
 
     users, comps = [], []
     for raw in stream(f):
@@ -100,10 +115,13 @@ def main() -> int:
         print(f"最近压缩点：seq {comps[-1][0]}（影子区 {comps[-1][1]}–{comps[-1][2]}）"
               f"｜共 {len(comps)} 次 summary")
     pool = [u for u in users if u[0] >= args.since]
-    if args.num and len(pool) > args.num:
+    # 截断只在「开头保留段 + 末尾段」真的不重叠时才有意义。
+    # 旧条件 `len(pool) > args.num` 在 pool 落在 (n, HEAD_KEEP+n] 区间时会让
+    # head 与 tail 重叠 → omitted 为空 → omitted[0] IndexError（2026-10-19 自跑抓到）。
+    if args.num and len(pool) > HEAD_KEEP + args.num:
         head = pool[:HEAD_KEEP]                       # 开头定目标：截断也要留住
         tail = pool[-args.num:]
-        omitted = [u for u in pool[len(head):len(pool) - args.num]]
+        omitted = pool[len(head):len(pool) - args.num]
         sel = head + tail
         cut_note = (f"（-n {args.num} 截断：开头 {len(head)} 条 + 末尾 {len(tail)} 条；"
                     f"**省略 {len(omitted)} 条**，seq {omitted[0][0]}–{omitted[-1][0]}）")

@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""DSH 会话记录（聊天历史）检索工具 v3 —— 安全版（2026-09-10 加防卡死护栏）。
+"""DSH 会话记录（聊天历史）检索工具 v3.1 —— 安全+提速版（2026-09-12 优化）。
+
+v3.1 改动（针对实测痛点"一扫好几分钟 / 最关键信息不好拿"）：
+  1. **新增 `dialog` 命令 = 查"最新对话说了什么"的首选**：只列真人原话(U)与助手正文(A)，
+     跳过思考/工具噪声；默认最新 3 个会话各最后 8 条，秒级。
+  2. **scan/todos 默认只索引 mtime 最新 30 个会话**（v3 的 scan 不带参数 = 冷缓存全库解压，
+     本项目 165 会话/285MB 实测 >90s 未完成；--all 才全量），且**跳过 >25MB 怪物**。
+  3. **scan 排序改按最后活动(mtime)**——旧版按 created 排，今天活跃的会话排不到前面。
+  4. **recent 输出加速览**：时间线之前先给「最后一条 U / 最后一条 A」，不用在 40 条
+     工具噪声里翻人机对话。
 
 v3 事故复盘（必须读）：v2 的 search 默认 --jobs 8 且**默认扫全库**。在 505 会话/1.2GB
 压缩语料下等于同时开 8 个 zstd 全量解压 —— 实测把一台 7.9GB 的 WSL 直接推到 OOM 边缘、
@@ -30,20 +39,23 @@ v2 优化（顺序即收益排序）：
      scan 默认 --limit 30，--all 看全量。
   6. 单文件硬超时：按压缩体量自适应（10s + 1s/MB，上限 60s），怪物会话不阻塞全局。
 
-用法（v3；带 [scope] 的选项对所有扫描型命令都生效）：
+用法（v3.1；带 [scope] 的选项对所有扫描型命令都生效）：
+  search_dsh_sessions.py dialog [<root|dir>] [--tail K] [--grep PAT] [--full] [--max-len N] [scope 选项]
+                                                          【首选】最新人机对话速览：只列真人原话(U)+助手正文(A)，
+                                                          跳过思考/工具噪声；默认最新 3 个会话各最后 8 条
   search_dsh_sessions.py dirs [<cwd>]                    列出会话目录（毫秒级）
   search_dsh_sessions.py recent [<root>] [--since-min M] [--newest N] [--grep PAT] [--full]
-                                                         【首选】最新大模型活动时间线
-                                                         （U 真人/A 助手/C 工具调用含命令/R 结果/E 报错 + 统计）
+                                                          最新大模型活动时间线（先速览最后 U/A，再 U/A/C/R/E 全事件）
   search_dsh_sessions.py search <pattern> [<root|dir>] [scope 选项] [--context N] [--max-hits N] [--jobs N]
-                                                         关键词搜索（正则）——**默认只扫最新 10 个会话**
-  search_dsh_sessions.py scan [<root|dir>] [--limit N] [--all] [--oldest-first] [--rebuild]
-                                                         会话全景：标题+时间+user摘要（走索引）
+                                                          关键词搜索（正则）——**默认只扫最新 10 个会话**
+  search_dsh_sessions.py scan [<root|dir>] [--limit N] [--all] [--oldest-first] [scope 选项]
+                                                          会话全景：标题+时间+user摘要（**按最后活动排序**；
+                                                          默认只索引最新 30 个/跳过 >25MB，冷缓存秒级，--all 全量）
   search_dsh_sessions.py index [<root|dir>] [--rebuild] [--jobs N]   建增量索引
   search_dsh_sessions.py show <session-dir> [<start>] [<count>] [--tail N] [--max-len N]
-                                                         按消息序号浏览（单会话，无风险）
+                                                          按消息序号浏览（单会话，无风险）
   search_dsh_sessions.py errors [<dir|root>] [scope 选项] [--jobs N] 列出 isError=true 的工具结果
-  search_dsh_sessions.py todos [<session-root>]          未完成任务检测（走索引）
+  search_dsh_sessions.py todos [<session-root>] [scope 选项]        未完成任务检测（默认同 scan 作用域）
 
 scope 选项（安全护栏，可组合）：
   --all             真·全量扫描（危险：505 会话/1.2GB，只在确知要考古时用）
@@ -65,6 +77,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections import deque
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -78,6 +91,10 @@ DEFAULT_NEWEST = 10        # search/errors 默认只看最新 N 个会话
 DEFAULT_BUDGET_MB = 150    # 单次运行解压总量上限（压缩字节）
 DEFAULT_JOBS = 2           # 并行度上限——每一路都是一个 zstd 全量解压
 SCAN_MAX_SIZE_MB = 0       # search 默认不按体积过滤（recent 另有更保守默认）
+
+# v3.1：scan/todos 默认作用域——冷缓存不再全库解压（本项目 165 会话/285MB 实测 >90s 未完成）
+SCAN_DEFAULT_NEWEST = 30       # scan/todos 默认只索引 mtime 最新 N 个会话
+SCAN_DEFAULT_MAX_SIZE_MB = 25  # scan/todos 默认跳过压缩 >25MB 的怪物（--max-size 0 可关）
 
 # v3：所有 zstd 子进程降级（nice 19 + ionice idle），扫描再重也不抢交互
 _NICE = ["nice", "-n", "19"] if shutil.which("nice") else []
@@ -237,11 +254,40 @@ def _collect_user_texts(data, seen_ids, users):
         users.append(txt.strip()[:400])
 
 
+# 会话转录文件名，高版本优先。
+# 2026-10-19：补 v4——DSH 当前写 session.v4.jsonl.zstd，缺这一项则对本机全部
+# 新会话「索引为空」，技能实质瘫痪却零报错。
+ARTIFACT_NAMES = (
+    "session.v4.jsonl.zstd", "session.v4.jsonl",
+    "session.v3.jsonl.zstd", "session.v3.jsonl",
+    "session.jsonl.zstd", "session.jsonl",
+)
+
+
+def artifact(d: Path) -> Path:
+    """会话目录 -> 日志文件。
+
+    兼容 v0 (`session.jsonl[.zstd]`) 与 v3 (`session.v3.jsonl[.zstd]`，DSH 0.1.5+ 起)。
+    两者并存时优先高版本；都不匹配时取目录内排序最后的一个 `session*.jsonl*`。
+    """
+    for name in ARTIFACT_NAMES:
+        cand = d / name
+        if cand.exists():
+            return cand
+    hits = sorted(d.glob("session*.jsonl*"))
+    return hits[-1] if hits else d / "session.jsonl.zstd"
+
+
+def is_session_dir(d: Path) -> bool:
+    """目录里是否躺着会话日志（v0 或 v3 皆可）。"""
+    return artifact(d).exists()
+
+
 def index_one(args):
     """worker：结构化索引单个会话。返回可 pickle 的 dict（未变化时返回 None 占位由主进程处理）。"""
     abs_dir, max_lines = args
     d = Path(abs_dir)
-    z = d / "session.jsonl.zstd"
+    z = artifact(d)
     meta = {
         "dir": abs_dir, "mtime_ns": 0, "size": 0, "created": None, "cwd": None,
         "title": None, "users": [], "n_users": 0, "end_seed": False,
@@ -342,27 +388,31 @@ def is_current(session_dir_name: str) -> bool:
 
 
 def collect_session_dirs(path: Path):
-    """输入：会话根/项目目录/单会话目录 -> 会话目录列表（mtime 新→旧）。"""
-    if path.name.startswith("session-") and (path / "session.jsonl.zstd").exists():
+    """输入：会话根/项目目录/单会话目录 -> 会话目录列表（mtime 新→旧）。
+
+    会话目录名两种形态都要认：v3/新式为 `session-<uuid>`，早期为裸 `<uuid>`；
+    日志文件名 v0/v3 皆可（见 artifact）。
+    """
+    if is_session_dir(path):
         return [path]
-    out = [d for d in path.glob("session-*") if (d / "session.jsonl.zstd").exists()]
+    out = [d for d in sorted(path.iterdir()) if d.is_dir() and is_session_dir(d)]
     if not out:
         for sub in sorted(path.iterdir()):
-            if sub.is_dir() and not sub.name.startswith("session-"):
+            if sub.is_dir():
                 out.extend(collect_session_dirs(sub))
-    return sorted(out, key=lambda d: (d / "session.jsonl.zstd").stat().st_mtime, reverse=True)
+    return sorted(out, key=lambda d: artifact(d).stat().st_mtime, reverse=True)
 
 
 def _zsize(d: Path) -> int:
     try:
-        return (d / "session.jsonl.zstd").stat().st_size
+        return artifact(d).stat().st_size
     except OSError:
         return 0
 
 
 def _zmtime(d: Path) -> float:
     try:
-        return (d / "session.jsonl.zstd").stat().st_mtime
+        return artifact(d).stat().st_mtime
     except OSError:
         return 0.0
 
@@ -421,17 +471,21 @@ def print_scope(notes, n_dirs, cmd):
 
 
 def build_index(roots, rebuild=False, jobs=None, max_lines=20000):
-    """增量构建索引；返回 {abs_dir: meta}（只含本次 roots 覆盖的会话也无妨——全量字典）。"""
-    cache = {"version": 2, "sessions": {}} if rebuild else load_cache()
+    """增量构建索引；返回 {abs_dir: meta}。
+
+    v3.1：roots 也接受会话目录列表（select_dirs 选出的作用域）——scan/todos 先选盘再建索引，
+    冷缓存不再全库解压。--rebuild 只强制重扫作用域内会话，**不清空**全局缓存。
+    """
+    cache = load_cache()
     sessions = cache["sessions"]
     tasks = []
     for root in roots:
         for d in collect_session_dirs(root):
             abs_dir = str(d)
             try:
-                st = (d / "session.jsonl.zstd").stat()
+                st = artifact(d).stat()
                 cur = sessions.get(abs_dir)
-                if cur and cur.get("mtime_ns") == st.st_mtime_ns and cur.get("size") == st.st_size:
+                if not rebuild and cur and cur.get("mtime_ns") == st.st_mtime_ns and cur.get("size") == st.st_size:
                     continue  # 缓存命中
             except OSError:
                 continue
@@ -458,8 +512,9 @@ def fmt_ms(ms) -> str:
 
 def print_scan_entry(meta: dict):
     created = fmt_ms(meta.get("created")) if meta.get("created") else "?"
+    activity = fmt_ms((meta.get("mtime_ns") or 0) / 1e6)
     title = meta.get("title") or "(无标题)"
-    print("=== " + Path(meta["dir"]).name + "  [" + created + "] " + title)
+    print("=== " + Path(meta["dir"]).name + "  [建 " + created + " · 活 " + activity + "] " + title)
     if meta.get("cwd"):
         print("    cwd: " + str(meta["cwd"]))
     for u in (meta.get("users") or [])[:6]:
@@ -485,12 +540,12 @@ def cmd_dirs(cwd):
         return 1
     if cwd:
         d = DEFAULT_ROOT / dir_for(cwd)
-        n = len(list(d.glob("session-*"))) if d.exists() else 0
+        n = len(collect_session_dirs(d)) if d.exists() else 0
         print(str(d) + "  " + ("存在 (%d 会话)" % n if d.exists() else "不存在"))
         return 0
     for d in sorted(DEFAULT_ROOT.iterdir()):
         if d.is_dir():
-            n = len(list(d.glob("session-*")))
+            n = len(collect_session_dirs(d))
             print(d.name + "  (" + str(n) + " 会话)")
     return 0
 
@@ -510,20 +565,36 @@ def cmd_index(path_str, rebuild, jobs):
     return 0
 
 
-def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None):
+def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None, scope=None):
+    """v3.1：默认只索引/显示 mtime 最新 30 个会话（--all 全量），**按最后活动排序**。
+
+    旧版两宗罪（2026-09-12 用户实测）：①冷缓存 scan = 全项目解压（165 会话/285MB >90s）；
+    ②按 created 排序——今天活跃的老会话排在八屏以外，"最新的消息"反而看不到。
+    """
     root = _resolve_path(path_str)
-    sessions = build_index([root], rebuild=rebuild, jobs=jobs)
-    metas = [m for d, m in sessions.items()
-             if d.startswith(str(root)) and not is_current(Path(d).name)]
+    scope = scope or {}
+    dirs, notes = select_dirs(
+        root,
+        since_min=scope.get("since_min", 0), newest=scope.get("newest", 0),
+        all_flag=scope.get("all_flag", False),
+        max_size_mb=scope.get("max_size", 0) or SCAN_DEFAULT_MAX_SIZE_MB,
+        budget_mb=scope.get("budget_mb", DEFAULT_BUDGET_MB),
+        default_newest=SCAN_DEFAULT_NEWEST)
+    print_scope(notes, len(dirs), "scan")
+    t0 = time.time()
+    sessions = build_index(dirs, rebuild=rebuild, jobs=jobs)
+    metas = [sessions[str(d)] for d in dirs if str(d) in sessions]
     if not metas:
         print("[warn] 索引为空: " + str(root))
         return 1
-    metas.sort(key=lambda m: m.get("created") or 0, reverse=not oldest_first)
+    metas.sort(key=lambda m: (m.get("mtime_ns") or 0, m.get("created") or 0),
+               reverse=not oldest_first)
     shown = metas if limit <= 0 else metas[:limit]
     for m in shown:
         print_scan_entry(m)
     if limit > 0 and len(metas) > limit:
         print("(共 %d 会话，已显示最新 %d；--all 看全量)" % (len(metas), limit))
+    print("(索引 %d 会话，%.1fs)" % (len(metas), time.time() - t0))
     return 0
 
 
@@ -532,7 +603,7 @@ def _search_one(args):
     结构化字段再用字符串正则精确定位。返回 [(label, seq, text)]。
     v2 修复：原始行是 bytes——str 正则直接 search(bytes) 会 TypeError 静默吞成零命中。"""
     abs_dir, pattern_str, per_file_cap = args
-    z = Path(abs_dir) / "session.jsonl.zstd"
+    z = artifact(Path(abs_dir))
     try:
         pb = re.compile(pattern_str.encode("utf-8"), re.IGNORECASE)  # bytes 预筛
         ps = re.compile(pattern_str, re.IGNORECASE)                   # str 精筛
@@ -684,7 +755,7 @@ def cmd_recent(path_str, since_min, newest, grep, full, max_lines, budget_mb, al
             return 1
 
     for d in dirs:
-        z = d / "session.jsonl.zstd"
+        z = artifact(d)
         kinds, events, timeline = {}, [], []
         for raw in stream_lines(z):
             t = _type_of(raw)
@@ -744,11 +815,20 @@ def cmd_recent(path_str, since_min, newest, grep, full, max_lines, budget_mb, al
         top = sorted(kinds.items(), key=lambda kv: -kv[1][1])[:8]
         print("\n=== " + d.name + "  [" + fmt_ms(_zmtime(d) * 1000) + " 最后活动]"
               "  压缩 %.1fMB / 解压 %.1fMB" % (sz / 1e6, tot_b / 1e6))
+        # v3.1 速览：最关键的信息放最前面——最后一条用户原话 + 最后一条助手正文
+        tool_calls = kinds.get(b"tool/call", [0])[0]
+        n_u = sum(1 for e in timeline if e[0] == "U")
+        last_u = next((e for e in reversed(timeline) if e[0] == "U"), None)
+        last_a = next((e for e in reversed(timeline) if e[0] == "A"), None)
+        print("    ▶ 速览: 用户消息 %d 条 | 工具调用 %d 次 | 时间线 %d 条" % (n_u, tool_calls, len(timeline)))
+        for tag, e in (("U", last_u), ("A", last_a)):
+            if e:
+                body = " ".join(str(e[2]).split())
+                print("      最后%s (%s): %s%s" % (tag, fmt_ms(e[1]) if e[1] else "--",
+                                                   body[:200], "..." if len(body) > 200 else ""))
         print("    事件构成: " + " | ".join(
             "%s %d条/%.1fMB(%.0f%%)" % (k.decode(), v[0], v[1] / 1e6, 100.0 * v[1] / tot_b)
             for k, v in top))
-        tool_calls = kinds.get(b"tool/call", [0])[0]
-        print("    工具调用 %d 次 | 时间线条目 %d" % (tool_calls, len(timeline)))
 
         if pat:
             shown = [e for e in timeline if pat.search(e[2] or "")]
@@ -770,10 +850,90 @@ def cmd_recent(path_str, since_min, newest, grep, full, max_lines, budget_mb, al
     return 0
 
 
+# ---------------------------------------------------------------- dialog（v3.1 首选：最新人机对话）
+
+def cmd_dialog(path_str, tail_n, grep, full, max_len, since_min=0, newest=0,
+               all_flag=False, max_size=0, budget_mb=DEFAULT_BUDGET_MB):
+    """【v3.1 首选】"最新对话说了什么"——只有真人原话(U)与助手正文(A)，零工具噪声。
+
+    与 recent 的分工：recent 答"模型当时在跑什么活动"（C/R 时间线）；
+    dialog 答"用户最后说了什么、模型最后回了什么"（纯人机对话）。
+    默认最新 3 个会话各最后 8 条；--grep 在全量 U/A 里过滤后取尾部。
+    """
+    root = _resolve_path(path_str)
+    dirs, notes = select_dirs(root, since_min=since_min, newest=newest, all_flag=all_flag,
+                              max_size_mb=max_size, budget_mb=budget_mb, default_newest=3)
+    print_scope(notes, len(dirs), "dialog")
+    if not dirs:
+        print("[warn] 作用域内无会话: " + str(root))
+        return 1
+    pat = None
+    if grep:
+        try:
+            pat = re.compile(grep, re.IGNORECASE)
+        except re.error as e:
+            print("[error] --grep 正则无效: " + str(e))
+            return 1
+    keep = tail_n if tail_n > 0 else 8
+    lim = 4000 if full else (max_len if max_len > 0 else 400)
+
+    for d in dirs:
+        z = artifact(d)
+        title, created = [None], [None]
+        ring = deque(maxlen=keep)          # 无 --grep：环形缓冲只留最后 K 条（大文件内存友好）
+        matched = []                        # 有 --grep：全量收集命中（封顶护栏）
+        n = {"U": 0, "A": 0}
+
+        def _emit(kind, tm, txt):
+            if pat:
+                if pat.search(txt) and len(matched) < 2000:
+                    matched.append((kind, tm, txt))
+            else:
+                ring.append((kind, tm, txt))
+
+        for raw in stream_lines(z):
+            if not raw.startswith(_INTERESTING):
+                continue
+            try:
+                obj = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            tp, data = obj.get("type"), (obj.get("data") or {})
+            tm = obj.get("time")
+            if tp == "session":
+                created[0] = data.get("createdAt")
+            elif tp == "session/title" and not title[0]:
+                title[0] = data.get("title")
+            elif tp == "user/message":
+                if (data.get("source") or {}).get("kind") != "user":
+                    continue
+                txt = "".join(x[1] for x in parse_content(data.get("content")) if x[0] == "text").strip()
+                if txt:
+                    n["U"] += 1
+                    _emit("U", tm, txt)
+            elif tp == "assistant/message":
+                msg = data.get("message") or {}
+                txt = "".join(x[1] for x in parse_content(msg.get("content")) if x[0] == "text").strip()
+                if txt:
+                    n["A"] += 1
+                    _emit("A", tm, txt)
+
+        entries = matched[-keep:] if pat else list(ring)
+        print("\n=== " + d.name + "  [" + fmt_ms(_zmtime(d) * 1000) + " 最后活动]  "
+              + str(title[0] or "(无标题)"))
+        extra = "  [建 " + fmt_ms(created[0]) + "]" if created[0] else ""
+        print("    用户消息 %d 条 | 助手正文 %d 段%s | 显示最后 %d 条"
+              % (n["U"], n["A"], extra, len(entries)))
+        for label, tm, txt in entries:
+            body = " ".join(txt.split())
+            print("  [%s] (%s) %s%s" % (fmt_ms(tm) if tm else "--", label,
+                                        body[:lim], "..." if len(body) > lim else ""))
+    return 0
+
 
 def _errors_one(args):
     abs_dir, cap = args
-    z = Path(abs_dir) / "session.jsonl.zstd"
+    z = artifact(Path(abs_dir))
     found = []
     for raw in stream_lines(z):
         if len(found) >= cap:
@@ -819,7 +979,8 @@ def cmd_errors(path_str, jobs, cap=10, since_min=0, newest=0, all_flag=False,
 
 def cmd_show(session_dir_str, start, count, tail, max_len):
     d = Path(session_dir_str).expanduser()
-    z = d / "session.jsonl.zstd" if d.name.startswith("session-") else d
+    # 参数可以是日志文件本身，也可以是会话目录（v3 `session-<uuid>` 或早期裸 `<uuid>`）
+    z = d if d.is_file() else artifact(d)
     if not Path(z).exists():
         print("[error] 会话文件不存在: " + str(z))
         return 1
@@ -866,12 +1027,20 @@ def cmd_show(session_dir_str, start, count, tail, max_len):
     return 0
 
 
-def cmd_todos(path_str):
+def cmd_todos(path_str, scope=None):
     root = _resolve_path(path_str)
-    sessions = build_index([root])
-    metas = [m for d, m in sessions.items()
-             if d.startswith(str(root)) and not is_current(Path(d).name)]
-    metas.sort(key=lambda m: m.get("created") or 0, reverse=True)
+    scope = scope or {}
+    dirs, notes = select_dirs(
+        root,
+        since_min=scope.get("since_min", 0), newest=scope.get("newest", 0),
+        all_flag=scope.get("all_flag", False),
+        max_size_mb=scope.get("max_size", 0) or SCAN_DEFAULT_MAX_SIZE_MB,
+        budget_mb=scope.get("budget_mb", DEFAULT_BUDGET_MB),
+        default_newest=SCAN_DEFAULT_NEWEST)
+    print_scope(notes, len(dirs), "todos")
+    sessions = build_index(dirs)
+    metas = [sessions[str(d)] for d in dirs if str(d) in sessions]
+    metas.sort(key=lambda m: (m.get("mtime_ns") or 0, m.get("created") or 0), reverse=True)
     for meta in metas:
         flags = []
         if meta.get("bad_turns"):
@@ -935,11 +1104,16 @@ def main(argv):
         return cmd_index(pos[0] if pos else None,
                          rebuild=bool(opts.get("--rebuild")),
                          jobs=opt_int("--jobs", 0) or None)
+    if cmd == "dialog":
+        return cmd_dialog(pos[0] if pos else None,
+                          tail_n=opt_int("--tail", 8), grep=opts.get("--grep"),
+                          full=bool(opts.get("--full")), max_len=opt_int("--max-len", 400),
+                          **scope)
     if cmd == "scan":
         limit = 0 if opts.get("--all") else opt_int("--limit", 30)
         return cmd_scan(pos[0] if pos else None, limit,
                         oldest_first=bool(opts.get("--oldest-first")),
-                        rebuild=bool(opts.get("--rebuild")))
+                        rebuild=bool(opts.get("--rebuild")), scope=scope)
     if cmd == "recent":
         return cmd_recent(pos[0] if pos else None,
                           since_min=scope["since_min"], newest=scope["newest"],
@@ -963,7 +1137,7 @@ def main(argv):
     if cmd == "errors":
         return cmd_errors(pos[0] if pos else None, jobs=opt_int("--jobs", DEFAULT_JOBS), **scope)
     if cmd == "todos":
-        return cmd_todos(pos[0] if pos else None)
+        return cmd_todos(pos[0] if pos else None, scope=scope)
     print("[error] 未知命令: " + cmd)
     print(__doc__)
     return 1

@@ -43,18 +43,56 @@ If a detail would change the next action if lost, treat it as critical.
 ## Core recovery loop
 
 1. **Identify the current DSH session and project root.**
-   - **本机实测形态（2026-10-17 修正）**：会话是一个**目录** `~/.dsh/sessions/--home-h-genshin-ts--/session-<id>/`，
-     转录文件 = `<该目录>/session.v4.jsonl.zstd`。`$DSH_SESSION_JSONL` 在本机**常为 UNSET**，不要依赖它；
-     用 `$DSH_SESSION_ID` 找同名目录，或 `ls -t ~/.dsh/sessions/--home-h-genshin-ts--/ | head`。
+
+   ### 【第 0 步·必做】先摆「标题 + 时间」清单，再决定读哪个
+
+   🔴 **不要盲取 mtime 最新。** 会话目录里有主会话、子代理、探针会话混在一起；只按时间取最新，
+   会把"别的任务的子代理"当成"上一个会话"。`session/title` 事件就在每份转录里，
+   是唯一能让「这个会话到底在讲什么」一眼可判的信号——**先看标题，再选。**
+
+   ```bash
+   python3 ~/genshin-ts/scripts/ys-sessions            # 标题 + 最后活动 + 形态 + ★当前（缺省 15 条）
+   python3 ~/genshin-ts/scripts/ys-sessions -n 30      # 看更多
+   python3 ~/genshin-ts/scripts/ys-sessions --here     # 只看当前工作区的桶
+   ```
+
+   输出形如（真实读数，2026-10-19）：
+   ```text
+   最后活动             目录                                  标题                                    形态
+   10-19 15:03:31  session-a453ac28-… 你好                                    主会话 ★当前
+   10-19 14:20:11  d8b1e378-02b0-…   你接手共享任务板上的 task-7             子代理 d1
+   10-19 14:17:18  session-3db9a656-… 请调用 bash 工具，command 字段           主会话
+   ```
+
+   **判据**：标题能一眼对上"用户说的那个任务"才算找到；形态列用来区分主会话与子代理
+   （**上次被委派干活的那一轮常常就是子代理**，交付物多半在它里面）。认不出目标 = 还没找到会话。
+
+   官方等价通道（`ys-sessions` 不可用时用；它同样认两种目录形态、同样按最后活动倒序）：
+   ```bash
+   python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan \
+     ~/.dsh/sessions/--home-h-genshin-ts-- --limit 12
+   ```
+   输出 `=== <目录> [建 MM-DD HH:MM · 活 MM-DD HH:MM] <标题>`，且天然排除当前会话。
+
+   ### 定位当前会话
+
+   - **本机实测形态（2026-10-19 修正）**：会话是一个**目录**，转录文件 `<目录>/session.v4.jsonl.zstd`。
+     `$DSH_SESSION_JSONL` 在本机**常为 UNSET**，不要依赖它；`$DSH_SESSION_ID` 本机有值。
      ```bash
      BASE=~/.dsh/sessions/--home-h-genshin-ts--
      D="$BASE/${DSH_SESSION_ID:-}"                       # ① 有会话 id 就直接用（本机实测该变量有值）
-     [ -d "$D" ] || D=$(ls -dt "$BASE"/session-*/ | head -1)   # ② 否则取**最新**：注意是 `ls -dt`
+     [ -d "$D" ] || D=$(ls -dt "$BASE"/*/ | head -1)     # ② 否则取最新：**`*/` 而不是 `session-*/`**
      F="${D%/}/session.v4.jsonl.zstd"; ls -la "$F"
      ```
-     ⚠ **`ls -d ... | head -1` 是按名字排序，会取到错的会话**（2026-10-17 自验证踩到：
-     取到的是一周前那个 1.6MB 的会话，压缩点/用户消息全是别人的）——必须 `-t` 或按 id 定位。
-     project root normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo.
+   - 🔴 **两种目录形态，`session-*` 只覆盖其中一种**（2026-10-19 实测，本机 61 个会话目录
+     = **24 个 `session-<uuid>` + 37 个裸 `<uuid>`**）：子代理会话是**裸 UUID** 目录，会话头带
+     `"parentSession"` / `"delegationDepth":1` / `"origin":"subagent"`。
+     用 `session-*` 指认会话会**静默丢掉 61% 的会话**。真实事故：交付 `dsh-guard` 的
+     `d8b1e378-…` 是裸 UUID，按 `session-*/` 取最新直接跳到 10-18 那个 8.3M 老会话，
+     把**别人的任务**当成了"上一个会话"，整轮恢复方向全错。
+   - ⚠ **`ls -d ... | head -1` 是按名字排序，会取到错的会话**（2026-10-17 踩到：取到一周前
+     那个 1.6MB 的会话，压缩点/用户消息全是别人的）。要时间序必须 `-t`，要全形态必须 `*/`。
+   - project root normally `~/.dsh/sessions/--home-h-genshin-ts--` for this repo.
    - **Do not immediately scan other sessions.** Check first whether the loss happened inside this same session (compaction/summary events exist in `$DSH_SESSION_JSONL`). The history tool excludes the current session by default, so a scan can show a different session as “latest” and mislead you.
    - Only when the current session has no recoverable previous round (e.g., a fresh session) should you search other sessions.
 

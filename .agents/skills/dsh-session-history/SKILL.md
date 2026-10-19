@@ -51,10 +51,17 @@ python3 ~/.agents/skills/dsh-session-history/scripts/last_user.py --list ~/.dsh/
 - 每个工作目录一个子目录，命名规则与 pi 相同：路径去掉前导 `/`，`/` 和 `.` 换成 `-`，再包 `--`：
   - `/home/h/genshin-ts` → `--home-h-genshin-ts--`
   - `/home/h/star-cube-nexus` → `--home-h-star-cube-nexus--`
-- 每个会话一个子目录：`<session-id>/session.jsonl.zstd`，会话 ID 形如 `session-abb8cdd4-...`
-  - 目录名两种形态都存在，**都要认**：新式 `session-<uuid>`，早期为裸 `<uuid>`（如 `--home-h-genshin-ts--/81661db9-…/`）
-  - 日志文件名两种形态：**v0 = `session.jsonl.zstd`**；**v3 = `session.v3.jsonl.zstd`**（DSH 0.1.5+ 写出的新格式；旧会话被打开/迁移后原 v0 文件保留、旁边可能出现 v3 文件）
-  - 脚本已内置 `artifact()` 解析器（`ARTIFACT_NAMES = ("session.v3.jsonl.zstd", "session.v3.jsonl", "session.jsonl.zstd", "session.jsonl")`），无需再硬编码文件名
+- 每个会话一个子目录：`<session-id>/session.v4.jsonl.zstd`，会话 ID 形如 `session-abb8cdd4-...`
+  - 目录名两种形态都存在，**都要认**：新式 `session-<uuid>`，早期/子代理为裸 `<uuid>`（如 `--home-h-genshin-ts--/81661db9-…/`）。
+    ⚠ **2026-10-19 实测**：本机 61 个会话目录 = **24 个 `session-<uuid>` + 37 个裸 `<uuid>`**（子代理会话，
+    会话头带 `parentSession` / `delegationDepth`）。用 `glob("session-*")` 指认会话会**静默丢掉 61%**——
+    "上一轮交付物"经常正是这些子代理会话。`collect_session_dirs()` 走 `is_session_dir()` 判定，两种都认；
+    **不要自己写 `glob("session-*")`**。
+  - 日志文件名三种形态：**v0 = `session.jsonl.zstd`**；**v3 = `session.v3.jsonl.zstd`**（DSH 0.1.5+）；
+    **v4 = `session.v4.jsonl.zstd`（当前格式）**。旧会话被打开/迁移后原文件保留、旁边可能出现新版本文件。
+  - 脚本已内置 `artifact()` 解析器（`ARTIFACT_NAMES` 含 v4/v3/v0 共 6 个名字），**无需再硬编码文件名**。
+    ⚠ **2026-10-19 事故**：本仓项目级副本曾只列到 v3，对全机 v4 会话「索引为空」——技能静默瘫痪；
+    修法是补 v4 进 `ARTIFACT_NAMES`。**改这里时把三种版本都留在表里，不要只留当前版本。**
 - **压缩格式**：zstd（非纯文本！）。系统有 `zstd` CLI（v1.5.7）；Python 无 pyzstd/zstandard 库，
   脚本通过 `zstd -d -c` 管道流式解压，**不要落盘解压大文件**（23M 压缩可能对应几百 MB 文本）
 - **读另一个 agent 的会话（跨会话接力/复盘时，2026-10-16 实证）**：`scripts/search_dsh_sessions.py dialog <会话目录> --tail N`

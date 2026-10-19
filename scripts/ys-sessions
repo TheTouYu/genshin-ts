@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""ys-sessions — 列 DSH 会话：**标题 + 最后活动时间**，一次看清该读哪个。
+
+为什么存在（2026-10-19 事故）：
+  会话目录有**两种形态**——主会话 `session-<uuid>/`、子代理**裸 `<uuid>/`**。
+  旧配方 `ls -dt "$BASE"/session-*/` 只匹配前者，本机 61 个会话目录里静默丢掉 37 个（61%）。
+  于是"上一轮交付物"（常常就是一个子代理会话）根本不在候选里，
+  取最新会跳到别的任务的老会话上 —— 整轮恢复方向全错。
+  且只按 mtime 排序时，标题（session/title 事件，转录第一屏就有）完全没被用上，
+  "这个会话在讲什么"无法一眼判断。
+
+用法：
+  ys-sessions                 # 本工作区，最近 15 个：标题 + 时间 + 形态 + ★当前
+  ys-sessions -n 30           # 看更多
+  ys-sessions --here          # 只列当前工作区的桶（缺省已是）
+  ys-sessions --all-buckets   # 跨全部工作区
+  ys-sessions --json          # 机读输出（供其它脚本消费）
+
+判据：标题能一眼对上"用户说的那个任务"才算找到会话；形态列用来区分主会话与子代理。
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import json
+import os
+import pathlib
+import subprocess
+import sys
+
+SESSIONS_ROOT = pathlib.Path.home() / ".dsh" / "sessions"
+ARTIFACTS = ("session.v4.jsonl.zstd", "session.v3.jsonl.zstd", "session.jsonl.zstd")
+# 读标题只需扫头部一段，不必解压整个大转录
+TITLE_SCAN_MAX_LINES = 400
+
+
+def bucket_for(cwd: pathlib.Path) -> str:
+    """工作区路径 -> 会话桶目录名。
+
+    规则同 dsh-session-history 的 dir_for：去首尾 '/'，'/' 与 '.' 都换成 '-'，两侧包 '--'。
+      /home/h/genshin-ts  ->  --home-h-genshin-ts--
+      /home/h/dsh-plugins ->  --home-h-dsh-plugins--
+    非 ASCII/特殊字符的桶（如中文目录）由 DSH 写成 ~XXXX~ 形式；这里按规则尝试，
+    桶不存在时由 collect() 之外的回退分支按 cwd 字段精确匹配。
+    """
+    name = str(cwd.resolve()).strip("/").replace("/", "-").replace(".", "-")
+    return "--" + name + "--"
+
+
+def artifact_of(d: pathlib.Path) -> pathlib.Path | None:
+    for nm in ARTIFACTS:
+        p = d / nm
+        if p.is_file():
+            return p
+    return None
+
+
+def read_meta(f: pathlib.Path) -> dict:
+    """从转录头部抠 session 头 + 标题。只扫前 TITLE_SCAN_MAX_LINES 行。"""
+    meta = {"title": "", "parent": "", "depth": 0, "origin": "", "cwd": "", "id": ""}
+    try:
+        p = subprocess.Popen(["zstd", "-dc", str(f)],
+                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except OSError:
+        return meta
+    lines = 0
+    try:
+        for raw in p.stdout:
+            lines += 1
+            if lines > TITLE_SCAN_MAX_LINES:
+                break
+            if not raw.startswith(b'{"type":'):
+                continue
+            try:
+                o = json.loads(raw)
+            except Exception:
+                continue
+            t = o.get("type")
+            if t == "session":
+                meta["id"] = o.get("id") or ""
+                meta["cwd"] = o.get("cwd") or ""
+                meta["parent"] = o.get("parentSession") or ""
+                meta["depth"] = o.get("delegationDepth") or 0
+                meta["origin"] = o.get("origin") or ""
+            elif t == "session/title" and not meta["title"]:
+                meta["title"] = (o.get("data") or {}).get("title") or ""
+                if meta["depth"] is not None and meta["id"]:
+                    break  # 头与标题都有了，收工
+    except Exception:
+        pass
+    finally:
+        try:
+            p.stdout.close()
+        except Exception:
+            pass
+        try:
+            p.wait(timeout=1)
+        except Exception:
+            p.kill()
+    return meta
+
+
+def collect(buckets: list[pathlib.Path]) -> list[dict]:
+    rows = []
+    for bucket in buckets:
+        if not bucket.is_dir():
+            continue
+        for d in bucket.iterdir():
+            if not d.is_dir():
+                continue
+            f = artifact_of(d)
+            if f is None:
+                continue
+            try:
+                mt = f.stat().st_mtime
+            except OSError:
+                continue
+            meta = read_meta(f)
+            meta.update({
+                "dir": d.name,
+                "path": str(d),
+                "bucket": bucket.name,
+                "mtime": mt,
+                "size": f.stat().st_size,
+            })
+            rows.append(meta)
+    rows.sort(key=lambda r: r["mtime"], reverse=True)
+    return rows
+
+
+def fmt_ts(mt: float) -> str:
+    return datetime.datetime.fromtimestamp(mt).strftime("%m-%d %H:%M:%S")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="列 DSH 会话：标题 + 最后活动时间")
+    ap.add_argument("-n", "--num", type=int, default=15, help="显示条数（缺省 15，0=全部）")
+    ap.add_argument("--here", action="store_true", help="只列当前工作区的桶（缺省行为）")
+    ap.add_argument("--all-buckets", action="store_true", help="跨全部工作区")
+    ap.add_argument("--bucket", help="指定桶目录名（如 --home-h-genshin-ts--）")
+    ap.add_argument("--json", action="store_true", help="机读输出")
+    args = ap.parse_args()
+
+    if args.all_buckets:
+        buckets = sorted(p for p in SESSIONS_ROOT.iterdir() if p.is_dir())
+    elif args.bucket:
+        buckets = [SESSIONS_ROOT / args.bucket]
+    else:
+        buckets = [SESSIONS_ROOT / bucket_for(pathlib.Path.cwd())]
+
+    rows = collect(buckets)
+    if not rows:
+        print("找不到会话：%s" % ", ".join(str(b) for b in buckets), file=sys.stderr)
+        return 2
+
+    cur = os.environ.get("DSH_SESSION_ID", "")
+    shown = rows if args.num <= 0 else rows[: args.num]
+
+    if args.json:
+        print(json.dumps([{k: v for k, v in r.items() if k != "path"} for r in shown],
+                         ensure_ascii=False, indent=2))
+        return 0
+
+    # 统计：证明两种形态都被认出来了（这是本工具的立身之本）
+    n_main = sum(1 for r in rows if r["dir"].startswith("session-"))
+    n_sub = len(rows) - n_main
+
+    print("%-19s %-36s %-38s %s" % ("最后活动", "目录", "标题", "形态"))
+    print("-" * 118)
+    for r in shown:
+        form = "主会话" if r["depth"] == 0 else ("子代理 d%d" % r["depth"])
+        mark = " ★当前" if r["dir"] == cur else ""
+        title = (r["title"] or "(无标题)")[:36]
+        print("%-19s %-36s %-38s %s%s" % (fmt_ts(r["mtime"]), r["dir"], title, form, mark))
+    print()
+    print("共 %d 个会话（主会话 %d + 子代理 %d）%s" % (
+        len(rows), n_main, n_sub,
+        "" if args.num <= 0 or len(rows) <= args.num else "，已显示最新 %d；-n 0 看全部" % args.num))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
