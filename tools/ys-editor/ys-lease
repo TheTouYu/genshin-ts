@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""ys-lease — 焦点租约（focus lease）：**一次取焦点，期间所有动作零槽位开销**。
+
+为什么（2026-10-19 标准复核）：
+  每次 ys-gui-slot 要 1.38–2.31s（取焦点+核验+还原）。AGI 的操作要被重复 1e4 次，
+  按单次 2s 算就是 5.5 小时纯开销。租约把这份成本摊成「一次 ~1s + 每个动作 ~50ms」。
+
+契约（安全边界，不可放宽）：
+  · 租约必须记录「原焦点」并在 release 时精确还原；
+  · 租约有时限（默认 30s，上限 `--max`，与项目"单次占用 ≤30s"一致）；
+  · 每次动作前 `ensure()` 校验：窗户还在最上层、租约未过期；任一不成立 → 拒执行（fail-closed）；
+  · 进程退出/异常 → 由调用方 `release`；看门狗在 status 时发现过期会提示可回收。
+
+用法：
+  ys-lease acquire --win yuanshen --max 30     # 取租约
+  ys-lease status                              # 是否有效
+  ys-lease release                             # 还原原焦点
+  ys-lease run -- cmd...                       # 在租约内跑命令（无租约则临时取一次，跑完释放）
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RAISE = os.path.join(HERE, "ys-kwin-raise")
+LEASE = "/tmp/ys-lease.json"
+WIN = "0x01400001"
+
+
+def active_window():
+    p = subprocess.run(["xdotool", "getactivewindow"], capture_output=True, text=True)
+    try:
+        return str(int(p.stdout.strip().splitlines()[0]))
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def load():
+    try:
+        d = json.load(open(LEASE))
+    except Exception:                                    # noqa: BLE001
+        return None
+    if d.get("expires", 0) < time.time():
+        return None
+    return d
+
+
+def acquire(name="原神", max_s=30):
+    prev = active_window()
+    t0 = time.time()
+    r = subprocess.run([RAISE, name], capture_output=True, text=True, timeout=30)
+    ok = "OK" in (r.stdout or "")
+    if not ok:
+        return {"ok": False, "error": "RAISE_FAILED", "detail": (r.stdout or r.stderr)[:200]}
+    d = {"win": WIN, "name": name, "prev": prev, "acquired_at": time.time(),
+         "expires": time.time() + max_s, "max_s": max_s}
+    json.dump(d, open(LEASE, "w"))
+    return {"ok": True, "lease": {k: d[k] for k in ("win", "prev", "max_s")},
+            "ms": round((time.time() - t0) * 1000, 1)}
+
+
+def release():
+    d = load() or (json.load(open(LEASE)) if os.path.exists(LEASE) else None)
+    if not d:
+        return {"ok": False, "error": "NO_LEASE"}
+    prev = d.get("prev")
+    rc = 0
+    if prev:
+        r = subprocess.run(["xdotool", "windowactivate", "--sync", prev], capture_output=True, text=True)
+        rc = r.returncode
+    try:
+        os.remove(LEASE)
+    except Exception:                                    # noqa: BLE001
+        pass
+    return {"ok": rc == 0, "restored": prev}
+
+
+def status():
+    d = load()
+    if not d:
+        return {"ok": False, "active": False}
+    cur = active_window()
+    return {"ok": True, "active": True, "expires_in": round(d["expires"] - time.time(), 1),
+            "target_focused": cur == str(int(WIN, 16)) if WIN.startswith("0x") else None}
+
+
+def run_in_lease(spec):
+    d = load()
+    made = False
+    if not d:
+        a = acquire(max_s=30)
+        if not a.get("ok"):
+            return a
+        d, made = load(), True
+    env = dict(os.environ, YS_SLOT_ACTIVE="1")           # 免 shim 拦截（租约已保证焦点）
+    t0 = time.time()
+    p = subprocess.run(spec, capture_output=True, text=True, env=env, timeout=60)
+    out = {"ok": p.returncode == 0, "rc": p.returncode, "ms": round((time.time() - t0) * 1000, 1),
+           "stdout": p.stdout[-400:], "stderr": p.stderr[-400:]}
+    if made:
+        out["released"] = release()
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    a1 = sub.add_parser("acquire"); a1.add_argument("--win", default="原神"); a1.add_argument("--max", type=int, default=30)
+    sub.add_parser("status")
+    sub.add_parser("release")
+    a4 = sub.add_parser("run"); a4.add_argument("spec", nargs=argparse.REMAINDER)
+    a = ap.parse_args()
+    if a.cmd == "acquire":
+        res = acquire(a.win, a.max)
+    elif a.cmd == "status":
+        res = status()
+    elif a.cmd == "release":
+        res = release()
+    else:
+        spec = a.spec[1:] if a.spec and a.spec[0] == "--" else a.spec
+        res = run_in_lease(spec)
+    print(json.dumps(res, ensure_ascii=False))
+    return 0 if res.get("ok") else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

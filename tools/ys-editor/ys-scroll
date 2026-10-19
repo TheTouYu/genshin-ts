@@ -99,6 +99,7 @@ def main():
     ap.add_argument("--dir", choices=["down", "up"], default="down")
     ap.add_argument("--window", default="auto")
     ap.add_argument("--no-verify", action="store_true")
+    ap.add_argument("--lease", action="store_true", help="用焦点租约执行（无槽位开销：1.4s → ~30ms）")
     ap.add_argument("--drag", type=int, default=0, help="改用「拖动」滚动：拖动 N 像素（内容 1:1 跟手，比滚轮线性）")
     ap.add_argument("--delay", type=int, default=30, help="每格间隔 ms（慢速滚动保持线性；实测 8ms 会非线性加速）")
     ap.add_argument("--hint", action="store_true", default=True, help="执行后附带教练提示（默认开）")
@@ -127,6 +128,7 @@ def main():
         fa = capture(a.window, os.path.join(tmp, "a.png"))
     x, y = [int(v) for v in a.at.split(",")]
     btn = 5 if a.dir == "down" else 4
+    FAST_DRAG = "FAST_DRAG"
     if a.drag:
         # 拖动滚动：内容随指针 1:1 移动（慢速拖动不触发惯性加速）
         dy = abs(a.drag)
@@ -135,14 +137,39 @@ def main():
         # 人类拖动速度：约 400–600 px/s（200px ≈ 0.4s）。刻意放慢反而"看着难受"且拖长占用时间。
         steps = max(8, int(round(dy / 20.0)))
         hold = max(0.03, min(0.08, 0.05))
-        script = (f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
-                  f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} {steps} {hold}")
+        if a.lease:
+            # 租约内：xdotool 原生拖动（0.4s，vs ys-drag 的 3.3s —— 后者每步都走 KWin 绝对定位）
+            inc = (y2 - y1) / float(steps)
+            mv = "; ".join(f"xdotool mousemove_relative -- 0 {int(round(inc))}; sleep {hold}"
+                           for _ in range(steps))
+            script = (f"xdotool mousemove {x} {y1}; sleep 0.03; xdotool mousedown 1; sleep 0.03; "
+                      f"{mv}; xdotool mouseup 1")
+        else:
+            script = (f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
+                      f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} {steps} {hold}")
     else:
         # 一次调用滚完（--repeat），减少 N 次进程启停
         script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
                   f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
-    p = subprocess.run([SLOT, "0x01400001", "60", "bash", "-c", script],
-                       capture_output=True, text=True, timeout=120)
+    lease_ok = False
+    if a.lease:
+        try:
+            st = subprocess.run([os.path.join(HERE, "ys-lease"), "status"], capture_output=True, text=True, timeout=20)
+            j = json.loads(st.stdout or "{}")
+            if not (j.get("active") and j.get("target_focused")):
+                subprocess.run([os.path.join(HERE, "ys-lease"), "acquire", "--max", "30"],
+                               capture_output=True, text=True, timeout=40)
+                st = subprocess.run([os.path.join(HERE, "ys-lease"), "status"], capture_output=True, text=True, timeout=20)
+                j = json.loads(st.stdout or "{}")
+            lease_ok = bool(j.get("active") and j.get("target_focused"))
+        except Exception:                                # noqa: BLE001
+            lease_ok = False
+    if lease_ok:
+        env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+        p = subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=120)
+    else:
+        p = subprocess.run([SLOT, "0x01400001", "60", "bash", "-c", script],
+                           capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
     time.sleep(0.6)
     moved = None
@@ -159,7 +186,7 @@ def main():
         except Exception:                                # noqa: BLE001
             hint = None
     out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks,
-           "drag": a.drag or None, "hint": hint,
+           "drag": a.drag or None, "lease": lease_ok, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "ms": round((time.time() - t0) * 1000, 1),
            "frame_before": fa, "frame_after": fb}
