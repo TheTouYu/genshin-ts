@@ -170,6 +170,17 @@ def cmd_add(a):
         effect.append(f"state:{st0}->{st1}")
     if ratio is not None and ratio >= a.min_diff:
         effect.append(f"frame_diff:{ratio}")
+    # 字段级观测（--action observe）的行为读数在 --note 里（value_diff / region_diff）。
+    # 不把它算进 effect，就会出现「note 写着 value_diff=0.9989、status 却是 failed」的自相矛盾行
+    # （2026-10-19 实测踩到：两条真命中的行状态全被记成 failed，覆盖率因此不动）。
+    for p_ in (a.note or "").split():
+        for key in ("value_diff=", "region_diff="):
+            if p_.startswith(key):
+                try:
+                    if float(p_[len(key):]) >= a.min_diff:
+                        effect.append(f"{key}{p_[len(key):]}")
+                except ValueError:
+                    pass
     status = "covered" if effect else "failed"
     append({"ts": ts, "id": a.id, "path": a.path, "control": a.control, "action": a.action,
             "invoke": invoke, "effect": ";".join(effect) or "NONE",
