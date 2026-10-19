@@ -50,7 +50,7 @@ CONFIRM_X=1439
 CONFIRM_Y=812
 
 "$HERE/ys-kwin-raise" "原神" >/dev/null 2>&1
-"$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
+SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
   set -u
   cd "$0"
   export YS_SLOT_ACTIVE=1
@@ -115,8 +115,13 @@ CONFIRM_Y=812
 
   # ④ 证据：收尾只取一张裁切图（全窗 import 2893ms → 裁切 ~166ms）
   import -window "$W" -crop 900x520+0+0 +repage /tmp/ys-switch-after.png 2>/dev/null
-' "$HERE" 2>&1 | grep -vE "^[0-9]+ [0-9]+$"
-rc=${PIPESTATUS[0]}
+' "$HERE" 2>&1 | grep -vE "^[0-9]+ [0-9]+$"); SLOT_RC=$?
+printf '%s\n' "$SLOT_OUT"
+if [ "$SLOT_RC" -ne 0 ]; then
+  echo "[ys-switch-save] ys-gui-slot 失败 rc=$SLOT_RC（焦点/归还未验证）" >&2
+  exit "$SLOT_RC"
+fi
+rc=$SLOT_RC
 if [ -s /tmp/ys-switch-after.png ]; then
   magick /tmp/ys-switch-after.png -resize 900x /tmp/ys-switch-after-s.png 2>/dev/null
 fi

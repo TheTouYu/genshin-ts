@@ -23,12 +23,17 @@ export YS_WIN="$WIN"
 RAISE=$("$HERE/ys-kwin-raise" "原神" 2>&1 | tail -1)
 echo "[ys-act] raise: $RAISE"
 
-"$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-120}" bash -c "
+SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-120}" bash -c "
   export HERE='$HERE'
   bash '$SCRIPT'
   sleep 0.8
   import -window '$WIN' '$OUT' 2>/dev/null
-" 2>&1 | grep -v '^[0-9]* [0-9]*$' | tail -12
+" 2>&1 | grep -v '^[0-9]* [0-9]*$' | tail -12); SLOT_RC=$?
+printf '%s\n' "$SLOT_OUT"
+if [ "$SLOT_RC" -ne 0 ]; then
+  echo "[ys-act] ys-gui-slot 失败 rc=$SLOT_RC（焦点/归还未验证）" >&2
+  exit "$SLOT_RC"
+fi
 
 [ -s "$OUT" ] || { echo "[ys-act] 未取到图 $OUT" >&2; exit 3; }
 SMALL="${OUT%.png}-s.png"

@@ -1155,3 +1155,27 @@ persona 已从「2D+Lua studio director」重写为「全生态工程代理（�
 
 **下一步**：第 3 步「可滚容器标注」——容器 bbox 之外仍有同列条目、或首/末行被容器边缘裁切 ⇒ 标 `scrollable`，
 配合 O-2026-10-18-05 的五层设计（尤其"输入选择"与"条目位移判据"）。
+
+### O-2026-10-19-01. 静默丢字段族：8 处生产路径的「白名单/构造器重建」待修（第 5 例后登记）【OPEN·能力缺口·高优】
+
+用户 2026-10-19 16:2x 追加：「静默丢字段」已第 5 例（`ys-screen` 的 `containers_cached` 新增 `glyph_icons`
+一进缓存就消失：首跑 30 → 读缓存 0，零报错）。机械防线已落地：`tools/ys-guards --only G-WHITELIST`
+（ratchet：存量 12 项进 `WHITELIST_BASELINE`，新出现即红；注入用例 `guards-inject.sh G-WHITELIST` 已验证会红）。
+**本票只收 8 处生产路径**（其余 4 处为一次性基准，风险低，见 `.scratch/gui-focus/silent-drop-inventory.md`）。
+
+| # | 文件:行 | 重建的对象 | 风险 | 修法 |
+| --- | --- | --- | --- | --- |
+| 1 | `tools/ys-screen:1867-1873` | 容器层缓存写盘（`_whitelist = containers/free_text/free_glyphs/glyph_icons/degraded/error`） | **高**（第 5 例现场；只查 `missing`，**不拒 extra**） | 加 `assert set(res)==set(_whitelist)`（extra 也抛）；perception 轮在改，冲突时以它为准 |
+| 2 | `tools/ys-editor/ys_lookd.py:1763` | 常驻服务的容器层结果（`_world_containers` 投影到 5 键） | **高**（`glyph_icons`/`timing` 会被丢；daemon 与 cli 形状漂移） | 直接透传 `containers_cached` 的结果，只附加 `timing_ms`；不要重新挑键 |
+| 3 | `.scratch/gui-service/worldsvc.py:215` | daemon 世界状态响应（`schema.new_world` 重建） | **高**（新字段不出现，靠手工 `raw["structure"]=…` 补过一次） | schema 层加未知键策略（strict/allow_extra 显式二选一），重建后断言 `set(raw) == set(schema.fields)` |
+| 4 | `.scratch/gui-service/worldsvc.py:391` | cli 路径世界状态（`schema.new_world` 重建） | **高**（同上） | 同上 |
+| 5 | `tools/ys-editor/ys-state:980` | `run_fast` 结果投影 | 中高（fast 通道新增字段静默丢，与 full 形状不一致） | 合并 `full` 的键再覆盖 fast 字段，或断言 `set(fast)==set(full)` |
+| 6 | `tools/ys-editor/ys-state:1000` | `run_fast` 归一化结果投影 | 中高（同上） | 同上 |
+| 7 | `.scratch/gui-service/worldsvc.py:314` | `capture_meta` 投影 | 中（新采集元数据被丢） | 用黑名单排除敏感键，保留未知字段 |
+| 8 | `.scratch/gui-service/worldsvc.py:581` | `intent_spec` 只挑 5 键 | 中（意图定义新增字段被丢） | 透传 `spec`，只覆盖需要归一化的键 |
+
+**已有安全模式（照抄）**：`worldsvc.py:227` 的 `cache.store` 用黑名单
+`{k: v for k, v in raw.items() if k not in ("timing_ms","cache","transitions","tracked_at_ms")}` —— 保留未知键。
+
+**下一步顺序**：1/2（决定下游能不能看见字段）→ 3/4 → 5/6 → 7/8；每修一处从 `WHITELIST_BASELINE` 删一行，
+`tools/ys-guards --only G-WHITELIST` 仍须 PASS（ratchet 会自动把「已修但 baseline 未删」提示为 stale）。

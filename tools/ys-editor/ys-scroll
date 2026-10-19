@@ -152,16 +152,26 @@ def main():
         script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
                   f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
     lease_ok = False
+    made_lease = False          # 只归还本函数自己取的租约；别人的租约不动
     if a.lease:
         try:
             st = subprocess.run([os.path.join(HERE, "ys-lease"), "status"], capture_output=True, text=True, timeout=20)
             j = json.loads(st.stdout or "{}")
             if not (j.get("active") and j.get("target_focused")):
-                subprocess.run([os.path.join(HERE, "ys-lease"), "acquire", "--max", "30"],
-                               capture_output=True, text=True, timeout=40)
+                acq = subprocess.run([os.path.join(HERE, "ys-lease"), "acquire", "--max", "30",
+                                      "--owner-pid", str(os.getpid())],
+                                     capture_output=True, text=True, timeout=40)
+                made_lease = acq.returncode == 0
                 st = subprocess.run([os.path.join(HERE, "ys-lease"), "status"], capture_output=True, text=True, timeout=20)
                 j = json.loads(st.stdout or "{}")
             lease_ok = bool(j.get("active") and j.get("target_focused"))
+            if made_lease and not lease_ok:
+                rel = subprocess.run([os.path.join(HERE, "ys-lease"), "release", "--force"],
+                                     capture_output=True, text=True, timeout=40)
+                if rel.returncode != 0:
+                    print(f"⚠️ ys-lease 清理归还失败（rc={rel.returncode}）："
+                          f"{(rel.stdout or rel.stderr).strip()[:200]}", file=sys.stderr)
+                made_lease = False
         except Exception:                                # noqa: BLE001
             lease_ok = False
     if lease_ok:
@@ -190,13 +200,22 @@ def main():
     if _budget["over"]:
         print(f"⚠️ OVER BUDGET {_ms}ms > 500ms（动作+验证总时；用 --lease 可去掉槽位开销、--no-verify 去掉两次抓帧）",
               file=sys.stderr)
-    out = {"ok": bool(ok_inject), "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
+    release_ok = True
+    if made_lease:
+        rel = subprocess.run([os.path.join(HERE, "ys-lease"), "release", "--force"],
+                             capture_output=True, text=True, timeout=40)
+        release_ok = rel.returncode == 0
+        if not release_ok:
+            print(f"⚠️ ys-lease 归还失败（rc={rel.returncode}）：{(rel.stdout or rel.stderr).strip()[:300]}",
+                  file=sys.stderr)
+    out = {"ok": bool(ok_inject and release_ok), "release_ok": release_ok,
+           "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
            "drag": a.drag or None, "lease": lease_ok, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "ms": round((time.time() - t0) * 1000, 1),
            "frame_before": fa, "frame_after": fb}
     print(json.dumps(out, ensure_ascii=False))
-    return 0 if ok_inject else 5
+    return 0 if (ok_inject and release_ok) else 5
 
 
 if __name__ == "__main__":

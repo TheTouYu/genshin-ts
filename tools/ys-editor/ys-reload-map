@@ -30,7 +30,7 @@ CONFIRM_X=1439;  CONFIRM_Y=812     # 「加载存档」对话框「确认」
 
 "$HERE/ys-kwin-raise" "原神" >/dev/null 2>&1
 
-"$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
+SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
   set -u
   cd "$0"
   export YS_SLOT_ACTIVE=1
@@ -82,7 +82,12 @@ click() { local rc=0; ./ys-pointer-click "$1" "$2" >/dev/null || rc=$?; [ "$rc" 
   echo "    切回后 state=$(st)"
   import -window "$W" /tmp/ys-reload-3.png 2>/dev/null
   echo "✓ 重载流程结束"
-' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$' | tail -16
+' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$' | tail -16); SLOT_RC=$?
+printf '%s\n' "$SLOT_OUT"
+if [ "$SLOT_RC" -ne 0 ]; then
+  echo "[ys-reload-map] ys-gui-slot 失败 rc=$SLOT_RC（焦点/归还未验证）" >&2
+  exit "$SLOT_RC"
+fi
 
 for i in 2 3; do
   [ -s "/tmp/ys-reload-$i.png" ] && magick "/tmp/ys-reload-$i.png" -resize 1500x "/tmp/ys-reload-$i-s.png" 2>/dev/null

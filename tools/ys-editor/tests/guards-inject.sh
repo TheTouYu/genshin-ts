@@ -8,7 +8,7 @@
 #      仓库里的真实文件一个都不改（trap 清临时树）。
 #
 # 用法: guards-inject.sh <G-SLEEP|G-PKILL|G-IDX|G-BUDGET|G-SNAP|G-STALE|G-BBOX|G-CLIPBOARD|
-#                        G-CAPTURE-EMPTY|G-DEVICE|G-LEDGER-DEDUP>
+#                        G-CAPTURE-EMPTY|G-DEVICE|G-LEDGER-DEDUP|G-FOCUS-RETURN|G-WHITELIST>
 # 退出码: 0 = 该 guard 抓到了注入物（用例通过） / 1 = 门禁空转 / 2 = 用法或环境
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -83,6 +83,17 @@ case "$g" in
   G-DEVICE)
     echo '# 无 GPU/CPU 分支' > "$T/tools/ys-editor/ys_look.py"
     run 1 "ncc 的 GPU/CPU 分支丢失被杀"
+    ;;
+  G-FOCUS-RETURN)
+    # 新调用点：取了租约但没有 release/run（ratchet 只放行 baseline 里的存量点）
+    printf '#!/bin/bash\ntools/ys-editor/ys-lease acquire --max 10\n' > "$T/tools/ys-editor/ys-zzz-inject-focus"
+    run 1 "注入「取租约不归还」被杀"
+    ;;
+  G-WHITELIST)
+    # 新调用点：白名单投影重建对象（baseline 之外的新文件必须红）
+    printf 'import json\ndef f(src):\n    res = {k: src[k] for k in ("a", "b")}\n    return json.dumps(res)\n' \
+      > "$T/tools/ys-editor/ys-zzz-inject-whitelist.py"
+    run 1 "注入「白名单投影」被杀"
     ;;
   G-LEDGER-DEDUP)
     c="$T/cmd.jsonl"

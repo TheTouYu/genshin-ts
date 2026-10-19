@@ -1,0 +1,24 @@
+# ys-focus-guard — 焦点租约看门狗（systemd user unit）
+#
+# 安装（2026-10-19 已在本机启用）：
+#   cp tools/ys-editor/ys-focus-guard.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now ys-focus-guard
+#
+# 行为契约：
+#   · 无租约时纯只读（每 0.5s 读一次租约文件，不动焦点）；
+#   · 只有「租约过期」或「持有者 pid 已死」时才调用
+#     `ys-lease release --force --fast`（KWin activate+raise+堆叠验证，失败非零+保留租约）；
+#   · 每次动作写 ~/.dsh/cmdlog/ys-focus-guard.log；失败保留租约下一轮重试。
+[Unit]
+Description=ys-focus-guard — 焦点租约看门狗（KWin 权威归还；只在租约过期/持有者死亡时动焦点）
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/home/h/genshin-ts/tools/ys-editor/ys-focus-guard --interval 0.5
+Restart=on-failure
+RestartSec=2
+Environment=DISPLAY=:1
+
+[Install]
+WantedBy=default.target

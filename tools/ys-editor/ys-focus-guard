@@ -6,16 +6,27 @@
   用户的原话：「不是记住，而是工程落地来保障」。
   ⇒ 归还这件事不能靠"我记得 release"，必须有一条独立进程盯着租约，超时或持有者死了就自动还原。
 
+2026-10-19 重做（与 ys-lease 同一事故）：
+  旧版归还走 `xdotool windowactivate`：本机 KWin/Wayland 下记录的原焦点是 0x200000（1×1 幽灵窗），
+  而且只改焦点不改堆叠 —— 看门狗"报成功"时画面仍被原神压着。现在：
+  · 归还**委托给 `ys-lease release --force --fast`**：KWin 权威通道记录/激活/抬升/验证堆叠，
+    失败**非零退出**并保留租约（下一轮重试），不再有"静默成功"；
+  · 检查间隔默认 **0.5s**（原 2s）——持有者被 kill -9 后目标 ≤2s 内画面回到用户窗；
+  · 日志落 `~/.dsh/cmdlog/ys-focus-guard.log`（持久；不再写 /tmp）。
+
 机制：
-  · 每 2s 读 /tmp/ys-lease.json；
-  · 判定「该归还」的三种情况：① 租约过期（expires 已过）② 持有者 pid 不存在 ③ 持有者已退出；
-  · 归还 = 把焦点还给租约里记录的 prev（用户当时的窗口），并把租约文件删掉、记一行日志；
-  · prev 不可用时回落到 firefox（DSH 页面），**绝不静默留在游戏窗**。
+  · 每 0.5s 读租约文件；
+  · 判定「该归还」：① 租约过期 ② 持有者 pid 不存在/已退出；
+  · 归还 = ys-lease release --force --fast（activate + raise + 堆叠验证），成功才删租约；
+  · prev 不可用（面板/幽灵窗/已消失）时回落 firefox，回落同样要过堆叠验证；
+  · 失败保留租约并在日志里写清"谁还压在上面"，绝不静默留在游戏窗。
 
 用法：
   ys-focus-guard              # 前台跑（调试）
   ys-focus-guard --daemon     # 后台常驻（setsid）
-  ys-focus-guard --check      # 只检查一次（给测试/CI 用，退出码 1 = 有该归还的租约）
+  ys-focus-guard --check      # 只检查一次（退出码 1 = 有该归还的租约，或归还失败）
+
+环境变量：YS_LEASE（租约路径，注入用例用）、YS_FOCUS_GUARD_LOG（日志路径）
 """
 import argparse
 import json
@@ -24,13 +35,19 @@ import subprocess
 import sys
 import time
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+LEASE_BIN = os.path.join(HERE, "ys-lease")
 LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"   # 注入用例用临时路径，别动活租约
-LOG = "/tmp/ys-focus-guard.log"
-FALLBACK = "firefox"
+LOG = os.environ.get("YS_FOCUS_GUARD_LOG") or os.path.expanduser(
+    "~/.dsh/cmdlog/ys-focus-guard.log")
 
 
 def log(msg):
-    line = f"{time.strftime('%H:%M:%S')} {msg}\n"
+    line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n"
+    try:
+        os.makedirs(os.path.dirname(LOG), exist_ok=True)
+    except Exception:                                    # noqa: BLE001
+        pass
     try:
         with open(LOG, "a") as fh:
             fh.write(line)
@@ -38,23 +55,25 @@ def log(msg):
         pass
 
 
-def restore_focus(prev):
-    env = dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":1"))
-    if prev:
-        try:
-            r = subprocess.run(["xdotool", "windowactivate", "--sync", str(prev)],
-                               capture_output=True, text=True, env=env, timeout=5)
-            if r.returncode == 0:
-                return f"restored {prev}"
-        except Exception:                                # noqa: BLE001
-            pass
-    # 回落：KWin 激活 firefox（Wayland 窗 xdotool 够不到）
+def release_via_lease():
+    """委托 ys-lease 做 KWin 权威归还；返回 (ok, result)。"""
+    env = dict(os.environ, YS_LEASE=LEASE)
     try:
-        raise_tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-kwin-raise")
-        r = subprocess.run([raise_tool, FALLBACK], capture_output=True, text=True, timeout=10)
-        return f"fallback {FALLBACK}: {('OK' in (r.stdout or ''))}"
+        p = subprocess.run([sys.executable, LEASE_BIN, "release", "--force", "--fast"],
+                           capture_output=True, text=True, env=env, timeout=30)
     except Exception as e:                               # noqa: BLE001
-        return f"FAILED ({type(e).__name__})"
+        return False, {"ok": False, "error": f"SPAWN_FAILED: {type(e).__name__}"}
+    out = (p.stdout or "").strip().splitlines()
+    res = {}
+    for line in reversed(out):
+        try:
+            res = json.loads(line)
+            break
+        except Exception:                                # noqa: BLE001
+            continue
+    if not res:
+        res = {"ok": False, "error": "BAD_OUTPUT", "detail": (p.stderr or "")[-300:]}
+    return (p.returncode == 0 and bool(res.get("ok"))), res
 
 
 def should_release(lease):
@@ -71,6 +90,7 @@ def should_release(lease):
 
 
 def check_once(verbose=False):
+    """返回 1 = 本应有租约要归还（已归还或归还失败，门禁都算红）；0 = 无该归还的租约。"""
     if not os.path.exists(LEASE):
         return 0
     try:
@@ -80,14 +100,21 @@ def check_once(verbose=False):
     why = should_release(lease)
     if not why:
         return 0
-    res = restore_focus(lease.get("prev"))
-    try:
-        os.remove(LEASE)
-    except Exception:                                    # noqa: BLE001
-        pass
-    log(f"归还焦点（{why}）→ {res}")
+    ok, res = release_via_lease()
+    if res.get("error") == "NO_LEASE":
+        log(f"租约（{why}）已被其他进程归还")
+        return 1
+    if ok:
+        log(f"归还焦点（{why}）→ OK restored={res.get('restored')} "
+            f"target_idx={res.get('target_index')} game_idx={res.get('game_index')} "
+            f"attempts={res.get('attempts')}")
+        if verbose:
+            print(f"[ys-focus-guard] 归还焦点（{why}）→ OK {res.get('restored')} "
+                  f"（idx {res.get('target_index')} > game {res.get('game_index')}）")
+        return 1
+    log(f"归还失败（{why}）→ {json.dumps(res, ensure_ascii=False)[:600]}")
     if verbose:
-        print(f"[ys-focus-guard] 归还焦点（{why}）→ {res}")
+        print(f"[ys-focus-guard] 归还失败（{why}）：{json.dumps(res, ensure_ascii=False)[:400]}")
     return 1
 
 
@@ -95,7 +122,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--daemon", action="store_true")
     ap.add_argument("--check", action="store_true")
-    ap.add_argument("--interval", type=float, default=2.0)
+    ap.add_argument("--interval", type=float, default=0.5)
     a = ap.parse_args()
     if a.check:
         return check_once(verbose=True)

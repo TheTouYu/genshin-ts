@@ -8,11 +8,19 @@
 #
 # 硬不变量（用户 2026-10-16 定义）：
 #   **执行前是什么窗口，执行后就必须是什么窗口**（exact）。
-#   还原链：
-#     1) 前焦是「有名字的 X11 窗口」→ 精确还给它（xdotool windowactivate --sync，重试 3 次）；
-#     2) 前焦不是可用 X11 窗（如无名 phantom 窗 0x200000，或用户在 Wayland 原生窗上）→
-#        回落到缺省窗口 = **firefox（DSH 页面）**，经 KWin 脚本激活（X11 工具够不到 Wayland 窗）；
-#     3) 两级都失败 → **大声报错，退出码 9**（绝不静默留在错误窗口）。
+#
+# 2026-10-19 重做（用户第二次投诉：执行完画面没还）：
+#   旧版三处底层缺陷（与 ys-lease 旧版同病）：
+#     ① 记录/还原用 xdotool getwindowfocus + windowactivate —— 本机 KWin/Wayland 下
+#        `0x01400001`/`0x1800001` 是 **1×1 幽灵窗**，`getactivewindow` 返回 0x200000；
+#     ② 只 activate 不 raise，也不验证堆叠 ⇒ 焦点回去、画面被原神压着；
+#     ③ trap 里设置 RESTORE_RC=9，但显式退出码检查在 trap 之前执行 ⇒ 失败仍退出 0。
+#   现在：
+#     · 目标窗解析走 `ys-lease resolve-window`（KWin pid/name/class；幽灵 id 免疫）；
+#     · 取焦点 = `ys-lease kwin-raise`（activate + raise + 验证 activeWindow）；
+#     · 归还 = `ys-lease restore --prev-json …`（KWin internalId + stackingOrder 验证
+#       `idx(prev) > idx(游戏)`，3 次重试；失败非零）；
+#     · 还原失败 ⇒ **退出码 9**（显式调用 restore，trap 只兜异常路径）。
 #
 # 规矩: 所有对用户桌面的注入类操作（ydotool / 坐标点击 / 截图轮询）都必须经由此脚本。
 set -u
@@ -22,7 +30,7 @@ export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 FALLBACK_CLASS="${YS_GUI_SLOT_FALLBACK_CLASS:-firefox}"
-KWIN_JS=/tmp/ys-slot-activate.js
+LEASE_BIN="$YS_HOME/ys-lease"
 
 if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
 WIN_RAW="$1"; MAX="$2"; shift 2
@@ -31,119 +39,78 @@ case "$WIN_RAW" in
   *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
 esac
 
-hex_of()  { printf '0x%08x' "$1"; }
 name_of() { xdotool getwindowname "$1" 2>/dev/null || true; }
-focus()   { xdotool getwindowfocus 2>/dev/null || true; }
-# 激活目标窗：KWin 脚本 + **直赋 workspace.activeWindow**
-#   ⚠ 两条实测铁则（2026-10-17）：① `w.activate()` 对 Wine/X11 窗**不存在**
-#   （TypeError: Property 'activate' of object KWin::X11Window is not a function），try 吞掉就永远静默失败；
-#   ② 可行写法 = `workspace.activeWindow = w`。③ 回读必须断言 **activeWindow 真的等于目标**，
-#   只断言"找到了目标窗"会把失败判成成功（本轮踩过）。
-activate_kwin() {
-  local pid nm; pid=$(xdotool getwindowpid "$1" 2>/dev/null || echo 0); nm=$(xdotool getwindowname "$1" 2>/dev/null || true)
-  [ "${pid:-0}" = "0" ] && [ -z "$nm" ] && return 1
-  cat > "$KWIN_JS" << JSEOF
-var list = workspace.windowList(), t = null, pid = $pid, nm = "$nm";
-for (var i = 0; i < list.length; i++) {
-  var w = list[i];
-  if (pid > 0 && w.pid === pid) { t = w; break; }
-  if (!(pid > 0) && nm && String(w.caption || "").indexOf(nm) >= 0) { t = w; break; }
+pid_of()  { xdotool getwindowpid "$1" 2>/dev/null || echo 0; }
+geom_of() {
+  local g w h
+  g=$(xdotool getwindowgeometry --shell "$1" 2>/dev/null || true)
+  w=$(printf '%s\n' "$g" | awk -F= '/^WIDTH=/{print $2}')
+  h=$(printf '%s\n' "$g" | awk -F= '/^HEIGHT=/{print $2}')
+  printf '%sx%s' "${w:-0}" "${h:-0}"
 }
-if (t) {
-  try { workspace.activeWindow = t; } catch (e) { console.info("YS-SLOT-ERR " + e); }
-  if (workspace.activeWindow !== t) { try { t.activate(); } catch (e) {} }
-}
-console.info("YS-SLOT-ACT " + (t ? String(t.caption) : "NOTFOUND") + " ||ACTIVE=" + (workspace.activeWindow ? String(workspace.activeWindow.caption) : "NONE"));
-JSEOF
-  local before; before=$(date '+%Y-%m-%d %H:%M:%S')
-  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
-    --method org.kde.kwin.Scripting.loadScript "$KWIN_JS" "ysact-$RANDOM" >/dev/null 2>&1
-  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
-    --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-  for _i in $(seq 1 30); do
-    [ "$(xdotool getactivewindow 2>/dev/null)" = "$1" ] && break
-    sleep 0.02
-  done
-  # 严格判据：回读行的 ||ACTIVE= 必须含目标窗名（不是"找到了"）
-  local out; out=$(journalctl --user --since "$before" 2>/dev/null | grep -a "YS-SLOT-ACT " | tail -1)
-  [ -n "$out" ] && [ -n "$nm" ] && printf '%s' "$out" | sed 's/.*||ACTIVE=//' | grep -qF "$nm"
+json_get() {  # json_get <json> <python-expr over d>
+  printf '%s' "$1" | python3 -c "import json,sys
+try: d=json.load(sys.stdin)
+except Exception: print(''); raise SystemExit
+print($2)" 2>/dev/null || true
 }
 
-activate() {
-  activate_kwin "$1" && return 0
-  xdotool windowactivate --sync "$1" 2>/dev/null && return 0
-  wmctrl -i -a "$(hex_of "$1")" 2>/dev/null && return 0
-  return 1
-}
+# ── 1) KWin 权威状态：记录 prev + 解析目标（幽灵 id 免疫） ────────────────────
+STATE0=$("$LEASE_BIN" kwin-state 2>/dev/null) || {
+  echo "[ys-gui-slot] KWin 权威通道不可用（拒绝用 xdotool 猜焦点）" >&2; exit 3; }
+PREV_JSON=$(json_get "$STATE0" "json.dumps(d.get('active') or None, ensure_ascii=False)")
+PREV_DESC=$(json_get "$PREV_JSON" "((d or {}).get('caption') or '(无题)') + ' [' + ((d or {}).get('class') or '?') + ']' if d else 'none'")
+CUR_ID=$(json_get "$STATE0" "(d.get('active') or {}).get('internalId','')")
 
-# 缺省回落：经 KWin 脚本激活 Wayland 原生窗（X11 工具看不到 firefox 窗）
-activate_fallback() {
-  cat > "$KWIN_JS" << JSEOF
-var list = workspace.windowList(); var t = null;
-for (var i = 0; i < list.length; i++) {
-  var w = list[i];
-  if (String(w.resourceClass || "").toLowerCase().indexOf("$FALLBACK_CLASS") >= 0) { t = w; break; }
-}
-if (t) {
-  try { t.activate(); } catch (e) {}
-  if (workspace.activeWindow !== t) { try { workspace.activeWindow = t; } catch (e) {} }
-}
-console.info("YS-SLOT-ACTIVATED " + (t ? String(workspace.activeWindow && workspace.activeWindow.resourceClass) : "NOTFOUND"));
-JSEOF
-  local before; before=$(date '+%Y-%m-%d %H:%M:%S')
-  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
-    --method org.kde.kwin.Scripting.loadScript "$KWIN_JS" "ysslot-$RANDOM" >/dev/null 2>&1
-  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
-    --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-  sleep 0.9
-  journalctl --user --since "$before" 2>/dev/null | grep -a "YS-SLOT-ACTIVATED" | tail -1
-}
+TARGET=$( "$LEASE_BIN" resolve-window --id "$WIN_RAW" --name "$(name_of "$WIN_DEC")" \
+          --pid "$(pid_of "$WIN_DEC")" --geom "$(geom_of "$WIN_DEC")" 2>/dev/null)
+TARGET_ID=$(json_get "$TARGET" "(d.get('target') or {}).get('internalId','') if d.get('ok') else ''")
+TARGET_DESC=$(json_get "$TARGET" "((d.get('target') or {}).get('caption') or '(无题)') + ' [' + ((d.get('target') or {}).get('class') or '?') + ']' if d.get('ok') else ''")
+if [ -z "$TARGET_ID" ]; then
+  echo "[ys-gui-slot] 目标窗无法解析到 KWin（win=$WIN_RAW name=$(name_of "$WIN_DEC") geom=$(geom_of "$WIN_DEC")）：$TARGET" >&2
+  exit 3
+fi
 
-PREV=$(focus); PREV_NAME=""
-[ -n "${PREV:-}" ] && PREV_NAME=$(name_of "$PREV")
-START=$(date +%s); CMD_RC=0; RESTORE_RC=0
+ALREADY_FOCUSED=0
+[ "$CUR_ID" = "$TARGET_ID" ] && ALREADY_FOCUSED=1
+START=$(date +%s); CMD_RC=0; RESTORE_RC=0; RESTORED=0
 
 restore() {
-  local cur="" done_flag=0
-  # 快路径：执行前焦点就已经在目标窗 ⇒ 无需还原（实测省 1.5–2s）
-  if [ "${ALREADY_FOCUSED:-0}" = "1" ]; then
+  [ "$RESTORED" = "1" ] && return
+  RESTORED=1
+  if [ "$ALREADY_FOCUSED" = "1" ]; then
     echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗，未改动"
     return
   fi
-  # 1) 精确还原 X11 前焦（仅当它是有名字的真实窗，且非目标窗）
-  if [ -n "${PREV:-}" ] && [ -n "$PREV_NAME" ] && [ "$PREV" != "$WIN_DEC" ]; then
-    for _ in 1 2 3; do
-      activate "$PREV" >/dev/null 2>&1 || true; sleep 0.25
-      cur=$(focus); [ "$cur" = "$PREV" ] && { done_flag=1; break; }
-    done
-    [ "$done_flag" = 1 ] && echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原=$PREV（$PREV_NAME）"
+  local out rc ti gi desc
+  out=$("$LEASE_BIN" restore --prev-json "$PREV_JSON" --fallback "$FALLBACK_CLASS" 2>&1); rc=$?
+  ti=$(json_get "$out" "d.get('target_index')")
+  gi=$(json_get "$out" "d.get('game_index')")
+  if [ "$rc" -eq 0 ]; then
+    desc=$(json_get "$out" "d.get('restored','')")
+    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原：$desc（idx $ti > game $gi）"
+    return
   fi
-  [ "$done_flag" = 1 ] && return
-  # 2) 前焦不可用（phantom / Wayland 窗）→ 回缺省窗口（firefox DSH 页）
-  local r; r=$(activate_fallback)
-  if echo "$r" | grep -qi "$FALLBACK_CLASS"; then
-    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已回落缺省($FALLBACK_CLASS)｜前焦=${PREV:-none}（${PREV_NAME:-无名/不可用}）"
-  else
-    echo "[ys-gui-slot] ⚠️ 还原失败：前=${PREV:-none}（${PREV_NAME:-}）现=$(focus)（$(name_of "$(focus)")）" >&2
-    RESTORE_RC=9
-  fi
+  echo "[ys-gui-slot] ⚠️ 还原失败（KWin 堆叠验证未通过，重试 3 次；前焦=${PREV_DESC}）：$out" >&2
+  RESTORE_RC=9
 }
-ALREADY_FOCUSED=0
-_cur0=$(focus 2>/dev/null || echo "")
-[ "$_cur0" = "$WIN_DEC" ] && ALREADY_FOCUSED=1
-
 trap restore EXIT INT TERM HUP
 
+# ── 2) 取焦点（KWin activate+raise+验证；不是 xdotool）───────────────────────
 if [ "$ALREADY_FOCUSED" != "1" ]; then
-  activate "$WIN_DEC" >/dev/null 2>&1 || true
-  sleep 0.3
+  RAISE=$("$LEASE_BIN" kwin-raise --id "$TARGET_ID" 2>/dev/null)
+  ROK=$(json_get "$RAISE" "1 if d.get('ok') else 0")
+  if [ "${ROK:-0}" != "1" ]; then
+    echo "[ys-gui-slot] 焦点核验失败（KWin 未能 activate+raise 目标 $TARGET_DESC）：$RAISE" >&2
+    RESTORED=1   # 没改过焦点，不必归还（避免多动一次）
+    exit 3
+  fi
 fi
-cur=$(focus)
-if [ "$cur" != "$WIN_DEC" ]; then
-  echo "[ys-gui-slot] 焦点核验失败（当前=$cur 目标=$WIN_DEC）——未执行命令" >&2
-  exit 3
-fi
-echo "[ys-gui-slot] 已取得 $WIN_HEX（$(name_of "$WIN_DEC")）焦点｜时限 ${MAX}s"
+echo "[ys-gui-slot] 已取得 $WIN_HEX（$TARGET_DESC）焦点｜时限 ${MAX}s"
+
+# ── 3) 执行（硬时限）→ 显式归还（失败 9）─────────────────────────────────────
 timeout --signal=TERM "$MAX" "$@"; CMD_RC=$?
+restore
+trap - EXIT INT TERM HUP
 [ "$RESTORE_RC" != "0" ] && exit "$RESTORE_RC"
 exit "$CMD_RC"

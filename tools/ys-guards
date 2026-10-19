@@ -227,11 +227,296 @@ def g_device_path():
         bad.append("没有测试覆盖 ncc 的 CPU/GPU 分支（复跑一致 ≠ 路径正确）")
     return (not bad), bad, "为 ncc 的两条分支各建一个最小用例（大 work 走 GPU、小 work 走 CPU），断言实际 backend"
 
+# ── G-FOCUS-RETURN / G-WHITELIST（2026-10-19 事故族）────────────────────────
+#
+# 两个守卫都采用 **ratchet（棘轮）**：存量违规点进 baseline（不阻断 check）——
+# 因为其中一部分文件（ys-screen / worldsvc）正被别的轮次修改，本守卫的修复者不得越界；
+# 但**新出现**的同形态立即报红，且 baseline 项一旦不再命中会打印 INFO 提醒删除。
+# 注入用例在临时树里造**新**违规，证明守卫真会红（不依赖存量条目）。
+
+SCRATCH = os.path.join(ROOT, ".scratch")
+_SKIP_SEG = ("venv", "site-packages", "node_modules", "__pycache__", "gui-corpus",
+             "uv-cache", "/frames/", "/models/", "/.tmp", "/.git/")
+_FOCUS_IMPL = {"ys-lease", "ys-focus-guard", "ys-gui-slot", "ys-guards"}
+_FOCUS_SCAN = [TOOLS, os.path.join(SCRATCH, "gui-service"), os.path.join(SCRATCH, "gui-perf"),
+               os.path.join(SCRATCH, "gui-feedback"), os.path.join(SCRATCH, "gui-stack")]
+_WL_SCAN = [TOOLS, os.path.join(SCRATCH, "gui-service"), os.path.join(SCRATCH, "gui-perf")]
+
+FOCUS_BASELINE = {}   # 2026-10-19: 7 个存量调用点已全部修复，存量清零（新出现即红）
+
+WHITELIST_BASELINE = {
+    "tools/ys-screen|containers_cached|whitelist-cache|one-directional":
+        "第 5 例现场（perception 正在改）：只查 missing、不拒 extra；glyph_icons 曾一进缓存就消失",
+    "tools/ys-editor/ys_lookd.py|_world_containers|dict-projection":
+        "常驻服务把容器层投影到 5 个键（glyph_icons/timing 会被丢）",
+    "tools/ys-editor/ys-state|run_fast|dict-projection":
+        "fast 通道结果投影到固定键（新字段会静默丢）",
+    "tools/ys-editor/ys-safe-kill|show|dict-projection":
+        "CLI JSON 输出契约显式挑字段（低风险：进程条目字段稳定）",
+    ".scratch/gui-service/worldsvc.py|_look_worlddaemon|response-reconstruct":
+        "schema.new_world 重建 daemon 响应；已知要靠手工补 structure/attribution",
+    ".scratch/gui-service/worldsvc.py|_build_world|response-reconstruct":
+        "同上（cli 路径）",
+    ".scratch/gui-service/worldsvc.py|_acquire_frame|dict-projection":
+        "capture_meta 白名单投影",
+    ".scratch/gui-service/worldsvc.py|_act_intent|dict-projection":
+        "intent_spec 只挑 5 个键",
+    ".scratch/gui-perf/ocr_incremental.py|main|dict-projection":
+        "一次性基准输出（低风险）",
+    ".scratch/gui-perf/ocr_objects_bench.py|main|dict-projection":
+        "一次性基准输出（低风险）",
+    ".scratch/gui-perf/ocr_opt_bench.py|main|dict-projection":
+        "一次性基准输出（低风险）",
+    ".scratch/gui-perf/calib_scroll.py|to_top|dict-projection":
+        "一次性标定输出（低风险）",
+}
+
+
+def _rel(p):
+    try:
+        return os.path.relpath(p, ROOT)
+    except Exception:                                    # noqa: BLE001
+        return p
+
+
+def _scan_files(roots):
+    out = []
+    for d in roots:
+        if not os.path.isdir(d):
+            continue
+        for f in files_under(d):
+            if any(seg in f for seg in _SKIP_SEG):
+                continue
+            out.append(f)
+    return out
+
+
+def _docstring_lines(lines):
+    mask, in_triple = set(), False
+    for i, line in enumerate(lines):
+        n = line.count('"""') + line.count("'''")
+        if in_triple:
+            mask.add(i)
+            if n % 2 == 1:
+                in_triple = False
+            continue
+        if n % 2 == 1:
+            in_triple = True
+            mask.add(i)
+    return mask
+
+
+def _enclosing_func(lines, idx):
+    for j in range(idx, -1, -1):
+        m = re.match(r"\s*def\s+([A-Za-z_]\w*)\s*\(", lines[j])
+        if m:
+            return m.group(1)
+    return "<module>"
+
+
+def _focus_calls(txt, is_py=False, lease_vars=()):
+    """yield (line, kind, checked, swallowed, snippet)。只认真正的调用点。
+
+    2026-10-19 实测两类假阳性（本守卫自己踩过）：
+      · 错误消息里提到 `ys-gui-slot`（tools/ys-scroll-scan）不是调用；
+      · 内层脚本字符串里的 `2>/dev/null`（ys-act bash -c）不是调用点吞码。
+    """
+    lines = txt.splitlines()
+    mask = _docstring_lines(lines)
+    for i, line in enumerate(lines):
+        if i in mask or line.strip().startswith("#"):
+            continue
+        literal = re.search(r"(?<![\w.-])ys-(lease|gui-slot)\b", line)
+        via_var = (not literal and is_py and "subprocess" in line
+                   and any(re.search(r"\b" + re.escape(v) + r"\b", line) for v in lease_vars))
+        if not literal and not via_var:
+            continue
+        if "/tests/" in line:
+            continue
+        if is_py and not re.search(r"subprocess\.|os\.system|os\.exec|Popen\(", line):
+            continue
+        if not is_py and not re.search(
+                r"(?:^|[;&|(])\s*(?:exec\s+|\bthen\s+|\bdo\s+)?(?:[\"']?\S*/)?ys-(lease|gui-slot)\b", line):
+            continue
+        window = "\n".join(lines[i:i + 6])
+        kind = None
+        if re.search(r"ys-lease\b", line):
+            # 子命令取「离调用行最近的第一个」：多行 subprocess 调用里同一窗口可能含
+            # status + acquire（ys-scroll），不能把 status 误判成 acquire。
+            for j in range(i, min(len(lines), i + 6)):
+                m = re.search(r'["\'](acquire|release|run|status)["\']'
+                              r'|(?<![\w.])(acquire|release|run|status)\b', lines[j])
+                if m:
+                    kind = m.group(1) or m.group(2)
+                    break
+        else:
+            kind = "gui-slot"
+        if kind is None:
+            continue
+        long_ctx = "\n".join(lines[i:i + 100])
+        pipefail_checked = ("set -o pipefail" in line
+                            and bool(re.search(r"SLOT_RC=\$\?|PIPESTATUS|returncode", long_ctx)))
+        swallowed = bool(re.search(r"\|\|\s*(true|:)\b|;\s*true\s*$|except[^\n]*:\s*pass", line))
+        if re.search(r"ys-(lease|gui-slot)[\s\S]{0,500}?\|\s*(tail|head|grep|sed|awk|cat)\b", window):
+            swallowed = True                                     # 管道后 rc 变成下游命令的 rc
+        if pipefail_checked:
+            swallowed = False
+        checked = pipefail_checked
+        if re.search(r"^\s*(if|elif|while|!)\s", line):
+            checked = True
+        if re.search(r"\|\|\s*(exit|return|die|fail|raise)\b", window):
+            checked = True
+        if "check=True" in window or "$?" in window or "returncode" in window:
+            checked = True
+        if re.search(r"except[^\n]*:\s*\n\s*(raise|exit|return|sys\.exit)", window):
+            checked = True
+        if re.search(r"^\s*exec\s", line):
+            checked = True
+        if re.search(r"^\s*set\s+-[a-z]*e", txt, re.M) and not swallowed:
+            checked = True
+        tail = [x for x in lines[i + 1:] if x.strip() and not x.strip().startswith("#")]
+        if not tail:                                             # 末条命令：退出码就是脚本退出码
+            checked = True
+        yield i + 1, kind, checked, swallowed, line.strip()[:110]
+
+
+def _classify(key, msg, baseline, bad, hits, notes):
+    if key in baseline:
+        hits.add(key)
+        notes.append(f"[baseline] {msg}")
+    else:
+        bad.append(f"{msg}  (key={key})")
+
+
+def g_focus_return():
+    """G-FOCUS-RETURN：调 ys-lease/ys-gui-slot 必须检查归还结果，且 acquire 必须有 release/run（账本 F-20261019-37）。"""
+    bad, hits, notes = [], set(), []
+    for f in _scan_files(_FOCUS_SCAN):
+        if os.path.basename(f) in _FOCUS_IMPL or "/tests/" in f or "/shims/" in f:
+            continue
+        txt = read(f)
+        if "ys-lease" not in txt and "ys-gui-slot" not in txt:
+            continue
+        rel = _rel(f)
+        head = txt.splitlines()[0] if txt.splitlines() else ""
+        is_py = f.endswith(".py") or "python" in head
+        lease_vars = re.findall(r"(\w+)\s*=\s*[^\n]*ys-lease\b", txt)
+        calls = list(_focus_calls(txt, is_py=is_py, lease_vars=lease_vars))
+        if not calls:
+            continue
+        kinds = {c[1] for c in calls}
+        first_acq = next((c for c in calls if c[1] == "acquire"), None)
+        if first_acq and not ({"release", "run"} & kinds):
+            _classify(f"{rel}|lease-acquire-without-release",
+                      f"{rel}:{first_acq[0]} 取了租约但全文件没有 release/run（画面可能永不归还）",
+                      FOCUS_BASELINE, bad, hits, notes)
+        seen = set()
+        for (ln, kind, checked, swallowed, snip) in calls:
+            if kind == "status":
+                continue
+            key_kind = "swallowed-result" if swallowed else ("unchecked-result" if not checked else None)
+            if key_kind is None:
+                continue
+            key = f"{rel}|{key_kind}"
+            if key in seen:
+                continue
+            seen.add(key)
+            why = "吞了退出码（|| true / 管道到 tail|head|grep / except:pass）" if swallowed else "没有检查归还结果（rc/returncode）"
+            _classify(key, f"{rel}:{ln} {why}：{snip}",
+                      FOCUS_BASELINE, bad, hits, notes)
+    for key in sorted(set(FOCUS_BASELINE) - hits):
+        notes.append(f"[baseline-stale] {key} 已不再命中，可从 FOCUS_BASELINE 删除")
+    if os.environ.get("YS_GUARDS_SHOW_BASELINE"):
+        for n in notes:
+            print(n, file=sys.stderr)
+    hint = "acquire 后必须 release/run 且检查退出码；返回用 `ys-lease run`（自动 release 并设 ok=false）"
+    if notes and not bad:
+        hint += f"｜baseline {len(hits)} 项未阻断（YS_GUARDS_SHOW_BASELINE=1 看清单）"
+    return (not bad), bad[:20], hint
+
+
+def _whitelist_sites(txt):
+    """yield (line, kind, func, snippet)。kind ∈ whitelist-cache / dict-projection / response-reconstruct。"""
+    lines = txt.splitlines()
+    mask = _docstring_lines(lines)
+    for i, line in enumerate(lines):
+        if i in mask or line.strip().startswith("#") or "/tests/" in line:
+            continue
+        func = _enclosing_func(lines, i)
+        if re.search(r"schema\.new_[a-z_]+\(", line):
+            yield i + 1, "response-reconstruct", func, line.strip()[:110]
+            continue
+        m = None
+        if "{k:" in line:      # 只在真正的投影行上扫；跨行窗口只为接住折行的键列表
+            for span in (1, 2, 3):
+                block = "\n".join(lines[i:i + span])
+                # 值必须是「字段拷贝」（k / X[k] / X.get(k)）——`{k: sum(...) for k in TYPES}`
+                # 是分桶计数不是字段白名单（2026-10-19 假阳性，ys-gates:468）。
+                m = re.search(r"\{k:\s*(?:\w+(?:\.get)?\(\s*k\s*\)|\w+\[k\])\s+for k in\s*"
+                              r"[\(\[]([^\)\]]{0,500})[\)\]]", block)
+                if m:
+                    break
+        if m and re.search(r'["\'][A-Za-z_]\w*["\']', m.group(1)):
+            yield i + 1, "dict-projection", func, line.strip()[:110]
+            continue
+        if re.search(r"json\.dump\(\{k:\s*\w+\[k\]\s*for k in\s*\w+", line) or \
+                re.search(r"json\.dump\(json\.dumps", line):
+            yield i + 1, "whitelist-cache", func, line.strip()[:110]
+
+
+def _two_way_assert(lines, idx):
+    ctx = "\n".join(lines[max(0, idx - 15):idx + 6])
+    if re.search(r"set\([^)]*\)\s*[=!]=\s*set\(", ctx):
+        return "two-way"
+    if re.search(r"-\s*set\(", ctx) or re.search(r"reject_unknown|allow_extra|strict_keys|extra_keys", ctx):
+        return "two-way"
+    if re.search(r"_missing\s*=|missing\s*=\s*\[k for k in", ctx):
+        return "one-way"
+    return "none"
+
+
+def g_whitelist():
+    """G-WHITELIST：跨层传对象时不许用「只挑已知键」的白名单重建（账本 F-20261019-38）。"""
+    bad, hits, notes = [], set(), []
+    for f in _scan_files(_WL_SCAN):
+        base = os.path.basename(f)
+        if base in ("ys-guards", "schema.py") or base.startswith("selftest") or "/tests/" in f:
+            continue
+        txt = read(f)
+        if "new_" not in txt and "{k:" not in txt and "json.dump" not in txt:
+            continue
+        rel = _rel(f)
+        lines = txt.splitlines()
+        for (ln, kind, func, snip) in _whitelist_sites(txt):
+            level = _two_way_assert(lines, ln - 1)
+            if level == "two-way":
+                continue
+            key = f"{rel}|{func}|{kind}"
+            if level == "one-way" and kind in ("whitelist-cache", "dict-projection"):
+                key += "|one-directional"
+                why = "只查 missing、不拒 extra（新字段仍会静默蒸发）"
+            else:
+                why = "白名单/构造器重建，未知字段静默蒸发"
+            _classify(key, f"{rel}:{ln} {why}：{snip}",
+                      WHITELIST_BASELINE, bad, hits, notes)
+    for key in sorted(set(WHITELIST_BASELINE) - hits):
+        notes.append(f"[baseline-stale] {key} 已不再命中，可从 WHITELIST_BASELINE 删除")
+    if os.environ.get("YS_GUARDS_SHOW_BASELINE"):
+        for n in notes:
+            print(n, file=sys.stderr)
+    hint = ("写盘/返回前断言 `set(输出) == set(白名单)` 并对 extra/missing 都抛错；"
+            "跨层对象用黑名单排除（保留未知键），不要手写白名单重建")
+    if notes and not bad:
+        hint += f"｜baseline {len(hits)} 项未阻断（YS_GUARDS_SHOW_BASELINE=1 看清单）"
+    return (not bad), bad[:20], hint
+
+
 GUARDS = {
     "G-SLEEP": g_sleep, "G-PKILL": g_pkill, "G-IDX": g_idx_window,
     "G-BUDGET": g_budget, "G-SNAP": g_snap_fields, "G-STALE": g_stale_hint,
     "G-BBOX": g_bbox_doc,
     "G-CLIPBOARD": g_clipboard, "G-CAPTURE-EMPTY": g_capture_empty, "G-DEVICE": g_device_path, "G-LEDGER-DEDUP": g_ledger_dedup,
+    "G-FOCUS-RETURN": g_focus_return, "G-WHITELIST": g_whitelist,
 }
 
 

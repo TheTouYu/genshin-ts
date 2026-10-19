@@ -5,120 +5,700 @@
   每次 ys-gui-slot 要 1.38–2.31s（取焦点+核验+还原）。AGI 的操作要被重复 1e4 次，
   按单次 2s 算就是 5.5 小时纯开销。租约把这份成本摊成「一次 ~1s + 每个动作 ~50ms」。
 
+**2026-10-19 重做（用户投诉：租约释放后画面没还给我）**：
+  旧实现有三个底层缺陷，各自都能单独造成「焦点回去了、画面没回去」：
+    1. 记录原焦点用 `xdotool getactivewindow` —— 本机 KWin/Wayland 下返回 0x200000（1×1 幽灵窗），
+       于是每次 release 都在“恢复”一个不存在的窗；
+    2. 归还只做 `windowactivate`，不做 `raiseWindow`，也不验证堆叠 —— 焦点回到 Firefox 但它被原神压着；
+    3. 归还失败仍退出 0（`{"ok": false, "restored": "…"}` 被调用方忽略）。
+  现在：
+    · **记录/校验一律走 KWin 权威通道**：`stackingOrder` + `activeWindow`（与 `ys-wins` 同源）；
+      窗口身份用 KWin `internalId`（标题会变、id 不会）；
+    · **归还 = activate + raise + 验证**：`activeWindow == prev` **且** `idx(prev) > idx(目标游戏)`；
+    · 验证不过 → 重试（默认 3 次）→ 仍不过则**非零退出**并打印“谁还压在上面”（堆叠尾部）；
+    · 原焦点是面板/1×1 幽灵窗/无名窗时回落 firefox，**回落同样要过堆叠验证**；
+    · 归还失败**保留租约**（除非 `--discard`），让 ys-focus-guard 下一轮继续回收。
+
 契约（安全边界，不可放宽）：
-  · 租约必须记录「原焦点」并在 release 时精确还原；
+  · 租约必须记录「原焦点」并在 release 时精确还原 + 验证；
   · 租约有时限（默认 30s，上限 `--max`，与项目"单次占用 ≤30s"一致）；
   · 每次动作前 `ensure()` 校验：窗户还在最上层、租约未过期；任一不成立 → 拒执行（fail-closed）；
   · 进程退出/异常 → 由调用方 `release`；看门狗在 status 时发现过期会提示可回收。
 
 用法：
-  ys-lease acquire --win yuanshen --max 30     # 取租约
-  ys-lease status                              # 是否有效
-  ys-lease release                             # 还原原焦点
-  ys-lease run -- cmd...                       # 在租约内跑命令（无租约则临时取一次，跑完释放）
+  ys-lease acquire --win yuanshen --max 30 [--owner-pid $$]   # 取租约（记录 KWin 原焦点 + 核验游戏置顶）
+  ys-lease status                                             # 是否有效 + 游戏是否 ACTIVE
+  ys-lease release [--force] [--fast] [--discard]             # activate+raise+验证；失败非零退出
+  ys-lease run -- cmd...                                      # 在租约内跑命令（无租约则临时取一次，跑完释放）
+
+退出码：
+  acquire  0=已取并核验 / 1=失败（KWin 不可用、置顶核验失败）
+  release  0=已归还且堆叠验证通过 / 1=没归还（含 NO_LEASE / EXPIRED / PREV_GONE / RESTORE_FAILED）
+  run      0=命令成功**且**归还验证通过 / 1=其余
+  status   0=租约有效 / 1=无有效租约
+
+环境变量（测试/注入用）：
+  YS_LEASE  租约文件路径（默认 /tmp/ys-lease.json）
+  YS_WINS   ys-wins 路径覆盖（默认同目录）
 """
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RAISE = os.path.join(HERE, "ys-kwin-raise")
-LEASE = "/tmp/ys-lease.json"
+WINS = os.environ.get("YS_WINS") or os.path.join(HERE, "ys-wins")
+LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"
 WIN = "0x01400001"
+GAME_CLASS = "yuanshen"
+FALLBACK_CLASS = "firefox"
+UNUSABLE_CLASSES = {"plasmashell", "kwin_wayland", "ksmserver", "ksplashqml"}
+RETRIES = 3
 
 
-def active_window():
-    p = subprocess.run(["xdotool", "getactivewindow"], capture_output=True, text=True)
+# ── KWin 权威通道 ───────────────────────────────────────────────────────────
+
+def _run(cmd, timeout=20):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+def _kwin_js(js_fn, tag_prefix, timeout=2.0):
+    """跑一段 KWin 脚本，返回它 console.info 出来的那一行（去掉 "YS-FOCUS-<tag> " 前缀）。
+
+    js_fn(tag) 必须返回打印 `YS-FOCUS-<tag> <payload>` 的脚本正文。
+    """
+    tag = f"{tag_prefix}{os.getpid()}{int(time.time() * 1000) % 100000}"
+    path = os.path.join(HERE, f".ys-focus-{tag}.js")
+    marker = f"YS-FOCUS-{tag} "
     try:
-        return str(int(p.stdout.strip().splitlines()[0]))
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(js_fn(tag))
+        _run(["gdbus", "call", "--session", "--dest", "org.kde.KWin", "--object-path",
+              "/Scripting", "--method", "org.kde.kwin.Scripting.loadScript", path, tag], timeout=5)
+        _run(["gdbus", "call", "--session", "--dest", "org.kde.KWin", "--object-path",
+              "/Scripting", "--method", "org.kde.kwin.Scripting.start"], timeout=5)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                j = _run(["journalctl", "--user", "--since", "3 seconds ago", "--no-pager"], timeout=5)
+                for line in (j.stdout or "").splitlines():
+                    pos = line.find(marker)
+                    if pos >= 0:
+                        return line[pos + len(marker):].strip()
+            except Exception:                            # noqa: BLE001
+                pass
+            time.sleep(0.05)
+        return None
+    finally:
+        try:
+            _run(["gdbus", "call", "--session", "--dest", "org.kde.KWin", "--object-path",
+                  "/Scripting", "--method", "org.kde.kwin.Scripting.unloadScript", tag], timeout=5)
+        except Exception:                                # noqa: BLE001
+            pass
+        try:
+            os.remove(path)
+        except Exception:                                # noqa: BLE001
+            pass
+
+
+_PROBE_BODY = """
+var ord = workspace.stackingOrder, act = workspace.activeWindow, out = [];
+for (var i = 0; i < ord.length; i++) {
+  var w = ord[i], g = w.frameGeometry;
+  out.push({ i: i, id: String(w.internalId || ""), pid: w.pid || 0, c: String(w.caption || ""),
+    cls: String(w.resourceClass || ""), x: Math.round(g.x), y: Math.round(g.y),
+    w: Math.round(g.width), h: Math.round(g.height),
+    min: w.minimized ? 1 : 0, active: w === act ? 1 : 0 });
+}
+console.info("MARK " + JSON.stringify({ active: act ? String(act.internalId || "") : null, wins: out }));
+"""
+
+
+def kwin_state(timeout=2.0):
+    """KWin stackingOrder + activeWindow（权威；与 ys-wins 同源）。"""
+    raw = _kwin_js(lambda tag: _PROBE_BODY.replace("MARK", f"YS-FOCUS-{tag}"), "probe", timeout)
+    if not raw:
+        return None
+    try:
+        state = json.loads(raw)
+    except Exception:                                    # noqa: BLE001
+        return None
+    act = state.get("active")
+    state["active_window"] = next((w for w in state.get("wins", []) if w.get("id") == act), None)
+    return state
+
+
+def ys_wins_state(timeout=20):
+    """用 ys-wins --attrib 读同一份权威状态（独立通道，自测/账本用）。"""
+    try:
+        r = _run([WINS, "--attrib"], timeout=timeout)
+    except Exception:                                    # noqa: BLE001
+        return None
+    wins = []
+    for line in (r.stdout or "").splitlines():
+        m = re.match(r"\s*\[(\d+)\]\s+(.*)$", line)
+        if not m:
+            continue
+        parts = m.group(2).split(" | ")
+        if len(parts) < 3:
+            continue
+        caption, cls, geom = parts[0], parts[1], parts[2]
+        rest = " | ".join(parts[3:])
+        idxm = re.search(r"idx=(\d+)", rest)
+        wins.append({
+            "i": int(idxm.group(1)) if idxm else int(m.group(1)),
+            "c": caption,
+            "cls": cls,
+            "geom": geom,
+            "min": 1 if "min=1" in rest else 0,
+            "active": 1 if ("ACTIVE" in rest or re.search(r"act=1", rest)) else 0,
+        })
+    if not wins:
+        return None
+    active = next((w for w in wins if w.get("active")), None)
+    return {"wins": wins, "active_window": active}
+
+
+# ── 窗口身份 / 匹配 / 验证 ──────────────────────────────────────────────────
+
+def _is_unusable(w):
+    if not w:
+        return True
+    cls = str(w.get("cls") or w.get("class") or "").lower()
+    if cls in UNUSABLE_CLASSES:
+        return True
+    try:
+        if w.get("w") is not None and int(w.get("w")) <= 4:
+            return True
+        if w.get("h") is not None and int(w.get("h")) <= 4:
+            return True
+    except Exception:                                    # noqa: BLE001
+        pass
+    return False
+
+
+def _record(w):
+    """KWin 状态里的窗口 → 可持久化的身份记录。"""
+    if not w:
+        return None
+    geom = w.get("geom")
+    if not geom:
+        geom = f"{w.get('x', 0)},{w.get('y', 0)} {w.get('w', 0)}x{w.get('h', 0)}"
+    return {
+        "internalId": w.get("id") or w.get("internalId") or "",
+        "pid": int(w.get("pid") or 0),
+        "caption": w.get("c") or w.get("caption") or "",
+        "class": w.get("cls") or w.get("class") or "",
+        "geom": geom,
+        "index": w.get("i", w.get("index")),
+        "usable": not _is_unusable(w),
+    }
+
+
+def _display(rec):
+    if not rec:
+        return "none"
+    cls = rec.get("class") or rec.get("cls") or "?"
+    cap = rec.get("caption") or rec.get("c") or "(无题)"
+    return f"{cap[:40]} [{cls}]"
+
+
+def _pick(state, rec):
+    """在权威状态里找 rec 对应的窗口；找不到返回 None。"""
+    if not rec or state is None:
+        return None
+    wins = state.get("wins", [])
+    exact = [w for w in wins if rec.get("internalId") and w.get("id") == rec["internalId"]]
+    if exact:
+        return exact[0]
+    pid = int(rec.get("pid") or 0)
+    if pid > 0:
+        by_pid = [w for w in wins if int(w.get("pid") or 0) == pid and not w.get("min")]
+        if by_pid:
+            return by_pid[-1]
+    cls = (rec.get("class") or "").lower()
+    if not cls:
+        return None
+    cands = [w for w in wins if (w.get("cls") or "").lower() == cls and not w.get("min")]
+    if not cands:
+        cands = [w for w in wins if (w.get("cls") or "").lower() == cls]
+    if not cands:
+        return None
+    cap = rec.get("caption") or ""
+    same_cap = [w for w in cands if cap and w.get("c") == cap]
+    if same_cap:
+        return same_cap[-1]
+    geom = rec.get("geom") or ""
+    same_geom = [w for w in cands
+                 if geom and f"{w.get('x', 0)},{w.get('y', 0)} {w.get('w', 0)}x{w.get('h', 0)}" == geom]
+    if same_geom:
+        return same_geom[-1]
+    return cands[-1]
+
+
+def _game(state):
+    return next((w for w in state.get("wins", []) if GAME_CLASS in (w.get("cls") or "").lower()), None)
+
+
+def _fallback(state):
+    return next((w for w in state.get("wins", [])
+                 if (w.get("cls") or "").lower() == FALLBACK_CLASS and not w.get("min")), None)
+
+
+def _verify(state, rec):
+    """验证：active 是 rec 对应窗，且它的堆叠序高于游戏。返回 (ok, problems, target, game)。"""
+    if state is None:
+        return False, ["KWIN_UNAVAILABLE"], None, None
+    target = _pick(state, rec)
+    game = _game(state)
+    active = state.get("active_window")
+    problems = []
+    same = False
+    if active is not None and target is not None:
+        if active.get("i") is not None and target.get("i") is not None:
+            same = active.get("i") == target.get("i")      # probe 与 ys-wins 都有堆叠序
+        else:
+            same = active.get("id") == target.get("id")
+    if active is None:
+        problems.append("NO_ACTIVE")
+    elif not same:
+        problems.append(f"ACTIVE_MISMATCH(active={_display(_record(active))})")
+    if game is None:
+        problems.append("GAME_NOT_FOUND")
+    elif target is None:
+        problems.append("TARGET_NOT_FOUND")
+    elif target.get("i", 0) <= game.get("i", 0):
+        problems.append(f"STACKING_NOT_RESTORED(target_idx={target.get('i')} game_idx={game.get('i')})")
+    return (not problems), problems, target, game
+
+
+_RAISE_BODY = """
+var want = WANT_JSON;
+var ord = workspace.stackingOrder;
+function clsOf(w) { return String(w.resourceClass || "").toLowerCase(); }
+function capOf(w) { return String(w.caption || ""); }
+function geomOf(w) { var g = w.frameGeometry; return Math.round(g.x)+","+Math.round(g.y)+" "+Math.round(g.width)+"x"+Math.round(g.height); }
+var cands = [], i, w;
+for (i = 0; i < ord.length; i++) {
+  w = ord[i];
+  if (want.id && String(w.internalId || "") === want.id) { cands = [w]; break; }
+}
+if (!cands.length && want.pid) {
+  for (i = 0; i < ord.length; i++) { if ((ord[i].pid || 0) === want.pid) cands.push(ord[i]); }
+  if (cands.length > 1) {
+    var vis = [];
+    for (i = 0; i < cands.length; i++) { if (!cands[i].minimized) vis.push(cands[i]); }
+    if (vis.length) { t = vis[vis.length - 1]; cands = [t]; t = null; }
+  }
+}
+if (!cands.length && want.cls) {
+  for (i = 0; i < ord.length; i++) { if (clsOf(ord[i]) === want.cls.toLowerCase()) cands.push(ord[i]); }
+}
+if (!cands.length && want.hint) {
+  var h = String(want.hint).toLowerCase();
+  for (i = 0; i < ord.length; i++) {
+    if (capOf(ord[i]).toLowerCase().indexOf(h) >= 0 || clsOf(ord[i]).indexOf(h) >= 0) cands.push(ord[i]);
+  }
+}
+var t = null;
+if (cands.length === 1) t = cands[0];
+else if (cands.length > 1) {
+  for (i = 0; i < cands.length; i++) { if (want.c && capOf(cands[i]) === want.c) { t = cands[i]; break; } }
+  if (!t) { for (i = 0; i < cands.length; i++) { if (want.geom && geomOf(cands[i]) === want.geom) { t = cands[i]; break; } } }
+  if (!t) { for (i = 0; i < cands.length; i++) { if (!cands[i].minimized && (!t || ord.indexOf(cands[i]) > ord.indexOf(t))) t = cands[i]; } }
+}
+if (t) {
+  try { workspace.activeWindow = t; } catch (e) {}
+  try { workspace.raiseWindow(t); } catch (e) {}
+}
+var act = workspace.activeWindow, out = [];
+for (i = 0; i < ord.length; i++) {
+  w = ord[i];
+  out.push({ i: i, id: String(w.internalId || ""), pid: w.pid || 0, c: String(w.caption || ""),
+    cls: String(w.resourceClass || ""), x: Math.round(w.frameGeometry.x), y: Math.round(w.frameGeometry.y),
+    w: Math.round(w.frameGeometry.width), h: Math.round(w.frameGeometry.height),
+    min: w.minimized ? 1 : 0, active: w === act ? 1 : 0 });
+}
+console.info("MARK " + JSON.stringify({ raised: t ? String(t.internalId || "") : null,
+  active: act ? String(act.internalId || "") : null, wins: out }));
+"""
+
+
+def _raise_once(want, timeout=2.0):
+    """activate + raise，返回同一轮 KWin 状态（权威）。"""
+    raw = _kwin_js(lambda tag: _RAISE_BODY.replace("WANT_JSON", json.dumps(want, ensure_ascii=False))
+                   .replace("MARK", f"YS-FOCUS-{tag}"), "raise", timeout)
+    if not raw:
+        return None
+    try:
+        state = json.loads(raw)
+    except Exception:                                    # noqa: BLE001
+        return None
+    act = state.get("active")
+    state["active_window"] = next((w for w in state.get("wins", []) if w.get("id") == act), None)
+    return state
+
+
+def _selector(rec):
+    if not rec:
+        return {"cls": FALLBACK_CLASS, "hint": FALLBACK_CLASS}
+    return {"id": rec.get("internalId") or "", "pid": int(rec.get("pid") or 0),
+            "cls": (rec.get("class") or "").lower(),
+            "c": rec.get("caption") or "", "geom": rec.get("geom") or ""}
+
+
+def _want_record(want):
+    return {"internalId": want.get("id") or "", "pid": int(want.get("pid") or 0),
+            "class": want.get("cls") or "", "caption": want.get("c") or "",
+            "geom": want.get("geom") or ""}
+
+
+# ── 租约文件 ─────────────────────────────────────────────────────────────────
+
+def _load_raw():
+    try:
+        with open(LEASE, encoding="utf-8") as fh:
+            return json.load(fh)
     except Exception:                                    # noqa: BLE001
         return None
 
 
-def load():
-    try:
-        d = json.load(open(LEASE))
-    except Exception:                                    # noqa: BLE001
+def _load_valid():
+    d = _load_raw()
+    if not d:
         return None
     if d.get("expires", 0) < time.time():
         return None
     return d
 
 
-def acquire(name="原神", max_s=30):
-    prev = active_window()
-    t0 = time.time()
-    r = subprocess.run([RAISE, name], capture_output=True, text=True, timeout=30)
-    ok = "OK" in (r.stdout or "")
-    if not ok:
-        return {"ok": False, "error": "RAISE_FAILED", "detail": (r.stdout or r.stderr)[:200]}
-    d = {"win": WIN, "name": name, "prev": prev, "acquired_at": time.time(),
-         "expires": time.time() + max_s, "max_s": max_s, "owner_pid": os.getpid()}
-    json.dump(d, open(LEASE, "w"))
-    return {"ok": True, "lease": {k: d[k] for k in ("win", "prev", "max_s")},
-            "ms": round((time.time() - t0) * 1000, 1)}
+def _save(d):
+    tmp = f"{LEASE}.tmp.{os.getpid()}"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(d, fh, ensure_ascii=False)
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, LEASE)
 
 
-def release():
-    d = load() or (json.load(open(LEASE)) if os.path.exists(LEASE) else None)
-    if not d:
-        return {"ok": False, "error": "NO_LEASE"}
-    prev = d.get("prev")
-    rc = 0
-    if prev:
-        r = subprocess.run(["xdotool", "windowactivate", "--sync", prev], capture_output=True, text=True)
-        rc = r.returncode
+def _remove():
     try:
         os.remove(LEASE)
     except Exception:                                    # noqa: BLE001
         pass
-    return {"ok": rc == 0, "restored": prev}
+
+
+# ── 命令 ─────────────────────────────────────────────────────────────────────
+
+def acquire(name="原神", max_s=30, owner_pid=None):
+    t0 = time.time()
+    state = kwin_state()
+    if state is None:
+        return {"ok": False, "error": "KWIN_UNAVAILABLE",
+                "hint": "KWin Scripting 不可用——拒绝用 xdotool 猜焦点（fail-closed）"}
+    prev = _record(state.get("active_window"))
+    r = _run([RAISE, name], timeout=30)
+    if "OK" not in (r.stdout or ""):
+        return {"ok": False, "error": "RAISE_FAILED", "detail": (r.stdout or r.stderr or "")[:300]}
+    state2 = kwin_state()
+    game = _game(state2) if state2 else None
+    if state2 is None or game is None or (state2.get("active_window") or {}).get("id") != game.get("id"):
+        return {"ok": False, "error": "RAISE_NOT_VERIFIED",
+                "detail": "raise 报 OK 但 KWin 的 activeWindow 不是游戏窗（拒绝写租约）"}
+    d = {"win": WIN, "name": name,
+         "prev": prev, "acquired_at": time.time(), "expires": time.time() + max_s,
+         "max_s": max_s, "owner_pid": int(owner_pid or os.getppid()), "version": 2}
+    _save(d)
+    return {"ok": True,
+            "lease": {"win": WIN, "prev": _display(prev), "prev_info": prev, "max_s": max_s},
+            "ms": round((time.time() - t0) * 1000, 1)}
+
+
+def _fallback(state, cls=FALLBACK_CLASS):
+    return next((w for w in state.get("wins", [])
+                 if (w.get("cls") or "").lower() == cls.lower() and not w.get("min")), None)
+
+
+def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS):
+    """按 KWin 权威记录归还：activate + raise + 堆叠验证（重试 3 次）。
+
+    prev 可以是旧格式字符串（兼容旧租约）或记录 dict。**不碰租约文件**——
+    ys-lease release 与 ys-gui-slot restore 共用这一份验证逻辑。
+    """
+    state0 = kwin_state()
+    if state0 is None:
+        return {"ok": False, "error": "KWIN_UNAVAILABLE"}
+    fallback_reason = None
+    if isinstance(prev, dict):
+        rec = prev
+    elif isinstance(prev, str) and prev:
+        rec = {"internalId": "", "caption": "", "class": "", "geom": "", "index": None,
+               "usable": False, "legacy": prev}
+        fallback_reason = "LEGACY_PREV"
+    else:
+        rec = None
+        fallback_reason = "NO_PREV"
+
+    want = None
+    if rec and rec.get("usable", True) and fallback_reason is None:
+        if _pick(state0, rec) is not None:
+            want = _selector(rec)
+        else:
+            fallback_reason = "PREV_GONE"
+    if want is None:
+        fb = _fallback(state0, fallback_class)
+        if fb is None:
+            return {"ok": False, "error": "FALLBACK_NOT_FOUND",
+                    "fallback_reason": fallback_reason,
+                    "detail": f"原焦点不可用（{fallback_reason}），且找不到回落窗 {fallback_class}"}
+        want = {"id": fb.get("id") or "", "cls": fallback_class.lower(), "c": fb.get("c") or "",
+                "geom": f"{fb.get('x', 0)},{fb.get('y', 0)} {fb.get('w', 0)}x{fb.get('h', 0)}"}
+
+    want_rec = _want_record(want)
+    problems = []
+    target = game = None
+    for attempt in range(1, RETRIES + 1):
+        state = _raise_once(want)
+        ok, problems, target, game = _verify(state, want_rec)
+        if ok and not fast:
+            # 独立通道复核（ys-wins --attrib；与账本/自测同一权威读数）
+            wstate = ys_wins_state()
+            wok, wproblems, wtarget, wgame = _verify(wstate, want_rec)
+            if not wok:
+                ok, problems, target, game = False, [f"ys-wins:{p}" for p in wproblems], wtarget, wgame
+        if ok:
+            if fallback_reason == "PREV_GONE":
+                return {"ok": False, "error": "PREV_GONE",
+                        "detail": f"原焦点窗已消失（{_display(rec)}）；已回落 {fallback_class} 并验证堆叠",
+                        "fallback_verified": True, "attempts": attempt,
+                        "restored": _display(_record(target))}
+            out = {"ok": True, "attempts": attempt,
+                   "restored": _display(_record(target)),
+                   "restored_info": _record(target),
+                   "game_index": game.get("i") if game else None,
+                   "target_index": target.get("i") if target else None}
+            if fallback_reason:
+                out["fallback_reason"] = fallback_reason
+            return out
+        time.sleep(0.2)
+
+    tail = []
+    try:
+        st = kwin_state()
+        if st:
+            for w in st.get("wins", [])[-4:]:
+                tail.append(f"[{w.get('i')}] {w.get('c') or '(无题)'} | {w.get('cls')}"
+                            + (" |ACTIVE" if w.get("active") else ""))
+    except Exception:                                    # noqa: BLE001
+        pass
+    return {"ok": False, "error": "RESTORE_FAILED", "problems": problems,
+            "attempts": RETRIES, "stacking_tail": tail,
+            "hint": "堆叠验证未通过：焦点/画面不保证已归还"}
+
+
+def release(force=False, fast=False, discard=False, fallback_class=FALLBACK_CLASS):
+    d = _load_raw()
+    if not d:
+        return {"ok": False, "error": "NO_LEASE"}
+    if not force and d.get("expires", 0) < time.time():
+        return {"ok": False, "error": "EXPIRED",
+                "hint": "租约已过期；归还得用 --force（看门狗就是这么做的）"}
+    res = _restore(d.get("prev"), fast=fast, fallback_class=fallback_class)
+    if res.get("ok") or res.get("error") == "PREV_GONE" or discard:
+        _remove()
+    res["lease_kept"] = os.path.exists(LEASE)
+    return res
+
+
+def restore_prev(prev_json, fast=False, fallback_class=FALLBACK_CLASS):
+    try:
+        prev = json.loads(prev_json) if prev_json.strip() else None
+    except Exception:                                    # noqa: BLE001
+        return {"ok": False, "error": "BAD_PREV_JSON"}
+    return _restore(prev, fast=fast, fallback_class=fallback_class)
+
+
+def _best_window(cands):
+    vis = [w for w in cands if not w.get("min")] or cands
+    return sorted(vis, key=lambda w: (w.get("i", 0), (w.get("w") or 0) * (w.get("h") or 0)))[-1]
+
+
+def resolve_window(win_id="", name="", x11_pid=0, geom="", default_class=GAME_CLASS):
+    """把调用方给的 X11 窗口线索映射到 KWin 权威窗口。
+
+    为什么不能直接信 `<win>`（2026-10-19 实测）：本机 `0x01400001`/`0x1800001` 在 X11 里是
+    **1×1 幽灵窗**（xdotool geometry 1x1），KWin 的真实游戏窗是 Wayland/XWayland 窗
+    （caption=原神 / class=yuanshen.exe，pid 与 xdotool getwindowpid 也不一致）。
+    解析优先级：KWin pid == x11 pid > caption/class 包含 name > 幽灵窗/已知游戏 id ⇒ 游戏 class。
+    """
+    state = kwin_state()
+    if state is None:
+        return {"ok": False, "error": "KWIN_UNAVAILABLE"}
+    wins = state.get("wins", [])
+    if not wins:
+        return {"ok": False, "error": "NO_WINDOWS"}
+    try:
+        wid = int(str(win_id), 0) if str(win_id).strip() else 0
+    except Exception:                                    # noqa: BLE001
+        wid = 0
+    pid = int(x11_pid or 0)
+    if pid > 0:
+        cands = [w for w in wins if int(w.get("pid") or 0) == pid]
+        if cands:
+            return {"ok": True, "reason": "pid", "target": _record(_best_window(cands))}
+    nm = (name or "").strip().lower()
+    if nm:
+        cands = [w for w in wins
+                 if nm in (w.get("c") or "").lower() or nm in (w.get("cls") or "").lower()]
+        if cands:
+            return {"ok": True, "reason": "name", "target": _record(_best_window(cands))}
+    phantom = False
+    try:
+        m = re.match(r"\s*(\d+)\s*[xX]\s*(\d+)", geom or "")
+        phantom = bool(m and (int(m.group(1)) <= 1 or int(m.group(2)) <= 1))
+    except Exception:                                    # noqa: BLE001
+        pass
+    if wid in (0x01400001, 20971521, 0x01800001, 25165825) or phantom:
+        cands = [w for w in wins if default_class in (w.get("cls") or "").lower()]
+        if cands:
+            return {"ok": True, "reason": "game-class", "target": _record(_best_window(cands))}
+    return {"ok": False, "error": "TARGET_NOT_FOUND",
+            "detail": f"win_id={win_id!r} name={name!r} pid={pid} geom={geom!r}；"
+                      f"未能映射到 KWin 窗口（幽灵窗线索？）"}
+
+
+def kwin_state_cmd():
+    state = kwin_state()
+    if state is None:
+        return {"ok": False, "error": "KWIN_UNAVAILABLE"}
+    act = state.get("active_window")
+    return {"ok": True,
+            "active": _record(act),
+            "wins": [dict(_record(w), active=(w.get("id") == (act or {}).get("id")))
+                     for w in state.get("wins", [])]}
+
+
+def _verify_active(state, rec):
+    """只验证 active == 目标（raise 目标用；不要求它在游戏之上）。"""
+    if state is None:
+        return False, ["KWIN_UNAVAILABLE"], None
+    target = _pick(state, rec)
+    active = state.get("active_window")
+    if active is None:
+        return False, ["NO_ACTIVE"], target
+    if target is None or active.get("i") != target.get("i"):
+        return False, [f"ACTIVE_MISMATCH(active={_display(_record(active))})"], target
+    return True, [], target
+
+
+def kwin_raise_cmd(caption="", cls="", internal_id="", pid=0):
+    selector = {"id": internal_id, "pid": int(pid or 0), "cls": (cls or "").lower(), "c": caption, "geom": ""}
+    want_rec = _want_record(selector)
+    problems = []
+    state = None
+    for _ in range(2):
+        state = _raise_once(selector)
+        ok, problems, target = _verify_active(state, want_rec)
+        if ok:
+            return {"ok": True, "active": _display(_record(target)),
+                    "target_index": target.get("i")}
+        time.sleep(0.2)
+    return {"ok": False, "error": "RAISE_NOT_VERIFIED", "problems": problems,
+            "active": _display(_record(state.get("active_window"))) if state else "none"}
 
 
 def status():
-    d = load()
+    d = _load_valid()
     if not d:
         return {"ok": False, "active": False}
-    cur = active_window()
-    return {"ok": True, "active": True, "expires_in": round(d["expires"] - time.time(), 1),
-            "target_focused": cur == str(int(WIN, 16)) if WIN.startswith("0x") else None}
+    state = kwin_state()
+    if state is None:
+        return {"ok": False, "active": False, "error": "KWIN_UNAVAILABLE"}
+    active = state.get("active_window")
+    game = _game(state)
+    prev = d.get("prev")
+    return {"ok": True, "active": True,
+            "expires_in": round(d["expires"] - time.time(), 1),
+            "target_focused": bool(active and game and active.get("id") == game.get("id")),
+            "active_window": _display(_record(active)),
+            "game_index": game.get("i") if game else None,
+            "prev": _display(prev) if isinstance(prev, dict) else str(prev),
+            "owner_pid": d.get("owner_pid")}
 
 
 def run_in_lease(spec):
-    d = load()
+    if not spec:
+        return {"ok": False, "error": "NO_SPEC"}
+    d = _load_valid()
     made = False
     if not d:
-        a = acquire(max_s=30)
+        a = acquire(max_s=30, owner_pid=os.getpid())   # run 期间持有者是本进程：死了看门狗能立刻回收
         if not a.get("ok"):
             return a
-        d, made = load(), True
+        made = True
     env = dict(os.environ, YS_SLOT_ACTIVE="1")           # 免 shim 拦截（租约已保证焦点）
     t0 = time.time()
-    p = subprocess.run(spec, capture_output=True, text=True, env=env, timeout=60)
+    p = _run(spec, timeout=60)
     out = {"ok": p.returncode == 0, "rc": p.returncode, "ms": round((time.time() - t0) * 1000, 1),
-           "stdout": p.stdout[-400:], "stderr": p.stderr[-400:]}
+           "stdout": (p.stdout or "")[-400:], "stderr": (p.stderr or "")[-400:]}
     if made:
-        out["released"] = release()
+        rel = release(force=True)   # run 自己持有：命令跑过 timebox 也要强制归还并验证
+        out["released"] = rel
+        if not rel.get("ok"):
+            out["ok"] = False
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    a1 = sub.add_parser("acquire"); a1.add_argument("--win", default="原神"); a1.add_argument("--max", type=int, default=30)
+    a1 = sub.add_parser("acquire")
+    a1.add_argument("--win", default="原神")
+    a1.add_argument("--max", type=int, default=30)
+    a1.add_argument("--owner-pid", type=int, default=None,
+                    help="租约归属进程（默认父进程；看门狗会回收已死归属者的租约）")
     sub.add_parser("status")
-    sub.add_parser("release")
-    a4 = sub.add_parser("run"); a4.add_argument("spec", nargs=argparse.REMAINDER)
+    a3 = sub.add_parser("release")
+    a3.add_argument("--force", action="store_true", help="过期租约也归还（看门狗用）")
+    a3.add_argument("--fast", action="store_true", help="跳过 ys-wins 独立复核（看门狗用，仍做 KWin 堆叠验证）")
+    a3.add_argument("--discard", action="store_true", help="验证失败也删租约（清理用）")
+    a3.add_argument("--fallback", default=FALLBACK_CLASS, help="原焦点不可用时的回落窗 class")
+    a4 = sub.add_parser("run")
+    a4.add_argument("spec", nargs=argparse.REMAINDER)
+    sub.add_parser("kwin-state", help="KWin 权威状态（active + 堆叠序），ys-gui-slot 用")
+    a7 = sub.add_parser("resolve-window", help="把 X11 窗口线索映射到 KWin 窗口（幽灵窗免疫）")
+    a7.add_argument("--id", default="")
+    a7.add_argument("--name", default="")
+    a7.add_argument("--pid", type=int, default=0)
+    a7.add_argument("--geom", default="")
+    a7.add_argument("--class", dest="cls", default=GAME_CLASS)
+    a5 = sub.add_parser("kwin-raise", help="按 id/class/caption activate+raise+验证，ys-gui-slot 用")
+    a5.add_argument("--id", default="")
+    a5.add_argument("--class", dest="cls", default="")
+    a5.add_argument("--caption", default="")
+    a5.add_argument("--pid", type=int, default=0)
+    a6 = sub.add_parser("restore", help="按已记录的 prev JSON 归还（ys-gui-slot trap 用）")
+    a6.add_argument("--prev-json", required=True)
+    a6.add_argument("--fast", action="store_true")
+    a6.add_argument("--fallback", default=FALLBACK_CLASS)
     a = ap.parse_args()
     if a.cmd == "acquire":
-        res = acquire(a.win, a.max)
+        res = acquire(a.win, a.max, a.owner_pid)
     elif a.cmd == "status":
         res = status()
     elif a.cmd == "release":
-        res = release()
+        res = release(force=a.force, fast=a.fast, discard=a.discard, fallback_class=a.fallback)
+    elif a.cmd == "kwin-state":
+        res = kwin_state_cmd()
+    elif a.cmd == "resolve-window":
+        res = resolve_window(win_id=a.id, name=a.name, x11_pid=a.pid, geom=a.geom, default_class=a.cls)
+    elif a.cmd == "kwin-raise":
+        res = kwin_raise_cmd(caption=a.caption, cls=a.cls, internal_id=a.id, pid=a.pid)
+    elif a.cmd == "restore":
+        res = restore_prev(a.prev_json, fast=a.fast, fallback_class=a.fallback)
     else:
         spec = a.spec[1:] if a.spec and a.spec[0] == "--" else a.spec
         res = run_in_lease(spec)

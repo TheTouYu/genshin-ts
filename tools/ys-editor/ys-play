@@ -32,7 +32,12 @@ sleep "$WAIT"
 
 if [ -n "$INPUT" ] && [ -f "$INPUT" ]; then
   say "注入输入: $INPUT"
-  "$HERE/ys-gui-slot" "$WIN" 180 bash -c "export YS_SLOT_ACTIVE=1; bash '$INPUT'" 2>&1 | tail -1
+  SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$WIN" 180 bash -c "export YS_SLOT_ACTIVE=1; bash '$INPUT'" 2>&1 | tail -1); SLOT_RC=$?
+  [ -n "$SLOT_OUT" ] && say "$SLOT_OUT"
+  if [ "$SLOT_RC" -ne 0 ]; then
+    say "⚠️ ys-gui-slot 失败 rc=$SLOT_RC（焦点/归还未验证）"
+    exit "$SLOT_RC"
+  fi
   sleep 2
 else
   say "无输入脚本"
