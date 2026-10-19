@@ -1,0 +1,11 @@
+{
+ "ts": "2026-10-19T16:10:09",
+ "ys_screen_sha": "1c29b2c0166ee6b0",
+ "ruleset": "flatrect-v1",
+ "models": {
+  "gui-det-v1.pt": "57e459123c1e0b0b",
+  "gui-det-v2.pt": "064dbd948667b2c8"
+ },
+ "git_head": "a2aa8d4f",
+ "git_dirty": true
+}

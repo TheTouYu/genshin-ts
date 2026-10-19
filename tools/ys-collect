@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""ys-collect — GUI 感知层的**采集器**：一次把「一个界面态的 N 帧」变成可复算的数据集。
+
+为什么要有它（2026-10-19 用户裁决「缩小范围、细致跑、收集数据帮助优化」）：
+  扫场式采集（每界面 1 帧）只能回答「哪里不行」，答不了「为什么不行、改哪一处」。
+  要能归因，每个 case 必须同时落四样，缺一样就没法做版本间比较：
+    ① frames/        原始抓帧（同一界面连拍 N 帧 → 交集=静态元素，差集=动画/动态）
+    ② module/        模块对每帧的原始输出（tools/ys-screen --json，不加工）
+    ③ fingerprint.json  规则集版本 + 模型 sha + 工具 sha + git HEAD（没它下一版无法对比）
+    ④ truth.json     真值 bbox（初始为空模板，由人或代理标，用户抽审）
+
+判据（状态）复用同一个两像素探针，全仓只在 drive.py/本文件各出现一次：
+  px(467,556)≈(236,229,216) 且 px(600,900)≈(80,89,107)  ⇒ 在派蒙菜单
+
+子命令：
+  ys-collect new <case> --at menu|world --n 8 [--gap 0.5] [--keep]
+      切到目标态 → 连抓 N 帧 → 逐帧跑 ys-screen → 落 fingerprint + truth 模板
+  ys-collect read <case>            只重跑模块（帧已存在，改了判据后重算）
+  ys-collect list                   列出已有 case 与帧数
+  ys-collect fingerprint            打印当前指纹（不进 case）
+
+抓帧走常驻 ys-lookd 的 cmd=grab（XShm 直抓，不抢焦点）；
+只有「切到目标态」需要焦点，且必须由调用方包在焦点租约里：
+  tools/ys-editor/ys-lease run -- tools/ys-collect new world --at world --n 8
+
+红线：**禁止持续高频抓帧**（2026-10-19 实测 10fps×15min 把 DXVK presentation 拖死）。
+本工具缺省 gap=0.5s、单 case 上限 n=30，且每次抓完即停。
+"""
+import argparse
+import hashlib
+import json
+import os
+import socket
+import subprocess
+import sys
+import time
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.join(REPO, ".scratch", "gui-collect")
+SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
+ENV = dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":0"))
+
+# —— 状态判据（与 .scratch/gui-feedback/drive.py 同源；改这里要同时改那儿，或合并）——
+MENU_P1 = ((467, 556), (236, 229, 216))
+MENU_P2 = ((600, 900), (80, 89, 107))
+TOL = 14
+ESC = 1
+MAX_N = 30
+
+
+def daemon(req, timeout=60):
+    c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    c.settimeout(timeout)
+    c.connect(SOCK)
+    c.sendall((json.dumps(req) + "\n").encode())
+    buf = b""
+    while not buf.endswith(b"\n"):
+        d = c.recv(1 << 16)
+        if not d:
+            break
+        buf += d
+    c.close()
+    return json.loads(buf.decode())
+
+
+def px(x, y):
+    return tuple(int(t) for t in daemon({"cmd": "px", "x": x, "y": y})["v"].split())
+
+
+def near(a, b, tol=TOL):
+    return all(abs(a[i] - b[i]) <= tol for i in range(3))
+
+
+def is_menu():
+    try:
+        return near(px(*MENU_P1[0]), MENU_P1[1]) and near(px(*MENU_P2[0]), MENU_P2[1])
+    except Exception:
+        return False
+
+
+def key(code, hold=0.05):
+    subprocess.run(["ydotool", "key", f"{code}:1"], env=ENV, timeout=10)
+    time.sleep(hold)
+    subprocess.run(["ydotool", "key", f"{code}:0"], env=ENV, timeout=10)
+
+
+def want_state(state, tries=4, gap=0.9):
+    """ESC 是开关不是关闭：世界↔菜单互为 ESC，面板→菜单。所以只往菜单收敛，再从菜单走一次。"""
+    def ok():
+        return (state == "menu") == is_menu()
+    for _ in range(tries):
+        if ok():
+            return True
+        key(ESC)
+        time.sleep(gap)
+    return ok()
+
+
+def file_sha(p):
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for b in iter(lambda: f.read(1 << 20), b""):
+            h.update(b)
+    return h.hexdigest()[:16]
+
+
+def fingerprint():
+    """规则集/模型/工具/git 四件 —— 没有它，两版数据不可比。"""
+    scr = os.path.join(REPO, "tools", "ys-screen")
+    fp = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "ys_screen_sha": file_sha(scr)}
+    try:
+        with open(scr, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                if line.startswith("CONTAINER_RULESET"):
+                    fp["ruleset"] = line.split("=", 1)[1].split("#", 1)[0].strip().strip("'\"")
+                    break
+    except OSError:
+        pass
+    mdl = os.path.join(REPO, "tools", "ys-editor", "models")
+    if os.path.isdir(mdl):
+        fp["models"] = {n: file_sha(os.path.join(mdl, n)) for n in sorted(os.listdir(mdl))}
+    try:
+        fp["git_head"] = subprocess.run(["git", "-C", REPO, "rev-parse", "--short", "HEAD"],
+                                        capture_output=True, text=True, timeout=10).stdout.strip()
+        fp["git_dirty"] = bool(subprocess.run(["git", "-C", REPO, "status", "--porcelain",
+                                               "tools/"],
+                                              capture_output=True, text=True,
+                                              timeout=15).stdout.strip())
+    except Exception:
+        pass
+    return fp
+
+
+def run_module(png, out_json):
+    p = subprocess.run([os.path.join(REPO, "tools", "ys-screen"), png, "--json"],
+                       capture_output=True, text=True, env=ENV, timeout=600)
+    if p.returncode != 0:
+        return {"error": f"rc={p.returncode}", "stderr": (p.stderr or "")[-400:]}
+    with open(out_json, "w", encoding="utf-8") as f:
+        f.write(p.stdout)
+    return json.loads(p.stdout)
+
+
+def summarize(d):
+    cs = d.get("containers") or []
+    by = {}
+    for c in cs:
+        by[c.get("kind")] = by.get(c.get("kind"), 0) + 1
+    return {"containers": len(cs), "kinds": by,
+            "text": len(d.get("text") or []), "free_text": len(d.get("free_text") or []),
+            "free_glyphs": len(d.get("free_glyphs") or []),
+            "structure": len(d.get("structure") or []),
+            "total_ms": (d.get("timing") or {}).get("total_ms")}
+
+
+def cmd_new(a):
+    if a.n > MAX_N:
+        sys.exit(f"n={a.n} 超过上限 {MAX_N}（禁止持续高频抓帧，会把 GPU presentation 拖死）")
+    base = os.path.join(ROOT, a.case)
+    fr = os.path.join(base, "frames")
+    md = os.path.join(base, "module")
+    os.makedirs(fr, exist_ok=True)
+    os.makedirs(md, exist_ok=True)
+    if not want_state(a.at):
+        sys.exit(f"无法进入 {a.at} 态（先在租约里跑，或手工停到该界面）")
+    rows = []
+    for i in range(a.n):
+        name = f"{a.case[0]}{i + 1:02d}"
+        png = os.path.join(fr, name + ".png")
+        t0 = time.time()
+        g = daemon({"cmd": "grab", "out": png})
+        if g.get("error") or not os.path.exists(png):
+            rows.append({"frame": name, "error": g.get("error") or "no file"})
+            continue
+        d = run_module(png, os.path.join(md, name + ".json"))
+        rows.append({"frame": name, "sha": g.get("sha256"), "grab_ms": g.get("ms"),
+                     "module_ms": round((time.time() - t0) * 1000 - (g.get("ms") or 0), 1),
+                     **(summarize(d) if "error" not in d else {"error": d["error"]})})
+        print(json.dumps(rows[-1], ensure_ascii=False), flush=True)
+        if i < a.n - 1:
+            time.sleep(a.gap)
+    cap = {"case": a.case, "at": a.at, "n": len(rows), "gap": a.gap,
+           "window": "0x1800001", "frames": rows}
+    json.dump(cap, open(os.path.join(base, "capture.json"), "w"), ensure_ascii=False, indent=1)
+    json.dump(fingerprint(), open(os.path.join(base, "fingerprint.json"), "w"),
+              ensure_ascii=False, indent=1)
+    tp = os.path.join(base, "truth.json")
+    if not os.path.exists(tp):
+        json.dump({"case": a.case, "units": [],
+                   "rules": "bbox=[x,y,w,h] 像素坐标；判据见 .scratch/gui-corpus/truth/_rules.md",
+                   "annotator": None, "reviewed_by_user": False},
+                  open(tp, "w"), ensure_ascii=False, indent=1)
+    if not a.keep:
+        want_state("menu")
+    print(json.dumps({"case": a.case, "at": a.at, "frames": len(rows),
+                      "avg_containers": round(sum(r.get("containers", 0) for r in rows) / max(1, len(rows)), 1),
+                      "distinct_sha": len({r.get("sha") for r in rows if r.get("sha")})},
+                     ensure_ascii=False))
+
+
+def cmd_read(a):
+    base = os.path.join(ROOT, a.case)
+    fr, md = os.path.join(base, "frames"), os.path.join(base, "module")
+    os.makedirs(md, exist_ok=True)
+    rows = []
+    for n in sorted(os.listdir(fr)):
+        if not n.endswith(".png"):
+            continue
+        d = run_module(os.path.join(fr, n), os.path.join(md, n[:-4] + ".json"))
+        rows.append({"frame": n[:-4], **(summarize(d) if "error" not in d else {"error": d["error"]})})
+        print(json.dumps(rows[-1], ensure_ascii=False), flush=True)
+    json.dump(fingerprint(), open(os.path.join(base, "fingerprint.json"), "w"),
+              ensure_ascii=False, indent=1)
+    print(json.dumps({"case": a.case, "frames": len(rows)}, ensure_ascii=False))
+
+
+def cmd_list(a):
+    if not os.path.isdir(ROOT):
+        print("（还没有 case）")
+        return
+    for c in sorted(x for x in os.listdir(ROOT) if os.path.isdir(os.path.join(ROOT, x))):
+        fr = os.path.join(ROOT, c, "frames")
+        n = len([x for x in os.listdir(fr)]) if os.path.isdir(fr) else 0
+        cap = os.path.join(ROOT, c, "capture.json")
+        at = json.load(open(cap)).get("at") if os.path.exists(cap) else "?"
+        truth = os.path.join(ROOT, c, "truth.json")
+        tn = len(json.load(open(truth)).get("units", [])) if os.path.exists(truth) else 0
+        print(f"{c:16s} at={at:6s} frames={n:3d} truth_units={tn:3d}")
+
+
+def cmd_fp(a):
+    print(json.dumps(fingerprint(), ensure_ascii=False, indent=1))
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="ys-collect", description=__doc__.split("\n")[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("new", help="采集一个界面态（切态+抓帧+跑模块+指纹）")
+    p.add_argument("case")
+    p.add_argument("--at", choices=["menu", "world"], required=True)
+    p.add_argument("--n", type=int, default=8)
+    p.add_argument("--gap", type=float, default=0.5)
+    p.add_argument("--keep", action="store_true", help="收尾不切回菜单")
+    p.set_defaults(fn=cmd_new)
+    p = sub.add_parser("read", help="只重跑模块（帧已存在）")
+    p.add_argument("case")
+    p.set_defaults(fn=cmd_read)
+    p = sub.add_parser("list", help="列出已有 case")
+    p.set_defaults(fn=cmd_list)
+    p = sub.add_parser("fingerprint", help="打印当前指纹")
+    p.set_defaults(fn=cmd_fp)
+    a = ap.parse_args()
+    a.fn(a)
+
+
+if __name__ == "__main__":
+    main()
