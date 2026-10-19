@@ -206,7 +206,14 @@ def main():
         if not after:
             print("[ys-field] 动作后抓帧失败", file=sys.stderr)
             return 2
-        d = region_diff(before, after, box)
+        # 证据区取**两个矩形的最大**（把 cov-field.py 里验证过的口径并回来，避免两处判据）：
+        # · 行条带  → 对勾选框/小图标敏感
+        # · 向下扩展 400px → 对下拉/时间选择器的展开列表敏感
+        # 只用一个会顾此失彼（实测：条带内下拉 diff=0；只用扩展区时小控件被稀释到 0.002）。
+        d_row = region_diff(before, after, box)
+        box_ext = (box[0], box[1], box[2], box[3] + 400)
+        d_ext = region_diff(before, after, box_ext)
+        d = max(d_row, d_ext)
         status = "covered" if d >= 0.01 else "failed"
         ok += status == "covered"
         subprocess.run([OPS, "add", "--id", f"F-{a.field[:14]}-{i}", "--path", a.path,
