@@ -563,10 +563,36 @@ class WorldService:
             result["evidence"]["detail"] = detail
             result["evidence"]["detail_meta"] = detail_res
             if not ev["ok"]:
+                # 失败必须自解释：我期待变哪、实际变哪、两者重不重叠
+                exp_region = exp.get("region")
+                actual = self._changed_region(before, after) if before and after else None
+                result["expect_region"] = exp_region
+                result["actual_change"] = actual
+                hint = (ev.get("detail") or "语义期待未成立")
+                if actual is not None:
+                    if actual["empty"]:
+                        hint = f"画面完全没变（0 个像素变化）；我期待的是 {exp_region} 变化。{hint}"
+                    else:
+                        ov = self._overlap_ratio(exp_region, actual["region"])
+                        result["region_overlap"] = ov
+                        if ov < 0.05:
+                            hint = (f"**变化不是我期待的区域**：期待 {exp_region}，"
+                                    f"实际变化集中在 {actual['region']}（占全帧 {actual['ratio']*100:.2f}%，"
+                                    f"与期待区 IoU={ov}）。{hint}")
+                        else:
+                            hint = (f"变化区与期待区重叠 IoU={ov}，但集合变化量不够。{hint}")
+                        # 给"实际变了哪"也出一张下钻图，和 detail.png（期待区）并列
+                        try:
+                            out2 = os.path.join(edir, "detail-actual.png")
+                            r2 = instruments.detail_image(after, actual["region"], out2,
+                                                          scale=1.0, ocr=True)
+                            if r2["rc"] == 0 and os.path.isfile(out2):
+                                result["evidence"]["detail_actual"] = out2
+                        except Exception:                      # noqa: BLE001 —— 证据是增强，不阻断结论
+                            pass
                 result.update({
                     "status": "expect_failed", "ok": False, "reached": False,
-                    "error": {"code": "ACT_EXPECT_FAILED",
-                              "detail": ev.get("detail") or "语义期待未成立"}})
+                    "error": {"code": "ACT_EXPECT_FAILED", "detail": hint}})
             elif isinstance(post, dict) and post:
                 waited = self.wait_until(post, timeout_ms=timeout_ms, poll_ms=poll_ms, frame=None)
                 result["post"] = waited
@@ -875,6 +901,48 @@ class WorldService:
         return out, {"source": meta.get("source"), "attribution": meta.get("attribution"),
                      "capture_ms": meta.get("capture_ms"), "frame": meta.get("frame")}
 
+    def _changed_region(self, before, after, *, px_thr=30):
+        """算 before→after **实际发生变化的区域**（外接框 + 变化占比）。
+
+        为什么必须有：expect 失败时，光说"你期待的区域没变"没有信息量。
+        AGI 需要的回答是"我期待 X 变，实际变的是 Y"——Y 就是这里算出来的。
+        没有它，失败信息只能靠人翻两张整帧图去猜。
+        """
+        try:
+            from PIL import Image
+            import numpy as np
+        except ImportError:
+            return None
+        try:
+            a = np.asarray(Image.open(before).convert("RGB"), dtype=np.int16)
+            b = np.asarray(Image.open(after).convert("RGB"), dtype=np.int16)
+        except (OSError, ValueError):
+            return None
+        if a.shape != b.shape:
+            return None
+        h, w = a.shape[:2]
+        mask = (np.abs(a - b).sum(2) > px_thr)
+        ratio = float(mask.mean())
+        ys, xs = np.nonzero(mask)
+        if len(xs) == 0:
+            return {"region": None, "ratio": 0.0, "empty": True, "frame": [w, h]}
+        x0, x1 = int(xs.min()), int(xs.max())
+        y0, y1 = int(ys.min()), int(ys.max())
+        return {"region": [x0, y0, x1 - x0 + 1, y1 - y0 + 1], "ratio": round(ratio, 4),
+                "empty": False, "frame": [w, h]}
+
+    def _overlap_ratio(self, r1, r2):
+        """两个 xywh 框的交集 / 并集。"""
+        if not r1 or not r2:
+            return 0.0
+        ax, ay, aw, ah = r1
+        bx, by, bw, bh = r2
+        ix = max(0, min(ax + aw, bx + bw) - max(ax, bx))
+        iy = max(0, min(ay + ah, by + bh) - max(ay, by))
+        inter = ix * iy
+        union = aw * ah + bw * bh - inter
+        return round(inter / union, 4) if union > 0 else 0.0
+
     def _write_detail(self, after, exp, edir):
         region = exp.get("region") or [1280 - 400, 720 - 300, 800, 600]
         out = os.path.join(edir, "detail.png")
@@ -1146,6 +1214,50 @@ def _exit_code_for(status):
             "expect_failed": 9}.get(status, 8)
 
 
+def cmd_drill(a):
+    """把 `look()` 的 uncertainty 变成"去看一眼"——下钻闭环的执行体。
+
+    为什么要做成子命令而不是让人手工裁图：
+      · uncertainty 是模块自己说的"我拿不准"，它必须能直接驱动"看一眼"这个动作；
+      · 否则"知道自己不确定"仍然要靠人翻译成命令，闭环就断在这一步；
+      · 每块只给**已切好的那一块**（不重处理整帧），并带局部+全局双坐标。
+    """
+    profile = load_profile(a.profile) if getattr(a, "profile", None) else None
+    svc = WorldService(profile=profile) if profile else WorldService()
+    ws = svc.look(frame=a.frame, live=bool(a.live), backend=getattr(a, "backend", "cli"))
+    raw = ws.raw if hasattr(ws, "raw") else ws
+    unc = sorted((raw.get("uncertainty") or []), key=lambda z: -(z.get("score") or 0))
+    if a.kinds:
+        want = {k.strip() for k in a.kinds.split(",") if k.strip()}
+        unc = [u for u in unc if u.get("kind") in want]
+    unc = [u for u in unc if (u.get("score") or 0) >= a.min_score][: max(0, a.top)]
+
+    out_dir = a.out_dir or os.path.join(EVIDENCE_DIR_DEFAULT,
+                                        "drill-%s" % time.strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(out_dir, exist_ok=True)
+    frame_path = (raw.get("frame") or {}).get("path")
+    if not frame_path or not os.path.isfile(frame_path):
+        raise SystemExit("drill：拿不到帧路径，无法裁切")
+
+    rows = []
+    for i, u in enumerate(unc):
+        x, y, w, h = u["region"]
+        pad = a.pad
+        region = [max(0, x - pad), max(0, y - pad), w + pad * 2, h + pad * 2]
+        out = os.path.join(out_dir, "u%02d-%s.png" % (i, u.get("kind", "unknown")))
+        r = instruments.detail_image(frame_path, region, out, scale=a.scale, ocr=bool(a.ocr))
+        row = {"i": i, "kind": u.get("kind"), "score": u.get("score"),
+               "reasons": u.get("reasons"), "uncertainty_region": u["region"],
+               "crop_region": region, "image": out if r.get("rc") == 0 else None,
+               "rc": r.get("rc")}
+        if a.ocr and isinstance(r.get("json"), dict):
+            row["texts"] = [t.get("text") for t in (r["json"].get("texts") or [])][:8]
+        rows.append(row)
+    print(json.dumps({"frame": frame_path, "n_uncertainty": len(raw.get("uncertainty") or []),
+                      "drilled": len(rows), "out_dir": out_dir, "items": rows},
+                     ensure_ascii=False, indent=1))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="世界状态服务 v0：look / act / wait_until（A 形态原型；fail-closed）")
@@ -1198,6 +1310,24 @@ def main(argv=None):
     p.add_argument("--timeout-ms", type=int, default=30000)
     p.add_argument("--poll-ms", type=int, default=300)
 
+    # ── drill：下钻闭环的第一步（uncertainty → 局部细节图） ──
+    p = sub.add_parser("drill", help="对 look 的 uncertainty 逐个下钻出局部细节图（不重处理整帧）")
+    p.add_argument("--profile", default=None, help="状态判据 profile（与 look 同口径）")
+    p.add_argument("--backend", default="cli", choices=["cli", "daemon-world"],
+                   help="感知后端（与 look 同口径）")
+    p.add_argument("--channel", default="fast", choices=["fast", "full"])
+    p.add_argument("--frame", default=None, help="离线帧（与 --live 二选一）")
+    p.add_argument("--live", action="store_true", help="活体取帧")
+    p.add_argument("--no-cache", action="store_true", help="禁用帧级缓存")
+    p.add_argument("--json-out", default=None, help="回执写到文件")
+    p.add_argument("--top", type=int, default=3, help="只钻 score 最高的 N 个（缺省 3）")
+    p.add_argument("--min-score", type=float, default=0.0, help="只钻 score ≥ 该值的")
+    p.add_argument("--kinds", default="", help="只钻这些 kind，逗号分隔（如 possible_false_positive）")
+    p.add_argument("--pad", type=int, default=40, help="区域外扩像素（缺省 40）")
+    p.add_argument("--scale", type=float, default=3.0, help="放大倍数（缺省 3）")
+    p.add_argument("--ocr", action="store_true", help="对每块跑 OCR")
+    p.add_argument("--out-dir", default=None, help="产物目录（缺省 evidence/drill-<ts>）")
+    p.set_defaults(fn=cmd_drill)
     p = sub.add_parser("vocab", help="打印状态名词表（单一源 ys-state）")
     p = sub.add_parser("intents", help="列出 ys-do 意图（只读 actions/*.json）")
     p = sub.add_parser("cache", help="查看/清空帧级缓存")
@@ -1259,6 +1389,40 @@ def main(argv=None):
             res = svc.wait_until(pred, timeout_ms=a.timeout_ms, poll_ms=a.poll_ms, frame=a.frame)
             _emit(res, out_path=a.json_out)
             return _exit_code_for(res["status"])
+
+        if a.verb == "drill":
+            # 下钻闭环：look 的 uncertainty → 逐个出局部细节图（不重处理整帧）
+            ws = svc.look(frame=a.frame, source=None)
+            raw = ws.to_dict()
+            unc = sorted((raw.get("uncertainty") or []), key=lambda z: -(z.get("score") or 0))
+            if a.kinds:
+                want = {k.strip() for k in a.kinds.split(",") if k.strip()}
+                unc = [u for u in unc if u.get("kind") in want]
+            unc = [u for u in unc if (u.get("score") or 0) >= a.min_score][: max(0, a.top)]
+            out_dir = a.out_dir or os.path.join(EVIDENCE_DIR_DEFAULT,
+                                                "drill-%s" % time.strftime("%Y%m%d-%H%M%S"))
+            os.makedirs(out_dir, exist_ok=True)
+            frame_path = (raw.get("frame") or {}).get("path")
+            if not frame_path or not os.path.isfile(frame_path):
+                raise ServiceError("DRILL_NO_FRAME", "拿不到帧路径，无法裁切", rc=8)
+            rows = []
+            for i, u in enumerate(unc):
+                x, y, w, h = u["region"]
+                region = [max(0, x - a.pad), max(0, y - a.pad), w + a.pad * 2, h + a.pad * 2]
+                out = os.path.join(out_dir, "u%02d-%s.png" % (i, u.get("kind", "unknown")))
+                r = instruments.detail_image(frame_path, region, out,
+                                             scale=a.scale, ocr=bool(a.ocr))
+                row = {"i": i, "kind": u.get("kind"), "score": u.get("score"),
+                       "reasons": u.get("reasons"), "uncertainty_region": u["region"],
+                       "crop_region": region, "image": out if r.get("rc") == 0 else None,
+                       "rc": r.get("rc")}
+                if a.ocr and isinstance(r.get("json"), dict):
+                    row["texts"] = [t.get("text") for t in (r["json"].get("texts") or [])][:8]
+                rows.append(row)
+            _emit({"frame": frame_path, "n_uncertainty": len(raw.get("uncertainty") or []),
+                   "drilled": len(rows), "out_dir": out_dir, "items": rows},
+                  out_path=a.json_out)
+            return 0
     except ServiceError as exc:
         _emit({"status": exc.status, "error": {"code": exc.code, "detail": exc.detail}})
         return exc.rc
