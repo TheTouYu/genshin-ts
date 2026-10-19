@@ -231,6 +231,63 @@ def _batch_on(It, jobs, ox=0, oy=0, cuda=True):
         results.append({"id": job.get("id"), "best": best, "all": per})
     return {"results": results, "frame": list(It.shape)}
 
+_UID_STRIP = (2200, 1340, 360, 100)   # 右下 UID 小条：本体判据的**唯一取数点**
+
+
+def _uid_present(arr_full=None):
+    """右下 UID 小条里有没有 "UID" —— `_state` 与 `_world_state` **共用这一份**。
+
+    2026-10-19 修正：这段逻辑此前只写在 `_state` 里，而 `cmd=world` 走自己的 `YS.decide`
+    直接返回 ⇒ 同一帧 `cmd=state` 说 GAME_WORLD、`cmd=world` 说 PLAYTEST（实测差 1 个态，
+    且 `look` 的 state 全部来自 world 路径）。界面态判定必须只有一处实现（门槛⑤）。
+
+    arr_full：整帧 HxWx3（uint8 0..255）。给了就从同一帧裁条（0ms），否则退回单抓。
+    结果按**时间**缓存 5s——画面持续渲染 ⇒ 像素 sha 每帧都变，而 UID 只在切场景时变。
+    """
+    import numpy as _np
+    bx, by, bw, bh = _UID_STRIP
+    _now = time.monotonic()
+    hit = _UID_CACHE.get("t")
+    if hit and (_now - hit[1]) < 5.0:
+        return hit[0]
+    try:
+        if arr_full is not None and len(getattr(arr_full, "shape", ())) >= 2 \
+                and arr_full.shape[0] >= by + bh and arr_full.shape[1] >= bx + bw:
+            strip = arr_full[by:by + bh, bx:bx + bw]
+            a8 = strip if strip.dtype == _np.uint8 else \
+                (_np.clip(strip, 0, 1) * 255).round().astype(_np.uint8)
+        else:                                      # 整帧不可用/尺寸不够 ⇒ 退回单抓
+            raw = YL.grab(bx, by, bw, bh)
+            a8 = (_np.clip(raw, 0, 1) * 255).round().astype(_np.uint8)
+        eng, _err = _ocr_engine()
+        found = False
+        if eng is not None:
+            boxes = _ocr_array(eng, a8, (bx, by))
+            found = any("UID" in (b.get("text") or "").upper() for b in boxes)
+    except Exception:                              # noqa: BLE001 —— 取不到就当"没有"，保持原判定
+        return False
+    _UID_CACHE["t"] = (found, _now)
+    if len(_UID_CACHE) > 8:
+        _UID_CACHE.clear()
+        _UID_CACHE["t"] = (found, _now)
+    return found
+
+
+def _apply_world_uid(res, arr_full=None):
+    """UNKNOWN/PLAYTEST ⇒ 用 UID 小条补判 GAME_WORLD（就地改 res）。判据只有这一份。"""
+    if (res or {}).get("state") not in ("UNKNOWN", "PLAYTEST"):
+        return res
+    try:
+        if _uid_present(arr_full):
+            res["replaced"] = str(res.get("state")) + "->GAME_WORLD"
+            res["state"] = "GAME_WORLD"
+            res["confidence"] = max(0.6, float(res.get("confidence") or 0))
+            res["ambiguous"] = False
+    except Exception as _e:                        # noqa: BLE001
+        res["world_check_error"] = f"{type(_e).__name__}: {_e}"
+    return res
+
+
 def _state(req):
     """常驻判态（fast 通道）：**一次取数**（抓原始像素，无 PNG 编解码）→ 判据 → JSON。
 
@@ -307,46 +364,17 @@ def _state(req):
     _t_dec = time.time()
     res = YS.decide(readings)
     _PARTS["decide_ms"] = round((time.time() - _t_dec) * 1000, 1)
-    # 本体后备**不在这里做**：本服务持有的是 ROI 裁剪帧，
-    # 而本体判据要看右下 UID（x≈2370，在裁剪外）。改由 ys-state 在 UNKNOWN 时用全帧兜底。
     # 本体态补判（2026-10-19）：fast ROI 裁到 x≤1400，右下 UID 行不在内 ⇒ 世界里会判成
-    # PLAYTEST/UNKNOWN。这里抓一条 UID 小条、用常驻 OCR 引擎识别，并按**帧 sha 缓存 2s**。
-    # 关键：OCR 用 _ocr_array + monkey-patch YS._ocr_boxes（与 _world 同法），
+    # PLAYTEST/UNKNOWN。判据本体已抽到 `_apply_world_uid`（`_world_state` 共用同一份，
+    # 修掉"同一帧 cmd=state 说 GAME_WORLD、cmd=world 说 PLAYTEST"的双实现漂移）。
     # **绝不调用会重入 daemon RPC 的路径**（那会自锁，e676e698 已踩）。
     if is_live and res.get("state") in ("UNKNOWN", "PLAYTEST"):
         _t_uid = time.time()
-        try:
-            import hashlib as _hl
-            import numpy as _np
-            _bx, _by, _bw, _bh = 2200, 1340, 360, 100
-            try:                                   # 同一张 XShm 整帧裁条：0ms（避免第二次抓帧 ~50ms）
-                _strip = _full_shot()[_by:_by + _bh, _bx:_bx + _bw]
-                _a8 = _strip.astype(_np.uint8)
-            except Exception:                      # noqa: BLE001 —— 整帧不可用时退回单抓
-                _strip = YL.grab(_bx, _by, _bw, _bh)
-                _a8 = (_np.clip(_strip, 0, 1) * 255).round().astype(_np.uint8)
-            _sha = "t"      # 画面持续渲染 ⇒ 像素 sha 每帧都变，改按**时间**缓存（UID 只在切场景时变）
-            _now = time.monotonic()
-            _hit = _UID_CACHE.get(_sha)
-            if _hit and (_now - _hit[1]) < 5.0:
-                _uid = _hit[0]
-            else:
-                _eng, _err = _ocr_engine()
-                _uid = False
-                if _eng is not None:
-                    _boxes = _ocr_array(_eng, _a8, (_bx, _by))
-                    _uid = any("UID" in (b.get("text") or "").upper() for b in _boxes)
-                _UID_CACHE[_sha] = (_uid, _now)
-                if len(_UID_CACHE) > 8:
-                    _UID_CACHE.clear()
-                    _UID_CACHE[_sha] = (_uid, _now)
-            if _uid:
-                res["replaced"] = str(res.get("state")) + "->GAME_WORLD"
-                res["state"] = "GAME_WORLD"
-                res["confidence"] = max(0.6, float(res.get("confidence") or 0))
-                res["ambiguous"] = False
-        except Exception as _e:                             # noqa: BLE001
-            res["world_check_error"] = f"{type(_e).__name__}: {_e}"
+        try:                                   # 同一张 XShm 整帧裁条：0ms（避免第二次抓帧 ~50ms）
+            _full = _full_shot()
+        except Exception:                      # noqa: BLE001 —— 整帧不可用时由 helper 退回单抓
+            _full = None
+        _apply_world_uid(res, _full)
         _PARTS["uid_ms"] = round((time.time() - _t_uid) * 1000, 1)
     readings = res.get('readings') or readings
     res.update({"channel": "fast", "readings": readings,
@@ -1715,7 +1743,7 @@ def _world_half(arr):
     return half
 
 
-def _world_state(arr, It, W, H, prof, boxes):
+def _world_state(arr, It, W, H, prof, boxes, is_live=False):
     """判据下沉：像素/锚点/投票/本体后备全部复用 ys-state（本函数只做"取数"）。"""
     YS = ys_state()
     t0 = time.time()
@@ -1747,6 +1775,10 @@ def _world_state(arr, It, W, H, prof, boxes):
     else:
         res = YS.decide(readings)
     res = dict(res)
+    # 本体态补判：与 `_state` **同一份判据**（2026-10-19 修双实现漂移）。
+    # 不给 arr 就是挂不上——world 路径拿到的是整帧 uint8，直接从它裁 UID 小条。
+    if is_live:
+        _apply_world_uid(res, arr)
     res["readings"] = res.get("readings") or readings
     return res, t_judge
 
@@ -1878,7 +1910,7 @@ def _world(req):
         boxes, ocr_meta = _world_ocr_objects(arr, sha,
                                              force_fallback=bool(req.get("force_fallback")))
     t_after_ocr = time.time()
-    state, t_judge = _world_state(arr, It, W, H, prof, boxes)
+    state, t_judge = _world_state(arr, It, W, H, prof, boxes, is_live=(src == "live"))
     t_after_state = time.time()
     objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
     t_after_obj = time.time()
@@ -1887,6 +1919,10 @@ def _world(req):
     structure = _world_structure(objects, W, H, boxes, det_objs) if (do_obj and req.get("structure", True)) else None
     if structure is not None:
         structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err}
+        # D2 检测结果原样透出：它是**三维世界 HUD 里唯一的对象来源**（CV flat+rect 在开放世界
+        # 找不到容器，实测 containers=0 而检测器给 33 个框）。此前只喂给 D3 结构层、不对外暴露，
+        # 消费方等于看不见任何对象。放在 structure 里（已透传）而不是新增顶层键，避免又撞白名单。
+        structure["detections"] = det_objs
     t_after_structure = time.time()
     degraded = []
     if do_ocr and boxes is None:
