@@ -62,6 +62,12 @@
 - **仍未达标**：单次 `look` 1.1–3.3s（冷启 11.8s）。`_WORLD_CACHE` 键含整帧 sha，**活体画面每帧都在渲染
   ⇒ 几乎不命中**（与判态那次同一个坑：像素 sha 对活体画面无效，应改时间缓存）。缓存命中 1.5ms。
 - **未闭合**：`free_text` 无 bbox（daemon 侧已字符串化）⇒ 世界里 `act(text)` 解析不到，`FREE_TEXT_UNOWNED`。
+- **菜单路径已端到端验证（离线帧，零焦点占用）**：
+  `look --frame .scratch/gui-collect/menu/frames/m01.png --backend daemon-world` →
+  `state=GAME_PAIMON`、**objects=19（18 tile + 1 全高 unknown）且全部有 text 归属**
+  （`tile 好友 [590,478,174,156]`、`tile 角色`、`tile 祈愿`、`tile 队伍配置`…）；
+  `act --text 好友 --expect '{"type":"pixel_delta",...}'` → **dry_run rc=0，点击点 `[677,556]`**
+  （= tile 中心，解析正确）。⇒ **菜单类任务的可寻址链路是通的**；世界 HUD 只有坐标、没有文字寻址。
 
 ### 正在跑
 - `trainer`（阶段 B）：按界面组切分的 dataset builder + glyph_icon 可学性；已给裁决与四条附加约束。
