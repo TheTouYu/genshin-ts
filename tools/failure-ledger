@@ -142,12 +142,17 @@ def cmd_dashboard(a):
 
 
 def cmd_check(a):
+    """（--fast：只跑 tier=fast 的 gate；慢 gate 留给出轮/夜间全量跑）"""
     """真跑每条 prevented 的 gate（去重）+ 它的注入用例；缺用例 = UNPROVEN，退出码 1。
 
     为什么要注入用例（2026-10-17 用户令）：`gate` 只能证明"门禁跑得起来"，
     不能证明"它真能拦住这条账目对应的错误"。注入用例 = 主动造一次故障，门禁必须报红。
     """
-    gates = read_gates()
+    gates_all = read_gates()
+    gates = gates_all
+    if getattr(a, 'fast', False):
+        gates = {k: v for k, v in gates_all.items() if (v.get('tier') or 'fast') != 'slow'}
+    skipped = 0
     rows = load()
     used_gates, fails, unproven, inject_fail = [], 0, 0, 0
     inj_done, inj_seen = {}, set()          # 注入用例按命令去重（见下）
@@ -159,6 +164,9 @@ def cmd_check(a):
         g = r.get('gate', '')
         for one in [x.strip() for x in g.split(',') if x.strip()]:
             if one in used_gates:
+                continue
+            if one in gates_all and one not in gates:
+                skipped += 1
                 continue
             used_gates.append(one)
             cmd = gates[one]['command'] if one in gates else ''
@@ -190,8 +198,8 @@ def cmd_check(a):
         inj_seen.add(inj)
         print('  [%s] %-16s inject %s%s' % ('PASS' if ok_inj else 'FAIL', r['id'],
                                             last_line, reused))
-    print('LEDGER-RESULT gates=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
-          % (len(used_gates), fails, unproven, inject_fail,
+    print('LEDGER-RESULT gates=%d skipped=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
+          % (len(used_gates), skipped, fails, unproven, inject_fail,
              'PASS' if (fails + unproven + inject_fail) == 0 else 'FAIL'))
     return 0 if (fails + unproven + inject_fail) == 0 else 1
 
@@ -211,6 +219,7 @@ def main():
     a3.add_argument('--json', action='store_true')
     a3.set_defaults(func=cmd_dashboard)
     a4 = sub.add_parser('check')
+    a4.add_argument('--fast', action='store_true', help='只跑 tier=fast 的 gate（快检）')
     a4.set_defaults(func=cmd_check)
     a = vars(ap.parse_args())
     return a['func'](a)

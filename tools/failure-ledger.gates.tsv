@@ -1,25 +1,25 @@
-gate	command	note
-gate1	./tools/ys-gates --only 1	判定回归（20 帧含 8 负样本，两通道 100%）
-gate2	bash tools/ys-editor/tests/fake-success.selftest.sh	假成功 F1/F2/F3（+F4 交付后自动纳入）
-perf	./tools/ys-perf	GUI 单次执行性能（7 条：冷/中位/阈值；覆盖 F-1-12 的 8×/22×/39× 慢通道退化）
-daemon-resilience	bash tools/ys-editor/tests/daemon-resilience.selftest.sh	常驻服务抗客户端断开（断不熄火/事后可服务/出声；覆盖 2026-10-18 间歇假红真因）
-gate5	./tools/ys-gates --only 5	单一源（判据副本 0）
-gate6	./tools/ys-gates --only 6	操作目录（quote 逐字验真 / 状态↔台账一致）
-probe-matrix	bash tools/ys-editor/tests/probe-matrix.selftest.sh	探针矩阵（24 帧 × 7 探针，覆盖单位错/假阳性）
-concurrency	bash tools/ys-editor/tests/state-concurrency.selftest.sh	并发判定（4 路 × 8 帧，覆盖串帧事故路径）
-round-check	./tools/ys-editor/ys-round --check	一轮编排的依赖/探针/零固定 sleep/预算
-noswallow	bash -c '! grep -rl "ys-pointer-click.*2>/dev/null" tools/ys-editor/ys-* 2>/dev/null | grep -q .'	点击调用不许吞退出码（4 处事故的机械防线）
-salvage	python3 scripts/skill-salvage.py	知识落地自检（真孤儿=0）
-domain-selftest	bash tools/ys-editor/tests/domain-selftest.sh	执行域自检（29 项/66 断言，含三例违例注入）
-identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	证据新鲜度（replay 无 sha/无时刻/sha 不符 ⇒ ERROR）
-resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	动作时解析（同标签两布局/候选0/不唯一/回读不符）
-screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	屏幕摘要（4 帧/23 断言：邻接+遮挡+圆钮两路内部样式）
-layer	bash tools/ys-editor/tests/layer-selftest.sh	层级/模态/scrim（5 帧 9 断言，含 2 负样本）
-afford	bash tools/ys-editor/tests/afford-selftest.sh	可点性打分（8 帧 39 断言，含战斗画面负样本）
-watch	bash tools/ys-editor/tests/watch-selftest.sh	ROI 变化事件（17 用例 63 断言，含 69.84%/「领取」复现）
-act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断言：变化/无变化/rc透传/红点delta）
-slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）
-brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）
-probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）
-gui-skills	bash .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本
-guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）
+gate	command	note	tier
+gate1	./tools/ys-gates --only 1	判定回归（20 帧含 8 负样本，两通道 100%）	slow
+gate2	bash tools/ys-editor/tests/fake-success.selftest.sh	假成功 F1/F2/F3（+F4 交付后自动纳入）	slow
+perf	./tools/ys-perf	GUI 单次执行性能（7 条：冷/中位/阈值；覆盖 F-1-12 的 8×/22×/39× 慢通道退化）	slow
+daemon-resilience	bash tools/ys-editor/tests/daemon-resilience.selftest.sh	常驻服务抗客户端断开（断不熄火/事后可服务/出声；覆盖 2026-10-18 间歇假红真因）	fast
+gate5	./tools/ys-gates --only 5	单一源（判据副本 0）	slow
+gate6	./tools/ys-gates --only 6	操作目录（quote 逐字验真 / 状态↔台账一致）	slow
+probe-matrix	bash tools/ys-editor/tests/probe-matrix.selftest.sh	探针矩阵（24 帧 × 7 探针，覆盖单位错/假阳性）	slow
+concurrency	bash tools/ys-editor/tests/state-concurrency.selftest.sh	并发判定（4 路 × 8 帧，覆盖串帧事故路径）	slow
+round-check	./tools/ys-editor/ys-round --check	一轮编排的依赖/探针/零固定 sleep/预算	fast
+noswallow	bash -c '! grep -rl "ys-pointer-click.*2>/dev/null" tools/ys-editor/ys-* 2>/dev/null | grep -q .'	点击调用不许吞退出码（4 处事故的机械防线）	fast
+salvage	python3 scripts/skill-salvage.py	知识落地自检（真孤儿=0）	fast
+domain-selftest	bash tools/ys-editor/tests/domain-selftest.sh	执行域自检（29 项/66 断言，含三例违例注入）	fast
+identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	证据新鲜度（replay 无 sha/无时刻/sha 不符 ⇒ ERROR）	fast
+resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	动作时解析（同标签两布局/候选0/不唯一/回读不符）	slow
+screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	屏幕摘要（4 帧/23 断言：邻接+遮挡+圆钮两路内部样式）	slow
+layer	bash tools/ys-editor/tests/layer-selftest.sh	层级/模态/scrim（5 帧 9 断言，含 2 负样本）	fast
+afford	bash tools/ys-editor/tests/afford-selftest.sh	可点性打分（8 帧 39 断言，含战斗画面负样本）	slow
+watch	bash tools/ys-editor/tests/watch-selftest.sh	ROI 变化事件（17 用例 63 断言，含 69.84%/「领取」复现）	slow
+act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断言：变化/无变化/rc透传/红点delta）	slow
+slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）	slow
+brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）	slow
+probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）	slow
+gui-skills	bash .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本	fast
+guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）	fast
