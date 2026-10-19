@@ -60,27 +60,63 @@ def _env():
     return e
 
 
+def _win_rect():
+    """目标窗口在 X11 空间里的物理矩形 (x,y,w,h)。"""
+    try:
+        r = subprocess.run(["xdotool", "getwindowgeometry", "--shell", WIN], env=_env(),
+                           capture_output=True, text=True, timeout=10)
+        kv = dict(l.split("=", 1) for l in r.stdout.splitlines() if "=" in l)
+        return int(kv["X"]), int(kv["Y"]), int(kv["WIDTH"]), int(kv["HEIGHT"])
+    except Exception:
+        return None
+
+
 def grab(out):
-    """抓一帧（不抢焦点、不抬窗）。失败返回 None。"""
+    """抓一帧（不抢焦点、不抬窗）。失败返回 None。
+    2026-10-20：`import -window` 在合成器下抓到的是**旧缓冲**（窗口被遮挡时不更新，
+    实测同一窗口连续抓帧恒定不变，而真屏幕在变）；改为 spectacle 抓真屏幕 + 裁剪到窗口矩形。"""
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    r = subprocess.run(["import", "-window", WIN, out], env=_env(),
-                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=25)
-    return out if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 4096 else None
+    rect = _win_rect()
+    raw = out + ".full.png"
+    r = subprocess.run(["spectacle", "-b", "-n", "-f", "-o", raw], env=_env(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=40)
+    if r.returncode != 0 or not os.path.exists(raw) or os.path.getsize(raw) < 4096:
+        return None
+    try:
+        from PIL import Image
+        im = Image.open(raw)
+        if rect:
+            x, y, w, h = rect
+            im = im.crop((x, y, x + w, y + h))
+        im.save(out)
+    except Exception:
+        return None
+    finally:
+        try:
+            os.remove(raw)
+        except Exception:
+            pass
+    return out if os.path.exists(out) and os.path.getsize(out) > 4096 else None
 
 
 def diff_ratio(a, b):
-    """两帧差异：返回 (变化面积占比, 变化区 bbox[xywh])。用 32x32 缩略图快算，再回到原尺寸。"""
+    """两帧差异：返回 (变化像素占比, 绝对变化像素数)。
+    2026-10-20：原实现先缩到 64x36 再数像素，树展开/折叠这种 ~0.08% 的变化被抹成 0，
+    台账因此把有效动作记成 failed。改为全分辨率直方图计数（3M 像素 ~50ms）。"""
     try:
         from PIL import Image, ImageChops
     except Exception:
         return None, None
     try:
-        ia = Image.open(a).convert("L").resize((64, 36))
-        ib = Image.open(b).convert("L").resize((64, 36))
+        ia = Image.open(a).convert("L")
+        ib = Image.open(b).convert("L")
+        if ia.size != ib.size:
+            ib = ib.resize(ia.size)
         d = ImageChops.difference(ia, ib)
-        px = list(d.getdata())
-        n = sum(1 for v in px if v > 8)          # 阈值 8/255，滤掉压缩噪声
-        return round(n / len(px), 4), None
+        hist = d.histogram()
+        n = sum(hist[9:])                        # 阈值 8/255，滤掉压缩噪声
+        total = ia.size[0] * ia.size[1]
+        return round(n / total, 6), n
     except Exception:
         return None, None
 
