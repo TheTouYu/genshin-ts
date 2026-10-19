@@ -82,6 +82,39 @@ def region_diff(a, b, box):
     return round(sum(1 for v in px if v > 8) / max(len(px), 1), 4)
 
 
+def locate_control(png, box, thr=8.0):
+    """在值区里找「控件」的 x 位置：按列算亮度标准差，取第一段连续高方差区的中线。
+
+    为什么不能按比例猜：实测「是否启用全额绽放伤害」按值区 35% 处点击两次都 region_diff=0，
+    勾选框不在那里。控件在值区里的位置随行内容变化（有的紧贴标签、有的靠右），必须现找。
+    """
+    from PIL import Image
+    import statistics
+    x, y, w, h = [int(v) for v in box]
+    im = Image.open(png).convert("L").crop((x, y, x + w, y + h))
+    px = im.load()
+    cols = []
+    for cx in range(w):
+        vals = [px[cx, cy] for cy in range(0, h, 2)]
+        cols.append(statistics.pstdev(vals) if len(vals) > 1 else 0.0)
+    runs, cur = [], None
+    for i, v in enumerate(cols):
+        if v >= thr:
+            cur = (i, i) if cur is None else (cur[0], i)
+        elif cur is not None:
+            if cur[1] - cur[0] >= 4:
+                runs.append(cur)
+            cur = None
+    if cur is not None and cur[1] - cur[0] >= 4:
+        runs.append(cur)
+    if not runs:
+        return None
+    # 取**最右**那段：编辑器属性行的控件普遍右对齐（实测 编辑 x=1882 / 查看 x=1881 / 暂无 x=1798），
+    # 取最左那段会点在标签尾巴或分隔线上（实测 1227 处点击 region_diff=0）。
+    a, b = max(runs, key=lambda r: r[0])
+    return int(x + (a + b) / 2), int(y + h / 2)
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ys-field")
     ap.add_argument("--path", default="", help="界面路径（进台账）")
@@ -160,7 +193,13 @@ def main():
         if not before:
             print("[ys-field] 抓帧失败", file=sys.stderr)
             return 2
-        subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(cx), str(cy)],
+        pt = locate_control(os.path.join(TMP, f"f{i}-before.png"), box)
+        if pt is None:
+            print("[ys-field] 值区里找不到控件样团块", file=sys.stderr)
+            return 1
+        px_, py_ = pt
+        print(f"[ys-field] 控件定位 @ {px_},{py_}", file=sys.stderr)
+        subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(px_), str(py_)],
                        env=env(), capture_output=True, timeout=60)
         time.sleep(1.0)
         after = grab(os.path.join(TMP, f"f{i}-after.png"))
