@@ -99,12 +99,22 @@ def main():
     ap.add_argument("--dir", choices=["down", "up"], default="down")
     ap.add_argument("--window", default="auto")
     ap.add_argument("--no-verify", action="store_true")
+    ap.add_argument("--drag", type=int, default=0, help="改用「拖动」滚动：拖动 N 像素（内容 1:1 跟手，比滚轮线性）")
     ap.add_argument("--delay", type=int, default=30, help="每格间隔 ms（慢速滚动保持线性；实测 8ms 会非线性加速）")
     ap.add_argument("--hint", action="store_true", default=True, help="执行后附带教练提示（默认开）")
     a = ap.parse_args()
 
     t0 = time.time()
     clicks = a.clicks
+    # --by rows=N：用拖动（线性），按标定 px_per_row 换算（默认 200；标定见 ~/.dsh/ys-scroll-calib.json）
+    if a.by.startswith("rows="):
+        n = float(a.by.split("=", 1)[1])
+        try:
+            calib = json.load(open(os.path.expanduser("~/.dsh/ys-scroll-calib.json")))
+            ppr = float(calib.get("px_per_row") or 200.0)
+        except Exception:                                # noqa: BLE001
+            ppr = 200.0
+        a.drag = int(round(n * ppr))
     if a.by.startswith("items="):
         n = int(a.by.split("=", 1)[1])
         clicks = max(1, int(round(n * max(1.0, a.pitch) / 20.0)))   # 20px ≈ 1 格滚轮（经验值，可由调用方覆盖）
@@ -117,9 +127,17 @@ def main():
         fa = capture(a.window, os.path.join(tmp, "a.png"))
     x, y = [int(v) for v in a.at.split(",")]
     btn = 5 if a.dir == "down" else 4
-    # 一次调用滚完（--repeat），减少 N 次进程启停
-    script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
-              f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
+    if a.drag:
+        # 拖动滚动：内容随指针 1:1 移动（慢速拖动不触发惯性加速）
+        dy = abs(a.drag)
+        y1 = y + dy // 2 if a.dir == "down" else y - dy // 2
+        y2 = y1 - dy if a.dir == "down" else y1 + dy
+        script = (f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
+                  f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} 60 0.25")
+    else:
+        # 一次调用滚完（--repeat），减少 N 次进程启停
+        script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
+                  f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
     p = subprocess.run([SLOT, "0x01400001", "60", "bash", "-c", script],
                        capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
@@ -137,7 +155,8 @@ def main():
             hint = hp.stdout.strip() or None
         except Exception:                                # noqa: BLE001
             hint = None
-    out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks, "hint": hint,
+    out = {"ok": bool(ok_inject), "at": [x, y], "dir": a.dir, "clicks": clicks,
+           "drag": a.drag or None, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "ms": round((time.time() - t0) * 1000, 1),
            "frame_before": fa, "frame_after": fb}

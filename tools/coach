@@ -127,8 +127,8 @@ def analyze(rows, window_ms=WINDOW_MS):
     big = [r for r in sc if re.search(r"--clicks\s+(\d{3,})", r.get("cmd") or "")]
     if len(sc) >= 4 or big:
         why = f"其中 {len(big)} 次单次 ≥100 格" if big else "次数偏多"
-        tips.append((25 * max(len(sc), 1), f"近 15 分钟 ys-scroll {len(sc)} 次（{why}）——滚轮是非线性的：先标定"
-                                           f"「N 格 = 几行」，再按 `--by items=K --pitch P` 滚；大步盲滚会跳区段"))
+        tips.append((25 * max(len(sc), 1), f"近 15 分钟 ys-scroll {len(sc)} 次（{why}）——滚轮非线性（实测 10 格与 20 格都只走 3 行）；"
+                                           f"改用拖动：`ys-scroll --by rows=N`（标定 200px/行，线性）"))
 
     # R7 内存
     avail = mem_available_gb()
