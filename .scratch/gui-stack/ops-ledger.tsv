@@ -204,3 +204,15 @@ ts	id	path	control	action	invoke	effect	reading	status	risk	evidence	note
 2026-10-19 20:41:37	F-是否启用全额绽放伤害-2	关卡设置 > 基础	是否启用全额绽放伤害	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/F-是否启用全额绽放伤害-2	region_diff=0.0 box=(1217, 569, 683, 60)
 2026-10-19 20:42:07	F-是否启用全额绽放伤害-1	关卡设置 > 基础	是否启用全额绽放伤害	observe	observe	NONE	diff=0.0009 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/F-是否启用全额绽放伤害-1	region_diff=0.0 box=(1217, 569, 683, 60)
 2026-10-19 20:42:31	F-是否启用全额绽放伤害-2	关卡设置 > 基础	是否启用全额绽放伤害	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/F-是否启用全额绽放伤害-2	region_diff=0.0 box=(1217, 569, 683, 60)
+2026-10-19 20:47:47	SET-运行后场景生效范围	关卡设置 > 基础	运行后场景生效范围	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-运行后场景生效范围	value_diff=0.0 click=1807,489
+2026-10-19 20:48:21	SET-当前可进关人数: 1,2	关卡设置 > 基础	当前可进关人数: 1,2,3,4,5,6,7,8	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-当前可进关人数: 1,2	value_diff=0.0 click=1882,698
+2026-10-19 20:48:55	SET-关卡实体	关卡设置 > 基础	关卡实体	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-关卡实体	value_diff=0.0 click=1881,809
+2026-10-19 20:49:29	SET-全局脚本	关卡设置 > 基础	全局脚本	observe	observe	NONE	diff=0.0004 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-全局脚本	value_diff=0.0 click=1947,858
+2026-10-19 20:50:03	SET-关卡初始时间点	关卡设置 > 基础	关卡初始时间点	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-关卡初始时间点	value_diff=0.0 click=1883,975
+2026-10-19 20:50:43	TESTX	p	c	observe	observe	NONE	diff=0.0013 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/TESTX	probe
+2026-10-19 20:51:17	GOTO-关卡设置	编辑器 > 系统菜单	关卡设置	click	click 184,232	state:MENU->GAME_WORLD;frame_diff:0.957	diff=0.957 state=MENU->GAME_WORLD	covered	A	.scratch/gui-stack/ops-evidence/GOTO-关卡设置	[ys-gui-slot] 占用 1s｜焦点本就在目标窗，未改动
+2026-10-19 20:52:15	SET-运行后场景生效范围	关卡设置 > 基础	运行后场景生效范围	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-运行后场景生效范围	value_diff=0.0 click=1807,489 val=100×100×100
+2026-10-19 20:52:42	SET-当前可进关人数: 1,2	关卡设置 > 基础	当前可进关人数: 1,2,3,4,5,6,7,8	observe	observe	NONE	diff=0.0004 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-当前可进关人数: 1,2	value_diff=0.0124 click=1882,698 val=编辑
+2026-10-19 20:53:11	SET-关卡实体	关卡设置 > 基础	关卡实体	observe	observe	NONE	diff=0.0009 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-关卡实体	value_diff=0.9989 click=1881,809 val=查看
+2026-10-19 20:53:49	SET-全局脚本	关卡设置 > 基础	全局脚本	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-全局脚本	value_diff=0.0079 click=1947,858 val=Q
+2026-10-19 20:54:23	SET-关卡初始时间点	关卡设置 > 基础	关卡初始时间点	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/SET-关卡初始时间点	value_diff=0.0 click=1883,975 val=00
