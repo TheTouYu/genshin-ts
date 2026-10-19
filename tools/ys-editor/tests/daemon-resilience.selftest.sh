@@ -3,24 +3,30 @@
 #
 # 事故（真因，不是推断）：
 #   2026-10-18 07:56:35 `ys-lookd` 在 `c.sendall(resp)` 抛 **BrokenPipeError** 后整个进程退出
-#   （serve() 里那条 sendall 只有 try/finally，没有 except）⇒ systemd 重启 + 重新预热 ~3s
+#   （serve() 里那条 sendall 只有 try/finally，没有 except）⇒ 服务重启 + 重新预热 ~3s
 #   ⇒ 之后的调用落到「daemon 不可用」回退本地（`YS_STATE_LOCAL=1` 同路径，慢 4 倍）。
 #   触发条件 = 客户端在**自己超时**时先关 socket（`tools/gui` 的预算纪律会主动放弃最后一次轮询，
-#   `ys-state --wait` 超时同理）。所以它是「负载越高越容易出现」的间歇性假红：
-#   `./tools/ys-gates` 首跑 PASS 2/FAIL 2，其中门槛②  自报 verdict=FAIL 而四个 exit 码全对；
-#   同时刻 `fake-success.selftest.sh` 单跑连绿三次 —— 真因不在被测对象身上。
-#   复活证据（修复前后各一次）：修前同一手法 NRestarts 3→4 且 MainPID 变；修后 MainPID 不变、
-#   NRestarts=0、日志出现「客户端提前断开，丢弃本次响应」。
+#   `ys-state --wait` 超时同理）。所以它是「负载越高越容易出现」的间歇性假红。
+#
+# **2026-10-19 判据源修正（Lead 实测纠错）**：
+#   旧版用 `systemctl --user show ys-lookd.service -p MainPID` 判"服务在不在"。
+#   本机 daemon 是**手工 setsid 起的**，systemd unit 是 inactive、MainPID=0 —— 但进程活着、
+#   socket 正常应答。旧判据把「记录」（systemd 的 MainPID）当成了「对象」（socket/进程），
+#   于是把健康服务判成"不在"（exit 2）。⇒ 判据改为**探 socket**：
+#     · socket 有应答 = 健康（不管是不是 systemd 起的）
+#     · socket 无应答 = FAIL，并打印「进程在不在 / 服务态 / MainPID」三个辅助读数
+#   对端 pid 也改为从 **SO_PEERCRED** 取（对象自身的身份），不再读 MainPID。
+#   顺带教训：**门禁判据必须探对象，不许探记录**（记录永远比对象旧或窄；账本/记忆 D6 同族）。
 #
 # 本自测**只打 socket，不抓屏、不点、不抢焦点**：三件事
-#   ① 客户端提前断开（不读响应就 close）后，服务仍然活着（pid 不变）
+#   ① 客户端提前断开（不读响应就 close）后，服务仍然活着（socket 对端 pid 不变）
 #   ② 服务仍然能正确回包（事后 warm 请求通）
-#   ③ 服务端有出声（日志里出现「客户端提前断开」）—— 静默吞掉和崩溃一样不可接受
-# 缺服务时**不静默跳过**：直接 exit 2 并说清怎么起（门槛② 的守门测试不许假装通过）。
+#   ③ 服务端有出声（systemd 版读 journal；手工启动版读 stderr 目标文件；都不可读则显式 skipped，
+#      不判红也不假装通过）
 #
 # 用法: bash tools/ys-editor/tests/daemon-resilience.selftest.sh
-# 机读行: DAEMON-RESULT alive=<0|1> served=<0|1> spoke=<0|1> pid_before=<n> pid_after=<n> verdict=PASS|FAIL
-# 退出码: 0 全绿 / 1 有失败项 / 2 服务不在（环境未就绪，不判通过）
+# 机读行: DAEMON-RESULT alive=<0|1> served=<0|1> spoke=<0|1|skipped> pid_before=<n> pid_after=<n> verdict=PASS|FAIL
+# 退出码: 0 全绿 / 1 有失败项（含 socket 无应答）/ 2 环境未就绪（socket 不存在或取不到对端 pid）
 set -u
 SOCK="${YS_LOOKD_SOCK:-/run/user/$(id -u)/ys-lookd.sock}"
 declare -i TOTAL=0 PASS=0 FAIL=0
@@ -28,23 +34,83 @@ declare -i TOTAL=0 PASS=0 FAIL=0
 ok()  { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); echo "  ✓ $*"; }
 bad() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); echo "  ✗ $*"; }
 
-pid_now() { systemctl --user show ys-lookd.service -p MainPID --value 2>/dev/null || echo 0; }
+aux_readings() {
+  echo "  辅助读数（只是辅助；健康判据是 socket 应答）："
+  local procs svc mpid
+  procs="$(pgrep -af '[y]s_lookd.py' 2>/dev/null || true)"
+  svc="$(systemctl --user is-active ys-lookd.service 2>/dev/null || true)"
+  mpid="$(systemctl --user show ys-lookd.service -p MainPID --value 2>/dev/null || true)"
+  [ -n "$procs" ] && printf '%s\n' "$procs" | sed 's/^/    proc: /' || echo "    proc: (pgrep 未找到 ys_lookd.py)"
+  echo "    service: ${svc:-unknown}   MainPID: ${mpid:-0}"
+  [ -S "$SOCK" ] && echo "    socket: $SOCK 存在" || echo "    socket: $SOCK 不存在"
+}
 
-# ── 0 环境：服务必须在跑，否则拒绝判通过 ─────────────────────────────────
+# 探 socket：发一个 px 请求，收到 v 即健康。stdout: "ok <v>" / 非零退出
+probe_px() {
+  python3 - "$SOCK" <<'PY'
+import json, socket, sys
+sock = sys.argv[1]
+try:
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.settimeout(float(__import__("os").environ.get("YS_LOOKD_PROBE_TIMEOUT", "8")))
+    s.connect(sock)
+    s.sendall((json.dumps({"cmd": "px", "x": 100, "y": 100}) + "\n").encode())
+    data = b""
+    while not data.endswith(b"\n"):
+        ch = s.recv(4096)
+        if not ch:
+            break
+        data += ch
+    s.close()
+    r = json.loads(data.decode())
+    if "v" in r:
+        print("ok %s" % r["v"])
+        sys.exit(0)
+    sys.exit(1)
+except Exception as e:                                  # noqa: BLE001
+    print("ERR %s: %s" % (type(e).__name__, e))
+    sys.exit(1)
+PY
+}
+
+# 对端 pid：从 socket 自身取（SO_PEERCRED），不读 systemd 记录
+peer_pid() {
+  python3 - "$SOCK" <<'PY'
+import socket, struct, sys
+try:
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.settimeout(5)
+    s.connect(sys.argv[1])
+    creds = s.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i"))
+    pid, uid, gid = struct.unpack("3i", creds)
+    s.close()
+    print(pid)
+except Exception:                                       # noqa: BLE001
+    sys.exit(1)
+PY
+}
+
+# ── 0 环境：socket 必须在；**应答才是健康判据**（不看 MainPID） ─────────────
 if [ ! -S "$SOCK" ]; then
   echo "✗ 常驻服务不在：$SOCK 不存在" >&2
-  echo "  起法：systemctl --user start ys-lookd.service（或 systemctl --user restart）" >&2
+  aux_readings >&2
   echo "  本自测验的是「服务抗客户端断开」，服务不在就无法验证 —— 不静默跳过。" >&2
   exit 2
 fi
-PID_BEFORE="$(pid_now)"
-if [ -z "$PID_BEFORE" ] || [ "$PID_BEFORE" = "0" ]; then
-  echo "✗ 取不到 ys-lookd 的 MainPID（systemctl --user 不可用？）" >&2
+HEALTH="$(probe_px)" || {
+  echo "✗ socket 存在但无应答（判 FAIL）：$HEALTH" >&2
+  aux_readings >&2
+  printf 'DAEMON-RESULT alive=0 served=0 spoke=skipped pid_before=0 pid_after=0 verdict=FAIL\n'
+  exit 1
+}
+PID_BEFORE="$(peer_pid || true)"
+if [ -z "$PID_BEFORE" ]; then
+  echo "✗ 取不到 socket 对端 pid（SO_PEERCRED 不可用）" >&2
+  aux_readings >&2
   exit 2
 fi
-echo "══ ys-lookd 抗断开自测  pid=$PID_BEFORE  sock=$SOCK ══"
+echo "══ ys-lookd 抗断开自测  peer_pid=$PID_BEFORE  health=$HEALTH  sock=$SOCK ══"
 # MARK 必须取在**断开之前**：断开发生在第 1 步，日志断言在第 3 步。
-# （踩过：把 MARK 放在第 3 步 ⇒ 窗口漏掉真正的断开事件 ⇒ 明明每次都出声却判 spoke=0。）
 MARK="$(date '+%F %T')"
 sleep 1
 
@@ -73,13 +139,14 @@ fire({"cmd": "px", "x": 101, "y": 100}, hard=False)   # 真实调用方的形态
 print("  · 已发两次请求并立即断开（一次 RST 强制、一次普通 close），都不读响应")
 PY
 sleep 3
-PID_AFTER="$(pid_now)"
-if [ "$PID_AFTER" = "$PID_BEFORE" ]; then
-  ok "服务没被掀翻（pid 仍为 $PID_AFTER）"
+PID_AFTER="$(peer_pid || true)"
+alive=0
+if [ -n "$PID_AFTER" ] && [ "$PID_AFTER" = "$PID_BEFORE" ]; then
+  ok "服务没被掀翻（socket 对端 pid 仍为 $PID_AFTER）"
+  alive=1
 else
-  bad "服务退出了（pid $PID_BEFORE → $PID_AFTER）—— 客户端断开把常驻服务杀了"
+  bad "服务退出了（socket 对端 pid $PID_BEFORE → ${PID_AFTER:-NONE}）—— 客户端断开把常驻服务杀了"
 fi
-alive=0; [ "$PID_AFTER" = "$PID_BEFORE" ] && alive=1
 
 # ── 2 事后仍能正确回包 ───────────────────────────────────────────────────
 served=0
@@ -110,30 +177,36 @@ else
 fi
 
 # ── 3 服务端必须出声（静默吞掉 = 下一次照样不知道发生了什么）───────────────
-# ⚠️ 窗口必须只覆盖**本次运行**：用 '-2min' 时负向验证踩过假绿 —— 命中的是**上一次**
-#    修复版留下的同义日志行，于是「旧代码明明崩了，spoke 却判 ✓」。判据必须绑本次事件。
-#    窗口起点 = 上面的 MARK（断开之前取的），不是这里。
-spoke=0
-if command -v journalctl >/dev/null 2>&1; then
-  if journalctl --user -u ys-lookd --since "$MARK" --no-pager 2>/dev/null \
-       | grep -q '客户端提前断开'; then
-    ok "服务端出声了（$MARK 之后含「客户端提前断开」）"
-    spoke=1
+# systemd 版读 journal；手工 setsid 版读该进程 stderr 指向的文件；都没有则显式 skipped。
+# ⚠️ 窗口必须只覆盖**本次运行**（MARK 在断开之前取），否则会命中上一次运行的日志 ⇒ 假绿。
+spoke=skipped
+if command -v journalctl >/dev/null 2>&1 && systemctl --user is-active --quiet ys-lookd.service; then
+  if journalctl --user -u ys-lookd --since "$MARK" --no-pager 2>/dev/null | grep -q '客户端提前断开'; then
+    ok "服务端出声了（journal，$MARK 之后含「客户端提前断开」）"; spoke=1
   else
-    bad "服务端静默吞掉了断开（$MARK 之后无「客户端提前断开」）—— 它会被当成「服务正常」"
+    bad "服务端静默吞掉了断开（journal，$MARK 之后无「客户端提前断开」）"; spoke=0
   fi
 else
-  echo "  · 跳过日志断言：本机没有 journalctl"
-  spoke=1
+  ERRFILE="$(readlink "/proc/${PID_AFTER:-0}/fd/2" 2>/dev/null || true)"
+  if [ -n "$ERRFILE" ] && [ -f "$ERRFILE" ]; then
+    if tail -n 300 "$ERRFILE" 2>/dev/null | grep -q '客户端提前断开'; then
+      ok "服务端出声了（stderr 文件 ${ERRFILE}，含「客户端提前断开」）"; spoke=1
+    else
+      bad "服务端静默吞掉了断开（stderr 文件 ${ERRFILE} 无「客户端提前断开」）"; spoke=0
+    fi
+  else
+    echo "  · spoke=skipped：非 systemd 启动且 stderr 目标不可读（${ERRFILE:-unknown}）—— 不判红、不假装通过"
+  fi
 fi
 
 VERDICT=PASS
 [ "$FAIL" -gt 0 ] && VERDICT=FAIL
-printf 'DAEMON-RESULT alive=%d served=%d spoke=%d pid_before=%s pid_after=%s verdict=%s\n' \
-  "$alive" "$served" "$spoke" "$PID_BEFORE" "$PID_AFTER" "$VERDICT"
+printf 'DAEMON-RESULT alive=%d served=%d spoke=%s pid_before=%s pid_after=%s verdict=%s\n' \
+  "$alive" "$served" "$spoke" "${PID_BEFORE:-0}" "${PID_AFTER:-0}" "$VERDICT"
 if [ "$FAIL" -gt 0 ]; then
   printf '✗ %d 项失败 / %d 项通过\n' "$FAIL" "$PASS"
+  aux_readings >&2
   exit 1
 fi
-printf '✓ 全绿（%d 项；客户端断开不熄火、事后可服务、且出声）\n' "$PASS"
+printf '✓ 全绿（%d 项；socket 健康、客户端断开不熄火、事后可服务）\n' "$PASS"
 exit 0
