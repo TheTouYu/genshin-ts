@@ -309,3 +309,30 @@ KWin 把窗口从当前桌面移走时会 `UnmapWindow`，切回来再 `MapWindo
 2. **在 Wine 事件循环里加埋点**（我可以做）：`dlls/winex11.drv/event.c` 的 `process_events`/`X11DRV_ProcessEvents`
    入口记一行，就能区分「事件没到 Wine」还是「到了但卡在分发/窗口过程」——需要再一次重启编辑器。
 3. **兜底形态**（用户此前明确不要）：定时探测 + 自动重配的看门狗。
+
+
+---
+
+# 收尾（17:00）：已修好的部分固化 + 明确未修好的部分
+
+## H1. 本次实际修好的（可复现、可验收）
+
+**假死形态 A**（点击被投递到应用 HWND 但应用不响应；起动期伴随 1526–6856 次焦点乒乓风暴）：
+- 修法：`focus_out()` 默认不发 `WM_CANCELMODE`，切断「失焦发消息→应用抢回前台→再失焦」正反馈环；
+- 读数：同会话 `focus_out` **1526 → 4**；用户按「试玩→归来→再试玩」复测通过；
+- 产物：`tools/ys-editor/fake-death-winex11.patch`（对 pristine wine 11.14 **dry-run 通过**）、
+  已装 `.so`、`ys-fakedeath-fix`（install/revert/default/ratelimit/original）、`ys-unstick-win`。
+
+## H2. 明确未修好的（与 H1 是两回事）
+
+**形态 B / 真死（硬挂）**：X 投递正常到窗口，但 **Wine 根本没分发**（埋点日志零新增），
+应用主线程**自旋 64% CPU**、3 线程 `T`(stopped)、应用日志停在启动那一刻，`ys-unstick-win` 无效。
+这一形态本轮**没有**根因结论；`WM_CANCELMODE` 抑制对它无效（装上之后仍复现）。
+
+## H3. 判据（下次接手直接照做）
+
+1. 先分清形态：`wc -l /tmp/wine11-mouse.log` 点一下——
+   - **有新增** `press/release` ⇒ 形态 A（应用不认）→ 本条补丁有效，或 `ys-unstick-win` 解卡；
+   - **零新增** ⇒ 形态 B（Wine 不分发/硬挂）→ 重启编辑器；要定位需自旋线程栈
+     （`perf` 未安装；`ptrace_scope=1` 不允许 attach 非后代进程，gdb 够不着）。
+2. 复现判定不要用单次短测：至少走一轮「试玩→归来→再试玩」并观察 10 分钟以上。

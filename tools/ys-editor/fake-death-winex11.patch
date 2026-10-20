@@ -1,0 +1,212 @@
+# 千星编辑器假死 —— winex11.drv 本地补丁（2026-10-20）
+#
+# 基线：wine 11.14 @ 1012f3d99507b80d4869eabf0853567660a7ecbb
+#       （= NelloKudo/Wine-Builds tag spritz-wine-11.14-1 钉的那个 commit，
+#         其上再叠加 wine-staging 3e0623e0 全量补丁 + 该 tag 的 63 个自有补丁）
+# 用法：patch -p1 -d <wine 源码树> < 本文件
+#
+# 内容：
+#   1) event.c focus_out()：**默认不在失焦时发送 WM_CANCELMODE**（切断
+#      「失焦发消息 → 应用抢回前台 → 再失焦」的正反馈环；实测风暴 1526→4 次）。
+#      开关：/tmp/.winex11-cancelmode-original  → 原始行为
+#            /tmp/.winex11-cancelmode-ratelimit → 500ms 限速
+#   2) 诊断埋点（可选、无行为影响）：
+#      mouse.c 的 X11DRV_ButtonPress/ButtonRelease → /tmp/wine11-mouse.log
+#      event.c 的 X11DRV_MapNotify/UnmapNotify     → /tmp/wine11-map.log
+#      （用来区分「Wine 没送到」还是「应用不认」，见 docs/fake-death-2026-10-20.md）
+#
+--- a/dlls/winex11.drv/event.c	2026-10-20 16:34:03.450364292 +0800
++++ b/dlls/winex11.drv/event.c	2026-10-20 16:26:49.065561536 +0800
+@@ -38,6 +38,11 @@
+ #include <assert.h>
+ #include <stdarg.h>
+ #include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <time.h>
++#include <fcntl.h>
++#include <stdio.h>
+ 
+ #include "x11drv.h"
+ #include "shellapi.h"
+@@ -747,7 +752,40 @@
+     if (is_virtual_desktop()) return;
+     if (hwnd != NtUserGetForegroundWindow()) return;
+     if (!(NtUserGetWindowLongW( hwnd, GWL_STYLE ) & WS_MINIMIZE))
+-        send_message( hwnd, WM_CANCELMODE, 0, 0 );
++    {
++        /* --- local patch (2026-10-20, genshin fake-death) -------------------
++         * 根因（实测）：focus_out() 每失焦一次就向应用发 WM_CANCELMODE；编辑器（CEF）
++         * 收到后立刻 SetForegroundWindow 抢回焦点 -> 又触发 FocusOut -> 又发 WM_CANCELMODE …
++         * 形成 **焦点乒乓风暴**（修前实测：启动期 1526~6856 次 focus_out，两窗交替），
++         * 风暴过后该窗口的输入状态机卡死（点击照常投递到 HWND，应用不响应），
++         * 只有一次 ConfigureWindow 能复位。
++         * 修法：**默认不在失焦时发送 WM_CANCELMODE**（切断反馈环）。实测：修后同一会话
++         * 只剩 4 次 focus_out，风暴消失，点击正常。
++         * 开关（存在即生效）：
++         *   /tmp/.winex11-cancelmode-original   -> 恢复原始行为（每次失焦都发）
++         *   /tmp/.winex11-cancelmode-ratelimit  -> 折中：每 500ms 最多发一次
++         */
++        static ULONGLONG last_cancel;
++        struct timespec cts;
++        ULONGLONG cnow;
++
++        clock_gettime( CLOCK_MONOTONIC, &cts );
++        cnow = (ULONGLONG)cts.tv_sec * 1000 + cts.tv_nsec / 1000000;
++
++        if (access( "/tmp/.winex11-cancelmode-original", F_OK ) == 0)
++        {
++            send_message( hwnd, WM_CANCELMODE, 0, 0 );
++        }
++        else if (access( "/tmp/.winex11-cancelmode-ratelimit", F_OK ) == 0)
++        {
++            if (cnow - last_cancel >= 500)
++            {
++                last_cancel = cnow;
++                send_message( hwnd, WM_CANCELMODE, 0, 0 );
++            }
++        }
++        /* 默认：不发（切断 focus_out -> 应用抢焦点 -> 再 focus_out 的反馈环） */
++    }
+ 
+     /* don't reset the foreground window, if the window which is
+        getting the focus is a Wine window */
+@@ -764,6 +802,29 @@
+             NtUserSetForegroundWindowInternal( NtUserGetDesktopWindow() );
+         }
+     }
++
++    /* --- local patch (2026-10-20, genshin fake-death) ---------------------
++     * 实测（驱动埋点，6856 条）：编辑器两个窗口交替失焦，而**每一行都是 fg == 自己**——
++     * 即窗口已经失焦、Wine 仍把它当作前台窗口。KWin 支持 _NET_ACTIVE_WINDOW，
++     * 所以上面那段复位永远不执行 ⇒ 应用永远收不到 WM_KILLFOCUS/WM_ACTIVATE(INACTIVE)，
++     * 它的输入状态机（CEF 每窗一份）就一直停在"激活中"，之后所有点击被它自己吞掉。
++     * 修法：失焦时若前台仍指向本窗口，就把前台复位到桌面（带 200ms 防抖，避免风暴中反复设前台）。
++     * 开关：/tmp/.winex11-fg-reset-off 存在则关闭（默认开）。 */
++    if (hwnd == NtUserGetForegroundWindow() && access( "/tmp/.winex11-fg-reset-off", F_OK ))
++    {
++        static ULONGLONG last_reset;
++        struct timespec ts;
++        ULONGLONG now;
++
++        clock_gettime( CLOCK_MONOTONIC, &ts );
++        now = (ULONGLONG)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
++        if (now - last_reset >= 200)
++        {
++            last_reset = now;
++            WARN( "fake-death: fg still %p after focus out, resetting to desktop\n", hwnd );
++            NtUserSetForegroundWindowInternal( NtUserGetDesktopWindow() );
++        }
++    }
+  }
+ 
+ /**********************************************************************
+@@ -874,8 +935,22 @@
+ /**********************************************************************
+  *		X11DRV_MapNotify
+  */
++
++/* local probe (2026-10-20): 记录 map/unmap —— 虚拟桌面切换在 KWin 下就是 unmap/remap */
++static void probe_map_log( const char *what, HWND hwnd )
++{
++    int fd = open( "/tmp/wine11-map.log", O_WRONLY | O_CREAT | O_APPEND, 0644 );
++    if (fd >= 0)
++    {
++        char buf[96]; int n = snprintf( buf, sizeof(buf), "%s hwnd=%p\n", what, hwnd );
++        if (n > 0) write( fd, buf, n );
++        close( fd );
++    }
++}
++
+ static BOOL X11DRV_MapNotify( HWND hwnd, XEvent *event )
+ {
++    probe_map_log( "map", hwnd );
+     struct x11drv_win_data *data;
+ 
+     if (event->xany.window == x11drv_thread_data()->clip_window) return TRUE;
+@@ -903,6 +978,7 @@
+  */
+ static BOOL X11DRV_UnmapNotify( HWND hwnd, XEvent *event )
+ {
++    probe_map_log( "unmap", hwnd );
+     struct x11drv_win_data *data;
+ 
+     if (!(data = get_win_data( hwnd ))) return FALSE;
+@@ -1177,6 +1253,19 @@
+     release_win_data( data );
+ }
+ 
++static void handle_net_supporting_wm_check_notify( XPropertyEvent *event )
++{
++    struct x11drv_thread_data *data = x11drv_thread_data();
++
++    if (data->window_manager)
++    {
++        XFree( data->window_manager );
++        data->window_manager = NULL;
++    }
++
++    if (event->state == PropertyNewValue) net_supporting_wm_check_init( data );
++}
++
+ static void handle_net_supported_notify( XPropertyEvent *event )
+ {
+     struct x11drv_thread_data *data = x11drv_thread_data();
+@@ -1214,6 +1303,7 @@
+     if (event->atom == x11drv_atom(WM_HINTS)) handle_wm_hints_notify( hwnd, event );
+     if (event->atom == x11drv_atom(_MOTIF_WM_HINTS)) handle_mwm_hints_notify( hwnd, event );
+     if (event->atom == x11drv_atom(WM_NORMAL_HINTS)) handle_wm_normal_hints_notify( hwnd, event );
++    if (event->atom == x11drv_atom(_NET_SUPPORTING_WM_CHECK)) handle_net_supporting_wm_check_notify( event );
+     if (event->atom == x11drv_atom(_NET_SUPPORTED)) handle_net_supported_notify( event );
+     if (event->atom == x11drv_atom(_NET_ACTIVE_WINDOW)) handle_net_active_window( event );
+ 
+--- a/dlls/winex11.drv/mouse.c	2026-10-20 16:34:08.249301906 +0800
++++ b/dlls/winex11.drv/mouse.c	2026-10-20 15:49:29.362907554 +0800
+@@ -24,6 +24,9 @@
+ #endif
+ 
+ #include "config.h"
++#include <fcntl.h>
++#include <unistd.h>
++#include <stdio.h>
+ 
+ #include <math.h>
+ #include <dlfcn.h>
+@@ -1481,6 +1484,21 @@
+ /***********************************************************************
+  *           X11DRV_ButtonPress
+  */
++
++/* local probe (2026-10-20): 记录「按键消息是否真的投递给了应用 HWND」——
++ * 假死时如果这里仍有 press/release，说明 Wine 送到了、应用自己不认；反之是 Wine 侧丢。 */
++static void probe_mouse_log( const char *what, HWND hwnd, POINT pt )
++{
++    int fd = open( "/tmp/wine11-mouse.log", O_WRONLY | O_CREAT | O_APPEND, 0644 );
++    if (fd >= 0)
++    {
++        char buf[160];
++        int n = snprintf( buf, sizeof(buf), "%s hwnd=%p x=%d y=%d\n", what, hwnd, (int)pt.x, (int)pt.y );
++        if (n > 0) write( fd, buf, n );
++        close( fd );
++    }
++}
++
+ BOOL X11DRV_ButtonPress( HWND hwnd, XEvent *xev )
+ {
+     XButtonEvent *event = &xev->xbutton;
+@@ -1501,6 +1519,7 @@
+ 
+     pt = map_event_coords( hwnd, event->window, event->root, root, pt );
+     send_mouse_input( hwnd, pt, MOUSEEVENTF_ABSOLUTE | flags, button_down_data[button], time, NULL );
++    probe_mouse_log( "press", hwnd, pt );
+     return TRUE;
+ }
+ 
+@@ -1520,6 +1539,7 @@
+ 
+     pt = map_event_coords( hwnd, event->window, event->root, root, pt );
+     send_mouse_input( hwnd, pt, MOUSEEVENTF_ABSOLUTE | flags, button_up_data[button], time, NULL );
++    probe_mouse_log( "release", hwnd, pt );
+     return TRUE;
+ }
+ 
