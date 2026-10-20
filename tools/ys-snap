@@ -341,9 +341,17 @@ class Snap:
                 note = "取不到 X11 id，退 KWin"
             else:
                 try:
-                    # 用**物理**尺寸抓：ys-wins 报的是逻辑值（÷1.5），拿它当抓帧尺寸会把图裁小
-                    pw = int(win.get("pw") or win["w"])
-                    ph = int(win.get("ph") or win["h"])
+                    # 下手前**重新问一次几何**：列表是几秒前的快照，窗口可能已经变了；
+                    # 尺寸对不上时 XShmGetImage 会 BadMatch，而 Xlib 默认错误处理是
+                    # **abort 整个进程**（2026-10-20 实测：抓一张就"服务崩溃"）。
+                    g2 = subprocess.run(["xdotool", "getwindowgeometry", str(int(wid, 16))],
+                                        capture_output=True, text=True, timeout=5).stdout
+                    mg = re.search(r"Geometry:\s*(\d+)x(\d+)", g2)
+                    if not mg:
+                        raise RuntimeError("拿不到窗口几何")
+                    pw, ph = int(mg.group(1)), int(mg.group(2))
+                    if pw * ph <= 4:
+                        raise RuntimeError(f"窗口已不可见（{pw}x{ph}）")
                     g = self.cap.XShmGrabber(self.display, int(wid, 16), pw, ph)
                     try:
                         rgb, ms = g.grab()
@@ -438,14 +446,34 @@ def run_gui(display, snap, want=""):
             return
         win = wins[sel[0]]
         save_selected(snap.inbox, win)
+        # 抓帧**放进子进程**：XShm 尺寸不符时 Xlib 默认错误处理是 abort 整个进程
+        # （2026-10-20 实测：用户点「抓一张」，GUI 当场 core dump，PID 1557132）。
+        # 子进程崩了 GUI 只看到非零退出码，不会再被带走。
+        wid = win.get("id")
+        cmd = [sys.executable, os.path.abspath(__file__), "--snap",
+               "--inbox", snap.inbox, "--fast"]
+        cmd += ["--window", wid] if wid else ["--window", (win.get("class") or "").split()[0]]
         try:
-            rgb, ms, src, note = snap.grab_once(win)
-            r = snap.save(rgb, ms, src, note, win)
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         except Exception as e:  # noqa: BLE001
-            status.set(f"✗ {e}")
+            status.set(f"✗ 启动抓帧失败：{e}")
             return
-        status.set(("重复画面（未重复落盘）" if r.get("dup") else f"✓ {os.path.basename(r.get('path',''))}")
-                   + f"｜{src}｜{r['ms']}ms")
+        if p.returncode != 0:
+            tail = (p.stderr or p.stdout or "").strip().splitlines()[-1:] or ["未知错误"]
+            status.set(f"✗ 抓帧子进程退出码 {p.returncode}：{tail[0][:80]}")
+            return
+        try:
+            r = json.loads(p.stdout.strip().splitlines()[-1])
+        except Exception:  # noqa: BLE001
+            status.set("✗ 抓帧输出无法解析")
+            return
+        if not r.get("ok"):
+            status.set(f"✗ {r.get('error')}：{r.get('hint', '')}")
+            return
+        if r.get("dup"):
+            status.set("重复画面（未重复落盘）")
+            return
+        status.set(f"✓ {os.path.basename(r.get('path',''))}｜{r.get('src')}｜{r.get('ms')}ms")
 
     lb.bind("<<ListboxSelect>>", on_select)
     lb.bind("<Double-Button-1>", do_snap)
