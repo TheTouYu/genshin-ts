@@ -86,6 +86,21 @@ def list_windows_kwin():
         return []
     cache = {}
     wins = []
+    # 顶部一条「物理屏幕」：用户要的是"整个显示器"，不是某个窗口。
+    # 尺寸取 xdotool getdisplaygeometry（实测返回**物理**像素 2560x1440，
+    # 而 ys-wins 报的是逻辑值 1707x960，两者别混）。
+    try:
+        import subprocess as _sp
+        dim = _sp.run(["xdotool", "getdisplaygeometry"], capture_output=True, text=True,
+                      timeout=5).stdout.split()
+        sw, sh = int(dim[0]), int(dim[1])
+        from Xlib import display as _xd
+        _root = _xd.Display(None).screen().root.id
+        wins.append({"idx": 0, "title": "物理屏幕（全屏）", "class": "屏幕", "x": 0, "y": 0,
+                     "w": sw, "h": sh, "pw": sw, "ph": sh, "id": "0x%x" % _root,
+                     "minimized": False, "special": "screen"})
+    except Exception:  # noqa: BLE001
+        pass
     for line in out.splitlines():
         m = re.match(r"\[(\d+)\]\s+(.*?)\s+\|\s+(.*?)\s+\|\s+(\d+),(\d+)\s+(\d+)x(\d+)\s+\|\s+min=(\d)", line)
         if not m:
@@ -341,6 +356,39 @@ class Snap:
         #   ① 下手前重新问几何（不信列表快照）；② 整个抓帧跑在**子进程**里且**关掉 core dump**
         #   （`ulimit -c 0`），崩了只是非零退出码，不会弹 drkonqi。
         wid = win.get("id")
+        if (win.get("special") == "screen" or (win.get("class") or "") == "屏幕") and wid:
+            # 整屏：root 窗口 + 物理分辨率。尺寸取自 getdisplaygeometry，不会被逻辑坐标骗。
+            try:
+                # 整屏三条路的实测排序（2026-10-20）：
+                #   XShm 抓 root   → **全黑**（KWin 是合成器，root 里没有合成后的画面）
+                #   KWin CaptureActiveScreen → 正确但 ~2.0s
+                #   spectacle -b -n -f -o   → 正确且 **795ms**（冷启 2.7s）
+                # 所以整屏优先 spectacle，失败再退 KWin。
+                import tempfile
+                tmp = os.path.join(tempfile.gettempdir(), f"ys-snap-screen-{os.getpid()}.png")
+                try:
+                    if os.path.exists(tmp):
+                        os.remove(tmp)
+                    r = subprocess.run(["spectacle", "-b", "-n", "-f", "-o", tmp],
+                                       capture_output=True, timeout=30)
+                    if r.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 4096:
+                        import numpy as _np
+                        from PIL import Image as _Im
+                        t0 = __import__("time").perf_counter()
+                        rgb = _np.asarray(_Im.open(tmp).convert("RGB"))
+                        return rgb, (__import__("time").perf_counter() - t0) * 1000, "spectacle-screen", note
+                except Exception as e:  # noqa: BLE001
+                    note = f"spectacle 失败({e})，退 KWin"
+                finally:
+                    try:
+                        os.path.exists(tmp) and os.remove(tmp)
+                    except Exception:  # noqa: BLE001
+                        pass
+                ks = self.cap.KWinScreen(0, display=self.display)
+                rgb, ms, meta = ks.grab()
+                return rgb, ms, "kwin-screen", note
+            except Exception as e:  # noqa: BLE001
+                note = f"整屏 XShm 失败({e})，退 KWin"
         if wid:
             try:
                 g2 = subprocess.run(["xdotool", "getwindowgeometry", str(int(wid, 16))],

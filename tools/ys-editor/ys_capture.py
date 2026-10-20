@@ -521,6 +521,52 @@ class KWinSS2:
                          'scale': float(meta.get('scale') or 1), 'height': h,
                          'width': int(meta.get('width') or (stride // 4))}
 
+class KWinScreen(KWinSS2):
+    """整屏抓取（KWin ScreenShot2 CaptureScreen）。
+
+    为什么不能用 XShm 抓 root：KWin 是合成器，**root 窗口里没有合成后的画面**
+    （2026-10-20 实测：XShm 抓 root 得到全黑 2560x1440，58KB）。
+    CaptureScreen(index, options, pipe) 才是拿"用户看到的这一整屏"的正路。
+    """
+
+    def __init__(self, screen_index=0, display=None):
+        super().__init__('__screen__', display=display)
+        self.screen_index = screen_index
+        self.handle = True          # 不需要 internalId
+
+    def grab(self):
+        r, w = os.pipe()
+        t0 = time.perf_counter()
+        try:
+            # 用 CaptureActiveScreen：无参数版，抓"用户当前所在的那块物理屏"。
+            # 注意 CaptureScreen 的入参是 **输出名字符串**（如 'DP-1'），不是索引——
+            # 按索引传会报 No such method（实测 signature 不匹配）。
+            res = self.iface.CaptureActiveScreen(self.dbus.Dictionary(
+                {'native-resolution': True}, signature='sv'),
+                self.dbus.types.UnixFd(w), timeout=20)
+        finally:
+            os.close(w)
+        data = b''
+        while True:
+            chunk = os.read(r, 1 << 22)
+            if not chunk:
+                break
+            data += chunk
+        os.close(r)
+        ms = (time.perf_counter() - t0) * 1000
+        meta = {str(k): v for k, v in dict(res).items()}
+        if str(meta.get('type')) != 'raw':
+            raise GrabError(f"KWin: 非 raw 结果 type={meta.get('type')!r}")
+        import numpy as np
+        h = int(meta.get('height') or 0)
+        stride = int(meta.get('stride') or 0)
+        if h <= 0 or stride <= 0 or len(data) < h * stride:
+            raise GrabError(f'KWin: 像素长度不符 bytes={len(data)} h={h} stride={stride}')
+        arr = np.frombuffer(data[:h * stride], np.uint8).reshape(h, stride // 4, 4)
+        rgb = np.ascontiguousarray(arr[:, :, 2::-1])
+        return rgb, ms, {'src': 'kwin-screen', 'scale': float(meta.get('scale') or 1)}
+
+
 # ─────────────────────────────────────────────────────────────── 编码器
 def encode_bmp(rgb):
     """BMP（top-down，24bpp）：头 54B + BGR。PIL/ImageMagick/cv2 都能读。"""
