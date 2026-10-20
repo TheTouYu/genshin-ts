@@ -162,3 +162,64 @@ err:driver:__wine_set_user_driver version mismatch, driver wants 110 but win32u 
   对编辑器注入前必须经 `ys-gui-slot` 激活，并在**同一槽位内**完成点击+判读。
 - **窗口布局会变**：编辑器有「单窗（树在主窗内）」与「双窗（资源管理器独立成窗）」两种布局，
   坐标必须每次从抓帧重新锚定（本轮已把 origin 换算做进 `ys-clickable`）。
+
+
+---
+
+# 第二轮（同日 15:00–16:00）：拿到可编译的源码链、证伪补丁、发现新触发路径
+
+## R1. ☆ 构建链已完全复现（这是"能继续做根治"的前提）
+
+`github.com/NelloKudo/Wine-Builds` 的 tag **`spritz-wine-11.14-1`**（= `8af313be`）就是本机 runner 的出处：
+
+| 组成 | 值 |
+|---|---|
+| wine | `455e3509`？**不是** —— tag 钉的是 `1012f3d9`（= wine **11.14**），而仓库 HEAD 现在钉 `455e3509`（11.19） |
+| wine-staging | `3e0623e0`（**不是** HEAD 的 `766285c4`），`--all` 全量 |
+| Spritz 自有补丁 | **63 个**（tag 版）vs HEAD 的 163 个 |
+| 驱动接口 111 的来源 | `0007-winewayland/0002-win32u-Add-SetIMEEnabled-driver-call.patch`（它 `#define WINE_GDI_DRIVER_VERSION 111`） |
+
+**一个坑**：先按 HEAD 的配方（11.19 + 163 补丁）编出来的 `.so` 也能过版本检查，但**建不出任何窗口**（静默）。
+必须按 **tag** 的配方编。编译时若 `make` 顺带要编 `ntdll` 而 `proton-fsync` 补丁在本机报
+`FSYNC_MUTEX`/`struct futex_waitv` 未定义 → 在 `include/config.h` 里补 `#define HAVE_LINUX_FUTEX_H 1`；
+仍缺 `server_protocol.h` 时用「把 runner 自带 `ntdll.so`/`win32u.so` 拷进构建目录 + 造空 `.o` 占位」跳过重编
+（反正运行时用的就是 runner 这两个）。**验证门槛**：记事本必须能开窗（`wmctrl -l | grep 记事本`），
+否则说明结构对不上，别拿去换编辑器。
+
+## R2. ❌ 补丁被 A/B 证伪：跳过 `WM_CANCELMODE` 不治假死
+
+- **A 组**（补丁装入、开关关 = 原始行为）：编辑器重启后**照样假死**，且 `ys-fakedeath-fix status` 与
+  `/proc/<pid>/maps` 的 inode 证明新 `.so` 确实被加载（inode `4261579` 出现在 `x86_64-unix/winex11.so` 映射里）；
+- **B 组**（`ys-fakedeath-fix on` 开开关 + 解卡，再让用户正常使用）：**照样假死**。
+
+⇒ **假设 C（`focus_out()` 无条件 `WM_CANCELMODE`）被证伪**。上游 59653/59965 的症状相似但机制不同。
+
+## R3. ☆ 新的触发路径（用户现场观察，比靠点击复现干净）
+
+> 「打开的时候正常，但是它**一直固定在前台**，我切 firefox 它也在前台挡住。然后我**把它移动到另外一个桌面**去了，结果假死了。」
+
+实测该窗口的 `_NET_WM_STATE`：**`_NET_WM_STATE_ABOVE, _NET_WM_STATE_STAYS_ON_TOP`（+ MAXIMIZED_VERT）**
+—— 即"置顶 + 粘在所有桌面"。这解释"切 Firefox 也挡着"，并且让 **虚拟桌面切换 = unmap/remap** 成为新的头号嫌疑：
+KWin 把窗口从当前桌面移走时会 `UnmapWindow`，切回来再 `MapWindow`；Wine 侧这段路径（`WM_SHOWWINDOW` /
+`focus_in`/`focus_out` 重入）与"每窗状态卡死 + 只有 ConfigureWindow 能复位"高度吻合。
+
+下一轮该做的就是这条：**用记录版驱动复现「拖到另一桌面 → 切回 → 点不动」**，读两条日志判 Wine/应用。
+
+## R4. 新增仪器（已编译，未常驻）
+
+记录版 `winex11.so`（行为与原始一致，只多写两行日志）：
+
+- `dlls/winex11.drv/mouse.c` 的 `X11DRV_ButtonPress/ButtonRelease` → 追加
+  `press|release hwnd=<HWND> x= y=` 到 `/tmp/wine11-mouse.log`；
+- `dlls/winex11.drv/event.c` 的 `focus_out()` → 追加 `focus_out hwnd=<HWND> capture=<HWND> fg=<HWND>` 到 `/tmp/wine11-focus.log`。
+
+**判据**：假死态下点一下，若 `wine11-mouse.log` 有 `press` → **Wine 送到了、应用不认（应用侧 A）**；
+若无 → **Wine 侧丢（B）**。这一条读数就能把 A/B 定谳，比再猜十轮强。
+（构建产物：`.scratch/fake-death/wine-build/dlls/winex11.drv/winex11.so`；装法
+`SRC=<该路径> tools/ys-editor/ys-fakedeath-fix install`。）
+
+## R5. 环境现状（交付时）
+
+- runner 的 `winex11.so` **已还原为原件**（与备份 `cmp` 字节一致），游戏/编辑器下次启动行为完全不变；
+- 备份保留在 `winex11.so.bak-fakedeath-20261020`，`ys-fakedeath-fix revert` 随时可回滚；
+- 解卡工具 `ys-unstick-win --all-editor` 已两次被用户确认有效（主窗 + 资源管理器窗，各自单独重配）。
