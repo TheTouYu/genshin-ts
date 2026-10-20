@@ -444,11 +444,23 @@ def run_gui(display, snap, want=""):
 
         为什么必须加（用户原话）：「你就不考虑，截图之后加一个小小的提示吗通知告诉用户截图成功还是失败吗？
         不要太明显，怕影响用户截图。我刚刚截了几张图片，但是不知道成功了没有」
-        —— 之前只改窗口里的状态行，而窗口多半被编辑器压着，等于没反馈；
-        加上"相同画面不重复落盘"这条去重逻辑，用户会以为抓了 5 张，其实只存了 1 张。
 
-        做成不打扰的形态：无边框、半透明、不抢焦点、不进任务栏、1.6s 自己消失。
+        2026-10-20 第二次修：Tk 自绘的小窗在游戏全屏时**十次只出现一次**（用户实测），
+        因为 overrideredirect + alpha 的 Xwayland 窗口不保证被合成器绘制在最上层。
+        改为**系统通知**（notify-send）：KDE 原生，不抢焦点、自动消失、永远在最上层，
+        并且落在通知中心里可以回看——这才叫"截完知道成没成"。
+        Tk 小条保留作兜底（系统通知不可用时至少窗口里有痕迹）。
         """
+        title = "✓ 已保存" if ok else "✗ 没存上"
+        icon = "dialog-information" if ok else "dialog-error"
+        try:
+            import threading as _th
+            _th.Thread(target=lambda: subprocess.run(
+                ["notify-send", "-a", "素材快收", "-t", "1400", "-i", icon,
+                 f"{title}｜素材快收", text],
+                capture_output=True, timeout=10), daemon=True).start()
+        except Exception:  # noqa: BLE001  提示失败绝不能影响抓图
+            pass
         try:
             t = tk.Toplevel(root)
             t.overrideredirect(True)          # 无标题栏，也不会抢焦点
@@ -464,7 +476,7 @@ def run_gui(display, snap, want=""):
                      font=("sans", 10), anchor="w", justify="left").pack(
                          fill="both", expand=True, padx=10)
             t.after(1600, t.destroy)
-        except Exception:  # noqa: BLE001  提示失败绝不能影响抓图
+        except Exception:  # noqa: BLE001
             pass
 
     def do_snap(_evt=None):
