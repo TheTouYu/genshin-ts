@@ -439,41 +439,88 @@ def run_gui(display, snap, want=""):
         label = (win['class'].split() or [win['id']])[0]
         status.set(f"已选：{label}｜热键命令可直接抓它")
 
+    def toast(ok, text):
+        """右下角小提示，1.6s 自动消失。
+
+        为什么必须加（用户原话）：「你就不考虑，截图之后加一个小小的提示吗通知告诉用户截图成功还是失败吗？
+        不要太明显，怕影响用户截图。我刚刚截了几张图片，但是不知道成功了没有」
+        —— 之前只改窗口里的状态行，而窗口多半被编辑器压着，等于没反馈；
+        加上"相同画面不重复落盘"这条去重逻辑，用户会以为抓了 5 张，其实只存了 1 张。
+
+        做成不打扰的形态：无边框、半透明、不抢焦点、不进任务栏、1.6s 自己消失。
+        """
+        try:
+            t = tk.Toplevel(root)
+            t.overrideredirect(True)          # 无标题栏，也不会抢焦点
+            t.attributes("-topmost", True)
+            t.attributes("-alpha", 0.80)
+            sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+            w, h = 240, 44
+            t.geometry(f"{w}x{h}+{sw - w - 28}+{sh - h - 90}")
+            bg = "#1f7a3d" if ok else "#8a2b2b"
+            fr = tk.Frame(t, bg=bg)
+            fr.pack(fill="both", expand=True)
+            tk.Label(fr, text=("✓ " if ok else "✗ ") + text, bg=bg, fg="#ffffff",
+                     font=("sans", 10), anchor="w", justify="left").pack(
+                         fill="both", expand=True, padx=10)
+            t.after(1600, t.destroy)
+        except Exception:  # noqa: BLE001  提示失败绝不能影响抓图
+            pass
+
     def do_snap(_evt=None):
         sel = lb.curselection()
         if not sel:
             status.set("先选一个窗口")
             return
-        win = wins[sel[0]]
+        win = dict(wins[sel[0]])
         save_selected(snap.inbox, win)
         # 抓帧**放进子进程**：XShm 尺寸不符时 Xlib 默认错误处理是 abort 整个进程
         # （2026-10-20 实测：用户点「抓一张」，GUI 当场 core dump，PID 1557132）。
         # 子进程崩了 GUI 只看到非零退出码，不会再被带走。
+        # 同时放到**后台线程**里跑：子进程要几十到几百毫秒，同步跑会冻结界面、
+        # 连提示都弹不出来（用户只能干等，不知道成没成功）。
         wid = win.get("id")
         cmd = [sys.executable, os.path.abspath(__file__), "--snap",
                "--inbox", snap.inbox, "--fast"]
         cmd += ["--window", wid] if wid else ["--window", (win.get("class") or "").split()[0]]
-        try:
-            p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        except Exception as e:  # noqa: BLE001
-            status.set(f"✗ 启动抓帧失败：{e}")
-            return
-        if p.returncode != 0:
-            tail = (p.stderr or p.stdout or "").strip().splitlines()[-1:] or ["未知错误"]
-            status.set(f"✗ 抓帧子进程退出码 {p.returncode}：{tail[0][:80]}")
-            return
-        try:
-            r = json.loads(p.stdout.strip().splitlines()[-1])
-        except Exception:  # noqa: BLE001
-            status.set("✗ 抓帧输出无法解析")
-            return
-        if not r.get("ok"):
-            status.set(f"✗ {r.get('error')}：{r.get('hint', '')}")
-            return
-        if r.get("dup"):
-            status.set("重复画面（未重复落盘）")
-            return
-        status.set(f"✓ {os.path.basename(r.get('path',''))}｜{r.get('src')}｜{r.get('ms')}ms")
+        status.set("抓取中…")
+
+        def work():
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            except Exception as e:  # noqa: BLE001
+                root.after(0, lambda: (toast(False, f"启动失败：{e}"), status.set(f"✗ {e}")))
+                return
+
+            def done():
+                if p.returncode != 0:
+                    tail = (p.stderr or p.stdout or "").strip().splitlines()[-1:] or ["未知错误"]
+                    toast(False, f"抓帧崩溃 rc={p.returncode}")
+                    status.set(f"✗ 子进程退出码 {p.returncode}：{tail[0][:70]}")
+                    return
+                try:
+                    r = json.loads(p.stdout.strip().splitlines()[-1])
+                except Exception:  # noqa: BLE001
+                    toast(False, "输出无法解析")
+                    status.set("✗ 抓帧输出无法解析")
+                    return
+                if not r.get("ok"):
+                    toast(False, str(r.get("error") or "失败"))
+                    status.set(f"✗ {r.get('error')}：{r.get('hint', '')}")
+                    return
+                if r.get("dup"):
+                    # 去重是静默的坑：用户以为抓了 5 张，其实只存了 1 张。必须说出来。
+                    toast(True, "画面相同，未新存")
+                    status.set("重复画面（未重复落盘）")
+                    return
+                name = os.path.basename(r.get("path", ""))
+                toast(True, f"{r.get('w')}x{r.get('h')} {name[-8:]}")
+                status.set(f"✓ {name}｜{r.get('src')}｜{r.get('ms')}ms")
+
+            root.after(0, done)
+
+        import threading
+        threading.Thread(target=work, daemon=True).start()
 
     lb.bind("<<ListboxSelect>>", on_select)
     lb.bind("<Double-Button-1>", do_snap)
