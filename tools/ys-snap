@@ -42,21 +42,47 @@ def load_capture():
 
 
 def list_windows_kwin():
-    """KWin 全量窗口（含 Wayland 原生）。返回 [{idx,title,class,w,h,minimized}]。"""
+    """KWin 全量窗口，**按 class 合并成一个可选项**。
+
+    2026-10-20 用户反馈：「窗口选择上确实显示了三个 beyondeditor 的窗口」——这就是选错的原因。
+    实测千星编辑器 = 多个 X 窗口拼的（左栏 384×1371 + 主画布 2176×1371 + 5 个 1×1 幽灵窗），
+    列表里出现三条，选哪一条都只抓一块。所以这里按 class 归并：
+      · 丢掉面积 ≤4 的幽灵窗
+      · 同 class 的取**外接矩形**当尺寸，并标 `multi:N`
+    抓取时 `_grab_union` 会按屏幕位置把这几块拼起来。
+    """
     import subprocess
     try:
         out = subprocess.run([os.path.join(HERE, "ys-editor", "ys-wins")],
                              capture_output=True, text=True, timeout=15).stdout
     except Exception:  # noqa: BLE001
         return []
-    wins = []
+    groups = {}
     for line in out.splitlines():
         m = re.match(r"\[(\d+)\]\s+(.*?)\s+\|\s+(.*?)\s+\|\s+(\d+),(\d+)\s+(\d+)x(\d+)\s+\|\s+min=(\d)", line)
         if not m:
             continue
-        idx, title, cls, _x, _y, w, h, mn = m.groups()
-        wins.append({"idx": int(idx), "title": title.strip(), "class": cls.strip(),
-                     "w": int(w), "h": int(h), "minimized": mn == "1"})
+        idx, title, cls, xs, ys, ws, hs, mn = m.groups()
+        x, y, w, h = int(xs), int(ys), int(ws), int(hs)
+        if w * h <= 4:                       # 1×1 幽灵窗，直接剔除
+            continue
+        key = cls.strip().lower()
+        g = groups.get(key)
+        if g is None:
+            groups[key] = {"idx": int(idx), "title": title.strip(), "class": cls.strip(),
+                           "x": x, "y": y, "x2": x + w, "y2": y + h, "n": 1,
+                           "minimized": mn == "1"}
+        else:
+            g["x"], g["y"] = min(g["x"], x), min(g["y"], y)
+            g["x2"], g["y2"] = max(g["x2"], x + w), max(g["y2"], y + h)
+            g["n"] += 1
+            g["minimized"] = g["minimized"] and mn == "1"
+    wins = []
+    for g in groups.values():
+        g["w"] = g.pop("x2") - g["x"]
+        g["h"] = g.pop("y2") - g["y"]
+        wins.append(g)
+    wins.sort(key=lambda w: -(w["w"] * w["h"]))
     return wins
 
 
@@ -348,6 +374,8 @@ def run_gui(display, snap, want=""):
         wins.extend(list_windows_kwin() or list_windows(display))
         for w in wins:
             label = f'[{w.get("idx","?")}] {w.get("class","")[:26]:<26} {w["w"]}x{w["h"]}'
+            if w.get("n", 1) > 1:
+                label += f'  ({w["n"]} 窗拼合)'      # 让用户看得见这是归并过的整块
             label += "  (最小化)" if w.get("minimized") else ""
             lb.insert("end", label + "  " + (w.get("title") or w.get("name") or "")[:26])
         if want:
