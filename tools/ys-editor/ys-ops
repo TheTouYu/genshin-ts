@@ -60,43 +60,16 @@ def _env():
     return e
 
 
-def _win_rect():
-    """目标窗口在 X11 空间里的物理矩形 (x,y,w,h)。"""
-    try:
-        r = subprocess.run(["xdotool", "getwindowgeometry", "--shell", WIN], env=_env(),
-                           capture_output=True, text=True, timeout=10)
-        kv = dict(l.split("=", 1) for l in r.stdout.splitlines() if "=" in l)
-        return int(kv["X"]), int(kv["Y"]), int(kv["WIDTH"]), int(kv["HEIGHT"])
-    except Exception:
-        return None
-
-
 def grab(out):
     """抓一帧（不抢焦点、不抬窗）。失败返回 None。
-    2026-10-20：`import -window` 在合成器下抓到的是**旧缓冲**（窗口被遮挡时不更新，
-    实测同一窗口连续抓帧恒定不变，而真屏幕在变）；改为 spectacle 抓真屏幕 + 裁剪到窗口矩形。"""
+    通道选择沿用项目历史结论：`import -window`（~220ms/窗口）；
+    spectacle 已被淘汰（605ms/次，差 ~3x~160x，且试玩全屏下会 core dump）。
+    ⚠ 陈旧 backing store：窗口被遮挡时抓到的可能是旧帧 ⇒ **必须在槽内调用**
+    （ys-gui-slot 会把目标窗抬到最上；见 ys-act 第 30 行的同款用法）。"""
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    rect = _win_rect()
-    raw = out + ".full.png"
-    r = subprocess.run(["spectacle", "-b", "-n", "-f", "-o", raw], env=_env(),
-                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=40)
-    if r.returncode != 0 or not os.path.exists(raw) or os.path.getsize(raw) < 4096:
-        return None
-    try:
-        from PIL import Image
-        im = Image.open(raw)
-        if rect:
-            x, y, w, h = rect
-            im = im.crop((x, y, x + w, y + h))
-        im.save(out)
-    except Exception:
-        return None
-    finally:
-        try:
-            os.remove(raw)
-        except Exception:
-            pass
-    return out if os.path.exists(out) and os.path.getsize(out) > 4096 else None
+    r = subprocess.run(["import", "-window", WIN, out], env=_env(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=25)
+    return out if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 4096 else None
 
 
 def diff_ratio(a, b):
