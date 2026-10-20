@@ -265,6 +265,11 @@ KWin 把窗口从当前桌面移走时会 `UnmapWindow`，切回来再 `MapWindo
 | 解卡（治标兜底） | `tools/ys-editor/ys-unstick-win --all-editor` |
 | 构建配方 | wine 11.14@`1012f3d9` + staging@`3e0623e0` + tag `spritz-wine-11.14-1` 的 63 个补丁 + 本补丁；`include/config.h` 补 `HAVE_LINUX_FUTEX_H`；ntdll/win32u 用 runner 自带 .so 当链接输入 |
 
+## F3.5 验收（用户亲手，2026-10-20 16:40）
+
+用户按原始验收口径复测：**进游戏试玩 → 归来 → 编辑器里点击 → 再试玩 → 再归来再点击**，
+结论 **「过了，能点，没再假死」**。同时段读数：`focus_out` 4 次（修前 1526）、点击投递 12 次且界面响应。
+
 ## F4. 未解决风险
 
 1. **runner 更新会被覆盖**：launcher 更新 wine 后需重装（`ys-fakedeath-fix install` 前要重新 build）。
