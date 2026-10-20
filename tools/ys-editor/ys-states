@@ -53,11 +53,18 @@ def grab(path):
 
 
 def fdiff(a, b):
+    """全分辨率逐像素差异占比。禁止用缩略图数像素——D448 实测：64×36 缩略图会把
+    0.16% 的树展开抹成 0.0，把有效动作判成 failed。全分辨率 3M 像素约 50ms，可接受。"""
     from PIL import Image, ImageChops
-    ia = Image.open(a).convert("L").resize((64, 36))
-    ib = Image.open(b).convert("L").resize((64, 36))
-    px = list(ImageChops.difference(ia, ib).getdata())
-    return round(sum(1 for v in px if v > 8) / len(px), 4)
+    ia = Image.open(a).convert("L")
+    ib = Image.open(b).convert("L")
+    if ia.size != ib.size:
+        return 1.0  # 尺寸变了必然是不同的界面
+    diff = ImageChops.difference(ia, ib)
+    hist = diff.histogram()
+    n = sum(hist)
+    changed = n - hist[0] - hist[1] - hist[2]  # 忽略 ≤2 的噪声
+    return round(changed / n, 4) if n else 0.0
 
 
 def look_names(tag):
