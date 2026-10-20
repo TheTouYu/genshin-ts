@@ -93,6 +93,29 @@ x11.XDefaultDepth.restype = ctypes.c_int
 x11.XDefaultDepth.argtypes = [ctypes.c_void_p, ctypes.c_int]
 x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
 x11.XDestroyImage.argtypes = [ctypes.c_void_p]
+x11.XGetGeometry.restype = ctypes.c_int
+x11.XGetGeometry.argtypes = [ctypes.c_void_p, ctypes.c_ulong,
+                             ctypes.POINTER(ctypes.c_ulong),
+                             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+                             ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint),
+                             ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint)]
+
+
+def window_geometry(dpy, win):
+    """返回窗口 (w, h)；取不到返回 (0, 0)。抓帧尺寸必须以它为准，见 XShmGrabber.__init__。"""
+    root = ctypes.c_ulong()
+    x = ctypes.c_int()
+    y = ctypes.c_int()
+    w = ctypes.c_uint()
+    h = ctypes.c_uint()
+    bw = ctypes.c_uint()
+    depth = ctypes.c_uint()
+    ok = x11.XGetGeometry(dpy, ctypes.c_ulong(int(win)), ctypes.byref(root),
+                          ctypes.byref(x), ctypes.byref(y), ctypes.byref(w),
+                          ctypes.byref(h), ctypes.byref(bw), ctypes.byref(depth))
+    if not ok:
+        return 0, 0
+    return int(w.value), int(h.value)
 
 
 class XErrorEvent(ctypes.Structure):
@@ -123,6 +146,7 @@ xext.XShmGetImage.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_void_p,
 libc.shmget.restype = ctypes.c_int
 libc.shmat.restype = ctypes.c_void_p
 libc.shmdt.argtypes = [ctypes.c_void_p]
+libc.shmctl.restype = ctypes.c_int
 
 _XERR_HANDLER = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)
 _XERR_LAST = {'code': 0}
@@ -154,35 +178,50 @@ class XShmGrabber:
     def __init__(self, display, win, w=FRAME_W, h=FRAME_H):
         self.display_name = display
         self.win = win
-        self.w, self.h = w, h
         self.dpy = x11.XOpenDisplay(display.encode())
         if not self.dpy:
             raise GrabError(f'XOpenDisplay({display}) 失败（DISPLAY/XAUTHORITY？）')
+        self.addr = None
+        self.img = None
+        self.seg = None
+        # 窗口比请求尺寸小 → XShmGetImage 必然 BadMatch（实测：千星沙箱 2560x1371 vs 默认
+        # 2560x1440，守护因此一帧都写不出、state.tsv 永不出现，被误读成「守护不产帧」）。
+        # 抓帧尺寸按**窗口实际几何**裁剪（多出的部分抓不到，少于窗口的部分不存在）。
+        gw, gh = window_geometry(self.dpy, win)
+        if gw and gh:
+            self.w, self.h = min(w, gw), min(h, gh)
+        else:
+            self.w, self.h = w, h
         self._handler = install_xerr_handler()
         scr = x11.XDefaultScreen(self.dpy)
         vis = x11.XDefaultVisual(self.dpy, scr)
         dep = x11.XDefaultDepth(self.dpy, scr)
         self.depth = dep
-        self.size = w * h * 4
-        self.shmid = libc.shmget(0, ctypes.c_size_t(self.size), ctypes.c_int(0o100600))
-        if self.shmid < 0:
-            raise GrabError(f'shmget 失败 errno={ctypes.get_errno()}')
-        self.addr = libc.shmat(ctypes.c_int(self.shmid), ctypes.c_void_p(0), ctypes.c_int(0))
-        if self.addr in (None, ctypes.c_void_p(-1).value):
-            raise GrabError(f'shmat 失败 errno={ctypes.get_errno()}')
-        self.seg = ShmSeg(0, self.shmid, self.addr, 0)
-        self.img = xext.XShmCreateImage(self.dpy, vis, dep, 2, ctypes.c_void_p(self.addr),
-                                        ctypes.byref(self.seg), w, h)
-        if not self.img:
-            raise GrabError('XShmCreateImage 失败')
-        if not xext.XShmAttach(self.dpy, ctypes.byref(self.seg)):
-            raise GrabError('XShmAttach 失败（MIT-SHM 不可用？）')
-        x11.XSync(self.dpy, 0)
+        self.size = self.w * self.h * 4          # 尺寸一律用裁剪后的 (self.w,self.h)
+        self.shmid = None
+        try:
+            self.shmid = libc.shmget(0, ctypes.c_size_t(self.size), ctypes.c_int(0o100600))
+            if self.shmid < 0:
+                raise GrabError(f'shmget 失败 errno={ctypes.get_errno()}')
+            self.addr = libc.shmat(ctypes.c_int(self.shmid), ctypes.c_void_p(0), ctypes.c_int(0))
+            if self.addr in (None, ctypes.c_void_p(-1).value):
+                raise GrabError(f'shmat 失败 errno={ctypes.get_errno()}')
+            self.seg = ShmSeg(0, self.shmid, self.addr, 0)
+            self.img = xext.XShmCreateImage(self.dpy, vis, dep, 2, ctypes.c_void_p(self.addr),
+                                            ctypes.byref(self.seg), self.w, self.h)
+            if not self.img:
+                raise GrabError('XShmCreateImage 失败')
+            if not xext.XShmAttach(self.dpy, ctypes.byref(self.seg)):
+                raise GrabError('XShmAttach 失败（MIT-SHM 不可用？）')
+            x11.XSync(self.dpy, 0)
+        except Exception:                        # noqa: BLE001 —— 半成品必须自毁，别把段漏给内核
+            self.close()
+            raise
         import numpy as np
         self.np = np
         # 共享内存地址固定 → 视图只建一次；每帧只付一次 BGRX→RGB 的 11MB 拷贝
         self.view = np.ctypeslib.as_array(
-            (ctypes.c_ubyte * self.size).from_address(self.addr)).reshape(h, w, 4)
+            (ctypes.c_ubyte * self.size).from_address(self.addr)).reshape(self.h, self.w, 4)
 
     def grab(self):
         """返回 (rgb uint8 H×W×3, ms)；失败抛 GrabError（窗口没了/读回失败）。"""
@@ -209,6 +248,15 @@ class XShmGrabber:
                 libc.shmdt(ctypes.c_void_p(self.addr))
         except Exception:                                     # noqa: BLE001
             pass
+        # 段必须由创建者显式销毁：shmdt 只解映射，不释放 shmid 槽位。
+        # 实测（2026-10-20）：不销毁时每重建一次 grabber 就永久占掉 1 个 14MB 段；
+        # 抓帧失败重试 0.5s/次 ⇒ 2 段/秒，把内核 shmmni(=4096) 吃到 2519/4096，
+        # 全局 MIT-SHM 客户端（Xwayland/Wine/CEF）再申请共享内存就会 ENOSPC。
+        try:
+            if self.shmid is not None:
+                libc.shmctl(ctypes.c_int(self.shmid), ctypes.c_int(0), None)  # IPC_RMID
+        except Exception:                                     # noqa: BLE001
+            pass
         try:
             if self.dpy:
                 x11.XCloseDisplay(self.dpy)
@@ -217,6 +265,7 @@ class XShmGrabber:
         self.addr = None
         self.img = None
         self.dpy = None
+        self.shmid = None
 
 
 # ────────────────────────────────────────────────────── 归属校验（两条通道）
@@ -700,8 +749,11 @@ class Daemon:
                 self.grabber = None
                 if self.kwin is not None:
                     self.kwin.handle = None
-                self.stop.wait(0.5)
+                # 退避：窗口真的没了（缩窗/最小化/换 id）时不要每 0.5s 重建一次 grabber
+                self.fail_backoff = min(5.0, getattr(self, 'fail_backoff', 0.5) * 2)
+                self.stop.wait(self.fail_backoff)
                 continue
+            self.fail_backoff = 0.5
             self.seq += 1
             crc = zlib.crc32(rgb) & 0xffffffff
             crc8 = f'{crc:08x}'

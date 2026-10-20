@@ -1,0 +1,58 @@
+#!/bin/bash
+# ys-fakedeath-fix —— 假死根治件的安装/回滚/开关（2026-10-20）
+#
+# 治的是什么：千星编辑器（Wine 应用）在「点击过界面（应用持有鼠标捕获）→ 窗口失焦」之后，
+# X 层的点击**照常投递**给应用（ys-xrec 实测），但应用内部不再响应任何点击；唯一解卡动作是
+# 让窗口被重新 configure（KWin 的 Meta+右键拖动=resize 会发 ConfigureWindow）。
+# 判据链见 docs/fake-death-2026-10-20.md。
+#
+# 补的是什么：dlls/winex11.drv/event.c 的 focus_out() **无条件**发 WM_CANCELMODE
+# （自 2022 f3eebcfa4d 起未变；上游 bug 59653/59965 同案、均 UNCONFIRMED、补丁早已失效）。
+# 原生 Windows 的鼠标捕获**不因键盘焦点变化被取消**；这里取消它就会让应用的拖拽/鼠标状态机脱节。
+#
+# 开关（**默认惰性**：不设文件/环境变量 = 完全原始行为）：
+#   /tmp/.winex11-keep-capture 存在  ⇒ 持有 capture 时跳过 WM_CANCELMODE（运行时切换，无需重启）
+#   WINEX11_KEEP_CAPTURE_ON_FOCUS_OUT=1 同样生效（进程启动时读一次）
+#
+# 用法：
+#   ys-fakedeath-fix status            # 装没装、开关在不在、runner 版本
+#   ys-fakedeath-fix install           # 备份 runner 原件 → 装补丁 .so
+#   ys-fakedeath-fix revert            # 从备份还原
+#   ys-fakedeath-fix on | off          # 开/关补丁（marker 文件，即时生效于新事件）
+# 退出码：0 成功 / 1 无备份或无需回滚 / 2 用法错误 / 3 前置条件不满足
+set -u
+RUNNER="${RUNNER:-/home/h/.local/share/anime-game-launcher/runners/spritz-wine-tkg-staging-wow64-11.14-1}"
+TARGET="$RUNNER/lib/wine/x86_64-unix/winex11.so"
+BACKUP="$TARGET.bak-fakedeath-20261020"
+SRC="${SRC:-/home/h/genshin-ts/.scratch/fake-death/wine-build/dlls/winex11.drv/winex11.so}"
+MARKER=/tmp/.winex11-keep-capture
+
+status() {
+  echo "runner   : $RUNNER"
+  echo "target   : $TARGET ($(stat -c%s "$TARGET" 2>/dev/null || echo missing) bytes)"
+  if [ -f "$BACKUP" ]; then echo "backup   : 有 ($(stat -c%s "$BACKUP") bytes)"; else echo "backup   : 无（未安装过）"; fi
+  if grep -qa "keep-capture" "$TARGET" 2>/dev/null; then echo "patched  : 是（.so 内含 keep-capture 标记）"; else echo "patched  : 否"; fi
+  if [ -f "$MARKER" ]; then echo "switch   : ON（$MARKER 存在）"; else echo "switch   : off（默认=原始行为）"; fi
+  ls -la "$TARGET" "$BACKUP" 2>/dev/null | sed 's/^/           /'
+}
+
+case "${1:-}" in
+  status) status ;;
+  install)
+    [ -f "$SRC" ] || { echo "✗ 找不到构建产物 $SRC"; exit 3; }
+    [ -f "$TARGET" ] || { echo "✗ 找不到 runner 原件 $TARGET"; exit 3; }
+    [ -f "$BACKUP" ] || cp -a "$TARGET" "$BACKUP"
+    install -m 755 "$SRC" "$TARGET"
+    echo "已安装: $SRC -> $TARGET"
+    echo "备份: $BACKUP"
+    grep -qa "keep-capture" "$TARGET" && echo "✓ 校验：目标 .so 含补丁标记" || { echo "✗ 校验失败"; exit 3; }
+    ;;
+  revert)
+    [ -f "$BACKUP" ] || { echo "✗ 没有备份可还原"; exit 1; }
+    install -m 755 "$BACKUP" "$TARGET"
+    echo "已从备份还原: $BACKUP -> $TARGET"
+    ;;
+  on)  : > "$MARKER"; echo "补丁开关 = ON（$MARKER）；只影响**新产生的事件**，无需重启进程" ;;
+  off) rm -f "$MARKER"; echo "补丁开关 = off（已删除 $MARKER）" ;;
+  *) echo "用法: $0 {status|install|revert|on|off}"; exit 2 ;;
+esac

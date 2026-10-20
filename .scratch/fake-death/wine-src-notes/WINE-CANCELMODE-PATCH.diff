@@ -1,0 +1,48 @@
+Candidate patch for WineHQ bug 59965 / 59653
+"skip WM_CANCELMODE on FocusOut when the app holds a mouse capture"
+
+Target : wine 11.14 (tag wine-11.14, commit 1012f3d9)
+File   : dlls/winex11.drv/event.c, function focus_out()  (原文 740-767 行)
+Build  : make -j$(nproc) dlls/winex11.drv/all
+Install: <build>/dlls/winex11.drv/winex11.so -> <runner>/lib/wine/x86_64-unix/winex11.so
+Gate   : WINEX11_KEEP_CAPTURE_ON_FOCUS_OUT=1 时才生效（不设 = 原行为，补丁惰性）
+
+为什么改写：上游两个 bug 的补丁都用 x11drv_thread_data()->grab_hwnd，
+该字段已被 commit 2b3512e7（Rémi Bernon，2026-06-17）删除，替代品是
+dlls/winex11.drv/x11drv.h:992-998 的 get_capture_window()。
+本补丁已在 11.14 源码上实测 `patch -p1 --dry-run` 与真 apply 均通过。
+
+更保守的变体（只跳过「自己窗口」的 capture，保留跨窗口/菜单取消）：
+    if (capture && NtUserGetAncestor( capture, GA_ROOT ) == hwnd) skip;
+
+----------------------------------------------------------------------
+
+--- a/dlls/winex11.drv/event.c	2026-10-20 08:38:33.760608838 +0800
++++ b/dlls/winex11.drv/event.c	2026-10-20 08:38:33.773462243 +0800
+@@ -747,7 +747,20 @@
+     if (is_virtual_desktop()) return;
+     if (hwnd != NtUserGetForegroundWindow()) return;
+     if (!(NtUserGetWindowLongW( hwnd, GWL_STYLE ) & WS_MINIMIZE))
+-        send_message( hwnd, WM_CANCELMODE, 0, 0 );
++    {
++        /* On native Windows an active mouse capture survives a keyboard focus
++         * change; cancelling it here desyncs the app's drag/mouse state
++         * (WineHQ bugs 59653 / 59965). Only skip when a capture is active and
++         * the env var opts in, so the default behaviour is unchanged. */
++        static int keep_capture = -1;
++        HWND capture = get_capture_window();
++
++        if (keep_capture == -1) keep_capture = !!getenv( "WINEX11_KEEP_CAPTURE_ON_FOCUS_OUT" );
++        if (keep_capture && capture)
++            WARN( "skipping WM_CANCELMODE for %p, capture %p\n", hwnd, capture );
++        else
++            send_message( hwnd, WM_CANCELMODE, 0, 0 );
++    }
+ 
+     /* don't reset the foreground window, if the window which is
+        getting the focus is a Wine window */
+
+----------------------------------------------------------------------
+Notes
+- 默认行为不变（env 未设时 keep_capture=0），可安全先装后开。
+- 与 master(840a939ee) 里 XI2 enable/disable 前移的改动无关，勿混在一起。

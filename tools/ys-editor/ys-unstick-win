@@ -1,0 +1,71 @@
+#!/bin/bash
+# ys-unstick-win —— 单窗口「假死」的**几何重配**解卡（2026-10-20 实证）
+#
+# 机制依据（都是本会话实测，见 docs/fake-death-2026-10-20.md）：
+#   · 假死是**每个窗口各自一份**的状态：主窗恢复可点后，另一个窗（资源管理器）仍然点不动；
+#   · 解卡只需要对该窗口发一次 **ConfigureWindow（几何 ±1px 再还原）**——
+#     **不需要** KWin 的 Meta+拖动、**不需要**切焦点、**不需要**移动窗口位置；
+#   · 用户的手势（Meta+右键拖动）之所以有效，是因为 KWin 的 resize 会向客户端连发 ConfigureWindow。
+#
+# 为什么不用「拖窗口/切焦点」：窗口位置会被挪、焦点会被抢（本仓 2026-10-17 事故），
+# 而 ±1px 重配是幂等的：**执行完窗口几何与执行前逐字段相同**（脚本自己核对，不一致就恢复）。
+#
+# 用法：
+#   ys-unstick-win <win-hex|win-dec>          # 解卡（±1px 重配 → 还原 → 校验几何）
+#   ys-unstick-win --all-editor               # 对编辑器所有顶层窗逐个解卡（按 WM_CLASS 找）
+#   ys-unstick-win --dry <win>                # 只打印计划
+# 退出码：0 已重配且几何已还原 / 1 几何还原失败 / 2 用法错误 / 3 前置不满足
+set -u
+DRY=0
+ALL=0
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --dry) DRY=1 ;;
+    --all-editor) ALL=1 ;;
+    *) ARGS+=("$a") ;;
+  esac
+done
+set -- ${ARGS[@]+"${ARGS[@]}"}
+export DISPLAY="${DISPLAY:-:1}"
+export XAUTHORITY="${XAUTHORITY:-/run/user/1000/xauth_oypYEi}"
+
+geom() { wmctrl -l -G | awk -v id="$1" 'tolower($1)==tolower(id){print $3" "$4" "$5" "$6; exit}'; }
+
+unstick() {
+  local win="$1" g x y w h
+  g="$(geom "$win")"
+  [ -n "$g" ] || { echo "✗ 找不到窗口 $win（wmctrl 列表里没有）"; return 3; }
+  read -r x y w h <<<"$g"
+  echo "窗口 $win 当前几何 ${w}x${h}+${x}+${y}"
+  if [ "$DRY" = 1 ]; then
+    echo "  [dry] xdotool windowsize $win $w $((h+1))   # 纯重配，不动位置"
+    echo "  [dry] xdotool windowsize $win $w $h"
+    return 0
+  fi
+  # 纯 XResizeWindow（不经过 WM 移动）：只改高度 ±1，位置一个像素都不碰。
+  # 之前用 `wmctrl -e` 会把窗口移走（实测 x 768→1536），所以这里不用它。
+  YS_ALLOW_RAW=1 xdotool windowsize "$win" "$w" $((h+1)) 2>/dev/null
+  for i in $(seq 1 20); do [ "$(geom "$win" | cut -d' ' -f4)" = "$((h+1))" ] && break; sleep 0.05; done
+  YS_ALLOW_RAW=1 xdotool windowsize "$win" "$w" "$h" 2>/dev/null
+  for i in $(seq 1 20); do [ "$(geom "$win")" = "$g" ] && break; sleep 0.05; done
+  if [ "$(geom "$win")" = "$g" ]; then
+    echo "  ✓ 已发重配并还原几何（${w}x${h}+${x}+${y} 与执行前一致）"
+    return 0
+  else
+    echo "  ✗ 几何未还原：现在 $(geom "$win")，执行前 $g"
+    return 1
+  fi
+}
+
+if [ "$ALL" = 1 ]; then
+  mapfile -t wins < <(wmctrl -l -x | awk 'tolower($0) ~ /beyondeditor/ {print $1}')
+  [ ${#wins[@]} -gt 0 ] || { echo "✗ 没找到 beyondeditor 的窗口"; exit 3; }
+  rc=0
+  for w in "${wins[@]}"; do unstick "$w" || rc=$?; done
+  exit $rc
+fi
+
+[ $# -ge 1 ] || { echo "用法: $0 <win> | --all-editor | --dry <win>"; exit 2; }
+case "$1" in 0x*|0X*) W="$1" ;; *) W="$(printf '0x%08x' "$1")" ;; esac
+unstick "$W"
