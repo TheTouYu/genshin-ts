@@ -41,15 +41,42 @@ def load_capture():
     return mod
 
 
-def list_windows_kwin():
-    """KWin 全量窗口，**按 class 合并成一个可选项**。
+def _x11_candidates(cls):
+    """某个 class 在 X11 侧的全部窗口 [(id, w, h)]。"""
+    import subprocess
+    key = (cls or "").split()[0].lower()
+    if key.endswith(".exe"):
+        key = key[:-4]
+    if not key:
+        return []
+    try:
+        ids = subprocess.run(["xdotool", "search", "--class", key],
+                             capture_output=True, text=True, timeout=10).stdout.split()
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for i in ids:
+        try:
+            g = subprocess.run(["xdotool", "getwindowgeometry", i],
+                               capture_output=True, text=True, timeout=5).stdout
+            m = re.search(r"Geometry:\s*(\d+)x(\d+)", g)
+            if m:
+                out.append((int(i), int(m.group(1)), int(m.group(2))))
+        except Exception:  # noqa: BLE001
+            continue
+    return out
 
-    2026-10-20 用户反馈：「窗口选择上确实显示了三个 beyondeditor 的窗口」——这就是选错的原因。
-    实测千星编辑器 = 多个 X 窗口拼的（左栏 384×1371 + 主画布 2176×1371 + 5 个 1×1 幽灵窗），
-    列表里出现三条，选哪一条都只抓一块。所以这里按 class 归并：
-      · 丢掉面积 ≤4 的幽灵窗
-      · 同 class 的取**外接矩形**当尺寸，并标 `multi:N`
-    抓取时 `_grab_union` 会按屏幕位置把这几块拼起来。
+
+def list_windows_kwin():
+    """KWin 全量窗口。**每个窗口一行**，但每行都带上它自己的 X11 id。
+
+    2026-10-20 用户纠正：「它实际上有很多窗口的，单独选择窗口截图就是正确的做法，只是要修复 bug」。
+
+    真正的 bug 是：列表行**没有 id**（ys-wins 不输出这一列），抓取时只能按 class 回查，
+    而同一 class 下有多条（左栏 384x1371 / 主画布 2176x1371 / 若干 1x1 幽灵窗）
+    ⇒ 回查到哪个算哪个。修法是**给每一行绑定它自己的 id**，选了谁就抓谁。
+
+    ys-wins 给的是逻辑坐标（÷1.5），xdotool 给物理坐标 ⇒ 按 w/h 以 1.5 比例做最近匹配。
     """
     import subprocess
     try:
@@ -57,32 +84,30 @@ def list_windows_kwin():
                              capture_output=True, text=True, timeout=15).stdout
     except Exception:  # noqa: BLE001
         return []
-    groups = {}
+    cache = {}
+    wins = []
     for line in out.splitlines():
         m = re.match(r"\[(\d+)\]\s+(.*?)\s+\|\s+(.*?)\s+\|\s+(\d+),(\d+)\s+(\d+)x(\d+)\s+\|\s+min=(\d)", line)
         if not m:
             continue
         idx, title, cls, xs, ys, ws, hs, mn = m.groups()
-        x, y, w, h = int(xs), int(ys), int(ws), int(hs)
-        if w * h <= 4:                       # 1×1 幽灵窗，直接剔除
-            continue
-        key = cls.strip().lower()
-        g = groups.get(key)
-        if g is None:
-            groups[key] = {"idx": int(idx), "title": title.strip(), "class": cls.strip(),
-                           "x": x, "y": y, "x2": x + w, "y2": y + h, "n": 1,
-                           "minimized": mn == "1"}
-        else:
-            g["x"], g["y"] = min(g["x"], x), min(g["y"], y)
-            g["x2"], g["y2"] = max(g["x2"], x + w), max(g["y2"], y + h)
-            g["n"] += 1
-            g["minimized"] = g["minimized"] and mn == "1"
-    wins = []
-    for g in groups.values():
-        g["w"] = g.pop("x2") - g["x"]
-        g["h"] = g.pop("y2") - g["y"]
-        wins.append(g)
-    wins.sort(key=lambda w: -(w["w"] * w["h"]))
+        cls = cls.strip()
+        w, h = int(ws), int(hs)
+        if cls not in cache:
+            cache[cls] = _x11_candidates(cls)
+        # 在同类候选里找尺寸最接近的（逻辑 1707 vs 物理 2560 ⇒ 比例 1.5）
+        best, best_err = None, None
+        best_wh = (w, h)
+        for wid, cw, ch in cache[cls]:
+            for scale in (1.0, 1.5):
+                err = abs(cw - w * scale) + abs(ch - h * scale)
+                if best_err is None or err < best_err:
+                    best, best_err, best_wh = wid, err, (cw, ch)
+        wins.append({"idx": int(idx), "title": title.strip(), "class": cls,
+                     "x": int(xs), "y": int(ys), "w": w, "h": h,
+                     "pw": best_wh[0], "ph": best_wh[1],   # 物理尺寸：XShm 必须按它抓
+                     "id": ("0x%x" % best) if best else None,
+                     "minimized": mn == "1"})
     return wins
 
 
@@ -311,11 +336,22 @@ class Snap:
         note = ""
         rgb = ms = None
         if fast and not is_game:
-            rgb, ms, note = self._grab_union(win)
-            if rgb is not None:
-                src = "xshm-union"
-                return rgb, ms, src, note
-            note = note or "union 失败，退 KWin"
+            wid = win.get("id") or self._resolve_x11_id(win)
+            if not wid:
+                note = "取不到 X11 id，退 KWin"
+            else:
+                try:
+                    # 用**物理**尺寸抓：ys-wins 报的是逻辑值（÷1.5），拿它当抓帧尺寸会把图裁小
+                    pw = int(win.get("pw") or win["w"])
+                    ph = int(win.get("ph") or win["h"])
+                    g = self.cap.XShmGrabber(self.display, int(wid, 16), pw, ph)
+                    try:
+                        rgb, ms = g.grab()
+                    finally:
+                        g.close()          # 立刻 detach + 释放共享内存段
+                    src = "xshm-window"
+                except Exception as e:  # noqa: BLE001
+                    note = f"xshm 失败：{e}"
         if rgb is None:
             key = (win.get("class") or win.get("name") or "yuanshen").split()[0]
             if key.lower().endswith(".exe"):
@@ -374,8 +410,6 @@ def run_gui(display, snap, want=""):
         wins.extend(list_windows_kwin() or list_windows(display))
         for w in wins:
             label = f'[{w.get("idx","?")}] {w.get("class","")[:26]:<26} {w["w"]}x{w["h"]}'
-            if w.get("n", 1) > 1:
-                label += f'  ({w["n"]} 窗拼合)'      # 让用户看得见这是归并过的整块
             label += "  (最小化)" if w.get("minimized") else ""
             lb.insert("end", label + "  " + (w.get("title") or w.get("name") or "")[:26])
         if want:
