@@ -45,6 +45,18 @@ case "$mode" in
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL path-typo: 漏 /h 的路径没被 lint 拦下（门禁空转）"; exit 1; fi
     echo "INJECT-PASS path-typo: rc=$rc $(printf '%s' "$out" | head -1 | cut -c1-70)"; exit 0
     ;;
+  # ⑤ 注入「复算过滤被拆」→ 证据链自测必须报红（治 F-20261020-41）
+  ops-evidence)
+    tmp="tools/ys-editor/ys-zzz-inject-ops"
+    trap 'rm -f "$tmp"' EXIT
+    sed 's/if require_ev and verify_row(r)\["verdict"\] != "reproduced":/if False:/' tools/ys-editor/ys-ops > "$tmp"
+    chmod +x "$tmp"
+    out=$(YS_OPS_BIN="$tmp" bash tools/ys-editor/tests/ops-evidence.selftest.sh 2>&1); rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL ops-evidence: 拆掉复算过滤后自测仍 PASS（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS ops-evidence: 拆掉复算过滤后自测报红 rc=$rc $(printf '%s' "$out" | grep -c '✗') 条断言失败"; exit 0
+    ;;
   # ④ 注入「单位护栏被拆」→ ys-state --selftest-units 必须报红（治 F-2-08）
   unit-domain)
     tmp="$(mktemp --suffix=.py)"; trap 'rm -f "$tmp"' EXIT

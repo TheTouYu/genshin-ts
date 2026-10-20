@@ -7,7 +7,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 OPS="$HERE/ys-ops"; CRAWL="$HERE/ys-crawl"; PICK="$HERE/ys-pick"
 export DISPLAY="${DISPLAY:-:1}"
 set -a; . "$HERE/ys-env.sh" >/dev/null 2>&1 || true; set +a
-WIN=0x1800001
+# 窗口 id 每次重开游戏都会变：统一向 ys-win-id 要（不要写死 0x1800001）
+WIN="${YS_OPS_WIN:-$("$HERE/ys-win-id" 2>/dev/null)}"; WIN="${WIN:-0x1800001}"
 MARK=计时器管理
 WS=/home/h/genshin-ts/.scratch/gui-service/worldsvc.py
 LOOK=/tmp/cover-look.json

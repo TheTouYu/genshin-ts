@@ -30,7 +30,26 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
-WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+_WIN = None
+
+
+def win():
+    """当前编辑器窗口 id。窗口 id 每次重开游戏都会变（0x1800001 → 0x1200001 实测），
+    统一向 ys-win-id 要；解析不到才回退旧值并打一行警告（回退值很可能已失效）。"""
+    global _WIN
+    if _WIN is None:
+        _WIN = os.environ.get("YS_OPS_WIN") or ""
+        if not _WIN:
+            try:
+                r = subprocess.run([os.path.join(HERE, "ys-win-id")],
+                                   capture_output=True, text=True, timeout=20)
+                _WIN = (r.stdout or "").strip()
+            except Exception:
+                _WIN = ""
+        if not _WIN:
+            _WIN = "0x1800001"
+            print("[warn] 解析不到编辑器窗口，回退 0x1800001（可能已失效）", file=sys.stderr)
+    return _WIN
 OPS = os.path.join(HERE, "ys-ops")
 TMP = os.path.join(REPO, ".scratch/gui-stack/.crawl")
 
@@ -43,7 +62,7 @@ def _env():
 
 def grab(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    r = subprocess.run(["import", "-window", WIN, path], env=_env(),
+    r = subprocess.run(["import", "-window", win(), path], env=_env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
     return path if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 4096 else None
 
@@ -60,7 +79,7 @@ def diff(a, b):
 def esc():
     """按一次 ESC，**检查退出码**（G-FOCUS-RETURN）：注入被 shim 拦下时要能看出来，
     否则会把"没按出去"当成"按了没反应"。"""
-    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "10", "bash", "-c",
+    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), win(), "10", "bash", "-c",
                         "ydotool key 1:1 1:0"], env=_env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
     return r.returncode == 0

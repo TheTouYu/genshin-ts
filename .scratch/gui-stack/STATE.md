@@ -105,9 +105,16 @@
 
 ### 编辑器操作面覆盖率工作流（goal，2026-10-19 19:0x 起）
 - **口径与交接**：`docs/game-engine-knowledge/editor-operation-surface.md`（十二节是机器状态表 + 下一步）
-- **当前读数**：覆盖率 **33 / 458 = 7.21%**
-  - 复算（2026-10-19 22:1x）：`coverage` = **34 / 458 = 7.42%**（含包含匹配+证据强度过滤）；`covered`（严格视图）= **27 / 458**
-（命令：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv`）
+- **当前读数（2026-10-20 21:1x，两个口径）**：
+  - **claimed 35 / 458 = 7.64%**；**verified（可复算）14 / 458 = 3.06%**
+  - 命令：`tools/ys-editor/ys-ops coverage --inventory .scratch/gui-stack/ops-inventory-doc.tsv [--require-evidence]`
+  - 审计：`tools/ys-editor/ys-ops verify --json .scratch/gui-stack/ops-evidence-audit.json`
+    → 51 条 covered latest：18 可复算 / 28 读数不符 / 4 无矩形 / 1 仅状态
+  - **根因**：证据目录按 id 复用被重跑覆盖（6 条可确证 mtime 比台账晚 3–11 分钟）+
+    `ys-field` 让 `ys-ops observe` 另抓一对空帧（full diff 0.0009–0.0013，天然复算不出字段读数）
+  - **已修**：运行级证据目录 `<id>__<ts>` · `add --frames-before/--frames-after` · observe 无帧不伪造 ·
+    `verify` 复算子命令 · `coverage --require-evidence` · 门禁 `tests/ops-evidence.selftest.sh`（10 断言）+ 注入用例
+    + 失败账本 **F-20261020-41**
 - **九个工具全绿**：ys-docops（分母458）· ys-enum（帧枚举雷达）· ys-rowclass（行分类）· ys-ops（台账/覆盖）·
   ys-crawl · ys-cover · ys-goto（进面板）· ys-pick（bbox 取点）· cov-field.py（字段级覆盖）
 - **三条关键判据**（都是被实测打回来才定下的）：

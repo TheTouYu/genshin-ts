@@ -23,17 +23,21 @@
 退出码：0 成功 / 1 动作后无观测差异（记录为 failed）/ 2 用法错误 / 3 抓帧失败
 """
 import argparse
+from functools import lru_cache
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
-LEDGER = os.path.join(REPO, ".scratch/gui-stack/ops-ledger.tsv")
-ALIASES = os.path.join(REPO, ".scratch/gui-stack/ops-aliases.tsv")
-EVID = os.path.join(REPO, ".scratch/gui-stack/ops-evidence")
+# 路径可用环境变量覆盖：自测/审计要在**没有游戏**的情况下跑真逻辑（临时台账 + 临时证据目录）。
+LEDGER = os.environ.get("YS_OPS_LEDGER") or os.path.join(REPO, ".scratch/gui-stack/ops-ledger.tsv")
+ALIASES = os.environ.get("YS_OPS_ALIASES") or os.path.join(REPO, ".scratch/gui-stack/ops-aliases.tsv")
+EVID = os.environ.get("YS_OPS_EVID") or os.path.join(REPO, ".scratch/gui-stack/ops-evidence")
 def _resolve_win():
     """默认窗口：动态解析编辑器主窗（写死 id 会在换代后静默失效，2026-10-20 踩过）。"""
     import subprocess as _sp
@@ -48,7 +52,16 @@ def _resolve_win():
             pass
     return "0x03200008"
 
-WIN = os.environ.get("YS_OPS_WIN") or _resolve_win()
+_WIN = None
+
+
+def win():
+    """窗口 id **惰性**解析。verify / 离线自测根本不碰窗口，不该为了拿 id 去调 wmctrl
+    （无显示时两个候选各等 10s，纯浪费；2026-10-20 审计实测）。"""
+    global _WIN
+    if _WIN is None:
+        _WIN = os.environ.get("YS_OPS_WIN") or _resolve_win()
+    return _WIN
 
 COLS = ("ts", "id", "path", "control", "action", "invoke", "effect", "reading",
         "status", "risk", "evidence", "note")
@@ -67,29 +80,32 @@ def grab(out):
     ⚠ 陈旧 backing store：窗口被遮挡时抓到的可能是旧帧 ⇒ **必须在槽内调用**
     （ys-gui-slot 会把目标窗抬到最上；见 ys-act 第 30 行的同款用法）。"""
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    r = subprocess.run(["import", "-window", WIN, out], env=_env(),
+    r = subprocess.run(["import", "-window", win(), out], env=_env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=25)
     return out if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 4096 else None
+
+
+@lru_cache(maxsize=4)
+def _gray(path):
+    """整帧灰度数组缓存（LRU 4 = 当前这一对帧）。verify --all 时 254 行只对应 65 个目录，
+    不缓存会把同样的 2.5MB PNG 反复解码 3 倍以上（实测 33s → 目标 <15s）。"""
+    import numpy as np
+    from PIL import Image
+    return np.asarray(Image.open(path).convert("L"), dtype=np.uint8)
 
 
 def diff_ratio(a, b):
     """两帧差异：返回 (变化像素占比, 绝对变化像素数)。
     2026-10-20：原实现先缩到 64x36 再数像素，树展开/折叠这种 ~0.08% 的变化被抹成 0，
-    台账因此把有效动作记成 failed。改为全分辨率直方图计数（3M 像素 ~50ms）。"""
+    台账因此把有效动作记成 failed。改为全分辨率计数（3M 像素 ~50ms）。
+    阈值 8/255：diff>8 才算变化（与原 hist[9:] 口径等价）。"""
     try:
-        from PIL import Image, ImageChops
-    except Exception:
-        return None, None
-    try:
-        ia = Image.open(a).convert("L")
-        ib = Image.open(b).convert("L")
-        if ia.size != ib.size:
-            ib = ib.resize(ia.size)
-        d = ImageChops.difference(ia, ib)
-        hist = d.histogram()
-        n = sum(hist[9:])                        # 阈值 8/255，滤掉压缩噪声
-        total = ia.size[0] * ia.size[1]
-        return round(n / total, 6), n
+        import numpy as np
+        ia, ib = _gray(a), _gray(b)
+        if ia.shape != ib.shape:
+            return None, None
+        n = int((np.abs(ia.astype(np.int16) - ib.astype(np.int16)) > 8).sum())
+        return round(n / ia.size, 6), n
     except Exception:
         return None, None
 
@@ -135,60 +151,104 @@ def read_ledger():
     return rows
 
 
+def _evdir(a_id, ts):
+    """每次运行一个独立证据目录。
+
+    为什么不能沿用 `ops-evidence/<id>/`：同一 id 会被重跑多次（实测 A001 15 行），
+    后一次运行把前一次的 before/after **覆盖**掉 ⇒ 台账里的新行指向别的运行的帧。
+    2026-10-20 审计实测：51 条 covered 里 **22 条**的帧复算不出自己的读数。
+    """
+    stamp = ts.replace(" ", "-").replace(":", "")
+    d = os.path.join(EVID, f"{a_id}__{stamp}")
+    n = 1
+    while os.path.exists(d):
+        d = os.path.join(EVID, f"{a_id}__{stamp}-{n}")
+        n += 1
+    return d
+
+
 def cmd_add(a):
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
-    ev = os.path.join(EVID, a.id)
-    before = grab(os.path.join(ev, f"{a.id}-before.png"))
-    if not before:
-        print("[ys-ops] 抓帧失败（窗口不 atop？）", file=sys.stderr)
-        return 3
-    st0 = state_now()
-    rc, msg = 0, "noop"
-    if a.action == "click":
-        if a.text:
-            # 名字寻址：走 worldsvc 的解析器（容器文本 + 检测框文本两条路），拿到坐标再点。
-            # 2026-10-19：编辑器对象接上文字归属后这条路才通；用它做台账，坐标漂移不会静默点错。
-            import json as _j
-            r = subprocess.run([sys.executable, os.path.join(REPO, ".scratch/gui-service/worldsvc.py"),
-                                "act", "--backend", "daemon-world", "--text", a.text,
-                                "--expect", '{"type":"pixel_delta","region":[0,0,2560,1440],"threshold_pct":1.0}',
-                                "--json-out", os.path.join(ev, f"{a.id}-resolve.json")],
-                               env=_env(), capture_output=True, text=True, timeout=180)
-            try:
-                res = _j.load(open(os.path.join(ev, f"{a.id}-resolve.json")))
-            except Exception:
-                print(f"[ys-ops] 名字解析失败：{(r.stderr or '')[-200:]}", file=sys.stderr)
-                return 2
-            at = ((res.get("action") or {}).get("at") or [])
-            if len(at) != 2:
-                print(f"[ys-ops] {a.text!r} 解析不到坐标：{_j.dumps(res.get('error'), ensure_ascii=False)[:200]}",
-                      file=sys.stderr)
-                return 1
-            rc, msg = click(f"{at[0]},{at[1]}")
-            invoke = f"act --text {a.text} -> {at[0]},{at[1]}"
-        else:
-            if not a.at:
-                print("[ys-ops] click 需要 --at x,y 或 --text 名字", file=sys.stderr)
-                return 2
-            rc, msg = click(a.at)
-            invoke = f"click {a.at}"
-    elif a.action == "key":
-        r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "10", "bash", "-c",
-                            f"ydotool key {a.key}"], env=_env(), capture_output=True, text=True, timeout=60)
-        rc, msg = r.returncode, f"key {a.key}"
-        invoke = f"key {a.key}"
-    elif a.action == "observe":
-        invoke = "observe"
-    else:
-        print(f"[ys-ops] 未知 action {a.action!r}（click|key|observe）", file=sys.stderr)
+    given = bool(a.frames_before or a.frames_after)
+    if given and not (a.frames_before and a.frames_after):
+        print("[ys-ops] --frames-before 与 --frames-after 必须成对给", file=sys.stderr)
         return 2
-    time.sleep(a.settle)
-    after = grab(os.path.join(ev, f"{a.id}-after.png"))
-    if not after:
-        print("[ys-ops] 动作后抓帧失败", file=sys.stderr)
-        return 3
-    st1 = state_now()
-    ratio, _ = diff_ratio(before, after)
+    ev = _evdir(a.id, ts)
+    ratio = None
+    st0 = st1 = "?"
+    rc, msg = 0, "noop"
+    invoke = a.action
+    if given:
+        # 调用方已经在**同一次动作**里抓好了前后帧（ys-field / cov-field 的实测对）：
+        # 直接用它们当证据，不要再自己抓一对空帧。以前 observe 行自己抓的前后帧天然相同
+        # （实测 full diff 0.0009–0.0013），存进 evidence 等于给结论配了一张无关照片。
+        for p in (a.frames_before, a.frames_after):
+            if not (os.path.exists(p) and os.path.getsize(p) > 4096):
+                print(f"[ys-ops] 证据帧不存在或太小：{p}", file=sys.stderr)
+                return 3
+        os.makedirs(ev, exist_ok=True)
+        before = os.path.join(ev, f"{a.id}-before.png")
+        after = os.path.join(ev, f"{a.id}-after.png")
+        shutil.copy2(a.frames_before, before)
+        shutil.copy2(a.frames_after, after)
+        invoke = "given-frames"
+        msg = "evidence=given"
+    elif a.action == "observe":
+        # observe 不产生动作：不给帧就没有证据，**不要伪造一对相同帧**。
+        before = after = None
+        msg = "observe-no-frames"
+        print("[ys-ops] observe 未给 --frames-before/--frames-after：本行没有证据帧"
+              "（verify 会判 no-pair）", file=sys.stderr)
+    else:
+        before = grab(os.path.join(ev, f"{a.id}-before.png"))
+        if not before:
+            print("[ys-ops] 抓帧失败（窗口不 atop？）", file=sys.stderr)
+            return 3
+        st0 = state_now()
+        if a.action == "click":
+            if a.text:
+                # 名字寻址：走 worldsvc 的解析器（容器文本 + 检测框文本两条路），拿到坐标再点。
+                # 2026-10-19：编辑器对象接上文字归属后这条路才通；用它做台账，坐标漂移不会静默点错。
+                import json as _j
+                r = subprocess.run([sys.executable, os.path.join(REPO, ".scratch/gui-service/worldsvc.py"),
+                                    "act", "--backend", "daemon-world", "--text", a.text,
+                                    "--expect", '{"type":"pixel_delta","region":[0,0,2560,1440],"threshold_pct":1.0}',
+                                    "--json-out", os.path.join(ev, f"{a.id}-resolve.json")],
+                                   env=_env(), capture_output=True, text=True, timeout=180)
+                try:
+                    res = _j.load(open(os.path.join(ev, f"{a.id}-resolve.json")))
+                except Exception:
+                    print(f"[ys-ops] 名字解析失败：{(r.stderr or '')[-200:]}", file=sys.stderr)
+                    return 2
+                at = ((res.get("action") or {}).get("at") or [])
+                if len(at) != 2:
+                    print(f"[ys-ops] {a.text!r} 解析不到坐标：{_j.dumps(res.get('error'), ensure_ascii=False)[:200]}",
+                          file=sys.stderr)
+                    return 1
+                rc, msg = click(f"{at[0]},{at[1]}")
+                invoke = f"act --text {a.text} -> {at[0]},{at[1]}"
+            else:
+                if not a.at:
+                    print("[ys-ops] click 需要 --at x,y 或 --text 名字", file=sys.stderr)
+                    return 2
+                rc, msg = click(a.at)
+                invoke = f"click {a.at}"
+        elif a.action == "key":
+            r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), win(), "10", "bash", "-c",
+                                f"ydotool key {a.key}"], env=_env(), capture_output=True, text=True, timeout=60)
+            rc, msg = r.returncode, f"key {a.key}"
+            invoke = f"key {a.key}"
+        else:
+            print(f"[ys-ops] 未知 action {a.action!r}（click|key|observe）", file=sys.stderr)
+            return 2
+        time.sleep(a.settle)
+        after = grab(os.path.join(ev, f"{a.id}-after.png"))
+        if not after:
+            print("[ys-ops] 动作后抓帧失败", file=sys.stderr)
+            return 3
+        st1 = state_now()
+    if before and after:
+        ratio, _ = diff_ratio(before, after)
     effect = []
     if st0 != st1 and st0 != "?" and st1 != "?":
         effect.append(f"state:{st0}->{st1}")
@@ -210,7 +270,8 @@ def cmd_add(a):
             "invoke": invoke, "effect": ";".join(effect) or "NONE",
             "reading": f"diff={ratio} state={st0}->{st1}",
             "status": status, "risk": a.risk,
-            "evidence": os.path.relpath(ev, REPO), "note": a.note or msg})
+            "evidence": os.path.relpath(ev, REPO) if (before and after) else "",
+            "note": a.note or msg})
     print(json.dumps({"id": a.id, "status": status, "effect": effect, "diff": ratio,
                       "state": [st0, st1], "click": msg}, ensure_ascii=False))
     return 0 if status == "covered" else 1
@@ -251,6 +312,151 @@ def _norm(s):
     return s.replace("×", "").replace("✕", "").lower()
 
 
+# ───────────────────────── 证据复算（verify） ─────────────────────────
+# 为什么要有这一层：台账的每一行都在断言"我点了一下、看到了变化"。
+# 没有复算，这句话只是一张截图 + 一段自述；而本仓已经踩过三次「看起来成功」的静默失败
+# （2026-10-17 复盘：11 条错误里 6 条是静默失败）。verify 只做一件事：
+# **拿这一行自己的证据帧，把它的读数重算一遍**——算不出来/算不对就不许当 covered。
+
+def _frames_of(evfield):
+    """行里的 evidence → (before, after) 绝对路径。没有成对帧返回 None。"""
+    if not evfield:
+        return None
+    d = evfield if os.path.isabs(evfield) else os.path.join(REPO, evfield)
+    if not os.path.isdir(d):
+        return None
+    fs = sorted(os.listdir(d))
+    bs = [f for f in fs if f.endswith("-before.png")]
+    as_ = [f for f in fs if f.endswith("-after.png")]
+    if not bs or not as_:
+        return None
+    return os.path.join(d, bs[0]), os.path.join(d, as_[0])
+
+
+def region_diff(a, b, box, ext=0):
+    """矩形内变化像素占比（阈值 8/255，与 diff_ratio / ys-field 同一口径）。
+
+    ext>0 时把矩形**向下扩展** ext 像素——下拉/时间选择器的展开列表在行下方，
+    只比那条 56px 高的行带会读到 0（实测下拉 0.2532 vs 行带 0.0）。
+    """
+    try:
+        import numpy as np
+        x, y, w, h = [int(v) for v in box]
+        h += int(ext)
+        ia = _gray(a).astype(np.int16)
+        ib = _gray(b).astype(np.int16)
+        if ia.shape != ib.shape:
+            return None
+        if x < 0 or y < 0 or x + w > ia.shape[1] or y + h > ia.shape[0]:
+            return None
+        m = np.abs(ia[y:y + h, x:x + w] - ib[y:y + h, x:x + w])
+        return round(float((m > 8).mean()), 6)
+    except Exception:
+        return None
+
+
+def _claim_list(row):
+    """从一行里抽出**可复算**的读数；返回 [(kind, value, box, ext)]。
+
+    · frame_diff:X（effect）     → 整帧差，复算口径 = diff_ratio
+    · region_diff:X / value_diff:X（note） → 字段级；box= 是行值区，row_region= 是手工探针的显式矩形
+    没有矩形的字段级读数（早期 SET-* 行只写了 click=x,y）**复算不了**，verify 会如实标 no-box。
+    """
+    out = []
+    m = re.search(r"frame_diff:([\d.]+)", row.get("effect") or "")
+    if m:
+        out.append(("frame_diff", float(m.group(1)), None, 0))
+    note = row.get("note") or ""
+    mb = re.search(r"box=\(([-\d,\s]+)\)", note)
+    box = tuple(int(v) for v in mb.group(1).split(",")) if mb else None
+    mr = re.search(r"row_region\(([-\d,\s]+)\)", note)
+    if mr:
+        p = [int(v) for v in mr.group(1).split(",")]
+        box, ext = (p[0], p[1], p[2] - p[0], p[3] - p[1]), 0
+    else:
+        ext = 400 if box else 0          # ys-field 的读数取"行带 vs 向下扩展"的最大值
+    for key in ("region_diff", "value_diff"):
+        for mm in re.finditer(key + r"=([\d.]+)", note):
+            out.append((key, float(mm.group(1)), box, ext))
+    return out
+
+
+def verify_row(row):
+    """重算一行 → {verdict, detail, claims}。
+
+    verdict: reproduced / mismatch / no-pair / no-claim
+    """
+    pair = _frames_of(row.get("evidence") or "")
+    claims = _claim_list(row)
+    if not pair:
+        return {"verdict": "no-pair", "detail": "", "claims": claims}
+    if not claims:
+        # 只声明了状态迁移（effect=state:A->B）：像素复算不了，得走判态通道重放。
+        v = "state-only" if "state:" in (row.get("effect") or "") else "no-claim"
+        return {"verdict": v, "detail": "", "claims": claims}
+    # 字段级读数（region_diff / value_diff）才是这类行的**结论**；frame_diff 只是粗粒度旁证
+    # （勾选框只占几百像素时整帧差~0.001）。两者同时存在时，只按字段级复算——
+    # 否则"整帧差碰巧对上、字段读数错了"会被判成 reproduced（自测 T2 专治这个）。
+    field = [c for c in claims if c[0] != "frame_diff"]
+    detail, ok, n_box = [], True, 0
+    for kind, val, box, ext in (field or claims):
+        if kind == "frame_diff":
+            got, _ = diff_ratio(*pair)
+        elif box:
+            # 与 ys-field 的读数口径一致：取「行带」与「向下扩展区」的**最大值**
+            # （小控件看行带、下拉展开看扩展区，只取一个会顾此失彼）
+            got = max(region_diff(pair[0], pair[1], box) or 0.0,
+                      region_diff(pair[0], pair[1], box, ext) or 0.0)
+            n_box += 1
+        else:
+            got = None          # 早期 SET-* 行只写了 click=x,y，没有矩形 ⇒ 无法复算
+        # 容差 = max(0.002, 2%·声明值)：0.9 级别的整帧差（菜单开合）差 0.003 不改变结论；
+        # 0.07 级别的局部差差 0.03 就改结论了。绝对容差一刀切会把前者误判成 mismatch。
+        hit = got is not None and abs(got - val) <= max(0.002, 0.02 * abs(val))
+        detail.append(f"{kind}={val}->(复算){got}{'' if hit else ' ✗'}")
+        ok = ok and hit
+    if n_box == 0 and not any(k == "frame_diff" for k, _v, _b, _e in (field or claims)):
+        verdict = "no-box"       # 字段级读数但没记证据矩形：复算不了（不是错，是欠账）
+    elif ok:
+        verdict = "reproduced"
+    else:
+        verdict = "mismatch"     # 有可复算的读数，但算不出声明的值 ⇒ 证据与结论不是同一次运行
+    return {"verdict": verdict, "detail": " ".join(detail), "claims": claims}
+
+
+def cmd_verify(a):
+    rows = read_ledger()
+    if a.id:
+        rows = [r for r in rows if r["id"] == a.id]
+    elif not a.all:
+        latest = {}
+        for r in rows:
+            latest[r["id"]] = r
+        rows = list(latest.values())
+    if a.all:
+        # 同一证据目录的行排在一起：LRU(4) 就能把这一对帧留在缓存里（254 行 / 65 目录）
+        rows.sort(key=lambda r: r.get("evidence") or "")
+    out, tally = [], {}
+    for r in rows:
+        v = verify_row(r)
+        rec = {"id": r["id"], "status": r.get("status"), "verdict": v["verdict"],
+               "detail": v["detail"], "evidence": r.get("evidence", "")}
+        out.append(rec)
+        key = f"{r.get('status')}/{v['verdict']}"
+        tally[key] = tally.get(key, 0) + 1
+    if a.json:
+        with open(a.json, "w", encoding="utf-8") as f:
+            json.dump({"rows": out, "tally": tally}, f, ensure_ascii=False, indent=1)
+    for rec in out:
+        print(f"{rec['verdict']:10s} {rec['status']:8s} {rec['id']:34s} {rec['detail']}")
+    print("[ys-ops] verify: " + " ".join(f"{k}={n}" for k, n in sorted(tally.items())), file=sys.stderr)
+    bad = [r for r in out if r["status"] == "covered" and r["verdict"] != "reproduced"]
+    print(f"[ys-ops] covered 但复算不通过：{len(bad)}", file=sys.stderr)
+    if a.strict and bad:
+        return 1
+    return 0
+
+
 def cmd_coverage(a):
     rows = read_ledger()
     latest = {}
@@ -276,7 +482,6 @@ def cmd_coverage(a):
         # 否则覆盖率永远是 0（2026-10-19 实测踩到：19 行全 covered，对着分母算出来却是 0%）。
         # 匹配分两档：**全等**（可靠）与**包含**（文档名常是长名，屏上控件名是短名，如
         # 文档「阵营设置」vs 屏上「阵营」）。全等优先，包含兜底且要求 ≥2 字，避免单字误配。
-        hit = set()
         def _strong(r):
             """证据要够硬才算数。三类读数任一达标即可：状态迁移 / 整帧帧差>=0.01 /
             note 里的字段级读数（value_diff / region_diff）>=0.01。
@@ -303,28 +508,43 @@ def cmd_coverage(a):
                         pass
             return False
 
-        for r in latest.values():
-            if r["status"] != "covered" or not _strong(r):
-                continue
-            c = _norm(r["control"])
-            if not c:
-                continue
-            for alt in _load_aliases().get(c, ()):      # 屏上名 → 文档名
-                for iid in inv_ctl.get(alt, []):
+        def _match(require_ev):
+            hit = set()
+            for r in latest.values():
+                if r["status"] != "covered" or not _strong(r):
+                    continue
+                if require_ev and verify_row(r)["verdict"] != "reproduced":
+                    continue
+                c = _norm(r["control"])
+                if not c:
+                    continue
+                for alt in _load_aliases().get(c, ()):      # 屏上名 → 文档名
+                    for iid in inv_ctl.get(alt, []):
+                        hit.add(iid)
+                for iid in inv_ctl.get(c, []):
                     hit.add(iid)
-            for iid in inv_ctl.get(c, []):
-                hit.add(iid)
-            if len(c) >= 2:
-                for ic, ids in inv_ctl.items():
-                    if ic and (c in ic or ic in c) and abs(len(c) - len(ic)) <= 4:
-                        hit.update(ids)
+                if len(c) >= 2:
+                    for ic, ids in inv_ctl.items():
+                        if ic and (c in ic or ic in c) and abs(len(c) - len(ic)) <= 4:
+                            hit.update(ids)
+            return hit
+
+        hit_claimed = _match(False)
+        # 复算视图：只有"证据帧能重算出这行自己的读数"的行才允许计入。
+        # 默认不启用（老行没有成对帧，一开就掉数字）；目标推进期用它当**上线闸门**。
+        hit_verified = _match(True)
+        hit = hit_verified if a.require_evidence else hit_claimed
         cov = len(hit)
         missing = sorted(set(inv) - hit)
     else:
         cov = len(covered)
         missing = []
+        hit_verified = set(covered)
     pct = (cov / total * 100) if total else 0.0
+    pct_v = (len(hit_verified) / total * 100) if total else 0.0
     print(json.dumps({"total": total, "covered": cov, "pct": round(pct, 2),
+                      "covered_verified": len(hit_verified), "pct_verified": round(pct_v, 2),
+                      "require_evidence": bool(a.require_evidence),
                       "missing": missing}, ensure_ascii=False, indent=1))
     return 0 if pct >= a.require else 1
 
@@ -388,6 +608,9 @@ def main():
     p.add_argument("--min-diff", type=float, default=0.002, help="判为'有变化'的最小差异占比")
     p.add_argument("--settle", type=float, default=1.2, help="动作后等待秒数")
     p.add_argument("--note", default="")
+    p.add_argument("--frames-before", help="实测前后帧（调用方在同一次动作里抓的）——"
+                   "给了就用它当证据并复算，不再自己抓一对空帧")
+    p.add_argument("--frames-after", help="同上")
     p.set_defaults(fn=cmd_add)
 
     p = sub.add_parser("list", help="列台账")
@@ -397,6 +620,8 @@ def main():
     p = sub.add_parser("coverage", help="算覆盖率")
     p.add_argument("--inventory", help="分母清单 TSV（首列=id）")
     p.add_argument("--require", type=float, default=99.5)
+    p.add_argument("--require-evidence", action="store_true",
+                   help="只计入「证据帧能复算出该行读数」的行（严格视图；同时输出 covered_verified）")
     p.set_defaults(fn=cmd_coverage)
 
     p = sub.add_parser("covered",
@@ -404,6 +629,13 @@ def main():
                             "不含包含匹配 ⇒ 数字比 coverage 小，两者不等是正常的")
     p.add_argument("--inventory", required=True)
     p.set_defaults(fn=cmd_covered)
+
+    p = sub.add_parser("verify", help="按证据帧复算台账读数（不看游戏）")
+    p.add_argument("--id", help="只验某一行")
+    p.add_argument("--all", action="store_true", help="验全部历史行（默认每个 id 只验最新一行）")
+    p.add_argument("--json", help="把逐行结论写成 JSON")
+    p.add_argument("--strict", action="store_true", help="有 covered 行复算不通过就退出码 1")
+    p.set_defaults(fn=cmd_verify)
 
     p = sub.add_parser("check", help="看某 id 的最新记录")
     p.add_argument("--id", required=True)

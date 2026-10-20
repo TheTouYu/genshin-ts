@@ -249,3 +249,7 @@ ts	id	path	control	action	invoke	effect	reading	status	risk	evidence	note
 2026-10-19 21:18:41	GOTO-关卡设置	编辑器 > 系统菜单	关卡设置	click	click 184,232	state:MENU->GAME_WORLD;frame_diff:0.954	diff=0.954 state=MENU->GAME_WORLD	covered	A	.scratch/gui-stack/ops-evidence/GOTO-关卡设置	[ys-gui-slot] 占用 1s｜焦点本就在目标窗，未改动
 2026-10-19 21:19:53	F-关卡初始时间点-1	关卡设置 > 基础	关卡初始时间点	observe	observe	NONE	diff=0.0 state=GAME_WORLD->GAME_WORLD	failed	B	.scratch/gui-stack/ops-evidence/F-关卡初始时间点-1	region_diff=0.0 box=(1290, 917, 610, 69)
 2026-10-19 21:21:11	GOTO-关卡设置	编辑器 > 系统菜单	关卡设置	click	click 184,232	state:MENU->GAME_WORLD;frame_diff:0.9566	diff=0.9566 state=MENU->GAME_WORLD	covered	A	.scratch/gui-stack/ops-evidence/GOTO-关卡设置	[ys-gui-slot] 占用 2s｜焦点本就在目标窗，未改动
+2026-10-20 07:54:10	X03	编辑器 > 资源管理器 > 状态节点图	状态节点图	click	click 427,225	state:MENU->UNKNOWN	diff=0.0 state=MENU->UNKNOWN	covered	A	.scratch/gui-stack/ops-evidence/X03	验证 ys-ops 修复：单击▸（预期展开）
+2026-10-20 07:54:34	X04	编辑器 > 资源管理器 > 状态节点图	状态节点图	click	click 427,225	NONE	diff=0.0 state=UNKNOWN->UNKNOWN	failed	A	.scratch/gui-stack/ops-evidence/X04	验证活帧抓取：单击▸
+2026-10-20 07:55:08	X05	编辑器 > 窗口菜单	窗口	click	click 457,25	NONE	diff=0.000227 state=UNKNOWN->UNKNOWN	failed	A	.scratch/gui-stack/ops-evidence/X05	全分辨率 diff 验证：单机菜单
+2026-10-20 08:05:41	X06	编辑器 > 窗口菜单	窗口	click	click 457,25	NONE	diff=0.0 state=UNKNOWN->UNKNOWN	failed	A	.scratch/gui-stack/ops-evidence/X06	槽内跑台账：单机菜单（正确用法）

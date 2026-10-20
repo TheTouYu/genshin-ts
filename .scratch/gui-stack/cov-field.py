@@ -4,7 +4,8 @@ import json, os, subprocess, sys, time
 REPO='/home/h/genshin-ts'; HERE=REPO+'/tools/ys-editor'
 OPS=HERE+'/ys-ops'; RC=HERE+'/ys-rowclass'
 ENV={**os.environ,'DISPLAY':os.environ.get('DISPLAY',':1')}
-WIN='0x1800001'
+# 窗口 id 每次重开游戏都会变：向 ys-win-id 要（解析不到才回退）
+WIN=subprocess.run([HERE+'/ys-win-id'],capture_output=True,text=True,timeout=20).stdout.strip() or '0x1800001'
 def grab(p):
     r=subprocess.run(['import','-window',WIN,p],env=ENV,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=25)
     return p if r.returncode==0 and os.path.getsize(p)>4096 else None
@@ -42,8 +43,9 @@ for r in rows:
     d=max(d_row,d_ext)
     st='covered' if d>=0.01 else 'failed'
     subprocess.run([OPS,'add','--id','SET-'+r['text'][:12],'--path','关卡设置 > 基础',
-                    '--control',r['text'],'--action','observe','--risk','B',
-                    '--note',f'value_diff={d} click={x},{y} val={r.get("value_text")}'],
+                    '--control',r['text'],'--action','observe','--risk','B','--min-diff','0.01',
+                    '--frames-before','/tmp/cf-b.png','--frames-after','/tmp/cf-a.png',
+                    '--note',f'value_diff={d} box={tuple(vr)} click={x},{y} val={r.get("value_text")}'],
                    env=ENV,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=120)
     print(f'{st:8s} {r["text"][:20]:22s} click={x},{y} value_diff={d}')
     covered += (st=='covered')

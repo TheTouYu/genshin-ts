@@ -1,0 +1,467 @@
+{
+ "rows": [
+  {
+   "id": "M01",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9588->(复算)0.961976",
+   "evidence": ".scratch/gui-stack/ops-evidence/M01"
+  },
+  {
+   "id": "L01",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0734->(复算)0.038918 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L01"
+  },
+  {
+   "id": "L02",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0647->(复算)0.040897 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L02"
+  },
+  {
+   "id": "L03",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0386->(复算)0.018547 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L03"
+  },
+  {
+   "id": "L04",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.1033->(复算)0.081506 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L04"
+  },
+  {
+   "id": "L05",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.102->(复算)0.091611 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L05"
+  },
+  {
+   "id": "L06",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0243->(复算)0.018435 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L06"
+  },
+  {
+   "id": "L07",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.036->(复算)0.01644 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L07"
+  },
+  {
+   "id": "L08",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0443->(复算)0.020168 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L08"
+  },
+  {
+   "id": "L09",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0052->(复算)0.002124 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/L09"
+  },
+  {
+   "id": "A001",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.9735->(复算)0.996144 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A001"
+  },
+  {
+   "id": "A002",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0035->(复算)0.002298",
+   "evidence": ".scratch/gui-stack/ops-evidence/A002"
+  },
+  {
+   "id": "A003",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9948->(复算)0.995225",
+   "evidence": ".scratch/gui-stack/ops-evidence/A003"
+  },
+  {
+   "id": "A004",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0043->(复算)0.002389",
+   "evidence": ".scratch/gui-stack/ops-evidence/A004"
+  },
+  {
+   "id": "A005",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.9974->(复算)0.198391 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A005"
+  },
+  {
+   "id": "A006",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.003->(复算)0.000783 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A006"
+  },
+  {
+   "id": "A007",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/A007"
+  },
+  {
+   "id": "A008",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.1042->(复算)0.084901 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A008"
+  },
+  {
+   "id": "A009",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/A009"
+  },
+  {
+   "id": "A010",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0347->(复算)0.996105 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A010"
+  },
+  {
+   "id": "A011",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/A011"
+  },
+  {
+   "id": "A012",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0039->(复算)0.014975 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A012"
+  },
+  {
+   "id": "A013",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0577->(复算)0.020995 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A013"
+  },
+  {
+   "id": "A014",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0022->(复算)0.001106",
+   "evidence": ".scratch/gui-stack/ops-evidence/A014"
+  },
+  {
+   "id": "A015",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0525->(复算)0.028359 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A015"
+  },
+  {
+   "id": "A016",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0043->(复算)0.003059",
+   "evidence": ".scratch/gui-stack/ops-evidence/A016"
+  },
+  {
+   "id": "A017",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.082->(复算)0.069486 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A017"
+  },
+  {
+   "id": "A018",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0911->(复算)0.074966 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A018"
+  },
+  {
+   "id": "A019",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0152->(复算)0.007502 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A019"
+  },
+  {
+   "id": "NAV-界面控件组管理",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.9657->(复算)0.99675 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/NAV-界面控件组管理"
+  },
+  {
+   "id": "NAV01",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/NAV01"
+  },
+  {
+   "id": "ENTER-LSG",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9544->(复算)0.954666",
+   "evidence": ".scratch/gui-stack/ops-evidence/ENTER-LSG"
+  },
+  {
+   "id": "ENTER-LSG2",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9549->(复算)0.954686",
+   "evidence": ".scratch/gui-stack/ops-evidence/ENTER-LSG2"
+  },
+  {
+   "id": "PANEL-关卡设置",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9549->(复算)0.954716",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-关卡设置"
+  },
+  {
+   "id": "PANEL-界面控件组管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.98->(复算)0.96598",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-界面控件组管理"
+  },
+  {
+   "id": "A020",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0634->(复算)0.04066 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A020"
+  },
+  {
+   "id": "A023",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.076->(复算)0.031277 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/A023"
+  },
+  {
+   "id": "A024",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/A024"
+  },
+  {
+   "id": "PANEL-货币与背包",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9661->(复算)0.957403",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-货币与背包"
+  },
+  {
+   "id": "PANEL-奇域礼盒管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9674->(复算)0.956096",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-奇域礼盒管理"
+  },
+  {
+   "id": "PANEL-计时器管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9562->(复算)0.954834",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-计时器管理"
+  },
+  {
+   "id": "PANEL-技能资源管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0026->(复算)0.000884",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-技能资源管理"
+  },
+  {
+   "id": "PANEL-背景音乐管理",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "frame_diff=0.0035->(复算)0.000949 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-背景音乐管理"
+  },
+  {
+   "id": "SKIP-关卡设置",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.0026->(复算)0.001072",
+   "evidence": ".scratch/gui-stack/ops-evidence/SKIP-关卡设置"
+  },
+  {
+   "id": "PANEL-主镜头管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9674->(复算)0.967545",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-主镜头管理"
+  },
+  {
+   "id": "PANEL-外围系统管理",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9683->(复算)0.956395",
+   "evidence": ".scratch/gui-stack/ops-evidence/PANEL-外围系统管理"
+  },
+  {
+   "id": "GOTO-关卡设置",
+   "status": "covered",
+   "verdict": "reproduced",
+   "detail": "frame_diff=0.9566->(复算)0.95507",
+   "evidence": ".scratch/gui-stack/ops-evidence/GOTO-关卡设置"
+  },
+  {
+   "id": "F-实体离场时碰撞触发器检测优化-1",
+   "status": "failed",
+   "verdict": "reproduced",
+   "detail": "region_diff=0.0->(复算)0.0",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-实体离场时碰撞触发器检测优化-1"
+  },
+  {
+   "id": "F-实体离场时碰撞触发器检测优化-2",
+   "status": "failed",
+   "verdict": "reproduced",
+   "detail": "region_diff=0.0->(复算)0.0",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-实体离场时碰撞触发器检测优化-2"
+  },
+  {
+   "id": "F-是否启用全额绽放伤害-1",
+   "status": "failed",
+   "verdict": "reproduced",
+   "detail": "region_diff=0.0->(复算)0.0",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-是否启用全额绽放伤害-1"
+  },
+  {
+   "id": "F-是否启用全额绽放伤害-2",
+   "status": "failed",
+   "verdict": "reproduced",
+   "detail": "region_diff=0.0->(复算)0.0",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-是否启用全额绽放伤害-2"
+  },
+  {
+   "id": "SET-运行后场景生效范围",
+   "status": "covered",
+   "verdict": "no-box",
+   "detail": "value_diff=0.0992->(复算)None ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/SET-运行后场景生效范围"
+  },
+  {
+   "id": "SET-当前可进关人数: 1,2",
+   "status": "covered",
+   "verdict": "no-box",
+   "detail": "value_diff=0.0124->(复算)None ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/SET-当前可进关人数: 1,2"
+  },
+  {
+   "id": "SET-关卡实体",
+   "status": "covered",
+   "verdict": "no-box",
+   "detail": "value_diff=0.9996->(复算)None ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/SET-关卡实体"
+  },
+  {
+   "id": "SET-全局脚本",
+   "status": "covered",
+   "verdict": "no-box",
+   "detail": "value_diff=0.0082->(复算)None ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/SET-全局脚本"
+  },
+  {
+   "id": "SET-关卡初始时间点",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "value_diff=0.0313->(复算)0.0 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/SET-关卡初始时间点"
+  },
+  {
+   "id": "TESTX",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/TESTX"
+  },
+  {
+   "id": "F-运行后场景生效范围-1",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "region_diff=0.1035->(复算)0.0 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-运行后场景生效范围-1"
+  },
+  {
+   "id": "F-关卡环境等级-1",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "region_diff=0.0163->(复算)0.0 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-关卡环境等级-1"
+  },
+  {
+   "id": "F-全局脚本-1",
+   "status": "covered",
+   "verdict": "mismatch",
+   "detail": "region_diff=0.021->(复算)0.0 ✗",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-全局脚本-1"
+  },
+  {
+   "id": "F-关卡初始时间点-1",
+   "status": "failed",
+   "verdict": "reproduced",
+   "detail": "region_diff=0.0->(复算)0.0",
+   "evidence": ".scratch/gui-stack/ops-evidence/F-关卡初始时间点-1"
+  },
+  {
+   "id": "X03",
+   "status": "covered",
+   "verdict": "state-only",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/X03"
+  },
+  {
+   "id": "X04",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/X04"
+  },
+  {
+   "id": "X05",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/X05"
+  },
+  {
+   "id": "X06",
+   "status": "failed",
+   "verdict": "no-claim",
+   "detail": "",
+   "evidence": ".scratch/gui-stack/ops-evidence/X06"
+  }
+ ],
+ "tally": {
+  "covered/reproduced": 18,
+  "covered/mismatch": 28,
+  "failed/no-claim": 9,
+  "failed/reproduced": 5,
+  "covered/no-box": 4,
+  "covered/state-only": 1
+ }
+}

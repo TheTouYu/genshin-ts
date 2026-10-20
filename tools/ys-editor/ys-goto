@@ -22,7 +22,26 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
-WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+_WIN = None
+
+
+def win():
+    """当前编辑器窗口 id。窗口 id 每次重开游戏都会变（0x1800001 → 0x1200001 实测），
+    统一向 ys-win-id 要；解析不到才回退旧值并打一行警告（回退值很可能已失效）。"""
+    global _WIN
+    if _WIN is None:
+        _WIN = os.environ.get("YS_OPS_WIN") or ""
+        if not _WIN:
+            try:
+                r = subprocess.run([os.path.join(HERE, "ys-win-id")],
+                                   capture_output=True, text=True, timeout=20)
+                _WIN = (r.stdout or "").strip()
+            except Exception:
+                _WIN = ""
+        if not _WIN:
+            _WIN = "0x1800001"
+            print("[warn] 解析不到编辑器窗口，回退 0x1800001（可能已失效）", file=sys.stderr)
+    return _WIN
 WS = os.path.join(REPO, ".scratch/gui-service/worldsvc.py")
 OPS = os.path.join(HERE, "ys-ops")
 PICK = os.path.join(HERE, "ys-pick")
@@ -73,7 +92,7 @@ def menu_score():
 def esc():
     """按一次 ESC。**必须检查退出码**：ydotool 被 shim 拦下时返回非零，
     不检查就会把"一次没按出去"当成"按了但没反应"（G-FOCUS-RETURN 账本条目）。"""
-    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), WIN, "8", "bash", "-c",
+    r = subprocess.run([os.path.join(HERE, "ys-gui-slot"), win(), "8", "bash", "-c",
                         "ydotool key 1:1 1:0"], env=env(), capture_output=True, timeout=60)
     if r.returncode != 0:
         print(f"[ys-goto] ESC 注入失败 rc={r.returncode}: "
