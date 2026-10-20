@@ -378,8 +378,14 @@ def strict_attrib(display, win_hex, want_class=DEFAULT_CLASS, timeout=25):
 
 
 # ──────────────────────────────────────── KWin ScreenShot2（后台按窗口抓）
-def kwin_internal_id(class_substr, timeout=12):
-    """用 KWin 脚本取窗口的 internalId（ScreenShot2 的 handle）。JS 必须落在宿主可见路径（D385）。"""
+def kwin_internal_id(class_substr, timeout=12, want_w=None, want_h=None):
+    """用 KWin 脚本取窗口的 internalId（ScreenShot2 的 handle）。
+
+    2026-10-20 增 want_w/want_h：同一 class 常有多条（编辑器 = 左栏 384x1371 + 主画布 2176x1371
+    + 若干 1x1 幽灵窗）。调用方带着"我选的是哪个尺寸"来，这里按 frameGeometry **最近匹配**，
+    这样每个窗口都能单独定位，不需要按 class 撞运气。
+    JS 必须落在宿主可见路径（D385）。
+    """
     import uuid
     tag = 'yscap' + uuid.uuid4().hex[:8]
     js_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'.ys-cap-{tag}.js')
@@ -406,13 +412,13 @@ for (var i = 0; i < ord.length; i++) {{
                      ['gdbus', 'call', '--session', '--dest', 'org.kde.KWin', '--object-path',
                       '/Scripting', '--method', 'org.kde.kwin.Scripting.start']):
             subprocess.run(args, capture_output=True, env=env, timeout=8)
-        time.sleep(1.1)
-        out = subprocess.run(['journalctl', '--user', '--since', '4 seconds ago'],
+        time.sleep(1.6)
+        out = subprocess.run(['journalctl', '--user', '--since', '6 seconds ago'],
                              capture_output=True, text=True, timeout=10).stdout
         # 2026-10-20 修：同一 class 常常有**多个窗口**（主窗 + 一条 384px 宽的面板），
         # 原实现取 journal 里第一行命中的那个 ⇒ 随手指到一个。改成**按面积取最大**——
         # 与 ys-win-id 同一判据（那条也踩过"取最后一个匹配命中 1×1 幽灵窗"）。
-        best, best_area = None, 0
+        best, best_area, best_err = None, 0, None
         for ln in out.splitlines():
             marker = f'YS-CAP-{tag} '
             if marker not in ln:
@@ -421,11 +427,18 @@ for (var i = 0; i < ord.length; i++) {{
             if not parts:
                 continue
             try:
-                area = int(parts[1]) * int(parts[2]) if len(parts) >= 3 else 0
+                w = int(parts[1]) if len(parts) >= 3 else 0
+                h = int(parts[2]) if len(parts) >= 3 else 0
             except ValueError:
-                area = 0
-            if area >= best_area:
-                best, best_area = parts[0], area
+                w = h = 0
+            if want_w and want_h and w and h:
+                # 先按"我选的那一块"匹配 —— 同一 class 下每个窗口都能单独定位
+                err = abs(w - want_w) + abs(h - want_h)
+                if best_err is None or err < best_err:
+                    best, best_err, best_area = parts[0], err, w * h
+            else:
+                if w * h >= best_area:      # 没指定尺寸时按面积取最大（1x1 幽灵窗永远不会赢）
+                    best, best_area = parts[0], w * h
         return best
     except Exception:                                     # noqa: BLE001
         return None
@@ -435,6 +448,9 @@ for (var i = 0; i < ord.length; i++) {{
         except OSError:
             pass
     return None
+
+
+_HANDLE_CACHE = {}
 
 
 class KWinSS2:
@@ -448,10 +464,11 @@ class KWinSS2:
 
     IFACE = 'org.kde.KWin.ScreenShot2'
 
-    def __init__(self, class_substr, display=None):
+    def __init__(self, class_substr, display=None, want_w=None, want_h=None):
         import dbus
         self.dbus = dbus
         self.class_substr = (class_substr or 'yuanshen').lower()
+        self.want_w, self.want_h = want_w, want_h
         self.handle = None
         self.bus = dbus.SessionBus()
         self.obj = self.bus.get_object('org.kde.KWin', '/org/kde/KWin/ScreenShot2',
@@ -460,7 +477,15 @@ class KWinSS2:
 
     def ensure_handle(self):
         if not self.handle:
-            self.handle = kwin_internal_id(self.class_substr)
+            key = (self.class_substr, self.want_w, self.want_h)
+            if key in _HANDLE_CACHE:
+                self.handle = _HANDLE_CACHE[key]
+            else:
+                self.handle = kwin_internal_id(self.class_substr, want_w=self.want_w,
+                                               want_h=self.want_h)
+                if self.handle:
+                    # 只在解析成功时缓存：窗口关了再重开会换 handle，失败路径不缓存才有自愈机会
+                    _HANDLE_CACHE[key] = self.handle
         return self.handle
 
     def grab(self):

@@ -335,39 +335,36 @@ class Snap:
         is_game = any(h in cls for h in GAME_HINTS)
         note = ""
         rgb = ms = None
-        if fast and not is_game:
-            wid = win.get("id") or self._resolve_x11_id(win)
-            if not wid:
-                note = "取不到 X11 id，退 KWin"
-            else:
+        # 2026-10-20 第三版：**XShm 按 id 精抓（快），KWin 兜底（稳）**。
+        # 速度账：XShm 3-15ms；KWin 首次要 1.6s（KWin 脚本往返）+ 之后 30-150ms。
+        # 崩溃账：XShmGetImage 尺寸不符会让 X 服务端 abort —— 所以
+        #   ① 下手前重新问几何（不信列表快照）；② 整个抓帧跑在**子进程**里且**关掉 core dump**
+        #   （`ulimit -c 0`），崩了只是非零退出码，不会弹 drkonqi。
+        wid = win.get("id")
+        if wid:
+            try:
+                g2 = subprocess.run(["xdotool", "getwindowgeometry", str(int(wid, 16))],
+                                    capture_output=True, text=True, timeout=5).stdout
+                mg = re.search(r"Geometry:\s*(\d+)x(\d+)", g2)
+                if not mg:
+                    raise RuntimeError("拿不到窗口几何")
+                pw, ph = int(mg.group(1)), int(mg.group(2))
+                if pw * ph <= 4:
+                    raise RuntimeError(f"窗口不可见（{pw}x{ph}）")
+                g = self.cap.XShmGrabber(self.display, int(wid, 16), pw, ph)
                 try:
-                    # 下手前**重新问一次几何**：列表是几秒前的快照，窗口可能已经变了；
-                    # 尺寸对不上时 XShmGetImage 会 BadMatch，而 Xlib 默认错误处理是
-                    # **abort 整个进程**（2026-10-20 实测：抓一张就"服务崩溃"）。
-                    g2 = subprocess.run(["xdotool", "getwindowgeometry", str(int(wid, 16))],
-                                        capture_output=True, text=True, timeout=5).stdout
-                    mg = re.search(r"Geometry:\s*(\d+)x(\d+)", g2)
-                    if not mg:
-                        raise RuntimeError("拿不到窗口几何")
-                    pw, ph = int(mg.group(1)), int(mg.group(2))
-                    if pw * ph <= 4:
-                        raise RuntimeError(f"窗口已不可见（{pw}x{ph}）")
-                    g = self.cap.XShmGrabber(self.display, int(wid, 16), pw, ph)
-                    try:
-                        rgb, ms = g.grab()
-                    finally:
-                        g.close()          # 立刻 detach + 释放共享内存段
-                    src = "xshm-window"
-                except Exception as e:  # noqa: BLE001
-                    note = f"xshm 失败：{e}"
-        if rgb is None:
-            key = (win.get("class") or win.get("name") or "yuanshen").split()[0]
-            if key.lower().endswith(".exe"):
-                key = key[:-4]
-            ks = self.cap.KWinSS2(key)
-            rgb, ms, meta = ks.grab()
-            src = "kwin-ss2"
-        return rgb, ms, src, note
+                    rgb, ms = g.grab()
+                finally:
+                    g.close()
+                return rgb, ms, "xshm-window", note
+            except Exception as e:  # noqa: BLE001
+                note = f"xshm 失败({e})，退 KWin"
+        key = (win.get("class") or win.get("name") or "yuanshen").split()[0]
+        if key.lower().endswith(".exe"):
+            key = key[:-4]
+        ks = self.cap.KWinSS2(key, want_w=win.get("w"), want_h=win.get("h"))
+        rgb, ms, meta = ks.grab()
+        return rgb, ms, "kwin-ss2", note
 
     def save(self, rgb, ms, src, note="", win=None):
         data = self.cap.encode_jpg(rgb, quality=92)
@@ -492,9 +489,15 @@ def run_gui(display, snap, want=""):
         # 同时放到**后台线程**里跑：子进程要几十到几百毫秒，同步跑会冻结界面、
         # 连提示都弹不出来（用户只能干等，不知道成没成功）。
         wid = win.get("id")
-        cmd = [sys.executable, os.path.abspath(__file__), "--snap",
-               "--inbox", snap.inbox, "--fast"]
-        cmd += ["--window", wid] if wid else ["--window", (win.get("class") or "").split()[0]]
+        cls0 = (win.get("class") or "").split()[0]
+        inner = [sys.executable, os.path.abspath(__file__), "--snap", "--inbox", snap.inbox,
+                 "--window", cls0]
+        if wid:
+            # 带上 id + 逻辑尺寸：子进程**不用再枚举窗口**（那才是"慢到不行"的主因）
+            inner += ["--id", wid, "--size", f"{win.get('w')}x{win.get('h')}"]
+        import shlex
+        # ulimit -c 0：XShm 万一 abort，别产生 core dump、别弹 drkonqi 崩溃通知
+        cmd = ["bash", "-c", "ulimit -c 0; exec " + " ".join(shlex.quote(x) for x in inner)]
         status.set("抓取中…")
 
         def work():
@@ -554,7 +557,9 @@ def main():
     ap.add_argument("--snap", action="store_true")
     ap.add_argument("--gui", action="store_true")
     ap.add_argument("--window", default="auto")
-    ap.add_argument("--fast", action="store_true", help="非游戏窗口允许 XShm 快路径")
+    ap.add_argument("--fast", action="store_true", help="(已弃用) 旧 XShm 快路径，会崩，保留只为兼容")
+    ap.add_argument("--id", help="X11 窗口 id（hex）。给了就**跳过窗口枚举**，直接抓它")
+    ap.add_argument("--size", help="该窗口的逻辑尺寸 WxH（用于 KWin 精确定位）")
     args = ap.parse_args()
 
     if args.list:
@@ -569,7 +574,14 @@ def main():
         run_gui(args.display, snap, args.window)
         return 0
     if args.snap:
-        win = pick_window(list_windows_kwin() or list_windows(args.display), args.window, args.inbox)
+        if args.id:
+            # 快路径：G**不枚举窗口**。原来每次抓图都要跑一遍 ys-wins + 每个 class 的
+            # xdotool search/geometry（十几到几十个子进程），这才是"慢到不行"的主因。
+            sw, sh = (args.size or "0x0").split("x")
+            win = {"id": args.id, "class": args.window, "title": args.window,
+                   "w": int(sw), "h": int(sh), "minimized": False}
+        else:
+            win = pick_window(list_windows_kwin() or list_windows(args.display), args.window, args.inbox)
         if not win:
             print(json.dumps({"ok": False, "error": "找不到目标窗口"}, ensure_ascii=False))
             return 2
