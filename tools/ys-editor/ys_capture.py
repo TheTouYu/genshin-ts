@@ -388,7 +388,10 @@ var ord = workspace.stackingOrder;
 for (var i = 0; i < ord.length; i++) {{
   var w = ord[i];
   if (String(w.resourceClass || '').toLowerCase().indexOf({class_substr!r}) >= 0) {{
-    try {{ console.info('YS-CAP-{tag} ' + String(w.internalId)); }} catch (e) {{}}
+    try {{
+      var g = w.frameGeometry;
+      console.info('YS-CAP-{tag} ' + String(w.internalId) + ' ' + g.width + ' ' + g.height);
+    }} catch (e) {{}}
   }}
 }}
 """
@@ -406,10 +409,24 @@ for (var i = 0; i < ord.length; i++) {{
         time.sleep(1.1)
         out = subprocess.run(['journalctl', '--user', '--since', '4 seconds ago'],
                              capture_output=True, text=True, timeout=10).stdout
+        # 2026-10-20 修：同一 class 常常有**多个窗口**（主窗 + 一条 384px 宽的面板），
+        # 原实现取 journal 里第一行命中的那个 ⇒ 随手指到一个。改成**按面积取最大**——
+        # 与 ys-win-id 同一判据（那条也踩过"取最后一个匹配命中 1×1 幽灵窗"）。
+        best, best_area = None, 0
         for ln in out.splitlines():
             marker = f'YS-CAP-{tag} '
-            if marker in ln:
-                return ln.split(marker, 1)[1].strip()
+            if marker not in ln:
+                continue
+            parts = ln.split(marker, 1)[1].strip().split()
+            if not parts:
+                continue
+            try:
+                area = int(parts[1]) * int(parts[2]) if len(parts) >= 3 else 0
+            except ValueError:
+                area = 0
+            if area >= best_area:
+                best, best_area = parts[0], area
+        return best
     except Exception:                                     # noqa: BLE001
         return None
     finally:

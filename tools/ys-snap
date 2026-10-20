@@ -24,6 +24,7 @@ import json
 import os
 import sys
 import re
+import subprocess
 import sys
 import time
 
@@ -176,23 +177,123 @@ class Snap:
                     pass
         return s
 
-    def grab_once(self, win, fast=False):
-        """抓一帧。游戏窗口默认走 KWin（安全），非游戏且 fast=True 才用 XShm。"""
-        is_game = any(h in win["class"].lower() for h in GAME_HINTS)
+    def _resolve_x11_id(self, win):
+        """从 class 反查 X11 窗口 id（按面积取最大）。
+
+        为什么需要：`list_windows_kwin()` 走 ys-wins，**不带 id**（它的输出没有这一列），
+        于是 XShm 快路径每次都 KeyError 落到 KWin 慢路径——这正是"说好快路径却 4.8s"的第三层原因。
+        判据与 ys-win-id 一致：同一 class 常有主窗 + 1×1 幽灵窗 + 窄面板，取面积最大的那个。
+        """
+        if win.get("id"):
+            return win["id"]
+        key = (win.get("class") or "").split()[0].lower()
+        if key.endswith(".exe"):
+            key = key[:-4]
+        if not key:
+            return None
+        try:
+            ids = subprocess.run(["xdotool", "search", "--class", key],
+                                 capture_output=True, text=True, timeout=10).stdout.split()
+        except Exception:  # noqa: BLE001
+            return None
+        best, best_area = None, 0
+        for i in ids:
+            try:
+                g = subprocess.run(["xdotool", "getwindowgeometry", i],
+                                   capture_output=True, text=True, timeout=5).stdout
+                m = re.search(r"Geometry:\s*(\d+)x(\d+)", g)
+                if not m:
+                    continue
+                area = int(m.group(1)) * int(m.group(2))
+                if area > best_area:
+                    best, best_area = "0x%x" % int(i), area
+            except Exception:  # noqa: BLE001
+                continue
+        if best:
+            win["id"] = best          # 回填，落盘记录里就能看到真正抓到的是哪个窗口
+        return best
+
+    def _grab_union(self, win):
+        """把同一 class 的**多个 X 窗口按屏幕位置拼成一张整图**。
+
+        为什么需要（2026-10-20 实测）：千星编辑器不是一个窗口，而是**多个 X 窗口拼起来的**——
+          52428805  384×1371   左栏资源树
+          52428808 2176×1371   主画布
+          + 5 个 1×1 幽灵窗
+        只抓"最大的那个"会丢掉左栏，而用户演示「新建节点图」全在左栏里。
+
+        返回 (rgb, ms, note)；拼不起来返回 (None, None, 原因)。
+        """
+        import numpy as np
+        import time as _t
+        _t0 = _t.perf_counter()
+        key = (win.get("class") or "").split()[0].lower()
+        if key.endswith(".exe"):
+            key = key[:-4]
+        try:
+            ids = subprocess.run(["xdotool", "search", "--class", key],
+                                 capture_output=True, text=True, timeout=10).stdout.split()
+        except Exception as e:  # noqa: BLE001
+            return None, None, f"枚举窗口失败：{e}"
+        parts, x0, y0, x1, y1 = [], None, None, None, None
+        for i in ids:
+            try:
+                g = subprocess.run(["xdotool", "getwindowgeometry", i],
+                                   capture_output=True, text=True, timeout=5).stdout
+                mp = re.search(r"Position:\s*(-?\d+),(-?\d+)", g)
+                mg = re.search(r"Geometry:\s*(\d+)x(\d+)", g)
+                if not mp or not mg:
+                    continue
+                px, py = int(mp.group(1)), int(mp.group(2))
+                w, h = int(mg.group(1)), int(mg.group(2))
+                if w * h <= 4:               # 1×1 幽灵窗
+                    continue
+                grabber = self.cap.XShmGrabber(self.display, int(i), w, h)
+                try:
+                    rgb, _ms = grabber.grab()
+                finally:
+                    grabber.close()
+                parts.append((px, py, rgb))
+                x0 = px if x0 is None else min(x0, px)
+                y0 = py if y0 is None else min(y0, py)
+                x1 = px + w if x1 is None else max(x1, px + w)
+                y1 = py + h if y1 is None else max(y1, py + h)
+            except Exception:  # noqa: BLE001
+                continue
+        if not parts:
+            return None, None, "union: 没有可拼的窗口"
+        W, H = x1 - x0, y1 - y0
+        canvas = np.zeros((H, W, 3), dtype=np.uint8)
+        for px, py, rgb in parts:
+            h, w = rgb.shape[:2]
+            canvas[py - y0:py - y0 + h, px - x0:px - x0 + w] = rgb
+        return canvas, (_t.perf_counter() - _t0) * 1000, f"union {len(parts)} 窗 {W}x{H}"
+
+    def grab_once(self, win, fast=True):
+        """抓一帧。
+
+        2026-10-20 修三处（用户反馈「我选的是 beyondeditor，为什么 4.8s」）：
+          ① **GUI 从来没有传 fast=True** ⇒ 每次必走 KWin SS2 4.8s。缺省改成 True。
+          ② `is_game` 用的是 GAME_HINTS=(yuanshen, genshin)，**编辑器不算游戏**——
+             当初限制 XShm 是因为"对游戏持续抓帧会拖死 presentation"，编辑器无此风险
+             （D450 实测编辑器窗 XShm 活帧正常）。所以编辑器现在走快路径（~10ms）。
+          ③ 给 KWin 的 class 键去掉 `.exe` 后缀：ys-wins 报的是 `beyondeditor.exe`，
+             而 KWin 的 resourceClass 是不带后缀的 ⇒ 带后缀 indexOf 匹配不到。
+        """
+        cls = (win.get("class") or "").lower()
+        is_game = any(h in cls for h in GAME_HINTS)
         note = ""
         rgb = ms = None
         if fast and not is_game:
-            try:
-                g = self.cap.XShmGrabber(self.display, int(win["id"], 16), win["w"], win["h"])
-                try:
-                    rgb, ms = g.grab()
-                finally:
-                    g.close()   # 立刻 detach + 释放共享内存段
-                src = "xshm-window"
-            except Exception as e:  # noqa: BLE001
-                note = f"xshm 失败：{e}"
+            rgb, ms, note = self._grab_union(win)
+            if rgb is not None:
+                src = "xshm-union"
+                return rgb, ms, src, note
+            note = note or "union 失败，退 KWin"
         if rgb is None:
             key = (win.get("class") or win.get("name") or "yuanshen").split()[0]
+            if key.lower().endswith(".exe"):
+                key = key[:-4]
             ks = self.cap.KWinSS2(key)
             rgb, ms, meta = ks.grab()
             src = "kwin-ss2"
