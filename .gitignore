@@ -98,3 +98,6 @@ research/**/*.m4a
 lua-sync-test/
 # 意外产物（32 位 hex 命名的 PNG 文件；注意是文件不是目录，模式不能带尾斜杠）
 0DF1B5E403DBEE61D8F4F225314A337B
+
+# KWin 脚本临时文件（ys-wins / ys_capture 用完即删，异常退出会残留）
+tools/ys-editor/.ys-*.js
