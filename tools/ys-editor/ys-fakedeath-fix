@@ -25,14 +25,17 @@ RUNNER="${RUNNER:-/home/h/.local/share/anime-game-launcher/runners/spritz-wine-t
 TARGET="$RUNNER/lib/wine/x86_64-unix/winex11.so"
 BACKUP="$TARGET.bak-fakedeath-20261020"
 SRC="${SRC:-/home/h/genshin-ts/.scratch/fake-death/wine-build/dlls/winex11.drv/winex11.so}"
-MARKER=/tmp/.winex11-keep-capture
+MARKER_ORIG=/tmp/.winex11-cancelmode-original
+MARKER_RATE=/tmp/.winex11-cancelmode-ratelimit
 
 status() {
   echo "runner   : $RUNNER"
   echo "target   : $TARGET ($(stat -c%s "$TARGET" 2>/dev/null || echo missing) bytes)"
   if [ -f "$BACKUP" ]; then echo "backup   : 有 ($(stat -c%s "$BACKUP") bytes)"; else echo "backup   : 无（未安装过）"; fi
-  if grep -qa "keep-capture" "$TARGET" 2>/dev/null; then echo "patched  : 是（.so 内含 keep-capture 标记）"; else echo "patched  : 否"; fi
-  if [ -f "$MARKER" ]; then echo "switch   : ON（$MARKER 存在）"; else echo "switch   : off（默认=原始行为）"; fi
+  if grep -qaE "cancelmode-original|cancelmode-ratelimit|keep-capture" "$TARGET" 2>/dev/null; then echo "patched  : 是（.so 内含补丁标记）"; else echo "patched  : 否"; fi
+  if [ -f "$MARKER_ORIG" ]; then echo "cancelmode: 原始行为（每次失焦都发 WM_CANCELMODE）"
+  elif [ -f "$MARKER_RATE" ]; then echo "cancelmode: 限速（500ms 最多一次）"
+  else echo "cancelmode: 默认=不发（切断焦点乒乓，实测治假死）"; fi
   ls -la "$TARGET" "$BACKUP" 2>/dev/null | sed 's/^/           /'
 }
 
@@ -52,7 +55,8 @@ case "${1:-}" in
     install -m 755 "$BACKUP" "$TARGET"
     echo "已从备份还原: $BACKUP -> $TARGET"
     ;;
-  on)  : > "$MARKER"; echo "补丁开关 = ON（$MARKER）；只影响**新产生的事件**，无需重启进程" ;;
-  off) rm -f "$MARKER"; echo "补丁开关 = off（已删除 $MARKER）" ;;
-  *) echo "用法: $0 {status|install|revert|on|off}"; exit 2 ;;
+  original)  : > "$MARKER_ORIG"; rm -f "$MARKER_RATE"; echo "已切回原始行为（$MARKER_ORIG）——假死会复发，仅用于 A/B" ;;
+  ratelimit) : > "$MARKER_RATE"; rm -f "$MARKER_ORIG"; echo "已切到限速模式（$MARKER_RATE）" ;;
+  default)   : > /dev/null; rm -f "$MARKER_ORIG" "$MARKER_RATE"; echo "已切回默认（失焦不发 WM_CANCELMODE）" ;;
+  *) echo "用法: $0 {status|install|revert|default|ratelimit|original}"; exit 2 ;;
 esac

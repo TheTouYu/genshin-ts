@@ -223,3 +223,53 @@ KWin 把窗口从当前桌面移走时会 `UnmapWindow`，切回来再 `MapWindo
 - runner 的 `winex11.so` **已还原为原件**（与备份 `cmp` 字节一致），游戏/编辑器下次启动行为完全不变；
 - 备份保留在 `winex11.so.bak-fakedeath-20261020`，`ys-fakedeath-fix revert` 随时可回滚；
 - 解卡工具 `ys-unstick-win --all-editor` 已两次被用户确认有效（主窗 + 资源管理器窗，各自单独重配）。
+
+
+---
+
+# 第三轮（同日 16:00–16:35）：**根因定谳 + 修复已落地并实测生效**
+
+## F1. 根因：`focus_out()` 的 `WM_CANCELMODE` 与「抢焦点」构成正反馈环
+
+完整因果链（每一环都有读数）：
+
+1. `dlls/winex11.drv/event.c` 的 `focus_out()` **每失焦一次就向应用发 `WM_CANCELMODE`**；
+2. 编辑器（CEF 系）收到 `WM_CANCELMODE` 后**立刻把前台窗口抢回自己**（`SetForegroundWindow`）；
+3. 抢回 → X 焦点再次变化 → 又一次 `focus_out` → 又一次 `WM_CANCELMODE` ……**无限循环**；
+4. **实测（驱动埋点）**：修前启动期 `focus_out` **6856 次**（一版）/ **1526 次**（二版），两个窗口交替
+   （3427/2799、763/763），而且**每一行都是 `fg == 自己`**——正在失焦的窗口仍是 Wine 的前台窗口，
+   这正是"应用把前台抢回去"的直接证据；
+5. 风暴过后，该窗口的**输入状态机卡死**：点击照常投递到应用 HWND
+   （`/tmp/wine11-mouse.log`: `press hwnd=0x400c2 x=868 y=241` + `release`，同时 `ys-xrec` 也证明 X 层投递），
+   但应用不响应；
+6. 只有一次 **ConfigureWindow** 能复位（`ys-unstick-win`，用户两次确认）。
+
+## F2. 修复：默认**不在失焦时发送 `WM_CANCELMODE`**（切断反馈环）
+
+改 `focus_out()`：默认不发；`/tmp/.winex11-cancelmode-original` 存在→原始行为；
+`/tmp/.winex11-cancelmode-ratelimit` 存在→500ms 限速。
+
+**修后实测**：同一会话 `focus_out` 从 1526 次降到 **4 次**（风暴彻底消失），**用户确认「能点了」**。
+——这条读数同时解释了此前所有失败：
+- 之前「持捕获时跳过 `WM_CANCELMODE`」只在 630/6856 次满足条件，所以测不出差别；
+- 「前台复位」补丁无效，是因为应用在 <200ms 内又把前台抢回去（日志 `fg` 永远是自己）；
+- 「每窗一份 + reconfigure 能复位」= 风暴期间被反复 `WM_CANCELMODE` 打坏的正是**每个窗口各自的**输入状态。
+
+## F3. 落地物
+
+| 物 | 位置 |
+|---|---|
+| 补丁后的驱动 | `<runner>/lib/wine/x86_64-unix/winex11.so`（安装件与构建产物字节一致） |
+| 原件备份 | 同目录 `winex11.so.bak-fakedeath-20261020`（470816 B） |
+| 装/卸/切换 | `tools/ys-editor/ys-fakedeath-fix {status,install,revert,default,ratelimit,original}` |
+| 解卡（治标兜底） | `tools/ys-editor/ys-unstick-win --all-editor` |
+| 构建配方 | wine 11.14@`1012f3d9` + staging@`3e0623e0` + tag `spritz-wine-11.14-1` 的 63 个补丁 + 本补丁；`include/config.h` 补 `HAVE_LINUX_FUTEX_H`；ntdll/win32u 用 runner 自带 .so 当链接输入 |
+
+## F4. 未解决风险
+
+1. **runner 更新会被覆盖**：launcher 更新 wine 后需重装（`ys-fakedeath-fix install` 前要重新 build）。
+2. **游戏侧未验证**：这条补丁对所有 Wine 进程生效（包括原神）。若游戏出现菜单/鼠标异常，
+   `ys-fakedeath-fix original` 立即回滚行为（建 marker，无需重启进程）。
+3. 这是**在 Wine 侧切断反馈环**，不是修编辑器本身；若编辑器更新后改了抢焦点策略，需重测。
+4. 修后 `focus_out` 只剩 4 次 → 也意味着**失焦时应用不再收到取消通知**；对真正依赖
+   `WM_CANCELMODE` 收起菜单的场景，可用 `ratelimit` 折中档。
