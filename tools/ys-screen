@@ -122,7 +122,9 @@ RING_MAX_CAND = 150          # 进入环验证的候选中心上限
 # —— 容器层（L3 平坦皮肤容器 + 叶子归属）——
 # 判据全部来自已验证原型（.scratch/gui-arch-probe/p2_containers.py、ysui.py）与设计文档
 # docs/maintenance/design-2026-10-18-gui-structure.md §2.2；改动前先读那两张表。
-CONTAINER_RULESET = 'glyph-v1'      # 2026-10-19 +1：新增独立「无底图标」通道 glyph_icons[]（flatrect 判据未改）
+CONTAINER_RULESET = 'glyph-v2'      # 2026-10-21 +1：uncertainty 规则抽成纯函数 compute_uncertainty()，
+                                    # 场景判档加「文本密度」信号、规则不适用进 meta.waived（判定结果需换缓存）
+                                    # （前一手：2026-10-19 glyph-v1 新增独立「无底图标」通道 glyph_icons[]）
 CONTAINER_EDGE = 6.0         # 平坦判据：Lab 三通道 Sobel 合能量 E 的阈值（E<6 ⇒ 平坦）
 CONTAINER_EDGE_SQ = 36.0     # 同一个阈值的平方形式（E²<36 ⟺ E<6）：省 sqrt，且整数 Sobel 可直接比
 CONTAINER_CLOSE = 5          # 形态学闭核边长（补掉平坦区内部 1~2px 的细缝，实测 5 够用）
@@ -138,6 +140,13 @@ GLYPH_ICON_MIN_CONTRAST_HUD = 40.0
 GLYPH_ICON_MIN_CONTRAST_UI = 60.0
 # 「远离 HUD 带 ⇒ 疑似背景」判据的全帧阈值（实测间距：真图标 ≤169px / 背景 ≥253px）
 UNCERTAIN_BG_EDGE_FULL = 200.0
+# —— uncertainty[]（「拿不准的地方」）——规则唯一实现 = compute_uncertainty()（2026-10-21 抽出）
+# 用户裁定：AGI 的门槛不是"什么都能识别"，而是"知道自己的把握度"；且**「不适用」必须与「没有」可区分**，
+# 判据必须应用无关（同一套规则跑游戏 HUD、菜单、浏览器/终端窗口，不许假定屏幕上是游戏）。
+UNCERTAIN_RULES = ('possible_miss', 'possible_false_positive', 'ambiguous_kind')
+UNCERTAIN_MISS_MIN_SIDE = 20       # 规则①：游离图形短边 ≥20px 才可能真是一个被漏掉的控件
+UNCERTAIN_CLIP_EDGE_FULL = 340.0   # 规则①：中心距最近画面边 <340px ⇒ 可能被屏幕边缘裁切（旧值，勿改）
+UNCERTAIN_SCENE_TEXT_N = 60        # 场景分档的「信息密度」信号：OCR 文本块 ≥60 ⇒ 富 UI（见 scene_of）
 CONTAINER_MIN_RECT = 0.55    # 矩形度（连通域面积 / bbox 面积）下限——世界的软边平坦区过不了
 CONTAINER_PAL_TOL = 3.0      # "同皮肤色兄弟"的 Lab ΔE 上限（世界每块平坦区颜色都不同）
 CONTAINER_PANEL_FRAC = 0.05  # kind=panel：占屏面积比下限（实测大面板 6%~35%，格子 ~1%）
@@ -1321,6 +1330,296 @@ def find_scroll_bands(arr, scale):
     return keep
 
 
+def scene_of(regular_containers=0, text_n=None):
+    """场景分档（单帧、**应用无关**）：返回 (scene, reason)。scene ∈ {'hud','ui'}。
+
+    旧判据只有「成排的规整平坦矩形 ≥4」——那是**游戏菜单**的形状。整窗应用（浏览器/终端/IDE）
+    的 CV 容器层常常只找到 0~1 个（它们不是游戏面板），于是被判成 hud，规则②「远离 HUD 带
+    ⇒ 疑似背景」照常跑却 0 命中 ⇒ 输出 0 条不确定性，**看不出"算了但没命中"还是"没算"**。
+    新增一条与界面风格无关的「信息密度」信号：**OCR 文本块数量**（一屏字多 ⇒ 富 UI）。
+    实测（2026-10-21，2560×1440，全部离线夹具帧）：
+
+    | 帧 | OCR 文本块 | 规整容器 | 判档 |
+    |---|---|---|---|
+    | 世界 HUD（neg-world） | 2 | 0 | hud |
+    | 游戏启动界面（回执） | 13 | 0 | hud |
+    | 旅行者菜单（menu-esc） | 34 / 35 | 0 | hud |
+    | 编辑器（dxvk 遮挡） | 33 | 0 | hud |
+    | 存档列表（savelist） | 48 | 0 | hud |
+    | 派蒙菜单（game-login） | 39 | 4 | ui（旧判据已成立） |
+    | Firefox 我方 GUI 页（foreign-ui） | 88 | 0 | **ui（新信号命中）** |
+
+    阈值 60 = 两侧余量 1.25×（48→60）与 1.47×（60→88）。
+    """
+    regular = int(regular_containers or 0)
+    tn = None if text_n is None else int(text_n)
+    if regular >= 4:
+        return 'ui', 'ui: 规整平坦容器 %d 个（rect≥0.8）≥4 ⇒ 游戏界面型富 UI' % regular
+    if tn is not None and tn >= UNCERTAIN_SCENE_TEXT_N:
+        return 'ui', ('ui: OCR 文本块 %d ≥%d ⇒ 信息密度型富 UI（与界面风格无关的判据）'
+                      % (tn, UNCERTAIN_SCENE_TEXT_N))
+    if tn is None:
+        return 'hud', 'hud: 规整平坦容器 %d <4（文本块数没给 ⇒ 只有容器读数）' % regular
+    return 'hud', 'hud: 规整平坦容器 %d <4 且 OCR 文本块 %d <%d' % (
+        regular, tn, UNCERTAIN_SCENE_TEXT_N)
+
+
+def compute_uncertainty(containers, free_glyphs, glyph_icons, dets=None, W=0, H=0,
+                        hud_like=None, text_n=None, scroll_affordances=None):
+    """把「拿不准的地方」算成 `(uncertainty[], meta)` —— **规则唯一实现**（2026-10-21 抽出）。
+
+    为什么要 meta（用户裁定 2026-10-21）：**「不适用」必须与「没有」可区分**。旧实现把三条规则
+    内联在 find_containers 里、`hud_like` 当开关用，规则不适用时和规则跑了 0 命中时**输出完全一样**
+    （都是 `uncertainty: []`）⇒ 下游无法判断该不该再去看一眼，AGI 也就无从"知道自己不知道"。
+    现在：每条规则要么进 `meta['applicable']`（跑过，hits 给条数），要么进 `meta['waived']`
+    （没跑，带 reason）。`uncertainty==[]` 只有在 applicable 非空时才可读成"没有可疑处"。
+
+    输入全是**已算好的检测结果**（函数不读像素、不做 I/O ⇒ 可离线单测）：
+      containers    CV 容器（bbox=**xyxy**）；`None` = 该通道这次没跑
+      free_glyphs   CV 游离图形；`None` = 没跑（`[]` = 跑了，没找到）
+      glyph_icons   CV 无底图标；`None` = 没跑
+      dets          学习型检测框，dict 形如 `{'bbox': [x0,y0,x1,y1], 'kind': 'button'}`；
+                    `None` = 没跑（检测后端/daemon 才给）
+      W, H          全帧尺寸（px）
+      hud_like      场景档位；`None` ⇒ 按 scene_of() 从规整容器数 + 文本块数**推断**
+      text_n        OCR 文本块数量（场景判据的密度信号）
+      scroll_affordances  已检出的滚动指示器：[{'bbox':[x,y,w,h]}]；有就把落在它里面的
+                    假阳性剔掉、并追加一条正向条目（这条后处理也搬进来，保证只有一个实现）
+
+    meta 形状（JSON 安全）：
+      {schema, ruleset, scene:'hud'|'ui', scene_reason, hud_like,
+       signals:{regular_containers, text_n, detections},
+       sources:{containers, glyphs, glyph_icons, detections},   # 该来源通道是否跑了
+       applicable:[规则名], waived:[{rule, reason, detail}], hits:{规则名: 条数},
+       uncertainty_n, post:{scroll_affordances, fp_removed_in_scroll},
+       degraded:[{code, detail}], hint}
+
+    分数区间（写死，两段**不重叠**）：possible_miss ∈ [0.20, 0.80] < possible_false_positive ∈
+    [0.85, 1.00] ⇒ 排序恒为"已输出但可疑"优先于"可能漏了"，不依赖两框是否重叠。
+    """
+    W0f, H0f = float(W or 0), float(H or 0)
+    containers = list(containers) if containers is not None else None
+    free_glyphs = list(free_glyphs) if free_glyphs is not None else None
+    glyph_icons = list(glyph_icons) if glyph_icons is not None else None
+    dets = list(dets) if dets is not None else None
+    scroll_affordances = list(scroll_affordances or [])
+
+    # —— 场景档位（判据只有一处：scene_of）——
+    regular = sum(1 for c in (containers or [])
+                  if float((c.get('skin') or {}).get('rect') or 0) >= 0.8)
+    if hud_like is None:
+        scene, scene_reason = scene_of(regular, text_n=text_n)
+    else:
+        scene = 'hud' if hud_like else 'ui'
+        scene_reason = 'caller: hud_like=%s（调用方按 kept 容器判档）' % bool(hud_like)
+    hud = (scene == 'hud')
+
+    unc = []
+    applicable, waived, hits = [], [], {}
+
+    def _edge_dist(box):
+        x, y = box[0] + (box[2] - box[0]) / 2.0, box[1] + (box[3] - box[1]) / 2.0
+        return min(x, y, max(0.0, W0f - x), max(0.0, H0f - y))
+
+    def _waive(rule, reason, detail):
+        waived.append({'rule': rule, 'reason': reason, 'detail': detail})
+
+    def _ran(rule, n):
+        applicable.append(rule)
+        hits[rule] = int(n)
+
+    # ── 规则①：possible_miss —— free_glyph 大到可能是真 UI 元素（≥20×20），但四道容器闸门一条都没过。
+    #    score（写死）：0.20 + 0.35*min(1, 最短边/80) + 0.25*min(1, contrast/120)
+    #    —— 尺寸越大、对比越强 ⇒ 越可能是被漏掉的真控件 ⇒ 越该去看。
+    n1 = 0
+    if free_glyphs is None:
+        _waive('possible_miss', 'no_glyph_channel',
+               '这次没跑 CV「游离图形」通道（检测后端只有检测框）⇒ 无从判"可能漏掉"')
+    else:
+        for gl in free_glyphs:
+            bb = gl['bbox']
+            gw, gh = bb[2] - bb[0], bb[3] - bb[1]
+            if min(gw, gh) < UNCERTAIN_MISS_MIN_SIDE:
+                continue
+            if any((gi['bbox'] == bb) for gi in glyph_icons or []):
+                continue                      # 已被无底图标通道接住 ⇒ 不算 miss
+            reasons = []
+            if gw < CONTAINER_MIN_W_FULL or gh < CONTAINER_MIN_H_FULL:
+                reasons.append('below_size_gate')
+            if not gl.get('text_in'):
+                reasons.append('no_text')
+            reasons.append('low_flatness')     # glyph 本身不是平坦皮肤（这是它进不了容器的根本原因）
+            if _edge_dist(bb) < UNCERTAIN_CLIP_EDGE_FULL:
+                reasons.append('clipped_edge')
+            sc = (0.20 + 0.35 * min(1.0, min(gw, gh) / 80.0)
+                  + 0.25 * min(1.0, float(gl.get('contrast') or 0) / 120.0))
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(gw), int(gh)],
+                        'kind': 'possible_miss',
+                        'score': round(min(1.0, sc), 3), 'reasons': reasons,
+                        'hint': '这里是 %dx%d 的图形块（对比度 %s），但没有平坦皮肤矩形 ⇒ 容器层接不住，'
+                                '可能是一个可交互图标' % (gw, gh, gl.get('contrast'))})
+            n1 += 1
+        _ran('possible_miss', n1)
+
+    # ── 规则②：possible_false_positive —— 已提升的 glyph_icon 中心远离 HUD 带（离四边都 >200px）。
+    #    score（写死）：0.85 + 0.15*min(1, edge_dist/800) —— 越靠画面中部越可能是背景（冰面/粒子/光晕）。
+    #    ⚠ 这是 **HUD 专用**判据：hud 场景才有"图标都挤在边缘带里"这个前提。富 UI 里图标本来
+    #    就能出现在画面中部，跑它只会把正常界面标成不确定 ⇒ 场景不成立时进 waived，不许静默 0。
+    n2 = 0
+    if glyph_icons is None:
+        _waive('possible_false_positive', 'no_glyph_channel',
+               '这次没跑 CV「无底图标」通道（检测后端只有检测框）⇒ 没有可判对象')
+    else:
+        # 先把"如果按 HUD 判据算，会命中哪些"算出来——即使最终判成富 UI 而 waive，
+        # 也要把**本会命中的条数与区域**摆在 meta 里（用户令：翻档不许吞掉命中，只许改标注）。
+        would = []
+        for gi in glyph_icons:
+            bb = gi['bbox']
+            d = _edge_dist(bb)
+            # 阈值 200px 有实测间距支撑（world/w01 的 30 个 glyph_icon）：
+            #   18 个真图标的"中心距最近画面边" 全部 ≤169px；4 个背景（冰面/粒子/光晕）全部 ≥253px。
+            if d <= UNCERTAIN_BG_EDGE_FULL:
+                continue
+            would.append((bb, d))
+        if not hud:
+            _waive('possible_false_positive', 'scene_ui',
+                   ('%s ⇒「远离画面边 ⇒ 疑似背景」是 HUD 专用判据（前提是图标都挤在边缘带里）；'
+                    '富 UI 里图标本来就能出现在画面中部，按它算会把正常界面标成不确定' % scene_reason))
+            waived[-1]['suppressed_hits'] = len(would)
+            waived[-1]['suppressed_regions'] = [
+                [int(b[0]), int(b[1]), int(b[2] - b[0]), int(b[3] - b[1])] for b, _d in would]
+        else:
+            for bb, d in would:
+                sc = 0.85 + 0.15 * min(1.0, d / 800.0)
+                unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]),
+                                       int(bb[3] - bb[1])],
+                            'kind': 'possible_false_positive', 'score': round(min(1.0, sc), 3),
+                            'reasons': ['background_like'],
+                            'hint': '该图形块中心距画面边 %dpx（>%d ⇒ 不在 HUD 带），'
+                                    '可能是背景/粒子而非界面图标'
+                                    % (int(d), int(UNCERTAIN_BG_EDGE_FULL))})
+                n2 += 1
+            _ran('possible_false_positive', n2)
+
+    # ── 规则③：ambiguous_kind —— kind=='unknown' 的对象，**任一来源**（CV 容器 or 检测框）。
+    #    旧实现只遍历 containers ⇒ daemon 用 detections 当对象集时这条必然 0（静默）。
+    n3 = 0
+    if containers is None and dets is None:
+        _waive('ambiguous_kind', 'no_object_channel',
+               '这次两个对象来源都没给（containers=None 且 dets=None）⇒ 无从判类别不明')
+    else:
+        for c in containers or []:
+            if (c.get('kind') or 'unknown') != 'unknown':
+                continue
+            bb = c['bbox']
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
+                        'kind': 'ambiguous_kind', 'score': 0.5, 'reasons': ['unknown_kind'],
+                        'hint': '这个容器类别判不出（unknown）：形状/内容都不像已知种类，需要复核'})
+            n3 += 1
+        for d0 in dets or []:
+            if (d0.get('kind') or 'unknown') != 'unknown':
+                continue
+            bb = d0['bbox']
+            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
+                        'kind': 'ambiguous_kind', 'score': 0.5, 'reasons': ['unknown_kind'],
+                        'hint': '这个检测框类别判不出（unknown）：检测器没给出可信类别，需要复核'})
+            n3 += 1
+        _ran('ambiguous_kind', n3)
+
+    unc.sort(key=lambda u: -u['score'])
+
+    # ── 后处理：滚动指示器（正向控件）从"可能假阳性"里剔出，并补一条 scroll_affordance。
+    #    搬进纯函数的原因：daemon 侧若要重算 uncertainty，也必须得到同一份结果（不许两处实现）。
+    fp_removed = 0
+    if scroll_affordances:
+        keep_u = []
+        for u in unc:
+            if u['kind'] == 'possible_false_positive':
+                r = u['region']
+                inside = any(a['bbox'][0] - 12 <= r[0] <= a['bbox'][0] + a['bbox'][2]
+                             and a['bbox'][1] - 12 <= r[1] <= a['bbox'][1] + a['bbox'][3]
+                             for a in scroll_affordances)
+                if inside:
+                    fp_removed += 1
+                    continue
+            keep_u.append(u)
+        for a in scroll_affordances:
+            keep_u.append({'region': a['bbox'], 'kind': 'scroll_affordance', 'score': 0.90,
+                           'reasons': ['vertical_strip', 'arrow_pair', 'saturated_thumb'],
+                           'hint': '竖向滚动指示器（上/下箭头 + 滑块），**这是可滚动的正向信号**，不是背景'})
+        keep_u.sort(key=lambda u: -u['score'])
+        unc = keep_u
+
+    degraded = []
+    if not applicable:
+        # 一个来源都没评估 ⇒ uncertainty=[] 不是"没有可疑处"，而是"无从判断"。大声报。
+        degraded.append({
+            'code': 'UNCERTAINTY_SOURCE_MISMATCH',
+            'detail': ('所有对象来源都缺席（containers=%r free_glyphs=%r glyph_icons=%r dets=%r）⇒ '
+                       'uncertainty=[] 表示"没法判断"，不能读成"没有可疑处"'
+                       % (containers is not None, free_glyphs is not None,
+                          glyph_icons is not None, dets is not None))})
+
+    meta = {
+        'schema': 'ys-screen/uncertainty/1',
+        'ruleset': CONTAINER_RULESET,
+        'scene': scene,
+        'scene_reason': scene_reason,
+        'hud_like': bool(hud),
+        'signals': {'regular_containers': regular,
+                    'text_n': (None if text_n is None else int(text_n)),
+                    'detections': (None if dets is None else len(dets))},
+        'sources': {'containers': containers is not None,
+                    'glyphs': free_glyphs is not None,
+                    'glyph_icons': glyph_icons is not None,
+                    'detections': dets is not None},
+        'applicable': applicable,
+        'waived': waived,
+        'hits': hits,
+        'uncertainty_n': len(unc),
+        'post': {'scroll_affordances': len(scroll_affordances),
+                 'fp_removed_in_scroll': fp_removed},
+        'degraded': degraded,
+        'hint': ('按 %s 场景：适用 %d 条规则（命中 %d 条）、不适用 %d 条；uncertainty=%d'
+                 % (scene, len(applicable), sum(hits.values()), len(waived), len(unc))),
+    }
+    return unc, meta
+
+
+def uncertainty_coverage(meta, containers, dets):
+    """声明确切覆盖（daemon 层）：`uncertainty[]` 到底覆盖了本次上报的哪些对象来源。
+
+    为什么需要：ys-screen 的 uncertainty 由 **CV 容器/图形** 算出，而 daemon 的 `objects` 可能
+    被消费方换成 **detections**（`worldsvc` 会选更全的那个源：Firefox 帧 CV 只给 1 个对象、
+    检测器给 92 个）。两套来源不重叠时，那 92 个对象**没有任何不确定性读数**——不说出来，
+    下游会把"0 条不确定性"读成"这批对象都很有把握"。
+
+    返回 {'assessed': [...], 'reported': {...}, 'covered': bool, 'code': str|None, 'detail': str}。
+    `covered=False`（且给 code）⇔ 本帧有检测框、但 CV 对象通道一个都没有（来源完全不重叠）。
+    **无 dets（dets 为空/没跑）时必须不报** —— 那是"没有第二个来源"，不是"两个来源冲突"。
+    """
+    n_c = len(containers or [])
+    n_d = len(dets or [])
+    assessed = list(meta.get('applicable') or []) if isinstance(meta, dict) else []
+    cov = {'assessed_rules': assessed,
+           'assessed_sources': ['cv_containers', 'cv_glyphs'],
+           'reported': {'containers': n_c, 'detections': n_d},
+           # 本层 uncertainty **从不评估检测框**（它由 CV 容器/图形算出）⇒ 只要本帧有检测框，
+           # 就如实标注"那批对象没有不确定性读数"，不管 CV 容器有几个。
+           'detections_covered': (False if n_d > 0 else None),
+           'covered': True, 'code': None, 'detail': ''}
+    if n_d > 0:
+        cov['detail'] = ('uncertainty 由 CV 容器/图形算出；本帧检测框 %d 个、CV 容器 %d 个 '
+                         '⇒ 以 detections 为对象集的消费方拿不到这批对象的不确定性读数' % (n_d, n_c))
+    if n_d > 0 and n_c == 0:
+        cov['covered'] = False
+        cov['code'] = 'UNCERTAINTY_SOURCE_MISMATCH'
+        cov['detail'] = ('uncertainty 由 CV 容器/图形算出（applicable=%r），但本帧 CV 对象 0 个、'
+                         '检测框 %d 个 ⇒ 两套来源完全不重叠：以 detections 为对象集的消费方'
+                         '拿不到这批对象的不确定性读数' % (assessed, n_d))
+    return cov
+
+
 def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     """容器层：L3 平坦皮肤容器 + 文本/图形/角标叶子归属。返回 dict。
 
@@ -1338,7 +1637,7 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
     """
     t0 = time.time()
     res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [],
-           'degraded': False, 'error': None}
+           'uncertainty_meta': None, 'degraded': False, 'error': None}
     try:
         cands = _flat_container_candidates(arr, scale)
         hud = _known_hud(W0, H0)
@@ -1468,80 +1767,8 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
                            'min_side': min_side, 'evidence': {'promoted_from': 'free_glyphs'}})
         res['glyph_icons'] = gicons
 
-        # ================= uncertainty[]：把"拿不准的地方"显式输出（2026-10-19 AGI 判据）=================
-        # 用户裁定：AGI 的门槛不是"什么都能识别"，而是"知道自己的把握度，并在把握度不够时主动获取信息"。
-        # 硬约束：**全部单帧可算**（模块是单帧的，不许用"8 帧稳定"这类时序判据）。
-        W0f, H0f = W0, H0
-        unc = []
-
-        def _edge_dist(box):
-            x, y = box[0] + (box[2] - box[0]) / 2.0, box[1] + (box[3] - box[1]) / 2.0
-            return min(x, y, max(0.0, W0f - x), max(0.0, H0f - y))
-
-        # 规则①：possible_miss —— free_glyph 大到可能是真 UI 元素（≥20×20）但四道容器闸门一条都没过。
-        #   score 公式（写死）：0.30 + 0.40*min(1, 最短边/80) + 0.30*min(1, contrast/120)
-        #   —— 尺寸越大、对比越强 ⇒ 越可能是被漏掉的真控件 ⇒ 越该去看。
-        for gl in free_glyphs:
-            bb = gl['bbox']
-            gw, gh = bb[2] - bb[0], bb[3] - bb[1]
-            if min(gw, gh) < 20:
-                continue
-            if any((gi['bbox'] == bb) for gi in (res.get('glyph_icons') or [])):
-                continue                      # 已被无底图标通道接住 ⇒ 不算 miss
-            reasons = []
-            if gw < CONTAINER_MIN_W_FULL or gh < CONTAINER_MIN_H_FULL:
-                reasons.append('below_size_gate')
-            if not gl.get('text_in'):
-                reasons.append('no_text')
-            reasons.append('low_flatness')     # glyph 本身不是平坦皮肤（这是它进不了容器的根本原因）
-            if _edge_dist(bb) < 340:
-                reasons.append('clipped_edge')
-            # 分数区间设计（写死）：possible_miss ∈ [0.20, 0.80]，possible_false_positive ∈ [0.85, 1.00]，
-            # 两段**不重叠** ⇒ 排序恒有 "已输出但可疑" > "可能漏掉"，不依赖两者框是否重叠。
-            sc = 0.20 + 0.35 * min(1.0, min(gw, gh) / 80.0) + 0.25 * min(1.0, float(gl.get('contrast') or 0) / 120.0)
-            unc.append({'region': [int(bb[0]), int(bb[1]), int(gw), int(gh)], 'kind': 'possible_miss',
-                        'score': round(min(1.0, sc), 3), 'reasons': reasons,
-                        'hint': '这里是 %dx%d 的图形块（对比度 %s），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标' % (gw, gh, gl.get('contrast'))})
-
-        # 规则②：possible_false_positive —— 已提升的 glyph_icon 中心**离四边都 >340px**（远离 HUD 带）
-        #   或「大面积 + 极低平坦度」。score 公式：0.60 + 0.40*min(1, edge_dist/800)
-        #   —— 越靠画面中部 ⇒ 越可能是背景（冰面/粒子/光晕），越该复核。
-        for gi in (res.get('glyph_icons') or []):
-            bb = gi['bbox']
-            d = _edge_dist(bb)
-            area = (bb[2] - bb[0]) * (bb[3] - bb[1])
-            reasons = []
-            # 只在**无容器（HUD/世界类）画面**启用"远离 HUD 带 ⇒ 背景"这条：
-            # 菜单/设置这类界面（kept>=2）内部本来就有一堆图标，按距离判会把正常界面标成不确定。
-            # 阈值 200px 有实测间距支撑（world/w01 的 30 个 glyph_icon）：
-            #   18 个真图标的"中心距最近画面边" 全部 ≤169px；4 个背景（冰面/粒子/光晕）全部 ≥253px。
-            # 取 200 落在间距中间（两侧余量 31px / 53px），比经验值 340 更贴合 HUD 布局。
-            if hud_like and d > UNCERTAIN_BG_EDGE_FULL:
-                reasons.append('background_like')
-            # 「大面积 + 极低填充」这条**已删**：实测真图标 fill 也低（0.31~0.52，见 w01 的 18 个命中），
-            # 用它会把正常图标一起标成背景（实测 15 个 FP 里 11 个是这条误伤）。只保留边缘距离判据。
-            if not reasons:
-                continue
-            if 'merged_blobs' in reasons:
-                pass
-            # 排序理由（写死）：**已输出但可疑**的框（下游可能直接用它动作）比"可能漏了"更紧急，
-            # 所以 possible_false_positive 的分数区间取 0.75~1.0，恒高于 possible_miss（0.30~1.00 但实际上限约 0.7）。
-            sc = 0.85 + 0.15 * min(1.0, d / 800.0)
-            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
-                        'kind': 'possible_false_positive', 'score': round(min(1.0, sc), 3),
-                        'reasons': sorted(set(reasons)),
-                        'hint': '该图形块中心距画面边 %dpx（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标' % int(d)})
-
-        # 规则③：ambiguous_kind —— kind == 'unknown' 的容器（类别判不出，score 固定 0.5）
-        for c in (res.get('containers') or []):
-            if (c.get('kind') or 'unknown') != 'unknown':
-                continue
-            bb = c['bbox']
-            unc.append({'region': [int(bb[0]), int(bb[1]), int(bb[2] - bb[0]), int(bb[3] - bb[1])],
-                        'kind': 'ambiguous_kind', 'score': 0.5, 'reasons': ['unknown_kind'],
-                        'hint': '这个容器类别判不出（unknown）：形状/内容都不像已知种类，需要复核'})
-        unc.sort(key=lambda u: -u['score'])
-        res['uncertainty'] = unc
+        # uncertainty[] 的规则实现**只有一处**：compute_uncertainty()（见本文件上方，2026-10-21 抽出）。
+        # 这里先算滚动指示器（它要从"可能假阳性"里剔除、并追加正向条目），再把容器/图形/图标交给它一次算完。
 
         # ================= scroll_affordance[]：滚动指示器的**视觉通道**（2026-10-19 新增，独立检出）=================
         # 由来：worldsvc drill 下钻发现 uncertainty 把滚动指示器（▲/滑块/▼）误标成 background_like。
@@ -1612,30 +1839,25 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
                 res['scroll_bands_error'] = '%s: %s' % (type(_e).__name__, _e)
         else:
             res['scroll_bands'] = []
-        # 从"可能假阳性"里排除滚动指示器所在的框（它已被识别为正向控件）
-        if scroll_aff:
-            keep_u = []
-            for u in unc:
-                if u['kind'] == 'possible_false_positive':
-                    r = u['region']
-                    inside = any(a['bbox'][0] - 12 <= r[0] <= a['bbox'][0] + a['bbox'][2]
-                                 and a['bbox'][1] - 12 <= r[1] <= a['bbox'][1] + a['bbox'][3] for a in scroll_aff)
-                    if inside:
-                        continue
-                keep_u.append(u)
-            for a in scroll_aff:
-                keep_u.append({'region': a['bbox'], 'kind': 'scroll_affordance', 'score': 0.90,
-                               'reasons': ['vertical_strip', 'arrow_pair', 'saturated_thumb'],
-                               'hint': '竖向滚动指示器（上/下箭头 + 滑块），**这是可滚动的正向信号**，不是背景'})
-            keep_u.sort(key=lambda u: -u['score'])
-            res['uncertainty'] = keep_u
-
+        # ── 算 uncertainty（规则唯一实现；把刚检出的滚动指示器一起交给它做后处理）──
+        _unc, _unc_meta = compute_uncertainty(
+            res.get('containers') or [], free_glyphs, res.get('glyph_icons') or [],
+            None, W0, H0, hud_like=None, text_n=len(text_boxes or []),
+            scroll_affordances=scroll_aff)
+        # glyph_icons 的提升档（尺寸/对比度闸门）仍用旧判据 _regular<4 —— 那是**检测通道**的分档，
+        # 与 uncertainty 的场景判档（scene_of，多一条文本密度信号）分开：翻档只允许改规则的适用性，
+        # 不允许连带改已经产出的检测结果（用户令 2026-10-21：翻档不许吞命中，也不许改老画面）。
+        _unc_meta['signals']['glyph_tier'] = 'hud' if hud_like else 'ui'
+        res['uncertainty'] = _unc
+        res['uncertainty_meta'] = _unc_meta
 
     except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
         res['glyph_icons'] = []
+        res['uncertainty'] = []
+        res['uncertainty_meta'] = None      # fail-closed：没有读数就报 None，不冒充"0 条不确定"
         res['degraded'] = True
         res['error'] = '%s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -1823,7 +2045,7 @@ def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.
                           kind_map=None, timing_out=None):
     """torch fp16 stub 通道：与 find_containers_onnx 同形的返回（bbox=xyxy 原帧坐标）。"""
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [], 'degraded': False, 'error': None}
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'uncertainty_meta': None, 'scroll_affordances': [], 'scroll_bands': [], 'degraded': False, 'error': None}
     try:
         dets, info = _torch_stub_detect(arr, size=size, threshold=threshold,
                                         min_area=min_area, device=device, dtype=dtype)
@@ -1872,11 +2094,19 @@ def find_containers_torch(arr, scale, W0, H0, text_boxes, size=640, threshold=1.
         res['containers'] = out
         res['free_text'] = [text_boxes[j]['text'] for j in range(len(text_boxes))
                             if j not in used]
+        # uncertainty：检测后端的对象来源是**检测框**（没有 CV 游离图形/无底图标通道）
+        # ⇒ 交给同一个纯函数，由它把两条 CV 规则记进 waived（带原因），而不是静默 0 条。
+        _dets = [{'bbox': c['bbox'], 'kind': c['kind'], 'score': c.get('score')} for c in out]
+        res['uncertainty'], res['uncertainty_meta'] = compute_uncertainty(
+            None, None, None, _dets, W0, H0, text_n=len(text_boxes or []),
+            scroll_affordances=[])
     except Exception as exc:            # noqa: BLE001 —— fail-closed
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
         res['glyph_icons'] = []
+        res['uncertainty'] = []
+        res['uncertainty_meta'] = None
         res['degraded'] = True
         res['error'] = 'detect-backend(torch): %s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -1941,8 +2171,8 @@ def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDA
     """
     import numpy as np
     t0 = time.time()
-    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [],
-           'degraded': False, 'error': None}
+    res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'uncertainty_meta': None,
+           'scroll_affordances': [], 'scroll_bands': [], 'degraded': False, 'error': None}
     try:
         # mock 通道：只用于**打通 plumbing 与记分器**（无权重/无 GPU 时也能验证接线）
         if model.startswith('mock:'):
@@ -2022,11 +2252,18 @@ def find_containers_onnx(arr, scale, W0, H0, text_boxes, model, providers=('CUDA
                             if j not in used_text]
         res['free_glyphs'] = []
         res['glyph_icons'] = []
+        # 同 torch 后端：对象来源=检测框；CV 两条规则进 waived（带原因），不静默 0 条。
+        _dets = [{'bbox': c['bbox'], 'kind': c['kind'], 'score': c.get('score')} for c in out]
+        res['uncertainty'], res['uncertainty_meta'] = compute_uncertainty(
+            None, None, None, _dets, W0, H0, text_n=len(text_boxes or []),
+            scroll_affordances=[])
     except Exception as exc:            # noqa: BLE001 —— fail-closed：异常必须变成 degraded + 说清原因
         res['containers'] = []
         res['free_text'] = []
         res['free_glyphs'] = []
         res['glyph_icons'] = []
+        res['uncertainty'] = []
+        res['uncertainty_meta'] = None
         res['degraded'] = True
         res['error'] = 'detect-backend: %s: %s' % (type(exc).__name__, exc)
     if debug:
@@ -2068,7 +2305,8 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
         try:
             with open(path, encoding='utf-8') as f:
                 c = json.load(f)
-            if isinstance(c.get('containers'), list) and 'glyph_icons' in c and 'uncertainty' in c:
+            if (isinstance(c.get('containers'), list) and 'glyph_icons' in c
+                    and 'uncertainty' in c and 'uncertainty_meta' in c):
                 # 旧缓存没有这个键 ⇒ 视为 miss（否则新通道在缓存命中时静默消失，实测过）
                 c['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': True}
                 return c
@@ -2076,7 +2314,8 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             pass
     if backend == 'onnx':
         if not detect_model:
-            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'scroll_affordances': [], 'scroll_bands': [], 'degraded': True,
+            res = {'containers': [], 'free_text': [], 'free_glyphs': [], 'glyph_icons': [], 'uncertainty': [], 'uncertainty_meta': None,
+                   'scroll_affordances': [], 'scroll_bands': [], 'degraded': True,
                    'error': 'detect-backend: onnx 需要 --detect-model <path.onnx>'
                             '（或 env YS_DETECT_ONNX）；缺模型 fail-closed，不静默回落到 cv'}
         else:
@@ -2097,7 +2336,8 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             with open(tmp, 'w', encoding='utf-8') as f:
                 # ★ 显式拒绝未知键（白名单丢字段已踩第 5 次）：输出字段集必须与白名单**完全一致**
                 _whitelist = ('containers', 'free_text', 'free_glyphs', 'glyph_icons',
-                              'uncertainty', 'scroll_affordances', 'scroll_bands', 'degraded', 'error')
+                              'uncertainty', 'uncertainty_meta', 'scroll_affordances',
+                              'scroll_bands', 'degraded', 'error')
                 _missing = [k for k in _whitelist if k not in res]
                 if _missing:
                     raise KeyError('容器层结果缺字段 %r —— 白名单与产出不一致，拒绝写缓存' % _missing)
@@ -2673,14 +2913,9 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
             'containers': cont['containers'], 'free_text': cont['free_text'],
             'free_glyphs': cont['free_glyphs'],
             'glyph_icons': cont.get('glyph_icons') or [],
-        'uncertainty': cont.get('uncertainty') or [],
-        'scroll_affordances': cont.get('scroll_affordances') or [],
-        'scroll_bands': cont.get('scroll_bands') or [],
             'uncertainty': cont.get('uncertainty') or [],
-        'scroll_affordances': cont.get('scroll_affordances') or [],
-        'scroll_bands': cont.get('scroll_bands') or [],
+            'uncertainty_meta': cont.get('uncertainty_meta'),
             'scroll_affordances': cont.get('scroll_affordances') or [],
-        'scroll_bands': cont.get('scroll_bands') or [],
             'scroll_bands': cont.get('scroll_bands') or [],
             'degraded': cont['degraded'], 'error': cont['error'],
             'timing': {'load_ms': int((t_load - t0) * 1000),
@@ -2722,6 +2957,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
         'free_glyphs': cont['free_glyphs'],
         'glyph_icons': cont.get('glyph_icons') or [],
         'uncertainty': cont.get('uncertainty') or [],
+        'uncertainty_meta': cont.get('uncertainty_meta'),
         'scroll_affordances': cont.get('scroll_affordances') or [],
         'scroll_bands': cont.get('scroll_bands') or [],
         'degraded': cont['degraded'], 'error': cont['error'],

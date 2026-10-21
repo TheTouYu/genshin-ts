@@ -1,0 +1,1033 @@
+{
+ "_provenance": {
+  "source": "tools/ys-editor/tests/fixtures/perception/foreign-ui-2560x1440.png（sha256 0e456095d410106f…，Firefox 我方 GUI 页面整屏）",
+  "inputs": "containers/free_glyphs/glyph_icons 取自改造前（HEAD 844d9a02）ys-screen.analyze(containers_only=True, use_cache=False) 的直出；检测通道未改，故输入有效",
+  "expectation": "expected_uncertainty = 改造前同一帧的 uncertainty（逐条，含 hint）；改造后必须逐条不变",
+  "text_n": "OCR 文本块 88 条（ys-screen._ocr_text 实测）",
+  "regen": "python3 tools/ys-editor/tests/uncertainty.selftest.py --regen 只刷新输入；期望值需 --bless 才改"
+ },
+ "W": 2560,
+ "H": 1440,
+ "text_n": 88,
+ "containers": [
+  {
+   "id": "c0",
+   "parent": null,
+   "bbox": [
+    38,
+    24,
+    2524,
+    1360
+   ],
+   "kind": "panel",
+   "skin": {
+    "lab": [
+     255.0,
+     128.0,
+     128.0
+    ],
+    "fill": 0.76,
+    "rect": 0.77
+   },
+   "text": [
+    "0 D1 api",
+    "Ωyjh051108/fengcha-2.0:风× +",
+    "Ca",
+    "V",
+    "×",
+    "□",
+    "←",
+    "C",
+    "http://127.0.0.1:3080",
+    "文A",
+    "150%",
+    "4",
+    "0",
+    "0",
+    "三",
+    "☆",
+    "修复fcitx在KDE上无法快...",
+    "、智能体团队",
+    "6记忆河流+长上下文+技能推荐",
+    "节律",
+    "预设组合器",
+    "V",
+    "deepseek",
+    "HARNESS",
+    "对话",
+    "轨迹",
+    "Ω",
+    "消功关测网争",
+    "\\共有年忧)",
+    "素材快收",
+    "×",
+    "选择要抓的窗口（双击= 抓一张）",
+    "1. 按住右 Alt 说一句话——识别应该能稳定出字了",
+    "$",
+    "[0] 屏幕",
+    "2560x1440物理屏幕（全屏）",
+    "[0] plasmashell",
+    "1707x960(无题)",
+    "2. 听一下现在游戏的声音—音质降为通话级(HFP MSBC，16k单声道)，判断能不能接受",
+    "[1] winpause",
+    "980x568 窗口暂停器",
+    "[2] blueman-manager",
+    "539x378(最小化)蓝牙设",
+    "[3] systemsettings",
+    "1707x914(最小化)快速设置",
+    "结果决定下一步：",
+    "[4] clash-verge",
+    "1707x914(最小化) Clash Verg",
+    "[5] python3",
+    "1320x748 sywatch — 窗口与内",
+    "[6] kitty",
+    "1668x898 nvtop",
+    "•识别 OK+音质能接受 → 我把这个锁定做成开机持久化(不然重连/重启后会被自动切回 A2DP 又",
+    "[7] firefox",
+    "1663x889向AGI进军从插件开始",
+    "坏），收工",
+    "工作",
+    "[8] python3",
+    "1320x748(最小化) sywatch —",
+    "[9] plasmashell",
+    "1707x62(无题)",
+    "•识别 OK+音质不能接受 →聊替代方案（比如加一个便宜的 USB 麦克风做物理隔离：游戏声留耳机",
+    "配置 D1 提供商思考程度",
+    "3天",
+    "A2DP 高音质、语音走 USB 麦零串音零切换)",
+    "定位 deepseek harness 项目... 4天",
+    "识别还是空→我继续往下挖 VAD/ASR 层（但麦的信号现在确实是活的)",
+    "修复fcitx在KDE上无法快捷... 5分钟",
+    "凸",
+    "用量 1.2M tok 22:14",
+    "修复 dsh 哨兵异常告警",
+    "4天",
+    "展开其余 28 个会话",
+    "发消息或创建任务，/调用指令，@文件或对话",
+    "genshin-ts",
+    "…正在录音..",
+    "+",
+    "① 完全权限",
+    "GLM-5.3 Max",
+    "透雨",
+    "章",
+    "7轮 80 步·61 tok/s",
+    "9.5M tok·缓存命中 93%",
+    "16%"
+   ],
+   "glyphs": [
+    {
+     "bbox": [
+      1542,
+      1304,
+      1568,
+      1334
+     ],
+     "role": "icon",
+     "fill": 0.87,
+     "contrast": 117.0
+    },
+    {
+     "bbox": [
+      128,
+      1254,
+      182,
+      1308
+     ],
+     "role": "icon",
+     "fill": 0.8,
+     "contrast": 251.0
+    },
+    {
+     "bbox": [
+      50,
+      268,
+      74,
+      294
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 171.0
+    },
+    {
+     "bbox": [
+      1252,
+      986,
+      1268,
+      1018
+     ],
+     "role": "icon",
+     "fill": 0.79,
+     "contrast": 128.0
+    },
+    {
+     "bbox": [
+      144,
+      526,
+      174,
+      556
+     ],
+     "role": "icon",
+     "fill": 0.78,
+     "contrast": 222.0
+    },
+    {
+     "bbox": [
+      52,
+      218,
+      74,
+      238
+     ],
+     "role": "icon",
+     "fill": 0.75,
+     "contrast": 179.0
+    },
+    {
+     "bbox": [
+      444,
+      104,
+      464,
+      128
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 245.0
+    },
+    {
+     "bbox": [
+      128,
+      206,
+      182,
+      246
+     ],
+     "role": "icon",
+     "fill": 0.73,
+     "contrast": 254.0
+    },
+    {
+     "bbox": [
+      642,
+      210,
+      674,
+      242
+     ],
+     "role": "icon",
+     "fill": 0.58,
+     "contrast": 133.0
+    },
+    {
+     "bbox": [
+      2454,
+      186,
+      2484,
+      216
+     ],
+     "role": "icon",
+     "fill": 0.57,
+     "contrast": 142.0
+    },
+    {
+     "bbox": [
+      2370,
+      102,
+      2392,
+      126
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 177.0
+    },
+    {
+     "bbox": [
+      2266,
+      192,
+      2286,
+      212
+     ],
+     "role": "icon",
+     "fill": 0.55,
+     "contrast": 247.0
+    },
+    {
+     "bbox": [
+      2198,
+      1218,
+      2230,
+      1252
+     ],
+     "role": "icon",
+     "fill": 0.48,
+     "contrast": 252.0
+    },
+    {
+     "bbox": [
+      32,
+      18,
+      62,
+      50
+     ],
+     "role": "icon",
+     "fill": 0.45,
+     "contrast": 241.0
+    },
+    {
+     "bbox": [
+      910,
+      988,
+      940,
+      1018
+     ],
+     "role": "icon",
+     "fill": 0.42,
+     "contrast": 113.0
+    },
+    {
+     "bbox": [
+      2296,
+      1216,
+      2324,
+      1246
+     ],
+     "role": "icon",
+     "fill": 0.4,
+     "contrast": 77.0
+    },
+    {
+     "bbox": [
+      1072,
+      988,
+      1100,
+      1016
+     ],
+     "role": "icon",
+     "fill": 0.37,
+     "contrast": 121.0
+    },
+    {
+     "bbox": [
+      164,
+      106,
+      184,
+      124
+     ],
+     "role": "icon",
+     "fill": 0.33,
+     "contrast": 68.0
+    },
+    {
+     "bbox": [
+      2272,
+      1194,
+      2348,
+      1268
+     ],
+     "role": "icon",
+     "fill": 0.32,
+     "contrast": 85.0
+    },
+    {
+     "bbox": [
+      1150,
+      986,
+      1180,
+      1018
+     ],
+     "role": "icon",
+     "fill": 0.3,
+     "contrast": 117.0
+    }
+   ],
+   "badges": [],
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": [
+     "skin_siblings:0",
+     "text_in:84",
+     "hover:none(未采集按下/hover 态 ⇒ 不敢判 yes)"
+    ]
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.65,
+   "evidence": {
+    "rule": "flat+rect: E<6, 闭5x5, 8-连通, rect>=0.55, (0 个同皮肤色兄弟 ΔE<=3 / 内含界面文本 78)",
+    "area_px": 2570572,
+    "area_frac": 0.901,
+    "aspect": 1.86,
+    "grid": "none",
+    "skin_siblings": 0,
+    "text_in": 84,
+    "text_ui": 78,
+    "skin_lab": [
+     255.0,
+     128.0,
+     128.0
+    ],
+    "flat_fill": 0.76,
+    "rect": 0.77
+   }
+  }
+ ],
+ "free_glyphs": [
+  {
+   "bbox": [
+    1248,
+    1384,
+    1288,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.99,
+   "contrast": 194.0
+  },
+  {
+   "bbox": [
+    2018,
+    1392,
+    2044,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.99,
+   "contrast": 189.0
+  },
+  {
+   "bbox": [
+    922,
+    1386,
+    966,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.95,
+   "contrast": 186.0
+  },
+  {
+   "bbox": [
+    1976,
+    1392,
+    1998,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.94,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    760,
+    1376,
+    804,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.88,
+   "contrast": 225.0
+  },
+  {
+   "bbox": [
+    682,
+    1384,
+    720,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 219.0
+  },
+  {
+   "bbox": [
+    1010,
+    1386,
+    1040,
+    1424
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 199.0
+  },
+  {
+   "bbox": [
+    1880,
+    1388,
+    1914,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 257.0
+  },
+  {
+   "bbox": [
+    2292,
+    1390,
+    2318,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 83.0
+  },
+  {
+   "bbox": [
+    1162,
+    1380,
+    1212,
+    1430
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 222.0
+  },
+  {
+   "bbox": [
+    2154,
+    1392,
+    2180,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    846,
+    1382,
+    880,
+    1428
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 233.0
+  },
+  {
+   "bbox": [
+    2108,
+    1392,
+    2134,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 216.0
+  },
+  {
+   "bbox": [
+    1838,
+    1392,
+    1864,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.69,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    1926,
+    1390,
+    1958,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 362.0
+  },
+  {
+   "bbox": [
+    2244,
+    1392,
+    2270,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    54,
+    1388,
+    70,
+    1410
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    604,
+    1396,
+    632,
+    1414
+   ],
+   "role": "icon",
+   "fill": 0.61,
+   "contrast": 203.0
+  },
+  {
+   "bbox": [
+    568,
+    1376,
+    584,
+    1434
+   ],
+   "role": "icon",
+   "fill": 0.53,
+   "contrast": 77.0
+  },
+  {
+   "bbox": [
+    1334,
+    1394,
+    1368,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 188.0
+  },
+  {
+   "bbox": [
+    2196,
+    1394,
+    2226,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 164.0
+  },
+  {
+   "bbox": [
+    2500,
+    1392,
+    2526,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 177.0
+  },
+  {
+   "bbox": [
+    2060,
+    1392,
+    2094,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 224.0
+  },
+  {
+   "bbox": [
+    436,
+    1352,
+    562,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 263.0
+  }
+ ],
+ "glyph_icons": [
+  {
+   "id": "g0",
+   "kind": "glyph_icon",
+   "bbox": [
+    1248,
+    1384,
+    1288,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.99,
+   "contrast": 194.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g1",
+   "kind": "glyph_icon",
+   "bbox": [
+    2018,
+    1392,
+    2044,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.99,
+   "contrast": 189.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g2",
+   "kind": "glyph_icon",
+   "bbox": [
+    922,
+    1386,
+    966,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.95,
+   "contrast": 186.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g3",
+   "kind": "glyph_icon",
+   "bbox": [
+    1976,
+    1392,
+    1998,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.94,
+   "contrast": 224.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g4",
+   "kind": "glyph_icon",
+   "bbox": [
+    760,
+    1376,
+    804,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.88,
+   "contrast": 225.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g5",
+   "kind": "glyph_icon",
+   "bbox": [
+    682,
+    1384,
+    720,
+    1426
+   ],
+   "role": "icon",
+   "fill": 0.86,
+   "contrast": 219.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g6",
+   "kind": "glyph_icon",
+   "bbox": [
+    1010,
+    1386,
+    1040,
+    1424
+   ],
+   "role": "icon",
+   "fill": 0.81,
+   "contrast": 199.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g7",
+   "kind": "glyph_icon",
+   "bbox": [
+    1880,
+    1388,
+    1914,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 257.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g8",
+   "kind": "glyph_icon",
+   "bbox": [
+    2292,
+    1390,
+    2318,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.8,
+   "contrast": 83.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g9",
+   "kind": "glyph_icon",
+   "bbox": [
+    1162,
+    1380,
+    1212,
+    1430
+   ],
+   "role": "icon",
+   "fill": 0.77,
+   "contrast": 222.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g10",
+   "kind": "glyph_icon",
+   "bbox": [
+    2154,
+    1392,
+    2180,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.76,
+   "contrast": 224.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g11",
+   "kind": "glyph_icon",
+   "bbox": [
+    846,
+    1382,
+    880,
+    1428
+   ],
+   "role": "icon",
+   "fill": 0.75,
+   "contrast": 233.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g12",
+   "kind": "glyph_icon",
+   "bbox": [
+    2108,
+    1392,
+    2134,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.73,
+   "contrast": 216.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g13",
+   "kind": "glyph_icon",
+   "bbox": [
+    1838,
+    1392,
+    1864,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.69,
+   "contrast": 224.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g14",
+   "kind": "glyph_icon",
+   "bbox": [
+    1926,
+    1390,
+    1958,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 362.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g15",
+   "kind": "glyph_icon",
+   "bbox": [
+    2244,
+    1392,
+    2270,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.64,
+   "contrast": 224.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g16",
+   "kind": "glyph_icon",
+   "bbox": [
+    1334,
+    1394,
+    1368,
+    1422
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 188.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g17",
+   "kind": "glyph_icon",
+   "bbox": [
+    2196,
+    1394,
+    2226,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 164.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g18",
+   "kind": "glyph_icon",
+   "bbox": [
+    2500,
+    1392,
+    2526,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.52,
+   "contrast": 177.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g19",
+   "kind": "glyph_icon",
+   "bbox": [
+    2060,
+    1392,
+    2094,
+    1418
+   ],
+   "role": "icon",
+   "fill": 0.42,
+   "contrast": 224.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  },
+  {
+   "id": "g20",
+   "kind": "glyph_icon",
+   "bbox": [
+    436,
+    1352,
+    562,
+    1440
+   ],
+   "role": "icon",
+   "fill": 0.26,
+   "contrast": 263.0,
+   "scene_tier": "hud",
+   "min_side": 20,
+   "evidence": {
+    "promoted_from": "free_glyphs"
+   }
+  }
+ ],
+ "dets": null,
+ "expected_uncertainty": [],
+ "expected": {
+  "scene": "ui",
+  "applicable": [
+   "possible_miss",
+   "ambiguous_kind"
+  ],
+  "waived_rules": [
+   "possible_false_positive"
+  ],
+  "counts": {}
+ }
+}

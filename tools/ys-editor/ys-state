@@ -78,6 +78,26 @@ FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不
 RULE = {"PLAYTEST": "any2", "GAME_ACTIVITY": "any2"}
 # 每态至少需要的判据条数（少于这个数不算「判定」，只算「差一点」⇒ UNKNOWN）
 MIN_CRITERIA = 2
+# ── 开集判据（接口契约 v1，2026-10-21）──────────────────────────
+# 封闭词表的老毛病：只给「最像者」+ confidence，没有强度分布，也没有「都不像」的坐标，
+# 于是陌生画面只要偶然满足某个 any2 态的两条就自信地判出去（实测 Firefox 整屏判 PLAYTEST）。
+# decide() 因此额外返回：
+#   support  = {态: {passed,total,ratio,ok,rule}}  —— 每态匹配强度分布（旧 confidence 只是最高那条）
+#   criteria = [{name,state,passed,value}]         —— 逐条证据（下游可复算 support）
+#   novel/novel_reason/accept_support              —— 显式拒答：no_criteria=一条判据都没有；
+#                                                    low_support=有判据但没有态够门槛
+# ACCEPT_SUPPORT = 匹配强度地板（只作用于 any2 类态：多数票规则本身弱，配地板）。
+# 标定依据 `tests/state-support-calib.py` + `.scratch/gui-openset/calib-20261021.log`（30 帧：
+# screen 4 + perception 3 + regress 23，含 GPU 锚点）：真 PLAYTEST 帧 ratio = 1.00 / 0.80 / 0.80
+# （daemon-world 通道 1.00 / 0.75 / 1.00），Firefox 误判帧 = 0.40（daemon-world 0.50）。
+# 0.6 落在两簇之间且离真帧最差值留 0.15 余量；纯模板通道（无锚点）两簇重叠在 0.67，
+# 所以地板必须与下面的「关键证据类」门配用，单靠它分不开。
+ACCEPT_SUPPORT = 0.6
+# 关键证据类（critical evidence class）：判据名里带该类标记的证据。规则是**通用**的，
+# 与状态名/应用名无关：某态的证据集里只要含锚点类判据，该态成立就必须至少有一条锚点判据
+# 通过——`any2` 只保证「数量够」，这条保证「质量够」。标定里 Firefox 两条锚点 0.211/0.439
+# 全灭（真 PLAYTEST 帧最低 0.814 ⇒ 真帧最差与假帧最好间隔 0.375）。
+CRITICAL_PREFIXES = ("anchor",)
 
 # ── 几何 / 阈值 / 探针坐标（全仓唯一）───────────────────────────
 FRAME_W, FRAME_H = 2560, 1440       # ys-observe / spectacle 全屏帧；游戏窗 0x01400001 = 2561x1440
@@ -663,29 +683,70 @@ def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
 # 判定（唯一一份投票规则）
 # ══════════════════════════════════════════════════════════════════
 def decide(readings):
-    """按态聚合 readings。返回 dict(state, confidence, ambiguous, margin, verdicts)。
+    """按态聚合 readings。返回 dict(state, confidence, ambiguous, margin, verdicts,
+    support, criteria, novel, novel_reason, accept_support)。
 
     - 每态 = 该态前缀下的全部判据；`RULE` 缺省 "all"（全中），PLAYTEST 是 "any2"（2/3 多数）
     - 判据条数 < MIN_CRITERIA 的态不算成立（避免单点误报冒充判定）
     - 子态（PAUSE/SETTLE）压过父态（PLAYTEST）；EDITOR 是兜底态
     - 多个非同层态同时成立 ⇒ AMBIGUOUS（不猜）；全不成立 ⇒ UNKNOWN（不猜）
+
+    开集增量（契约 v1，旧键语义一字不改）：
+      support[态] = {passed,total,ratio,ok,rule} —— 匹配强度分布；旧 confidence 只是其中最高的一条
+      criteria    = [{name,state,passed,value}] —— 逐条证据（按 state 分组可复算出 support）
+      novel / novel_reason / accept_support —— 显式拒答（UNKNOWN 时 novel=True）：
+                    no_criteria=一条态判据都没有 | no_critical_evidence=有锚点类证据但一条都没过
+                    | low_support=有判据但强度不够（含被地板拦下）
+      match       = {candidate,ratio,has_critical,critical_ok,ratio_pass,accept_support,accepted}
+                    —— 两道门的中间量，描述「最该被判出去的那个态」（UNKNOWN 时即被拦下的那个）
+
+    两道门（都是**证据性质**，与状态名/应用名无关）：
+      ① 关键证据类：某态证据里含锚点类判据（`态/anchor …`）时，必须至少一条通过——
+         any2 只保证「数量够」，这条保证「质量够」（标定：真 PLAYTEST 帧锚点最低 0.814，
+         误判的 Firefox 帧两条锚点 0.211/0.439 全灭）。
+      ② 强度地板：仅 any2 类态要求 ratio >= ACCEPT_SUPPORT（0.6，标定表见常量注释）。
+
+    ⚠️ 改判据前必读（两条最容易破坏的性质）：
+      · 门①看的是**证据构成**（这条读数的名字/类别），**不是状态名**——别写成「PLAYTEST 必须锚点过」，
+        那会把判据重新绑回具体态；任何态的证据里出现锚点类，都同样要求至少一条通过。
+      · 门②**只约束 any2 类态**（RULE 里多数票的态）。「all」类态本就要求全中，加地板是死代码，
+        但别顺手把地板扩到所有态——那会改变既有正样本的判定（回归集里 all 类态 ratio 通常已 1.0）。
+      · `candidates` 只表示「同时成立的多个态」（AMBIGUOUS/消歧），**UNKNOWN 下是显式 []**，
+        与「判据层没作答」的 None 是两件事；被拒的那个态在 `match.candidate`（单数）。
     """
     per = {}
     for name, r in readings.items():
         st = name.split("/")[0]
         if st not in STATES or st == "UNKNOWN":
             continue
-        per.setdefault(st, []).append(r)
-    verdicts, support = {}, {}
+        per.setdefault(st, []).append((name, r))
+
+    def _is_critical(name):
+        """关键证据类：判据名 `态/类 名字` 的类标记是否命中 CRITICAL_PREFIXES（与态名无关）。"""
+        kind = name.split("/", 1)[-1].strip().lower()
+        return any(kind.startswith(pre) for pre in CRITICAL_PREFIXES)
+
+    verdicts, support, gates = {}, {}, {}
     for st, items in per.items():
         n = len(items)
-        p = sum(1 for i in items if i["passed"])
+        p = sum(1 for _, i in items if i["passed"])
         rule = RULE.get(st, "all")
         ok = (p >= 2) if rule == "any2" else (p == n)
         if n < MIN_CRITERIA:
             ok = False
+        ratio = (p / n) if n else 0.0
+        # 门①关键证据类：该态证据里含锚点类 ⇒ 必须至少有一条锚点通过（质量够，而非只有数量够）
+        has_crit = any(_is_critical(nm) for nm, _ in items)
+        crit_ok = (not has_crit) or any(i["passed"] for nm, i in items if _is_critical(nm))
+        # 门②强度地板：只作用于 any2 类态（"all" 类本就要求全中，地板恒成立）
+        ratio_pass = (rule != "any2") or (ratio >= ACCEPT_SUPPORT - 1e-9)
+        pre_ok = bool(ok and n >= MIN_CRITERIA)      # 过门前：这条证据集本来该不该被判出去
+        if not crit_ok or not ratio_pass:
+            ok = False
         verdicts[st] = bool(ok and n >= MIN_CRITERIA)
-        support[st] = (p / n) if n else 0.0
+        support[st] = ratio
+        gates[st] = {"has_critical": has_crit, "critical_ok": crit_ok,
+                     "ratio_pass": ratio_pass, "ok": verdicts[st], "pre_ok": pre_ok}
     cands = [st for st, ok in verdicts.items() if ok]
     for sub, sup in SUBSTATE_OF.items():
         if sub in cands and sup in cands:
@@ -693,11 +754,65 @@ def decide(readings):
     if FALLBACK_STATE in cands and len(cands) > 1:
         cands.remove(FALLBACK_STATE)
     ranked = sorted(per, key=lambda st: -support[st])
+    # ── 开集增量（接口契约 v1）────────────────────────────────────
+    # 只把**已经算出来**的 p/n 显式暴露 + 逐条证据，投票逻辑与旧键一个都不动
+    # （P0 验收：state/confidence/margin 逐帧与改造前完全一致）。
+    crit = []
+    for name, r in readings.items():
+        st_ = name.split("/")[0]
+        if st_ not in STATES or st_ == "UNKNOWN":
+            continue                      # 与上面聚合口径一致：不参与投票的不进证据台账
+        val = r.get("value")
+        crit.append({"name": name, "state": st_, "passed": bool(r.get("passed")),
+                     "value": val if isinstance(val, str) else str(val)})
+    sblock = {}
+    for st_, items in per.items():
+        n_ = len(items)
+        p_ = sum(1 for _, i in items if i["passed"])
+        sblock[st_] = {"passed": p_, "total": n_, "ratio": (p_ / n_) if n_ else 0.0,
+                       "ok": bool(verdicts[st_]), "rule": RULE.get(st_, "all")}
+
+    def _match(st):
+        """门禁中间量：描述「最该被判出去的那个态」过了哪几道门（供门禁/复盘逐条复核）。"""
+        if st is None:
+            return {"candidate": None, "ratio": 0.0, "has_critical": False,
+                    "critical_ok": True, "ratio_pass": True,
+                    "accept_support": ACCEPT_SUPPORT, "accepted": False}
+        g = gates.get(st, {})
+        return {"candidate": st, "ratio": round(support.get(st, 0.0), 3),
+                "has_critical": bool(g.get("has_critical", False)),
+                "critical_ok": bool(g.get("critical_ok", True)),
+                "ratio_pass": bool(g.get("ratio_pass", True)),
+                "accept_support": ACCEPT_SUPPORT,
+                "accepted": bool(g.get("ok", False))}
+
+    def _out(res, mstate=None):
+        """给旧结果补开集字段；旧键（含条件出现的 candidates/resolved_by）形状不变。"""
+        res["support"] = sblock
+        res["criteria"] = crit
+        res["accept_support"] = ACCEPT_SUPPORT
+        res["match"] = _match(mstate)
+        if res["state"] == "UNKNOWN":
+            res["novel"] = True
+            g = gates.get(mstate, {}) if mstate is not None else {}
+            if not crit:
+                why = "no_criteria"
+            elif g.get("has_critical") and not g.get("critical_ok", True):
+                why = "no_critical_evidence"
+            else:
+                why = "low_support"
+            res["novel_reason"] = why
+        else:
+            res["novel"] = False
+            res["novel_reason"] = None
+        return res
+
     if len(cands) == 1:
         st = cands[0]
         rest = [support[s] for s in ranked if s != st]
-        return {"state": st, "confidence": round(support[st], 3), "ambiguous": False,
-                "margin": round(support[st] - (max(rest) if rest else 0.0), 3), "verdicts": verdicts}
+        return _out({"state": st, "confidence": round(support[st], 3), "ambiguous": False,
+                     "margin": round(support[st] - (max(rest) if rest else 0.0), 3),
+                     "verdicts": verdicts}, st)
     if len(cands) > 1:
         # 具体度消歧：只在**唯一最高**时才收敛，仍并列就照旧 AMBIGUOUS（不猜）。
         _rank = {st: PRECEDENCE.get(st, 0) for st in cands}
@@ -706,15 +821,22 @@ def decide(readings):
         if _top > 0 and len(_best) == 1:
             st = _best[0]
             rest = [support[s_] for s_ in ranked if s_ != st]
-            return {"state": st, "confidence": round(support[st], 3), "ambiguous": False,
-                    "margin": round(support[st] - (max(rest) if rest else 0.0), 3),
-                    "verdicts": verdicts, "resolved_by": "precedence",
-                    "candidates": sorted(cands)}
-        return {"state": "AMBIGUOUS", "confidence": 0.0, "ambiguous": True,
-                "margin": 0.0, "verdicts": verdicts, "candidates": sorted(cands)}
+            return _out({"state": st, "confidence": round(support[st], 3), "ambiguous": False,
+                         "margin": round(support[st] - (max(rest) if rest else 0.0), 3),
+                         "verdicts": verdicts, "resolved_by": "precedence",
+                         "candidates": sorted(cands)}, st)
+        return _out({"state": "AMBIGUOUS", "confidence": 0.0, "ambiguous": True,
+                     "margin": 0.0, "verdicts": verdicts, "candidates": sorted(cands)},
+                    ranked[0] if ranked else None)
     best = support[ranked[0]] if ranked else 0.0
-    return {"state": "UNKNOWN", "confidence": round(best, 3), "ambiguous": False,
-            "margin": round(-best, 3), "verdicts": verdicts}
+    # match/novel_reason 指向**被门拦下的那个态**（过门前本来会判出去、ratio 最高的那个），
+    # 而不是「ratio 最高但本来就判不出去」的态——否则理由会挂在不相干的证据集上。
+    near = [st for st in ranked if gates.get(st, {}).get("pre_ok")]
+    # candidates 只表示「同时成立的多个态」（AMBIGUOUS/消歧场景）；UNKNOWN 下给**显式空列表**——
+    # 「没有同时成立的态」本身是信息，必须与「判据层没作答」(None) 可区分。
+    return _out({"state": "UNKNOWN", "confidence": round(best, 3), "ambiguous": False,
+                 "margin": round(-best, 3), "verdicts": verdicts, "candidates": []},
+                near[0] if near else None)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -881,6 +1003,17 @@ def run_full(frame=None):
     if geom_ok(pix.w, pix.h):
         readings.update(pixel_readings(pix))
         readings.update(template_readings(pix))
+        # 锚点类判据（2026-10-21 P1）：开集的「关键证据」门要靠它，否则 CLI full 与 daemon-world
+        # 两个入口各有一套「开集强度」（同一帧 full 说 0.67、daemon 说 0.50）。走常驻服务算分，
+        # 本机实测 +150~300ms——full 不是热路径，代价可接受；daemon 不可用时降级为无锚点
+        # （此时关键证据门自动跳过，行为退回 P0），并照铁律往 stderr 出声。
+        _t_anc = time.time()
+        try:
+            readings.update(anchor_readings(load_profile(PROFILE_DEFAULT),
+                                            frame_path=frame))
+        except Exception as e:                        # noqa: BLE001 — 缺锚点不该让 full 整条挂掉
+            sys.stderr.write(f"[ys-state] ⚠ 锚点判据缺失（{type(e).__name__}: {e}），"
+                             f"本次退回 P0 口径（无关键证据门）；耗时 {int((time.time()-_t_anc)*1000)}ms\n")
     else:
         # 缩放帧/半截帧：像素坐标不可信 —— 直接拒绝，绝不拿错位像素当判据
         readings["GEOM/frame 尺寸 2560x1440"] = {

@@ -1916,6 +1916,11 @@ def _world_state(arr, It, W, H, prof, boxes, is_live=False):
     if is_live:
         _apply_world_uid(res, arr)
     res["readings"] = res.get("readings") or readings
+    # P0 透传（2026-10-21，判据只有一份：ys-state 的 decide()）：判据与支持率必须能被下游复算，
+    # 不许只剩一个计数（改造前 daemon 分支的 state.evidence 只剩 readings_n，证据全丢）。
+    # 缺键给 None 而不是不出现：让"没有这个读数"与"字段忘了带"可区分（旧版 ys-state 没有这些键）。
+    for _k in ("support", "criteria", "novel", "novel_reason", "accept_support"):
+        res.setdefault(_k, None)
     return res, t_judge
 
 
@@ -1929,7 +1934,7 @@ def _world_containers(arr, sha, boxes, W, H):
         res = S.containers_cached(None, half, 0.5, W, H, text,
                                   use_cache=True, frame_sha=sha)
         _KEYS = ("containers", "free_text", "free_glyphs", "uncertainty",
-                 "degraded", "error")
+                 "uncertainty_meta", "degraded", "error")
         _extra = set(res) - set(_KEYS)          # 新增字段没加进白名单 ⇒ 大声报，不静默丢
         res = {k: res.get(k) for k in _KEYS}
         if _extra:
@@ -1938,6 +1943,7 @@ def _world_containers(arr, sha, boxes, W, H):
         return res
     except Exception as e:                                  # noqa: BLE001 —— fail-closed 成 degraded
         return {"containers": [], "free_text": [], "free_glyphs": [],
+                "uncertainty": [], "uncertainty_meta": None,
                 "degraded": True, "error": f"{type(e).__name__}: {e}",
                 "timing_ms": round((time.time() - t0) * 1000, 1)}
 
@@ -2326,6 +2332,21 @@ def _world(req):
     if objects is not None and (objects.get("degraded") or objects.get("error")):
         degraded.append({"code": "OBJECTS_DEGRADED",
                          "detail": str(objects.get("error") or "")[:300]})
+    # ── uncertainty 覆盖声明（2026-10-21，用户令「不适用必须与没有可区分」）──────────────
+    # 本层 uncertainty 由 **CV 容器/图形** 算出；而世界 HUD/整窗应用帧的对象实际由**检测框**充当
+    # （CV 只给 0~1 个容器）。两套来源不重叠时，那批对象**没有任何不确定性读数**——不说出来，
+    # 下游会把 "uncertainty=0" 读成 "这批对象都很有把握"。判据唯一实现 = ys-screen.uncertainty_coverage()。
+    try:
+        _um = objects.get("uncertainty_meta") if isinstance(objects, dict) else None
+        if isinstance(_um, dict):
+            _cov = _ys_screen().uncertainty_coverage(_um, objects.get("containers") or [],
+                                                     det_objs)
+            _um["coverage"] = _cov
+            if _cov.get("code"):
+                degraded.append({"code": _cov["code"], "detail": _cov["detail"]})
+    except Exception as _e:                                  # noqa: BLE001 —— 声明失败不影响主输出
+        if isinstance(objects, dict) and isinstance(objects.get("uncertainty_meta"), dict):
+            objects["uncertainty_meta"]["coverage_error"] = "%s: %s" % (type(_e).__name__, _e)
     out = {
         "schema": WORLD_SCHEMA,
         "state": state,
