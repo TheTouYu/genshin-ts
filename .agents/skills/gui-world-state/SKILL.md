@@ -70,6 +70,7 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | `structure` | 层级/遮挡 | — |
 | `settled.same_as_prev` | 与上一帧是否在**同一布局**上 | **动作前必须 true**。判据是**容差**不是相等：数量一致 + 中心位移 ≤6px + 文本相似度 ≥0.80（唯一实现在 `tools/ys-editor/ys_settle.py`）。不稳时看 `reason`（`shift`/`count`/`unmatched`/`no_prev`）与 `max_shift_px`；首帧必 false，静止画面 **2 帧内**到 true |
 | `frame_id` | `sha256:...` | 证据引用用这个，不要用截图 |
+| **`advice[]`** | 模块主动给的**策略建议**（如 `SCANNING_LINEARLY`） | **先读它再决定策略**：它看出你在对有序列表做线性扫时，会给出二分/跳转的估算与命令 |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
 
 ## 2.5 开跑前必做：先读当前状态（2026-10-21 实测打回）
