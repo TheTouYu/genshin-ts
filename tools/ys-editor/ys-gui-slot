@@ -3,6 +3,7 @@
 # （2026-10-16 用户令：约定不能只写在技能里，要做成设计，自动保证「用完就还」）
 #
 # 用法: ys-gui-slot.sh <win> <max-seconds> <command...>
+#       ys-gui-slot.sh --plan [win]   # 只算不干：打印一行 JSON（离线判据，见 §0）
 #   <win> 窗口 id：wmctrl 十六进制(0x01400001) 或 xdotool 十进制(20971521) 均可
 #   环境: YS_GUI_SLOT_FALLBACK_CLASS = 缺省回落窗口的 WM_CLASS 子串（缺省 "firefox"，即 DSH 页面）
 #
@@ -32,13 +33,9 @@ export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 FALLBACK_CLASS="${YS_GUI_SLOT_FALLBACK_CLASS:-firefox}"
 LEASE_BIN="$YS_HOME/ys-lease"
 
-if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
-WIN_RAW="$1"; MAX="$2"; shift 2
-case "$WIN_RAW" in
-  0x*|0X*) WIN_HEX="$WIN_RAW"; WIN_DEC=$(( WIN_RAW )) ;;
-  *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
-esac
-
+# ── 只读小工具 ───────────────────────────────────────────────────────────────
+# 定义位置在用法校验与 `--plan` 分发**之前**：`--plan` 只有 1~2 个参数，必须先于
+# `[ $# -lt 3 ]` 的用法检查分发出去（plan 不是执行，不适用那条检查）。
 name_of() { xdotool getwindowname "$1" 2>/dev/null || true; }
 pid_of()  { xdotool getwindowpid "$1" 2>/dev/null || echo 0; }
 geom_of() {
@@ -54,6 +51,128 @@ try: d=json.load(sys.stdin)
 except Exception: print(''); raise SystemExit
 print($2)" 2>/dev/null || true
 }
+
+# ── 0) 租期判据（唯一源）+ `--plan`：只算不干 ────────────────────────────────
+# 为什么有 --plan（账本 F-20261021-53 的修法是租期模型：有有效凭据时占用结束不归还）：
+#   这条修复的唯一回归判据原本只有 screen-grant.selftest.sh 的 T6，而 T6 要 YS_ALLOW_SCREEN_TEST=1
+#   且会真的抬窗 ⇒ 修复没有**离线**判据，账本只能挂 unproven（prevented 但判不了）。
+#   --plan 把「这一次会怎么判」变成一行可机检的 JSON：只读 ys-screen-grant status /
+#   ys-lease kwin-state / resolve-window 与 YS_SLOT_TEST，**不抬窗、不取焦点、不注入、
+#   不响铃（不调 ys-bell）、不 sleep**，也绝不调 kwin-raise / restore。
+#   退出码恒 0：plan 不是执行——契约不通过也只把 contract_ok=false 如实报出来，
+#   绝不复用拒绝路径的 6、也不复用解析失败的 3（那些行为一字不动）。
+#
+# 凭据状态缓存：--plan 既要「观测」（lease_active / lease_left_s）又要「判据」（hold），
+# restore() 也要判一次；status 每次 ~0.9s（内含用 ys-wins 取 KWin 活动窗），同一进程只读一次。
+GRANT_JSON=""; GRANT_RC=""
+grant_status() {   # 只读 ys-screen-grant status（结果缓存；rc 原样返回）
+  if [ -z "$GRANT_RC" ]; then
+    GRANT_JSON=$("$YS_HOME/ys-screen-grant" status 2>/dev/null); GRANT_RC=$?
+  fi
+  return "$GRANT_RC"
+}
+# 租期判据**只此一处**（restore() 与 --plan 共用）：有有效凭据且非测试模式 ⇒ 占用结束不归还。
+# 「关掉租期模型」的注入用例只改这个函数体 ⇒ 真实归还行为与 plan 的 hold 同时翻转；
+# 若 plan 自己另写一份判据，注入后 T13 仍会绿，那就成了空转断言（本仓库踩过：断言绿但没在判）。
+lease_hold_active() {
+  [ "${YS_SLOT_TEST:-0}" != "1" ] || return 1
+  grant_status
+}
+
+plan_mode() {   # $1 = 窗口 id（可省略；沿用 tests/ 里既有的默认 0x1600001）
+  local win_raw="${1:-${YS_WIN_TEST:-0x1600001}}" win_dec win_hex
+  case "$win_raw" in
+    0x*|0X*) win_hex="$win_raw"; win_dec=$(printf '%d' "$win_raw" 2>/dev/null || echo 0) ;;
+    ''|*[!0-9]*) win_dec=0; win_hex="" ;;          # 非法 id：不猜，按「解析不到目标」处理
+    *) win_dec="$win_raw"; win_hex=$(printf '0x%08x' "$win_raw" 2>/dev/null || true) ;;
+  esac
+
+  # ① 契约（与下面 exit 6 同一判据）：测试模式放行，否则必须有有效凭据
+  local test_mode=0; [ "${YS_SLOT_TEST:-0}" = "1" ] && test_mode=1
+  local grant_ok=0; grant_status && grant_ok=1
+  local contract=0
+  if [ "$test_mode" = "1" ] || [ "$grant_ok" = "1" ]; then contract=1; fi
+  local left="null"
+  [ "$grant_ok" = "1" ] && left=$(printf '%s' "$GRANT_JSON" | python3 -c \
+    "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
+  [ -n "$left" ] || left="null"
+
+  # ② 租期分支：hold 只来自 lease_hold_active（唯一源，与 restore() 同一判据）
+  local hold=0; lease_hold_active && hold=1
+
+  # ③ 焦点归属（只读；与执行路径同一套 kwin-state / resolve-window，幽灵 id 免疫）
+  local cur_id="" cur_desc="" target_id="" target_desc="" target=""
+  local state0=""; state0=$("$LEASE_BIN" kwin-state 2>/dev/null) || state0=""
+  if [ -n "$state0" ]; then
+    cur_id=$(json_get "$state0" "(d.get('active') or {}).get('internalId','')")
+    cur_desc=$(json_get "$state0" "(((d.get('active') or {}).get('class') or '?') + ' / ' + ((d.get('active') or {}).get('caption') or '(无题)'))[:60]")
+  fi
+  if [ -n "$win_hex" ]; then
+    target=$( "$LEASE_BIN" resolve-window --id "$win_raw" --name "$(name_of "$win_dec")" \
+               --pid "$(pid_of "$win_dec")" --geom "$(geom_of "$win_dec")" 2>/dev/null) || target=""
+    target_id=$(json_get "$target" "(d.get('target') or {}).get('internalId','') if d.get('ok') else ''")
+    target_desc=$(json_get "$target" "((d.get('target') or {}).get('class') or '?') + ' / ' + ((d.get('target') or {}).get('caption') or '(无题)') if d.get('ok') else ''")
+  fi
+  local focused=0 target_ok=0
+  [ -n "$target_id" ] && target_ok=1
+  [ "$target_ok" = "1" ] && [ "$cur_id" = "$target_id" ] && focused=1
+
+  # ④ 决策：hold（租期模型）优先；契约不过 ⇒ 什么都不做（不碰窗口，也就没有可归还的东西）
+  local would=0 mode="none"
+  if [ "$contract" = "1" ] && [ "$hold" != "1" ]; then
+    would=1
+    if [ "$focused" = "1" ]; then mode="restore_already_focused"
+    else mode="restore_prev"; fi
+  fi
+  local reason
+  if [ "$contract" != "1" ]; then
+    reason="NO_GRANT：没有有效屏幕凭据 ⇒ 会拒绝执行（rc=6），不碰任何窗口"
+  elif [ "$hold" = "1" ]; then
+    reason="LEASE_HOLD：租期内不归还（凭据剩 ${left}s），到期或 revoke 时统一交还"
+  elif [ "$mode" = "restore_already_focused" ]; then
+    reason="RESTORE_ALREADY_FOCUSED：目标本就在焦点 ⇒ 结束后切回默认屏 ${FALLBACK_CLASS}"
+  else
+    reason="RESTORE_PREV：结束后按 KWin 回执归还占用前的窗口"
+  fi
+
+  python3 - "$win_hex" "$contract" "$focused" "$grant_ok" "$left" "$hold" "$would" \
+           "$reason" "$mode" "$test_mode" "$target_ok" "$cur_desc" "$target_desc" \
+           "$FALLBACK_CLASS" <<'PY'
+import json, sys
+(a_win, a_contract, a_focused, a_lease, a_left, a_hold, a_would,
+ a_reason, a_mode, a_test, a_target_ok, a_cur, a_target, a_fallback) = sys.argv[1:15]
+def b(x):
+    return x == "1"
+print(json.dumps({
+    "plan": True,
+    "contract_ok": b(a_contract),
+    "already_focused": b(a_focused),
+    "lease_active": b(a_lease),
+    "lease_left_s": None if a_left == "null" else int(a_left),
+    "hold": b(a_hold),
+    "would_restore": b(a_would),
+    "reason": a_reason,
+    "restore_mode": a_mode,
+    "test_mode": b(a_test),
+    "window": a_win,
+    "target_ok": b(a_target_ok),
+    "cur": a_cur,
+    "target": a_target,
+    "fallback": a_fallback,
+}, ensure_ascii=False))
+PY
+}
+
+# `--plan` 分发：必须在这里——早于用法校验、早于 ys-bell / 契约拒绝 / kwin-raise / restore，
+# 走这条分支就保证 plan 碰不到任何会动屏幕的路径。
+if [ "${1:-}" = "--plan" ]; then plan_mode "${2:-}"; exit 0; fi
+
+if [ $# -lt 3 ]; then echo "用法: $0 <win> <max-seconds> <command...>" >&2; exit 2; fi
+WIN_RAW="$1"; MAX="$2"; shift 2
+case "$WIN_RAW" in
+  0x*|0X*) WIN_HEX="$WIN_RAW"; WIN_DEC=$(( WIN_RAW )) ;;
+  *)       WIN_DEC="$WIN_RAW"; WIN_HEX=$(printf '0x%08x' "$WIN_RAW") ;;
+esac
 
 # ── 1) KWin 权威状态：记录 prev + 解析目标（幽灵 id 免疫） ────────────────────
 STATE0=$("$LEASE_BIN" kwin-state 2>/dev/null) || {
@@ -110,8 +229,9 @@ restore() {
   # 2026-10-21（用户批准的设计改）：**一次授权 = 一段租期**。
   # 旧设计每次动作后都归还 ⇒ 下一次 look --live 必然 NOT_ATOP（账本 F-20261021-53），
   # 多步任务每步都要重新申请。租期内不归还，只在凭据到期/revoke 时统一归还一次。
-  if [ "${YS_SLOT_TEST:-0}" != "1" ] && "$YS_HOME/ys-screen-grant" status >/dev/null 2>&1; then
-    _left=$("$YS_HOME/ys-screen-grant" status 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
+  # 判据走 lease_hold_active（唯一源；`--plan` 判的是同一个函数，注入用例改它 ⇒ T13 必红）。
+  if lease_hold_active; then
+    _left=$(printf '%s' "$GRANT_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
     echo "[ys-gui-slot] 租期内不归还（凭据剩 ${_left}s）——到期或 revoke 时统一交还"
     return
   fi

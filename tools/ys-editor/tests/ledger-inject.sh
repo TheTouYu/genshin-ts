@@ -486,5 +486,62 @@ PYIN
     rm -f /tmp/.hbnoop.$$
     echo "INJECT-PASS handback-noop-neg: 关掉零操作检查 ⇒ attempts!=0 报红（生产 ys-lease 未动）"; exit 0
     ;;
+  # ② 注入「关掉租期模型」→ screen-grant 门禁必须变红（F-20261021-53）
+  # 症状原样复现：租期内照样把画面还回去 ⇒ 紧接着的 look --live 必然 NOT_ATOP。
+  # 锚点必须打在**判据唯一源** lease_hold_active()：--plan 与真实 restore() 共用它，
+  # 所以注入后 plan 的 hold 与真实归还行为同时翻回旧语义（打在 plan 自己那份判据上 = 空转）。
+  lease-model-off)
+    src="tools/ys-editor/ys-gui-slot"
+    tmp="tools/ys-editor/ys-gui-slot.__inject_tmp__"
+    trap 'rm -f "$tmp"' EXIT
+    cp "$src" "$tmp"; chmod +x "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = ('lease_hold_active() {\n'
+       '  [ "${YS_SLOT_TEST:-0}" != "1" ] || return 1\n'
+       '  grant_status\n'
+       '}')
+assert old in s, "注入点没找到（lease_hold_active 函数体变了）"
+new = 'lease_hold_active() {\n  return 1   # INJECT: 关掉租期模型（租期内也归还）\n}'
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYIN
+    if YS_SLOT_BIN="$tmp" bash tools/ys-editor/tests/screen-grant.selftest.sh >/tmp/.leasemodel.$$ 2>&1; then
+      echo "INJECT-FAIL lease-model-off: 关掉租期模型后门禁仍绿（门禁空转）"; rm -f /tmp/.leasemodel.$$; exit 1
+    fi
+    if ! grep -q 'T13' /tmp/.leasemodel.$$; then
+      echo "INJECT-FAIL lease-model-off: 变红但不是 T13（租期模型）那条（判据串了）"
+      grep -E '✗|FAIL' /tmp/.leasemodel.$$ | head -3; rm -f /tmp/.leasemodel.$$; exit 1
+    fi
+    rm -f /tmp/.leasemodel.$$
+    echo "INJECT-PASS lease-model-off: 关掉租期模型 ⇒ T13 报红（生产 ys-gui-slot 未动）"; exit 0
+    ;;
+  # ② 注入「到期也不归还」→ grant-expiry 门禁必须变红（F-20261021-60）
+  # 症状原样复现：凭据过期了，但守护仍然什么都不做 ⇒ 屏幕被永久占着。
+  grant-expiry-neg)
+    src="tools/ys-editor/ys-focus-guard"
+    tmp="tools/ys-editor/ys-focus-guard.__inject_tmp__"
+    trap 'rm -f "$tmp"' EXIT
+    cp "$src" "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = "    if left > 0:\n        return 0\n"
+assert old in s, "注入点没找到（enforce_grant_expiry 的提前返回变了）"
+new = "    if True:  # INJECT: 关掉「未过期才跳过」——过期也不归还\n        return 0\n"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYIN
+    if YS_FOCUS_GUARD_BIN="$tmp" bash tools/ys-editor/tests/grant-expiry.selftest.sh >/tmp/.gexp.$$ 2>&1; then
+      echo "INJECT-FAIL grant-expiry-neg: 关掉到期归还后门禁仍绿（门禁空转）"; rm -f /tmp/.gexp.$$; exit 1
+    fi
+    if ! grep -q 'T1  FAIL' /tmp/.gexp.$$; then
+      echo "INJECT-FAIL grant-expiry-neg: 变红但不是 T1（到期归还）那条（判据串了）"
+      grep FAIL /tmp/.gexp.$$ | head -3; rm -f /tmp/.gexp.$$; exit 1
+    fi
+    rm -f /tmp/.gexp.$$
+    echo "INJECT-PASS grant-expiry-neg: 关掉到期归还 ⇒ T1 报红（生产 ys-focus-guard 未动）"; exit 0
+    ;;
   *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg|no-xbell-neg|cross-desktop-neg|screen-gated-neg|worldsvc-selftest-neg|handback-noop-neg" >&2; exit 2 ;;
 esac

@@ -27,11 +27,15 @@
   ys-focus-guard --daemon     # 后台常驻（setsid）
   ys-focus-guard --check      # 只检查一次（退出码 1 = 有该归还的租约，或归还失败；不做自停）
 
-环境变量（测试/注入用）：
+环境变量（测试/注入用；存在的理由就是让回归**不碰真实屏幕**）：
   YS_LEASE             租约路径
   YS_FOCUS_GUARD_LOG   日志路径
   YS_LEASE_BIN         覆盖 ys-lease 可执行（失败路径注入用假 bin，不碰焦点）
   YS_FOCUS_GUARD_STOP  覆盖自停命令（注入用例用 `touch <file>`，不碰真实服务）
+  YS_SCREEN_GRANT_PATH 屏幕租期凭据路径（缺省 ~/.ys/screen-grant.json）
+  YS_SESSION_PATH      会话文件路径（缺省 ~/.ys/session.json）
+  YS_HAND_BACK_BIN     覆盖"交还屏幕"可执行——过期交还与空闲交还**共用这一处缝**，
+                       测试指假脚本即可验证"到期归还"而完全不碰窗口
 """
 import argparse
 import json
@@ -123,6 +127,7 @@ def lease_key(lease):
 
 
 GRANT = os.environ.get("YS_SCREEN_GRANT_PATH", os.path.expanduser("~/.ys/screen-grant.json"))
+HAND_BACK_BIN = os.environ.get("YS_HAND_BACK_BIN") or os.path.join(HERE, "ys-hand-back")
 
 
 def enforce_grant_expiry(verbose=False):
@@ -142,10 +147,13 @@ def enforce_grant_expiry(verbose=False):
     left = float(rec.get("expires", 0)) - time.time()
     if left > 0:
         return 0
-    # 已过期：交还一次，然后清凭据（幂等）
+    # 已过期：交还一次，然后清凭据（幂等）。
+    # 交还入口必须与 _hand_back_once 共用 HAND_BACK_BIN（模块级定义在函数之后，
+    # 调用时才解析，不影响行为）：原先这里硬编码同目录的 ys-hand-back，
+    # 导致"到期归还"这条机制**没有离线判据**——测试要么真把屏幕切回 firefox，
+    # 要么只能等常驻守护在真机上跑（账本 F-20261021-60 因此长期无回归）。
     try:
-        p = subprocess.run([os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-hand-back")],
-                           capture_output=True, text=True, timeout=45)
+        p = subprocess.run([HAND_BACK_BIN], capture_output=True, text=True, timeout=45)
         log(f"GRANT_EXPIRED hand_back rc={p.returncode} out={(p.stdout or p.stderr).strip()[:160]}")
     except Exception as e:                               # noqa: BLE001
         log(f"GRANT_EXPIRED hand_back EXC {type(e).__name__}: {e}")
@@ -157,7 +165,6 @@ def enforce_grant_expiry(verbose=False):
 
 
 SESSION = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
-HAND_BACK_BIN = os.environ.get("YS_HAND_BACK_BIN") or os.path.join(HERE, "ys-hand-back")
 GAME_MARKS = ("yuanshen", "genshin", "原神")
 
 
