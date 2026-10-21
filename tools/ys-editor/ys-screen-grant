@@ -147,6 +147,51 @@ def _hand_back():
         return {"ok": False, "error": "%s: %s" % (type(e).__name__, e)}
 
 
+def cmd_explain(a):
+    """被拒时给调用方的**完整解释**：错在哪、现在什么状态、下一步做什么。
+
+    用户令（2026-10-21）：「是不是要报错，告诉模型原因，同时告诉模型当前的状态？」
+    旧实现只回一句 NO_GRANT，模型不知道屏幕在谁手上、自己是不是还占着、该问谁。
+    """
+    rec = load()
+    now = time.time()
+    act = _kwin_active()
+    if rec is None:
+        code, reason = "NO_GRANT", "没有任何屏幕占用凭据（你没有向用户申请过）"
+        grant_state = None
+    elif float(rec.get("expires", 0)) <= now:
+        code = "GRANT_EXPIRED"
+        reason = "凭据已过期（到期即失效；常驻守护会自动交还 firefox）"
+        grant_state = {"expired_s": int(now - float(rec["expires"])),
+                       "reason": rec.get("reason"), "user_said": rec.get("user_said")}
+    else:
+        code = "GRANT_VALID"
+        reason = "凭据有效"
+        grant_state = {"expires_in_s": int(float(rec["expires"]) - now),
+                       "reason": rec.get("reason"), "user_said": rec.get("user_said")}
+    held = "yuanshen" in (act.get("class") or "").lower()
+    out = {
+        "ok": False, "error": code, "reason": reason,
+        "blocked_by": getattr(a, "blocked_by", "") or "ys-gui-slot",
+        "state": {
+            "active_window": {"class": act.get("class"), "caption": (act.get("caption") or "")[:60]},
+            "grant": grant_state,
+            "screen_held_by_us": bool(held),
+            "grant_path": PATH,
+        },
+        "next_action": [
+            {"step": 1, "tool": "ask_user_question",
+             "why": "向用户申请占用时长（必须由用户同意，代理不能自授）"},
+            {"step": 2, "tool": "tools/ys-editor/ys-screen-grant",
+             "args": ["grant", "--seconds", "N", "--reason", "<做什么>", "--user-said", "<用户原话>"],
+             "why": "记下用户原话与时长；单次上限 %ds，有效期内禁续期" % MAX_GRANT_S},
+        ],
+        "hint": "屏幕是共用资源：未获授权时不要动窗口；到期后常驻守护会自动交还 firefox。",
+    }
+    print(json.dumps(out, ensure_ascii=False))
+    return 0
+
+
 def cmd_revoke(_a):
     _restore_res = _hand_back()
     try:
@@ -166,6 +211,10 @@ def main():
     g.add_argument("--user-said", default="", help="用户同意的原话（必填；没有=没申请）")
     g.set_defaults(func=cmd_grant)
     sub.add_parser("status").set_defaults(func=cmd_status)
+    e = sub.add_parser("explain", help="被拒时输出：错因 + 当前状态 + 下一步（机器可读）")
+    e.add_argument("--blocked-by", default="")
+    e.add_argument("--target", default="")
+    e.set_defaults(func=cmd_explain)
     sub.add_parser("revoke").set_defaults(func=cmd_revoke)
     a = ap.parse_args()
     if not getattr(a, "func", None):

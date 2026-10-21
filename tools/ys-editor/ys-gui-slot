@@ -81,8 +81,9 @@ ALREADY_FOCUSED=0
 echo "[ys-gui-slot] 占用前活动窗口：${PREV_DESC}"
 if [ "${YS_SLOT_TEST:-0}" != "1" ]; then
   if ! "$YS_HOME/ys-screen-grant" status >/dev/null 2>&1; then
-    echo "[ys-gui-slot] ✗ 没有有效的屏幕占用凭据（NO_GRANT）" >&2
-    echo "[ys-gui-slot]   先在对话里申请到时长，再运行：tools/ys-editor/ys-screen-grant grant --seconds N --reason '做什么'" >&2
+    # 失败必须自解释（用户令 2026-10-21）：**报错 + 原因 + 当前状态 + 下一步**，缺一不可。
+    # 模型看不到"为什么被拒、屏幕现在在哪、我是不是还占着"，就会乱试或干等。
+    "$YS_HOME/ys-screen-grant" explain --blocked-by ys-gui-slot --target "${WIN_HEX}" >&2
     exit 6
   fi
 fi

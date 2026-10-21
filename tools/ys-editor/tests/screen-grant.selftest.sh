@@ -26,6 +26,10 @@ bad() { echo "  ✗ $1"; fails=$((fails+1)); }
 out=$(unset YS_SLOT_TEST; "$PWD/tools/ys-editor/ys-gui-slot" "${YS_WIN_TEST:-0x1600001}" 5 true 2>&1); rc=$?
 [ "$rc" -eq 6 ] && ok "无凭据时 slot 拒绝执行（rc=6）" || bad "无凭据 slot rc=$rc（应 6）"
 echo "$out" | grep -q "NO_GRANT" && ok "拒绝理由带 NO_GRANT 与申请指引" || bad "拒绝输出缺少 NO_GRANT：$out"
+# 失败必须自解释（用户令 2026-10-21）：错因 + 当前状态 + 下一步
+for k in '"reason"' '"state"' '"active_window"' '"screen_held_by_us"' '"next_action"'; do
+  echo "$out" | grep -q "$k" && ok "拒绝输出含 $k" || bad "拒绝输出缺 $k：$out"
+done
 
 "$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --reason selftest --user-said "自测" >/dev/null 2>&1
 "$PWD/tools/ys-editor/ys-screen-grant" status >/dev/null 2>&1; rc=$?
