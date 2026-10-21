@@ -117,6 +117,14 @@ PYIN
     fi
     echo "INJECT-PASS advice-fixture-neg: 夹具缺失 → FIXTURE_MISSING rc=$rc"; exit 0
     ;;
+  # ③f 注入「CLI 兜底被摘」→ advice 自测必须报红（cli=s03/None）
+  advice-cli-neg)
+    out=$(YS_ADVICE_CLI_DISABLE=1 python3 tools/ys-editor/tests/advice.selftest.py 2>&1); rc=$?
+    if [ "$rc" -eq 0 ] || ! printf '%s' "$out" | grep -q "cli=s03/None"; then
+      echo "INJECT-FAIL advice-cli-neg: 摘掉 CLI 兜底后自测仍绿（rc=$rc out=$out）"; exit 1
+    fi
+    echo "INJECT-PASS advice-cli-neg: CLI 兜底被摘 → 自测报红 rc=$rc"; exit 0
+    ;;
   # ③ 注入「去掉具体度消歧」→ state-precedence 必须报红
   precedence-neg)
     f="tools/ys-editor/ys-state"; bak="$(mktemp)"; cp "$f" "$bak"
@@ -250,5 +258,5 @@ PYIN
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL focus-lease: 死主租约没被判成该归还（门禁空转）"; exit 1; fi
     echo "INJECT-PASS focus-lease: 死主租约判红 rc=$rc"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg" >&2; exit 2 ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg" >&2; exit 2 ;;
 esac

@@ -90,6 +90,24 @@ def analyze(events):
             tot[r["name"]] += r["dur"]
     wall = (last_ts - first_ts) / 1000.0 if first_ts and last_ts else None
     tool_time = sum(r["dur"] for r in rows if r["dur"])
+    # 工具占比按**区间并集**算：并行调用（同一时间多个 tool）sum 会 > wall，旧口径能到 165%。
+    spans = []
+    for cid, (ts, name, args) in calls.items():
+        end = results.get(cid)
+        if ts and end and end >= ts:
+            spans.append((ts, end))
+    union = 0.0
+    if spans:
+        spans.sort()
+        a, b = spans[0]
+        for x, y in spans[1:]:
+            if x <= b:
+                b = max(b, y)
+            else:
+                union += b - a
+                a, b = x, y
+        union += b - a
+    tool_union = union / 1000.0
     # 反模式
     def cmds():
         return [str(r["args"].get("command") or r["args"].get("file_path") or "") for r in rows]
@@ -105,8 +123,9 @@ def analyze(events):
     return {
         "n_calls": len(rows), "counts": dict(cnt), "tool_total_s": round(tool_time, 1),
         "wall_s": round(wall, 1) if wall else None,
-        "model_latency_s": round(wall - tool_time, 1) if wall else None,
-        "tool_share_pct": round(tool_time / wall * 100, 1) if wall else None,
+        "model_latency_s": round(wall - tool_union, 1) if wall else None,
+        "tool_share_pct": round(tool_union / wall * 100, 1) if wall else None,
+        "tool_union_s": round(tool_union, 1),
         "slowest": [{"s": round(r["dur"], 1), "tool": r["name"],
                      "cmd": str(r["args"].get("command") or r["args"].get("file_path") or "")[:120]}
                     for r in slow],

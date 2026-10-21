@@ -452,3 +452,15 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - 真机 3 帧回放进自测：`fixtures/advice/real/s1..s3.json`（原 look JSON），第 3 帧必须出建议。
 - 机读行：`ADVICE-RESULT ... real=s03/SUGGEST_JUMP_ONLY verdict=PASS`（默认分支）；
   `YS_SEEK_MAX_ROWS=999` 时 `code=SCANNING_LINEARLY ... real=s03/SUGGEST_JUMP_ONLY PASS`。
+
+## advice CLI 跨进程路径（2026-10-21 18:1x）
+
+- `worldsvc.look()` 新增 `_advice_raw()`：CLI/离线路径本地调 `ys_advice.observe`，daemon 已算则透传
+  （`advice_computed` 标记），不重复计一次 observe。daemon cache-hit 路径也补算。
+- **第二个真因**：Lead 的跨进程持久化代码用了 `json` 但 `ys_advice.py` **没 import json**，
+  `_save()` 静默 NameError ⇒ 状态文件从未写盘。补 import 后，三次独立进程 `look --frame` 第 3 次出
+  `cli=s03/SCANNING_LINEARLY`。
+- 自测：`fixtures/advice/real/cli/{f1.png,f2.png,f3.jpg}` 三次独立子进程（临时 `YS_ADVICE_STATE_PATH`）：
+  `ADVICE-RESULT ... cli=s03/SCANNING_LINEARLY verdict=PASS`；默认/seek999 两分支均 PASS。
+- 账本 F-20261021-66 open→prevented（gate=advice，inject=advice-cli-neg；摘掉 CLI 兜底必报红）。
+- 顺手修 `tools/subagent-verdict` 门禁：工具占比按**区间并集**（并行 tool 的 sum 可 >wall，实测 165.4%）。

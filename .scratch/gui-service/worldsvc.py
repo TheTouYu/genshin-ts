@@ -98,6 +98,45 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # 1) look
     # ══════════════════════════════════════════════════════════════
+    def _advice_raw(self, raw, path=None, *, enabled=True):
+        """CLI/离线路径的 advice 兜底（唯一实现仍是 tools/ys-editor/ys_advice.py）。
+
+        2026-10-21：daemon-world 会算 advice；cli 后端/老 daemon 不会。这里用**跨进程持久化**
+        （YS_ADVICE_STATE_PATH）补齐，保证三个独立 `look --frame` 进程能累积到第 3 帧。
+        """
+        if not enabled or os.environ.get("YS_ADVICE_CLI_DISABLE") == "1":
+            return []
+        try:
+            import sys as _sys
+            _tools = os.path.join(REPO_ROOT, "tools", "ys-editor")
+            if _tools not in _sys.path:
+                _sys.path.insert(0, _tools)
+            import ys_advice as _ADV
+            cap = None
+            if path and os.path.isfile(path):
+                try:
+                    import ys_scrollbar as _SB
+                    r = _SB.detect_path(path)
+                    cap = {"found": bool(r.get("found")),
+                           "orientation": r.get("orientation"),
+                           "position_ratio": r.get("position_ratio")}
+                except Exception:                        # noqa: BLE001
+                    cap = None
+            objs = raw.get("objects") or []
+            tim = raw.get("timing_ms") or {}
+            return _ADV.observe(
+                state_name=((raw.get("state") or {}).get("name")
+                            if isinstance(raw.get("state"), dict) else raw.get("state")),
+                containers=[],
+                detections=objs if isinstance(objs, list) else [],
+                free_text=raw.get("free_text") or [],
+                look_ms=float(tim.get("total_full_ms") or tim.get("total") or 0.0),
+                now_ms=time.time() * 1000.0,
+                seek_cap=cap,
+                enabled=True)
+        except Exception:                                # noqa: BLE001
+            return []
+
     def look(self, frame=None, *, source=None, allow_cache=True, fast=False, advice=True):
         """一次感知。fast=True：只跳过检测+结构层（省 ~40–90ms），OCR/判态/容器照常。
 
@@ -123,6 +162,9 @@ class WorldService:
             if raw is not None:
                 cache_hit = {"hit": True, "layer": layer, "hit_ms": round(hit_ms, 2)}
                 timing = {"total": round(hit_ms, 2), "cache_layer": layer}
+                if advice:
+                    raw = dict(raw)
+                    raw["advice"] = self._advice_raw(raw, path, enabled=True)
                 raw = self._finalize(raw, frame_meta=frame_meta, frame_id=frame_id,
                                      timing=timing, cache_hit=cache_hit, t_start=t_start,
                                      validate_ms=0.0)
@@ -147,6 +189,8 @@ class WorldService:
         timing = {"state": round(t_state, 1), "objects": round(t_obj, 1),
                   "validate": round(t_validate, 2),
                   "total": round((time.perf_counter() - t_start) * 1000, 1)}
+        if advice and not raw.get("advice_computed"):
+            raw["advice"] = self._advice_raw(raw, path, enabled=True)
         # 缓存只存与本次调用无关的静态部分；timing/cache/transitions 每次重算
         self.cache.store(frame_id, self.sig, {k: v for k, v in raw.items()
                                              if k not in ("timing_ms", "cache", "transitions",
@@ -196,7 +240,8 @@ class WorldService:
             if allow_cache and self.cache.enabled:
                 raw, layer, hit_ms = self.cache.load(frame_id, self.sig)
                 if raw is not None:
-                    raw = dict(raw); raw["advice"] = []
+                    raw = dict(raw)
+                    raw["advice"] = self._advice_raw(raw, path, enabled=advice)
                     frame_meta = dict(frame_meta, source=src)
                     return self._publish(self._finalize(
                         raw, frame_meta=frame_meta, frame_id=frame_id,
@@ -266,6 +311,7 @@ class WorldService:
         # 于是 `look --summary` 永远拿不到它（真机会话里打印成 settled: null，调用方只能靠肉眼）。
         raw["settled"] = resp.get("settled")
         raw["advice"] = resp.get("advice") or []
+        raw["advice_computed"] = True
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         if path:
             self.cache.store(frame_id, self.sig,

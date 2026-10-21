@@ -18,6 +18,7 @@ advice 只建议：不阻断、不改行为、不回错。状态可清：换界�
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import time
 import math

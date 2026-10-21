@@ -15,7 +15,9 @@
 """
 import json
 import os
+import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
@@ -24,6 +26,10 @@ import ys_advice  # noqa: E402
 SCREENS, ROWS, STEP = 10, 7, 5
 FIX = os.path.join(HERE, "fixtures", "advice", "screens.json")
 REAL = [os.path.join(HERE, "fixtures", "advice", "real", "s%d.json" % i) for i in (1, 2, 3)]
+CLI_FRAMES = [os.path.join(HERE, "fixtures", "advice", "real", "cli", n)
+              for n in ("f1.png", "f2.png", "f3.jpg")]
+REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+WORLDSVC = os.path.join(REPO, ".scratch", "gui-service", "worldsvc.py")
 def _name(i):
     """真实好友列表名字唯一——夹具也必须唯一，否则同一名字出现不同天数，
     会被单调性判据判成"不单调"（2026-10-21 自测踩到）。"""
@@ -50,7 +56,7 @@ def main():
         return 2
     fx = json.load(open(FIX, encoding="utf-8"))
     screens = fx["screens"]
-    tr = ys_advice.ListTracker() if hasattr(ys_advice, "ListTracker") else None
+    tr = ys_advice.ListTracker(path="") if hasattr(ys_advice, "ListTracker") else None
     advs = []
     now = 0.0
     for i in range(len(screens)):
@@ -70,7 +76,7 @@ def main():
 
     # 负例：只有 2 行
     neg = []
-    tr2 = ys_advice.ListTracker() if tr is not None else None
+    tr2 = ys_advice.ListTracker(path="") if tr is not None else None
     for i in range(3):
         tiny = {"containers": screens[0]["containers"][:2],
                 "free_text": screens[0]["free_text"]}
@@ -82,7 +88,7 @@ def main():
     if not all(os.path.isfile(p) for p in REAL):
         print("ADVICE-RESULT error=REAL_FIXTURE_MISSING paths=%s verdict=FAIL" % REAL)
         return 2
-    tr3 = ys_advice.ListTracker()
+    tr3 = ys_advice.ListTracker(path="")
     real_out = []
     now3 = 0.0
     for p in REAL:
@@ -95,7 +101,29 @@ def main():
                                     free_text=d.get("free_text") or [],
                                     look_ms=800, now_ms=now3 * 1000))
     real_code = real_out[2][0].get("code") if real_out[2] else None
-    ok_pos = (first == 2) and bool(real_code)
+    # 三次**独立进程** CLI 回放（跨进程持久化）；第 3 次必须有 advice
+    cli_code = None
+    try:
+        if not all(os.path.isfile(p) for p in CLI_FRAMES):
+            print("ADVICE-RESULT error=CLI_FIXTURE_MISSING paths=%s verdict=FAIL" % CLI_FRAMES)
+            return 2
+        td = tempfile.mkdtemp(prefix="adv-cli-")
+        env = dict(os.environ, YS_ADVICE_STATE_PATH=os.path.join(td, "state.json"))
+        for i, p in enumerate(CLI_FRAMES):
+            out = os.path.join(td, "look%d.json" % (i + 1))
+            r = subprocess.run([sys.executable, WORLDSVC, "look", "--frame", p,
+                                "--json-out", out, "--no-cache"],
+                               env=env, capture_output=True, text=True, timeout=40)
+            if r.returncode != 0:
+                print("ADVICE-RESULT error=CLI_LOOK_FAIL rc=%d frame=%s verdict=FAIL"
+                      % (r.returncode, os.path.basename(p)))
+                return 2
+            if i == 2:
+                cli_code = (json.load(open(out, encoding="utf-8")).get("advice") or [{}])[0].get("code")
+    except Exception as e:                               # noqa: BLE001
+        print("ADVICE-RESULT error=CLI_REPLAY_%s verdict=FAIL" % type(e).__name__)
+        return 2
+    ok_pos = (first == 2) and bool(real_code) and bool(cli_code)
     if seek >= 100:
         est = (advs[first][0].get("estimate") or {}) if first is not None else {}
         ok_code = (code == "SCANNING_LINEARLY" and bool(est.get("bisection_probes")))
@@ -103,9 +131,9 @@ def main():
         ok_code = (code == "LINEAR_ONLY_NO_SEEK"
                    and (advs[first][0].get("blocked_by") == "seek_capability"))
     ok = ok_pos and ok_code and not neg
-    print("ADVICE-RESULT screens=%d first=%s code=%s seek=%g neg=%d real=s03/%s verdict=%s"
+    print("ADVICE-RESULT screens=%d first=%s code=%s seek=%g neg=%d real=s03/%s cli=s03/%s verdict=%s"
           % (len(screens), ("s%02d" % first) if first is not None else "none",
-             code, seek, len(neg), real_code, "PASS" if ok else "FAIL"))
+             code, seek, len(neg), real_code, cli_code, "PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
 
