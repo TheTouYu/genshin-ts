@@ -151,6 +151,30 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
 本仓所有 `import` 调用必须带 `-silent`；闸门 `no-xbell` 静态扫描裸调用。
 抓帧后的旧守护进程不会自动加载新代码——改完要 `systemctl --user restart ys-lookd`。
 
+## 4.6 跨虚拟桌面（2026-10-21 第 3 次撞到）
+
+**现象**：`ys-lease resolve-window` 回 `TARGET_NOT_FOUND`，但 `ys-wins --attrib` 明明能看到游戏窗。
+
+**根因**：`kwin_state()` 基于 `stackingOrder()`，**只列当前桌面的窗口**；游戏在别的桌面时必然落空。
+（`ys-wins` 走的是 `windowList()`，能跨桌面 —— 两个通道的**视野不同**，别拿一个的结论否定另一个。）
+
+**现在的失败输出**（已修，`F-20261021-61`）：
+```json
+{"error":"TARGET_NOT_FOUND",
+ "reason":"目标窗在另一个虚拟桌面：KWin 当前桌面窗口表里没有它",
+ "state":{"found":true,"window_desktop":"3","current_desktop":"2","minimized":"0"},
+ "next_action":[ys-follow-win --dry, ys-follow-win（需授权）, 请用户手动拖回]}
+```
+
+**两条路，必须让用户选**：
+| 选项 | 做法 | 代价 |
+|---|---|---|
+| A 手动 | 用户把窗口拖到当前桌面 | 零打扰，最快 |
+| B 自动 | `YS_ALLOW_DESKTOP_SWITCH=1 ys-follow-win yuanshen.exe` | **换掉用户整屏**，需用户明确说一句 |
+
+**选 B 时的交还判据是三件套**：`active=用户窗` **且** `idx(用户窗)>idx(游戏)` **且**
+**当前桌面 = 开始时那张**。只把焦点还回去、桌面留在游戏那张，等于没还。
+
 ## 4.7 三条实测坑（2026-10-21 二次真机会话复盘）
 
 1. **`grant` 必须单独成条**：把 `grant … && <100s 的 slot 操作>` 串成一条命令，

@@ -616,6 +616,35 @@ def _best_window(cands):
     return sorted(vis, key=lambda w: (w.get("i", 0), (w.get("w") or 0) * (w.get("h") or 0)))[-1]
 
 
+def _cross_desktop_hint(default_class=GAME_CLASS):
+    """扫**所有桌面**的窗口，报告游戏窗在哪张桌面、当前在哪张（kwin-state 只给当前桌面）。
+
+    读 ys-wins --attrib 的文本行（它用的是 windowList()，能跨桌面）：
+        [7] 原神 | yuanshen.exe | 0,0 1707x960 | min=0 | ds=3 | cur=2 | idx=8 | act=1
+    """
+    import subprocess as _sp
+    out = {"found": False}
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        r = _sp.run([os.path.join(here, "ys-wins"), "--attrib"], capture_output=True,
+                    text=True, timeout=15, env={**os.environ})
+        for line in (r.stdout or "").splitlines():
+            if default_class.split(".")[0].lower() not in line.lower():
+                continue
+            d = {}
+            for part in line.split("|"):
+                for key in ("ds", "cur", "idx", "min"):
+                    if part.strip().startswith(key + "="):
+                        d[key] = part.split("=", 1)[1].strip()
+            out.update({"found": True, "window_desktop": d.get("ds"),
+                        "current_desktop": d.get("cur"), "minimized": d.get("min"),
+                        "caption": line.split("|")[0].strip()[:40]})
+            break
+    except Exception:                                    # noqa: BLE001
+        pass
+    return out
+
+
 def resolve_window(win_id="", name="", x11_pid=0, geom="", default_class=GAME_CLASS):
     """把调用方给的 X11 窗口线索映射到 KWin 权威窗口。
 
@@ -655,9 +684,24 @@ def resolve_window(win_id="", name="", x11_pid=0, geom="", default_class=GAME_CL
         cands = [w for w in wins if default_class in (w.get("cls") or "").lower()]
         if cands:
             return {"ok": True, "reason": "game-class", "target": _record(_best_window(cands))}
+    # 2026-10-21（F-20261021-61）：kwin-state 只列**当前桌面**的窗口，游戏在别的桌面时这里必然落空。
+    # 失败要回答三个问题：它在哪张桌面 / 你在哪张 / 下一步做什么（今天第 3 次撞这个）。
+    _xd = _cross_desktop_hint(default_class)
     return {"ok": False, "error": "TARGET_NOT_FOUND",
-            "detail": f"win_id={win_id!r} name={name!r} pid={pid} geom={geom!r}；"
-                      f"未能映射到 KWin 窗口（幽灵窗线索？）"}
+            "reason": ("目标窗在**另一个虚拟桌面**：KWin 当前桌面窗口表里没有它"
+                       if _xd.get("found") else "目标窗在任何桌面都找不到（可能已关闭）"),
+            "detail": f"win_id={win_id!r} name={name!r} pid={pid} geom={geom!r}",
+            "state": _xd,
+            "next_action": ([
+                {"step": 1, "tool": "tools/ys-editor/ys-follow-win", "args": ["yuanshen.exe", "--dry"],
+                 "why": "先确认它在哪张桌面（只读）"},
+                {"step": 2, "tool": "tools/ys-editor/ys-follow-win", "args": ["yuanshen.exe"],
+                 "why": "切过去会换掉用户整屏：先向用户申请，再设 YS_ALLOW_DESKTOP_SWITCH=1"},
+                {"step": 3, "tool": "(user)", "why": "或请用户手动把窗口拖到当前桌面"},
+            ] if _xd.get("found") else [
+                {"step": 1, "tool": "tools/ys-editor/ys-wins", "args": ["--attrib"],
+                 "why": "列出全部窗口，确认游戏是否还在跑"},
+            ])}
 
 
 def kwin_state_cmd():
