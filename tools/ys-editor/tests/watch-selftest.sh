@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# 自测/门禁用：绕过屏幕占用契约（生产调用路径不许设；真实占用必须先在对话里申请）
+export YS_SLOT_TEST=1
 # watch-selftest.sh — 变化监听层（tools/ys-watch）离线自测
 #
 # 纪律：

@@ -67,6 +67,12 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
   好友 = 「好友标题 + `x/200` 计数」；角色 = 「命之座 + 圣遗物」。
 - **黑屏/无内容帧必须判 UNKNOWN**（当前尚未落地，见账本 F-20261021-48）。
 
+**屏幕占用契约（用户令 2026-10-21，已做成设计）**：这个桌面不是只有我们在用。**每次长时间占用前**：
+① 先看**当前活动窗口**（KWin 权威，`ys-lease kwin-state` 的 `active`；`xdotool getactivewindow` 会给 1×1 幽灵窗）；
+② 在对话里**申请时长**，拿到同意后再 `tools/ys-editor/ys-screen-grant grant --seconds N --reason '做什么'`；
+③ 凭据到期即失效。没有有效凭据时 `ys-gui-slot` 会以 **rc=6 NO_GRANT** 拒绝执行（自测走 `YS_SLOT_TEST=1`）。
+缺这一步的代价：用户同时在操作屏幕 ⇒ 焦点/画面被夺 ⇒ 出现"莫名其妙的 bug"（已记 F-20261021-50）。
+
 ## 4. 仪器健康（先看这两个，再谈判据）
 
 | 东西 | 怎么查 | 判据 |
