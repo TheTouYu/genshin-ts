@@ -1,0 +1,81 @@
+#!/bin/bash
+# ys-eyes-up — 一键把「眼睛」拉起来：窗口存在 → 守护在产帧 → 首帧可用于动作。
+#
+# 为什么需要它（2026-10-20 首写，2026-10-21 收编）：
+#   · `ys-capture serve` 早期按写死 id 解析窗口，窗口不在/换 id 时**直接 X BadDrawable 死掉**，
+#     日志只有一行 X Error，看不出「是游戏没开」还是「是 id 过期」；
+#   · 人工「起服务 → sleep → 取帧」违反 G-SLEEP 守卫（固定时长冒充同步）。
+#   本脚本全用谓词等待，且每一步失败都有独立退出码。
+#
+# 2026-10-21 两处收编：
+#   ① 优先用 **systemd 常驻服务** `ys-capture.service`（已入库、enabled），不再每次 nohup
+#      一份游离进程；服务不存在时才回退 nohup。
+#   ② 「活着」判据从「state.tsv 存在」换成「**seq 在涨**」——今天实测过
+#      「进程活着但一帧不写、state.tsv 是昨天的」，文件存在完全不能证明在产帧。
+#
+# 退出码：
+#   0 OK（首帧可用于动作）｜2 游戏窗口不存在｜3 抓帧守护起不来/不产帧
+#   4 首帧拿不到（其它原因）｜5 眼睛在产帧，但**目标窗不在当前虚拟桌面**（用 ys-follow-win）
+set -u
+cd "$(dirname "$(readlink -f "$0")")/../.." || exit 3
+TO=${YS_EYES_TIMEOUT:-25}
+UNIT=ys-capture.service
+
+py() { python3 -c "$1"; }
+
+producing() {
+  tools/ys-editor/ys-capture status 2>/dev/null | py '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+s = d.get("state") or {}
+sys.exit(0 if d.get("daemon_alive") and (s.get("seq") or 0) > 0 and not (s.get("last_err") or "") else 1)
+'
+}
+
+# --probe：给 ys-wait 的轮询用，只回答「在产帧吗」，不做任何副作用
+if [ "${1:-}" = "--probe" ]; then
+  producing && exit 0
+  exit 3
+fi
+
+# 1) 游戏窗口存在吗（按 class，不用 idx —— 序号会漂）
+if ! DISPLAY=${DISPLAY:-:1} xdotool search --class yuanshen >/dev/null 2>&1; then
+  echo "[ys-eyes-up] ✗ 没有找到原神窗口（class=yuanshen）——请先启动游戏" >&2
+  exit 2
+fi
+
+# 2) 守护在**产帧**吗（seq 在涨才算）
+if ! producing; then
+  if systemctl --user list-unit-files 2>/dev/null | grep -q "^$UNIT"; then
+    systemctl --user restart "$UNIT" >/dev/null 2>&1
+  else
+    (setsid nohup tools/ys-editor/ys-capture serve >/tmp/yscap.log 2>&1 </dev/null &)
+  fi
+  tools/ys-editor/ys-wait --until "$(readlink -f "$0") --probe" --expect 0 --timeout "$TO" >/dev/null 2>&1 || true
+fi
+
+if ! producing; then
+  echo "[ys-eyes-up] ✗ 抓帧守护没能产帧（${TO}s）" >&2
+  systemctl --user status "$UNIT" --no-pager -n 3 >&2 2>/dev/null || tail -2 /tmp/yscap.log >&2 2>/dev/null
+  exit 3
+fi
+
+# 3) 首帧可用于动作吗（这一步 **不加** --allow-background：动作级帧要求窗在当前桌面）
+if tools/ys-editor/ys-capture latest --out /tmp/ys-eyes.png --format bmp >/tmp/ys-eyes-up.log 2>&1; then
+  seq=$(tools/ys-editor/ys-capture status 2>/dev/null | py 'import sys,json;d=json.load(sys.stdin);print((d.get("state") or {}).get("seq"))' 2>/dev/null)
+  echo "[ys-eyes-up] ✓ 就绪 seq=${seq} frame=/tmp/ys-eyes.png"
+  exit 0
+fi
+
+rc=$?
+if grep -q '"OTHER_DESKTOP"' /tmp/ys-eyes-up.log 2>/dev/null; then
+  echo "[ys-eyes-up] ⚠ 眼睛在产帧，但目标窗不在当前虚拟桌面" >&2
+  echo "[ys-eyes-up]   切过去：tools/ys-editor/ys-follow-win --switch   （只读探测：不加 --switch）" >&2
+  exit 5
+fi
+echo "[ys-eyes-up] ✗ 首帧未就绪 rc=$rc" >&2
+tail -2 /tmp/ys-eyes-up.log >&2 2>/dev/null
+exit 4

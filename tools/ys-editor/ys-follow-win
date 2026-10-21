@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""ys-follow-win — 把「当前虚拟桌面」切到目标窗口所在桌面（KWin 权威通道）。
+
+为什么需要（2026-10-20 实测）：
+  · 原神窗口在 KWin 的**另一个虚拟桌面**上时，`ys-capture latest` 直接 fail-closed 报
+    `OTHER_DESKTOP`（守卫是对的：拿不到可信帧就不给）。旧做法是**回去问用户切桌面** ——
+    这是把系统能力缺口转嫁给用户，与 AGI 目标相反。
+  · EWMH `_NET_WM_DESKTOP` 在这台机器上**不可信**（报 0 而 KWin 报别的桌面，见 D34），
+    所以必须走 KWin Scripting 读 `windowList()[].desktop`。
+
+用法：
+  ys-follow-win yuanshen.exe          # 切到该窗口所在桌面（已在则 no-op）
+  ys-follow-win yuanshen.exe --dry    # 只报窗口在哪个桌面，不切换
+
+退出码：0 已在该桌面/切换成功｜2 找不到窗口｜3 KWin Scripting 不可用
+"""
+import os
+import subprocess
+import sys
+import tempfile
+import time
+
+TAG_PREFIX = "ys-follow-win"
+
+
+def _run(cmd, timeout=15):
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+def _gdbus(method, *args):
+    return _run(["gdbus", "call", "--session", "--dest", "org.kde.KWin",
+                 "--object-path", "/Scripting",
+                 "--method", f"org.kde.kwin.Scripting.{method}", *args])
+
+
+def main():
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    dry = "--dry" in sys.argv
+    if not args:
+        print("用法: ys-follow-win <resourceClass> [--dry]", file=sys.stderr)
+        return 2
+    cls = args[0]
+
+    # KWin 脚本：读窗口桌面并（非 dry 时）切过去；结果用 print 落 journal
+    js = f'''
+const cls = "{cls}";
+const dry = {"true" if dry else "false"};
+let wins = [];
+try {{ wins = workspace.windowList(); }} catch (e) {{ wins = workspace.clientList(); }}
+let target = null;
+for (let i = 0; i < wins.length; i++) {{
+    const w = wins[i];
+    const rc = (w.resourceClass || "").toString();
+    if (rc === cls) {{ target = w; break; }}
+}}
+if (!target) {{ print("FOLLOWWIN notfound"); }}
+else {{
+    const d = target.desktop;
+    const cur = workspace.currentDesktop;
+    print("FOLLOWWIN found desktop=" + (d ? d.id : "all") + " current=" + cur.id);
+    if (!dry) {{
+        if (d && d.id !== cur.id) {{
+            workspace.currentDesktop = d;
+            print("FOLLOWWIN switched to " + d.id);
+        }} else {{
+            print("FOLLOWWIN already");
+        }}
+    }}
+}}
+'''
+    fd, path = tempfile.mkstemp(suffix=".js", prefix="ysfollow-")
+    with os.fdopen(fd, "w") as f:
+        f.write(js)
+    tag = f"{TAG_PREFIX}-{int(time.time()*1000)}"
+    try:
+        r = _gdbus("loadScript", path, tag)
+        if r.returncode != 0 or "Error" in (r.stderr or ""):
+            print(f"[ys-follow-win] KWin Scripting 不可用：{(r.stderr or '').strip()[:160]}", file=sys.stderr)
+            return 3
+        _gdbus("start")
+        time.sleep(0.6)
+        j = _run(["journalctl", "--user", "--since", "5 seconds ago", "--no-pager"], timeout=15)
+        lines = [ln for ln in (j.stdout or "").splitlines() if "FOLLOWWIN" in ln]
+        for ln in lines:
+            print("[ys-follow-win]", ln.split("FOLLOWWIN", 1)[1].strip())
+        if any("notfound" in ln for ln in lines):
+            return 2
+        return 0
+    finally:
+        _gdbus("unloadScript", tag)
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    sys.exit(main())

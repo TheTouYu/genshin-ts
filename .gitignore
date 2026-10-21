@@ -101,3 +101,19 @@ lua-sync-test/
 
 # KWin 脚本临时文件（ys-wins / ys_capture 用完即删，异常退出会残留）
 tools/ys-editor/.ys-*.js
+
+# ── 2026-10-21 工作树梳理：8.7G 取证构建树与二进制（可再生 / 不该入库）
+# fake-death 是 Wine 假死调查的源码克隆与构建目录（wp-*/src*/wine-*/build*/staging* 共 3.8G）；
+# 顶层脚本（bisect-cure.sh / exp-run.sh / kill-trace.sh）仍入库，只忽略重物。
+.scratch/fake-death/wp-*/
+.scratch/fake-death/src*/
+.scratch/fake-death/wine-src/
+.scratch/fake-death/wine-build/
+.scratch/fake-death/wine-logs/
+.scratch/fake-death/wb-src/
+.scratch/fake-death/build*/
+.scratch/fake-death/staging*/
+# 编译产物：ys-xrec 的 C 源码（ys-xrec.c）入库，二进制不入库（本机编译即可）
+tools/ys-editor/ys-xrec
+# 工具自己的临时工作目录
+tools/ys-editor/.scratch/
