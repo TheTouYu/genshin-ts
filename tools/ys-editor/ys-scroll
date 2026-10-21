@@ -244,7 +244,9 @@ def main():
                                     "用它换算会把列表拖到完全错的位置",
                           "state": {"seek_rows": a.seek_rows, "rows_per_page": a.rows_per_page},
                           "next_action": "从界面标题 OCR 读「x/y」（如好友「我的好友 173/200」）"
-                                         "后传 --total-rows 173；或改用 --seek-ratio"},
+                                         "后传 --total-rows 173 再重跑本命令"
+                                         "（--seek-ratio 只在**已知目标比例**时用；找边界这类任务"
+                                         "调用方并不知道比例）"},
                          ensure_ascii=False))
         return 2
     if a.seek_ratio is not None or a.seek_rows > 0:

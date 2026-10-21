@@ -226,7 +226,9 @@ class ListTracker:
                 _need = int(est["linear_screens_remaining"]) // 2
             _sb = seek_cap or {}
             _can_seek = bool(_sb.get("found"))
-            _seek_ok = _can_seek or _need <= SEEK_MAX_ROWS
+            # 有当帧读数 ⇒ **只信读数**（没有滚动条就是没有 seek，检测失败同样按 found=false 处理，
+            # 宁可报线性也不给一个拖不动的建议）；只有老调用方没传读数时才退回滚轮上限。
+            _seek_ok = _can_seek if seek_cap is not None else (_need <= SEEK_MAX_ROWS)
             if _seek_ok:
                 if _can_seek:
                     # 有滚动条 ⇒ 一次跳到位，不用二分。**总行数必须来自标题（count）**：

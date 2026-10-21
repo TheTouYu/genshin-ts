@@ -2144,7 +2144,7 @@ def _seek_cap():
         import ys_scrollbar as _SB
         path = _WORLD_FRAME.get("path")
         if not path:
-            return None
+            return {"found": False, "reason": "no_frame"}
         key = _WORLD_FRAME.get("sha") or path
         if key in _SEEK_CAP_CACHE:
             return _SEEK_CAP_CACHE[key]
@@ -2155,8 +2155,9 @@ def _seek_cap():
         _SEEK_CAP_CACHE.clear()                          # 只留当帧，避免长跑攒内存
         _SEEK_CAP_CACHE[key] = cap
         return cap
-    except Exception:                                    # noqa: BLE001 —— advice 只建议
-        return None
+    except Exception as exc:                             # noqa: BLE001 —— advice 只建议
+        # 检测失败**绝不当成 found=true**：宁可报「线性扫」，也不给一个拖不动的 seek 建议。
+        return {"found": False, "reason": "detect_failed:%s" % type(exc).__name__}
 
 
 def _world_advice(world, req):
