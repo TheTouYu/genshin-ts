@@ -1,0 +1,20 @@
+[scan] cap/status         rc=0    113.1ms
+[scan] cap.status=ge_ms": 65, "strict": {"verdict": "OTHER_DESKTOP", "src": "kwin", "detail": "", "covered_ratio": 0.9663, "window": {"caption": "原神", "class": "yuanshen.exe", "bbox": [0, 0, 1707, 960], "desktop": [3], "minimized": false, "active": false, "idx": 7}, "current_desktop": 2, "elapsed_ms": 959.9}, "strict_age_ms": 2127, "capture_ms": 1.28, "loop_ms": 20.57, "frames_written": 15022, "frames_reused": 123488, "win": "0x1600001", "class": "yuanshen.exe", "last_err": "", "ts": "2026-10-21T17:33:40+0800"}} 
+[scan] kwin/state         rc=0     76.7ms
+[scan] kwin desktop=3 active=yuanshen.exe
+[scan] cap/latest         rc=0     19.1ms
+[scan] cap/latest         rc=0     17.8ms
+[scan] cap/latest         rc=0     18.2ms
+[scan] cap/latest         rc=0     18.7ms
+[scan] cap/latest         rc=0     18.2ms
+[scan] capture latest ready after 18.2ms strict=OK
+[scan] look/s0            rc=0    629.9ms
+[scan] start state=GAME_FRIENDS look=629.9ms frame_source=ys-capture
+[scan] s00                rc=0   1916.3ms
+[scan] look/screen/s00    rc=0    676.7ms
+[scan] s00 rows=3 first='陈凯' days=[10, 26]
+[scan] s01                rc=0   1762.5ms
+[scan] look/screen/s01    rc=0    689.5ms
+[scan] s01 rows=4 first='31天前最后登录' days=[31, 31, 31, 31]
+[scan] capture/boundary   rc=0    202.3ms
+SCAN-RESULT {"schema": "gui.session-scan/1", "wall_s": 8.2, "session_id": "s-913efcaf1d", "screens": [{"tag": "s00", "scroll": {"tag": "s00", "rc": 0, "ms": 1862.4, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1862.4, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 43, "drag": null, "lease": false, "hint": null, "session_id": "s-913efcaf1d", "timing": {"inject_ms": 1711.9, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1862.4}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 676.7, "rows": 3, "first": "陈凯", "days": [10, 26], "hit": null, "frame_source": "ys-capture"}, {"tag": "s01", "scroll": {"tag": "s01", "rc": 0, "ms": 1711.3, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1711.2, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 43, "drag": null, "lease": false, "hint": null, "session_id": "s-913efcaf1d", "timing": {"inject_ms": 1560.9, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1711.2}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 689.5, "rows": 4, "first": "31天前最后登录", "days": [31, 31, 31, 31], "hit": {"days": 31, "y": 146.0, "name": "31天前最后登录", "text": ["Lv.60", "31天前最后登录", "不要输给风，不要输给雨，不要输给冬雪，不要输给炎夏"], "bbox": [192.0, 146.0, 1562.0, 76.0], "crop": "/home/h/genshin-ts/.scratch/gui-service/evidence/realrun-20261021/boundary_crop.png", "crop_box": [152, 106, 1794, 262]}, "frame_source": "ys-capture"}], "found": {"days": 31, "y": 146.0, "name": "31天前最后登录", "text": ["Lv.60", "31天前最后登录", "不要输给风，不要输给雨，不要输给冬雪，不要输给炎夏"], "bbox": [192.0, 146.0, 1562.0, 76.0], "crop": "/home/h/genshin-ts/.scratch/gui-service/evidence/realrun-20261021/boundary_crop.png", "crop_box": [152, 106, 1794, 262]}, "stalled": false, "nav": {"start_state": "GAME_FRIENDS", "world_to_paimon_ms": null, "paimon_to_friends_ms": null}, "n_screens": 2, "n_rows": 7, "n_unique_rows": 7, "inject_ms": 3272.8, "verify_ms": 1366.2, "effective_ratio": 0.5657, "scroll_p50_ms": 1862.4, "loop_p50_ms": 2539.1000000000004}
