@@ -1,0 +1,78 @@
+{
+ "steps": [
+  {
+   "from": "top",
+   "to": "small5",
+   "clicks": 5,
+   "matched": 0,
+   "rows_moved": null,
+   "clicks_per_row": null
+  },
+  {
+   "from": "small5",
+   "to": "large40",
+   "clicks": 35,
+   "matched": 1,
+   "shift_px": 960.0,
+   "pitch_px": 156.4,
+   "rows_moved": 6.14,
+   "clicks_per_row": 5.7
+  },
+  {
+   "from": "large40",
+   "to": "s01",
+   "clicks": 30,
+   "matched": 0,
+   "rows_moved": null,
+   "clicks_per_row": null
+  },
+  {
+   "from": "s01",
+   "to": "s02",
+   "clicks": 30,
+   "matched": 1,
+   "shift_px": 784.0,
+   "pitch_px": 190.9,
+   "rows_moved": 4.11,
+   "clicks_per_row": 7.31
+  }
+ ],
+ "fit": {
+  "m": 2.46,
+  "c": 19.88,
+  "target_rows": 5.0,
+  "predicted_clicks": 32,
+  "median_clicks_per_row": 6.5,
+  "recommended_clicks": 33,
+  "viewport_rows": 7,
+  "overlap_rows": 2.0,
+  "no_skip": true
+ },
+ "screens": [
+  {
+   "name": "top",
+   "rows": 7,
+   "pitch": 176.0
+  },
+  {
+   "name": "small5",
+   "rows": 4,
+   "pitch": 160.7
+  },
+  {
+   "name": "large40",
+   "rows": 6,
+   "pitch": 152.0
+  },
+  {
+   "name": "s01",
+   "rows": 7,
+   "pitch": 192.0
+  },
+  {
+   "name": "s02",
+   "rows": 6,
+   "pitch": 189.8
+  }
+ ]
+}

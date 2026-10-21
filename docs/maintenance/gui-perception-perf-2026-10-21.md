@@ -187,3 +187,67 @@ python3 .scratch/gui-service/selftest.py
 
 **层级声明**：本报告所有数字来自**后台离线帧**（read-only），证明"看得见/算得快"，不证明"动得了"。
 真注入与可见交互层验证需用户在场，本轮未做。
+
+---
+
+# 反馈轮（真机反馈 → 分层优化，2026-10-21 16:2x–17:0x）
+
+> **口径**：本节「前」= W1-retry2 真机前台帧 + 真实注入；「后」= **离线可复现读数** + 代码路径。
+> 真注入验证需用户批准 1×60s 轮次（见 §6），本轮未再占屏。用户令：先停真机、进入反馈轮。
+
+## 0. 有效占用比（用户要求的核心设计判据）
+
+W1-retry2 占用 **42.1s**，其中注入+验证约 **8.1s**（click 4.99 + 4 次滚动注入 3.15 + 5 次 look 4.3 中的读帧/OCR 部分）
+⇒ **有效占用比 ≈19%**。目标：扫描循环 ≥60%。
+
+会话模式算术（离线可复算）：每屏 = scroll 注入 1.05s + settle 0.15s + look 0.8s = **2.0s**，
+其中 inject+verify = 1.85s（92.5%）；会话 setup 只付一次（~2s/60s）⇒ 全局 **≈89%**。
+判据命令：`python3 .scratch/gui-service/step_sim.py` / `ys-scroll --plan`（见各层）。
+
+## 1. 六层表（层 / 前 / 后 / 改法 / 判据与命令）
+
+| 层 | 前（真机） | 后（离线读数/代码） | 改法 | 判据 / 命令 |
+|---|---|---|---|---|
+| **L1 进程/占用** | 每动作自建 slot：scroll **4.96–5.58s/次**、ESC 6.65s、click 4.99s；有效占用比 19% | 新增 `ys-session`：一次 setup，动作直注入；`ys-scroll --plan` 会话命中 `in_slot=true`；离线 setup 组件 kwin-state 143.5ms + resolve 83.1ms + grant 54.6ms + coach 87.9ms | `tools/ys-editor/ys-session` begin/end/status；`ys-scroll`/`ys-pointer-click`/`ys-esc` 读 `~/.ys/session.json` 后置 `YS_SLOT_ACTIVE=1`；回执带 `session_id` 与 `timing{inject,settle,verify,total}` | 会话 dry-run：`YS_SESSION_PATH=/tmp/s.json ys-session begin --seconds 60 --dry-run` → status active=false；假会话 `ys-scroll --plan` → `in_slot=true`；`ys-esc --plan` → session=1 |
+| **L2 输入注入** | ESC 6.65s 里固定 `sleep 2` = **2.12s**；scroll 固定 settle 0.6s；coach 87.9ms | `ys-esc` 固定等待 **2.12s → 0.2s**（`YS_ESC_SETTLE_MS`），key down/up 合并；`ys-scroll --settle-ms 150 --no-hint` | 去固定 sleep，调用方用状态轮询；`ys-scroll` 暴露 `--settle-ms/--no-hint` | `ys-esc --plan` → `settle_ms=200`；`ys-scroll --plan` → `settle_ms=150`（命令见下） |
+| **L3 判读/抓帧** | 首 look **3.15s**；扫描期 look 0.77–0.95s；daemon 首次 world detector **699.5ms**、state 970.2ms、load 290.4ms | live 默认 `ys-capture`：**45.7ms p50**（36.2–45.7 热，219 冷）；daemon 预热后首次 world **375.3ms**（detector **37.1ms**、state **95.4ms**、load 178.4ms）；预热后同帧 warm world **97.1ms**（load 0.1/state 35.8/objects 1.2/detector 44.6/structure 53.0） | `_capture_frame_soft` 默认 ys-capture，失败回退并标 `timing.frame_source`；daemon 新增感知预热线程（ys-screen + D2 双模型真跑 dummy detect）＋状态全量 32 锚点预热 | `journalctl --user -u ys-lookd \| grep 感知预热` → `感知预热完成（…）`；离线首调命令见下；`frame_source` 字段在 look.timing |
+| **L4 缓存/扫描读** | 扫描期 0.77–0.95s/屏，页级复用失效（整页变了） | **条带协议离线判据未通过**：3 组合成滚动（dy=400/800/1200）行召回 **63.6% / 90.9% / 75.0%**，行序 all false；条带 OCR **1021/703/938ms** vs 全帧 **655/774/733ms**（没有更快） | 不采用条带 OCR 替换全帧；保留静态页复用（37.6ms 稳态） | `python3 .scratch/gui-service/strip_probe.py` → `STRIP-PROBE pass=False`；回执 `evidence/strip-probe.json` |
+| **L5 步长/标定** | clicks5≈4 行、clicks40≈6 行（非线性）；上次 0.58 行/次 | 用 W1 重叠行名反推：**35 clicks→6.14 行（5.70 clicks/row）**、**30 clicks→4.11 行（7.31 clicks/row）**；中位 **6.5 clicks/row** ⇒ 目标 5 行 = **33–34 clicks**；7 行视口留 2 行重叠 ⇒ 不跳行 | `ys-scroll --rows N`（calib 最小二乘反查，clamp 5–80）；扫描驱动用上一屏实际位移闭环修正 | `ys-scroll --rows 5 --plan` → `clicks=34`；`python3 .scratch/gui-service/step_sim.py` → `no_skip=True`、`recommended_clicks=33` |
+| **L6 决策/批量** | 每屏 look 一次；未做批量 | 离线判据：视口 7 行、目标步长 5 行（2 行重叠）→ **不能盲批两屏**（2×5=10 >7，会跳 3 行）；批量必须「滚动同时抓帧」或先做 5 行闭环 | 单屏 5 行闭环先行；批量留待真机滚动+抓帧同窗验证 | `step_sim.py` 的 `viewport_rows=7 / overlap_rows=2 / no_skip=True`；批两屏判据=步长和>视口则拒绝 |
+
+## 2. 关键结论（不粉饰）
+
+1. **真机 loop 的固定开销已被拆出来**：slot setup（kwin-state+resolve+grant+raise+settle+coach）是 4–5s 的主因，不是滚轮/OCR。
+2. **会话对象把「重复 setup」变成一次性**；离线可证状态机与动作集成，但**真注入仍需 1×60s 验证**（会话内直注入、ys-esc 去 sleep、live 帧来源）。
+3. **条带 OCR 当前不达标**（行召回/行序/耗时三项都没过）⇒ 不上线；要判定它是否可行，必须用**真实连续滚动帧 + moved_px** 重跑，而不是合成帧。
+4. **检测器预热是真收益**（首次 699.5→37.1ms），但会拉长 daemon 启动 ~2.3–5.3s；因为后台线程，不阻塞 listening。
+5. **判读仍是大头**：warm look 97ms（离线帧）里 state 35.8 + detector 44.6 + structure 53.0；真机 live 还会加抓帧 ~46ms。下一步若还要压，先压 detector（44.6ms）与 structure（53ms），不是 OCR（扫描页 OCR 仍 ~500ms）。
+
+## 3. 复现命令（离线，不占屏）
+
+```bash
+# 会话对象（dry-run，不 grant/不抬窗）
+YS_SESSION_PATH=/tmp/ys-s.json tools/ys-editor/ys-session begin --seconds 60 --dry-run
+YS_SESSION_PATH=/tmp/ys-s.json tools/ys-editor/ys-scroll --at 1,1 --rows 5 --plan
+YS_SESSION_PATH=/tmp/ys-s.json tools/ys-editor/ys-esc --plan
+
+# 步长闭环模拟（W1 真机 5 屏）
+python3 .scratch/gui-service/step_sim.py
+
+# 条带 OCR 离线判据（当前 pass=False）
+python3 .scratch/gui-service/strip_probe.py
+
+# daemon 预热首调（重启后等「感知预热完成」再跑）
+python3 - <<'PY'
+import sys,os,time,json; sys.path.insert(0,'.scratch/gui-service'); import instruments as I
+F=os.path.abspath('.scratch/gui-corpus/f06.png'); P=os.path.abspath('.scratch/gui-profiles/qianxing.json')
+t=time.time(); r=I.daemon_rpc({"cmd":"world","frame":F,"profile":P,"ocr":False,"objects":True,"structure":True,"cache":False},timeout=120)
+print(round((time.time()-t)*1000,1), json.dumps(r.get("timing"),ensure_ascii=False))
+PY
+```
+
+## 4. 真机轮次申请（待 Lead 向用户申请，不自行占屏）
+
+- **1×60s**：`ys-session begin` → 会话内 `ys-esc`（去 sleep）+ `ys-scroll --rows 5` + `look` 循环 → 扫好友列表到第一个 ≥30 天（或到 55s 硬停）。
+- 失败判据：①任一动作 rc≠0 立即停手 revoke 并贴原始输出；②`frame_source` 出现 `import-fallback` 记降级；③扫描 5 行步长出现行名断档（跳行）即判 L5 失败。
+- 成功判据：找到第一个 `N天前` N≥30 的行并留 crop；有效占用比 ≥60%；单次滚动 ≤2s。

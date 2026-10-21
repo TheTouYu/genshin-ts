@@ -139,3 +139,18 @@ time python3 tools/ys-editor/ys-list --frame .scratch/gui-corpus/evidence-friend
 2. **帧加载去 CPU 临时数组**：uint8 张量直接上 GPU 再 `/255`（旧写法在 CPU 造两份 44MB float32）；PNG 解码跳过 `.convert("RGB")` 整帧复制。
 
 **未采纳（有读数）**：OCR det 输入长边 2000→1600 只省 17ms（156→139ms），字符召回掉到 **93.97%**（min 92.0%，漏 15/172 框，全是 `min:/max:/FPS` 小字）；1280 掉到 83.1%。**召回不降是硬约束 ⇒ 不降 det 尺度。**
+
+## 2026-10-21 反馈轮：真机固定开销拆解与会话化（离线可复现）
+
+| 项 | 前（真机 W1-retry2） | 后（离线/代码） | 判据 |
+|---|---|---|---|
+| 单次滚动 | **5.32s p50**（自建 slot） | 会话内直注入：注入 1.05s + settle 0.15s + look 0.8s ≈ **2.0s/屏**（真机待 60s 验证） | `ys-scroll --plan` 会话命中 in_slot=true |
+| ESC | 6.65s（含固定 sleep 2.12s） | 固定等待 **0.2s**（`YS_ESC_SETTLE_MS`） | `ys-esc --plan` settle_ms=200 |
+| live 抓帧 | import 路径（非前台不可用；旧缓冲风险） | `ys-capture latest` **45.7ms p50**（36.2–45.7 热） | `_capture_frame_via_ys_capture` 4 次实测 |
+| daemon 首次 world | **2393.7ms**（detector 699.5 / state 970.2） | **375.3ms**（detector 37.1 / state 95.4） | 重启后等「感知预热完成」再跑 |
+| 预热后 warm world | — | **97.1ms**（load 0.1 / state 35.8 / objects 1.2 / detector 44.6 / structure 53.0） | 离线 f06 |
+| 扫描条带 OCR | — | 行召回 63.6/90.9/75.0%，行序 false，条带不比全帧快 ⇒ **不采用** | `strip_probe.py` pass=False |
+| 步长闭环 | clicks5≈4 行 / clicks40≈6 行 | 中位 **6.5 clicks/row** ⇒ 5 行=33–34 clicks；`--rows 5`→34；7 行视口 2 行重叠 | `step_sim.py` no_skip=True |
+| 有效占用比 | **19%**（42.1s 里 ~8.1s） | 会话循环算术 **≈89%**（目标 ≥60%） | 见报告 §0 |
+
+**未闭合**：真注入未验证（会话直注入/ESC 去 sleep/live 帧来源）；条带协议需真实连续滚动帧重测。
