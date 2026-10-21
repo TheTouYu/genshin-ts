@@ -1706,12 +1706,32 @@ def _capture_frame_via_ys_capture():
         raise WorldAttribError({"verdict": meta.get("error") or "CAPTURE_FAILED",
                                 "detail": meta.get("detail") or (p.stderr or "")[-300:],
                                 "rc": p.returncode, "src": "ys-capture"})
-    arr = np.asarray(Image.open(out).convert("RGB"), dtype=np.uint8)
+    _im = Image.open(out)
+    if _im.mode != "RGB":
+        _im = _im.convert("RGB")
+    arr = np.asarray(_im, dtype=np.uint8)
     attr = dict(meta.get("attribution") or {})
     attr.setdefault("src", "ys-capture")
     attr["capture_ms"] = meta.get("ms")
     attr["frame"] = meta.get("frame")
     return arr, attr
+
+
+def _capture_frame_soft():
+    """ys-capture 取帧的**可回退**版本：抓帧服务故障返回 (None, meta)，归属拒绝继续抛。
+
+    2026-10-21 反馈轮：live 默认走这条（23.5ms 抓帧 + 8.4ms 解码），失败才回退 import；
+    回退必须在回执里可见（timing.frame_source），不许静默换路径。
+    """
+    try:
+        arr, attr = _capture_frame_via_ys_capture()
+        return arr, attr
+    except WorldAttribError as e:
+        v = str((e.attr or {}).get("verdict") or "")
+        # 归属类拒绝（桌面不对/不在栈顶）不能回退——那是 fail-closed 的语义
+        if v.startswith(("OTHER_DESKTOP", "NOT_ATOP", "ATTRIBUTION", "UNKNOWN")):
+            raise
+        return None, dict(e.attr or {})
 
 
 def _world_frame(req):
@@ -1772,13 +1792,23 @@ def _world_frame(req):
                     _WORLD_FRAME.get("attrib"))
     else:
         # live：先做归属校验（票 34），不过就**不抓**（fail-closed，不返回像素）
-        # 帧源两条（显式开关 YS_LOOKD_FRAME_SRC）：
-        #   · default    = YL.grab（import -window，~100ms）
-        #   · ys-capture = 常驻 XShm（~13ms；**归属闸门在守护进程里，且 KWin 才是权威**——
-        #     实测 EWMH 的 _NET_WM_DESKTOP 会把桌面说错，正是票 34 的 fail-open 根因）
-        if os.environ.get("YS_LOOKD_FRAME_SRC") == "ys-capture":
-            arr, attr = _capture_frame_via_ys_capture()
+        # 帧源（2026-10-21 反馈轮）：默认 ys-capture（23.5ms 抓帧+8.4ms 解码），
+        # 失败明确回退 import 并在回执标 frame_source；禁止把 import 当默认（旧缓冲/敲铃）。
+        # YS_LOOKD_FRAME_SRC=import 可显式回到旧路径（对照实验用）。
+        mode = os.environ.get("YS_LOOKD_FRAME_SRC", "ys-capture")
+        frame_source = "ys-capture"
+        if mode == "ys-capture":
+            arr, attr = _capture_frame_soft()
+            if arr is None:
+                frame_source = "import-fallback"
+                attr = _world_attrib()
+                if attr.get("verdict") != "OK":
+                    raise WorldAttribError(attr)
+                attr["capture_error"] = str((attr or {}).get("error") or "")[:200]
+                YS = ys_state()
+                arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
         else:
+            frame_source = "import"
             attr = _world_attrib()
             if attr.get("verdict") != "OK":
                 raise WorldAttribError(attr)
@@ -1801,6 +1831,7 @@ def _world_frame(req):
         It = It.float().div_(255.0)
     _WORLD_FRAME.update({"key": key, "arr": arr, "It": It, "half": None, "sha": sha,
                          "w": W, "h": H, "path": path, "source": src,
+                         "frame_source": (frame_source if src == "live" else src),
                          "attrib": attr if src == "live" else None})
     return arr, It, sha, W, H, src, _WORLD_FRAME.get("attrib")
 
@@ -2244,6 +2275,7 @@ def _world(req):
                    # total_full_ms 是真正的端到端（含检测+结构）——报告一律用后者。
                    "total_ms": round((t_after_obj - t0) * 1000, 1),
                    "total_full_ms": round((t_after_structure - t0) * 1000, 1),
+                   "frame_source": _WORLD_FRAME.get("frame_source"),
                    "objects_reuse": "prev-page" if obj_reuse else None,
                    "structure_reuse": "prev-page" if struct_reuse else None,
                    "page_diff": None if reuse_diff is None else round(float(reuse_diff), 3),
@@ -2444,7 +2476,9 @@ def serve():
         prof = YS.load_profile(YS.PROFILE_DEFAULT)
         jobs, _ = YS.anchor_jobs(prof)
         I = torch.rand(3, 512, 512, device="cuda")
-        _batch_on(I, jobs[:1])
+        # 2026-10-21 反馈轮：只预热 1 个锚点不够——模板 PNG 是逐个加载的，
+        # 首次 world 的 state 段实测 795.8ms；全量预热后应回到 ~35ms。
+        _batch_on(I, jobs)
         print(f"[ys-lookd] 判态热路径预热完成（{len(jobs)} 锚点 profile 已加载）", flush=True)
     except Exception as e:
         print(f"[ys-lookd] 判据模块加载失败（state/probe 命令不可用）: "
@@ -2463,8 +2497,32 @@ def serve():
             print(f"[ys-lookd] OCR 预热完成（{round((time.time()-t0)*1000)}ms）", flush=True)
         except Exception as e:                            # noqa: BLE001
             print(f"[ys-lookd] OCR 预热失败（不影响启动）: {type(e).__name__}: {e}", flush=True)
+    def _warm_perception():
+        """预热容器层模块 + D2 两种检测器（world 专家/v2）。
+
+        2026-10-21 反馈轮实测：daemon 重启后第一次 world 的 detector_ms=**699.5ms**
+        （模型懒加载 + cuDNN 首次 kernel）；离线帧 f06 冷首调 wall 2393.7ms。
+        """
+        try:
+            t0 = time.time()
+            _ys_screen()
+            import numpy as _np
+            _dummy = _np.zeros((360, 640, 3), dtype=_np.uint8)
+            for _st in ("GAME_WORLD", "GAME_FRIENDS"):
+                try:
+                    # 只构造 Detector 不会加载权重/跑 forward（_ensure 在 detect 里）；
+                    # 必须真跑一次 dummy，才能把权重 + cuDNN 首次 kernel 付掉。
+                    _d, _ = _detector_for(_st)
+                    _d.detect(_dummy)
+                except Exception as _e:                  # noqa: BLE001
+                    print(f"[ys-lookd] 检测器预热跳过 {_st}: {type(_e).__name__}: {_e}", flush=True)
+            print(f"[ys-lookd] 感知预热完成（ys-screen + D2 双模型，{round((time.time()-t0)*1000)}ms）",
+                  flush=True)
+        except Exception as e:                            # noqa: BLE001
+            print(f"[ys-lookd] 感知预热失败（不影响启动）: {type(e).__name__}: {e}", flush=True)
     import threading as _th
     _th.Thread(target=_warm_ocr, daemon=True, name="warm-ocr").start()
+    _th.Thread(target=_warm_perception, daemon=True, name="warm-perception").start()
     print(f"[ys-lookd] listening {SOCK}", flush=True)
     # accept 设超时：否则 recv 阻塞时**没有任何机会**执行闲置检查（超时释放就永远不触发）。
     # 30s 一轮足够准（阈值是 600s 量级），又不会空转耗 CPU。
