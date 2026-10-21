@@ -1,0 +1,264 @@
+{
+ "frames": [
+  {
+   "frame": "f00.png",
+   "base": {
+    "total_ms": 404.4,
+    "det_ms": 244.2,
+    "rec_ms": 127.5,
+    "n_objects": 29
+   },
+   "1600": {
+    "total_ms": 351.0,
+    "det_ms": 171.9,
+    "rec_ms": 154.5,
+    "n_objects": 28,
+    "n_base": 29,
+    "n_cand": 28,
+    "char_recall": 0.939,
+    "missing_boxes": 2,
+    "missing_examples": [
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 260.6,
+    "det_ms": 114.3,
+    "rec_ms": 120.0,
+    "n_objects": 24,
+    "n_base": 29,
+    "n_cand": 24,
+    "char_recall": 0.7805,
+    "missing_boxes": 8,
+    "missing_examples": [
+     "FPS: 60.3",
+     "X",
+     "20",
+     "X",
+     "min:"
+    ]
+   }
+  },
+  {
+   "frame": "f01.png",
+   "base": {
+    "total_ms": 434.0,
+    "det_ms": 223.2,
+    "rec_ms": 180.6,
+    "n_objects": 27
+   },
+   "1600": {
+    "total_ms": 343.4,
+    "det_ms": 138.8,
+    "rec_ms": 178.4,
+    "n_objects": 26,
+    "n_base": 26,
+    "n_cand": 26,
+    "char_recall": 0.9489,
+    "missing_boxes": 2,
+    "missing_examples": [
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 362.4,
+    "det_ms": 94.4,
+    "rec_ms": 241.6,
+    "n_objects": 20,
+    "n_base": 26,
+    "n_cand": 20,
+    "char_recall": 0.858,
+    "missing_boxes": 6,
+    "missing_examples": [
+     "X",
+     "X",
+     "min:",
+     "13.8 ms",
+     "max:"
+    ]
+   }
+  },
+  {
+   "frame": "f02.png",
+   "base": {
+    "total_ms": 343.7,
+    "det_ms": 167.9,
+    "rec_ms": 150.2,
+    "n_objects": 28
+   },
+   "1600": {
+    "total_ms": 827.6,
+    "det_ms": 120.6,
+    "rec_ms": 681.8,
+    "n_objects": 25,
+    "n_base": 27,
+    "n_cand": 25,
+    "char_recall": 0.9322,
+    "missing_boxes": 3,
+    "missing_examples": [
+     "N",
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 278.5,
+    "det_ms": 93.3,
+    "rec_ms": 156.5,
+    "n_objects": 20,
+    "n_base": 27,
+    "n_cand": 20,
+    "char_recall": 0.8475,
+    "missing_boxes": 7,
+    "missing_examples": [
+     "X",
+     "N",
+     "X",
+     "min:",
+     "13.9 ms"
+    ]
+   }
+  },
+  {
+   "frame": "f03.png",
+   "base": {
+    "total_ms": 325.1,
+    "det_ms": 157.2,
+    "rec_ms": 141.4,
+    "n_objects": 28
+   },
+   "1600": {
+    "total_ms": 299.9,
+    "det_ms": 121.7,
+    "rec_ms": 149.0,
+    "n_objects": 26,
+    "n_base": 27,
+    "n_cand": 26,
+    "char_recall": 0.9422,
+    "missing_boxes": 2,
+    "missing_examples": [
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 272.8,
+    "det_ms": 93.8,
+    "rec_ms": 153.4,
+    "n_objects": 23,
+    "n_base": 27,
+    "n_cand": 23,
+    "char_recall": 0.8382,
+    "missing_boxes": 4,
+    "missing_examples": [
+     "min:",
+     "6.2 ms",
+     "max:",
+     "27.2 ms"
+    ]
+   }
+  },
+  {
+   "frame": "f04.png",
+   "base": {
+    "total_ms": 354.9,
+    "det_ms": 192.1,
+    "rec_ms": 139.1,
+    "n_objects": 30
+   },
+   "1600": {
+    "total_ms": 331.3,
+    "det_ms": 147.9,
+    "rec_ms": 156.8,
+    "n_objects": 29,
+    "n_base": 30,
+    "n_cand": 29,
+    "char_recall": 0.9557,
+    "missing_boxes": 3,
+    "missing_examples": [
+     "W",
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 293.9,
+    "det_ms": 105.8,
+    "rec_ms": 164.9,
+    "n_objects": 26,
+    "n_base": 30,
+    "n_cand": 26,
+    "char_recall": 0.8177,
+    "missing_boxes": 7,
+    "missing_examples": [
+     "FPS: 60.3",
+     "X",
+     "W",
+     "min:",
+     "6.7 ms"
+    ]
+   }
+  },
+  {
+   "frame": "f05.png",
+   "base": {
+    "total_ms": 503.6,
+    "det_ms": 274.3,
+    "rec_ms": 205.0,
+    "n_objects": 33
+   },
+   "1600": {
+    "total_ms": 318.6,
+    "det_ms": 137.4,
+    "rec_ms": 156.9,
+    "n_objects": 32,
+    "n_base": 33,
+    "n_cand": 32,
+    "char_recall": 0.9204,
+    "missing_boxes": 3,
+    "missing_examples": [
+     "食食會會",
+     "min:",
+     "max:"
+    ]
+   },
+   "1280": {
+    "total_ms": 301.3,
+    "det_ms": 106.6,
+    "rec_ms": 166.6,
+    "n_objects": 27,
+    "n_base": 33,
+    "n_cand": 27,
+    "char_recall": 0.8458,
+    "missing_boxes": 7,
+    "missing_examples": [
+     "出",
+     "60",
+     "X",
+     "min:",
+     "14.1 ms"
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "1600": {
+   "det_ms_p50": 138.8,
+   "total_ms_p50": 343.4,
+   "char_recall_mean": 0.9397,
+   "char_recall_min": 0.9204,
+   "missing_boxes": 15,
+   "n_base": 172
+  },
+  "1280": {
+   "det_ms_p50": 105.8,
+   "total_ms_p50": 293.9,
+   "char_recall_mean": 0.8313,
+   "char_recall_min": 0.7805,
+   "missing_boxes": 39,
+   "n_base": 172
+  }
+ }
+}

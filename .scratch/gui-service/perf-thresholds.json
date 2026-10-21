@@ -1,0 +1,24 @@
+{
+ "schema": "gui.perception/perf-thresholds/1",
+ "updated": "2026-10-21",
+ "note": "bars=AGI-BAR 目标（只 WARN）；regression=本机实测 p50 留 1.5–2× 余量的回归线（FAIL 即退化）",
+ "bars": {
+  "cache_hit": 5,
+  "steady_full": 50,
+  "steady_fast": 50,
+  "state": 50,
+  "act_dry": 50,
+  "look_fast_warm": 50
+ },
+ "regression": {
+  "cache_hit": 10,
+  "steady_full": 120,
+  "steady_fast": 120,
+  "state": 90,
+  "containers_cold": 420,
+  "ocr_objects_cold": 900,
+  "world_cold": 1100,
+  "look_fast_warm": 130,
+  "act_dry": 130
+ }
+}
