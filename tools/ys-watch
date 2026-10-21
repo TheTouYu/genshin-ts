@@ -243,11 +243,48 @@ def tile_scan(ra, rb, grid):
 
 
 # --------------------------------------------------------------------------- 文字层
+def _daemon_ocr(frame_path, roi):
+    """常驻 ys-lookd 的 OCR 通道（2026-10-21 性能）：省掉每次 `ys_ocr.py` 子进程
+    1–3s 的引擎冷启动。失败返回 (None, err) 由调用方回退本地子进程；判据与输出形状不变。"""
+    import socket
+    sock = os.environ.get('YS_LOOKD_SOCK') or '/run/user/%d/ys-lookd.sock' % os.getuid()
+    if not os.path.exists(sock):
+        return None, 'no-daemon'
+    req = {'cmd': 'ocr', 'frame': os.path.abspath(frame_path)}
+    if roi:
+        req['region'] = [int(roi['x']), int(roi['y']), int(roi['w']), int(roi['h'])]
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(30)
+        s.connect(sock)
+        s.sendall((json.dumps(req) + '\n').encode())
+        buf = b''
+        while not buf.endswith(b'\n'):
+            chunk = s.recv(1 << 20)
+            if not chunk:
+                break
+            buf += chunk
+        s.close()
+        d = json.loads(buf.decode())
+    except Exception as exc:                                  # noqa: BLE001
+        return None, '%s: %s' % (type(exc).__name__, exc)
+    if d.get('error'):
+        return None, str(d['error'])[:200]
+    return d.get('boxes') or [], {'source': 'daemon', 'ms': d.get('ms') or 0,
+                                  'n_total': d.get('n_total') or 0, 'err': None}
+
+
 def ocr_boxes(frame_path, frame_sha, roi, key_extra, use_cache=True, debug=False):
     """对 ROI 裁区做 OCR。返回 (boxes, meta)；boxes 是**全帧绝对坐标**。
 
     fail-closed：后端缺/OCR 跑失败都返回 err（绝不返回空列表冒充"这块没字"）。
     """
+    if os.environ.get('YS_WATCH_OCR_DAEMON') == '1':
+        boxes, meta = _daemon_ocr(frame_path, roi)
+        if boxes is not None:
+            return boxes, meta
+        if debug:
+            eprint('[ys-watch] 常驻 OCR 不可用，回退本地子进程：%s' % meta)
     from PIL import Image
     tmp = tempfile.mkdtemp(prefix='ys-watch-ocr-')
     try:

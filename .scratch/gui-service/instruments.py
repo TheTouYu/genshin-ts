@@ -324,10 +324,18 @@ def daemon_rpc(req, *, timeout=None):
     return out
 
 
-def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True, cache=True,
-                     timeout=180):
-    """世界状态仪器（ys-lookd cmd=world，**新版服务才有**；旧服务会报 unknown cmd）。"""
-    req = {"cmd": "world", "ocr": bool(ocr), "objects": bool(objects), "cache": bool(cache)}
+def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True,
+                     structure=True, cache=True, apply_uid=False, timeout=180):
+    """世界状态仪器（ys-lookd cmd=world，**新版服务才有**；旧服务会报 unknown cmd）。
+
+    structure=False 是 2026-10-21 新增的快速路径（跳过 D2 检测 + D3 结构层）；
+    请求里显式给 `structure` 键，旧服务会忽略未知键、语义仍是全量。
+    """
+    req = {"cmd": "world", "ocr": bool(ocr), "objects": bool(objects),
+           "structure": bool(structure), "cache": bool(cache)}
+    if apply_uid:
+        # 帧来自文件但内容是活体抓帧 ⇒ 仍做 UID 本体态补判（与 ys-state 同判据）
+        req["apply_uid"] = True
     if frame:
         req["frame"] = os.path.abspath(frame)
     if profile:
@@ -367,8 +375,13 @@ def parse_json_doc(stdout, *, what):
 
 
 def _ocr_env():
-    """沙箱/无 GPU 环境强制 ys_ocr 走 CPU（否则 ORT 的 EP 错误会污染 stdout）。"""
-    env = {}
+    """ys-watch / ys-detail 的 OCR 环境。
+
+    YS_WATCH_OCR_DAEMON=1：让 ys-watch 优先走常驻 ys-lookd 的 OCR（2026-10-21 实测：
+    子进程 ys_ocr 每次 1–3s，daemon 热 45ms 级）；不可用时它自己回退本地子进程。
+    YS_OCR_CPU：沙箱/无 GPU 环境强制走 CPU（否则 ORT 的 EP 错误会污染 stdout）。
+    """
+    env = {"YS_WATCH_OCR_DAEMON": "1"}
     try:
         if not os.path.exists("/dev/nvidia0"):
             env["YS_OCR_CPU"] = "1"
