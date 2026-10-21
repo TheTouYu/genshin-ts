@@ -46,7 +46,10 @@ fail-closed（票 34 的红线，客户端 `ys-capture latest` 执行）：
 
 用法：
   ys-capture serve [--fps 10] [--ring 4] [--pre bmp,png] [--dir /dev/shm/ys-capture]
-                   [--win 0x01400001|auto] [--class yuanshen.exe]
+                   [--win 0x01400001|auto] [--
+
+
+class yuanshen.exe]
                    [--fast-sec 0.3] [--strict-sec 1.5]
   ys-capture latest [--out FILE] [--format bmp|png|jpg|raw] [--max-age-ms 1000]
                     [--strict-ttl-ms 6000] [--allow-background] [--json]
@@ -120,6 +123,20 @@ def window_geometry(dpy, win):
         return 0, 0
     return int(w.value), int(h.value)
 
+
+def write_rgb_atomic(path, rgb):
+    """**原子落盘**（2026-10-21 修复）。
+
+    原实现是 `open(path,'wb')` 原地写 11MB：读者可能打开到"写到一半"的文件——
+    实测症状就是同一张图里**标题区已是新角色、头像区还是旧角色**（撕裂帧）。
+    tmp + os.replace 保证读者只会看到完整帧（rename 在同一文件系统内原子）。
+    """
+    tmp = path + '.tmp'
+    with open(tmp, 'wb') as f:
+        f.write(rgb)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
 
 class XErrorEvent(ctypes.Structure):
     _fields_ = [('type', ctypes.c_int), ('display', ctypes.c_void_p),
@@ -888,8 +905,7 @@ class Daemon:
             else:
                 self.last_crc = crc
                 rgb_path = os.path.join(self.dir, f'f-{self.seq:09d}.rgb')
-                with open(rgb_path, 'wb') as f:
-                    f.write(rgb)              # buffer protocol，省掉 tobytes 的 11MB 拷贝
+                write_rgb_atomic(rgb_path, rgb)   # 原子：读者不会看到半帧（2026-10-21）
                 self.last_rgb_path = rgb_path
                 self.frames_written += 1
             if changed:
@@ -919,7 +935,12 @@ class Daemon:
     def _prune_rgb(self):
         files = sorted((os.path.join(self.dir, f) for f in os.listdir(self.dir)
                         if f.startswith('f-') and f.endswith('.rgb')))
-        for p in files[:-self.ring]:
+        keep = set(files[-self.ring:])
+        if getattr(self, 'last_rgb_path', None):
+            keep.add(self.last_rgb_path)   # state 正在引用的帧**绝不回收**（否则读者拿到已删除路径）
+        for p in files:
+            if p in keep:
+                continue
             try:
                 os.unlink(p)
             except OSError:

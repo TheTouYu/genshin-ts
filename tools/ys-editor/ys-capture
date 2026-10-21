@@ -48,7 +48,8 @@ recheck_desktop() {  # 0 = 目标窗确实在当前桌面（结论过期时现�
   [ -n "$ds" ] && [ -n "$cur" ] && [ "$ds" = "$cur" ]
 }
 
-deny() {  # deny <exit> <code> <detail>  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+deny() {  # deny <exit> <code> <detail>
+  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
   local extra=""
   if [ "$2" = "OTHER_DESKTOP" ]; then
     extra=',"next_action":[{"step":1,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe","--dry"],"why":"先看窗口在哪张桌面（只读）"},{"step":2,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe"],"why":"切过去要单独授权：先向用户申请，再设 YS_ALLOW_DESKTOP_SWITCH=1"}]'
@@ -89,6 +90,19 @@ cmd_latest() {
   now=$(date +%s%N)
   age_ms=$(( (now - wall_ns) / 1000000 ))
   [ -n "${rgb:-}" ] && [ -s "$rgb" ] || deny 8 STALE_FRAME "环形缓冲里没有可读帧（rgb=${rgb:-空}）"
+  # 帧文件必须**整帧完整**（2026-10-21：写帧改原子后这是第二道保险；
+  # 长度不等于 w*h*3 说明拿到的是半帧/回收中的文件，重读一次状态再判）。
+  _want=$(( fw * fh * 3 ))
+  _have=$(stat -c %s "$rgb" 2>/dev/null || echo 0)
+  if [ "$_have" != "$_want" ]; then
+    sleep 0.05
+    IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
+      fast fage strict sage ssrc win klass _pid dpid mode fsrc visible < "$STATE"
+    _want=$(( fw * fh * 3 ))
+    _have=$(stat -c %s "$rgb" 2>/dev/null || echo 0)
+    [ -n "${rgb:-}" ] && [ "$_have" = "$_want" ] || deny 8 FRAME_RACE \
+      "帧文件不完整（${_have:-0} 字节，应为 ${_want}）：半帧/正在回收，重读一次仍不行"
+  fi
   [ "$age_ms" -le "$MAX_AGE_MS" ] || deny 8 STALE_FRAME "最新帧已 ${age_ms}ms 旧（> --max-age-ms=$MAX_AGE_MS）"
   # ── background 模式（--source window）：**按窗口抓，不要求可见**；只查身份与新鲜度。
   #    绝不冒充「在栈顶」：输出固定带 capture_mode=background 与 visible/src。
