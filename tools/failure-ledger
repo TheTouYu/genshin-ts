@@ -69,16 +69,20 @@ def cmd_add(a):
         print('错误：class 必须是 %s 之一' % '/'.join(CLASSES), file=sys.stderr)
         return 2
     rows = load()
-    rid = a.get('id') or 'F-%s-%02d' % (a.get('date', '').replace('-', ''), len(rows) + 1)
+    rid = a.get('id') or 'F-%s-%02d' % ((a.get('date') or '').replace('-', '') or 'nodate',
+                                        len(rows) + 1)
     if a['status'] == 'prevented' and not a.get('gate'):
         print('错误：status=prevented 必须给 --gate（否则和 open 没区别）', file=sys.stderr)
         return 2
     if a.get('gate') and a['gate'] not in read_gates():
         print('错误：gate=%s 不在 %s 里；先登记检查命令' % (a['gate'], GATES), file=sys.stderr)
         return 2
-    row = dict(zip(COLS, [rid, a.get('date', ''), a['class'], a['symptom'], a.get('evidence', ''),
-                          a.get('prevention', ''), a.get('gate', ''), a.get('inject', ''),
-                          a['status'], a.get('note', '')]))
+    # 2026-10-21 修：argparse 对「给了 flag 但没给值」与「没给 flag」都返回 None，
+    # `a.get('inject', '')` 只在 key 缺失时才有默认值 ⇒ 不传 --inject/--note 时写入即崩
+    # （TypeError: sequence item 7: expected str instance, NoneType found）。统一 None→''。
+    row = dict(zip(COLS, [rid, a.get('date') or '', a['class'], a['symptom'], a.get('evidence') or '',
+                          a.get('prevention') or '', a.get('gate') or '', a.get('inject') or '',
+                          a['status'], a.get('note') or '']))
     newfile = not os.path.exists(LEDGER)
     with open(LEDGER, 'a', encoding='utf-8') as fh:
         if newfile:

@@ -100,6 +100,23 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
    判据只写在两条路径之一（state 漂移）、结果算出来没透出去（detections 不暴露）、
    条件回退被单个假阳性短路（"容器为空才回退"，世界里 CV 吐 1 个假 panel ⇒ 57 个真框全丢）。
 
+## 四条 2026-10-21 回灌（「仪表说没事、其实没做事」）
+
+1. **服务活着 ≠ 在产帧**。`systemctl --user is-active ys-capture` 是 active、`latest` 却回
+   `DAEMON_DOWN`：因为守护进程起来了但每帧 `XShmGetImage xerr=8`（窗口 id 写死旧值 / 发现逻辑挑到同
+   class 的子窗），而失败**零日志**。判据：`ys-capture status` 看 `state.seq` 是否在涨、`last_err` 是否空；
+   排查看守护自己的 stdout 有没有 `stage=grab` 行。现在它是 systemd 常驻（`ys-capture.service`），
+   机械防线 = 失败账本 `capture-liveness` 闸门。
+2. **滚动必须能回答「动没动」**。`ys-scroll` 画面逐像素一致时**旧版照样 rc=0**，我因此连吃 3 次空滚。
+   现在回执有 `frame_diff` + `moved_confirmed`（`null`/`false`/`true`），没动即 **rc=6 NO_MOVEMENT**；
+   `--no-verify` 只用于「只要注入、不要证据」的场合，它**不回答**动没动。
+3. **动作前先等 `settled`**。`world` 回执的 `settled.same_as_prev` 必须是 `true` 再点击：
+   派蒙菜单打开后布局还在漂移（实测 tile 网格 y 从 478/668/856/1046 变成 452/572/760/950，约 94px），
+   照首读 bbox 点 (677,556) 会落到「角色」而不是「好友」；稳定要 **8.8s**。
+4. **状态词表已经细分到面板级**：`GAME_FRIENDS`（「好友」标题 + `/200` 计数）、`GAME_CHARACTER`
+   （「命之座」+「圣遗物」）。同层冲突由 `PRECEDENCE` 消歧（面板 3 > 派蒙/活动 2 > 世界 1），
+   并列仍 `AMBIGUOUS`。**走到派蒙菜单里的二级页面时，别再用 `GAME_WORLD` 当判据**。
+
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：

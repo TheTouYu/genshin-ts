@@ -292,9 +292,12 @@ def main():
         if args.json:
             with open(args.json, 'w') as f:
                 json.dump(res, f, ensure_ascii=False, indent=1)
+        # 2026-10-21（门禁 G-WHITELIST 抓到的存量违规）：这里原先把每步投影到
+        # ('label','changed_px','latency_ms','verdict') 四个键 —— **error / out / xy_screen 全被丢掉**，
+        # 而 'out' 正是点击失败时唯一能回答「为什么失败」的字段（静默蒸发）。
+        # 改为整体透传；顺手把大字段裁到既有上限（out 在构造时已截 400 字符）。
         print(json.dumps({'verdict': res['verdict'],
-                          'steps': [{k: s.get(k) for k in ('label', 'changed_px', 'latency_ms', 'verdict')}
-                                    for s in steps],
+                          'steps': steps,
                           'idle_noise_px': res.get('idle_noise_px')}, ensure_ascii=False))
         return rc
     finally:

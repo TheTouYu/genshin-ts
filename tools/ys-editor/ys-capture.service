@@ -1,0 +1,14 @@
+[Unit]
+Description=ys-capture - 常驻抓帧守护（XShm + KWin 归属校验）
+After=graphical-session.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:1
+Environment=YS_WIN=auto
+ExecStart=/usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_capture.py serve --fps 10 --ring 4 --pre bmp
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

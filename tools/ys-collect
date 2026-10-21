@@ -9,8 +9,9 @@
     ③ fingerprint.json  规则集版本 + 模型 sha + 工具 sha + git HEAD（没它下一版无法对比）
     ④ truth.json     真值 bbox（初始为空模板，由人或代理标，用户抽审）
 
-判据（状态）复用同一个两像素探针，全仓只在 drive.py/本文件各出现一次：
-  px(467,556)≈(236,229,216) 且 px(600,900)≈(80,89,107)  ⇒ 在派蒙菜单
+判据（状态）：**本文件不复制任何判据**，一律问 `tools/ys-editor/ys-state`。
+  2026-10-21 门禁⑤（单一源）实测本文件复制过「派蒙菜单两像素探针」⇒ 已删。
+  `is_menu()` 现在 = `ys-state --json` 的 `state == GAME_PAIMON`（判据只有一处实现）。
 
 子命令：
   ys-collect new <case> --at menu|world --n 8 [--gap 0.5] [--keep]
@@ -41,9 +42,8 @@ SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
 ENV = dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":0"))
 
 # —— 状态判据（与 .scratch/gui-feedback/drive.py 同源；改这里要同时改那儿，或合并）——
-MENU_P1 = ((467, 556), (236, 229, 216))
-MENU_P2 = ((600, 900), (80, 89, 107))
-TOL = 14
+YS_STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "ys-editor", "ys-state")
 ESC = 1
 MAX_N = 30
 
@@ -63,18 +63,18 @@ def daemon(req, timeout=60):
     return json.loads(buf.decode())
 
 
-def px(x, y):
-    return tuple(int(t) for t in daemon({"cmd": "px", "x": x, "y": y})["v"].split())
-
-
-def near(a, b, tol=TOL):
-    return all(abs(a[i] - b[i]) <= tol for i in range(3))
-
-
 def is_menu():
+    """派蒙菜单？——判据**只在 ys-state 一处**（GAME_PAIMON）。
+
+    2026-10-21：门禁⑤（单一源）抓到本文件复制了「两像素探针」，已删；改为问唯一实现。
+    代价是每次检查多花 1~3s（ys-state 全通道含 OCR），但 only 在**切换态**时调用（≤4 次）。
+    """
     try:
-        return near(px(*MENU_P1[0]), MENU_P1[1]) and near(px(*MENU_P2[0]), MENU_P2[1])
-    except Exception:
+        p = subprocess.run([YS_STATE, "--json"], capture_output=True, text=True,
+                           timeout=90, env=ENV)
+        lines = [l for l in (p.stdout or "").splitlines() if l.strip()]
+        return bool(lines) and json.loads(lines[-1]).get("state") == "GAME_PAIMON"
+    except Exception:                                       # noqa: BLE001
         return False
 
 

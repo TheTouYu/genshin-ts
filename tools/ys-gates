@@ -40,7 +40,14 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('domain-selftest', 'domain-selftest.sh', 180),
           # 2026-10-18 事故回灌：客户端提前断开曾把 ys-lookd 掀翻 ⇒ 后续判定全线回退本地（慢 4 倍），
           # 表现成门槛② 的「间歇性假红」。这条守的是**仪器本身的可用性**，要先在这里失败。
-          ('daemon-resilience', 'daemon-resilience.selftest.sh', 120)]
+          ('daemon-resilience', 'daemon-resilience.selftest.sh', 120),
+          # 2026-10-21 事故回灌（三条，全是「仪表说没事、其实没做事」）：
+          #   lookd-wedge    单线程服务被一个卡住的请求钉死（recv 无超时 / handler 无看门狗）
+          #   scroll-movement 滚动后画面逐像素一致却 rc=0（假成功）
+          #   state-precedence 面板态被标成 GAME_WORLD（词表缺态 + 无具体度消歧）
+          ('lookd-wedge', 'lookd-wedge.selftest.py', 180),
+          ('scroll-movement', 'scroll-movement.selftest.py', 90),
+          ('state-precedence', 'state-precedence.selftest.py', 90)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {
@@ -130,7 +137,9 @@ def gate2():
             suites[name] = {'ok': False, 'note': '缺脚本'}
             g['gaps'].append('缺防护套件：%s' % script)
             continue
-        src, sout, serr, sms = run(['bash', sp], timeout=tmo)
+        # .py 套件用 python3 跑（2026-10-21：三个新套件是 Python，bash 跑会直接语法错）
+        _argv = ['python3', sp] if sp.endswith('.py') else ['bash', sp]
+        src, sout, serr, sms = run(_argv, timeout=tmo)
         last = [l for l in (sout + '\n' + serr).splitlines() if l.strip()]
         suites[name] = {'ok': src == 0, 'rc': src, 'ms': sms,
                         'last': (last[-1][:100] if last else '')}

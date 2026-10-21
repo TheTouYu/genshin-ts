@@ -324,12 +324,24 @@ frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
 
 | 事实 | 唯一来源 | 本服务怎么用 |
 |---|---|---|
-| 界面状态 11 态 | `tools/ys-editor/ys-state` | CLI 调用；状态名词表直接读其 `STATES` 元组 |
+| 界面状态 13 态（含 2026-10-21 新增的 `GAME_FRIENDS` / `GAME_CHARACTER`） | `tools/ys-editor/ys-state` | CLI 调用；状态名词表直接读其 `STATES` 元组；同层冲突由 `PRECEDENCE`（面板 3 > 派蒙/活动 2 > 世界 1）消歧，并列仍 `AMBIGUOUS` |
 | 对象/容器 | `tools/ys-screen --containers` | CLI 调用；只做 schema 映射 |
 | 取帧新鲜度 | `tools/ys-editor/ys-observe frame` | CLI 调用；**先 ys-atop，不抬窗** |
 | 栈顶判定 | `tools/ys-editor/ys-atop` | 退出码 0/1/2 |
 | 意图 pre/post/账本 | `tools/ys-editor/ys-do` | 只读 actions/*.json；真执行需焦点授权 |
 | 注入 | `tools/ys-editor/ys-gui-slot` | 默认禁用（allow_inject=False） |
+| 抓帧守护健康 | `tools/ys-editor/ys-capture` | 只读 `status`（`daemon_alive` + `seq>0` + `last_err` 空）；机械防线 = `failure-ledger` 的 `capture-liveness` |
+
+### 6.1 三条「仪表不许说没事」的硬约束（2026-10-21 事故回灌）
+
+1. **单请求上界**：`ys_lookd` 是单线程串行服务，连接级 `recv` 有 `YS_LOOKD_RECV_TIMEOUT=10s`，
+   handler 有 `SIGALRM` 看门狗 `YS_LOOKD_HANDLER_TIMEOUT=90s`；超时回 `RECV_TIMEOUT` /
+   `HANDLER_TIMEOUT`（**不许静默挂住**）。客户端 `daemon_rpc` 默认 60s，超时单列 `DAEMON_TIMEOUT`
+   并在消息里直接给出恢复命令。
+2. **画面稳定信号**：`world` 回执带 `settled.same_as_prev`；动作前要求它变 `true`（本机实测
+   菜单打开后要 8.8s 才稳定，期间照旧 bbox 点击会落到相邻格子）。
+3. **动作要能回答「动没动」**：`ys-scroll` 回执带 `frame_diff` 与 `moved_confirmed` 三态
+   （`None`=没验 / `False`=没动 / `True`=动了），没动时退出码 `6 NO_MOVEMENT`。
 
 ## 7. 失败语义（fail-closed 一览）
 
