@@ -122,9 +122,45 @@ def lease_key(lease):
     return "%s|%s|%s" % (lease.get("acquired_at"), lease.get("owner_pid"), pid)
 
 
+GRANT = os.environ.get("YS_SCREEN_GRANT_PATH", os.path.expanduser("~/.ys/screen-grant.json"))
+
+
+def enforce_grant_expiry(verbose=False):
+    """**租期到期必须由机制归还**（用户 2026-10-21 第三次强调）：
+    「不能靠模型自觉，要做成机制——我给了 120s，几分钟都没把窗口切回来」。
+
+    旧设计只在有人调 `ys-screen-grant status/revoke` 时才交还；没人调 = 屏幕永久被占。
+    这里让常驻守护（0.5s 轮询）**自己**发现过期并交还，不依赖调用方记得。
+    返回 1 = 本次做了交还动作。
+    """
+    try:
+        if not os.path.exists(GRANT):
+            return 0
+        rec = json.load(open(GRANT))
+    except Exception:                                    # noqa: BLE001
+        return 0
+    left = float(rec.get("expires", 0)) - time.time()
+    if left > 0:
+        return 0
+    # 已过期：交还一次，然后清凭据（幂等）
+    try:
+        p = subprocess.run([os.path.join(os.path.dirname(os.path.abspath(__file__)), "ys-hand-back")],
+                           capture_output=True, text=True, timeout=45)
+        log(f"GRANT_EXPIRED hand_back rc={p.returncode} out={(p.stdout or p.stderr).strip()[:160]}")
+    except Exception as e:                               # noqa: BLE001
+        log(f"GRANT_EXPIRED hand_back EXC {type(e).__name__}: {e}")
+    try:
+        os.unlink(GRANT)
+    except OSError:
+        pass
+    return 1
+
+
 def check_once(verbose=False, allow_stop=False):
     """返回 1 = 本应有租约要归还（已处理或失败）；0 = 无该归还的租约。"""
     global GLOBAL_FAILS
+    if enforce_grant_expiry(verbose):                    # 先执行"租期到期归还"这条机制
+        return 1
     if not os.path.exists(LEASE):
         return 0
     try:
