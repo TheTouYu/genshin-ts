@@ -77,7 +77,17 @@ def main():
     # 负例：没有 row 时不得给建议
     neg = ys_advice.ListTracker().observe(state_name="X", containers=[], detections=[],
                                           free_text=["我的好友 173/200"], enabled=True)
-    ok = (code == "SCANNING_LINEARLY" and idx == 2 and est_ok and neg == [])
+    # 2026-10-21：seek 能力实测只有 ~6 行（clicks clamp 5..80）⇒ 默认会诚实地给
+    # LINEAR_ONLY_NO_SEEK 而不是建议做不到的二分。两种都算通过，但必须在对的条件下出现：
+    #   · YS_SEEK_MAX_ROWS 足够大（假设有 seek）⇒ SCANNING_LINEARLY + estimate
+    #   · 默认（无 seek）⇒ LINEAR_ONLY_NO_SEEK 且 blocked_by=seek_capability
+    import os as _os
+    _seek = float(_os.environ.get("YS_SEEK_MAX_ROWS", "6"))
+    if _seek >= 100:
+        ok = (code == "SCANNING_LINEARLY" and idx == 2 and est_ok and neg == [])
+    else:
+        ok = (code == "LINEAR_ONLY_NO_SEEK" and idx == 2 and neg == [])
+
     print("ADVICE-RESULT screens=%d first=s%02d code=%s estimate_ok=%d neg=%d verdict=%s"
           % (len(advs), idx, code, 1 if est_ok else 0, 1 if neg == [] else 0,
              "PASS" if ok else "FAIL"))

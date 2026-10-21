@@ -18,7 +18,14 @@ advice 只建议：不阻断、不改行为、不回错。状态可清：换界�
 from __future__ import annotations
 
 import hashlib
+import os
 import math
+
+# 2026-10-21 真机实测（jump_probe，5 探针）：ys-scroll 的 clicks 被 clamp 5..80，
+# 一次最多只走 4.3–6.6 行 ⇒ **现在没有"跳到任意位置"的 seek 能力**。
+# 建议必须可执行：没有 seek 就不许建议二分（假建议比不说不更糟）。
+SEEK_MAX_ROWS = float(os.environ.get('YS_SEEK_MAX_ROWS', '6'))
+
 import re
 import statistics
 
@@ -193,16 +200,36 @@ class ListTracker:
         elif attrs_any and flat[-1] < flat[0]:
             order = "desc"
         if monotonic:
-            adv = {"code": "SCANNING_LINEARLY", "severity": "act-now", "why": why,
-                   "attribute": attr_name, "order": order,
-                   "how": "用二分：ys-scroll --rows <N> 跳到中部 → look → 按天数单调性折半；"
-                          "实现见 tools/ys-editor/ys-scan"}
-            if est:
-                adv["estimate"] = est
-                adv["cost_if_ignored"] = ("多花约 %.0fs（线性 %.0fs vs 二分 %.0fs），"
-                                          "且可能撞上 60s 授权上限"
-                                          % (est["linear_seconds"] - est["bisection_seconds"],
-                                             est["linear_seconds"], est["bisection_seconds"]))
+            _need = 0
+            if est and est.get("linear_screens_remaining"):
+                _need = int(est["linear_screens_remaining"]) // 2
+            _seek_ok = _need <= SEEK_MAX_ROWS
+            if _seek_ok:
+                adv = {"code": "SCANNING_LINEARLY", "severity": "act-now", "why": why,
+                       "attribute": attr_name, "order": order,
+                       "how": "用二分：ys-scroll --rows <N> 跳到中部 → look → 按天数单调性折半；"
+                              "实现见 tools/ys-editor/ys-scan"}
+                if est:
+                    adv["estimate"] = est
+                    adv["cost_if_ignored"] = ("多花约 %.0fs（线性 %.0fs vs 二分 %.0fs），"
+                                              "且可能撞上 60s 授权上限"
+                                              % (est["linear_seconds"] - est["bisection_seconds"],
+                                                 est["linear_seconds"], est["bisection_seconds"]))
+            else:
+                # **诚实的建议**：现在没有 seek 能力（clicks clamp 5..80 ⇒ 一次最多 ~6 行），
+                # 二分跳不到中部。就不许建议二分——给出"提高单屏吞吐/减少重叠"的可执行方向。
+                adv = {"code": "LINEAR_ONLY_NO_SEEK", "severity": "info",
+                       "why": why + "；但当前**没有 seek 能力**（单次最多 %.0f 行），二分跳不到中部"
+                              % SEEK_MAX_ROWS,
+                       "attribute": attr_name, "order": order,
+                       "how": "两条可执行路径：①把每屏净推进从 ~5 行提到接近视口 7 行（减少重叠）；"
+                              "②补 seek 原语（键盘 PageDown/End 或拖滚动条），再回到二分",
+                       "blocked_by": "seek_capability",
+                       "estimate": ({k: v for k, v in (est or {}).items()
+                                     if k in ("linear_screens_remaining", "linear_seconds",
+                                              "net_rows_per_step")} or None)}
+                if not adv["estimate"]:
+                    adv.pop("estimate")
         else:
             adv = {"code": "SUGGEST_JUMP_ONLY", "severity": "act-now",
                    "why": why + "；但属性序列不单调，先大跳再小步复核",
