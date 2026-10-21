@@ -49,13 +49,21 @@ run_frame() {
 }
 
 declare -A RC
+# 2026-10-21 性能（用户追问"4.5s 一帧"）：原来每帧起 3 个 `tools/ys-screen` 子进程（12 次），
+# 单次 CLI 4.29s 而同进程 analyze 只 1.57s —— 差额是**进程启动+首次初始化**，不是模块成本。
+# 改成 screen_runner 在**一个进程内**跑完全部 cold/warm/warm2（仍走 ys-screen 自己的 main()，
+# 语义与 CLI 一致），断言一条不动。
+python3 "$HERE/screen_runner.py" --fixture-dir "$FIX" --out "$TMP" --frames "${FRAMES[@]}" \
+  >"$TMP/runner.out" 2>"$TMP/runner.err" || {
+  echo "FAIL 前置：screen_runner 失败（期望 rc=0）" >&2
+  sed 's/^/     /' "$TMP/runner.err" | tail -8 >&2
+  exit 2
+}
 for f in "${FRAMES[@]}"; do
-  # 冷跑 = 本测试专属空缓存目录里的第一次（写缓存，但里面本来是空的）
-  run_frame "$f" cold; RC["$f:cold"]=$?
-  # 热跑 = 同一帧第二次 ⇒ 稳态单帧成本。跑两次取**最小值**：
-  # 本机常同时有别的 agent 在跑，单次读数会被 CPU 争抢污染（实测同一帧 0.7s / 1.4s 都有）。
-  run_frame "$f" warm;  RC["$f:warm"]=$?
-  run_frame "$f" warm2; RC["$f:warm2"]=$?
+  for _tag in cold warm warm2; do
+    RC["$f:$_tag"]=$(awk -F'\t' -v n="$f" -v t="$_tag" '$1==n && $2==t {print $3}' "$TMP/rc.tsv")
+    RC["$f:$_tag"]=${RC["$f:$_tag"]:-9}
+  done
   w1=$(cat "$TMP/$f.warm.ms" 2>/dev/null || echo 999999)
   w2=$(cat "$TMP/$f.warm2.ms" 2>/dev/null || echo 999999)
   if [ "$w2" -lt "$w1" ]; then cp "$TMP/$f.warm2.ms" "$TMP/$f.warm.ms"; fi
