@@ -251,3 +251,40 @@ PY
 - **1×60s**：`ys-session begin` → 会话内 `ys-esc`（去 sleep）+ `ys-scroll --rows 5` + `look` 循环 → 扫好友列表到第一个 ≥30 天（或到 55s 硬停）。
 - 失败判据：①任一动作 rc≠0 立即停手 revoke 并贴原始输出；②`frame_source` 出现 `import-fallback` 记降级；③扫描 5 行步长出现行名断档（跳行）即判 L5 失败。
 - 成功判据：找到第一个 `N天前` N≥30 的行并留 crop；有效占用比 ≥60%；单次滚动 ≤2s。
+
+---
+
+# 真机最终轮（反馈验证，2026-10-21 16:5x）
+
+> 用户授权：「允许它自己切桌面」（仅本轮）。55s 硬停；每轮结束已 `ys-session end`。
+
+## 四数字（能拿到的）
+| 指标 | 目标 | 实测 | 判定 |
+|---|---|---|---|
+| **有效占用比** | ≥60% | **71.2%**（inject 5449.7ms + verify 2806.3ms / 11.6s） | ✅ |
+| **单次滚动** | ≤2s | **1463ms p50**（34 clicks；inject 1286–1555ms + settle 150ms） | ✅ |
+| **单屏循环（滚+读）** | ≤3s | **2290ms p50** | ✅ |
+| **60s 内扫了几屏/几行** | — | **4 屏 / 16 行（14 unique）** 后误判 STALL；未到 ≥30 天边界 | ❌ 未完成 |
+
+导航（同一 session 链路，另一轮）：世界→派蒙 **5349ms**、派蒙→好友 **3164ms**；点击「好友」坐标按 xywh 中心命中。
+
+## 失败点（按执行证据）
+1. **仪器冲突（已修）**：`ys-capture status` 的 `strict.verdict=OTHER_DESKTOP`、`current_desktop=2`、`window.desktop=[3]`，而同一刻 `ys-lease kwin-state` 给 `desktop=3 active=yuanshen.exe`。`look` 原始回执行：
+   `{"status":"error","error":{"code":"ATTRIBUTION_OTHER_DESKTOP","detail":"常驻服务报错：live 取帧归属校验未通过：OTHER_DESKTOP"}}`
+   ⇒ daemon 抓帧的 **fast(EWMH) 门**与 KWin strict 打架。修法：`_capture_frame_via_ys_capture` 改 `latest --allow-background`（只关 fast 门），返回后以 **KWin strict** 裁决；strict≠OK 仍 fail-closed。修后 `look/s0` 成功（779ms，`frame_source=ys-capture`）。
+2. **状态标签误判（已加证据旁路）**：好友面板滚动中 `state` 被判成 `GAME_WORLD`，但对象里仍有 `好友／我的好友` + 行文本；驱动加 `is_friends()`（header/行证据）后继续扫。
+3. **STALL 误判（已修）**：行名取成了长签名（`谁怜憔悴更凋零…`），两屏相同即判停；改为「短 token（≤8 字、无标点）优先」。修后未再验证（本轮已用完）。
+4. **交还目标异常**：`session_end12` 的 restore 目标是 `素材快收[Tk]`（idx 10），不是 firefox；靠随后 `revoke` 才回到 firefox。最终 `active=firefox`、`desktop=2`，但 `firefox.idx(8) > game.idx(8)` **不成立**（相等）⇒ 三件判据未全满足。已修：`ys-session begin` 的 `prev_active` **优先 firefox**；`end` 增 `handback_ok` 三件校验，不满足返回非零。
+
+## 回答两个问题
+1. **`latest --allow-background` + KWin strict 是否应成为 daemon 抓帧的唯一路径**：**是**。fast/EWMH 只作提示/低延迟读数，**裁决只用 KWin strict**；strict≠OK 时仍 fail-closed。已按此改。
+2. **strict 也判 OTHER_DESKTOP 时正确行为**：`look` 应返回 `ATTRIBUTION_OTHER_DESKTOP` + `state{window_desktop,current_desktop}` + `next_action{ys-follow-win}`（与 resolve-window 同款），而不是只回一个 code。当前只回 code；建议下一轮补详情（本条记为 open）。
+
+## 原始片段（可复算）
+```
+[scan] cap.status=... "strict": {"verdict":"OTHER_DESKTOP","current_desktop":2,"window":{"desktop":[3],"class":"yuanshen.exe"}}
+[scan] kwin/state ... desktop=3 active=yuanshen.exe
+[scan] look/nav_paimon0 rc=8 out={"status":"error","error":{"code":"ATTRIBUTION_OTHER_DESKTOP",...}}
+[scan] SCAN-RESULT {..., "n_screens":4,"n_rows":16,"n_unique_rows":14,"effective_ratio":0.7117,
+  "scroll_p50_ms":1463.2,"loop_p50_ms":2290.5,"stalled":true}
+```

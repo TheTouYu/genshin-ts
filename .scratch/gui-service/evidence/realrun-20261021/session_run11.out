@@ -1,0 +1,26 @@
+[scan] cap/status         rc=0    112.7ms
+[scan] cap.status=ge_ms": 227, "strict": {"verdict": "OTHER_DESKTOP", "src": "kwin", "detail": "", "covered_ratio": 0.9663, "window": {"caption": "原神", "class": "yuanshen.exe", "bbox": [0, 0, 1707, 960], "desktop": [3], "minimized": false, "active": false, "idx": 7}, "current_desktop": 2, "elapsed_ms": 955.8}, "strict_age_ms": 970, "capture_ms": 2.45, "loop_ms": 22.16, "frames_written": 12487, "frames_reused": 102723, "win": "0x1600001", "class": "yuanshen.exe", "last_err": "", "ts": "2026-10-21T16:54:43+0800"}} 
+[scan] kwin/state         rc=0     91.3ms
+[scan] kwin desktop=3 active=yuanshen.exe
+[scan] cap/latest         rc=0     25.0ms
+[scan] cap/latest         rc=0     17.3ms
+[scan] cap/latest         rc=0     18.0ms
+[scan] cap/latest         rc=0     18.0ms
+[scan] capture latest ready after 18.0ms strict=OK
+[scan] look/s0            rc=0    779.4ms
+[scan] start state=GAME_FRIENDS look=779.4ms frame_source=ys-capture
+[scan] s00                rc=0   1757.3ms
+[scan] look/screen/s00    rc=0    585.1ms
+[scan] s00 rows=6 first='安洁莉娅' days=[]
+[scan] s01                rc=0   1515.4ms
+[scan] look/screen/s01    rc=0    929.7ms
+[scan] state_override FRIENDS at s01 (label=GAME_WORLD)
+[scan] s01 rows=1 first='哥伦比娅' days=[]
+[scan] s02                rc=0   1487.3ms
+[scan] look/screen/s02    rc=0    649.1ms
+[scan] s02 rows=5 first='Lv.60' days=[]
+[scan] s03                rc=0   1500.6ms
+[scan] look/screen/s03    rc=0    642.4ms
+[scan] STALLED first='Lv.60'
+[scan] s03 rows=4 first='Lv.60' days=[]
+SCAN-RESULT {"schema": "gui.session-scan/1", "wall_s": 11.6, "session_id": "s-0b39617aa5", "screens": [{"tag": "s00", "scroll": {"tag": "s00", "rc": 0, "ms": 1705.4, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1705.4, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-0b39617aa5", "timing": {"inject_ms": 1554.9, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1705.4}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 585.1, "rows": 6, "first": "安洁莉娅", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s01", "scroll": {"tag": "s01", "rc": 0, "ms": 1463.2, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1463.2, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-0b39617aa5", "timing": {"inject_ms": 1312.6, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1463.2}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 929.7, "rows": 1, "first": "哥伦比娅", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s02", "scroll": {"tag": "s02", "rc": 0, "ms": 1436.7, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1436.7, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-0b39617aa5", "timing": {"inject_ms": 1286.3, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1436.7}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 649.1, "rows": 5, "first": "Lv.60", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s03", "scroll": {"tag": "s03", "rc": 0, "ms": 1446.5, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1446.4, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-0b39617aa5", "timing": {"inject_ms": 1295.9, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1446.4}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 642.4, "rows": 4, "first": "Lv.60", "days": [], "hit": null, "frame_source": "ys-capture"}], "found": null, "stalled": true, "nav": {"start_state": "GAME_FRIENDS", "world_to_paimon_ms": null, "paimon_to_friends_ms": null}, "n_screens": 4, "n_rows": 16, "n_unique_rows": 14, "inject_ms": 5449.7, "verify_ms": 2806.3, "effective_ratio": 0.7117, "scroll_p50_ms": 1463.2, "loop_p50_ms": 2290.5}

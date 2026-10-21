@@ -1,0 +1,20 @@
+[scan] cap/status         rc=0     95.9ms
+[scan] cap.status=ge_ms": 211, "strict": {"verdict": "OTHER_DESKTOP", "src": "kwin", "detail": "", "covered_ratio": 0.9663, "window": {"caption": "原神", "class": "yuanshen.exe", "bbox": [0, 0, 1707, 960], "desktop": [3], "minimized": false, "active": false, "idx": 7}, "current_desktop": 2, "elapsed_ms": 951.9}, "strict_age_ms": 467, "capture_ms": 1.89, "loop_ms": 25.23, "frames_written": 12520, "frames_reused": 102980, "win": "0x1600001", "class": "yuanshen.exe", "last_err": "", "ts": "2026-10-21T16:55:12+0800"}} 
+[scan] kwin/state         rc=0     75.2ms
+[scan] kwin desktop=3 active=yuanshen.exe
+[scan] cap/latest         rc=0     17.7ms
+[scan] cap/latest         rc=0     18.1ms
+[scan] cap/latest         rc=0     18.4ms
+[scan] cap/latest         rc=0     17.8ms
+[scan] capture latest ready after 17.8ms strict=OK
+[scan] look/s0            rc=0    617.4ms
+[scan] start state=GAME_FRIENDS look=617.4ms frame_source=ys-capture
+[scan] s00                rc=0   2173.1ms
+[scan] look/screen/s00    rc=0    865.3ms
+[scan] state_override FRIENDS at s00 (label=GAME_WORLD)
+[scan] s00 rows=1 first='谁怜憔悴更凋零，试灯无意思，踏雪没心情' days=[]
+[scan] s01                rc=0   1491.5ms
+[scan] look/screen/s01    rc=0    638.1ms
+[scan] STALLED first='谁怜憔悴更凋零，试灯无意思，踏雪没心情'
+[scan] s01 rows=4 first='谁怜憔悴更凋零，试灯无意思，踏雪没心情' days=[]
+SCAN-RESULT {"schema": "gui.session-scan/1", "wall_s": 7.5, "session_id": "s-3920bde5bd", "screens": [{"tag": "s00", "scroll": {"tag": "s00", "rc": 0, "ms": 2122.8, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 2122.8, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-3920bde5bd", "timing": {"inject_ms": 1972.4, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 2122.8}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 865.3, "rows": 1, "first": "谁怜憔悴更凋零，试灯无意思，踏雪没心情", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s01", "scroll": {"tag": "s01", "rc": 0, "ms": 1438.8, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1438.8, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-3920bde5bd", "timing": {"inject_ms": 1288.3, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1438.8}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 638.1, "rows": 4, "first": "谁怜憔悴更凋零，试灯无意思，踏雪没心情", "days": [], "hit": null, "frame_source": "ys-capture"}], "found": null, "stalled": true, "nav": {"start_state": "GAME_FRIENDS", "world_to_paimon_ms": null, "paimon_to_friends_ms": null}, "n_screens": 2, "n_rows": 5, "n_unique_rows": 4, "inject_ms": 3260.7, "verify_ms": 1503.4, "effective_ratio": 0.6352, "scroll_p50_ms": 2122.8, "loop_p50_ms": 2988.1000000000004}

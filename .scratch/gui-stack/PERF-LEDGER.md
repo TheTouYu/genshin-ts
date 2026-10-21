@@ -154,3 +154,15 @@ time python3 tools/ys-editor/ys-list --frame .scratch/gui-corpus/evidence-friend
 | 有效占用比 | **19%**（42.1s 里 ~8.1s） | 会话循环算术 **≈89%**（目标 ≥60%） | 见报告 §0 |
 
 **未闭合**：真注入未验证（会话直注入/ESC 去 sleep/live 帧来源）；条带协议需真实连续滚动帧重测。
+
+## 2026-10-21 真机最终轮（修复后，会话直注入）
+
+| 项 | 实测 | 目标 | 判定 |
+|---|---|---|---|
+| 有效占用比 | **71.2%** | ≥60% | ✅ |
+| 单次滚动（34 clicks） | **1463ms p50** | ≤2s | ✅ |
+| 单屏循环（滚+读） | **2290ms p50** | ≤3s | ✅ |
+| 60s 内屏/行 | **4 屏 / 16 行（14 unique）** | 到 ≥30 天边界 | ❌ 未完成（STALL 误判，已修） |
+| 切桌面耗时 | 含在 session begin（kwin-raise 后 desktop=3） | — | 记录 |
+
+**根因（已修）**：ys-capture 的 fast(EWMH) 与 KWin strict 对 current_desktop 读数打架；daemon 抓帧改 `latest --allow-background` 后只用 strict 裁决。**交还异常**：end restore 目标一次是 Tk 窗（终态 active=firefox/desktop=2，但 firefox.idx==game.idx）；已修 prev_active 优先 firefox + handback 三件校验。
