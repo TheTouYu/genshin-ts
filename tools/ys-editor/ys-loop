@@ -35,7 +35,7 @@ sys.path.insert(0, HERE)
 GSTS_LOCALLOW = os.environ.get("GSTS_LOCALLOW_DIR", "")
 UID = os.environ.get("YS_UID", "110170759")
 MAP_ID = os.environ.get("YS_MAP_ID", "1073741832")
-WIN = os.environ.get("YS_WIN", "0x01400001")
+WIN = os.environ.get("YS_WIN") or (lambda: (__import__("sys").path.insert(0, os.path.dirname(os.path.abspath(__file__))), __import__("ys_look").WIN)[1])()  # 动态解析，禁止死 id
 WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
 LOG_DIR = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID, "Beyond_Debug_Log")
 SAVE = os.path.join(GSTS_LOCALLOW, "miHoYo/原神/BeyondLocal", UID,

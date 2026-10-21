@@ -5,7 +5,7 @@ set -u
 DISPLAY="${DISPLAY:-:1}"; export DISPLAY
 YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WIN="${1:-0x01400001}"; export YS_WIN="$WIN"
+WIN="${1:-${YS_WIN:?YS_WIN 未解析：先 source tools/ys-editor/ys-env.sh}}"; export YS_WIN="$WIN"
 if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 30 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"; fi
 . "$HERE/_ys-ui.sh"
 # ⚠️ 不许吞退出码：rc=5「12 轮未命中」是定位失败的关键诊断（2026-10-17 复盘）

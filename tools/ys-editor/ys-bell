@@ -10,7 +10,10 @@
 #   · `YS_BELL=0` 可静音（只给批量离线回归用，交互路径不要关）。
 set -u
 [ "${YS_BELL:-1}" = "0" ] && exit 0
-SOUND="${YS_BELL_SOUND:-/usr/share/sounds/freedesktop/stereo/bell.oga}"
+# 用户 2026-10-21：「操作没有声音提示了」——XBell 在本机已不发声（pactl 无流）。
+# 改用 **KDE 主题自带的 bell 音**（ocean/bell.oga = KWin 平时用的那个），认知度最高。
+SOUND="${YS_BELL_SOUND:-/usr/share/sounds/ocean/stereo/bell.oga}"
+[ -r "$SOUND" ] || SOUND=/usr/share/sounds/freedesktop/stereo/bell.oga
 LOCK="${XDG_RUNTIME_DIR:-/tmp}/ys-bell.stamp"
 now=$(date +%s%N 2>/dev/null || echo 0)
 if [ -r "$LOCK" ]; then
@@ -18,12 +21,9 @@ if [ -r "$LOCK" ]; then
   [ "$last" -gt 0 ] 2>/dev/null && [ $(( (now - last) / 1000000 )) -lt 200 ] && exit 0
 fi
 printf '%s\n' "$now" > "$LOCK" 2>/dev/null || true
-# 首选 **X11 铃**（用户 2026-10-21：「之前那个辨识度更高」——KWin 把它放成 bell 音效）。
-# 它也是我们最初听到的那个声音，辨识度明显高于 freedesktop 的 bell.oga。
-if ! python3 -c "from Xlib import display; display.Display().bell(0)" >/dev/null 2>&1; then
-  # 退路：paplay 播一个 bell 文件
-  if [ -r "$SOUND" ] && command -v paplay >/dev/null 2>&1; then
-    ( paplay "$SOUND" >/dev/null 2>&1 & ) >/dev/null 2>&1
-  fi
+if [ -r "$SOUND" ] && command -v paplay >/dev/null 2>&1; then
+  ( paplay "$SOUND" >/dev/null 2>&1 & ) >/dev/null 2>&1
+else
+  python3 -c "from Xlib import display; display.Display().bell(100)" >/dev/null 2>&1 || true
 fi
 exit 0

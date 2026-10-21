@@ -1,10 +1,19 @@
 #!/bin/bash
 # ys-esc — 发一次 ESC（走硬通道）
+#
+# 2026-10-21 修（真机 W1 实测）：旧版走 `ys-act`，而 ys-act 的抓图用默认窗
+# `0x01400001`（游戏重启后是死 id）⇒ `import -window` 失败 ⇒ **ESC 已发出但 rc=1**，
+# 调用方按纪律中止。现在直接用 ys-gui-slot 发键（不抓图），窗口用 YS_WIN/游戏窗自动解析。
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-cat > /tmp/ys-esc-act.sh <<'EOF'
-cd "$HERE"; ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep 2
-EOF
-"$HERE/ys-act" /tmp/ys-esc-act.sh /tmp/ys-esc.png >/dev/null 2>&1
+# 2026-10-21 二次修：不能把 0x01400001 当兜底值（游戏重启后是死 id，import/raise 都会失败）。
+# 窗口 id 一律按 class 动态解析（与 ys_look 同一口径：取面积最大的 yuanshen 窗）。
+WIN="${YS_WIN:-}"
+if [ -z "$WIN" ]; then
+  WIN=$(python3 -c 'import sys; sys.path.insert(0, "'"$HERE"'"); import ys_look; print(ys_look.WIN or "")' 2>/dev/null)
+fi
+[ -n "$WIN" ] || WIN=auto
+exec "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-20}" bash -c \
+  'ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep 2'

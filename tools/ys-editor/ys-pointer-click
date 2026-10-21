@@ -99,7 +99,7 @@ if [ "$NEW" = "0" ]; then
   X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
   # 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
   if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
-    exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
+    exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
   fi
   click_loop "$X" "$Y" "${3:-12}" "${4:-1.7}"
   exit $?
@@ -167,7 +167,7 @@ fi
 
 # 要真点、且是活体模式 ⇒ 进硬通道槽（协议：注入必须在槽内）
 if [ "$DRY" = 0 ] && [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
-  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "${ORIG_ARGS[@]}"
+  exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "${ORIG_ARGS[@]}"
 fi
 
 TMPD="$(mktemp -d)"; trap 'rm -rf "$TMPD"' EXIT

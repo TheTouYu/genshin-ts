@@ -13,7 +13,7 @@
 # 产物: <输出.png>（原尺寸）+ <输出>-s.png（1500 宽缩略，供视觉判读）
 set -u
 OUT="${1:-/tmp/ys-peek.png}"
-WIN="${2:-0x01400001}"
+WIN="${2:-${YS_WIN:?YS_WIN 未解析，见 ys-env.sh}}"
 TITLE="${3:-原神}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"

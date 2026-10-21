@@ -31,7 +31,7 @@ import subprocess
 import sys
 import time
 
-WIN_DEFAULT = os.environ.get("YS_WIN", "0x01400001")
+WIN_DEFAULT = os.environ.get("YS_WIN") or ""     # 动态解析；禁止写死已过期的窗 id
 TITLE_DEFAULT = os.environ.get("YS_WIN_TITLE", "原神")
 CLASS_DEFAULT = os.environ.get("YS_WIN_CLASS", "yuanshen.exe")
 ALL_DESKTOPS = 4294967295

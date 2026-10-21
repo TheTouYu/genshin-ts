@@ -17,7 +17,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 SNAP="${1:-/tmp/ys-reload-keep.gil}"
-WIN="${YS_WIN:-0x01400001}"
+WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 G="${YS_SAVEDIR:?需要 YS_SAVEDIR}/${YS_MAP_ID:?需要 YS_MAP_ID}/${YS_MAP_ID}.gil"
 T="${YS_TEMPDIR:?需要 YS_TEMPDIR}/${YS_MAP_ID}.gil"
 

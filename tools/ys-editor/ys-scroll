@@ -107,6 +107,16 @@ def exit_code(ok_inject, release_ok, moved_confirmed):
     return 0
 
 
+def _resolve_win():
+    """当前游戏窗 id（按 class 动态解析；禁止写死已过期的 id）。"""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import ys_look
+        return ys_look.WIN or ""
+    except Exception:                                    # noqa: BLE001
+        return ""
+
+
 def frame_diff(a, b):
     """两帧的像素差异比例（0..1）。用于回答**「到底动没动」**这个二值问题。
 
@@ -221,7 +231,7 @@ def main():
         env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
         p = subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=120)
     else:
-        p = subprocess.run([SLOT, "0x01400001", "60", "bash", "-c", script],
+        p = subprocess.run([SLOT, (_resolve_win() or "auto"), "60", "bash", "-c", script],
                            capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
     time.sleep(0.6)

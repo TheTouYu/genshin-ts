@@ -45,7 +45,7 @@ done
 case "$KIND" in write|playtest) ;; *) echo "ys-round: --kind 只接受 write|playtest" >&2; exit 2;; esac
 
 [ -f "$HERE/ys-game-env.sh" ] && . "$HERE/ys-game-env.sh"   # 项目事实（存档根/UID/地图/GIL），不碰桌面
-export YS_WIN="${YS_WIN:-0x01400001}"
+export YS_WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 MAP_ID="${YS_MAP_ID:-1073741832}"
 UID_="${YS_UID:-110170759}"
 LOCALLOW="${GSTS_LOCALLOW_DIR:-}"

@@ -10,7 +10,7 @@
 import sys, os, subprocess
 import numpy as np
 
-def _resolve_win(default="0x01400001"):
+def _resolve_win(default=""):                      # 默认不再写死 id：解析失败返回空，由调用方 fail-closed
     """按类名解析游戏窗口 id，**取面积最大的那个**。
 
     两个实测坑（2026-10-19 重启后）：

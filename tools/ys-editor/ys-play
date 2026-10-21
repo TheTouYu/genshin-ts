@@ -15,7 +15,7 @@ export DISPLAY="${DISPLAY:-:1}"
 . "$HERE/ys-env.sh" >/dev/null 2>&1 || true
 . "$HERE/ys-game-env.sh" >/dev/null 2>&1 || true
 export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
-WIN="${YS_WIN:-0x01400001}"
+WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 INPUT=""; MARK=""; WAIT=25
 while getopts "i:m:t:w:" o; do case $o in
   i) INPUT="$OPTARG";; m) MARK="$OPTARG";; t) WAIT="$OPTARG";; w) WIN="$OPTARG";; esac; done

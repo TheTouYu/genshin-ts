@@ -53,7 +53,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RAISE = os.path.join(HERE, "ys-kwin-raise")
 WINS = os.environ.get("YS_WINS") or os.path.join(HERE, "ys-wins")
 LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"
-WIN = "0x01400001"
+WIN = os.environ.get("YS_WIN") or ""            # 由 resolve-window 按 class 解析；禁止写死窗 id
 GAME_CLASS = "yuanshen"
 FALLBACK_CLASS = "firefox"
 UNUSABLE_CLASSES = {"plasmashell", "kwin_wayland", "ksmserver", "ksplashqml"}
@@ -132,7 +132,11 @@ def kwin_state(timeout=2.0):
     except Exception:                                    # noqa: BLE001
         return None
     act = state.get("active")
-    state["active_window"] = next((w for w in state.get("wins", []) if w.get("id") == act), None)
+    # 窗口记录的键是 internalId（不是 id）——写错会让 active_window 恒为 None，
+    # 于是所有"目标是否已是活动窗"的判定全部失真（2026-10-21 用户听到多余操作音的根因）。
+    state["active_window"] = next(
+        (w for w in state.get("wins", [])
+         if (w.get("internalId") or w.get("id")) == act), None)
     return state
 
 
@@ -488,10 +492,42 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
             return {"ok": False, "error": "FALLBACK_NOT_FOUND",
                     "fallback_reason": fallback_reason,
                     "detail": f"原焦点不可用（{fallback_reason}），且找不到回落窗 {fallback_class}"}
-        want = {"id": fb.get("id") or "", "cls": fallback_class.lower(), "c": fb.get("c") or "",
+        # 注意：KWin 记录里的字段名是 internalId / caption，不是 id / c
+        # （旧写法让"目标已是活动窗"的判定永远匹配不上，白白多一次 activate/raise = 用户听到的操作音）
+        want = {"id": fb.get("internalId") or fb.get("id") or "",
+                "cls": fallback_class.lower(),
+                "c": fb.get("caption") or fb.get("c") or "",
                 "geom": f"{fb.get('x', 0)},{fb.get('y', 0)} {fb.get('w', 0)}x{fb.get('h', 0)}"}
 
     want_rec = _want_record(want)
+
+    # 2026-10-21（用户反馈「还是听到操作提示音，但画面没切换」）：
+    # 目标**已经是活动窗**时，旧实现仍会 activate+raise 一次 —— 画面看不出变化，
+    # 但 KWin 会执行一次窗口激活（用户听到"操作声"）。这里先做一次零操作检查：
+    # 已在活动且堆叠合法 ⇒ 直接返回，不碰窗口。
+    # kwin_state() 的契约：`active` 是 **internalId 字符串**，完整记录在 `active_window`。
+    # （早先按 dict 读，导致「目标已是活动窗」的判定永远为假 ⇒ 每次都多一次 activate/raise）
+    _act_raw = state0.get("active")
+    _act = state0.get("active_window") or next(
+        (w for w in (state0.get("wins") or [])
+         if (w.get("internalId") or w.get("id")) == _act_raw), {}) or {}
+    _act_id = (_act_raw if isinstance(_act_raw, str) else (_act.get("internalId") or "")).strip()
+    _want_id = (want_rec.get("internalId") or "").strip()
+    _already = bool(_act_id) and (
+        (_want_id and _act_id == _want_id)
+        or ((_act.get("class") or "").lower() == (want.get("cls") or "").lower()
+            and (not want.get("c") or (_act.get("caption") or "") == want.get("c"))))
+    if _already:
+        _gi = (_game(state0) or {}).get("i")
+        # 窗口记录里堆叠序字段是 `i`（与 _game 一致），不是 `index`
+        _ti = _act.get("index", _act.get("i"))
+        if _ti is not None and (_gi is None or _ti > _gi):
+            return {"ok": True, "noop": True, "attempts": 0,
+                    "restored": _display(_record(_act)),
+                    "restored_info": _record(_act),
+                    "target_index": _ti, "game_index": _gi,
+                    "note": "目标已是活动窗且堆叠合法 ⇒ 零窗口操作（不再 activate/raise）"}
+
     problems = []
     target = game = None
     for attempt in range(1, RETRIES + 1):
@@ -615,7 +651,7 @@ def resolve_window(win_id="", name="", x11_pid=0, geom="", default_class=GAME_CL
         phantom = bool(m and (int(m.group(1)) <= 1 or int(m.group(2)) <= 1))
     except Exception:                                    # noqa: BLE001
         pass
-    if wid in (0x01400001, 20971521, 0x01800001, 25165825) or phantom:
+    if wid in (0x01400001, 20971521, 0x01800001, 25165825) or phantom:  # noqa: phantom-id 幽灵窗识别，不是使用
         cands = [w for w in wins if default_class in (w.get("cls") or "").lower()]
         if cands:
             return {"ok": True, "reason": "game-class", "target": _record(_best_window(cands))}

@@ -33,7 +33,7 @@ set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-WIN="${YS_WIN:-0x01400001}"
+WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 export YS_WIN="$WIN"          # 归属校验用窗口 id（比标题稳；票 34）
 
 # ⚠️ 2026-10-17 实测（③槽内 full 通道取帧失败的真因）：

@@ -10,7 +10,7 @@ TX="${1:?用法: ys-kwin-move <x> <y> [tol]}"; TY="${2:?}"; TOL="${3:-3}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
 if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
-  exec "$HERE/ys-gui-slot" "${YS_WIN:-0x01400001}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
+  exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
 fi
 for i in $(seq 1 12); do
   read cx cy <<< "$("$HERE/ys-kwin-cursor")"

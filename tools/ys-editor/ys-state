@@ -255,7 +255,7 @@ def load_env():
 
 
 def win_id():
-    return os.environ.get("YS_WIN", "0x01400001")
+    return os.environ.get("YS_WIN") or ""          # 动态解析（见 ys_look.WIN）；禁止写死已过期的窗 id
 
 
 def observe_frame():

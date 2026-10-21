@@ -1123,7 +1123,7 @@ def cmd_selftest(args):
         d = dict(seq=7, wall_ns=time.time_ns(), w=64, h=48, crc=crc,
                  rgb=frame, bmp=bmp, bcrc=crc, png='', pcrc='', jpg='', jcrc='',
                  fast='OK', fage=12, strict='OK', sage=200, ssrc='kwin',
-                 win='0x01400001', klass='yuanshen.exe', pid=0, dpid=os.getpid(),
+                 win='0x01400001', klass='yuanshen.exe', pid=0, dpid=os.getpid(),  # noqa: phantom-id 自测夹具的合成状态，不是真实窗口
                  mode='screen', src='xshm-window', visible='1')
         d.update(kw)
         line = '\x1f'.join(str(v) for v in [STATE_VERSION, d['seq'], d['wall_ns'],

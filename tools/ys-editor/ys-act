@@ -14,7 +14,7 @@
 set -u
 SCRIPT="${1:?用法: ys-act <动作脚本.sh> [输出.png] [窗口id]}"
 OUT="${2:-/tmp/ys-act.png}"
-WIN="${3:-0x01400001}"
+WIN="${3:-${YS_WIN:?YS_WIN 未解析，见 ys-env.sh}}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"

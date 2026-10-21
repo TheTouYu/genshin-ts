@@ -22,7 +22,7 @@ set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-export YS_WIN="${YS_WIN:-0x01400001}"
+export YS_WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 
 SAVE_ICON_X=39;  SAVE_ICON_Y=176   # 侧栏「存档管理」图标（仅系统菜单态存在）
 CARD2_X=1737;    CARD2_Y=386       # 列表第 2 位卡的「编辑」
@@ -35,7 +35,7 @@ SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$YS_WIN" 300 bash -c '
   cd "$0"
   export YS_SLOT_ACTIVE=1
   . ./_ys-ui.sh
-  W="${YS_WIN:-0x01400001}"
+  W="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
   ICON_X='"$SAVE_ICON_X"'; ICON_Y='"$SAVE_ICON_Y"'
   C2X='"$CARD2_X"'; C2Y='"$CARD2_Y"'
   CFX='"$CONFIRM_X"'; CFY='"$CONFIRM_Y"'

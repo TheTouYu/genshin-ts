@@ -27,7 +27,7 @@ export YS_TOOLS="${YS_TOOLS:-/home/h/genshin-ts/tools/ys-editor}"
 export GSTS="${GSTS:-node /home/h/genshin-ts/bin/gsts.mjs}"
 
 # ── 窗口 id（游戏窗固定；沙箱/资源管理器 id **每次重启都变**，按标题动态解析）
-export WIN_GAME="${WIN_GAME:-0x01400001}"
+export WIN_GAME="${WIN_GAME:-}"   # 真值在 ys_resolve_wins 里按 class 解析（别写死 id）
 
 ys_win_by_title() {  # $1=标题子串 → 打印窗口 id（找不到返回 1）
   local id
@@ -37,4 +37,12 @@ ys_win_by_title() {  # $1=标题子串 → 打印窗口 id（找不到返回 1�
 ys_resolve_wins() {   # 需要 DISPLAY/XAUTHORITY 已就绪（由 ys-env.sh 在 load 之后调用）
   if [ -z "${WIN_SANDBOX:-}" ]; then WIN_SANDBOX="$(ys_win_by_title 千星沙箱)"; export WIN_SANDBOX; fi
   if [ -z "${WIN_RES:-}" ]; then WIN_RES="$(ys_win_by_title 资源管理器)"; export WIN_RES; fi
+  # 2026-10-21：**游戏窗 id 也必须在这里动态解析**。此前 WIN_GAME 写死 0x01400001，
+  # 游戏重启后就变成死 id；凡是 `${YS_WIN:-0x01400001}` 的工具在没有显式传参时全部静默失败
+  # （实测：ys-esc 的 ESC 发不出去、import -window 抓图失败）。一处解析，31 个工具同时受益。
+  if [ -z "${YS_WIN:-}" ]; then
+    YS_WIN="$(python3 -c 'import sys; sys.path.insert(0, "'"$YS_TOOLS"'"); import ys_look; print(ys_look.WIN or "")' 2>/dev/null)"
+    [ -n "$YS_WIN" ] && export YS_WIN
+  fi
+  [ -n "${YS_WIN:-}" ] && export WIN_GAME="$YS_WIN"
 }

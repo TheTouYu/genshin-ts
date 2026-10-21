@@ -40,3 +40,4 @@ skill-coverage	python3 tools/ys-editor/tests/skill-coverage.selftest.py	能力�
 no-xbell	bash tools/ys-editor/tests/no-xbell.sh	ImageMagick import 必须带 -silent（裸调用会敲 X11 铃 = 用户听到的提示音）	fast
 perf-bench	python3 .scratch/gui-service/bench_check.py --runs 3	GUI 感知层分组件性能门槛（缓存命中/稳态判态/冷路径/act 解析；超线=退化，bars 只 WARN）	slow
 grant-expiry	bash tools/ys-editor/tests/grant-expiry.selftest.sh	租期到期必须由常驻守护自己归还（不靠模型自觉；用户第 N 次强调）	slow
+no-dead-window-id	bash tools/ys-editor/tests/no-dead-window-id.selftest.sh	生产工具不许把已过期的窗 id 当默认/兜底值（游戏重启 id 必变）	fast
