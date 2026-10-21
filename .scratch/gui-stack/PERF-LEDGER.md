@@ -166,3 +166,13 @@ time python3 tools/ys-editor/ys-list --frame .scratch/gui-corpus/evidence-friend
 | 切桌面耗时 | 含在 session begin（kwin-raise 后 desktop=3） | — | 记录 |
 
 **根因（已修）**：ys-capture 的 fast(EWMH) 与 KWin strict 对 current_desktop 读数打架；daemon 抓帧改 `latest --allow-background` 后只用 strict 裁决。**交还异常**：end restore 目标一次是 Tk 窗（终态 active=firefox/desktop=2，但 firefox.idx==game.idx）；已修 prev_active 优先 firefox + handback 三件校验。
+
+## 2026-10-21 真机最终轮 2（用户手动切桌面，会话内扫描）
+
+| 项 | 实测 | 判定 |
+|---|---|---|
+| 有效占用比 | **64.6%** | ✅ ≥60% |
+| 单次滚动 | **1439.9ms p50** | ✅ ≤2s |
+| 单屏循环 | **2112.3ms p50** | ✅ ≤3s |
+| 屏/行 | **10 屏 / 48 行（40 unique）** | 未到 ≥30 天（全「今日内」） |
+| 交还三件 | active=firefox idx8>game idx7；desktop=2；revoke ok | ✅ handback_ok=true |

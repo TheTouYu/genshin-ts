@@ -1,0 +1,49 @@
+[scan] cap/status         rc=0    123.6ms
+[scan] cap.status= 4.3}, "fast_age_ms": 243, "strict": {"verdict": "OK", "src": "kwin", "detail": "", "covered_ratio": 0.0, "window": {"caption": "原神", "class": "yuanshen.exe", "bbox": [0, 0, 1707, 960], "desktop": [3], "minimized": false, "active": true, "idx": 10}, "current_desktop": 3, "elapsed_ms": 957.3}, "strict_age_ms": 242, "capture_ms": 2.47, "loop_ms": 22.53, "frames_written": 12974, "frames_reused": 105166, "win": "0x1600001", "class": "yuanshen.exe", "last_err": "", "ts": "2026-10-21T16:59:36+0800"}} 
+[scan] kwin/state         rc=0     86.5ms
+[scan] kwin desktop=3 active=yuanshen.exe
+[scan] cap/latest         rc=0     33.9ms
+[scan] capture latest ready after 33.9ms strict=OK
+[scan] look/s0            rc=0   1815.9ms
+[scan] start state=GAME_WORLD look=1815.9ms frame_source=ys-capture
+[scan] esc                rc=0    625.1ms
+[scan] look/nav_paimon0   rc=0   1420.0ms
+[scan] look/nav_paimon1   rc=0    821.8ms
+[scan] click/friends      rc=0   2041.6ms
+[scan] look/nav_friends0  rc=0    692.8ms
+[scan] look/nav_friends1  rc=0    525.1ms
+[scan] s00                rc=0   1641.8ms
+[scan] look/screen/s00    rc=0    811.5ms
+[scan] s00 rows=5 first='无所事事真君' days=[]
+[scan] s01                rc=0   1482.7ms
+[scan] look/screen/s01    rc=0    681.5ms
+[scan] s01 rows=7 first='右右' days=[]
+[scan] s02                rc=0   1495.5ms
+[scan] look/screen/s02    rc=0    602.2ms
+[scan] s02 rows=5 first='热九' days=[]
+[scan] s03                rc=0   1494.6ms
+[scan] look/screen/s03    rc=0    591.1ms
+[scan] s03 rows=6 first='草莓果果' days=[]
+[scan] s04                rc=0   1501.6ms
+[scan] look/screen/s04    rc=0   1034.1ms
+[scan] state_override FRIENDS at s04 (label=GAME_WORLD)
+[scan] s04 rows=1 first='哥伦比娅' days=[]
+[scan] s05                rc=0   1873.2ms
+[scan] look/screen/s05    rc=0    678.9ms
+[scan] s05 rows=5 first='万般皆苦' days=[]
+[scan] s06                rc=0   1494.0ms
+[scan] look/screen/s06    rc=0    659.6ms
+[scan] state_override FRIENDS at s06 (label=GAME_WORLD)
+[scan] s06 rows=3 first='これでおしまい' days=[]
+[scan] s07                rc=0   1486.8ms
+[scan] look/screen/s07    rc=0    868.7ms
+[scan] state_override FRIENDS at s07 (label=GAME_WORLD)
+[scan] s07 rows=7 first='三' days=[]
+[scan] s08                rc=0   1497.7ms
+[scan] look/screen/s08    rc=0    646.8ms
+[scan] state_override FRIENDS at s08 (label=GAME_WORLD)
+[scan] s08 rows=3 first='谁怜憔悴更凋零，试灯无意思，踏雪没心情' days=[]
+[scan] s09                rc=0   1487.7ms
+[scan] look/screen/s09    rc=0    632.4ms
+[scan] s09 rows=6 first='Overflow' days=[]
+SCAN-RESULT {"schema": "gui.session-scan/1", "wall_s": 31.5, "session_id": "s-2ff3724863", "screens": [{"tag": "s00", "scroll": {"tag": "s00", "rc": 0, "ms": 1570.3, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1570.3, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1419.9, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1570.3}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 811.5, "rows": 5, "first": "无所事事真君", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s01", "scroll": {"tag": "s01", "rc": 0, "ms": 1430.8, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1430.8, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1280.3, "settle_ms": 150.2, "verify_ms": 0.0, "total_ms": 1430.8}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 681.5, "rows": 7, "first": "右右", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s02", "scroll": {"tag": "s02", "rc": 0, "ms": 1439.5, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1439.5, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1289.1, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1439.5}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 602.2, "rows": 5, "first": "热九", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s03", "scroll": {"tag": "s03", "rc": 0, "ms": 1434.7, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1434.6, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1284.1, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1434.6}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 591.1, "rows": 6, "first": "草莓果果", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s04", "scroll": {"tag": "s04", "rc": 0, "ms": 1449.8, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1449.8, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1299.3, "settle_ms": 150.2, "verify_ms": 0.0, "total_ms": 1449.8}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 1034.1, "rows": 1, "first": "哥伦比娅", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s05", "scroll": {"tag": "s05", "rc": 0, "ms": 1561.3, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1561.3, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1410.8, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1561.3}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 678.9, "rows": 5, "first": "万般皆苦", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s06", "scroll": {"tag": "s06", "rc": 0, "ms": 1439.9, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1439.8, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1289.4, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1439.8}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 659.6, "rows": 3, "first": "これでおしまい", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s07", "scroll": {"tag": "s07", "rc": 0, "ms": 1437.0, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1436.9, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1286.6, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1436.9}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 868.7, "rows": 7, "first": "三", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s08", "scroll": {"tag": "s08", "rc": 0, "ms": 1443.8, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1443.7, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1293.3, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1443.7}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 646.8, "rows": 3, "first": "谁怜憔悴更凋零，试灯无意思，踏雪没心情", "days": [], "hit": null, "frame_source": "ys-capture"}, {"tag": "s09", "scroll": {"tag": "s09", "rc": 0, "ms": 1438.3, "ok": true, "release_ok": true, "budget": {"target_ms": 500, "actual_ms": 1438.2, "over": true}, "at": [1800, 900], "dir": "down", "clicks": 34, "drag": null, "lease": false, "hint": null, "session_id": "s-2ff3724863", "timing": {"inject_ms": 1287.7, "settle_ms": 150.1, "verify_ms": 0.0, "total_ms": 1438.2}, "moved_px": null, "shifted": false, "frame_diff": null, "moved_confirmed": null, "verified": false, "frame_before": null, "frame_after": null}, "look_ms": 632.4, "rows": 6, "first": "Overflow", "days": [], "hit": null, "frame_source": "ys-capture"}], "found": null, "stalled": false, "nav": {"start_state": "GAME_WORLD", "world_to_paimon_ms": 3169.2, "paimon_to_friends_ms": 3560.5}, "n_screens": 10, "n_rows": 48, "n_unique_rows": 40, "inject_ms": 13140.5, "verify_ms": 7206.8, "effective_ratio": 0.6459, "scroll_p50_ms": 1439.9, "loop_p50_ms": 2112.3}

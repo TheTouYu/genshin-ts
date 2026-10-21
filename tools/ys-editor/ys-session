@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -35,6 +36,7 @@ import uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEASES = os.path.join(HERE, "ys-lease")
 GRANT = os.path.join(HERE, "ys-screen-grant")
+WINS = os.path.join(HERE, "ys-wins")
 DEFAULT_PATH = os.path.expanduser("~/.ys/session.json")
 # 本机 X11 会话是 :1（systemd 服务同值）；缺 DISPLAY 时 xdotool 解析窗口会返回空，
 # 表现为 RESOLVE_FAILED/TARGET_NOT_FOUND（2026-10-21 真机第一次 W2 的实际死因）。
@@ -83,6 +85,25 @@ def lease(args, timeout=60):
     return d
 
 
+def window_desktop(classes=("yuanshen",)):
+    """从 ys-wins --attrib 读游戏窗所在虚拟桌面号（ds=）；读不到返回 None。
+
+    为什么不从 ys-lease kwin-state 取：它的窗口记录没有 per-window desktop 字段。
+    """
+    try:
+        r = subprocess.run([WINS, "--attrib"], capture_output=True, text=True, timeout=20)
+    except Exception:                                        # noqa: BLE001
+        return None
+    for line in (r.stdout or "").splitlines():
+        low = line.lower()
+        if not any(c in low for c in classes):
+            continue
+        m = re.search(r"\bds=(\d+)", line)
+        if m:
+            return int(m.group(1))
+    return None
+
+
 def cmd_begin(a):
     cur = load()
     if cur and cur.get("state") == "active" and cur.get("expires", 0) > time.time():
@@ -124,7 +145,10 @@ def cmd_begin(a):
         if ffs:
             prev = ffs[-1]
     sess["prev_active"] = prev
-    sess["prev_desktop"] = st.get("desktop")
+    # 回哪张桌面：以**用户窗（firefox）所在桌面**为准，而不是游戏桌面。
+    # 用户手动切到游戏桌面时 current=3，但交还目标是 firefox 的 ds=2。
+    fds = window_desktop(("firefox",))
+    sess["prev_desktop"] = fds if fds is not None else st.get("desktop")
     game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe").lower()
 
     def pick(state):
@@ -145,11 +169,25 @@ def cmd_begin(a):
         sess["desktop_switch"] = {"rc": fw.returncode, "out": (fw.stdout or "")[-300:]}
         st = lease(["kwin-state"])
         game = pick(st)
+    # 2026-10-21 硬约束：窗口在别的虚拟桌面时**不得隐式 raise/切桌面**。
+    # 只有显式 YS_ALLOW_DESKTOP_SWITCH=1（用户单独授权）才允许 follow-win。
+    gd = window_desktop(("yuanshen",))
+    if game is not None and gd is not None and gd != st.get("desktop") \
+            and os.environ.get("YS_ALLOW_DESKTOP_SWITCH") != "1":
+        print(json.dumps({"ok": False, "error": "GAME_ON_OTHER_DESKTOP",
+                          "detail": {"game_desktop": gd, "current_desktop": st.get("desktop")},
+                          "next_action": "让用户把游戏拖到当前桌面，或单独授权 "
+                                         "YS_ALLOW_DESKTOP_SWITCH=1"}, ensure_ascii=False))
+        subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
+        return 3
+
     if game is None:
         print(json.dumps({"ok": False, "error": "TARGET_NOT_FOUND",
-                          "detail": {"desktop": st.get("desktop"), "wins": len(st.get("wins") or [])},
+                          "detail": {"desktop": st.get("desktop"),
+                                     "wins": len(st.get("wins") or [])},
                           "next_action": "ys-wins --attrib 看游戏窗 ds=；窗口在别的桌面时"
-                                         "需手动拖回或授权 YS_ALLOW_DESKTOP_SWITCH=1"}, ensure_ascii=False))
+                                         "让用户拖回当前桌面，或单独授权 "
+                                         "YS_ALLOW_DESKTOP_SWITCH=1"}, ensure_ascii=False))
         subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
         return 3
     sess["target"] = game

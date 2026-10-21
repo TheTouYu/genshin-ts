@@ -288,3 +288,21 @@ PY
 [scan] SCAN-RESULT {..., "n_screens":4,"n_rows":16,"n_unique_rows":14,"effective_ratio":0.7117,
   "scroll_p50_ms":1463.2,"loop_p50_ms":2290.5,"stalled":true}
 ```
+
+## 真机最终轮 2（用户手动切桌面后，2026-10-21 16:59）
+
+**结果**：`ys-session` 一轮 31.5s（总 38.3s），**10 屏 / 48 行（40 unique）**，全部仍是「今日内」，
+**未命中 ≥30 天**（36s deadline 到点停，不是 STALL）。`handback_ok=true`。
+
+| 指标 | 目标 | 实测 |
+|---|---|---|
+| 有效占用比 | ≥60% | **64.6%**（inject 13140.5 + verify 7206.8 / 31.5s） |
+| 单次滚动（34 clicks） | ≤2s | **1439.9ms p50** |
+| 单屏循环（滚+读） | ≤3s | **2112.3ms p50** |
+| 屏/行 | — | **10 屏 / 48 行（40 unique）**，无 ≥30 天 |
+| 导航 | — | 世界→派蒙 **3169ms**、派蒙→好友 **3560ms** |
+| 交还三件 | — | `active=firefox` idx8 > game idx7；`desktop=2 = prev_desktop`；`revoke=ok` |
+
+**为什么没到边界（读数，不是猜）**：10 屏对象文本里每天都是 `今日内`（`free_text` 同样只有「今日内」），
+说明该好友列表「今日内」档很长；48 行还没进入「1天前」。按 5 行/屏、2.1s/屏，需要更多轮次而非修代码。
+**已有修复**：STALL 误判（短 token）、capture fast/strict 冲突、`prev_active` 优先 firefox、handback 三件校验。
