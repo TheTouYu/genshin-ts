@@ -1686,7 +1686,7 @@ def _world_attrib():
                 "error": f"{type(e).__name__}: {e}"}
 
 
-def _capture_frame_via_ys_capture():
+def _capture_frame_via_ys_capture(allow_background=False):
     """经 ys-capture 取一帧（常驻 XShm，~13ms）；归属用它的 KWin 权威结论。失败 fail-closed。"""
     import numpy as np
     import subprocess as _sp
@@ -1716,20 +1716,26 @@ def _capture_frame_via_ys_capture():
     # --allow-background 只关掉 capture 的 fast(EWMH) 门；**KWin strict 仍是权威**：
     # strict 不是 OK 就 fail-closed（否则桌面不对也返回像素）。
     strict = attr.get("strict")
-    if strict and strict != "OK" and os.environ.get("YS_LOOKD_ALLOW_BACKGROUND") != "1":
+    if strict and strict != "OK" and not allow_background \
+            and os.environ.get("YS_LOOKD_ALLOW_BACKGROUND") != "1":
         raise WorldAttribError({"verdict": strict, "detail": "ys-capture strict",
                                 "rc": 0, "src": "ys-capture", "attribution": attr})
+    if allow_background:
+        # 显式后台帧：能证明"看得见"，**证不了"动得了"**（技能 §4.55）。回执必须带这个标记，
+        # 否则调用方分不清自己拿到的是可见层还是后台缓冲层。
+        attr["allow_background"] = True
+        attr["layer"] = "background"
     return arr, attr
 
 
-def _capture_frame_soft():
+def _capture_frame_soft(allow_background=False):
     """ys-capture 取帧的**可回退**版本：抓帧服务故障返回 (None, meta)，归属拒绝继续抛。
 
     2026-10-21 反馈轮：live 默认走这条（23.5ms 抓帧 + 8.4ms 解码），失败才回退 import；
     回退必须在回执里可见（timing.frame_source），不许静默换路径。
     """
     try:
-        arr, attr = _capture_frame_via_ys_capture()
+        arr, attr = _capture_frame_via_ys_capture(allow_background=allow_background)
         return arr, attr
     except WorldAttribError as e:
         v = str((e.attr or {}).get("verdict") or "")
@@ -1801,22 +1807,33 @@ def _world_frame(req):
         # 失败明确回退 import 并在回执标 frame_source；禁止把 import 当默认（旧缓冲/敲铃）。
         # YS_LOOKD_FRAME_SRC=import 可显式回到旧路径（对照实验用）。
         mode = os.environ.get("YS_LOOKD_FRAME_SRC", "ys-capture")
+        bg = bool(req.get("allow_background"))
         frame_source = "ys-capture"
         if mode == "ys-capture":
-            arr, attr = _capture_frame_soft()
+            arr, attr = _capture_frame_soft(allow_background=bg)
             if arr is None:
                 frame_source = "import-fallback"
                 attr = _world_attrib()
-                if attr.get("verdict") != "OK":
+                if attr.get("verdict") != "OK" and not bg:
                     raise WorldAttribError(attr)
+                if bg:
+                    attr = dict(attr or {})
+                    attr.setdefault("verdict", "OK")
+                    attr["allow_background"] = True
+                    attr["layer"] = "background"
                 attr["capture_error"] = str((attr or {}).get("error") or "")[:200]
                 YS = ys_state()
                 arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
         else:
             frame_source = "import"
             attr = _world_attrib()
-            if attr.get("verdict") != "OK":
+            if attr.get("verdict") != "OK" and not bg:
                 raise WorldAttribError(attr)
+            if bg:
+                attr = dict(attr or {})
+                attr.setdefault("verdict", "OK")
+                attr["allow_background"] = True
+                attr["layer"] = "background"
             YS = ys_state()
             arr = (YL.grab(0, 0, YS.FRAME_W, YS.FRAME_H) * 255).round().astype(np.uint8)
         sha = hashlib.sha256(arr.tobytes()).hexdigest()

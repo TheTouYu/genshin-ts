@@ -117,6 +117,44 @@ def main(argv=None):
     expect_raises("schema/degraded 非 list 被拒",
                   lambda: schema.WorldState({**raw, "degraded": "oops"}), schema.SchemaError)
 
+    # ───────── 参数三态 / 拒绝三件套（2026-10-21 AGI 反馈轮）─────────
+    # 教训：--allow-background 曾在 daemon 后端被**静默吞掉**（收下参数、语义没落地）。
+    # 判据：要么真生效，要么明确拒绝并给 observed + next_actions。绝不允许"接受即忽略"。
+    caps = json.loads(subprocess.run(
+        [sys.executable, WORLDSVC, "capabilities"], capture_output=True, text=True).stdout or "{}")
+    check("三态/capabilities 列出两个后端的 flag 支持",
+          set((caps.get("backends") or {}).keys()) == {"cli", "daemon-world"},
+          str(list((caps.get("backends") or {}).keys())))
+    check("三态/daemon 后端声明 allow-background 为 honored",
+          "honored" in str(((caps.get("backends") or {}).get("daemon-world") or {}).get("flags")),
+          "缺失")
+    check("三态/flag_contract 明写不接受静默忽略",
+          "静默" in str(caps.get("flag_contract") or ""), "缺失")
+    # act 用后台帧必须 rc=2 拒绝，且带 observed + next_actions
+    r = subprocess.run([sys.executable, WORLDSVC, "act", "--text", "x",
+                        "--expect", '{"type":"state_in","states":["GAME_WORLD"]}',
+                        "--allow-background"], capture_output=True, text=True)
+    try:
+        act_err = json.loads(r.stdout or "{}")
+    except ValueError:
+        act_err = {}
+    _e = act_err.get("error") or {}
+    check("三态/act+后台帧 rc=2 明确拒绝", r.returncode == 2, f"rc={r.returncode}")
+    check("三件套/拒绝带 observed", isinstance(_e.get("observed"), dict) and bool(_e["observed"]),
+          str(_e.get("observed"))[:80])
+    check("三件套/拒绝带 next_actions（可执行、带 why）",
+          isinstance(_e.get("next_actions"), list) and _e["next_actions"]
+          and all(a.get("tool") and a.get("why") for a in _e["next_actions"]),
+          str(_e.get("next_actions"))[:80])
+    # 归属拒绝的下一步必须是新口径（会话授权含桌面借用），不是教人手搓旧变量
+    acts = worldsvc._live_next_actions("OTHER_DESKTOP")
+    check("三件套/桌面拒绝给出会话授权路径",
+          any("ys-session" in str(a.get("tool")) for a in acts), str([a.get("tool") for a in acts]))
+    check("三件套/桌面拒绝含零占屏选项（后台帧）",
+          any("--allow-background" in " ".join(a.get("args") or []) for a in acts), "缺失")
+    check("三件套/桌面拒绝不再教 YS_ALLOW_DESKTOP_SWITCH",
+          all("YS_ALLOW_DESKTOP_SWITCH" not in json.dumps(a, ensure_ascii=False) for a in acts), "仍是旧口径")
+
     # ───────── look（真实帧）─────────
     svc = worldsvc.WorldService(cache_enabled=True)
     t0 = time.perf_counter()

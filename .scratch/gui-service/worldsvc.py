@@ -45,7 +45,8 @@ EXPECT_TYPES = ("state_in", "text_added", "text_removed",
 class ServiceError(RuntimeError):
     """服务级失败（fail-closed）。code 稳定、detail 人读、status 用于回执。"""
 
-    def __init__(self, code, detail, *, status="error", rc=8, next_action=None):
+    def __init__(self, code, detail, *, status="error", rc=8, next_action=None,
+                 observed=None, next_actions=None):
         self.code = code
         self.detail = detail
         self.status = status
@@ -53,11 +54,52 @@ class ServiceError(RuntimeError):
         # 2026-10-21（复盘）：fail-closed 只说"不行"不够——**每个拒绝都要带结构化下一步**，
         # 否则调用方只能自己猜（真机会话里遇到 OTHER_DESKTOP 就去手搓 KWin 脚本了）。
         self.next_action = next_action
+        # 2026-10-21（AGI 反馈轮）：拒绝回执三件套
+        #   observed    = 我**实际观测到什么**（不是"发生了什么"的叙述）
+        #   next_actions= 可直接执行的下一步（列表，带参数与代价），优于单条
+        # 没有这三样的错误，代理只能靠猜或去翻源码——那是"工具自证陷阱"的温床。
+        self.observed = observed
+        self.next_actions = next_actions
         super().__init__(f"[{code}] {detail}")
 
 
 def _degraded(code, detail=""):
     return {"code": code, "detail": detail}
+
+
+def _live_next_actions(code, *, allow_background=False):
+    """归属/前置拒绝时的**结构化下一步**（AGI 标准：可直接执行，带参数与代价）。
+
+    2026-10-21 修正口径：桌面借用已并入会话授权（`ys-session begin` 内部会 grant 并按需切桌面），
+    不再是「用户手动拖窗口」或手搓 `YS_ALLOW_DESKTOP_SWITCH`。
+    """
+    acts = []
+    if code in ("OTHER_DESKTOP", "ATTRIBUTION_OTHER_DESKTOP"):
+        acts.append({"tool": "python3 .scratch/gui-service/worldsvc.py",
+                     "args": ["look", "--backend", "daemon-world", "--summary",
+                              "--allow-background"],
+                     "why": "先拿到**后台帧**读数（能证明'看得见'，证不了'动得了'）",
+                     "cost": "不占屏、不抬窗"})
+        acts.append({"tool": "tools/ys-editor/ys-session",
+                     "args": ["begin", "--seconds", "60", "--task", "<任务名>",
+                              "--reason", "<做什么>", "--user-said", "<用户原话>"],
+                     "why": "会话授权内含桌面借用：begin 会把游戏桌面切过来，end 自动切回",
+                     "cost": "占屏 + 需用户同意（凭据从用户原话起算）"})
+        acts.append({"tool": "tools/ys-editor/ys-wins",
+                     "args": ["--attrib"],
+                     "why": "只读核对窗口真实桌面（ds=）与当前桌面（cur=）",
+                     "cost": "~150ms，不占屏"})
+    elif code in ("NOT_ATOP", "OCCLUDED"):
+        acts.append({"tool": "tools/ys-editor/ys-eyes-up", "args": [],
+                     "why": "确认窗口/抓帧守护状态", "cost": "只读"})
+        acts.append({"tool": "python3 .scratch/gui-service/worldsvc.py",
+                     "args": ["look", "--frame", "<离线帧.png>"],
+                     "why": "用离线帧取证（不依赖实时窗口）", "cost": "0"})
+    if not allow_background:
+        acts.append({"tool": "python3 .scratch/gui-service/worldsvc.py",
+                     "args": ["look", "--backend", "daemon-world", "--allow-background"],
+                     "why": "读后台缓冲帧（**只能用于感知，禁止据此动作**）", "cost": "不占屏"})
+    return acts
 
 
 class WorldService:
@@ -252,10 +294,28 @@ class WorldService:
         # fast 只跳过 D2 检测 + D3 结构层；OCR 必须保留——2026-10-21 实测：同一帧 f06
         # （派蒙菜单）ocr=false 时 world 判 UNKNOWN，带 OCR 文本盒才判 GAME_PAIMON。
         # 省 OCR 会让 state 静默降级，属 AGI-BAR 禁止的"静默失能"，所以不做。
-        resp = instruments.get_world_daemon(path, profile=self.profile,
-                                            ocr=True, objects=True,
-                                            structure=not fast, cache=self.daemon_cache,
-                                            advice=advice)
+        try:
+            resp = instruments.get_world_daemon(path, profile=self.profile,
+                                                ocr=True, objects=True,
+                                                structure=not fast, cache=self.daemon_cache,
+                                                advice=advice,
+                                                allow_background=bool(self.allow_background))
+        except instruments.InstrumentError as exc:
+            # 拒绝必须是**可判读的三件套**（观测值 + 多条可执行下一步 + 为什么），
+            # 而不是一句人读的话。cli 与 daemon 两条后端共用同一个形状。
+            raise ServiceError(
+                exc.code,
+                str(exc),
+                status="precondition_fail" if any(
+                    k in str(exc.code) for k in ("ATTRIBUTION", "OTHER_DESKTOP", "NOT_ATOP",
+                                                  "OCCLUDED", "UNAUTHORIZED")) else "error",
+                rc=5 if any(k in str(exc.code) for k in ("ATTRIBUTION", "OTHER_DESKTOP",
+                                                         "NOT_ATOP", "OCCLUDED")) else 8,
+                observed={"backend": "daemon-world", "instrument_code": exc.code,
+                          "instrument_detail": str(exc)[:400],
+                          "allow_background": bool(self.allow_background)},
+                next_actions=_live_next_actions(exc.code,
+                                                allow_background=bool(self.allow_background)))
         rpc_ms = (time.perf_counter() - t0) * 1000
         state = resp.get("state") or {}
         if not state.get("state"):
@@ -348,6 +408,10 @@ class WorldService:
         # live / auto：交给常驻服务抓帧（它内部先做归属校验，不过就不抓）
         meta = {"path": "(live)", "source": "live", "captured_at_ms": schema.now_ms(),
                 "captured_at_ms_source": "daemon-capture", "live": True}
+        if self.allow_background:
+            # 后台帧：**能证明"看得见"，证不了"动得了"**（技能 §4.55）。live 必须置 False，
+            # 否则下游会把后台缓冲当成可见交互层证据；layer 字段供报告直接引用。
+            meta.update({"live": False, "background": True, "layer": "background"})
         self._last_frame = meta
         return meta, None
 
@@ -389,7 +453,8 @@ class WorldService:
             # （游戏在 desktop 3 时它报 0 ⇒ 快路径判 OK 而屏幕上是浏览器，正是票 34 的 fail-open）。
             # ys-capture 内部：快路径只做保守拒绝，KWin 通道才是权威，结论过旧/不可用直接 refuse。
             try:
-                raw = instruments.grab_frame(allow_background=self.allow_background)
+                _bg = bool(self.allow_background)
+                raw = instruments.grab_frame(allow_background=_bg)
             except instruments.InstrumentError as e:
                 _na = None
                 if e.code == "OTHER_DESKTOP":
@@ -403,12 +468,18 @@ class WorldService:
                     "LIVE_NOT_ATOP",
                     f"取帧被拒绝（{e.code}）：{e.detail}；本服务绝不为了取数抬窗口 —— "
                     "请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
-                    status="precondition_fail", rc=5, next_action=_na)
+                    status="precondition_fail", rc=5, next_action=_na,
+                    observed={"attribution_verdict": e.code, "attribution_detail": e.detail,
+                              "instrument_rc": getattr(e, "rc", None),
+                              "backend": "cli", "allow_background": bool(self.allow_background)},
+                    next_actions=_live_next_actions(e.code, allow_background=bool(self.allow_background)))
             path = os.path.abspath(raw["path"])
             meta = {"path": path, "source": "live",
                     "captured_at_ms": int(time.time() * 1000),
                     "captured_at_ms_source": "capture_clock",
-                    "live": True,
+                    "live": not _bg,
+                    "background": _bg or None,
+                    "layer": "background" if _bg else "visible",
                     "capture_meta": {k: raw.get(k) for k in
                                      ("source", "capture_ms", "frame", "attribution",
                                       "window", "atop", "allow_background")}}
@@ -741,7 +812,9 @@ class WorldService:
                                                "ACT_SIMULATE_REQUIRED") else exc.status
             result.update({"status": status, "ok": False,
                            "error": {"code": exc.code, "detail": exc.detail,
-                                     "next_action": getattr(exc, "next_action", None)}})
+                                     "next_action": getattr(exc, "next_action", None),
+                                     "next_actions": getattr(exc, "next_actions", None),
+                                     "observed": getattr(exc, "observed", None)}})
             result.setdefault("degraded", []).append(_degraded("INSTRUMENT_FAIL",
                                                                f"{exc.code}: {exc.detail}"))
             result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
@@ -1347,7 +1420,9 @@ class WorldService:
             checks = self._validate_predicate(predicate)
         except ServiceError as exc:
             out.update({"status": exc.status, "error": {"code": exc.code, "detail": exc.detail,
-                                                        "next_action": getattr(exc, "next_action", None)},
+                                                        "next_action": getattr(exc, "next_action", None),
+                                                        "next_actions": getattr(exc, "next_actions", None),
+                                                        "observed": getattr(exc, "observed", None)},
                         "degraded": [_degraded("INSTRUMENT_FAIL", exc.detail)]})
             out["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
             return out
@@ -1556,6 +1631,17 @@ CAPABILITIES = {
         "intents": {"purpose": "列出 ys-do 意图（只读 actions/*.json）"},
         "cache": {"purpose": "查看/清空帧级缓存"},
     },
+    "backends": {
+        "cli": {"flags": {"--allow-background": "honored（instruments.grab_frame 直通 ys-capture）"},
+                "note": "每条命令起子进程，冷 ~1.2–1.8s；归属闸门在客户端"},
+        "daemon-world": {"flags": {"--allow-background": "honored（2026-10-21 起转发到 ys-lookd，"
+                                                          "回执 frame.layer=background / live=false）"},
+                         "note": "常驻服务，热路径 ~1.1s；归属闸门在守护侧（KWin 权威）"},
+    },
+    "flag_contract": ("参数三态：honored（真的生效）/ rejected（明确拒绝 + observed + next_actions）/ "
+                      "unsupported（后端不支持就报错）。**不接受『接受但静默忽略』**——"
+                      "2026-10-21 实测 --allow-background 在 daemon 后端被吞导致代理误判。"
+                      "后台帧只能用于感知：frame.live=false + frame.layer=background；act 用它会 rc=2。"),
     "exit_codes": {"0": "成功", "2": "用法/expect DSL 非法", "3": "目标解析失败", "4": "多义",
                    "5": "前置不符（归属/未授权）", "6": "缓存/通道", "8": "仪器故障",
                    "9": "expect 不成立"},
@@ -1626,6 +1712,31 @@ def ys_bell():
             stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
     except Exception:                                      # noqa: BLE001
         pass
+
+
+def _guard_verb_flags(a):
+    """参数**三态**闸门（AGI 标准）：honored / rejected-带原因 / unsupported。
+
+    2026-10-21 实测教训：`--allow-background` 以前在 daemon 后端被**静默吞掉**——
+    参数被接受、语义没落地，代理会以为自己在读后台帧。静默忽略比明确拒绝更坏。
+    """
+    if getattr(a, "verb", None) == "act" and getattr(a, "allow_background", False):
+        raise ServiceError(
+            "ACT_ON_BACKGROUND_FRAME_FORBIDDEN",
+            "act 不接受 --allow-background：后台缓冲帧能证明『看得见』，证不了『动得了』。"
+            "按钮坐标可能已不在栈顶层，据此注入会点到别处（技能 §6.5 明令禁止）。",
+            status="invalid", rc=2,
+            next_actions=[
+                {"tool": "tools/ys-editor/ys-session",
+                 "args": ["begin", "--seconds", "60", "--task", "<任务名>",
+                          "--reason", "<做什么>", "--user-said", "<用户原话>"],
+                 "why": "会话内占用可见层后再注入；桌面借用已并入会话授权", "cost": "占屏 + 需用户同意"},
+                {"tool": "python3 .scratch/gui-service/worldsvc.py",
+                 "args": ["act", "--object-id", "<id>", "--action", '{"type":"click"}', "--live",
+                          "--expect", "<判据 JSON>"],
+                 "why": "去掉 --allow-background；act 本来就必须在可见层跑", "cost": "同左"},
+            ],
+            observed={"verb": "act", "allow_background": True})
 
 
 def main(argv=None):
@@ -1709,6 +1820,13 @@ def main(argv=None):
     p.add_argument("--invalidate", action="store_true")
 
     a = ap.parse_args(argv)
+    try:
+        _guard_verb_flags(a)
+    except ServiceError as exc:
+        _emit({"status": exc.status, "rc": exc.rc,
+               "error": {"code": exc.code, "detail": exc.detail,
+                         "observed": exc.observed, "next_actions": exc.next_actions}})
+        return exc.rc
     ys_bell()
     try:
         if a.verb == "capabilities":
@@ -1808,7 +1926,12 @@ def main(argv=None):
                   out_path=a.json_out)
             return 0
     except ServiceError as exc:
-        _emit({"status": exc.status, "error": {"code": exc.code, "detail": exc.detail}})
+        _err = {"code": exc.code, "detail": exc.detail}
+        for _k in ("observed", "next_action", "next_actions"):
+            _v = getattr(exc, _k, None)
+            if _v:
+                _err[_k] = _v
+        _emit({"status": exc.status, "rc": exc.rc, "error": _err})
         return exc.rc
     except instruments.InstrumentError as exc:
         _emit({"status": "error", "error": {"code": exc.code, "detail": exc.detail},

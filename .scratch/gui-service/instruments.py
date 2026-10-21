@@ -337,9 +337,12 @@ def _cross_desktop_suffix():
         d = json.loads((r.stdout or "{}").strip().splitlines()[-1])
         st = d.get("state") or {}
         if st.get("found"):
+            # 2026-10-21 修正口径：桌面借用已并入会话授权（ys-session begin 内部会 grant 并按需切桌面），
+            # 不再教调用方手搓 YS_ALLOW_DESKTOP_SWITCH / 请用户拖窗口（那是旧契约的写法）。
             return (f"；窗口在桌面 ds={st.get('window_desktop')}、当前 ds={st.get('current_desktop')}"
-                    f" ⇒ 切过去要授权（YS_ALLOW_DESKTOP_SWITCH=1 tools/ys-editor/ys-follow-win yuanshen.exe），"
-                    f"或请用户把窗口拖到当前桌面")
+                    f" ⇒ 只感知不动作：加 --allow-background 读后台帧；"
+                    f"要在可见层操作： ys-session begin --task ... --user-said '<用户原话>'"
+                    f"（会话授权内含桌面借用，end 自动切回）；只读核对桌面： ys-wins --attrib")
     except Exception:                                            # noqa: BLE001
         pass
     return ""
@@ -347,7 +350,7 @@ def _cross_desktop_suffix():
 
 def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True,
                      structure=True, cache=True, apply_uid=False, timeout=180,
-                     advice=True):
+                     advice=True, allow_background=False):
     """世界状态仪器（ys-lookd cmd=world，**新版服务才有**；旧服务会报 unknown cmd）。
 
     structure=False 是 2026-10-21 新增的快速路径（跳过 D2 检测 + D3 结构层）；
@@ -356,6 +359,11 @@ def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True,
     req = {"cmd": "world", "ocr": bool(ocr), "objects": bool(objects),
            "structure": bool(structure), "cache": bool(cache),
            "advice": bool(advice)}
+    if allow_background:
+        # 2026-10-21：以前这个 flag 在 daemon 后端被**静默吞掉**（客户端收、守护不知道），
+        # 代理会以为自己读的是后台帧其实是 fail-closed。现在原样转发，由守护决定是否放行，
+        # 并在回执 attribution.allow_background 里如实标注。
+        req["allow_background"] = True
     if apply_uid:
         # 帧来自文件但内容是活体抓帧 ⇒ 仍做 UID 本体态补判（与 ys-state 同判据）
         req["apply_uid"] = True
