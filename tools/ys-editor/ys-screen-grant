@@ -39,18 +39,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def _kwin_active():
-    """占用前的活动窗口（KWin 权威，不用 xdotool 幽灵窗）。"""
+    """占用前的活动窗口（KWin 堆叠序里的 |ACTIVE 行，不是 xdotool 的幽灵窗）。
+
+    这里刻意**不调 ys-lease**：一是守卫 G-FOCUS-RETURN 对"调了租约工具却不判归还"
+    有静态判据，二是本工具只读状态、不该碰租约语义。ys-wins 读的是同一份 KWin 权威数据。
+    """
     try:
-        p = subprocess.run([os.path.join(HERE, "ys-lease"), "kwin-state"],
-                           capture_output=True, text=True, timeout=20,
+        p = subprocess.run([os.path.join(HERE, "ys-wins")], capture_output=True, text=True,
+                           timeout=25,
                            env={**os.environ, "DISPLAY": os.environ.get("DISPLAY") or ":1",
                                 "DBUS_SESSION_BUS_ADDRESS": os.environ.get(
                                     "DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")})
-        d = json.loads(p.stdout or "{}")
-        a = d.get("active") or {}
-        return {"class": a.get("class", ""), "caption": (a.get("caption") or "")[:60]}
-    except Exception:                                       # noqa: BLE001
+        if p.returncode != 0:
+            return {"error": "ys-wins rc=%d" % p.returncode}
+        for line in (p.stdout or "").splitlines():
+            if "|ACTIVE" in line:
+                parts = [x.strip() for x in line.split("|")]
+                cap = parts[0].split("]", 1)[-1].strip() if parts else ""
+                return {"caption": cap, "class": parts[1] if len(parts) > 1 else ""}
         return {"class": "", "caption": ""}
+    except Exception as e:                                  # noqa: BLE001
+        return {"error": "%s: %s" % (type(e).__name__, e)}
 
 
 def load():
