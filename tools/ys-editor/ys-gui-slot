@@ -90,6 +90,14 @@ START=$(date +%s); CMD_RC=0; RESTORE_RC=0; RESTORED=0
 restore() {
   [ "$RESTORED" = "1" ] && return
   RESTORED=1
+  # 2026-10-21（用户批准的设计改）：**一次授权 = 一段租期**。
+  # 旧设计每次动作后都归还 ⇒ 下一次 look --live 必然 NOT_ATOP（账本 F-20261021-53），
+  # 多步任务每步都要重新申请。租期内不归还，只在凭据到期/revoke 时统一归还一次。
+  if [ "${YS_SLOT_TEST:-0}" != "1" ] && "$YS_HOME/ys-screen-grant" status >/dev/null 2>&1; then
+    _left=$("$YS_HOME/ys-screen-grant" status 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
+    echo "[ys-gui-slot] 租期内不归还（凭据剩 ${_left}s）——到期或 revoke 时统一交还"
+    return
+  fi
   if [ "$ALREADY_FOCUSED" = "1" ]; then
     # 2026-10-21（用户口径）：占用时目标已在焦点 ≠ 无需归还。旧行为直接 return，
     # 结果是用户仍盯着游戏、而这里打「未改动」。正确语义 = 切回默认屏（firefox）并验证堆叠。

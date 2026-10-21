@@ -116,7 +116,13 @@ def cmd_status(_a):
         return 6
     left = int(rec.get("expires", 0) - time.time())
     if left <= 0:
-        print(json.dumps({"ok": False, "error": "EXPIRED", "left_s": left, "path": PATH},
+        # 到期即统一交还一次，然后清凭据（自愈：没人来 revoke 也不会把屏幕占着）
+        hb = _hand_back()
+        try:
+            os.unlink(PATH)
+        except OSError:
+            pass
+        print(json.dumps({"ok": False, "error": "EXPIRED", "left_s": left, "hand_back": hb},
                          ensure_ascii=False))
         return 6
     print(json.dumps({"ok": True, "left_s": left, "reason": rec.get("reason"),
@@ -124,10 +130,27 @@ def cmd_status(_a):
     return 0
 
 
+def _hand_back():
+    """把画面交还给默认屏（firefox）。租期结束时调用一次。"""
+    try:
+        p = subprocess.run([os.path.join(HERE, "ys-lease"), "restore",
+                            "--prev-json", "", "--fallback", "firefox"],
+                           capture_output=True, text=True, timeout=40,
+                           env={**os.environ, "DISPLAY": os.environ.get("DISPLAY") or ":1",
+                                "DBUS_SESSION_BUS_ADDRESS": os.environ.get(
+                                    "DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")})
+        if p.returncode != 0:
+            return {"ok": False, "rc": p.returncode, "out": (p.stdout or p.stderr)[:200]}
+        return {"ok": True, "restored": "firefox"}
+    except Exception as e:                                  # noqa: BLE001
+        return {"ok": False, "error": "%s: %s" % (type(e).__name__, e)}
+
+
 def cmd_revoke(_a):
+    _restore_res = _hand_back()
     try:
         os.unlink(PATH)
-        print(json.dumps({"ok": True, "revoked": PATH}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "revoked": PATH, "hand_back": _restore_res}, ensure_ascii=False))
     except OSError:
         print(json.dumps({"ok": True, "already_absent": PATH}, ensure_ascii=False))
     return 0
