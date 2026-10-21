@@ -39,15 +39,23 @@ done
 out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 9999 --user-said x 2>&1); rc=$?
 echo "$out" | grep -q "GRANT_TOO_LONG" && ok "超长自授被拒（≤120s）" || bad "超长自授未被拒：$out"
 
-# T5 有效期内的续期必须被拒（防止"申请一次、无限续"）
-out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --user-said "续" 2>&1); rc=$?
-echo "$out" | grep -q "GRANT_STILL_VALID" && ok "有效期内续期被拒" || bad "续期未被拒：$out"
+# T5 同任务续期**允许**（2026-10-21 重设计：一次知情 = 一个任务，不再打断用户）
+out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --task default --user-said "续" 2>&1); rc=$?
+echo "$out" | grep -q '"renewed": true' && ok "同任务续期允许（不打断用户）" || bad "同任务续期被拒：$out"
+
+# T5b 换任务且没给用户原话 ⇒ 必须拒（防自授扩张到别的任务）
+out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --task other 2>&1); rc=$?
+echo "$out" | grep -q "TASK_MISMATCH" && ok "换任务无用户原话被拒" || bad "换任务未被拒：$out"
 
 # T6 租期模型（**会占用真实屏幕**）：默认 SKIP——回归测试绝不许在用户不知情时抬窗
 # （2026-10-21 用户反馈「说完成了却还有操作音」= 本条测试在 check --fast 里抬了游戏窗）。
 # 2026-10-21 用户令：测试可以占屏（铃声=操作提示），不再默认 SKIP
 GID=$(tools/ys-editor/ys-wins --attrib 2>/dev/null | grep "yuanshen" | head -1)
-if [ -n "$GID" ]; then
+# 2026-10-21 用户令：回归测试默认**不许碰屏幕**（"说完成了却还有操作音"的第二次投诉）。
+# 抬窗必须显式开门：YS_ALLOW_SCREEN_TEST=1。
+if [ "${YS_ALLOW_SCREEN_TEST:-0}" != "1" ]; then
+  echo "  · T6 SKIP 会占用真实屏幕（设 YS_ALLOW_SCREEN_TEST=1 才跑）"
+elif [ -n "$GID" ]; then
   unset YS_SLOT_TEST
   "$PWD/tools/ys-editor/ys-screen-grant" revoke >/dev/null 2>&1
   "$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 40 --reason selftest-lease --user-said "自测" >/dev/null 2>&1
@@ -57,9 +65,10 @@ if [ -n "$GID" ]; then
   "$PWD/tools/ys-editor/ys-screen-grant" revoke >/dev/null 2>&1
   act2=$("$PWD/tools/ys-editor/ys-wins" --attrib 2>/dev/null | grep ACTIVE | awk -F'|' '{print $2}' | tr -d ' ')
   [ "$act2" = "firefox" ] && ok "revoke 后统一交还 firefox" || bad "revoke 后未交还（active=$act2）"
-elif [ "${YS_ALLOW_SCREEN_TEST:-0}" = "1" ]; then
+elif true; then
   echo "  · T6 SKIP 没有原神窗口，跳过租期模型检查"
 fi
 
-[ "$fails" -eq 0 ] && { echo "SCREEN-GRANT-RESULT pass=5 fail=0 verdict=PASS"; exit 0; }
-echo "SCREEN-GRANT-RESULT pass=$((5-fails)) fail=$fails verdict=FAIL"; exit 1
+TOTAL=12   # 不含 T6（需显式 YS_ALLOW_SCREEN_TEST=1）
+[ "$fails" -eq 0 ] && { echo "SCREEN-GRANT-RESULT pass=$TOTAL fail=0 verdict=PASS"; exit 0; }
+echo "SCREEN-GRANT-RESULT pass=$((TOTAL-fails)) fail=$fails verdict=FAIL"; exit 1

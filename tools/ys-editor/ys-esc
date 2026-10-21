@@ -33,6 +33,16 @@ if [ "${1:-}" = "--plan" ]; then
 fi
 T0=$(date +%s%3N)
 if [ "$SESS" = "1" ]; then
+  # 层 2（2026-10-21）：空闲时守护已把屏幕交还用户 ⇒ 注入前自动重取焦点；取不回就不注入。
+  "$HERE/ys-session" focus >/dev/null 2>&1; FRC=$?
+  if [ "$FRC" -eq 3 ]; then
+    SESS=0                       # 会话刚过期 ⇒ 回落 ys-gui-slot 路径
+  elif [ "$FRC" -ne 0 ]; then
+    echo "[ys-esc] 焦点取不回（rc=$FRC）⇒ 拒绝注入" >&2
+    exit 7
+  fi
+fi
+if [ "$SESS" = "1" ]; then
   # 会话内直注入也必须带 YS_SLOT_ACTIVE=1：ydotool 的 PATH shim 只认这个标记，
   # 否则按键被拦下、rc 仍可能为 0（2026-10-21 真机：ESC 没生效但状态仍 WORLD）。
   YS_SLOT_ACTIVE=1 bash -c "ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep ${SETTLE_S}"

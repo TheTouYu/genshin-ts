@@ -34,7 +34,7 @@ import time
 import uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LEASES = os.path.join(HERE, "ys-lease")
+LEASES = os.environ.get("YS_LEASE_BIN") or os.path.join(HERE, "ys-lease")
 GRANT = os.path.join(HERE, "ys-screen-grant")
 WINS = os.path.join(HERE, "ys-wins")
 DEFAULT_PATH = os.path.expanduser("~/.ys/session.json")
@@ -113,17 +113,23 @@ def cmd_begin(a):
                           "next_action": "先 ys-session end，或等过期"}, ensure_ascii=False))
         return 2
     now = time.time()
-    sess = {"schema": "ys.session/1", "session_id": "s-" + uuid.uuid4().hex[:10],
+    sess = {"schema": "ys.session/2", "session_id": "s-" + uuid.uuid4().hex[:10],
             "created": now, "expires": now + int(a.seconds), "seconds": int(a.seconds),
             "reason": a.reason, "user_said": a.user_said, "dry_run": bool(a.dry_run),
             "state": "active", "win": session_win(), "prev_active": None, "target": None,
-            "actions": 0}
+            "task": getattr(a, "task", "") or "session",
+            # 层 2（2026-10-21）：空闲释放 —— 代理思考时屏幕已在用户手上。
+            # last_action_ts 由 `focus` 每次动作刷新；guard 超过 idle_ms 就交还。
+            "last_action_ts": now, "holding_until": 0.0, "released": False,
+            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "8000")),
+            "reacquires": 0, "actions": 0}
     if a.dry_run:
         save(sess)
         print(json.dumps({"ok": True, "dry_run": True, "session": sess}, ensure_ascii=False))
         return 0
     # 1) 用户授权（不绕过）
     g = subprocess.run([sys.executable, GRANT, "grant", "--seconds", str(int(a.seconds)),
+                        "--task", getattr(a, "task", "") or "session",
                         "--reason", a.reason or "ys-session", "--user-said", a.user_said],
                        capture_output=True, text=True, timeout=30)
     try:
@@ -271,6 +277,68 @@ def cmd_end(a):
     return 0 if res["ok"] else 9
 
 
+def cmd_focus(a):
+    """动作前确保焦点在目标窗（层 2：空闲释放之后的重取）。
+
+    为什么必须有这一半：`ys-focus-guard` 现在会在会话空闲 `idle_ms` 后把屏幕交还用户
+    —— 代理思考时屏幕不再被占。代价是"动作到达时焦点可能已经不在目标窗"，
+    所以每个动作注入前必须先取回焦点；**取不回就绝不注入**（否则会打进用户正在用的窗口）。
+    """
+    cur = load()
+    if (not cur or cur.get("state") != "active" or cur.get("dry_run")
+            or float(cur.get("expires") or 0) <= time.time()):
+        print(json.dumps({"ok": False, "error": "NO_SESSION",
+                          "next_action": "会话已结束 ⇒ 走 ys-gui-slot 路径（需有效凭据）"},
+                         ensure_ascii=False))
+        return 3
+    now = time.time()
+    hold = float(os.environ.get("YS_SESSION_HOLD_S", "6"))
+    target = cur.get("target") or {}
+    if not cur.get("released"):
+        cur["last_action_ts"] = now
+        cur["holding_until"] = now + hold
+        save(cur)
+        print(json.dumps({"ok": True, "raised": False, "fast": True}, ensure_ascii=False))
+        return 0
+    t0 = time.time()
+    st = lease(["kwin-state"])
+    act = (st or {}).get("active") or {}
+    tgt = str(target.get("internalId") or "")
+    game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe")
+    if tgt and str(act.get("internalId") or "") != tgt:
+        wins = (st or {}).get("wins") or []
+        listed = any(str(w.get("internalId") or "") == tgt for w in wins)
+        if not listed:
+            # 目标不在当前桌面的窗口表里 ⇒ 多半在别的虚拟桌面（空闲交还时桌面被切回用户那张）。
+            # 会话内授权即含桌面借用（用户令 2026-10-21）。
+            try:
+                gd = window_desktop((game_cls.split(".")[0].lower(),))
+            except Exception:                               # noqa: BLE001
+                gd = None
+            if gd is not None and gd != (st or {}).get("desktop"):
+                subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"), game_cls],
+                               capture_output=True, text=True, timeout=40,
+                               env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
+                st = lease(["kwin-state"])
+                act = (st or {}).get("active") or {}
+        if str(act.get("internalId") or "") != tgt:
+            rs = lease(["kwin-raise", "--id", tgt])
+            if not (rs or {}).get("ok"):
+                print(json.dumps({"ok": False, "error": "RAISE_FAILED", "detail": rs,
+                                  "next_action": "屏幕可能已被用户切走：停止注入并告知用户"},
+                                 ensure_ascii=False))
+                return 4
+    cur["released"] = False
+    cur["released_at"] = None
+    cur["last_action_ts"] = now
+    cur["holding_until"] = now + hold
+    cur["reacquires"] = int(cur.get("reacquires") or 0) + 1
+    save(cur)
+    print(json.dumps({"ok": True, "raised": True, "ms": round((time.time() - t0) * 1000, 1)},
+                     ensure_ascii=False))
+    return 0
+
+
 def cmd_status(_a):
     cur = load()
     if not cur:
@@ -288,10 +356,14 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("begin")
     b.add_argument("--seconds", type=int, required=True)
+    b.add_argument("--task", default="session",
+                   help="任务 id：同一任务内续期不再打断用户（ys-screen-grant --task）")
     b.add_argument("--reason", default="")
     b.add_argument("--user-said", default="")
     b.add_argument("--dry-run", action="store_true")
     b.set_defaults(fn=cmd_begin)
+    f = sub.add_parser("focus", help="动作前确保焦点在目标窗（空闲释放后的重取；取不回就不许注入）")
+    f.set_defaults(fn=cmd_focus)
     e = sub.add_parser("end")
     e.add_argument("--dry-run", action="store_true")
     e.set_defaults(fn=cmd_end)

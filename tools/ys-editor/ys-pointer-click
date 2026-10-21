@@ -69,6 +69,18 @@ print("1" if ok else "0")
 PY
 )
 [ "${SESS_ACTIVE:-0}" = "1" ] && export YS_SLOT_ACTIVE=1
+# 层 2（2026-10-21）：会话空闲时 ys-focus-guard 已把屏幕交还用户。
+# 注入前**自动重取焦点**（模型无感，调用方式不变）；取不回就绝不注入——
+# 否则点击会打进用户正在用的窗口。rc=3 表示会话刚过期 ⇒ 回落各自的 slot 路径。
+if [ "${SESS_ACTIVE:-0}" = "1" ]; then
+  "$HERE/ys-session" focus >/dev/null 2>&1; FRC=$?
+  if [ "$FRC" -eq 3 ]; then
+    unset YS_SLOT_ACTIVE
+  elif [ "$FRC" -ne 0 ]; then
+    echo "[ys-pointer-click] 焦点取不回（rc=$FRC）⇒ 拒绝注入" >&2
+    exit 7
+  fi
+fi
 
 # 模式判定：出现任何 --flag 走「按名字解析」分支；没有 flag 就是旧坐标用法。
 NEW=0

@@ -189,6 +189,20 @@ def main():
                     help="滚动条方向；auto=先竖后横")
     a = ap.parse_args()
     sess = _session()
+    if sess and not a.plan:
+        # 层 2（2026-10-21）：会话空闲时 ys-focus-guard 已把屏幕交还用户。
+        # 注入前**自动重取焦点**——模型无感（仍调 ys-scroll），但取不回焦点就绝不注入，
+        # 否则滚轮会滚到用户正在用的窗口里。rc=3 = 会话刚过期 ⇒ 回落各自的 slot 路径。
+        r = subprocess.run([sys.executable, os.path.join(HERE, "ys-session"), "focus"],
+                           capture_output=True, text=True, timeout=60)
+        if r.returncode == 3:
+            sess = None
+        elif r.returncode != 0:
+            print(json.dumps({"ok": False, "error": "FOCUS_NOT_READY", "rc": r.returncode,
+                              "detail": (r.stdout or r.stderr or "")[-300:],
+                              "next_action": "脚本/拖动已停止，未做任何注入；屏幕可能已被用户切走"},
+                             ensure_ascii=False))
+            return 7
     if sess:
         os.environ["YS_SLOT_ACTIVE"] = "1"
         os.environ["YS_SESSION_ID"] = str(sess.get("session_id") or "")

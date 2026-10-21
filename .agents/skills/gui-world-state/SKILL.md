@@ -92,12 +92,25 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
   好友 = 「好友标题 + `x/200` 计数」；角色 = 「命之座 + 圣遗物」。
 - **黑屏/无内容帧必须判 UNKNOWN**（当前尚未落地，见账本 F-20261021-48）。
 
-**屏幕占用契约（用户令 2026-10-21，已做成设计）**：这个桌面不是只有我们在用。**每次长时间占用前**：
-① 先看**当前活动窗口**（KWin 权威，`ys-lease kwin-state` 的 `active`；`xdotool getactivewindow` 会给 1×1 幽灵窗）；
-② 在对话里**申请时长**，拿到同意后再 `tools/ys-editor/ys-screen-grant grant --seconds N --reason '做什么'`；
-③ **一次授权 = 一段连续租期**：租期内 `ys-gui-slot` **不归还**（画面留在目标窗，这样紧接着的 `look --live` 才不会 `NOT_ATOP`）；到期或 `revoke` 时**统一交还** firefox 一次。多步任务只申请一次，别再"每个动作一小段"。
-④ 凭据**单次 ≤120s**、必须带 `--user-said "<用户原话>"`、**有效期内不许覆盖续期**（要续必须 revoke 再重新问）；④ **切虚拟桌面是更重的动作**：`ys-follow-win` 额外要 `YS_ALLOW_DESKTOP_SWITCH=1`，只探测加 `--dry`；⑤ 没有有效凭据时 `ys-gui-slot` 以 **rc=6 NO_GRANT** 拒绝执行（自测走 `YS_SLOT_TEST=1`）。
-**反模式（2026-10-21 真机复盘）**：不要自授——那天代理 64s 处 `grant --seconds 1200` 没问用户，65s 就切走了桌面；之后每次到期又自己续。发现「自己在给自己发凭据」= 立刻停下问用户。
+**屏幕占用契约（2026-10-21 重设计：许可 / 占用 / 观测三件事解耦）**：这个桌面不是只有我们在用。
+
+> 旧模型把三者绑在**一个秒表**上，实测反作用：租期是稀缺资源 ⇒ 代理为省租期把整条流程
+> 预写死（用预判代替观察，用户当场点破）；且「有效期内禁续期」与 `ys-session begin` 自带的
+> grant 互斥 ⇒ 两次 60s 租期 0 次注入。
+
+① **先看屏幕在谁手上**：`ys-lease kwin-state` 的 `active`（KWin 权威；`xdotool getactivewindow` 会给 1×1 幽灵窗）。
+② **许可 = 任务级，一次知情**：问用户「我要做 X，预计 N 分钟，期间会占用屏幕 M 次点击，你随时可以叫停」，
+   同意后 `ys-screen-grant grant --task <任务id> --eta 120 --reason '做什么' --user-said '<用户原话>'`。
+   **同一 `--task` 内续期不打断用户**（累计上限 1800s）；换任务必须重新问（无 `--user-said` ⇒ `TASK_MISMATCH`）。
+③ **占用 = 动作级，空闲即还**：租期**不等于**屏幕被占。`ys-focus-guard` 每 0.5s 轮询，会话静默超过
+   `idle_ms`（缺省 8s，`YS_SESSION_IDLE_MS`）就把屏幕交还用户；下一个动作由 `ys-scroll`/`ys-pointer-click`/`ys-esc`
+   **内部自动重取焦点**（模型无感，照常调同一个工具；取不回焦点 ⇒ **rc=7/rc=4 拒绝注入**，绝不打进你的窗口）。
+   ⇒ **模型思考的时间不计费**，也就没有"为省租期批量跑"的动机。
+④ **凭据**单次 `--eta ≤300s`、必须带 `--user-said`；**切虚拟桌面是更重的动作**（会话内授权即含桌面借用，
+   非会话的 `ys-follow-win` 额外要 `YS_ALLOW_DESKTOP_SWITCH=1`）；没有有效凭据时 `ys-gui-slot` 以 **rc=6 NO_GRANT** 拒绝（自测走 `YS_SLOT_TEST=1`）。
+⑤ **禁止批量**：租期不再限制思考时间 ⇒ **没有"趁租期把后面几步一起跑完"的理由**。一步一看是默认形态
+   （2026-10-21 用户原话：「你连好友页面都没打开，凭什么判断剩下的步骤可以一次不错就完成」）。
+**反模式**：不要自授——那天代理 64s 处 `grant --seconds 1200` 没问用户，65s 就切走了桌面。发现「自己在给自己发凭据」= 立刻停下问用户。
 缺这一步的代价：用户同时在操作屏幕 ⇒ 焦点/画面被夺 ⇒ 出现"莫名其妙的 bug"（已记 F-20261021-50）。
 
 ## 4. 仪器健康（先看这两个，再谈判据）
@@ -310,19 +323,25 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
 一次 grant 内多个动作共享一次窗口上下文；别再「一动作一 slot」（真机实测 4–5s/次）。
 
 ```bash
-# ⚠️ begin 内部**自己**会跑一次 `ys-screen-grant grant`（不绕过用户授权）。
-#    所以**不要**先手动 grant 再 begin：实测 begin 回
-#    `GRANT_FAILED / GRANT_STILL_VALID`（有效期内禁止覆盖续期），整段租期白烧（2026-10-21 踩过）。
-#    正确顺序：问用户 → 直接 begin（--user-said 写用户原话；begin 写的那份凭据就是本段租期）。
-tools/ys-editor/ys-session begin --seconds 60 --reason '扫好友列表' --user-said '<用户原话>'
+# begin 内部**自己**会跑一次 `ys-screen-grant grant`（不绕过用户授权）。
+# 2026-10-21 重设计后这条不再互斥：先把任务 id 想好，begin 用同一个 --task 即可；
+# 同一个任务内重复 begin/grant 是**续期**（回 "renewed": true），不会 GRANT_FAILED。
+tools/ys-editor/ys-session begin --seconds 90 --task friends-scan --reason '扫好友列表' --user-said '<用户原话>'
 # 会话内 ys-scroll / ys-pointer-click / ys-esc 自动直注入（读 ~/.ys/session.json）
-tools/ys-editor/ys-session status
-tools/ys-editor/ys-session end          # 统一 restore firefox + revoke
+tools/ys-editor/ys-session status      # 回 left_s / released / reacquires / idle_ms
+tools/ys-editor/ys-session focus       # 动作前自动重取焦点（**动作工具内部已自动调用**，通常不用手敲）
+tools/ys-editor/ys-session end         # 统一 restore firefox + revoke
 ```
 
-判据：**有效占用比 = (inject_ms + verify_ms) / 占用总时长**；W1-retry2 实测 42.1s 里约 19%，
-会话扫描循环目标 ≥60%。`ys-scroll` 回执带 `timing{inject_ms,settle_ms,verify_ms,total_ms}` 与
-`session_id`；`ys-esc` 的固定 `sleep 2` 改为 `YS_ESC_SETTLE_MS`（缺省 200）。
+**层 2 行为（2026-10-21 用户令）**：模型思考时 `ys-focus-guard` 会在静默 `idle_ms`（缺省 8s）后
+**自动把屏幕交还用户**；下一个动作到达时动作工具**内部自动重取焦点**，模型侧调用方式完全不变。
+`released / reacquires / release_reason` 三个字段就是这条链的读数。
+取不回焦点 ⇒ `ys-scroll` rc=7 / `ys-session focus` rc=4，**拒绝注入**（绝不打进用户窗口）。
+
+**指标口径（2026-10-21 纠正）**：`有效占用比 = (inject_ms+verify_ms)/占用总时长` 是**利用率**指标，
+它奖励"把屏幕占满"，与用户利益相反 ⇒ **降级为诊断项，不作为 KPI**。
+对用户汇报的是**成本**：打扰总时长、抬窗次数、知情次数、交还延迟；数字必须能从 `~/.ys/` 的回执重算，
+不许只报自算的百分比。
 
 live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并在 `look` 回执
 `timing.frame_source` 标 `ys-capture|import-fallback|import`；归属类拒绝仍 fail-closed。

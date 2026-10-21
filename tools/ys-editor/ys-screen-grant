@@ -10,15 +10,22 @@
 所以把契约落成一个**带 TTL 的凭据**：底层注入（`ys-gui-slot`）在动手前先查它，
 查不到就**拒绝执行**并告诉调用方"先去申请"。
 
-## 契约
+## 契约（2026-10-21 重设计：许可 / 占用 / 观测三件事解耦）
 
-1. 调用方（代理）在**用户于对话里同意时长之后**，才运行：
-     ys-screen-grant grant --seconds 180 --reason "复验 GAME_FRIENDS（ESC→点好友→退回）"
-2. 凭据落 `~/.ys/screen-grant.json`，含 `expires / reason / created / active_window`；
-3. `ys-gui-slot` 每次占用前：
-     · 打印**占用前的活动窗口**（KWin 权威）——先看清屏幕在谁手上；
-     · 校验凭据未过期；过期/缺失 ⇒ 退出码 6 `NO_GRANT`，不做任何窗口操作。
-4. 测试/自测专用逃生舱 `YS_SLOT_TEST=1`（只在 tests/ 与门禁里出现，生产调用路径不许设）。
+> 旧模型把三者绑在同一个秒表上，产生反作用：租期是稀缺资源 ⇒ 代理为省租期把整条流程
+> 预写死（用预判代替观察，用户当场点破）；且「有效期内禁续期」与 `ys-session begin`
+> 自带的 grant 互斥，两次 60s 租期 0 次注入。
+
+1. **许可 = 任务级**：调用方在用户同意后运行
+     `ys-screen-grant grant --task <任务id> --eta 120 --reason "复验 GAME_FRIENDS" --user-said "<用户原话>"`
+   同一 `--task` 内**续期不打断用户**（累计上限 `YS_SCREEN_MAX_TASK`，默认 1800s）；
+   换任务必须重新问用户（无 `--user-said` ⇒ `TASK_MISMATCH` / `NEED_USER_APPROVAL`）。
+2. **占用 = 动作级**：凭据**不等于**屏幕被占。屏幕空闲由 `ys-focus-guard` 的
+   **空闲释放**交还（`ys-session` 的 `idle_ms`），下一个动作自动重取焦点。
+   ⇒ 代理的思考时间**不再计费**，也就没有"为省租期批量跑"的动机。
+3. **观测 = 事件级**：`status` 回 task/renewals/left_s；拒绝时 `explain` 给人读的完整状态。
+4. `ys-gui-slot` 每次占用前校验凭据：过期/缺失 ⇒ 退出码 6 `NO_GRANT`。
+5. 测试/自测专用逃生舱 `YS_SLOT_TEST=1`（只在 tests/ 与门禁里出现，生产调用路径不许设）。
 
 ## 用法
 
@@ -64,6 +71,9 @@ def _kwin_active():
 
 MAX_GRANT_S = int(os.environ.get('YS_SCREEN_MAX_GRANT', '300'))  # 2026-10-21 二次复盘：120s 太短，
                                                                 # 扫列表任务被逼着反复申请（纯用户等待 100s）
+DEFAULT_ETA = int(os.environ.get('YS_SCREEN_DEFAULT_ETA', '120'))
+# 一个任务累计可授权的上限（同任务续期不打断用户，但不能"申请一次、无限续"）
+MAX_TASK_S = int(os.environ.get('YS_SCREEN_MAX_TASK', '1800'))
 
 
 def load():
@@ -74,39 +84,75 @@ def load():
         return None
 
 
+def _save(rec):
+    """原子写（守护 0.5s 轮询，半截文件会被读成无凭据）。"""
+    os.makedirs(os.path.dirname(PATH), exist_ok=True)
+    tmp = "%s.tmp.%d" % (PATH, os.getpid())
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(rec, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, PATH)
+
+
 def cmd_grant(a):
     now = time.time()
     # 2026-10-21 复盘（真机会话 session-cd869786）：
     #   代理在 64s 处**没问用户**就 `grant --seconds 1200`（20 分钟），随后立刻 ys-follow-win 切走桌面；
     #   之后每次到期又自己续（220/300/300/200s），用户全程不知道。
     #   ⇒ 光有"凭据"不够，必须防**自授**与**无限续期**：
-    n = int(a.seconds)
+    task = (getattr(a, "task", "") or "default").strip() or "default"
+    n = int(getattr(a, "eta", None) or getattr(a, "seconds", None) or DEFAULT_ETA)
+    said = (a.user_said or "").strip()
+    cur = load()
+    # 单次超大请求一律拒（"一次要 4 小时"= 没跟用户对齐）；续期请用 ≤MAX_GRANT_S 的 eta
     if n > MAX_GRANT_S:
         print(json.dumps({"ok": False, "error": "GRANT_TOO_LONG",
-                          "detail": f"单次最多 {MAX_GRANT_S}s（你要 {n}s）；长任务请分段，每段重新申请"},
+                          "detail": f"单次最多 {MAX_GRANT_S}s（你要 {n}s）；同一个 --task 内续期不打断用户"},
                          ensure_ascii=False))
         return 2
-    cur = load()
-    if cur and cur.get("expires", 0) > now:
-        print(json.dumps({"ok": False, "error": "GRANT_STILL_VALID",
-                          "left_s": int(cur["expires"] - now),
-                          "detail": "凭据仍在有效期内，不允许覆盖续期（先 revoke，且续期要重新向用户申请）"},
+    # 同任务续期：用户已为**这个任务**知情，不再打断他（2026-10-21 重设计）。
+    # 旧模型「有效期内禁止续期」同时挡住了两件事：防自授 + 合法分段 ⇒ 把防护和功能做成了一个开关。
+    if cur and float(cur.get("expires") or 0) > now and (cur.get("task") or "default") == task:
+        created = float(cur.get("created") or now)
+        hard = created + MAX_TASK_S
+        new_exp = min(now + n, hard)
+        cur.update({"expires": new_exp, "renewals": int(cur.get("renewals") or 0) + 1,
+                    "last_renew": now, "eta": n})
+        if said:
+            cur["user_said_latest"] = said[:200]
+        _save(cur)
+        print(json.dumps({"ok": True, "renewed": True, "task": task,
+                          "left_s": int(new_exp - now), "renewals": cur["renewals"],
+                          "capped": new_exp >= hard - 1,
+                          "hint": "同任务续期不打断用户；屏幕空闲由 ys-focus-guard 自动交还"},
+                         ensure_ascii=False))
+        return 0
+    if n > MAX_GRANT_S:
+        print(json.dumps({"ok": False, "error": "GRANT_TOO_LONG",
+                          "detail": f"单次最多 {MAX_GRANT_S}s（你要 {n}s）；同一个 --task 内续期不打断用户"},
                          ensure_ascii=False))
         return 2
-    if not (a.user_said or "").strip():
-        print(json.dumps({"ok": False, "error": "NEED_USER_APPROVAL",
-                          "detail": "必须用 --user-said 记录**用户原话**（你在对话里问过、他同意了才填）"},
+    old_task = (cur or {}).get("task")
+    if not said:
+        busy = bool(cur and float(cur.get("expires") or 0) > now)
+        print(json.dumps({"ok": False,
+                          "error": "TASK_MISMATCH" if busy else "NEED_USER_APPROVAL",
+                          "current_task": old_task,
+                          "left_s": int(float(cur.get("expires") or 0) - now) if busy else 0,
+                          "detail": ("已有另一个任务的授权（%s）；换任务必须重新问用户并用 --user-said 记录原话"
+                                     % old_task) if busy else
+                                    "必须用 --user-said 记录**用户原话**（你在对话里问过、他同意了才填）"},
                          ensure_ascii=False))
         return 2
-    rec = {"created": now, "expires": now + n, "reason": a.reason or "",
-           "user_said": (a.user_said or "")[:200], "active_window": _kwin_active()}
-    os.makedirs(os.path.dirname(PATH), exist_ok=True)
-    with open(PATH, "w", encoding="utf-8") as f:
-        json.dump(rec, f, ensure_ascii=False, indent=1)
+    rec = {"created": now, "expires": now + n, "eta": n, "task": task,
+           "reason": a.reason or "", "user_said": said[:200], "renewals": 0,
+           "active_window": _kwin_active(),
+           "replaced_task": old_task if old_task and old_task != task else None}
+    _save(rec)
     left = int(rec["expires"] - now)
-    print(json.dumps({"ok": True, "granted_s": left, "reason": rec["reason"],
+    print(json.dumps({"ok": True, "task": task, "granted_s": left, "reason": rec["reason"],
                       "active_window_at_grant": rec["active_window"],
-                      "hint": "占用前再看一次活动窗口；到期即失效，需要续就重新申请"}, ensure_ascii=False))
+                      "hint": "授权按任务计；屏幕占用由空闲释放（层 2）控制，到期即失效"},
+                     ensure_ascii=False))
     return 0
 
 
@@ -193,7 +239,10 @@ def cmd_explain(a):
 
 
 def cmd_revoke(_a):
-    _restore_res = _hand_back()
+    # 没有凭据 ⇒ 本来就什么都没占：**不要**再抬一次 firefox。
+    # （旧实现无条件 _hand_back ⇒ 回归测试每调一次 revoke 就动一次窗口，用户听到操作音。）
+    had = os.path.exists(PATH)
+    _restore_res = _hand_back() if had else {"ok": True, "skipped": "no_grant"}
     try:
         os.unlink(PATH)
         print(json.dumps({"ok": True, "revoked": PATH, "hand_back": _restore_res}, ensure_ascii=False))
@@ -206,9 +255,13 @@ def main():
     ap = argparse.ArgumentParser(description="屏幕占用契约（申请时长 → 凭据 → 底层校验）")
     sub = ap.add_subparsers(dest="cmd")
     g = sub.add_parser("grant")
-    g.add_argument("--seconds", type=int, required=True)
+    g.add_argument("--task", default="default",
+                   help="任务 id：一次知情 = 一个任务；同一任务内续期不打断用户")
+    g.add_argument("--eta", type=int, default=None,
+                   help="预计需要多少秒（给用户做决定用；不是硬预算）")
+    g.add_argument("--seconds", type=int, default=None, help="--eta 的别名（旧用法）")
     g.add_argument("--reason", default="")
-    g.add_argument("--user-said", default="", help="用户同意的原话（必填；没有=没申请）")
+    g.add_argument("--user-said", default="", help="用户同意的原话（新建/换任务必填；没有=没申请）")
     g.set_defaults(func=cmd_grant)
     sub.add_parser("status").set_defaults(func=cmd_status)
     e = sub.add_parser("explain", help="被拒时输出：错因 + 当前状态 + 下一步（机器可读）")

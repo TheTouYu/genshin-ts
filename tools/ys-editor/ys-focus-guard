@@ -156,10 +156,113 @@ def enforce_grant_expiry(verbose=False):
     return 1
 
 
+SESSION = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
+HAND_BACK_BIN = os.environ.get("YS_HAND_BACK_BIN") or os.path.join(HERE, "ys-hand-back")
+GAME_MARKS = ("yuanshen", "genshin", "原神")
+
+
+def _read_json(p):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _write_json(p, d):
+    tmp = "%s.tmp.%d" % (p, os.getpid())
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, indent=1)
+        os.replace(tmp, p)
+        return True
+    except Exception:                                    # noqa: BLE001
+        return False
+
+
+def _hand_back_once(why):
+    try:
+        p = subprocess.run([HAND_BACK_BIN], capture_output=True, text=True, timeout=45)
+        log("%s hand_back rc=%d out=%s" % (why, p.returncode, (p.stdout or p.stderr or "").strip()[:140]))
+        return p.returncode == 0
+    except Exception as e:                               # noqa: BLE001
+        log("%s hand_back EXC %s: %s" % (why, type(e).__name__, e))
+        return False
+
+
+def _kwin_active():
+    try:
+        p = subprocess.run([LEASE_BIN, "kwin-state"], capture_output=True, text=True, timeout=20)
+        d = json.loads((p.stdout or "").strip().splitlines()[-1])
+        return (d or {}).get("active") or {}
+    except Exception:                                    # noqa: BLE001
+        return {}
+
+
+def _is_game(cls):
+    c = str(cls or "").lower()
+    return any(k in c for k in GAME_MARKS)
+
+
+def enforce_session_idle(verbose=False):
+    """会话空闲 ⇒ 把屏幕交还用户（层 2，2026-10-21 用户令）。
+
+    用户原话：「我希望模型在思考的时候，不要白白等待，会自动切换回来；模型思考结束了、
+    执行下一个动作的时候，自动切到游戏，不干扰模型的执行，不给模型增加额外负担。」
+
+    判据 = **距上次动作的静默时长**（不依赖模型做任何事）：
+      · 静默 > idle_ms（缺省 8s，`YS_SESSION_IDLE_MS` 可调）且尚未交还 ⇒ 交还一次，记 released；
+      · 下一个动作到来时由 `ys-session focus` 自动重取焦点（模型无感，仍调同一个动作工具）。
+    安全：①已交还过就不再动窗口（幂等）；②屏幕已被用户切走时不抢；
+          ③决策前后各读一次会话文件，动作刚发生（ts / 持有窗口变了）就放弃本次交还。
+    返回 1 = 本次对会话做了交还动作。
+    """
+    s = _read_json(SESSION)
+    if not s or s.get("state") != "active" or s.get("dry_run"):
+        return 0
+    now = time.time()
+    if float(s.get("expires") or 0) <= now:
+        if s.get("released"):
+            return 0
+        _hand_back_once("SESSION_EXPIRED")
+        s.update({"released": True, "released_at": now, "release_reason": "expired"})
+        _write_json(SESSION, s)
+        return 1
+    if s.get("released"):
+        return 0
+    if now < float(s.get("holding_until") or 0):
+        return 0
+    idle_s = int(s.get("idle_ms") or os.environ.get("YS_SESSION_IDLE_MS") or 8000) / 1000.0
+    last = float(s.get("last_action_ts") or s.get("created") or 0)
+    if now - last < idle_s:
+        return 0
+    # 动作可能已经开始：再读一次，ts / 持有窗口都没变才动手（避免把刚抬起的窗又推走）
+    s2 = _read_json(SESSION)
+    if (not s2 or s2.get("released")
+            or float(s2.get("last_action_ts") or 0) != last
+            or time.time() < float(s2.get("holding_until") or 0)):
+        return 0
+    act = _kwin_active()
+    if not _is_game(act.get("class")):
+        s2.update({"released": True, "released_at": now,
+                   "release_reason": "idle(not-ours:%s)" % (act.get("class") or "")})
+        _write_json(SESSION, s2)
+        return 0
+    ok = _hand_back_once("SESSION_IDLE")
+    s2.update({"released": True, "released_at": now, "release_ok": ok,
+               "release_reason": "idle" if ok else "idle(handback-failed)"})
+    _write_json(SESSION, s2)
+    if verbose:
+        print("[ys-focus-guard] 会话空闲交还 → ok=%s" % ok)
+    return 1
+
+
 def check_once(verbose=False, allow_stop=False):
     """返回 1 = 本应有租约要归还（已处理或失败）；0 = 无该归还的租约。"""
     global GLOBAL_FAILS
     if enforce_grant_expiry(verbose):                    # 先执行"租期到期归还"这条机制
+        return 1
+    if enforce_session_idle(verbose):                    # 再执行"会话空闲 ⇒ 交还用户"（层 2）
         return 1
     if not os.path.exists(LEASE):
         return 0
