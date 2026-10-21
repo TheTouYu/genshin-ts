@@ -1430,6 +1430,8 @@ CAPABILITIES = {
         "取帧归属不过就 fail-closed，且不为了取数抬窗口",
         # 2026-10-21 真机踩到：容器 bbox 是 **xyxy**（x0,y0,x1,y1），我按 xywh 算中心点歪了 (972,795) vs 正确 (677,556)
         "objects[].bbox 是 xyxy（x0,y0,x1,y1）；中心 = ((x0+x1)/2, (y0+y1)/2)，不是 (x0+w/2, y0+h/2)",
+        "读帧层级必须自报：--allow-background 读的是**后台缓冲帧**（能证明'看得见'，证不了'动得了'）；"
+        "只有走 ys-gui-slot 抬窗后的帧 + 真实注入，才算可见/交互层验证。报告里必须写清是哪一层",
     ],
     "known_gaps": [
         {"code": "CLICKABLE_UNKNOWN", "detail": "affordance.clickable 恒为 unknown（不是置信度）"},
