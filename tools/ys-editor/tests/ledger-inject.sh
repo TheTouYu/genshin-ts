@@ -8,7 +8,7 @@
 #
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg |
-#                                        scrollbar-neg | capture-cli-neg
+#                                        scrollbar-neg | capture-cli-neg | session-claim-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -37,6 +37,28 @@ case "$mode" in
     fi
     rm -f /tmp/.cap-cli-neg.$$
     echo "INJECT-PASS capture-cli-neg: 关掉自动编码 ⇒ gate_png_auto_encode 报红"; exit 0
+    ;;
+  # session-claim-neg：让 claim 不再复位 released 闩锁（F-20261021-69 的 prevented 证据）
+  #   闸门必须变红，且红的必须是"复位闩锁"那条断言，不能是别的串了。
+  session-claim-neg)
+    f="tools/ys-editor/ys-session"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding="utf-8").read()
+old = '    cur["released"] = False'
+assert old in s, "注入点没找到"
+s = s.replace(old, "    pass  # 注入物：故意不复位 released 闩锁（模拟 D485 事故）", 1)
+open(p, "w", encoding="utf-8").write(s)
+PYIN
+    if python3 tools/ys-editor/tests/session-claim.selftest.py >/tmp/.claim-neg.$$ 2>&1; then
+      echo "INJECT-FAIL session-claim-neg: 闩锁不复位后门禁仍绿（门禁空转）"; rm -f /tmp/.claim-neg.$$; exit 1
+    fi
+    if ! grep -q 'T2' /tmp/.claim-neg.$$; then
+      echo "INJECT-FAIL session-claim-neg: 变红但不是 T2（复位闩锁）那条（判据串了）"; rm -f /tmp/.claim-neg.$$; exit 1
+    fi
+    rm -f /tmp/.claim-neg.$$
+    echo "INJECT-PASS session-claim-neg: 不复位 released ⇒ T2 报红"; exit 0
     ;;
   # ③c 注入「关掉滚动条检测的实心性闸门」→ scrollbar 自测必须变红（假阳回来）
   scrollbar-neg)
