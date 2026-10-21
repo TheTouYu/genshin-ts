@@ -396,14 +396,20 @@ def cmd_focus(a):
                                   "next_action": "屏幕可能已被用户切走：停止注入并告知用户"},
                                  ensure_ascii=False))
                 return 4
+    # 2026-10-21 真机实测（测试 2）：`now` 取自**函数入口**，而抬窗（切桌面+activate+验证）
+    # 要 2.9s ⇒ last_action_ts 被写成"三秒前"，动作还没注入警卫就判定空闲、把屏幕交还，
+    # 结果 ESC 打进了一个正在被收回的窗口（回执 released=False 但实况已在 firefox）。
+    # 空闲计时必须从**动作真正可以注入的那一刻**开始算。
+    now2 = time.time()
     cur["released"] = False
     cur["released_at"] = None
-    cur["last_action_ts"] = now
-    cur["holding_until"] = now + hold
+    cur["last_action_ts"] = now2
+    cur["holding_until"] = now2 + hold
     cur["reacquires"] = int(cur.get("reacquires") or 0) + 1
+    cur["focus_ms"] = round((now2 - t0) * 1000, 1)
     save(cur)
-    print(json.dumps({"ok": True, "raised": True, "ms": round((time.time() - t0) * 1000, 1)},
-                     ensure_ascii=False))
+    print(json.dumps({"ok": True, "raised": True, "ms": round((time.time() - t0) * 1000, 1),
+                      "hold_s": hold}, ensure_ascii=False))
     return 0
 
 
