@@ -53,6 +53,22 @@ export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ORIG_ARGS=("$@")
 FIND="$HERE/../ys-find"
+T_CLICK0=$(date +%s%3N)
+
+# 占用会话（ys-session）：会话内直接注入，不再自建 slot（省 kwin-state/resolve/raise）
+SESS_ACTIVE=$(python3 - <<'PY' 2>/dev/null
+import json, os, time
+p = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
+try:
+    d = json.load(open(p, encoding="utf-8"))
+except Exception:
+    d = None
+ok = bool(d and d.get("state") == "active" and float(d.get("expires") or 0) > time.time()
+          and not d.get("dry_run"))
+print("1" if ok else "0")
+PY
+)
+[ "${SESS_ACTIVE:-0}" = "1" ] && export YS_SLOT_ACTIVE=1
 
 # 模式判定：出现任何 --flag 走「按名字解析」分支；没有 flag 就是旧坐标用法。
 NEW=0
@@ -81,6 +97,7 @@ click_loop() {
       fi
       sleep 0.4
       echo "[ys-pointer-click] 命中 ($cx,$cy) → 已点击（第 ${i} 轮）"
+      echo "CLICK-TIMING {\"total_ms\": $(( $(date +%s%3N) - T_CLICK0 )), \"rounds\": $i}" >&2
       return 0
     fi
     ux=$(awk -v d="$dx" -v r="$RATIO" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/r}')

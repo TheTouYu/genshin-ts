@@ -230,3 +230,21 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
 
 **触发条件→动作**：写完任何新能力 → 立刻在 `capabilities` 里登记 verb 与 skills 指针 →
 跑 skill-coverage；红了说明"代码有、技能没有"，别交付。
+
+## 9. 占用会话 `ys-session`（2026-10-21 反馈轮新增）
+
+一次 grant 内多个动作共享一次窗口上下文；别再「一动作一 slot」（真机实测 4–5s/次）。
+
+```bash
+tools/ys-editor/ys-session begin --seconds 60 --reason '扫好友列表' --user-said '<用户原话>'
+# 会话内 ys-scroll / ys-pointer-click / ys-esc 自动直注入（读 ~/.ys/session.json）
+tools/ys-editor/ys-session status
+tools/ys-editor/ys-session end          # 统一 restore firefox + revoke
+```
+
+判据：**有效占用比 = (inject_ms + verify_ms) / 占用总时长**；W1-retry2 实测 42.1s 里约 19%，
+会话扫描循环目标 ≥60%。`ys-scroll` 回执带 `timing{inject_ms,settle_ms,verify_ms,total_ms}` 与
+`session_id`；`ys-esc` 的固定 `sleep 2` 改为 `YS_ESC_SETTLE_MS`（缺省 200）。
+
+live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并在 `look` 回执
+`timing.frame_source` 标 `ys-capture|import-fallback|import`；归属类拒绝仍 fail-closed。

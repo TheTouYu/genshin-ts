@@ -143,10 +143,24 @@ def frame_diff(a, b):
         return None
 
 
+def _session():
+    """活动占用会话（ys-session）。命中 ⇒ 直接注入（等价于已在 slot 内）。"""
+    path = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
+    try:
+        d = json.load(open(path, encoding="utf-8"))
+    except Exception:                                   # noqa: BLE001
+        return None
+    if d.get("state") == "active" and float(d.get("expires") or 0) > time.time() and not d.get("dry_run"):
+        return d
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--at", required=True, help="滚动位置（窗口内逻辑坐标 x,y）")
     ap.add_argument("--clicks", type=int, default=40, help="滚轮格数")
+    ap.add_argument("--rows", type=float, default=0.0,
+                    help="目标行数（用 ~/.dsh/ys-scroll-calib.json 反查 clicks；扫描建议闭环再调）")
     ap.add_argument("--by", default="", help="page | items=N（与 --pitch 配合）")
     ap.add_argument("--pitch", type=float, default=0.0, help="单项节距（像素），用于 items=N")
     ap.add_argument("--dir", choices=["down", "up"], default="down")
@@ -156,10 +170,39 @@ def main():
     ap.add_argument("--drag", type=int, default=0, help="改用「拖动」滚动：拖动 N 像素（内容 1:1 跟手，比滚轮线性）")
     ap.add_argument("--delay", type=int, default=30, help="每格间隔 ms（慢速滚动保持线性；实测 8ms 会非线性加速）")
     ap.add_argument("--hint", action="store_true", default=True, help="执行后附带教练提示（默认开）")
+    ap.add_argument("--no-hint", action="store_true", help="不跑 coach（省 ~88ms/次）")
+    ap.add_argument("--settle-ms", type=int, default=600,
+                    help="注入后固定等待 ms（缺省 600；会话扫描用 150–250）")
+    ap.add_argument("--plan", action="store_true", help="只打印执行计划（in_slot/session/script），不注入")
     a = ap.parse_args()
+    sess = _session()
+    if sess:
+        os.environ["YS_SLOT_ACTIVE"] = "1"
+        os.environ["YS_SESSION_ID"] = str(sess.get("session_id") or "")
 
     t0 = time.time()
     clicks = a.clicks
+    if a.rows > 0 and not a.by:
+        # 2026-10-21 反馈轮：clicks→rows 非线性（calib: 10→3 / 20→3 / 40→6）。
+        # 用标定点做最小二乘线性反查，clamp 5..80；单次调用仍可能因位置抖动偏，
+        # 扫描驱动（scan_session.py）再用上一屏实际位移闭环修正。
+        try:
+            _c = json.load(open(os.path.expanduser("~/.dsh/ys-scroll-calib.json")))
+            _pts = [(float(t["clicks"]), float(t["rows"])) for t in _c.get("tests", [])
+                    if t.get("clicks") and t.get("rows")]
+            if len(_pts) >= 2:
+                _xs = [p[0] for p in _pts]
+                _ys = [p[1] for p in _pts]
+                _mx = sum(_xs) / len(_xs)
+                _my = sum(_ys) / len(_ys)
+                _var = sum((x - _mx) ** 2 for x in _xs)
+                _m = (sum((x - _mx) * (y - _my) for x, y in _pts) / _var) if _var else 0.0
+                _c0 = _my - _m * _mx
+                if _m > 0:
+                    clicks = int(round((a.rows - _c0) / _m))
+                    clicks = max(5, min(80, clicks))
+        except Exception:                                # noqa: BLE001
+            pass
     # --by rows=N：用拖动（线性），按标定 px_per_row 换算（默认 200；标定见 ~/.dsh/ys-scroll-calib.json）
     if a.by.startswith("rows="):
         n = float(a.by.split("=", 1)[1])
@@ -204,6 +247,12 @@ def main():
         # 一次调用滚完（--repeat），减少 N 次进程启停
         script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "
                   f"xdotool click --repeat {clicks} --delay {a.delay} {btn}")
+    if a.plan:
+        print(json.dumps({"plan": {"in_slot": os.environ.get("YS_SLOT_ACTIVE") == "1",
+                                   "session_id": os.environ.get("YS_SESSION_ID"),
+                                   "clicks": clicks, "settle_ms": a.settle_ms,
+                                   "script": script}}, ensure_ascii=False))
+        return 0
     lease_ok = False
     made_lease = False          # 只归还本函数自己取的租约；别人的租约不动
     if a.lease:
@@ -227,23 +276,32 @@ def main():
                 made_lease = False
         except Exception:                                # noqa: BLE001
             lease_ok = False
-    if lease_ok:
+    # 2026-10-21 真机吞吐修：已经在大租期的 ys-gui-slot 里（长扫描批）就**直接注入**，
+    # 不再套一层 slot。嵌套 slot 每次多付 kwin-state/resolve/raise ~2s，60s 窗口只能扫 8 屏。
+    in_slot = os.environ.get("YS_SLOT_ACTIVE") == "1"
+    t_inj = time.time()
+    if lease_ok or in_slot:
         env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
         p = subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=120)
     else:
         p = subprocess.run([SLOT, (_resolve_win() or "auto"), "60", "bash", "-c", script],
                            capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
-    time.sleep(0.6)
+    inject_ms = round((time.time() - t_inj) * 1000, 1)
+    t_set = time.time()
+    time.sleep(max(0, a.settle_ms) / 1000.0)
+    settle_ms = round((time.time() - t_set) * 1000, 1)
     moved = None
     diff = None
+    t_ver = time.time()
     if not a.no_verify:
         fb = capture(a.window, os.path.join(tmp, "b.png"))
         if fa and fb:
             moved = shift_px(fa, fb)
             diff = frame_diff(fa, fb)
+    verify_ms = round((time.time() - t_ver) * 1000, 1)
     hint = None
-    if a.hint:
+    if a.hint and not a.no_hint:
         try:
             hp = subprocess.run([os.path.join(os.path.dirname(HERE), "coach"), "--hint"],
                                 capture_output=True, text=True, timeout=8)
@@ -269,6 +327,9 @@ def main():
     out = {"ok": bool(ok_inject and release_ok), "release_ok": release_ok,
            "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
            "drag": a.drag or None, "lease": lease_ok, "hint": hint,
+           "session_id": os.environ.get("YS_SESSION_ID") or None,
+           "timing": {"inject_ms": inject_ms, "settle_ms": settle_ms,
+                      "verify_ms": verify_ms, "total_ms": _ms},
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
            "frame_diff": (None if diff is None else round(diff, 6)),
            "moved_confirmed": moved_confirmed,

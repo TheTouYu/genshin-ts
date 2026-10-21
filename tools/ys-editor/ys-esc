@@ -1,19 +1,45 @@
 #!/bin/bash
 # ys-esc — 发一次 ESC（走硬通道）
 #
-# 2026-10-21 修（真机 W1 实测）：旧版走 `ys-act`，而 ys-act 的抓图用默认窗
-# `0x01400001`（游戏重启后是死 id）⇒ `import -window` 失败 ⇒ **ESC 已发出但 rc=1**，
-# 调用方按纪律中止。现在直接用 ys-gui-slot 发键（不抓图），窗口用 YS_WIN/游戏窗自动解析。
+# 2026-10-21 真机反馈轮：
+#  · 旧版经 ys-act 抓图，默认窗死 id ⇒ ESC 已发出但 rc=1；改为直接发键（无抓图）；
+#  · 固定 sleep 2s 是 6.65s 里的 2.12s 大头 ⇒ 改 YS_ESC_SETTLE_MS（缺省 200ms）；
+#  · 占用会话（ys-session）内直接注入，不再自建 slot。
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-# 2026-10-21 二次修：不能把 0x01400001 当兜底值（游戏重启后是死 id，import/raise 都会失败）。
-# 窗口 id 一律按 class 动态解析（与 ys_look 同一口径：取面积最大的 yuanshen 窗）。
 WIN="${YS_WIN:-}"
 if [ -z "$WIN" ]; then
   WIN=$(python3 -c 'import sys; sys.path.insert(0, "'"$HERE"'"); import ys_look; print(ys_look.WIN or "")' 2>/dev/null)
 fi
 [ -n "$WIN" ] || WIN=auto
-exec "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-20}" bash -c \
-  'ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep 2'
+SETTLE_MS="${YS_ESC_SETTLE_MS:-200}"
+SETTLE_S=$(awk -v m="$SETTLE_MS" 'BEGIN{printf "%.3f", m/1000}')
+SESS=$(python3 - <<'PY' 2>/dev/null
+import json, os, time
+p = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
+try:
+    d = json.load(open(p, encoding="utf-8"))
+except Exception:
+    d = None
+print("1" if (d and d.get("state") == "active" and float(d.get("expires") or 0) > time.time()
+              and not d.get("dry_run")) else "0")
+PY
+)
+if [ "${1:-}" = "--plan" ]; then
+  echo "ESC-PLAN {\"session\": ${SESS}, \"settle_ms\": ${SETTLE_MS}, \"win\": \"${WIN}\"}"
+  exit 0
+fi
+T0=$(date +%s%3N)
+if [ "$SESS" = "1" ]; then
+  bash -c "ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep ${SETTLE_S}"
+  RC=$?
+else
+  "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-20}" bash -c \
+    "ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep ${SETTLE_S}"
+  RC=$?
+fi
+T1=$(date +%s%3N)
+echo "ESC-TIMING {\"total_ms\": $((T1-T0)), \"settle_ms\": ${SETTLE_MS}, \"session\": ${SESS}}" >&2
+exit "$RC"

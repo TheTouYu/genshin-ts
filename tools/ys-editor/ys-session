@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""ys-session — 屏幕占用会话（一次 grant 内多个动作共享一次窗口上下文）。
+
+为什么有它（2026-10-21 真机反馈轮）：
+  W1-retry2 的 42.1s 里，导航+滚动的 **setup 占了大头**：每个动作自建 `ys-gui-slot`
+  都要重新 kwin-state(143ms)+resolve(83ms)+grant status(55ms)+kwin-raise(~1-2s)；
+  有效注入+验证不到 8s（≈19%）。会话对象把「抬窗一次」变成显式生命周期：
+
+    ys-session begin --seconds 60 --reason '...' --user-said '<用户原话>'
+    ... 同一会话内的动作（ys-scroll / ys-pointer-click / ys-esc）直接注入，不再建 slot ...
+    ys-session end
+
+约定：
+  · 会话文件默认 `~/.ys/session.json`（`YS_SESSION_PATH` 可覆盖）；
+  · `begin` 内部仍走 `ys-screen-grant grant`（不绕过用户授权），并记录 prev_active；
+  · `end` 统一 `ys-lease restore` + `ys-screen-grant revoke`，失败非零；
+  · `--dry-run` 只写/清状态文件，不 grant、不抬窗、不归还（离线可测）；
+  · 过期后动作自动不认会话（回落到各自的 slot 路径）。
+
+用法：
+  ys-session begin --seconds 60 --reason '...' --user-said '...' [--dry-run]
+  ys-session status
+  ys-session end [--dry-run]
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+import uuid
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+LEASES = os.path.join(HERE, "ys-lease")
+GRANT = os.path.join(HERE, "ys-screen-grant")
+DEFAULT_PATH = os.path.expanduser("~/.ys/session.json")
+
+
+def path():
+    return os.environ.get("YS_SESSION_PATH") or DEFAULT_PATH
+
+
+def load():
+    try:
+        with open(path(), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:                                        # noqa: BLE001
+        return None
+
+
+def save(d):
+    os.makedirs(os.path.dirname(path()), exist_ok=True)
+    tmp = path() + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, path())
+
+
+def session_win():
+    """当前游戏窗 id（动态解析，与 ys_look 同口径）；解析不到返回 None。"""
+    try:
+        p = subprocess.run([sys.executable, "-c",
+                            "import sys;sys.path.insert(0,%r);import ys_look;print(ys_look.WIN or '')" % HERE],
+                           capture_output=True, text=True, timeout=20)
+        return (p.stdout or "").strip() or None
+    except Exception:                                        # noqa: BLE001
+        return None
+
+
+def lease(args, timeout=60):
+    p = subprocess.run([sys.executable, LEASES] + args, capture_output=True, text=True,
+                       timeout=timeout)
+    try:
+        d = json.loads((p.stdout or "").strip().splitlines()[-1])
+    except Exception:                                        # noqa: BLE001
+        d = {"ok": False, "error": (p.stdout or p.stderr or "")[-300:], "rc": p.returncode}
+    d.setdefault("rc", p.returncode)
+    return d
+
+
+def cmd_begin(a):
+    cur = load()
+    if cur and cur.get("state") == "active" and cur.get("expires", 0) > time.time():
+        print(json.dumps({"ok": False, "error": "SESSION_ACTIVE",
+                          "session_id": cur.get("session_id"),
+                          "left_s": round(cur["expires"] - time.time(), 1),
+                          "next_action": "先 ys-session end，或等过期"}, ensure_ascii=False))
+        return 2
+    now = time.time()
+    sess = {"schema": "ys.session/1", "session_id": "s-" + uuid.uuid4().hex[:10],
+            "created": now, "expires": now + int(a.seconds), "seconds": int(a.seconds),
+            "reason": a.reason, "user_said": a.user_said, "dry_run": bool(a.dry_run),
+            "state": "active", "win": session_win(), "prev_active": None, "target": None,
+            "actions": 0}
+    if a.dry_run:
+        save(sess)
+        print(json.dumps({"ok": True, "dry_run": True, "session": sess}, ensure_ascii=False))
+        return 0
+    # 1) 用户授权（不绕过）
+    g = subprocess.run([sys.executable, GRANT, "grant", "--seconds", str(int(a.seconds)),
+                        "--reason", a.reason or "ys-session", "--user-said", a.user_said],
+                       capture_output=True, text=True, timeout=30)
+    try:
+        gd = json.loads((g.stdout or "").strip().splitlines()[-1])
+    except Exception:                                        # noqa: BLE001
+        gd = {"ok": False, "error": (g.stdout or g.stderr)[-300:], "rc": g.returncode}
+    if g.returncode != 0 or not gd.get("ok"):
+        print(json.dumps({"ok": False, "error": "GRANT_FAILED", "detail": gd,
+                          "next_action": "先向用户申请"}, ensure_ascii=False))
+        return 6
+    # 2) 一次 kwin-state + resolve + raise（后续动作不再付）
+    st = lease(["kwin-state"])
+    sess["prev_active"] = st.get("active") if st.get("ok") else None
+    win = sess["win"] or ""
+    rw = lease(["resolve-window", "--id", win])
+    if not (rw.get("ok") and (rw.get("target") or {}).get("internalId")):
+        print(json.dumps({"ok": False, "error": "RESOLVE_FAILED", "detail": rw,
+                          "next_action": "看 ys-wins --attrib / ys-capture status"}, ensure_ascii=False))
+        subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
+        return 3
+    sess["target"] = rw["target"]
+    rs = lease(["kwin-raise", "--id", rw["target"]["internalId"]])
+    if not rs.get("ok"):
+        print(json.dumps({"ok": False, "error": "RAISE_FAILED", "detail": rs,
+                          "next_action": "先确认游戏窗存在且可激活"}, ensure_ascii=False))
+        subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
+        return 3
+    save(sess)
+    print(json.dumps({"ok": True, "session_id": sess["session_id"], "expires": sess["expires"],
+                      "win": sess["win"], "target": sess["target"],
+                      "prev_active": sess["prev_active"],
+                      "hint": "会话内动作直接注入；结束 ys-session end"}, ensure_ascii=False))
+    return 0
+
+
+def cmd_end(a):
+    cur = load()
+    if not cur:
+        print(json.dumps({"ok": True, "ended": False, "detail": "no session"}, ensure_ascii=False))
+        return 0
+    res = {"ok": True, "session_id": cur.get("session_id"), "dry_run": bool(a.dry_run)}
+    if not a.dry_run and not cur.get("dry_run"):
+        prev = json.dumps(cur.get("prev_active") or None, ensure_ascii=False)
+        rs = lease(["restore", "--prev-json", prev, "--fallback", "firefox"], timeout=90)
+        res["restore"] = rs
+        g = subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True,
+                           timeout=20)
+        try:
+            res["revoke"] = json.loads((g.stdout or "").strip().splitlines()[-1])
+        except Exception:                                    # noqa: BLE001
+            res["revoke"] = {"ok": False, "rc": g.returncode}
+        if not (rs.get("ok") and (res["revoke"] or {}).get("ok")):
+            res["ok"] = False
+    cur["state"] = "ended"
+    cur["ended"] = time.time()
+    save(cur)
+    print(json.dumps(res, ensure_ascii=False))
+    return 0 if res["ok"] else 9
+
+
+def cmd_status(_a):
+    cur = load()
+    if not cur:
+        print(json.dumps({"ok": False, "error": "NO_SESSION", "path": path()}, ensure_ascii=False))
+        return 1
+    d = dict(cur)
+    d["left_s"] = round(float(d.get("expires") or 0) - time.time(), 1)
+    d["active"] = bool(d.get("state") == "active" and d["left_s"] > 0 and not d.get("dry_run"))
+    print(json.dumps(d, ensure_ascii=False))
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="屏幕占用会话（一次 grant，多动作共享窗口上下文）")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    b = sub.add_parser("begin")
+    b.add_argument("--seconds", type=int, required=True)
+    b.add_argument("--reason", default="")
+    b.add_argument("--user-said", default="")
+    b.add_argument("--dry-run", action="store_true")
+    b.set_defaults(fn=cmd_begin)
+    e = sub.add_parser("end")
+    e.add_argument("--dry-run", action="store_true")
+    e.set_defaults(fn=cmd_end)
+    s = sub.add_parser("status")
+    s.set_defaults(fn=cmd_status)
+    a = ap.parse_args(argv)
+    return a.fn(a)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
