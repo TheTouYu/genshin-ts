@@ -51,7 +51,7 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | `objects.containers[]` | `kind` + `bbox` + `text[]` | `tile/row/button/panel/chip`；**离线好友可能不在 containers，只在 free_text** |
 | `objects.free_text[]` | 扁平文本序列（含 OCR 漏组的行） | 只扫 `containers` 会**系统性漏掉一类对象** |
 | `structure` | 层级/遮挡 | — |
-| `settled.same_as_prev` | 与上一帧是否逐对象一致 | **动作前必须 true**；菜单打开后本机实测要 **8.8s** 才稳定 |
+| `settled.same_as_prev` | 与上一帧是否在**同一布局**上 | **动作前必须 true**。判据是**容差**不是相等：数量一致 + 中心位移 ≤6px + 文本相似度 ≥0.80（唯一实现在 `tools/ys-editor/ys_settle.py`）。不稳时看 `reason`（`shift`/`count`/`unmatched`/`no_prev`）与 `max_shift_px`；首帧必 false，静止画面 **2 帧内**到 true |
 | `frame_id` | `sha256:...` | 证据引用用这个，不要用截图 |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
 
@@ -80,6 +80,8 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。
    照首读 bbox 点击会落到**相邻格子**。⇒ 用 `settled.same_as_prev==true` 当动作门。
+   ⚠️ 但**别把「稳定」实现成「逐字相等」**：2026-10-21 实测那样连续 12.5s 都等不到 true（OCR 抖一个字符就废），
+   而点击其实是对的。容差判据见 §2，唯一实现 `ys_settle.py`。
 2. **滚动会假成功**：`ys-scroll` 旧版画面逐像素一致仍 `rc=0`。现在有 `frame_diff` + `moved_confirmed` 三态，
    没动即 **`rc=6 NO_MOVEMENT`**；`--no-verify` 时不回答「动没动」，别拿它当成功。
 3. **跨仪器会打架**：`ys-capture`（XShm 直读窗口）能拿到**全黑帧**，同一刻 `ys-lookd`（`import -window`）

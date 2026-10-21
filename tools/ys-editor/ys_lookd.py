@@ -2136,17 +2136,23 @@ def _world(req):
     # 模块此前只报 state/objects，**不报"这帧还稳不稳"**，调用方无法知道现在动手会不会点空。
     # 语义：settled.same_as_prev = true ⇔ 本帧 containers 的 (kind,bbox,text) 签名与**上一帧**完全相同。
     # 第一次调用恒 false；要拿 true 至少连续取两帧同一画面（真机实测菜单约 8.8s 才稳定）。
+    # 2026-10-21 修（真机实测）：逐字相等是坏判据——OCR 抖一个字符/1px 就永远 false，
+    # 连续 12.5s 也没等到 true，而点击照样是对的。判据改成**容差**，实现只有一处：ys_settle。
     try:
-        _sig = tuple((c.get("kind"), tuple(round(float(x)) for x in (c.get("bbox") or [])),
-                      tuple(c.get("text") or []))
-                     for c in ((objects or {}).get("containers") or []))
+        import ys_settle as _ST
+        _sig = _ST.signature((objects or {}).get("containers") or [])
     except Exception:                                        # noqa: BLE001
-        _sig = None
+        _ST, _sig = None, None
     global _WORLD_PREV_SIG, _WORLD_PREV_FRAME
-    out["settled"] = {"same_as_prev": bool(_sig is not None and _sig == _WORLD_PREV_SIG),
-                      "prev_frame": _WORLD_PREV_FRAME,
-                      "n_objects": len(_sig or ()),
-                      "hint": "same_as_prev=false 表示画面自上一帧以来变了；动作前应重取到 true"}
+    if _ST is not None:
+        _same, _diag = _ST.compare(_WORLD_PREV_SIG, _sig)
+        out["settled"] = {"same_as_prev": bool(_same), "prev_frame": _WORLD_PREV_FRAME,
+                          **{k: v for k, v in _diag.items() if k != "same"},
+                          "hint": "same_as_prev=false 时看 reason/max_shift_px/n_unmatched；"
+                                  "动作前应重取到 true"}
+    else:                                                    # 极端降级：宁可不给结论
+        out["settled"] = {"same_as_prev": None, "prev_frame": _WORLD_PREV_FRAME,
+                          "reason": "settle_module_unavailable"}
     _WORLD_PREV_SIG = _sig
     _WORLD_PREV_FRAME = sha
     if req.get("cache", True):

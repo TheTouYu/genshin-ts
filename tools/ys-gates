@@ -47,7 +47,9 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           #   state-precedence 面板态被标成 GAME_WORLD（词表缺态 + 无具体度消歧）
           ('lookd-wedge', 'lookd-wedge.selftest.py', 180),
           ('scroll-movement', 'scroll-movement.selftest.py', 90),
-          ('state-precedence', 'state-precedence.selftest.py', 90)]
+          ('state-precedence', 'state-precedence.selftest.py', 90),
+          # 2026-10-21：布局稳定判据从「逐字相等」改成容差（旧判据真机 12.5s 等不到 true）
+          ('world-settle', 'world-settle.selftest.py', 60)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {
