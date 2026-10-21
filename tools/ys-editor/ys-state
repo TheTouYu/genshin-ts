@@ -62,7 +62,14 @@ PROFILE_DEFAULT = os.path.join(REPO, ".scratch", "gui-profiles", "qianxing.json"
 
 # ── 状态名（全仓唯一词表）────────────────────────────────────────
 STATES = ("EDITOR", "MENU", "SAVELIST", "PLAYTEST", "PAUSE", "SETTLE", "LOADING",
-          "GAME_WORLD", "GAME_PAIMON", "GAME_ACTIVITY", "UNKNOWN")  # 本体态（2026-10-18 接入）
+          "GAME_WORLD", "GAME_PAIMON", "GAME_ACTIVITY",
+          "GAME_FRIENDS", "GAME_CHARACTER",          # 2026-10-21：派蒙菜单里的两级页面
+          "UNKNOWN")  # 本体态（2026-10-18 接入）
+# 同层冲突时的**具体度**：面板态（好友/角色）比底层容器态（世界）具体，成立时压过世界。
+# 不加这条，好友面板会同时满足 GAME_WORLD（右下 UID + 底部数字 + 无「冒险等阶」）与
+# GAME_FRIENDS 两条判据 ⇒ decide() 报 AMBIGUOUS（2026-10-21 实测：面板里恒 GAME_WORLD）。
+PRECEDENCE = {"GAME_FRIENDS": 3, "GAME_CHARACTER": 3, "GAME_PAIMON": 2, "GAME_ACTIVITY": 2,
+              "GAME_WORLD": 1}
 SUBSTATE_OF = {"PAUSE": "PLAYTEST", "SETTLE": "PLAYTEST"}
 FALLBACK_STATE = "EDITOR"           # 兜底态：有更具体的态成立时不参与
 # 投票规则：缺省 "all"（该态全部判据成立）；PLAYTEST="any2"（2/3 多数）
@@ -692,6 +699,17 @@ def decide(readings):
         return {"state": st, "confidence": round(support[st], 3), "ambiguous": False,
                 "margin": round(support[st] - (max(rest) if rest else 0.0), 3), "verdicts": verdicts}
     if len(cands) > 1:
+        # 具体度消歧：只在**唯一最高**时才收敛，仍并列就照旧 AMBIGUOUS（不猜）。
+        _rank = {st: PRECEDENCE.get(st, 0) for st in cands}
+        _top = max(_rank.values())
+        _best = [st for st, r in _rank.items() if r == _top]
+        if _top > 0 and len(_best) == 1:
+            st = _best[0]
+            rest = [support[s_] for s_ in ranked if s_ != st]
+            return {"state": st, "confidence": round(support[st], 3), "ambiguous": False,
+                    "margin": round(support[st] - (max(rest) if rest else 0.0), 3),
+                    "verdicts": verdicts, "resolved_by": "precedence",
+                    "candidates": sorted(cands)}
         return {"state": "AMBIGUOUS", "confidence": 0.0, "ambiguous": True,
                 "margin": 0.0, "verdicts": verdicts, "candidates": sorted(cands)}
     best = support[ranked[0]] if ranked else 0.0
@@ -810,6 +828,15 @@ def native_readings(frame_path, offset=(0, 0)):
     # ⚠️ OCR 把它读成 `UID 110170759`（空格不是冒号），必须用子串 UID
     put("GAME_PAIMON/C 左侧 UID 行", _has(boxes, 'UID', (0, 240, 1000, 330)),
         '左 UID')
+    # GAME_FRIENDS（好友面板，2026-10-21 真机实测）：标题「好友／我的好友」+ 计数「我的好友 173/200」
+    # 实测布局：标题 cy≈120、计数 cy≈150、行表 x∈[190,1990] y∈[150,1300]。
+    put("GAME_FRIENDS/A 好友面板标题", _has(boxes, '好友', (0, 60, 1400, 260)), '好友标题')
+    put("GAME_FRIENDS/B 好友计数 x/200",
+        any(('/200' in (b.get('text') or '') or '/300' in (b.get('text') or ''))
+            for b in boxes), '计数')
+    # GAME_CHARACTER（角色详情，2026-10-21 实测）：左侧页签「属性/武器/圣遗物/命之座/天赋」
+    put("GAME_CHARACTER/A 「命之座」页签", _has(boxes, '命之座'), '命之座')
+    put("GAME_CHARACTER/B 「圣遗物」页签", _has(boxes, '圣遗物'), '圣遗物')
     return R
 
 

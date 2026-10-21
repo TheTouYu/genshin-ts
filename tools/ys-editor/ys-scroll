@@ -14,6 +14,10 @@
   · moved_px = 内容竖直位移的估计（正=内容上移，即向下浏览）
   · 判据：|moved_px| < 3 ⇒ 没滚动（到底/焦点不在列表）
 
+退出码：0 = 注入成功且（若验证开）画面确实变了；5 = 注入/归还失败；
+        6 = **NO_MOVEMENT**（注入成功但前后帧逐像素一致 ⇒ 这次滚动没发生）。
+        `verified=false`（--no-verify 或抓帧失败）时不给 0/6 的结论，`moved_confirmed=null`。
+
 纪律：注入一律走 ys-gui-slot（焦点保证 + 自动还原），绝不裸调 xdotool/ydotool。
 """
 import argparse
@@ -88,6 +92,45 @@ def shift_px(a, b, x0f=0.35, x1f=0.65):
         if v > bestv:
             bestv, best = v, s
     return best
+
+
+def exit_code(ok_inject, release_ok, moved_confirmed):
+    """三态退出码（纯函数，便于离线自测）：0 / 5 INJECT_FAILED / 6 NO_MOVEMENT。
+
+    `moved_confirmed is False` 必须在报错之前判——命令没报错但画面逐像素一致，
+    语义是「这次滚动没有发生」，不是「成功」。
+    """
+    if not (ok_inject and release_ok):
+        return 5
+    if moved_confirmed is False:
+        return 6
+    return 0
+
+
+def frame_diff(a, b):
+    """两帧的像素差异比例（0..1）。用于回答**「到底动没动」**这个二值问题。
+
+    为什么不复用 `shift_px`：`shift_px` 只在 ±200px 内做相关，大步翻页时会给假读数
+    （D410 实测：真实位移 3 行 ≈498px 却报 -19/147）。而「动没动」不需要估位移，
+    只要一个对大步/小步都单调的差异量 ⇒ 直接比像素。
+
+    2026-10-21（F-20261021-SCROLL-FALSE-SUCCESS）：事故形态是 ys-scroll 在画面
+    **完全没变**时照样返回 `ok:true, shifted:false, rc=0`；调用方（我）连吃 3 次空滚，
+    却以为「滚动失败但至少执行了」。没有差异量就分不清「动了但没测出来」与「真的没动」。
+    """
+    try:
+        import numpy as np
+        from PIL import Image
+    except Exception:                                   # noqa: BLE001
+        return None
+    try:
+        A = np.asarray(Image.open(a).convert("L"), dtype=np.float32)
+        B = np.asarray(Image.open(b).convert("L"), dtype=np.float32)
+        if A.shape != B.shape:
+            return 1.0
+        return float(np.mean(np.abs(A - B)) / 255.0)
+    except Exception:                                   # noqa: BLE001
+        return None
 
 
 def main():
@@ -183,10 +226,12 @@ def main():
     ok_inject = p.returncode == 0
     time.sleep(0.6)
     moved = None
+    diff = None
     if not a.no_verify:
         fb = capture(a.window, os.path.join(tmp, "b.png"))
         if fa and fb:
             moved = shift_px(fa, fb)
+            diff = frame_diff(fa, fb)
     hint = None
     if a.hint:
         try:
@@ -208,14 +253,20 @@ def main():
         if not release_ok:
             print(f"⚠️ ys-lease 归还失败（rc={rel.returncode}）：{(rel.stdout or rel.stderr).strip()[:300]}",
                   file=sys.stderr)
+    # 「动没动」三态：None=没验（--no-verify 或抓帧失败）/ False=验了且没动 / True=动了。
+    # 阈值 0.001（0.1% 像素）——实测光标抖动约 0.08%，滚动最少也在 0.5% 量级。
+    moved_confirmed = None if diff is None else (diff > 0.001)
     out = {"ok": bool(ok_inject and release_ok), "release_ok": release_ok,
            "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
            "drag": a.drag or None, "lease": lease_ok, "hint": hint,
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
+           "frame_diff": (None if diff is None else round(diff, 6)),
+           "moved_confirmed": moved_confirmed,
+           "verified": diff is not None,
            "ms": round((time.time() - t0) * 1000, 1),
            "frame_before": fa, "frame_after": fb}
     print(json.dumps(out, ensure_ascii=False))
-    return 0 if (ok_inject and release_ok) else 5
+    return exit_code(ok_inject, release_ok, moved_confirmed)
 
 
 if __name__ == "__main__":

@@ -69,7 +69,10 @@ import zlib
 
 STATE_VERSION = 'v1'
 DEFAULT_DIR = '/dev/shm/ys-capture'
-DEFAULT_WIN = '0x01400001'
+DEFAULT_WIN = 'auto'   # 2026-10-21: 原 '0x01400001' 是写死的旧 id；游戏重启后窗口 id 会变
+                       # （实测 0x01400001 → 0x1800001 → 0x1600001），写死 ⇒ X BadDrawable
+                       # 启动即崩、latest 恒 DAEMON_DOWN。discover_window() 本来就能按 WM_CLASS 找，
+                       # 把默认值设成 auto 才是唯一不会过期的那条路。
 DEFAULT_CLASS = 'yuanshen.exe'
 FRAME_W, FRAME_H = 2560, 1440
 VERDICT_CODES = {'OK': 0, 'NOT_ATOP': 2, 'NOT_FOUND': 2, 'OTHER_DESKTOP': 4,
@@ -670,8 +673,17 @@ class Daemon:
 
     # ---- 窗口发现（--win auto 或 id 失效时按 WM_CLASS 找）
     def discover_window(self):
+        """按 WM_CLASS 找目标窗，**取面积最大的那个**。
+
+        2026-10-21 修（F-20261021-CAPTURE-WIN）：原实现**返回第一个命中的 id**，
+        实测拿到 0x1600003（同 class 的子窗口），对它 XShmGetImage 直接 `xerr=8`(BadMatch)
+        ⇒ 守护进程活着但一帧写不出、state.tsv 永不更新，外部只看得到 DAEMON_DOWN。
+        与 `ys_look._resolve_win` 是同一个坑（文档里写着「取最后一个 ⇒ 抓到 1×1」），
+        两边口径统一为「面积最大」。
+        """
         if self.win and self.win.lower() != 'auto':
             return self.win
+        best, best_area = None, -1
         try:
             from Xlib import display as xd, X
             d = xd.Display(self.args.display)
@@ -687,13 +699,16 @@ class Daemon:
                         val = (v.decode('latin-1', 'ignore') if isinstance(v, (bytes, bytearray))
                                else str(v))
                     if want in val.lower().replace('\x00', ' '):
-                        return hex(int(w.id))
+                        g = w.get_geometry()
+                        area = int(g.width) * int(g.height)
+                        if area > best_area:
+                            best, best_area = hex(int(w.id)), area
                     stack.extend(w.query_tree().children)
                 except Exception:                             # noqa: BLE001
                     continue
         except Exception:                                     # noqa: BLE001
             pass
-        return None
+        return best
 
     def grabber_alive(self):
         return self.grabber is not None
@@ -809,6 +824,23 @@ class Daemon:
                                 f'KWin: {type(e2).__name__}: {e2}') from e2
             return rgb, ms, kinfo.get('src', 'kwin-ss2')
 
+    def _log_fail(self, stage):
+        """限频把抓帧失败打到 stdout（journal/nohup 日志里能看见）。
+
+        2026-10-21：原先失败是**完全静默**的——`last_err` 只存在内存里，stdout 只有一行启动 JSON。
+        于是「守护进程活着但一帧不写」在外部看起来和「守护进程没起」一模一样，只能靠猜。
+        限频 3s，避免窗口不在时把日志刷爆。
+        """
+        now = time.time()
+        if now - getattr(self, '_last_fail_log', 0.0) < 3.0:
+            return
+        self._last_fail_log = now
+        print(json.dumps({'ok': False, 'role': 'serve', 'stage': stage,
+                          'win': self.win, 'class': self.want_class,
+                          'detail': self.last_err, 'frames_written': self.frames_written,
+                          'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')}, ensure_ascii=False),
+              flush=True)
+
     def capture_loop(self):
         period = 1.0 / self.fps
         last_ok = 0.0
@@ -820,6 +852,7 @@ class Daemon:
                 self.stop.set()
                 break
             if not self.ensure_grabber():
+                self._log_fail('grabber')
                 self.stop.wait(1.0)
                 continue
             try:
@@ -839,6 +872,7 @@ class Daemon:
                     self.kwin.handle = None
                 # 退避：窗口真的没了（缩窗/最小化/换 id）时不要每 0.5s 重建一次 grabber
                 self.fail_backoff = min(5.0, getattr(self, 'fail_backoff', 0.5) * 2)
+                self._log_fail('grab')
                 self.stop.wait(self.fail_backoff)
                 continue
             self.fail_backoff = 0.5
