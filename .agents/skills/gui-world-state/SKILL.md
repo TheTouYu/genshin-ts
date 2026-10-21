@@ -183,6 +183,31 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 4. **滚动前必须确认坐标空间**：`--at` 吃**物理像素**（2560×1440），y 必须 < 窗口逻辑高 960 的
    物理对应值；传逻辑坐标会"回执成功但画面不动"。
 
+## 4.9 seek（跳到列表任意位置）——2026-10-21 新增，**有滚动条就能一跳到位**
+
+长列表不要一屏屏线性扫。先看**有没有滚动条**，有就直接跳。
+
+```bash
+# ① 读滚动条（只读像素，不占屏，84–200ms/帧）
+tools/ys-scrollbar /tmp/frame.png --json
+# → {"found":true,"orientation":"v","track_bbox":[...],"thumb_bbox":[...],
+#     "position_ratio":0.012,"estimated_pages":17.31}
+```
+```bash
+# ② 跳到目标位置（在 ys-session 内；物理像素坐标）
+ys-scroll --seek-rows 91 --total-rows 173 --frame /tmp/frame.png
+#   --total-rows 必须给（从标题 `x/y` OCR，如「我的好友 173/200」）
+#   不给会报 MISSING_TOTAL_ROWS —— estimated_pages 实测偏小 ~1.45×，用它会把 r 算成 0.80（真值 0.54）
+#   --seek-ratio 0.0–1.0 也可以（已知目标比例时）
+```
+
+**判据**
+- `found=false` ⇒ 该界面**没有滚动条**（或不是列表）⇒ 退回滚轮小步，**别假装能跳**。
+- 有滚动条 ≠ 一定能拖到：`after_ratio` 与目标的差 >0.08 就补一次微调，不要连拖。
+- `estimated_pages` **不可用于 seek**（偏小 1.45×），只作"这列表大概几页"的粗估。
+- 6px 宽的滚动条在**容器层/OCR 层完全看不见**，但像素通道能稳定检出（滑块比槽亮 +110 灰阶）。
+  ⇒ **"结构层看不见" ≠ "视觉不可见"**：先跑 `ys-scrollbar` 再下结论。
+
 ## 5. 五条实测坑（都交过学费）
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。
