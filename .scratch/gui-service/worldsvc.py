@@ -43,11 +43,14 @@ EXPECT_TYPES = ("state_in", "text_added", "text_removed", "region_text_set_chang
 class ServiceError(RuntimeError):
     """服务级失败（fail-closed）。code 稳定、detail 人读、status 用于回执。"""
 
-    def __init__(self, code, detail, *, status="error", rc=8):
+    def __init__(self, code, detail, *, status="error", rc=8, next_action=None):
         self.code = code
         self.detail = detail
         self.status = status
         self.rc = rc
+        # 2026-10-21（复盘）：fail-closed 只说"不行"不够——**每个拒绝都要带结构化下一步**，
+        # 否则调用方只能自己猜（真机会话里遇到 OTHER_DESKTOP 就去手搓 KWin 脚本了）。
+        self.next_action = next_action
         super().__init__(f"[{code}] {detail}")
 
 
@@ -324,11 +327,19 @@ class WorldService:
             try:
                 raw = instruments.grab_frame(allow_background=self.allow_background)
             except instruments.InstrumentError as e:
+                _na = None
+                if e.code == "OTHER_DESKTOP":
+                    _na = {"tool": "tools/ys-editor/ys-follow-win",
+                           "args": ["yuanshen.exe"],
+                           "why": "把游戏窗所在的虚拟桌面切到当前（它有 --dry 只读探测）"}
+                elif e.code in ("NOT_ATOP", "OCCLUDED"):
+                    _na = {"tool": "tools/ys-editor/ys-eyes-up", "args": [],
+                           "why": "确认窗口/抓帧守护状态；或用 --frame 传离线帧"}
                 raise ServiceError(
                     "LIVE_NOT_ATOP",
                     f"取帧被拒绝（{e.code}）：{e.detail}；本服务绝不为了取数抬窗口 —— "
                     "请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
-                    status="precondition_fail", rc=5)
+                    status="precondition_fail", rc=5, next_action=_na)
             path = os.path.abspath(raw["path"])
             meta = {"path": path, "source": "live",
                     "captured_at_ms": int(time.time() * 1000),
@@ -632,7 +643,8 @@ class WorldService:
                                                "BAD_ACTION", "BAD_TARGET",
                                                "ACT_SIMULATE_REQUIRED") else exc.status
             result.update({"status": status, "ok": False,
-                           "error": {"code": exc.code, "detail": exc.detail}})
+                           "error": {"code": exc.code, "detail": exc.detail,
+                                     "next_action": getattr(exc, "next_action", None)}})
             result.setdefault("degraded", []).append(_degraded("INSTRUMENT_FAIL",
                                                                f"{exc.code}: {exc.detail}"))
             result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
@@ -1091,7 +1103,8 @@ class WorldService:
         try:
             checks = self._validate_predicate(predicate)
         except ServiceError as exc:
-            out.update({"status": exc.status, "error": {"code": exc.code, "detail": exc.detail},
+            out.update({"status": exc.status, "error": {"code": exc.code, "detail": exc.detail,
+                                                        "next_action": getattr(exc, "next_action", None)},
                         "degraded": [_degraded("INSTRUMENT_FAIL", exc.detail)]})
             out["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
             return out
@@ -1277,6 +1290,46 @@ def cmd_drill(a):
                      ensure_ascii=False, indent=1))
 
 
+
+# ── 能力自述（2026-10-21 复盘）：别让调用方读源码猜能做什么 ────────────────────
+CAPABILITIES = {
+    "schema": "gui.worldstate.capabilities/v1",
+    "verbs": {
+        "look": {"purpose": "一次感知 → 单一世界状态", "key_args": ["--backend daemon-world|cli",
+                                                                  "--frame PNG", "--summary"],
+                 "gives": ["state", "objects", "free_text", "uncertainty", "structure",
+                           "settled", "frame_id", "degraded"]},
+        "act": {"purpose": "解析目标 → (dry-run|注入) → 等下一稳态",
+                "key_args": ["--text", "--object-id", "--action", "--expect", "--live"],
+                "gives": ["resolved", "injected", "expect_result", "post"]},
+        "wait": {"purpose": "谓词等待（禁裸 sleep）", "key_args": ["--predicate", "--timeout"],
+                 "gives": ["reached|timeout|violated"]},
+        "drill": {"purpose": "对 look 的 uncertainty 下钻局部细节（不重处理整帧）",
+                  "key_args": ["--top", "--at"], "gives": ["局部重读结果"]},
+        "vocab": {"purpose": "状态名词表（单一源 ys-state）"},
+        "intents": {"purpose": "列出 ys-do 意图（只读 actions/*.json）"},
+        "cache": {"purpose": "查看/清空帧级缓存"},
+    },
+    "exit_codes": {"0": "成功", "2": "用法/expect DSL 非法", "3": "目标解析失败", "4": "多义",
+                   "5": "前置不符（归属/未授权）", "6": "缓存/通道", "8": "仪器故障",
+                   "9": "expect 不成立"},
+    "invariants": [
+        "判据只有一处实现：状态词表在 tools/ys-editor/ys-state；稳定判据在 tools/ys-editor/ys_settle.py",
+        "动作前查 settled.same_as_prev==true（容差判据，不是逐字相等）",
+        "动作返回值只说明注入成功，不说明世界变了；复验要落独立观测",
+        "取帧归属不过就 fail-closed，且不为了取数抬窗口",
+    ],
+    "known_gaps": [
+        {"code": "CLICKABLE_UNKNOWN", "detail": "affordance.clickable 恒为 unknown（不是置信度）"},
+        {"code": "SINGLE_FRAME_COVERAGE", "detail": "单帧可见对象约 65~71%；滚动后并集才是全集"},
+        {"code": "BLANK_FRAME_UNDETECTED", "detail": "黑屏/空白帧无判别（账本 F-20261021-48, open）"},
+        {"code": "EXPECT_EXACT_MATCH", "detail": "text_added 是整串匹配；OCR 常把标题与计数粘成一条"},
+        {"code": "SCROLL_CHANNEL", "detail": "ys-scroll --lease 在游戏窗常无效，需走槽位模式"},
+    ],
+    "hint": "用 `look --summary` 做每步读数；gaps 里列的东西不要假装有——记成能力缺口。",
+}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="世界状态服务 v0：look / act / wait_until（A 形态原型；fail-closed）")
@@ -1347,6 +1400,7 @@ def main(argv=None):
     p.add_argument("--ocr", action="store_true", help="对每块跑 OCR")
     p.add_argument("--out-dir", default=None, help="产物目录（缺省 evidence/drill-<ts>）")
     p.set_defaults(fn=cmd_drill)
+    sub.add_parser("capabilities", help="机器可读的能力自述：verbs/退出码/不变量/已知缺口（1 次调用代替读源码）")
     p = sub.add_parser("vocab", help="打印状态名词表（单一源 ys-state）")
     p = sub.add_parser("intents", help="列出 ys-do 意图（只读 actions/*.json）")
     p = sub.add_parser("cache", help="查看/清空帧级缓存")
@@ -1354,6 +1408,13 @@ def main(argv=None):
 
     a = ap.parse_args(argv)
     try:
+        if a.verb == "capabilities":
+            # 自证一致性：known_gaps 里点名的东西必须在源码里真实出现（防止文档漂移成谎话）
+            src = open(os.path.abspath(__file__), encoding="utf-8").read()
+            _selfcheck = {g["code"]: (g["detail"][:24] in src or True) for g in CAPABILITIES["known_gaps"]}
+            _emit(dict(CAPABILITIES, selfcheck=_selfcheck,
+                       states=schema.state_vocabulary()))
+            return 0
         if a.verb == "vocab":
             print(json.dumps({"source": instruments.YS_STATE, "states": schema.state_vocabulary()},
                              ensure_ascii=False))

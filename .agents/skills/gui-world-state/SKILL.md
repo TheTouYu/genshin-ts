@@ -24,6 +24,13 @@ description: GUI 世界状态模块（感知层）的入口——用 `.scratch/g
 
 ## 1. 三条命令（唯一入口）
 
+**先跑这一条**——它 1 次调用给全能力自述（verbs / 字段 / 退出码 / 不变量 / **已知缺口**），
+别再去 ls/sed/grep 读源码猜（实测有会话为此花了 20 次调用）：
+
+```bash
+python3 .scratch/gui-service/worldsvc.py capabilities
+```
+
 ```bash
 # 看：状态 + 对象 + 结构 + 文本（常驻服务，热路径 ~1.1s）
 python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
