@@ -236,8 +236,9 @@ def main():
         H = int(os.environ.get("YS_H", "1440"))
         maxd = min(1100, H - 100)
         chunks = max(1, int(round(dy / float(maxd))))
-        step = max(8, int(round(min(dy, maxd) / 20.0)))
-        hold = max(0.03, min(0.08, 0.05))
+        # 2026-10-21 提速：55 步 ×0.05 让单次拖动 9s；内容 1:1 跟手，12–16 步足够。
+        step = max(8, int(round(min(dy, maxd) / 80.0)))
+        hold = 0.03
         parts = []
         for _ in range(chunks):
             if a.dir == "down":

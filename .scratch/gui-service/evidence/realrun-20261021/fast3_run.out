@@ -1,0 +1,14 @@
+[seek] look/s0          rc=8   1134.7ms
+[seek] esc0             rc=0    600.7ms
+[seek] look/nav_p0_0    rc=8   1189.6ms
+[seek] look/nav_p0_1    rc=0    830.8ms
+[seek] click/friends0   rc=0   1433.4ms
+[seek] look/nav_f0_0    rc=0    733.8ms
+[seek] look/nav_f0_1    rc=0    693.3ms
+[seek] drag10           rc=0  10387.0ms
+[seek] look/drag10      rc=0   1785.4ms
+[seek] drag10 before='播直晚今使天小' after='风风' moved_px=-885 est=5.53 lost=False
+[seek] drag30           rc=0  21651.7ms
+[seek] look/drag30      rc=0    632.0ms
+[seek] drag30 before='风风' after='黄启明' moved_px=778 est=4.37 lost=False
+SEEK-RESULT {"schema": "gui.seek-paths/1", "wall_s": 41.7, "probes": [{"tag": "drag10", "before_first": "播直晚今使天小", "after_first": "风风", "moved_px": -885, "moved_confirmed": true, "pitch_px": 160.0, "rows_est": 5.53, "ms": 10387.0, "look_ms": 1785.4, "rows_per_sec": 0.45, "lost": false}, {"tag": "drag30", "before_first": "风风", "after_first": "黄启明", "moved_px": 778, "moved_confirmed": true, "pitch_px": 178.0, "rows_est": 4.37, "ms": 21651.7, "look_ms": 632.0, "rows_per_sec": 0.2, "lost": false}]}

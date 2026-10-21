@@ -24,7 +24,7 @@ def rows(d):
     return sorted(o)
 def look(tag):
     p=os.path.join(OUT,tag+".json")
-    rc,o,e,ms=run([sys.executable,WS,"look","--live","--backend","daemon-world","--fast","--no-cache","--json-out",p],"look/"+tag)
+    rc,o,e,ms=run([sys.executable,WS,"look","--live","--backend","daemon-world","--no-cache","--json-out",p],"look/"+tag)
     try: d=json.load(open(p,encoding="utf-8"))
     except Exception: d=None
     st=(d or {}).get("state"); st=st.get("name") if isinstance(st,dict) else st
@@ -49,6 +49,12 @@ def probe(tag, action, d):
     return {"tag":tag,"before_first":bf,"after_first":af,"moved_px":mp,"moved_confirmed":info.get("moved_confirmed"),
             "pitch_px":round(pitch,1),"rows_est":round(est,2) if est else None,"ms":ms,"look_ms":ms2,
             "rows_per_sec":round((est or 0)/max(0.001,(ms+ms2)/1000),2),"lost":bool(lost)}
+def key(code):
+    rc1,_,_,m1=run(["bash","-c","YS_SLOT_ACTIVE=1 ydotool key %d:1"%code],"down/%d"%code,20)
+    time.sleep(0.05)
+    rc2,_,_,m2=run(["bash","-c","YS_SLOT_ACTIVE=1 ydotool key %d:0"%code],"up/%d"%code,20)
+    return rc1 or rc2, m1+m2
+
 def main():
     ap=__import__("argparse").ArgumentParser(); ap.add_argument("--deadline-s",type=float,default=42); a=ap.parse_args()
     try: s=json.load(open(os.path.expanduser("~/.ys/session.json"),encoding="utf-8"))
@@ -56,18 +62,22 @@ def main():
     if not s or s.get("state")!="active": print("SEEK-RESULT error=NO_SESSION"); return 2
     t0=time.monotonic(); left=lambda: a.deadline_s-(time.monotonic()-t0)
     rc,d,st,ms=look("s0")
-    if not rows(d):
-        run([os.path.join(TOOLS,"ys-esc")],"esc",30)
-        for i in range(3):
-            rc,d,st,ms=look("nav_p%d"%i)
-            if st=="GAME_PAIMON": break
-            time.sleep(0.3)
-        c=find_friend(d)
-        if c: run([os.path.join(TOOLS,"ys-pointer-click"),str(c[0]),str(c[1])],"click/friends",40)
-        for i in range(4):
-            rc,d,st,ms=look("nav_f%d"%i)
-            if rows(d): break
-            time.sleep(0.3)
+    for attempt in range(2):
+        if rows(d):
+            break
+        if st=="GAME_WORLD" or attempt==0:
+            run([os.path.join(TOOLS,"ys-esc")],"esc%d"%attempt,30)
+            for i in range(3):
+                rc,d,st,ms=look("nav_p%d_%d"%(attempt,i))
+                if st=="GAME_PAIMON": break
+                time.sleep(0.3)
+        if st=="GAME_PAIMON":
+            c=find_friend(d)
+            if c: run([os.path.join(TOOLS,"ys-pointer-click"),str(c[0]),str(c[1])],"click/friends%d"%attempt,40)
+            for i in range(4):
+                rc,d,st,ms=look("nav_f%d_%d"%(attempt,i))
+                if rows(d): break
+                time.sleep(0.3)
     if not rows(d): print("SEEK-RESULT error=NO_ROWS state=%s"%st); return 3
     env={"YS_WIN":"0x1600001"}
     out=[]
@@ -75,10 +85,11 @@ def main():
         if left()<10: break
         r=probe("drag%d"%rr, lambda rr=rr: run([os.path.join(TOOLS,"ys-scroll"),"--at","1800,700","--by","rows=%d"%rr,"--settle-ms","200","--no-hint"],"drag%d"%rr,60,env), d)
         out.append(r); d=json.load(open(os.path.join(OUT,"drag%d.json"%rr),encoding="utf-8")) if os.path.isfile(os.path.join(OUT,"drag%d.json"%rr)) else d
-    for key,label in ((109,"PageDown"),(107,"End")):
-        if left()<8: break
-        r=probe("key%d"%key, lambda key=key: run(["bash","-c","YS_SLOT_ACTIVE=1 ydotool key %d:1 %d:0"%(key,key)],"key%d"%key,20), d)
-        out.append(r); d=json.load(open(os.path.join(OUT,"key%d.json"%key),encoding="utf-8")) if os.path.isfile(os.path.join(OUT,"key%d.json"%key)) else d
+    for code,label in ((108,"Down"),(109,"PageDown"),(107,"End"),(102,"Home")):
+        if left()<6: break
+        run([os.path.join(TOOLS,"ys-put"),"1280","700"],"put/%s"%label,20,{"YS_WIN":"0x1600001","YS_SLOT_ACTIVE":"1"})
+        r=probe("key%s"%label, lambda code=code: key(code), d)
+        out.append(r); d=json.load(open(os.path.join(OUT,"key%s.json"%label),encoding="utf-8")) if os.path.isfile(os.path.join(OUT,"key%s.json"%label)) else d
     res={"schema":"gui.seek-paths/1","wall_s":round(time.monotonic()-t0,1),"probes":out}
     json.dump(res,open(os.path.join(OUT,"seek-paths.json"),"w",encoding="utf-8"),ensure_ascii=False,indent=1)
     print("SEEK-RESULT "+json.dumps(res,ensure_ascii=False),flush=True); return 0
