@@ -15,6 +15,7 @@
 退出码：0 已在该桌面/切换成功｜2 找不到窗口｜3 KWin Scripting 不可用
 """
 import os
+import json
 import subprocess
 import sys
 import tempfile
@@ -36,6 +37,18 @@ def _gdbus(method, *args):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry" in sys.argv
+    # 2026-10-21 复盘：真机会话里代理在**没问用户**的情况下 65s 就切走了用户的虚拟桌面，
+    # 用户 177s 才发现。切桌面是比点击更重的动作（用户眼前整屏被换掉），必须单独授权。
+    if not dry:
+        grant_ok = subprocess.run([os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                "ys-screen-grant"), "status"],
+                                  capture_output=True).returncode == 0
+        if not (grant_ok and os.environ.get("YS_ALLOW_DESKTOP_SWITCH") == "1"):
+            print(json.dumps({"ok": False, "error": "DESKTOP_SWITCH_NOT_APPROVED",
+                              "detail": "切虚拟桌面要单独授权：先向用户申请，并显式设置 "
+                                        "YS_ALLOW_DESKTOP_SWITCH=1 再执行；只看不切请加 --dry"},
+                             ensure_ascii=False))
+            return 7
     if not args:
         print("用法: ys-follow-win <resourceClass> [--dry]", file=sys.stderr)
         return 2

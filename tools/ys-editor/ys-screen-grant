@@ -62,6 +62,9 @@ def _kwin_active():
         return {"error": "%s: %s" % (type(e).__name__, e)}
 
 
+MAX_GRANT_S = int(os.environ.get('YS_SCREEN_MAX_GRANT', '120'))
+
+
 def load():
     try:
         with open(PATH, encoding="utf-8") as f:
@@ -72,8 +75,30 @@ def load():
 
 def cmd_grant(a):
     now = time.time()
-    rec = {"created": now, "expires": now + int(a.seconds), "reason": a.reason or "",
-           "active_window": _kwin_active()}
+    # 2026-10-21 复盘（真机会话 session-cd869786）：
+    #   代理在 64s 处**没问用户**就 `grant --seconds 1200`（20 分钟），随后立刻 ys-follow-win 切走桌面；
+    #   之后每次到期又自己续（220/300/300/200s），用户全程不知道。
+    #   ⇒ 光有"凭据"不够，必须防**自授**与**无限续期**：
+    n = int(a.seconds)
+    if n > MAX_GRANT_S:
+        print(json.dumps({"ok": False, "error": "GRANT_TOO_LONG",
+                          "detail": f"单次最多 {MAX_GRANT_S}s（你要 {n}s）；长任务请分段，每段重新申请"},
+                         ensure_ascii=False))
+        return 2
+    cur = load()
+    if cur and cur.get("expires", 0) > now:
+        print(json.dumps({"ok": False, "error": "GRANT_STILL_VALID",
+                          "left_s": int(cur["expires"] - now),
+                          "detail": "凭据仍在有效期内，不允许覆盖续期（先 revoke，且续期要重新向用户申请）"},
+                         ensure_ascii=False))
+        return 2
+    if not (a.user_said or "").strip():
+        print(json.dumps({"ok": False, "error": "NEED_USER_APPROVAL",
+                          "detail": "必须用 --user-said 记录**用户原话**（你在对话里问过、他同意了才填）"},
+                         ensure_ascii=False))
+        return 2
+    rec = {"created": now, "expires": now + n, "reason": a.reason or "",
+           "user_said": (a.user_said or "")[:200], "active_window": _kwin_active()}
     os.makedirs(os.path.dirname(PATH), exist_ok=True)
     with open(PATH, "w", encoding="utf-8") as f:
         json.dump(rec, f, ensure_ascii=False, indent=1)
@@ -114,6 +139,7 @@ def main():
     g = sub.add_parser("grant")
     g.add_argument("--seconds", type=int, required=True)
     g.add_argument("--reason", default="")
+    g.add_argument("--user-said", default="", help="用户同意的原话（必填；没有=没申请）")
     g.set_defaults(func=cmd_grant)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sub.add_parser("revoke").set_defaults(func=cmd_revoke)

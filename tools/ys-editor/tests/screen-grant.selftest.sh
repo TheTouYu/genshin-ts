@@ -27,9 +27,17 @@ out=$(unset YS_SLOT_TEST; "$PWD/tools/ys-editor/ys-gui-slot" "${YS_WIN_TEST:-0x1
 [ "$rc" -eq 6 ] && ok "无凭据时 slot 拒绝执行（rc=6）" || bad "无凭据 slot rc=$rc（应 6）"
 echo "$out" | grep -q "NO_GRANT" && ok "拒绝理由带 NO_GRANT 与申请指引" || bad "拒绝输出缺少 NO_GRANT：$out"
 
-"$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --reason selftest >/dev/null 2>&1
+"$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --reason selftest --user-said "自测" >/dev/null 2>&1
 "$PWD/tools/ys-editor/ys-screen-grant" status >/dev/null 2>&1; rc=$?
 [ "$rc" -eq 0 ] && ok "授权后 status 退出码 0" || bad "授权后 status rc=$rc"
 
-[ "$fails" -eq 0 ] && { echo "SCREEN-GRANT-RESULT pass=3 fail=0 verdict=PASS"; exit 0; }
-echo "SCREEN-GRANT-RESULT pass=$((3-fails)) fail=$fails verdict=FAIL"; exit 1
+# T4 不允许无限自授：单次超长拒绝
+out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 9999 --user-said x 2>&1); rc=$?
+echo "$out" | grep -q "GRANT_TOO_LONG" && ok "超长自授被拒（≤120s）" || bad "超长自授未被拒：$out"
+
+# T5 有效期内的续期必须被拒（防止"申请一次、无限续"）
+out=$("$PWD/tools/ys-editor/ys-screen-grant" grant --seconds 30 --user-said "续" 2>&1); rc=$?
+echo "$out" | grep -q "GRANT_STILL_VALID" && ok "有效期内续期被拒" || bad "续期未被拒：$out"
+
+[ "$fails" -eq 0 ] && { echo "SCREEN-GRANT-RESULT pass=5 fail=0 verdict=PASS"; exit 0; }
+echo "SCREEN-GRANT-RESULT pass=$((5-fails)) fail=$fails verdict=FAIL"; exit 1

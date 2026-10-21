@@ -84,7 +84,8 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 **屏幕占用契约（用户令 2026-10-21，已做成设计）**：这个桌面不是只有我们在用。**每次长时间占用前**：
 ① 先看**当前活动窗口**（KWin 权威，`ys-lease kwin-state` 的 `active`；`xdotool getactivewindow` 会给 1×1 幽灵窗）；
 ② 在对话里**申请时长**，拿到同意后再 `tools/ys-editor/ys-screen-grant grant --seconds N --reason '做什么'`；
-③ 凭据到期即失效。没有有效凭据时 `ys-gui-slot` 会以 **rc=6 NO_GRANT** 拒绝执行（自测走 `YS_SLOT_TEST=1`）。
+③ 凭据**单次 ≤120s**、必须带 `--user-said "<用户原话>"`、**有效期内不许覆盖续期**（要续必须 revoke 再重新问）；④ **切虚拟桌面是更重的动作**：`ys-follow-win` 额外要 `YS_ALLOW_DESKTOP_SWITCH=1`，只探测加 `--dry`；⑤ 没有有效凭据时 `ys-gui-slot` 以 **rc=6 NO_GRANT** 拒绝执行（自测走 `YS_SLOT_TEST=1`）。
+**反模式（2026-10-21 真机复盘）**：不要自授——那天代理 64s 处 `grant --seconds 1200` 没问用户，65s 就切走了桌面；之后每次到期又自己续。发现「自己在给自己发凭据」= 立刻停下问用户。
 缺这一步的代价：用户同时在操作屏幕 ⇒ 焦点/画面被夺 ⇒ 出现"莫名其妙的 bug"（已记 F-20261021-50）。
 
 ## 4. 仪器健康（先看这两个，再谈判据）
