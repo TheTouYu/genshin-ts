@@ -1,0 +1,6224 @@
+{
+ "schema": "gui-world-state/0",
+ "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08",
+ "captured_at_ms": 1792557175979,
+ "tracked_at_ms": 1792557177077,
+ "state": {
+  "name": "GAME_WORLD",
+  "confidence": 1.0,
+  "ambiguous": false,
+  "evidence": [
+   {
+    "source": "ys-lookd/world",
+    "via": "daemon",
+    "readings_n": 31,
+    "native": true,
+    "attribution": {
+     "checked": true,
+     "src": "x11",
+     "want_title": "原神",
+     "want_class": "yuanshen.exe",
+     "want_id": "0x01400001",
+     "current_desktop": 0,
+     "verdict": "OK",
+     "atop": true,
+     "stacking_top": true,
+     "window": {
+      "id": "0x1600001",
+      "caption": "原神",
+      "class": "yuanshen.exe",
+      "bbox": [
+       0,
+       0,
+       2560,
+       1440
+      ],
+      "desktop": 0,
+      "minimized": false,
+      "idx": 0
+     },
+     "occluders": [
+      {
+       "id": "0x1200016",
+       "caption": "素材快收",
+       "class": "tk",
+       "bbox": [
+        200,
+        271,
+        520,
+        380
+       ],
+       "desktop": 0,
+       "intersect_px": 197600
+      }
+     ],
+     "covered_ratio": 0.0536,
+     "elapsed_ms": 20.4,
+     "rc": 0
+    }
+   }
+  ],
+  "channel": "fast",
+  "native": true
+ },
+ "objects": [
+  {
+   "id": "det:0",
+   "parent": null,
+   "bbox": [
+    736.0,
+    322.4,
+    96.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:1",
+   "parent": null,
+   "bbox": [
+    1120.0,
+    322.4,
+    32.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:2",
+   "parent": null,
+   "bbox": [
+    1472.0,
+    322.4,
+    80.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:3",
+   "parent": null,
+   "bbox": [
+    1648.0,
+    322.4,
+    160.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:4",
+   "parent": null,
+   "bbox": [
+    2064.0,
+    322.4,
+    304.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [
+    "八重神子"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:5",
+   "parent": null,
+   "bbox": [
+    2464.0,
+    322.4,
+    96.0,
+    75.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:6",
+   "parent": null,
+   "bbox": [
+    1861.2413854599,
+    16.081383287906647,
+    101.5172290802002,
+    79.8372334241867
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9768,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:7",
+   "parent": null,
+   "bbox": [
+    1799.468744277954,
+    13.167687952518463,
+    97.0625114440918,
+    53.664624094963074
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.975,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:8",
+   "parent": null,
+   "bbox": [
+    2508.5359630584717,
+    576.6481384634972,
+    51.46403694152832,
+    46.703723073005676
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9742,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:10",
+   "parent": null,
+   "bbox": [
+    2081.33673286438,
+    23.804074585437775,
+    109.32653427124023,
+    64.39185082912445
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9589,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:11",
+   "parent": null,
+   "bbox": [
+    2196.863805770874,
+    14.200081884860992,
+    70.27238845825195,
+    83.59983623027802
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9538,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:12",
+   "parent": null,
+   "bbox": [
+    46.44806671142578,
+    233.48544681072235,
+    83.10386657714844,
+    61.0291063785553
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9523,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:13",
+   "parent": null,
+   "bbox": [
+    1648.0,
+    682.4,
+    32.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9424,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:14",
+   "parent": null,
+   "bbox": [
+    1760.0,
+    682.4,
+    16.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9424,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:15",
+   "parent": null,
+   "bbox": [
+    2080.0,
+    682.4,
+    304.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "班尼特"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9424,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:16",
+   "parent": null,
+   "bbox": [
+    0.0,
+    8.207837462425232,
+    823.6248626708984,
+    127.58432507514954
+   ],
+   "kind": "panel",
+   "text": [
+    "DXVK v3.0"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9416,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:17",
+   "parent": null,
+   "bbox": [
+    2508.1117401123047,
+    691.8589438199997,
+    51.88825988769531,
+    40.28211236000061
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9362,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:18",
+   "parent": null,
+   "bbox": [
+    2396.085609436035,
+    1080.064015507698,
+    55.82878112792969,
+    63.87196898460388
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9285,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:19",
+   "parent": null,
+   "bbox": [
+    1969.7475290298462,
+    13.63522744178772,
+    140.50494194030762,
+    84.72954511642456
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9235,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:20",
+   "parent": null,
+   "bbox": [
+    2315.5056285858154,
+    5.042186141014099,
+    88.98874282836914,
+    101.9156277179718
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9201,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:21",
+   "parent": null,
+   "bbox": [
+    2230.9512481689453,
+    596.6921488642693,
+    130.09750366210938,
+    70.61570227146149
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9132,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:22",
+   "parent": null,
+   "bbox": [
+    341.8174705505371,
+    39.13221073150635,
+    68.36505889892578,
+    65.7355785369873
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9022,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:23",
+   "parent": null,
+   "bbox": [
+    2194.584397315979,
+    50.24291115999222,
+    138.831205368042,
+    75.51417768001556
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8986,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:24",
+   "parent": null,
+   "bbox": [
+    1041.2583389282227,
+    1274.638426542282,
+    205.4833221435547,
+    58.72314691543579
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8931,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:25",
+   "parent": null,
+   "bbox": [
+    1162.5972442626953,
+    283.482917368412,
+    90.80551147460938,
+    57.034165263175964
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.891,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:26",
+   "parent": null,
+   "bbox": [
+    1520.496181488037,
+    497.6252181529999,
+    367.0076370239258,
+    108.74956369400024
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8873,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:27",
+   "parent": null,
+   "bbox": [
+    1128.8047180175781,
+    1274.049113035202,
+    254.39056396484375,
+    59.90177392959595
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8804,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:28",
+   "parent": null,
+   "bbox": [
+    349.3011112213135,
+    18.153078615665436,
+    85.39777755737305,
+    75.69384276866913
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8799,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:30",
+   "parent": null,
+   "bbox": [
+    539.3224334716797,
+    10.178230166435242,
+    121.35513305664062,
+    91.64353966712952
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8749,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:33",
+   "parent": null,
+   "bbox": [
+    1006.0172920227051,
+    86.65010780096054,
+    403.96541595458984,
+    66.69978439807892
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8722,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:34",
+   "parent": null,
+   "bbox": [
+    1893.6121835708618,
+    430.11626303195953,
+    100.77563285827637,
+    179.76747393608093
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8701,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:35",
+   "parent": null,
+   "bbox": [
+    882.2238616943359,
+    201.53419595956802,
+    331.5522766113281,
+    60.93160808086395
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8633,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:37",
+   "parent": null,
+   "bbox": [
+    1903.1661682128906,
+    13.666954338550568,
+    49.66766357421875,
+    52.666091322898865
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8572,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:38",
+   "parent": null,
+   "bbox": [
+    317.7923774719238,
+    691.9791265130043,
+    84.41524505615234,
+    72.0417469739914
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8557,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:39",
+   "parent": null,
+   "bbox": [
+    2498.056016921997,
+    479.8118176460266,
+    61.94398307800293,
+    48.37636470794678
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8533,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:40",
+   "parent": null,
+   "bbox": [
+    434.0931911468506,
+    33.17214918136597,
+    75.81361770629883,
+    77.65570163726807
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8439,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:41",
+   "parent": null,
+   "bbox": [
+    435.7274751663208,
+    23.55583518743515,
+    104.5450496673584,
+    32.8883296251297
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8419,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:43",
+   "parent": null,
+   "bbox": [
+    1239.2010498046875,
+    1277.1077110767365,
+    161.597900390625,
+    53.7845778465271
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8371,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:44",
+   "parent": null,
+   "bbox": [
+    1925.3243370056152,
+    563.3087396025658,
+    133.35132598876953,
+    41.38252079486847
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8108,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:46",
+   "parent": null,
+   "bbox": [
+    592.0,
+    554.4,
+    16.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8092,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:47",
+   "parent": null,
+   "bbox": [
+    1168.0,
+    554.4,
+    64.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8092,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:48",
+   "parent": null,
+   "bbox": [
+    1648.0,
+    554.4,
+    32.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8092,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:49",
+   "parent": null,
+   "bbox": [
+    1760.0,
+    554.4,
+    48.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8092,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:50",
+   "parent": null,
+   "bbox": [
+    2304.0,
+    554.4,
+    64.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8092,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:51",
+   "parent": null,
+   "bbox": [
+    429.95733642578125,
+    21.56790792942047,
+    468.0853271484375,
+    36.86418414115906
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8076,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:52",
+   "parent": null,
+   "bbox": [
+    45.80448055267334,
+    263.6620998978615,
+    116.39103889465332,
+    64.67580020427704
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.805,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:53",
+   "parent": null,
+   "bbox": [
+    1856.5004234313965,
+    329.81283724308014,
+    142.99915313720703,
+    60.37432551383972
+   ],
+   "kind": "chip",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7989,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:54",
+   "parent": null,
+   "bbox": [
+    1435.7343635559082,
+    19.984273105859756,
+    440.5312728881836,
+    8.031453788280487
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7976,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:55",
+   "parent": null,
+   "bbox": [
+    718.2727680206299,
+    346.4110466837883,
+    115.45446395874023,
+    27.1779066324234
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7874,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:56",
+   "parent": null,
+   "bbox": [
+    1148.9063959121704,
+    98.44732594490051,
+    118.18720817565918,
+    107.10534811019897
+   ],
+   "kind": "card",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7856,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:57",
+   "parent": null,
+   "bbox": [
+    1173.2386150360107,
+    207.65954595804214,
+    101.52276992797852,
+    48.68090808391571
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7814,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:58",
+   "parent": null,
+   "bbox": [
+    539.551399230957,
+    440.9540592432022,
+    216.89720153808594,
+    94.09188151359558
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7756,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:59",
+   "parent": null,
+   "bbox": [
+    2479.0406703948975,
+    567.1711420416832,
+    80.95932960510254,
+    33.657715916633606
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7755,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:60",
+   "parent": null,
+   "bbox": [
+    656.0,
+    586.4,
+    32.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7636,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:61",
+   "parent": null,
+   "bbox": [
+    1184.0,
+    586.4,
+    48.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7636,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:62",
+   "parent": null,
+   "bbox": [
+    1648.0,
+    586.4,
+    144.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7636,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:63",
+   "parent": null,
+   "bbox": [
+    2112.0,
+    586.4,
+    256.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [
+    "奧黛塔"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7636,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:64",
+   "parent": null,
+   "bbox": [
+    18.055438995361328,
+    233.83531683683395,
+    43.889122009277344,
+    60.32936632633209
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7596,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:65",
+   "parent": null,
+   "bbox": [
+    0.0,
+    423.12635469436646,
+    99.95475673675537,
+    129.7472906112671
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7579,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:66",
+   "parent": null,
+   "bbox": [
+    135.49169921875,
+    591.7898054122925,
+    1697.0166015625,
+    848.2101945877075
+   ],
+   "kind": "panel",
+   "text": [
+    "max:",
+    "30.3 ms",
+    "Lv.90",
+    "17413/17413",
+    "Enter"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7467,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:68",
+   "parent": null,
+   "bbox": [
+    2480.895052909851,
+    718.6957343816757,
+    79.10494709014893,
+    50.60853123664856
+   ],
+   "kind": "button",
+   "text": [
+    "4"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7272,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:69",
+   "parent": null,
+   "bbox": [
+    2232.082344055176,
+    447.0270793437958,
+    287.83531188964844,
+    81.94584131240845
+   ],
+   "kind": "button",
+   "text": [
+    "尼可",
+    "2"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7185,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:70",
+   "parent": null,
+   "bbox": [
+    2269.4148559570312,
+    28.73290091753006,
+    290.58514404296875,
+    22.53419816493988
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.713,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:71",
+   "parent": null,
+   "bbox": [
+    709.7119789123535,
+    527.6072196960449,
+    196.57604217529297,
+    80.78556060791016
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7087,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:72",
+   "parent": null,
+   "bbox": [
+    1893.241280555725,
+    333.9421928524971,
+    101.5174388885498,
+    84.1156142950058
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7086,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:73",
+   "parent": null,
+   "bbox": [
+    839.4561939239502,
+    550.9322110414505,
+    97.08761215209961,
+    130.135577917099
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6905,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:74",
+   "parent": null,
+   "bbox": [
+    736.0,
+    418.4,
+    112.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:75",
+   "parent": null,
+   "bbox": [
+    1456.0,
+    418.4,
+    96.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:76",
+   "parent": null,
+   "bbox": [
+    1632.0,
+    418.4,
+    176.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:77",
+   "parent": null,
+   "bbox": [
+    1952.0,
+    418.4,
+    112.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:78",
+   "parent": null,
+   "bbox": [
+    2144.0,
+    418.4,
+    64.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:79",
+   "parent": null,
+   "bbox": [
+    2336.0,
+    418.4,
+    16.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6854,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:80",
+   "parent": null,
+   "bbox": [
+    458.7184600830078,
+    14.960529148578644,
+    538.5630798339844,
+    18.078941702842712
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.671,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:81",
+   "parent": null,
+   "bbox": [
+    2498.097692489624,
+    679.4324616193771,
+    61.90230751037598,
+    33.13507676124573
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6702,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:82",
+   "parent": null,
+   "bbox": [
+    415.922607421875,
+    609.0428686141968,
+    496.15478515625,
+    141.91426277160645
+   ],
+   "kind": "card",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6621,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:83",
+   "parent": null,
+   "bbox": [
+    1858.899314880371,
+    776.598295211792,
+    618.2013702392578,
+    414.803409576416
+   ],
+   "kind": "card",
+   "text": [
+    "Z"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6404,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:84",
+   "parent": null,
+   "bbox": [
+    154.31116676330566,
+    49.69354474544525,
+    123.37766647338867,
+    108.6129105091095
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6046,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:85",
+   "parent": null,
+   "bbox": [
+    1841.0979557037354,
+    531.2092083692551,
+    237.8040885925293,
+    137.58158326148987
+   ],
+   "kind": "card",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5999,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:86",
+   "parent": null,
+   "bbox": [
+    185.14337921142578,
+    535.3581672906876,
+    157.71324157714844,
+    129.28366541862488
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5984,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:87",
+   "parent": null,
+   "bbox": [
+    2361.8897037506104,
+    688.2145120501518,
+    92.2205924987793,
+    79.57097589969635
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5942,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:88",
+   "parent": null,
+   "bbox": [
+    32.734275817871094,
+    21.17337203025818,
+    366.5314483642578,
+    69.65325593948364
+   ],
+   "kind": "button",
+   "text": [
+    "FPS: 60.2",
+    "GPU867%"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5646,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:89",
+   "parent": null,
+   "bbox": [
+    1168.0,
+    842.4,
+    32.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5606,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:90",
+   "parent": null,
+   "bbox": [
+    592.0,
+    466.4,
+    112.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5558,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:91",
+   "parent": null,
+   "bbox": [
+    1168.0,
+    466.4,
+    80.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5558,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:92",
+   "parent": null,
+   "bbox": [
+    1600.0,
+    466.4,
+    496.0,
+    43.19999999999999
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5558,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:93",
+   "parent": null,
+   "bbox": [
+    1840.0,
+    96.21275482177735,
+    144.0,
+    143.57449035644527
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5532,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:94",
+   "parent": null,
+   "bbox": [
+    1442.3161926269531,
+    231.59890723228455,
+    203.36761474609375,
+    160.8021855354309
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5526,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:95",
+   "parent": null,
+   "bbox": [
+    313.52342224121094,
+    101.14432656764984,
+    124.95315551757812,
+    165.71134686470032
+   ],
+   "kind": "card",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5475,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:96",
+   "parent": null,
+   "bbox": [
+    463.4696159362793,
+    555.1905719041824,
+    305.0607681274414,
+    121.61885619163513
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5451,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:98",
+   "parent": null,
+   "bbox": [
+    194.11779594421387,
+    319.2842962741852,
+    235.76440811157227,
+    209.43140745162964
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5371,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:99",
+   "parent": null,
+   "bbox": [
+    0.0,
+    1324.9211375713348,
+    103.52745532989502,
+    86.15772485733032
+   ],
+   "kind": "glyph_icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.537,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:100",
+   "parent": null,
+   "bbox": [
+    338.5737533569336,
+    721.8024866580963,
+    906.8524932861328,
+    332.3950266838074
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5158,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:102",
+   "parent": null,
+   "bbox": [
+    1026.44730758667,
+    426.7929924726486,
+    331.10538482666016,
+    90.41401505470276
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4915,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:103",
+   "parent": null,
+   "bbox": [
+    1648.0,
+    618.4,
+    160.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4862,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:104",
+   "parent": null,
+   "bbox": [
+    2112.0,
+    618.4,
+    224.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4862,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:106",
+   "parent": null,
+   "bbox": [
+    910.4237003326416,
+    50.335849702358246,
+    243.1525993347168,
+    75.32830059528351
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.481,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:108",
+   "parent": null,
+   "bbox": [
+    190.3255386352539,
+    439.605357170105,
+    723.3489227294922,
+    224.78928565979004
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4594,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:109",
+   "parent": null,
+   "bbox": [
+    1971.2861595153809,
+    523.8719388246536,
+    329.4276809692383,
+    120.25612235069275
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4347,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:110",
+   "parent": null,
+   "bbox": [
+    1985.8926010131836,
+    238.92576265335083,
+    574.1073989868164,
+    658.1484746932983
+   ],
+   "kind": "panel",
+   "text": [
+    "3"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4186,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:111",
+   "parent": null,
+   "bbox": [
+    2337.790391921997,
+    394.541161775589,
+    140.41921615600586,
+    154.91767644882202
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4144,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:112",
+   "parent": null,
+   "bbox": [
+    154.31116676330566,
+    49.69354474544525,
+    123.37766647338867,
+    108.6129105091095
+   ],
+   "kind": "avatar",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4143,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:113",
+   "parent": null,
+   "bbox": [
+    14.607967376708984,
+    355.2898302078247,
+    18.78406524658203,
+    137.4203395843506
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.401,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:114",
+   "parent": null,
+   "bbox": [
+    496.46542167663574,
+    358.90557765960693,
+    239.06915664672852,
+    162.18884468078613
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.396,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:115",
+   "parent": null,
+   "bbox": [
+    1952.5705871582031,
+    930.8533263206482,
+    607.4294128417969,
+    458.2933473587036
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3937,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:116",
+   "parent": null,
+   "bbox": [
+    1039.1897592544556,
+    479.18077623844147,
+    113.62048149108887,
+    113.63844752311707
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3899,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:118",
+   "parent": null,
+   "bbox": [
+    1168.0,
+    810.4,
+    112.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3829,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  },
+  {
+   "id": "det:119",
+   "parent": null,
+   "bbox": [
+    2528.0,
+    810.4,
+    16.0,
+    27.200000000000045
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3829,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:74830bed4dd6747ea12584844a25a42ae473d5faca046bfdb480569c239a6d08"
+   }
+  }
+ ],
+ "groups": [],
+ "slices": [],
+ "transitions": [],
+ "budget_ms": {
+  "total": 50,
+  "detect": 10,
+  "ocr": 0
+ },
+ "degraded": [
+  {
+   "code": "FREE_TEXT_UNOWNED",
+   "detail": "20 条文本没有容器归属，act(text) 解析不到"
+  },
+  {
+   "code": "L2_NOT_IMPLEMENTED",
+   "detail": "groups=[]：容器 parent 链未闭合（票 26）"
+  },
+  {
+   "code": "L3_NOT_IMPLEMENTED",
+   "detail": "对象 state 三字段=null、clickable 恒 unknown（票 27/28）"
+  },
+  {
+   "code": "BUDGET_EXCEEDED",
+   "detail": "total=1096.9ms > budget.total=50ms（state=Nonems objects=Nonems）"
+  }
+ ],
+ "timing_ms": {
+  "load_ms": 420.4,
+  "structure_ms": 9.7,
+  "detector_ms": 67.7,
+  "structure": 77.7,
+  "ocr_ms": 303.1,
+  "state_ms": 126.4,
+  "judge_ms": 126.3,
+  "objects_ms": 161.9,
+  "total_ms": 1011.8,
+  "ocr_source": "objects",
+  "ocr_n": 20,
+  "ocr_err": null,
+  "cache_hit": false,
+  "attribution_ms": 20.4,
+  "total": 1096.9,
+  "rpc": 1095.4
+ },
+ "frame": {
+  "path": "(live)",
+  "source": "live",
+  "captured_at_ms": 1792557175979,
+  "captured_at_ms_source": "daemon-capture",
+  "live": true,
+  "age_ms": 1098,
+  "stale": false
+ },
+ "free_text": [
+  "DXVK v3.0",
+  "FPS: 60.2",
+  "GPU867%",
+  "35 ms",
+  "八重神子",
+  "<冒险家协会接待员>",
+  "尼可",
+  "2",
+  "奧黛塔",
+  "3",
+  "班尼特",
+  "4",
+  "Z",
+  "min: 10.8 ms",
+  "max:",
+  "30.3 ms",
+  "Lv.90",
+  "17413/17413",
+  "Enter",
+  "UID:110170759"
+ ],
+ "uncertainty": [
+  {
+   "region": [
+    1470,
+    704,
+    88,
+    40
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.984,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 716px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1634,
+    692,
+    30,
+    30
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.983,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 707px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    860,
+    642,
+    42,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.973,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 656px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1564,
+    804,
+    36,
+    22
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.967,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 625px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    888,
+    562,
+    48,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.958,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 576px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1378,
+    864,
+    28,
+    32
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.955,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 560px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    818,
+    866,
+    128,
+    52
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.953,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 548px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    498,
+    578,
+    38,
+    32
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.947,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 517px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    522,
+    498,
+    34,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.945,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 508px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    798,
+    918,
+    38,
+    40
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.944,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 502px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    486,
+    664,
+    20,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.943,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 496px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1192,
+    478,
+    26,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.942,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 490px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1422,
+    960,
+    24,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.938,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 470px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    860,
+    962,
+    32,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.937,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 464px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    434,
+    684,
+    50,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.936,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 459px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    910,
+    420,
+    62,
+    66
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.935,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 453px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    660,
+    438,
+    52,
+    26
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.935,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 451px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1262,
+    434,
+    22,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.933,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 444px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1140,
+    432,
+    62,
+    22
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.933,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 443px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    414,
+    944,
+    56,
+    22
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.933,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 442px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    402,
+    720,
+    64,
+    40
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.931,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 434px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    2124,
+    732,
+    24,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.929,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 424px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1202,
+    384,
+    58,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.924,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 396px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    654,
+    374,
+    38,
+    22
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.922,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 385px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    370,
+    510,
+    24,
+    54
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.922,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 382px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1838,
+    1046,
+    20,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.922,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 382px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1136,
+    354,
+    24,
+    38
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.92,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 373px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    330,
+    764,
+    52,
+    60
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.917,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 356px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1622,
+    340,
+    36,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.916,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 352px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    318,
+    642,
+    58,
+    98
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.915,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 347px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1998,
+    1080,
+    26,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.915,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 346px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    2224,
+    526,
+    34,
+    74
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.91,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 319px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    516,
+    282,
+    118,
+    76
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.91,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 320px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    308,
+    490,
+    24,
+    28
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.91,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 320px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    290,
+    426,
+    26,
+    40
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.907,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 303px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1888,
+    270,
+    28,
+    36
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.904,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 288px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    2290,
+    410,
+    22,
+    46
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.899,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 259px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1128,
+    246,
+    32,
+    26
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.899,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 259px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    210,
+    562,
+    68,
+    30
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.896,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 244px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1882,
+    338,
+    104,
+    34
+   ],
+   "kind": "possible_miss",
+   "score": 0.599,
+   "reasons": [
+    "below_size_gate",
+    "no_text",
+    "low_flatness"
+   ],
+   "hint": "这里是 104x34 的图形块（对比度 204.0），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标"
+  },
+  {
+   "region": [
+    1048,
+    456,
+    80,
+    20
+   ],
+   "kind": "possible_miss",
+   "score": 0.419,
+   "reasons": [
+    "below_size_gate",
+    "no_text",
+    "low_flatness"
+   ],
+   "hint": "这里是 80x20 的图形块（对比度 63.0），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标"
+  }
+ ],
+ "attribution": {
+  "checked": true,
+  "src": "x11",
+  "want_title": "原神",
+  "want_class": "yuanshen.exe",
+  "want_id": "0x01400001",
+  "current_desktop": 0,
+  "verdict": "OK",
+  "atop": true,
+  "stacking_top": true,
+  "window": {
+   "id": "0x1600001",
+   "caption": "原神",
+   "class": "yuanshen.exe",
+   "bbox": [
+    0,
+    0,
+    2560,
+    1440
+   ],
+   "desktop": 0,
+   "minimized": false,
+   "idx": 0
+  },
+  "occluders": [
+   {
+    "id": "0x1200016",
+    "caption": "素材快收",
+    "class": "tk",
+    "bbox": [
+     200,
+     271,
+     520,
+     380
+    ],
+    "desktop": 0,
+    "intersect_px": 197600
+   }
+  ],
+  "covered_ratio": 0.0536,
+  "elapsed_ms": 20.4,
+  "rc": 0
+ },
+ "structure": {
+  "rows": [
+   {
+    "bbox": [
+     458,
+     14,
+     1417,
+     18
+    ],
+    "n": 2,
+    "cy": 23.0,
+    "members": [
+     72,
+     47
+    ]
+   },
+   {
+    "bbox": [
+     0,
+     5,
+     2559,
+     130
+    ],
+    "n": 16,
+    "cy": 55.5,
+    "members": [
+     15,
+     80,
+     21,
+     27,
+     44,
+     35,
+     36,
+     28,
+     7,
+     6,
+     32,
+     18,
+     9,
+     10,
+     62,
+     19
+    ]
+   },
+   {
+    "bbox": [
+     154,
+     49,
+     2178,
+     108
+    ],
+    "n": 5,
+    "cy": 103.0,
+    "members": [
+     76,
+     100,
+     95,
+     29,
+     22
+    ]
+   },
+   {
+    "bbox": [
+     313,
+     96,
+     1671,
+     170
+    ],
+    "n": 3,
+    "cy": 167.5,
+    "members": [
+     87,
+     49,
+     85
+    ]
+   },
+   {
+    "bbox": [
+     882,
+     201,
+     392,
+     60
+    ],
+    "n": 2,
+    "cy": 231.0,
+    "members": [
+     31,
+     50
+    ]
+   },
+   {
+    "bbox": [
+     18,
+     231,
+     1627,
+     160
+    ],
+    "n": 3,
+    "cy": 263.5,
+    "members": [
+     57,
+     11,
+     86
+    ]
+   },
+   {
+    "bbox": [
+     45,
+     263,
+     1207,
+     77
+    ],
+    "n": 2,
+    "cy": 303.2,
+    "members": [
+     45,
+     24
+    ]
+   },
+   {
+    "bbox": [
+     718,
+     322,
+     1842,
+     95
+    ],
+    "n": 9,
+    "cy": 359.5,
+    "members": [
+     48,
+     0,
+     1,
+     2,
+     3,
+     46,
+     64,
+     4,
+     5
+    ]
+   },
+   {
+    "bbox": [
+     14,
+     238,
+     2545,
+     658
+    ],
+    "n": 11,
+    "cy": 439.5,
+    "members": [
+     101,
+     89,
+     102,
+     66,
+     67,
+     68,
+     69,
+     98,
+     70,
+     71,
+     99
+    ]
+   },
+   {
+    "bbox": [
+     0,
+     423,
+     2559,
+     240
+    ],
+    "n": 10,
+    "cy": 487.5,
+    "members": [
+     58,
+     96,
+     51,
+     82,
+     92,
+     83,
+     84,
+     30,
+     61,
+     34
+    ]
+   },
+   {
+    "bbox": [
+     185,
+     479,
+     2183,
+     189
+    ],
+    "n": 11,
+    "cy": 567.5,
+    "members": [
+     78,
+     39,
+     63,
+     104,
+     40,
+     25,
+     41,
+     42,
+     77,
+     97,
+     43
+    ]
+   },
+   {
+    "bbox": [
+     463,
+     550,
+     2096,
+     130
+    ],
+    "n": 4,
+    "cy": 599.2,
+    "members": [
+     88,
+     65,
+     38,
+     52
+    ]
+   },
+   {
+    "bbox": [
+     656,
+     576,
+     1903,
+     46
+    ],
+    "n": 5,
+    "cy": 599.5,
+    "members": [
+     53,
+     54,
+     55,
+     56,
+     8
+    ]
+   },
+   {
+    "bbox": [
+     1148,
+     596,
+     1255,
+     70
+    ],
+    "n": 3,
+    "cy": 631.5,
+    "members": [
+     93,
+     94,
+     20
+    ]
+   },
+   {
+    "bbox": [
+     415,
+     609,
+     2144,
+     141
+    ],
+    "n": 3,
+    "cy": 695.5,
+    "members": [
+     74,
+     73,
+     16
+    ]
+   },
+   {
+    "bbox": [
+     317,
+     682,
+     2242,
+     91
+    ],
+    "n": 6,
+    "cy": 727.5,
+    "members": [
+     33,
+     12,
+     13,
+     14,
+     79,
+     60
+    ]
+   },
+   {
+    "bbox": [
+     135,
+     591,
+     2409,
+     848
+    ],
+    "n": 4,
+    "cy": 855.2,
+    "members": [
+     59,
+     91,
+     105,
+     106
+    ]
+   },
+   {
+    "bbox": [
+     1933,
+     930,
+     643,
+     458
+    ],
+    "n": 2,
+    "cy": 1135.2,
+    "members": [
+     103,
+     17
+    ]
+   },
+   {
+    "bbox": [
+     84,
+     1274,
+     1798,
+     59
+    ],
+    "n": 3,
+    "cy": 1303.5,
+    "members": [
+     23,
+     26,
+     37
+    ]
+   }
+  ],
+  "chains": [
+   {
+    "id": "G0",
+    "kind": "col_stack",
+    "axis": "x",
+    "bbox": [
+     1952,
+     418,
+     400,
+     43
+    ],
+    "members": [
+     69,
+     70,
+     71
+    ],
+    "pitch": 168.0,
+    "pitch_spread": 0.0,
+    "n": 3
+   },
+   {
+    "id": "G1",
+    "kind": "col_stack",
+    "axis": "x",
+    "bbox": [
+     1184,
+     586,
+     1184,
+     27
+    ],
+    "members": [
+     54,
+     55,
+     56
+    ],
+    "pitch": 516.0,
+    "pitch_spread": 4.0,
+    "n": 3
+   }
+  ],
+  "groups": [
+   {
+    "id": "C0",
+    "kind": "panel",
+    "bbox": [
+     -24.7,
+     -16.7,
+     872.4,
+     176.4
+    ],
+    "members": [
+     "15"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C1",
+    "kind": "panel",
+    "bbox": [
+     84.1,
+     540.1,
+     1798.8,
+     949.8
+    ],
+    "members": [
+     "59"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C2",
+    "kind": "panel",
+    "bbox": [
+     310.8,
+     693.8,
+     960.4,
+     386.4
+    ],
+    "members": [
+     "91"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C3",
+    "kind": "panel",
+    "bbox": [
+     1965.3,
+     218.3,
+     613.5,
+     697.5
+    ],
+    "members": [
+     "98"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C4",
+    "kind": "panel",
+    "bbox": [
+     1933.8,
+     911.8,
+     643.4,
+     494.4
+    ],
+    "members": [
+     "103"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C5",
+    "kind": "group_union",
+    "bbox": [
+     1148.5,
+     382.5,
+     1255.0,
+     266.0
+    ],
+    "members": [
+     "69",
+     "70",
+     "71",
+     "54",
+     "55",
+     "56"
+    ],
+    "src": "inferred"
+   }
+  ],
+  "container_of": {
+   "4": "C3",
+   "5": "C3",
+   "8": "C3",
+   "12": "C1",
+   "13": "C1",
+   "14": "C3",
+   "16": "C3",
+   "17": "C4",
+   "20": "C3",
+   "21": "C0",
+   "23": "C1",
+   "25": "C5",
+   "26": "C1",
+   "27": "C0",
+   "28": "C0",
+   "30": "C5",
+   "33": "C2",
+   "34": "C3",
+   "35": "C0",
+   "36": "C0",
+   "37": "C1",
+   "38": "C5",
+   "39": "C1",
+   "40": "C1",
+   "41": "C1",
+   "42": "C1",
+   "43": "C3",
+   "52": "C3",
+   "53": "C1",
+   "54": "C1",
+   "55": "C1",
+   "56": "C3",
+   "60": "C3",
+   "61": "C3",
+   "65": "C1",
+   "67": "C5",
+   "68": "C5",
+   "69": "C5",
+   "70": "C3",
+   "71": "C3",
+   "73": "C3",
+   "74": "C1",
+   "76": "C0",
+   "79": "C3",
+   "80": "C0",
+   "81": "C2",
+   "83": "C5",
+   "84": "C5",
+   "88": "C1",
+   "93": "C1",
+   "94": "C3",
+   "97": "C3",
+   "99": "C3",
+   "100": "C0",
+   "105": "C1",
+   "106": "C3"
+  },
+  "group_of": {
+   "69": "G0",
+   "70": "G0",
+   "71": "G0",
+   "54": "G1",
+   "55": "G1",
+   "56": "G1"
+  },
+  "pitch": 168.0,
+  "pitch_method": "chain_mode",
+  "pitch_median": 56.25,
+  "pitch_median_spread": 62.39128953933091,
+  "kind_fixes": [],
+  "missing_slots": [],
+  "n_objects": 107,
+  "ms": 9.7,
+  "detector": {
+   "n": 107,
+   "ms": 67.7,
+   "err": null,
+   "model": "gui-det-world-v1.pt",
+   "dropped_kinds": [
+    "icon"
+   ],
+   "text_attached": 16
+  },
+  "detections": [
+   {
+    "bbox": [
+     736.0,
+     322.4,
+     96.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 0
+   },
+   {
+    "bbox": [
+     1120.0,
+     322.4,
+     32.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 1
+   },
+   {
+    "bbox": [
+     1472.0,
+     322.4,
+     80.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 2
+   },
+   {
+    "bbox": [
+     1648.0,
+     322.4,
+     160.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 3
+   },
+   {
+    "bbox": [
+     2064.0,
+     322.4,
+     304.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 4,
+    "text": [
+     "八重神子"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2464.0,
+     322.4,
+     96.0,
+     75.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.9919443130493164,
+    "id": 5
+   },
+   {
+    "bbox": [
+     1861.2413854599,
+     16.081383287906647,
+     101.5172290802002,
+     79.8372334241867
+    ],
+    "kind": "button",
+    "score": 0.976758599281311,
+    "id": 6
+   },
+   {
+    "bbox": [
+     1799.468744277954,
+     13.167687952518463,
+     97.0625114440918,
+     53.664624094963074
+    ],
+    "kind": "button",
+    "score": 0.9750308990478516,
+    "id": 7
+   },
+   {
+    "bbox": [
+     2508.5359630584717,
+     576.6481384634972,
+     51.46403694152832,
+     46.703723073005676
+    ],
+    "kind": "button",
+    "score": 0.9742134213447571,
+    "id": 8
+   },
+   {
+    "bbox": [
+     2081.33673286438,
+     23.804074585437775,
+     109.32653427124023,
+     64.39185082912445
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9589464068412781,
+    "id": 10
+   },
+   {
+    "bbox": [
+     2196.863805770874,
+     14.200081884860992,
+     70.27238845825195,
+     83.59983623027802
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9537819027900696,
+    "id": 11
+   },
+   {
+    "bbox": [
+     46.44806671142578,
+     233.48544681072235,
+     83.10386657714844,
+     61.0291063785553
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9523161053657532,
+    "id": 12
+   },
+   {
+    "bbox": [
+     1648.0,
+     682.4,
+     32.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9423677325248718,
+    "id": 13
+   },
+   {
+    "bbox": [
+     1760.0,
+     682.4,
+     16.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9423677325248718,
+    "id": 14
+   },
+   {
+    "bbox": [
+     2080.0,
+     682.4,
+     304.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9423677325248718,
+    "id": 15,
+    "text": [
+     "班尼特"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     0,
+     8.207837462425232,
+     823.6248626708984,
+     127.58432507514954
+    ],
+    "kind": "panel",
+    "score": 0.9415856003761292,
+    "id": 16,
+    "text": [
+     "DXVK v3.0"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2508.1117401123047,
+     691.8589438199997,
+     51.88825988769531,
+     40.28211236000061
+    ],
+    "kind": "glyph_icon",
+    "score": 0.936232328414917,
+    "id": 17
+   },
+   {
+    "bbox": [
+     2396.085609436035,
+     1080.064015507698,
+     55.82878112792969,
+     63.87196898460388
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9285006523132324,
+    "id": 18
+   },
+   {
+    "bbox": [
+     1969.7475290298462,
+     13.63522744178772,
+     140.50494194030762,
+     84.72954511642456
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9234990477561951,
+    "id": 19
+   },
+   {
+    "bbox": [
+     2315.5056285858154,
+     5.042186141014099,
+     88.98874282836914,
+     101.9156277179718
+    ],
+    "kind": "button",
+    "score": 0.9201064705848694,
+    "id": 20
+   },
+   {
+    "bbox": [
+     2230.9512481689453,
+     596.6921488642693,
+     130.09750366210938,
+     70.61570227146149
+    ],
+    "kind": "button",
+    "score": 0.9132227897644043,
+    "id": 21
+   },
+   {
+    "bbox": [
+     341.8174705505371,
+     39.13221073150635,
+     68.36505889892578,
+     65.7355785369873
+    ],
+    "kind": "glyph_icon",
+    "score": 0.9021849632263184,
+    "id": 22
+   },
+   {
+    "bbox": [
+     2194.584397315979,
+     50.24291115999222,
+     138.831205368042,
+     75.51417768001556
+    ],
+    "kind": "button",
+    "score": 0.8985556364059448,
+    "id": 23
+   },
+   {
+    "bbox": [
+     1041.2583389282227,
+     1274.638426542282,
+     205.4833221435547,
+     58.72314691543579
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8931248188018799,
+    "id": 24
+   },
+   {
+    "bbox": [
+     1162.5972442626953,
+     283.482917368412,
+     90.80551147460938,
+     57.034165263175964
+    ],
+    "kind": "button",
+    "score": 0.8910456895828247,
+    "id": 25
+   },
+   {
+    "bbox": [
+     1520.496181488037,
+     497.6252181529999,
+     367.0076370239258,
+     108.74956369400024
+    ],
+    "kind": "button",
+    "score": 0.8872783184051514,
+    "id": 26
+   },
+   {
+    "bbox": [
+     1128.8047180175781,
+     1274.049113035202,
+     254.39056396484375,
+     59.90177392959595
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8803961277008057,
+    "id": 27
+   },
+   {
+    "bbox": [
+     349.3011112213135,
+     18.153078615665436,
+     85.39777755737305,
+     75.69384276866913
+    ],
+    "kind": "button",
+    "score": 0.8798656463623047,
+    "id": 28
+   },
+   {
+    "bbox": [
+     539.3224334716797,
+     10.178230166435242,
+     121.35513305664062,
+     91.64353966712952
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8748641014099121,
+    "id": 30
+   },
+   {
+    "bbox": [
+     1006.0172920227051,
+     86.65010780096054,
+     403.96541595458984,
+     66.69978439807892
+    ],
+    "kind": "button",
+    "score": 0.8722025752067566,
+    "id": 33
+   },
+   {
+    "bbox": [
+     1893.6121835708618,
+     430.11626303195953,
+     100.77563285827637,
+     179.76747393608093
+    ],
+    "kind": "tile",
+    "score": 0.8700969219207764,
+    "id": 34
+   },
+   {
+    "bbox": [
+     882.2238616943359,
+     201.53419595956802,
+     331.5522766113281,
+     60.93160808086395
+    ],
+    "kind": "button",
+    "score": 0.8632572889328003,
+    "id": 35
+   },
+   {
+    "bbox": [
+     1903.1661682128906,
+     13.666954338550568,
+     49.66766357421875,
+     52.666091322898865
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8572136759757996,
+    "id": 37
+   },
+   {
+    "bbox": [
+     317.7923774719238,
+     691.9791265130043,
+     84.41524505615234,
+     72.0417469739914
+    ],
+    "kind": "button",
+    "score": 0.8557263016700745,
+    "id": 38
+   },
+   {
+    "bbox": [
+     2498.056016921997,
+     479.8118176460266,
+     61.94398307800293,
+     48.37636470794678
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8532572388648987,
+    "id": 39
+   },
+   {
+    "bbox": [
+     434.0931911468506,
+     33.17214918136597,
+     75.81361770629883,
+     77.65570163726807
+    ],
+    "kind": "button",
+    "score": 0.8439371585845947,
+    "id": 40
+   },
+   {
+    "bbox": [
+     435.7274751663208,
+     23.55583518743515,
+     104.5450496673584,
+     32.8883296251297
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8419154286384583,
+    "id": 41
+   },
+   {
+    "bbox": [
+     1239.2010498046875,
+     1277.1077110767365,
+     161.597900390625,
+     53.7845778465271
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8371099233627319,
+    "id": 43
+   },
+   {
+    "bbox": [
+     1925.3243370056152,
+     563.3087396025658,
+     133.35132598876953,
+     41.38252079486847
+    ],
+    "kind": "button",
+    "score": 0.810830295085907,
+    "id": 44
+   },
+   {
+    "bbox": [
+     592.0,
+     554.4,
+     16.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.8092154264450073,
+    "id": 46
+   },
+   {
+    "bbox": [
+     1168.0,
+     554.4,
+     64.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.8092154264450073,
+    "id": 47
+   },
+   {
+    "bbox": [
+     1648.0,
+     554.4,
+     32.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.8092154264450073,
+    "id": 48
+   },
+   {
+    "bbox": [
+     1760.0,
+     554.4,
+     48.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.8092154264450073,
+    "id": 49
+   },
+   {
+    "bbox": [
+     2304.0,
+     554.4,
+     64.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.8092154264450073,
+    "id": 50
+   },
+   {
+    "bbox": [
+     429.95733642578125,
+     21.56790792942047,
+     468.0853271484375,
+     36.86418414115906
+    ],
+    "kind": "glyph_icon",
+    "score": 0.8075932860374451,
+    "id": 51
+   },
+   {
+    "bbox": [
+     45.80448055267334,
+     263.6620998978615,
+     116.39103889465332,
+     64.67580020427704
+    ],
+    "kind": "button",
+    "score": 0.8050161600112915,
+    "id": 52
+   },
+   {
+    "bbox": [
+     1856.5004234313965,
+     329.81283724308014,
+     142.99915313720703,
+     60.37432551383972
+    ],
+    "kind": "chip",
+    "score": 0.798915445804596,
+    "id": 53
+   },
+   {
+    "bbox": [
+     1435.7343635559082,
+     19.984273105859756,
+     440.5312728881836,
+     8.031453788280487
+    ],
+    "kind": "button",
+    "score": 0.7975790500640869,
+    "id": 54
+   },
+   {
+    "bbox": [
+     718.2727680206299,
+     346.4110466837883,
+     115.45446395874023,
+     27.1779066324234
+    ],
+    "kind": "button",
+    "score": 0.787354588508606,
+    "id": 55
+   },
+   {
+    "bbox": [
+     1148.9063959121704,
+     98.44732594490051,
+     118.18720817565918,
+     107.10534811019897
+    ],
+    "kind": "card",
+    "score": 0.7855649590492249,
+    "id": 56
+   },
+   {
+    "bbox": [
+     1173.2386150360107,
+     207.65954595804214,
+     101.52276992797852,
+     48.68090808391571
+    ],
+    "kind": "button",
+    "score": 0.7814047336578369,
+    "id": 57
+   },
+   {
+    "bbox": [
+     539.551399230957,
+     440.9540592432022,
+     216.89720153808594,
+     94.09188151359558
+    ],
+    "kind": "button",
+    "score": 0.7756482362747192,
+    "id": 58
+   },
+   {
+    "bbox": [
+     2479.0406703948975,
+     567.1711420416832,
+     80.95932960510254,
+     33.657715916633606
+    ],
+    "kind": "glyph_icon",
+    "score": 0.7755292057991028,
+    "id": 59
+   },
+   {
+    "bbox": [
+     656.0,
+     586.4,
+     32.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.7635660171508789,
+    "id": 60
+   },
+   {
+    "bbox": [
+     1184.0,
+     586.4,
+     48.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.7635660171508789,
+    "id": 61
+   },
+   {
+    "bbox": [
+     1648.0,
+     586.4,
+     144.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.7635660171508789,
+    "id": 62
+   },
+   {
+    "bbox": [
+     2112.0,
+     586.4,
+     256.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.7635660171508789,
+    "id": 63,
+    "text": [
+     "奧黛塔"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     18.055438995361328,
+     233.83531683683395,
+     43.889122009277344,
+     60.32936632633209
+    ],
+    "kind": "button",
+    "score": 0.7595743536949158,
+    "id": 64
+   },
+   {
+    "bbox": [
+     0,
+     423.12635469436646,
+     99.95475673675537,
+     129.7472906112671
+    ],
+    "kind": "button",
+    "score": 0.757897138595581,
+    "id": 65
+   },
+   {
+    "bbox": [
+     135.49169921875,
+     591.7898054122925,
+     1697.0166015625,
+     848.2101945877075
+    ],
+    "kind": "panel",
+    "score": 0.7466997504234314,
+    "id": 66,
+    "text": [
+     "max:",
+     "30.3 ms",
+     "Lv.90",
+     "17413/17413",
+     "Enter"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2480.895052909851,
+     718.6957343816757,
+     79.10494709014893,
+     50.60853123664856
+    ],
+    "kind": "button",
+    "score": 0.7272249460220337,
+    "id": 68,
+    "text": [
+     "4"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2232.082344055176,
+     447.0270793437958,
+     287.83531188964844,
+     81.94584131240845
+    ],
+    "kind": "button",
+    "score": 0.7185426354408264,
+    "id": 69,
+    "text": [
+     "尼可",
+     "2"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2269.4148559570312,
+     28.73290091753006,
+     290.58514404296875,
+     22.53419816493988
+    ],
+    "kind": "glyph_icon",
+    "score": 0.712989330291748,
+    "id": 70
+   },
+   {
+    "bbox": [
+     709.7119789123535,
+     527.6072196960449,
+     196.57604217529297,
+     80.78556060791016
+    ],
+    "kind": "button",
+    "score": 0.7086658477783203,
+    "id": 71
+   },
+   {
+    "bbox": [
+     1893.241280555725,
+     333.9421928524971,
+     101.5174388885498,
+     84.1156142950058
+    ],
+    "kind": "tile",
+    "score": 0.708562433719635,
+    "id": 72
+   },
+   {
+    "bbox": [
+     839.4561939239502,
+     550.9322110414505,
+     97.08761215209961,
+     130.135577917099
+    ],
+    "kind": "button",
+    "score": 0.6904903054237366,
+    "id": 73
+   },
+   {
+    "bbox": [
+     736.0,
+     418.4,
+     112.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 74
+   },
+   {
+    "bbox": [
+     1456.0,
+     418.4,
+     96.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 75
+   },
+   {
+    "bbox": [
+     1632.0,
+     418.4,
+     176.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 76
+   },
+   {
+    "bbox": [
+     1952.0,
+     418.4,
+     112.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 77
+   },
+   {
+    "bbox": [
+     2144.0,
+     418.4,
+     64.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 78
+   },
+   {
+    "bbox": [
+     2336.0,
+     418.4,
+     16.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.685377836227417,
+    "id": 79
+   },
+   {
+    "bbox": [
+     458.7184600830078,
+     14.960529148578644,
+     538.5630798339844,
+     18.078941702842712
+    ],
+    "kind": "button",
+    "score": 0.6710268259048462,
+    "id": 80
+   },
+   {
+    "bbox": [
+     2498.097692489624,
+     679.4324616193771,
+     61.90230751037598,
+     33.13507676124573
+    ],
+    "kind": "button",
+    "score": 0.6702379584312439,
+    "id": 81
+   },
+   {
+    "bbox": [
+     415.922607421875,
+     609.0428686141968,
+     496.15478515625,
+     141.91426277160645
+    ],
+    "kind": "card",
+    "score": 0.6620866656303406,
+    "id": 82
+   },
+   {
+    "bbox": [
+     1858.899314880371,
+     776.598295211792,
+     618.2013702392578,
+     414.803409576416
+    ],
+    "kind": "card",
+    "score": 0.6403648257255554,
+    "id": 83,
+    "text": [
+     "Z"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     154.31116676330566,
+     49.69354474544525,
+     123.37766647338867,
+     108.6129105091095
+    ],
+    "kind": "tile",
+    "score": 0.6045911312103271,
+    "id": 84
+   },
+   {
+    "bbox": [
+     1841.0979557037354,
+     531.2092083692551,
+     237.8040885925293,
+     137.58158326148987
+    ],
+    "kind": "card",
+    "score": 0.5998584628105164,
+    "id": 85
+   },
+   {
+    "bbox": [
+     185.14337921142578,
+     535.3581672906876,
+     157.71324157714844,
+     129.28366541862488
+    ],
+    "kind": "button",
+    "score": 0.5984375476837158,
+    "id": 86
+   },
+   {
+    "bbox": [
+     2361.8897037506104,
+     688.2145120501518,
+     92.2205924987793,
+     79.57097589969635
+    ],
+    "kind": "glyph_icon",
+    "score": 0.5942171812057495,
+    "id": 87
+   },
+   {
+    "bbox": [
+     32.734275817871094,
+     21.17337203025818,
+     366.5314483642578,
+     69.65325593948364
+    ],
+    "kind": "button",
+    "score": 0.5645650625228882,
+    "id": 88,
+    "text": [
+     "FPS: 60.2",
+     "GPU867%"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1168.0,
+     842.4,
+     32.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.5605567693710327,
+    "id": 89
+   },
+   {
+    "bbox": [
+     592.0,
+     466.4,
+     112.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.5557791590690613,
+    "id": 90
+   },
+   {
+    "bbox": [
+     1168.0,
+     466.4,
+     80.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.5557791590690613,
+    "id": 91
+   },
+   {
+    "bbox": [
+     1600.0,
+     466.4,
+     496.0,
+     43.19999999999999
+    ],
+    "kind": "row",
+    "score": 0.5557791590690613,
+    "id": 92
+   },
+   {
+    "bbox": [
+     1840.0,
+     96.21275482177735,
+     144.0,
+     143.57449035644527
+    ],
+    "kind": "row",
+    "score": 0.5532455444335938,
+    "id": 93
+   },
+   {
+    "bbox": [
+     1442.3161926269531,
+     231.59890723228455,
+     203.36761474609375,
+     160.8021855354309
+    ],
+    "kind": "button",
+    "score": 0.5526180267333984,
+    "id": 94
+   },
+   {
+    "bbox": [
+     313.52342224121094,
+     101.14432656764984,
+     124.95315551757812,
+     165.71134686470032
+    ],
+    "kind": "card",
+    "score": 0.54752516746521,
+    "id": 95
+   },
+   {
+    "bbox": [
+     463.4696159362793,
+     555.1905719041824,
+     305.0607681274414,
+     121.61885619163513
+    ],
+    "kind": "button",
+    "score": 0.5451032519340515,
+    "id": 96
+   },
+   {
+    "bbox": [
+     194.11779594421387,
+     319.2842962741852,
+     235.76440811157227,
+     209.43140745162964
+    ],
+    "kind": "button",
+    "score": 0.5370886921882629,
+    "id": 98
+   },
+   {
+    "bbox": [
+     0,
+     1324.9211375713348,
+     103.52745532989502,
+     86.15772485733032
+    ],
+    "kind": "glyph_icon",
+    "score": 0.5370396375656128,
+    "id": 99
+   },
+   {
+    "bbox": [
+     338.5737533569336,
+     721.8024866580963,
+     906.8524932861328,
+     332.3950266838074
+    ],
+    "kind": "panel",
+    "score": 0.5158029794692993,
+    "id": 100
+   },
+   {
+    "bbox": [
+     1026.44730758667,
+     426.7929924726486,
+     331.10538482666016,
+     90.41401505470276
+    ],
+    "kind": "button",
+    "score": 0.4915131628513336,
+    "id": 102
+   },
+   {
+    "bbox": [
+     1648.0,
+     618.4,
+     160.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.48618000745773315,
+    "id": 103
+   },
+   {
+    "bbox": [
+     2112.0,
+     618.4,
+     224.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.48618000745773315,
+    "id": 104
+   },
+   {
+    "bbox": [
+     910.4237003326416,
+     50.335849702358246,
+     243.1525993347168,
+     75.32830059528351
+    ],
+    "kind": "button",
+    "score": 0.4809759855270386,
+    "id": 106
+   },
+   {
+    "bbox": [
+     190.3255386352539,
+     439.605357170105,
+     723.3489227294922,
+     224.78928565979004
+    ],
+    "kind": "button",
+    "score": 0.4593873620033264,
+    "id": 108
+   },
+   {
+    "bbox": [
+     1971.2861595153809,
+     523.8719388246536,
+     329.4276809692383,
+     120.25612235069275
+    ],
+    "kind": "button",
+    "score": 0.4347214698791504,
+    "id": 109
+   },
+   {
+    "bbox": [
+     1985.8926010131836,
+     238.92576265335083,
+     574.1073989868164,
+     658.1484746932983
+    ],
+    "kind": "panel",
+    "score": 0.4185863733291626,
+    "id": 110,
+    "text": [
+     "3"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2337.790391921997,
+     394.541161775589,
+     140.41921615600586,
+     154.91767644882202
+    ],
+    "kind": "tile",
+    "score": 0.4144122004508972,
+    "id": 111
+   },
+   {
+    "bbox": [
+     154.31116676330566,
+     49.69354474544525,
+     123.37766647338867,
+     108.6129105091095
+    ],
+    "kind": "avatar",
+    "score": 0.4143453538417816,
+    "id": 112
+   },
+   {
+    "bbox": [
+     14.607967376708984,
+     355.2898302078247,
+     18.78406524658203,
+     137.4203395843506
+    ],
+    "kind": "button",
+    "score": 0.4009627401828766,
+    "id": 113
+   },
+   {
+    "bbox": [
+     496.46542167663574,
+     358.90557765960693,
+     239.06915664672852,
+     162.18884468078613
+    ],
+    "kind": "button",
+    "score": 0.3959810435771942,
+    "id": 114
+   },
+   {
+    "bbox": [
+     1952.5705871582031,
+     930.8533263206482,
+     607.4294128417969,
+     458.2933473587036
+    ],
+    "kind": "panel",
+    "score": 0.3937457799911499,
+    "id": 115
+   },
+   {
+    "bbox": [
+     1039.1897592544556,
+     479.18077623844147,
+     113.62048149108887,
+     113.63844752311707
+    ],
+    "kind": "tile",
+    "score": 0.38987019658088684,
+    "id": 116
+   },
+   {
+    "bbox": [
+     1168.0,
+     810.4,
+     112.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.3829375207424164,
+    "id": 118
+   },
+   {
+    "bbox": [
+     2528.0,
+     810.4,
+     16.0,
+     27.200000000000045
+    ],
+    "kind": "row",
+    "score": 0.3829375207424164,
+    "id": 119
+   }
+  ]
+ },
+ "daemon_timing": {
+  "load_ms": 420.4,
+  "structure_ms": 9.7,
+  "detector_ms": 67.7,
+  "structure": 77.7,
+  "ocr_ms": 303.1,
+  "state_ms": 126.4,
+  "judge_ms": 126.3,
+  "objects_ms": 161.9,
+  "total_ms": 1011.8,
+  "ocr_source": "objects",
+  "ocr_n": 20,
+  "ocr_err": null,
+  "cache_hit": false,
+  "attribution_ms": 20.4
+ },
+ "cache": {
+  "hit": false,
+  "layer": "miss"
+ }
+}
