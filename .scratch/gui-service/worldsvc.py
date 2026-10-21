@@ -98,11 +98,17 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # 1) look
     # ══════════════════════════════════════════════════════════════
-    def look(self, frame=None, *, source=None, allow_cache=True):
+    def look(self, frame=None, *, source=None, allow_cache=True, fast=False):
+        """一次感知。fast=True：只跳过检测+结构层（省 ~40–90ms），OCR/判态/容器照常。
+
+        为什么 fast 不省 OCR（2026-10-21 实测反例）：同一帧 f06 派蒙菜单，
+        `ocr=false` 时 world 判 UNKNOWN，带 OCR 文本盒才判 GAME_PAIMON —— 省 OCR 会让
+        state 静默降级。毫秒级靠的是**稳态复用**（OCR TTL + 容器/结构增量复用），不是砍证据。
+        """
         t_start = time.perf_counter()
         src = source or (self.source if frame is None else "frame")
         if self.backend == "daemon-world":
-            return self._look_worlddaemon(frame, src, allow_cache, t_start)
+            return self._look_worlddaemon(frame, src, allow_cache, t_start, fast=fast)
         if frame is None and self.frame_provider is not None:
             frame = self.frame_provider()
             src = "provider"
@@ -169,13 +175,15 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # backend=daemon-world：把感知下沉到常驻服务（ys-lookd cmd=world）
     # ══════════════════════════════════════════════════════════════
-    def _look_worlddaemon(self, frame, src, allow_cache, t_start):
+    def _look_worlddaemon(self, frame, src, allow_cache, t_start, fast=False):
         """显式 backend（默认 cli 完全不变）：一次 RPC 拿回 state+objects+timing+归属。
 
         与 cli 后端的语义差异（如实说明，不假装等价）：
           · live：由常驻服务自己抓帧并先做归属校验（票 34）——客户端不抓、不落 PNG；
           · 离线帧：常驻服务带帧缓冲/OCR 内容寻址缓存/容器缓存/结果缓存，同帧第二次 ≤5ms；
           · 旧常驻服务（没有 world 命令）→ DAEMON_ERROR，调用方需显式回退 cli。
+          · fast=True（2026-10-21）：ocr=False + structure=False，只判态+容器；
+            GAME_WORLD 由常驻服务自动补检测+结构（见 ys_lookd._world）。
         """
         if frame is None and self.frame_provider is not None:
             frame = self.frame_provider()
@@ -194,8 +202,12 @@ class WorldService:
                         cache_hit={"hit": True, "layer": layer, "hit_ms": round(hit_ms, 2)},
                         t_start=t_start, validate_ms=0.0))
         t0 = time.perf_counter()
+        # fast 只跳过 D2 检测 + D3 结构层；OCR 必须保留——2026-10-21 实测：同一帧 f06
+        # （派蒙菜单）ocr=false 时 world 判 UNKNOWN，带 OCR 文本盒才判 GAME_PAIMON。
+        # 省 OCR 会让 state 静默降级，属 AGI-BAR 禁止的"静默失能"，所以不做。
         resp = instruments.get_world_daemon(path, profile=self.profile,
-                                            ocr=True, objects=True, cache=self.daemon_cache)
+                                            ocr=True, objects=True,
+                                            structure=not fast, cache=self.daemon_cache)
         rpc_ms = (time.perf_counter() - t0) * 1000
         state = resp.get("state") or {}
         if not state.get("state"):
@@ -524,11 +536,15 @@ class WorldService:
             if "intent" in target:
                 return self._act_intent(target, expect=exp, post=post, timeout_ms=timeout_ms,
                                         poll_ms=poll_ms, inject=inject, result=result, t0=t0)
+            t_res = time.perf_counter()
             ws = self.look(frame=frame)
             resolution = self._resolve_target(ws, target)
+            result["resolve_ms"] = round((time.perf_counter() - t_res) * 1000, 1)
             result["resolution"] = resolution
             if resolution["status"] != "resolved":
                 result.update({"status": resolution["status"], "ok": False,
+                               # 失败也要自解释：原因已在 resolution.detail，这里补"下一步"
+                               "next_action": _next_action_for(resolution),
                                "degraded": resolution.get("degraded", [])})
                 result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
                 return result
@@ -582,17 +598,43 @@ class WorldService:
             deadline = time.perf_counter() + max(0.2, float(expect_timeout_ms) / 1000.0)
             ev = None
             after = None
+            # 2026-10-21 动作路径优化：①注入后先等 20ms 再拍第一帧（UI 更新有物理延迟，
+            # 立刻拍必看到旧画面，白付一轮 capture+expect）；②轮询间隔指数退避，封顶 poll_ms；
+            # ③预算前瞻：剩余时间不够再跑一轮 expect 就立刻停（不为多看一眼顶破上限）。
+            polls = 0
+            wait_s = 0.02
+            t_inject = time.perf_counter()
             while True:
+                if wait_s > 0:
+                    time.sleep(min(wait_s, max(0.0, deadline - time.perf_counter())))
+                t_cap = time.perf_counter()
                 after, after_meta = self._capture_evidence(None, os.path.join(edir, "after.png"),
                                                            after_frame=after_frame)
+                cap_ms = (time.perf_counter() - t_cap) * 1000
                 ev = self.evaluate_expect(exp, before, after, profile=self.profile)
+                ev["capture_ms"] = round(cap_ms, 1)
+                polls += 1
                 result["expect_result"] = ev
                 result["expect_evaluated"] = True
                 result["evidence"]["after"] = after
                 result["evidence"]["after_meta"] = after_meta
                 if ev["ok"] or time.perf_counter() >= deadline:
                     break
-                time.sleep(max(0.05, poll_ms / 1000.0))
+                last_s = max(0.001, float(ev.get("elapsed_ms") or 0.0) / 1000.0)
+                if (deadline - time.perf_counter()) <= last_s * 1.1:
+                    result["degraded"].append(_degraded(
+                        "EXPECT_BUDGET_STOP",
+                        f"剩余预算 {1000 * (deadline - time.perf_counter()):.0f}ms < "
+                        f"上一轮 expect {1000 * last_s:.0f}ms×1.1，提前停（不顶破 timeout）"))
+                    break
+                wait_s = min(max(0.05, poll_ms / 1000.0), max(wait_s * 2, 0.05))
+            result["polls"] = polls
+            result["timings"] = {
+                "resolve_ms": result.get("resolve_ms"),
+                "inject_ms": round((t_inject - t0) * 1000 - float(result.get("resolve_ms") or 0.0), 1),
+                "expect_total_ms": round((time.perf_counter() - t_inject) * 1000, 1),
+                "last_expect_ms": (result.get("expect_result") or {}).get("elapsed_ms"),
+            }
             detail, detail_res = self._write_detail(after, exp, edir)
             result["evidence"]["detail"] = detail
             result["evidence"]["detail_meta"] = detail_res
@@ -618,8 +660,9 @@ class WorldService:
                         # 给"实际变了哪"也出一张下钻图，和 detail.png（期待区）并列
                         try:
                             out2 = os.path.join(edir, "detail-actual.png")
+                            # 同 detail.png：只裁切不 OCR（OCR 子进程 2–30s，文本证据见 expect_result）
                             r2 = instruments.detail_image(after, actual["region"], out2,
-                                                          scale=1.0, ocr=True)
+                                                          scale=1.0, ocr=False)
                             if r2["rc"] == 0 and os.path.isfile(out2):
                                 result["evidence"]["detail_actual"] = out2
                         except Exception:                      # noqa: BLE001 —— 证据是增强，不阻断结论
@@ -765,8 +808,26 @@ class WorldService:
         region = exp.get("region")
         try:
             if t == "state_in":
-                res = instruments.get_state(after, channel="fast",
-                                            profile=profile or self.profile)
+                # 2026-10-21 性能：优先常驻服务（ys-state 的 decide 在 daemon 里跑）——
+                # 子进程 `ys-state --frame` 实测 677–1670ms/次，daemon 冷 ~0.5s、同帧热 ~2ms。
+                # 判据仍是 ys-state 那一份（daemon 调 YS.decide/decide_with_native），不是第二实现。
+                # apply_uid=True：帧是活体抓下来的文件时也要跑 UID 本体态补判，否则与 ys-state 不一致。
+                res = None
+                try:
+                    r = instruments.get_world_daemon(
+                        after, profile=profile or self.profile, ocr=True,
+                        objects=False, structure=False, cache=True, apply_uid=True)
+                    stt = r.get("state") or {}
+                    if stt.get("state"):
+                        res = {"state": stt.get("state"), "via": "daemon/world",
+                               "confidence": stt.get("confidence"),
+                               "ambiguous": stt.get("ambiguous"),
+                               "native": stt.get("native")}
+                except instruments.InstrumentError:
+                    res = None
+                if res is None:                       # 常驻服务不可用 → 回退子进程（fail-closed）
+                    res = instruments.get_state(after, channel="fast",
+                                                profile=profile or self.profile)
                 st = res.get("state")
                 ok = st in exp["states"]
                 return {"ok": ok, "type": t, "region": region,
@@ -996,14 +1057,36 @@ class WorldService:
         return round(inter / union, 4) if union > 0 else 0.0
 
     def _write_detail(self, after, exp, edir):
+        """裁一块细节图作证据（进程内裁切，不启子进程）。
+
+        2026-10-21 实测：`ys-detail` 即使不带 OCR 也要付进程启动（numpy/PIL 导入）~1.5s；
+        带 OCR 时再起一个 ys_ocr 子进程（GPU 争用下单次 2–30s）。而这里只需要**同一帧的
+        对比裁片**，文本证据已经由 `expect_result.observed` 给出。要框内文字时用
+        `ys-detail --ocr` 单独调用（drill 通道仍走它）。
+        """
         region = exp.get("region") or [1280 - 400, 720 - 300, 800, 600]
         out = os.path.join(edir, "detail.png")
-        r = instruments.detail_image(after, region, out, scale=1.0, ocr=True)
-        if r["rc"] != 0 or not os.path.isfile(out):
+        try:
+            from PIL import Image
+            with Image.open(after) as im:
+                im = im.convert("RGB")
+                W, H = im.size
+                x, y, w, h = [int(v) for v in region]
+                x = max(0, min(x, W - 1))
+                y = max(0, min(y, H - 1))
+                w = max(1, min(w, W - x))
+                h = max(1, min(h, H - y))
+                crop = im.crop((x, y, x + w, y + h))
+                if float(exp.get("_detail_scale") or 1.0) != 1.0:
+                    k = float(exp["_detail_scale"])
+                    crop = crop.resize((max(1, int(w * k)), max(1, int(h * k))))
+                crop.save(out)
+        except (OSError, ValueError) as exc:
             raise ServiceError("ACT_DETAIL_FAILED",
-                               f"ys-detail 失败 rc={r['rc']}：{r.get('stderr_tail')}",
+                               f"detail 裁切失败：{type(exc).__name__}: {exc}",
                                status="error", rc=8)
-        return out, r.get("result")
+        return out, {"region": [x, y, w, h], "ocr": False,
+                     "note": "进程内裁切；文本证据见 expect_result.observed"}
 
     def _write_act_meta(self, result):
         edir = (result.get("evidence") or {}).get("dir")
@@ -1406,9 +1489,12 @@ CAPABILITIES = {
     "schema": "gui.worldstate.capabilities/v1",
     "verbs": {
         "look": {"purpose": "一次感知 → 单一世界状态", "key_args": ["--backend daemon-world|cli",
-                                                                  "--frame PNG", "--summary"],
+                                                                  "--frame PNG", "--summary", "--fast"],
                  "gives": ["state", "objects", "free_text", "uncertainty", "structure",
-                           "settled", "frame_id", "degraded"]},
+                           "settled", "frame_id", "degraded"],
+                 "fast": "只跳过检测+结构层（省 ~40–90ms）；OCR/判态/容器照常——"
+                         "省 OCR 会让状态静默降级（实测 f06 派蒙菜单变 UNKNOWN）；"
+                         "稳态毫秒级靠 OCR TTL + 容器/结构增量复用"},
         "act": {"purpose": "解析目标 → (dry-run|注入) → 等下一稳态",
                 "key_args": ["--text", "--object-id", "--action", "--expect", "--live"],
                 "gives": ["resolved", "injected", "expect_result", "post"]},
@@ -1461,6 +1547,26 @@ CAPABILITIES = {
 }
 
 
+def _next_action_for(res):
+    """把解析失败/多义翻译成下一步可执行动作（与 ServiceError.next_action 同形状）。"""
+    st = (res or {}).get("status")
+    if st == "resolve_fail":
+        if (res or {}).get("free_text_hits"):
+            return [{"step": 1, "tool": "tools/ys-editor/ys-detail",
+                     "args": ["--frame", "<frame>", "--at", "<x,y>", "--ocr"],
+                     "why": "目标只在 free_text（无坐标）：对疑似区域局部 OCR 取坐标"},
+                    {"step": 2, "tool": "worldsvc act", "args": ["--object-id", "<id>"],
+                     "why": "拿到对象后按 id 精确点击"}]
+        return [{"step": 1, "tool": "worldsvc look", "args": ["--summary"],
+                 "why": "先确认当前界面（可能还没进到目标页）"},
+                {"step": 2, "tool": "tools/ys-editor/ys-detail", "args": ["--at", "x,y", "--ocr"],
+                 "why": "对疑似区域放大 + OCR"}]
+    if st == "ambiguous":
+        return [{"step": 1, "tool": "worldsvc act", "args": ["--object-id", "<candidates[0].id>"],
+                 "why": "多义时必须用 object_id 指定唯一目标"}]
+    return None
+
+
 def ys_bell():
     """「我在操作」提示音（用户令 2026-10-21）：每次判读/动作/看图响一次。"""
     try:
@@ -1493,6 +1599,9 @@ def main(argv=None):
     p.add_argument("--latest", action="store_true", help="复用上一次的帧（会标 STALE_FRAME）")
     p.add_argument("--channel", default="fast", choices=["fast", "full"])
     p.add_argument("--summary", action="store_true", help="只打印摘要（不打印完整世界状态）")
+    p.add_argument("--fast", action="store_true",
+                   help="快速路径（daemon-world）：跳过检测+结构层（省 ~40–90ms）；"
+                        "OCR/判态/容器照常（省 OCR 会让状态静默降级，实测 f06 变 UNKNOWN）")
 
     p = sub.add_parser("act", help="解析目标 → (dry-run|注入) → 等下一稳态")
     common(p)
@@ -1584,7 +1693,7 @@ def main(argv=None):
                            allow_background=getattr(a, "allow_background", False))
 
         if a.verb == "look":
-            ws = svc.look(frame=a.frame, source=None)
+            ws = svc.look(frame=a.frame, source=None, fast=bool(getattr(a, "fast", False)))
             if a.summary:
                 _emit(ws.summary(), out_path=a.json_out)
             else:

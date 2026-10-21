@@ -39,8 +39,12 @@ CMD="${1:-}"; [ $# -gt 0 ] && shift || true
 
 deny() {  # deny <exit> <code> <detail>
   local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-  printf '{"ok":false,"error":"%s","detail":"%s","ms":%s,"pixels_returned":false}\n' \
-    "$2" "$3" "$ms"
+  local extra=""
+  if [ "$2" = "OTHER_DESKTOP" ]; then
+    extra=',"next_action":[{"step":1,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe","--dry"],"why":"先看窗口在哪张桌面（只读）"},{"step":2,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe"],"why":"切过去要单独授权：先向用户申请，再设 YS_ALLOW_DESKTOP_SWITCH=1"}]'
+  fi
+  printf '{"ok":false,"error":"%s","detail":"%s","ms":%s,"pixels_returned":false%s}\n' \
+    "$2" "$3" "$ms" "$extra"
   exit "$1"
 }
 
