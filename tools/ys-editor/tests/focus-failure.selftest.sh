@@ -6,7 +6,8 @@
 #   ① 同一租约连续失败 3 次 ⇒ abandoned（保留文件），此后不再调用（调用计数不再增长）
 #   ② 退避 0.5/1s（日志可查）
 #   ③ 连续 5 次无法恢复 ⇒ CRITICAL + 自停命令被调用（假命令 touch 文件）
-#   ④ no-op 租约（prev==game / noop 标志）⇒ release 直接成功、**零 raise**
+#   ④ no-op 租约（prev==game / noop 标志）⇒ release **切回默认屏 firefox** 并过堆叠验证
+#      （2026-10-21 用户口径：没有"用户窗"可还 ≠ 什么都不做；但绝不 raise 游戏本身）
 #
 # 机读行: FOCUS-FAILURE-RESULT first_calls=<n> no_more=<0|1> abandoned=<0|1> fuse=<0|1> noop_raises=<n> prevgame_raises=<n> verdict=PASS|FAIL
 # 退出码: 0 全绿 / 1 有失败
@@ -80,9 +81,14 @@ cat > "$LEASE" <<JSON
 JSON
 out=$(YS_LEASE="$LEASE" "$YSE/ys-lease" release --force 2>&1); rc=$?
 raises_after=$(journalctl --user --since "5 seconds ago" 2>/dev/null | grep -c "YS-FOCUS-raise" || true)
-[ "$rc" -eq 0 ] && echo "$out" | grep -q '"noop": true' && ok "noop 租约 release 立即成功（rc=0）" || bad "noop release rc=$rc out=$out"
+NOOP_RAISES=$(( raises_after - raises_before ))
+[ "$rc" -eq 0 ] && ok "noop 租约 release 成功（rc=0）" || bad "noop release rc=$rc out=$out"
 [ ! -e "$LEASE" ] && ok "noop 租约文件已清除" || bad "noop 租约文件仍在"
-[ "$raises_before" = "$raises_after" ] && ok "noop release 零 raise（$raises_before → $raises_after）" || bad "noop release 触发了 raise（$raises_before → $raises_after）"
+echo "$out" | grep -q '"class": "firefox"' && ok "noop 归还目标=firefox（用户口径：没有用户窗可还也要切回默认屏）" || bad "noop 未归 firefox：$out"
+_noop_ti=$(printf '%s' "$out" | python3 -c "import sys,json;d=json.loads(sys.stdin.read().strip().splitlines()[-1]);print(d.get('target_index',''))" 2>/dev/null)
+_noop_gi=$(printf '%s' "$out" | python3 -c "import sys,json;d=json.loads(sys.stdin.read().strip().splitlines()[-1]);print(d.get('game_index',''))" 2>/dev/null)
+{ [ -n "$_noop_ti" ] && [ -n "$_noop_gi" ] && [ "$_noop_ti" -gt "$_noop_gi" ]; } && ok "firefox 在游戏之上（idx $_noop_ti > game $_noop_gi）" || bad "堆叠未过：firefox=$_noop_ti game=$_noop_gi"
+[ "$NOOP_RAISES" -le 1 ] && ok "noop 只 raise 了 $NOOP_RAISES 次（不重复抬窗）" || bad "noop raise 了 $NOOP_RAISES 次（应 ≤1）"
 
 # 旧格式 prev==game 租约（这次事故的形态）：也必须零 raise 直接清
 cat > "$LEASE" <<JSON
@@ -92,8 +98,10 @@ JSON
 raises_before2=$(journalctl --user --since "5 seconds ago" 2>/dev/null | grep -c "YS-FOCUS-raise" || true)
 out2=$(YS_LEASE="$LEASE" "$YSE/ys-lease" release --force 2>&1); rc2=$?
 raises_after2=$(journalctl --user --since "5 seconds ago" 2>/dev/null | grep -c "YS-FOCUS-raise" || true)
-[ "$rc2" -eq 0 ] && echo "$out2" | grep -q '"noop": true' && ok "prev==game 租约 release 零动作成功（rc=0）" || bad "prev==game release rc=$rc2 out=$out2"
-[ "$raises_before2" = "$raises_after2" ] && ok "prev==game release 零 raise（$raises_before2 → $raises_after2）" || bad "prev==game 触发了 raise（$raises_before2 → $raises_after2）"
+PREVGAME_RAISES=$(( raises_after2 - raises_before2 ))
+[ "$rc2" -eq 0 ] && ok "prev==game 租约 release 成功（rc=0）" || bad "prev==game release rc=$rc2 out=$out2"
+echo "$out2" | grep -q '"class": "firefox"' && ok "prev==game 归还目标=firefox" || bad "prev==game 未归 firefox：$out2"
+[ "$PREVGAME_RAISES" -le 1 ] && ok "prev==game 只 raise 了 $PREVGAME_RAISES 次" || bad "prev==game raise 了 $PREVGAME_RAISES 次（应 ≤1）"
 
 VERDICT=PASS; [ "$fails" -gt 0 ] && VERDICT=FAIL
 printf 'FOCUS-FAILURE-RESULT first_calls=%s no_more=%s abandoned=%s fuse=%s noop_raises=%s prevgame_raises=%s verdict=%s\n' \
