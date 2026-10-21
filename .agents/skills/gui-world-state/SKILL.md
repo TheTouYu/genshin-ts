@@ -98,6 +98,16 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | 一键拉起 | `tools/ys-editor/ys-eyes-up` | exit 0 就绪 / 2 没窗口 / 3 守护不产帧 / **5 在产帧但窗不在当前桌面** |
 | 跨桌面 | `tools/ys-editor/ys-follow-win` | 只读探测不加 `--switch`；KWin 报 `desktop=all` 就是「在所有桌面」 |
 
+## 4.5 回归测试默认不许碰屏幕（2026-10-21 用户反馈「说完成了却还有操作音」）
+
+任何走 `ys-gui-slot` 的测试 = **真的抬窗、真的抢焦点、用户会听到声音**。
+所以「动真屏」的测试必须显式开门：`YS_ALLOW_SCREEN_TEST=1`，否则 SKIP。
+已加闸门：`tests/focus-default.selftest.sh`、`tests/screen-grant.selftest.sh` 的 T6。
+
+**为什么这条重要**：`failure-ledger check --fast` 每次都会跑这些测试。那天代理跑完门禁说"已完成"，
+用户却又听到操作音——因为 T6 传的是 `true`（空命令）却照样占屏。
+**判据：测试里的 `ys-gui-slot` 只允许出现在 `YS_ALLOW_SCREEN_TEST=1` 分支里。**
+
 ## 5. 五条实测坑（都交过学费）
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。

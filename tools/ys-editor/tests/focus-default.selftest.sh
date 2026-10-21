@@ -35,6 +35,12 @@ restore_screen() {
 }
 trap restore_screen EXIT INT TERM
 
+# 本测试会**把游戏抬到焦点**（为了复现事故条件）⇒ 默认 SKIP，必须显式授权才跑。
+if [ "${YS_ALLOW_SCREEN_TEST:-0}" != "1" ]; then
+  echo "FOCUS-DEFAULT SKIP 会占用真实屏幕；要跑请显式 YS_ALLOW_SCREEN_TEST=1"
+  exit 0
+fi
+
 GAME_ID=$(KSTATE | py 'import sys,json;d=json.load(sys.stdin);print(next((w["internalId"] for w in d.get("wins") or [] if "yuanshen" in (w.get("class") or "").lower()), ""))')
 if [ -z "$GAME_ID" ]; then
   echo "FOCUS-DEFAULT SKIP 没有原神窗口（class=yuanshen），跳过"
