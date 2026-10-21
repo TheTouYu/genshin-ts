@@ -222,7 +222,7 @@ def object_from_detection(d, *, frame_id):
 
 def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=(),
               transitions=(), budget_ms=None, degraded=(), timing_ms=None, frame=None,
-              free_text=(), uncertainty=()):
+              free_text=(), uncertainty=(), settled=None):
     """组装 world-state dict。字段名严格用 AGI-BAR §四 的名字（扩展字段另行标注）。"""
     return {
         "schema": SCHEMA_ID,
@@ -235,6 +235,8 @@ def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=
         "slices": list(slices),
         "transitions": list(transitions),
         "budget_ms": dict(budget_ms or BUDGET_DEFAULT_MS),
+        # 稳定信号（动作前置判据）：**原样透传**，None 表示"这一帧没给结论"（如缓存命中）
+        "settled": settled,
         "degraded": [d if isinstance(d, dict) else {"code": str(d), "detail": ""}
                      for d in degraded],
         # ── 以下为 v0 扩展字段（AGI-BAR 未列，但 act/wait/bench 需要）──
@@ -494,12 +496,25 @@ class WorldState:
         return self.raw
 
     def summary(self):
+        """摘要（给"一步看一眼"的调用方用）。
+
+        2026-10-21 复盘修正：原先摘要**不带 `settled` 与 `uncertainty`**，而技能里推荐的正是
+        `look --summary` + "动作前查 settled==true" —— 于是调用方拿到的摘要里根本没有稳定信号
+        （实测某轮 NewSession 打印出 `settled: null` 后只能靠肉眼判断）。判据与推荐命令必须对齐。
+        """
+        settled = self.raw.get("settled")
+        unc = (self.raw.get("uncertainty") or [])   # 存在 raw 里，不是类字段
         return {
             "frame_id": self.frame_id,
             "state": self.state_name,
             "objects": len(self.objects),
             "clickable_yes": sum(1 for o in self.objects if o["affordance"]["clickable"] == "yes"),
             "clickable_unknown": sum(1 for o in self.objects if o["affordance"]["clickable"] == "unknown"),
+            # 稳定信号（动作前置判据）：原样给出，缺字段就是 None（表示"没给结论"，不是"稳定"）
+            "settled": settled,
+            # 不确定性：全量太多，摘要只给计数 + 最高分一条，便于"要不要再看一眼"
+            "uncertainty": {"n": len(unc),
+                            "top": (max(unc, key=lambda x: x.get("score") or 0) if unc else None)},
             "degraded": [d["code"] for d in self.degraded],
             "timing_ms": self.raw.get("timing_ms", {}),
         }

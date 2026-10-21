@@ -2066,6 +2066,12 @@ def _world(req):
             out = json.loads(json.dumps(hit))               # 深拷贝：调用方改不脏缓存
             out["timing"] = {"cache_hit": True,
                              "total_ms": round((time.time() - t0) * 1000, 1)}
+            # 2026-10-21 复盘（真机实测）：缓存里**故意不含 settled**（它是"相对上一帧"的时序量），
+            # 但命中时直接把字典返回 ⇒ 调用方拿到的响应**没有 settled 键**，打印成 `settled: null`，
+            # 无法区分「没给结论」和「稳定」。而我们自己的技能又写着"动作前查 settled==true"。
+            # 修法：缓存命中时给出**显式三态**（null + 原因 + 怎么拿真值），不许静默缺字段。
+            out["settled"] = {"same_as_prev": None, "reason": "cache_hit",
+                              "hint": "缓存命中=没有重新比较帧；要判稳定请用 cache:false 重取"}
             return out
     boxes, ocr_meta = (None, {"source": "skip", "ms": 0, "n": 0, "err": None})
     if do_ocr:

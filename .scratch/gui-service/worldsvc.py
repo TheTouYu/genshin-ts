@@ -242,6 +242,9 @@ class WorldService:
         raw["attribution"] = resp.get("attribution")
         raw["structure"] = resp.get("structure")   # D3 结构层（groups/rows/pitch），随世界状态一起返回
         raw["daemon_timing"] = resp.get("timing")
+        # 2026-10-21 复盘修正：稳定信号（settled）原先**没从 daemon 回执透传**，
+        # 于是 `look --summary` 永远拿不到它（真机会话里打印成 settled: null，调用方只能靠肉眼）。
+        raw["settled"] = resp.get("settled")
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         if path:
             self.cache.store(frame_id, self.sig,
@@ -415,6 +418,8 @@ class WorldService:
             state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
             degraded=degraded, timing_ms=timing, frame=frame_meta,
             budget_ms=self.budget_ms,
+            # 2026-10-21：稳定信号必须透传到 summary（技能推荐的正是 --summary）
+            settled=(raw or {}).get("settled"),
         )
 
     def _finalize(self, raw, *, frame_meta, frame_id, timing, cache_hit, t_start, validate_ms):
