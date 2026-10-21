@@ -200,7 +200,10 @@ def main():
                 _c0 = _my - _m * _mx
                 if _m > 0:
                     clicks = int(round((a.rows - _c0) / _m))
-                    clicks = max(5, min(80, clicks))
+                    # 2026-10-21 用户令：「就算单次移动有上限，那多执行一次不就行了吗。」
+                    # 单次注入仍按 ~80 clicks 一批（避免一次 --repeat 过大被吞/超时），
+                    # 但**总数不再被 clamp**：目标行数换算成总 clicks，由 main 分批循环执行。
+                    clicks = max(5, clicks)
         except Exception:                                # noqa: BLE001
             pass
     # --by rows=N：用拖动（线性），按标定 px_per_row 换算（默认 200；标定见 ~/.dsh/ys-scroll-calib.json）
@@ -253,6 +256,49 @@ def main():
                                    "clicks": clicks, "settle_ms": a.settle_ms,
                                    "script": script}}, ensure_ascii=False))
         return 0
+    # 2026-10-21：**单批上限 ≠ 总量上限**。把目标 clicks 拆成 ≤CHUNK 的多批依次注入，
+    # 每批之间可选 verify；这样 --rows 48 不再是"被 clamp 成 80 clicks 只走 5 行"。
+    CHUNK = int(os.environ.get("YS_SCROLL_CHUNK_CLICKS", "80"))
+    MAX_CHUNKS = int(os.environ.get("YS_SCROLL_MAX_CHUNKS", "40"))
+    if clicks > CHUNK and not a.drag:
+        n_chunks = min(MAX_CHUNKS, (clicks + CHUNK - 1) // CHUNK)
+        per = clicks // n_chunks
+        _t0 = time.time()
+        _done = 0
+        _rc = 0
+        _in_slot = os.environ.get("YS_SLOT_ACTIVE") == "1"
+        _env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+        for _i in range(n_chunks):
+            _script = (PUT + " %d %d >/dev/null 2>&1; sleep 0.05; "
+                       "xdotool click --repeat %d --delay %d %d" % (x, y, per, a.delay, 5))
+            if _in_slot:
+                _p = subprocess.run(["bash", "-c", _script], capture_output=True, text=True,
+                                    env=_env, timeout=120)
+            else:
+                _p = subprocess.run([SLOT, (_resolve_win() or "auto"), "60", "bash", "-c", _script],
+                                    capture_output=True, text=True, timeout=120)
+            if _p.returncode != 0:
+                _rc = _p.returncode
+                break
+            _done += per
+        # 分批之后仍要**自证动了没有**（用户令：动作必须可验证，不许只看返回码）
+        _fb, _moved, _diff = None, None, None
+        if not a.no_verify:
+            _fb = capture(a.window, os.path.join(tmp, "b.png"))
+            if fa and _fb:
+                _moved = shift_px(fa, _fb)
+                _diff = frame_diff(fa, _fb)
+        _mc = None if _diff is None else (_diff > 0.001)
+        print(json.dumps({"ok": _rc == 0, "chunked": True, "chunks": n_chunks,
+                          "per_chunk_clicks": per, "total_clicks": _done,
+                          "target_rows": a.rows, "moved_px": _moved,
+                          "frame_diff": (None if _diff is None else round(_diff, 6)),
+                          "moved_confirmed": _mc,
+                          "ms": round((time.time() - _t0) * 1000, 1)}, ensure_ascii=False))
+        if _rc != 0:
+            return 5
+        return 6 if _mc is False else 0
+
     lease_ok = False
     made_lease = False          # 只归还本函数自己取的租约；别人的租约不动
     if a.lease:
