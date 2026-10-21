@@ -370,5 +370,51 @@ PYIN
     fi
     echo "INJECT-PASS resolve-click-empty-neg: 空 stdout ⇒ rc=$rc + error=EMPTY_STDOUT，无 traceback"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg" >&2; exit 2 ;;
+  # ⑫ 注入「裸 import -window」→ no-xbell 静态门禁必须报红（F-20261021-56 的 prevented 证据）
+  #   为什么要静态注入而不是真抓一帧：裸 import 的**效果**就是敲铃，抓帧去验会真的响给用户听。
+  #   这条证明的是「扫描器真的在扫」，与有没有人真犯错无关。
+  no-xbell-neg)
+    tmp="tools/ys-editor/inject-noxbell.py"
+    trap 'rm -f "$tmp"' EXIT
+    printf '# 注入物：裸 import -window（每次调用敲一次 X11 铃）\nimport -window 0x1 /tmp/x.png\n' > "$tmp"
+    if bash tools/ys-editor/tests/no-xbell.sh >/tmp/.noxbell.$$ 2>&1; then
+      echo "INJECT-FAIL no-xbell-neg: 注入裸 import 后门禁仍绿（门禁空转）"; rm -f /tmp/.noxbell.$$; exit 1
+    fi
+    if ! grep -q 'NO-XBELL FAIL' /tmp/.noxbell.$$; then
+      echo "INJECT-FAIL no-xbell-neg: 变红了但不是 no-xbell 报的（判据串了）"; cat /tmp/.noxbell.$$ | tail -3; rm -f /tmp/.noxbell.$$; exit 1
+    fi
+    if ! grep -q 'inject-noxbell' /tmp/.noxbell.$$; then
+      echo "INJECT-FAIL no-xbell-neg: 报红但没点名违规文件（下一个人无从修）"; rm -f /tmp/.noxbell.$$; exit 1
+    fi
+    rm -f /tmp/.noxbell.$$
+    echo "INJECT-PASS no-xbell-neg: 注入裸 import ⇒ NO-XBELL FAIL 并点名该文件"; exit 0
+    ;;
+  # ⑬ 注入「失败只说 TARGET_NOT_FOUND，不带 reason」→ cross-desktop 必须报红（F-20261021-61 的证据）
+  #   做法：ys-lease 复制成**同目录副本**再改一个键名，用 YS_LEASE_BIN 指过去——生产文件不动。
+  cross-desktop-neg)
+    src="tools/ys-editor/ys-lease"
+    tmp="tools/ys-editor/ys-lease.__inject_tmp__"
+    trap 'rm -f "$tmp"' EXIT
+    cp "$src" "$tmp"; chmod +x "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = ('    return {"ok": False, "error": "TARGET_NOT_FOUND",\n'
+       '            "reason": (')
+new = ('    return {"ok": False, "error": "TARGET_NOT_FOUND",\n'
+       '            "reason_injected_away": (')
+assert old in s, "注入点没找到（TARGET_NOT_FOUND 回执结构变了）"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYIN
+    if YS_LEASE_BIN="$tmp" python3 tools/ys-editor/tests/cross-desktop.selftest.py >/tmp/.xd.$$ 2>&1; then
+      echo "INJECT-FAIL cross-desktop-neg: 丢掉 reason 后门禁仍绿（门禁空转）"; rm -f /tmp/.xd.$$; exit 1
+    fi
+    if ! grep -qE '^T2 +FAIL' /tmp/.xd.$$; then
+      echo "INJECT-FAIL cross-desktop-neg: 变红但不是 T2（reason 必填）那条（判据串了）"; grep -E '^T[0-9]' /tmp/.xd.$$ | head -5; rm -f /tmp/.xd.$$; exit 1
+    fi
+    rm -f /tmp/.xd.$$
+    echo "INJECT-PASS cross-desktop-neg: 丢掉 reason ⇒ T2 报红（生产 ys-lease 未动）"; exit 0
+    ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg|no-xbell-neg|cross-desktop-neg" >&2; exit 2 ;;
 esac

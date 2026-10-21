@@ -14,7 +14,9 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LEASE = os.path.join(os.path.dirname(HERE), "ys-lease")
+# YS_LEASE_BIN：注入用例把**同目录副本**指进来（ledger-inject.sh cross-desktop-neg），
+# 这样能证明「失败必须自解释」这条判据真的在判，而生产文件一个字节都不动。
+LEASE = os.environ.get("YS_LEASE_BIN") or os.path.join(os.path.dirname(HERE), "ys-lease")
 fails = 0
 
 
