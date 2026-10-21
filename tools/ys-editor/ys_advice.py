@@ -24,7 +24,10 @@ import math
 # 2026-10-21 真机实测（jump_probe，5 探针）：ys-scroll 的 clicks 被 clamp 5..80，
 # 一次最多只走 4.3–6.6 行 ⇒ **现在没有"跳到任意位置"的 seek 能力**。
 # 建议必须可执行：没有 seek 就不许建议二分（假建议比不说不更糟）。
-SEEK_MAX_ROWS = float(os.environ.get('YS_SEEK_MAX_ROWS', '6'))
+SEEK_MAX_ROWS = float(os.environ.get('YS_SEEK_MAX_ROWS', '8'))   # 真机标定 2026-10-21：
+# 滚轮请求 8 行→61 clicks→实测 6.9 行（1.38 rows/s 最优）；请求 16/24/48 虽分批执行，
+# 实测只落 4.5–5.6 行且 rows/s 掉到 0.36 ⇒ 游戏对连续滚轮有速率上限，**滚轮 seek 上限 ≈8 行**。
+# （拖动/滚动条 seek 另测，若可行再上调。）
 
 import re
 import statistics
