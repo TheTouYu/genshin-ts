@@ -68,13 +68,22 @@ for (let i = 0; i < wins.length; i++) {{
 }}
 if (!target) {{ print("FOLLOWWIN notfound"); }}
 else {{
-    const d = target.desktop;
+    // 2026-10-21 真机实证：X11 窗口 _NET_WM_DESKTOP=3，但 KWin 的 w.desktop 为 null
+    // （老 API 语义下 null = "在所有桌面"），旧代码据此打印 already 并**从不切桌面**，
+    // 而下游 look 用 attrib 的 cur= 判归属 ⇒ 会话报 success、感知层报 OTHER_DESKTOP，两边打架。
+    // 退到 desktops[] 列表取第一个真实桌面；仍判不出就 fail-closed，不再冒充 already。
+    let d = target.desktop;
+    let src = "desktop";
+    if (!d && target.desktops && target.desktops.length > 0) {{ d = target.desktops[0]; src = "desktops[0]"; }}
     const cur = workspace.currentDesktop;
-    print("FOLLOWWIN found desktop=" + (d ? d.id : "all") + " current=" + cur.id);
+    print("FOLLOWWIN found desktop=" + (d ? d.id : "unknown") + " src=" + src + " current=" + cur.id);
     if (!dry) {{
-        if (d && d.id !== cur.id) {{
+        if (!d) {{
+            print("FOLLOWWIN nodekstop");   // 判不出在哪张桌面：宁可报错，不冒充成功
+        }} else if (d.id !== cur.id) {{
             workspace.currentDesktop = d;
-            print("FOLLOWWIN switched to " + d.id);
+            const after = workspace.currentDesktop;
+            print("FOLLOWWIN switched to " + d.id + " now=" + after.id + (after.id === d.id ? " verified" : " MISMATCH"));
         }} else {{
             print("FOLLOWWIN already");
         }}
@@ -98,6 +107,12 @@ else {{
             print("[ys-follow-win]", ln.split("FOLLOWWIN", 1)[1].strip())
         if any("notfound" in ln for ln in lines):
             return 2
+        # fail-closed：判不出桌面（nodekstop）或切换后回读不一致（MISMATCH）都不许返回 0，
+        # 否则上游（ys-session）会把"没切"记成"已切"。
+        if any("nodekstop" in ln for ln in lines):
+            return 8
+        if any("MISMATCH" in ln for ln in lines):
+            return 9
         return 0
     finally:
         _gdbus("unloadScript", tag)

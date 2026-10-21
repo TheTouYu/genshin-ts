@@ -190,6 +190,12 @@ def cmd_begin(a):
                             env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
         sess["desktop_switch_ms"] = round((time.time() - t0) * 1000, 1)
         sess["desktop_switch"] = {"rc": fw.returncode, "out": (fw.stdout or "")[-300:]}
+        # 2026-10-21 真机实证：follow-win 曾因 KWin w.desktop=null 打印 already 而**从不切**
+        # （X11 侧 ds=3、cur=2 照旧），而本函数却照旧返回 ok:true ⇒ 代理以为准备好了，
+        # 下游 look 却报 ATTRIBUTION_OTHER_DESKTOP。切完必须用权威源 attrib 复核一次。
+        _wd, _cd = attr_desktops()
+        sess["desktop_verify"] = {"win_ds": _wd, "cur_ds": _cd,
+                                  "ok": (_wd is None or _cd is None or _wd == _cd)}
         st = lease(["kwin-state"])
         game = pick(st)
 
@@ -210,10 +216,22 @@ def cmd_begin(a):
         subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
         return 3
     save(sess)
-    print(json.dumps({"ok": True, "session_id": sess["session_id"], "expires": sess["expires"],
-                      "win": sess["win"], "target": sess["target"],
-                      "prev_active": sess["prev_active"],
-                      "hint": "会话内动作直接注入；结束 ys-session end"}, ensure_ascii=False))
+    dv = sess.get("desktop_verify") or {}
+    ready = bool(dv.get("ok", True))
+    out = {"ok": True, "session_id": sess["session_id"], "expires": sess["expires"],
+           "win": sess["win"], "target": sess["target"],
+           "prev_active": sess["prev_active"],
+           "ready": ready, "desktop_verify": dv or None,
+           "hint": "会话内动作直接注入；结束 ys-session end"}
+    if not ready:
+        # 授权拿到了、会话也在，但**画面不在目标桌面** ⇒ 语义上"已就绪"是假的。
+        # 只报 ok:true 会让上游一路乐观下去（本轮实测：ok:true 后连续 3 次 look 全被拒）。
+        out["next_action"] = ("桌面未切成功（游戏 ds=%s / 当前 cur=%s）："
+                              "跑 ys-follow-win --dry <game-class> 看它认哪张桌面；"
+                              "判不出会返回 rc=8 nodekstop，切换不一致返回 rc=9 MISMATCH；"
+                              "临时只读可加 --allow-background（后台帧不能动作）"
+                              % (dv.get("win_ds"), dv.get("cur_ds")))
+    print(json.dumps(out, ensure_ascii=False))
     return 0
 
 
