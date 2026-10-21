@@ -37,9 +37,12 @@ T0=$(date +%s%N)
 PY="$(command -v python3 || echo /usr/bin/python3)"
 CMD="${1:-}"; [ $# -gt 0 ] && shift || true
 
-recheck_desktop() {  # 0 = 目标窗确实在当前桌面（结论过期时现场刷一次，别拿 2s 前的缓存拒人）
+recheck_desktop() {  # 0 = 目标窗确实在当前桌面（**只在结论过期时**才做，别为主路径付 931ms）
   # 2026-10-21 实测：会话空闲交还 → 桌面切回用户那张 → 动作工具重取焦点切回游戏，
   # 但抓帧守护的 strict 结论还停在上一张桌面（sage 可到 2s）⇒ 连 --live 读屏都读不到。
+  # 2026-10-21 性能：ys-wins --attrib 实测 931ms（qdbus 才 39ms，但 xprop 的 _NET_WM_DESKTOP
+  # 与 KWin 的 ds= 实测不一致，不能用它做判据）⇒ 只在结论确实过期时才付这 0.9s。
+  [ "${sage:-0}" -gt 800 ] || return 1
   local line ds cur
   line=$("$HERE/ys-wins" --attrib 2>/dev/null | grep -i "${klass:-yuanshen}" | head -1)
   [ -n "$line" ] || return 1
@@ -178,16 +181,28 @@ cmd_latest() {
     done
   fi
   if [ -z "${src:-}" ] || [ "$src_crc" != "$crc" ]; then
-    if [ "$ENC_IF" = "1" ] && [ "$FMT" != "raw" ]; then
-      "$PY" "$HERE/ys_capture.py" encode "$rgb" --format "$FMT" --out "$OUT" --width "$fw" --height "$fh" >/dev/null \
-        || deny 10 FORMAT_NOT_READY "按需编码 $FMT 失败"
+    # 2026-10-21 修（用户报「--format png 稳定报 FORMAT_NOT_READY」）：
+    #   ① bmp/png 的按需编码改为**默认**：bmp 24ms / png 52ms（stored），且编码的就是当前帧，
+    #      不存在"回旧图"风险；此前 png 必失败只是因为守护默认 `--pre bmp`、从不预编码 png。
+    #   ② jpg 编码 1.8s，仍必须显式 --encode-if-needed（别让一次手滑把热路径拖垮）。
+    #   ③ 逃生舱 YS_CAPTURE_NO_AUTOENC=1：恢复旧语义（不自动编码），注入用例靠它。
+    [ "${YS_CAPTURE_NO_AUTOENC:-0}" = "1" ] && ENC_IF=0 && FMT_MANUAL=1
+    if [ "$FMT" != "raw" ] && { [ "$ENC_IF" = "1" ] || { [ "${FMT_MANUAL:-0}" != "1" ] && { [ "$FMT" = "bmp" ] || [ "$FMT" = "png" ]; }; }; }; then
+      # ③ 先硬链接保住数据再起子进程：ring=4@10fps 只留 ~400ms 历史，而子进程启动+import 约 250ms，
+      #    直接传 $rgb 时该帧可能已被守护回收 ⇒ encode FileNotFound ⇒ 被误报成"按需编码失败"（实测踩过）。
+      local keep="$DIR/.enc.$$.rgb" erc=0
+      ln "$rgb" "$keep" 2>/dev/null || keep="$rgb"
+      "$PY" "$HERE/ys_capture.py" encode "$keep" --format "$FMT" --out "$OUT" \
+        --width "$fw" --height "$fh" >/dev/null 2>&1 || erc=$?
+      [ "$keep" = "$rgb" ] || rm -f "$keep"
+      [ "$erc" = "0" ] || deny 10 FORMAT_NOT_READY "按需编码 $FMT 失败（rc=$erc，源=$keep）"
       ms=$(( ($(date +%s%N) - T0) / 1000000 ))
       printf '{"ok":true,"copied":true,"encoded":true,"capture_mode":"%s","visible":%s,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s}}\n' \
         "${mode:-screen}" "${visible:-0}" "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage"
       return 0
     fi
     deny 10 FORMAT_NOT_READY \
-      "预编码 $FMT 与当前帧内容不符（预编码 crc=${src_crc:-无} / 当前 crc=$crc）——用 --format bmp（~5ms）或 --encode-if-needed（~40ms），或给 serve 加 --pre $FMT"
+      "预编码 $FMT 与当前帧内容不符（预编码 crc=${src_crc:-无} / 当前 crc=$crc）；bmp/png 会自动按需编码（~24/52ms），jpg 需显式 --encode-if-needed（~1.8s），或给 serve 加 --pre $FMT"
   fi
   # ── 交付：同文件系统用硬链（~1ms），跨设备回退拷贝；先删目标（覆盖语义）
   rm -f "$OUT" 2>/dev/null || true

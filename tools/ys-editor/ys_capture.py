@@ -45,7 +45,9 @@ fail-closed（票 34 的红线，客户端 `ys-capture latest` 执行）：
      脚本，统一调 `ys-wins`（它已把 JS 写到仓库内）。
 
 用法：
-  ys-capture serve [--fps 10] [--ring 4] [--pre bmp,png] [--dir /dev/shm/ys-capture]
+  ys-capture serve [--fps 10] [--ring 4] [--pre bmp] [--dir /dev/shm/ys-capture]
+                    # --pre 默认只有 bmp（编码 24ms/帧）。png 预编码 52ms/帧 ⇒ 显式加才开；
+                    # 客户端 --format bmp|png 缺预编码时会自动按需编码（见 ys-capture latest）。
                    [--win 0x01400001|auto] [--
 
 
@@ -1185,7 +1187,11 @@ def cmd_selftest(args):
         ('kwin_unavailable', {'ssrc': 'x11', 'strict': 'OK'}, 9, False, [], True),
         ('frame_stale', {'wall_ns': time.time_ns() - 5_000_000_000}, 8, False, [], True),
         ('daemon_down', {'dpid': 999999}, 7, False, [], False),
-        ('png_not_ready', {}, 10, False, ['--format', 'png'], True),
+        # 2026-10-21：bmp/png 缺预编码时**自动按需编码**（此前 png 恒定 rc=10，
+        # 根因是守护默认 --pre bmp、从不预编码 png；用户报了"稳定报 FORMAT_NOT_READY"）
+        ('png_auto_encode', {}, 0, True, ['--format', 'png'], True),
+        # jpg 编码 1.8s ⇒ 仍必须显式 --encode-if-needed，不许自动
+        ('jpg_needs_optin', {}, 10, False, ['--format', 'jpg'], True),
         ('allow_background', {'strict': 'OTHER_DESKTOP'}, 0, True,
          ['--allow-background'], True),
         # --source window（background）：不可见也必须出像素，但必须**明示 background**

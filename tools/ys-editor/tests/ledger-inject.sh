@@ -8,7 +8,7 @@
 #
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg |
-#                                        scrollbar-neg
+#                                        scrollbar-neg | capture-cli-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -25,6 +25,18 @@ case "$mode" in
       echo "INJECT-FAIL noswallow: 注入物存在但门禁没报红（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS noswallow: 注入的吞码文件被 noswallow 抓到了"; exit 0
+    ;;
+  # capture-cli-neg：关掉"bmp/png 自动按需编码"逃生舱 ⇒ 客户端契约必须变红
+  #   （F-20261021-68 的 prevented 证据：证明 capture-cli 门禁不是空转）
+  capture-cli-neg)
+    if YS_CAPTURE_NO_AUTOENC=1 tools/ys-editor/tests/capture-cli.selftest.sh >/tmp/.cap-cli-neg.$$ 2>&1; then
+      echo "INJECT-FAIL capture-cli-neg: 关掉自动编码后门禁仍绿（门禁空转）"; rm -f /tmp/.cap-cli-neg.$$; exit 1
+    fi
+    if ! grep -q 'gate_png_auto_encode' /tmp/.cap-cli-neg.$$; then
+      echo "INJECT-FAIL capture-cli-neg: 变红但不是 png_auto_encode 那条（判据串了）"; rm -f /tmp/.cap-cli-neg.$$; exit 1
+    fi
+    rm -f /tmp/.cap-cli-neg.$$
+    echo "INJECT-PASS capture-cli-neg: 关掉自动编码 ⇒ gate_png_auto_encode 报红"; exit 0
     ;;
   # ③c 注入「关掉滚动条检测的实心性闸门」→ scrollbar 自测必须变红（假阳回来）
   scrollbar-neg)

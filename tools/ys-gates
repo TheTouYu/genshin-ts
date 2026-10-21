@@ -70,7 +70,10 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('read', 'read.selftest.py', 180),
           # 2026-10-21 用户抓到的真 bug：写帧是原地覆盖 ⇒ 读者拿到半帧（名字/头像错位）。
           # 对照实测：原地写 400 次读里 399 次撕裂；原子写 600 次读 0 次。
-          ('capture-frame', 'capture-frame.selftest.py', 180)]
+          ('capture-frame', 'capture-frame.selftest.py', 180),
+          # 2026-10-21：客户端契约（18 例）此前**没有任何门禁在跑**——判据在 ys-capture selftest 里，
+          # 而 SUITES 只认独立脚本 ⇒ 补包装器，否则"修好了但没人验"（D463 同族）。
+          ('capture-cli', 'capture-cli.selftest.sh', 180)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {

@@ -266,7 +266,10 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
 - ⚠️ **seek 后 `after_found:false` 不代表失败**（实测 4 次里 3 次为 false 而画面已跳对，且 `error/reason` 为 null）。
   判据：**以 before 帧的 `found` 为准决定"能不能 seek"**；跳没跳对**只看 look 后首行行名**。
   若照"found=false ⇒ 退回滚轮"执行，会在第一次成功跳转后就放弃 seek。
-- 帧从哪来：`ys-capture latest --out /tmp/f.png --format png --encode-if-needed`（`ys-scrollbar` 吃 png）。
+- 帧从哪来：`ys-capture latest --out /tmp/f.bmp --format bmp`（~5ms 硬链；**bmp 就够**——
+  stored png 与 bmp 同样是 11MB，还要多花 52ms 编码；`ys-scrollbar` 走 `Image.open`，
+  **bmp 实测能读**）。真需要 png 时 `--format png` 会自动按需编码（52ms）；
+  jpg 编码 1.8s，必须显式 `--encode-if-needed`。
 - `estimated_pages` **不可用于 seek**（偏小 1.45×），只作"这列表大概几页"的粗估。
 - 6px 宽的滚动条在**容器层/OCR 层完全看不见**，但像素通道能稳定检出（滑块比槽亮 +110 灰阶）。
   ⇒ **"结构层看不见" ≠ "视觉不可见"**：先跑 `ys-scrollbar` 再下结论。
