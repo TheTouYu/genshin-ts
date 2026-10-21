@@ -66,10 +66,10 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | **`state`** | **dict `{name, confidence, ambiguous, evidence, channel}`** | 状态名在 **`state["name"]`**，⚠️ 不是 `state["state"]`（写错会让新代理整轮判 UNKNOWN） |
 | `state.evidence` | 每条判据的 value/passed | 判不出时看这里 |
 | **`objects`** | **list**（实测 58–88 项），每项 `{id,parent,bbox,kind,text,text_source,glyphs,badges}` | ⚠️ **不是** `objects["containers"]`；`kind ∈ row/button/tile/panel/chip` |
-| `bbox` | `[x0,y0,x1,y1]` = **xyxy**，**物理像素**（屏 2560×1440） | 中心 = `((x0+x1)/2,(y0+y1)/2)`；**不是** xywh |
+| **`bbox`** | `[x, y, w, h]` = **xywh**，物理像素（2560×1440） | 中心 = `(x+w/2, y+h/2)`。**自检**：按 xyxy 解释若得到**负高度**，就是 xywh。以 `capabilities.invariants` 为准，别凭单帧推断（2026-10-21 我写错过一次） |
 | **`free_text`** | **list[str]**（实测 33 条），**没有 bbox** | 要 bbox+text 的目标只能走 `objects[]`；`free_text` 只适合"有没有这段文字" |
 | `structure` | `{detector, detections[]}` | 检测框来源 |
-| `settled` | `{same_as_prev, tol_text, n_text_changed, ...}` | 动作前必须 `same_as_prev==true` |
+| `settled` | `{same_as_prev, tol_text, n_text_changed, ...}` | ⚠️ 实测**画面静止时 `same_as_prev` 仍可能连续 5 帧为 false** ⇒ **它不是动作前的硬门**。替代判据：连取两次 look，比较**首行行名+行数**是否一致；一致即可动 |
 | `frame_id` | `sha256:...` | 证据引用用它 |
 | **`advice[]`** | 模块主动给的策略建议（如 `SCANNING_LINEARLY` / `LINEAR_ONLY_NO_SEEK`） | **先读它再决定策略** |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
@@ -195,8 +195,10 @@ tools/ys-scrollbar /tmp/frame.png --json
 ```
 ```bash
 # ② 跳到目标位置（在 ys-session 内；物理像素坐标）
-ys-scroll --seek-rows 91 --total-rows 173 --frame /tmp/frame.png
-#   --total-rows 必须给（从标题 `x/y` OCR，如「我的好友 173/200」）
+ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-rows 173 --frame /tmp/frame.png
+#   --at 是**拖动起点**（必填，取 thumb_bbox 的中心）；不给会报 required: --at
+#   --total-rows 只在 --seek-rows 时必需（从标题 `x/y` OCR，如「我的好友 173/200」）；
+#   **二分用 --seek-ratio 不需要 total_rows，应作首选**
 #   不给会报 MISSING_TOTAL_ROWS —— estimated_pages 实测偏小 ~1.45×，用它会把 r 算成 0.80（真值 0.54）
 #   --seek-ratio 0.0–1.0 也可以（已知目标比例时）
 ```
@@ -204,6 +206,10 @@ ys-scroll --seek-rows 91 --total-rows 173 --frame /tmp/frame.png
 **判据**
 - `found=false` ⇒ 该界面**没有滚动条**（或不是列表）⇒ 退回滚轮小步，**别假装能跳**。
 - 有滚动条 ≠ 一定能拖到：`after_ratio` 与目标的差 >0.08 就补一次微调，不要连拖。
+- ⚠️ **seek 后 `after_found:false` 不代表失败**（实测 4 次里 3 次为 false 而画面已跳对，且 `error/reason` 为 null）。
+  判据：**以 before 帧的 `found` 为准决定"能不能 seek"**；跳没跳对**只看 look 后首行行名**。
+  若照"found=false ⇒ 退回滚轮"执行，会在第一次成功跳转后就放弃 seek。
+- 帧从哪来：`ys-capture latest --out /tmp/f.png --format png --encode-if-needed`（`ys-scrollbar` 吃 png）。
 - `estimated_pages` **不可用于 seek**（偏小 1.45×），只作"这列表大概几页"的粗估。
 - 6px 宽的滚动条在**容器层/OCR 层完全看不见**，但像素通道能稳定检出（滑块比槽亮 +110 灰阶）。
   ⇒ **"结构层看不见" ≠ "视觉不可见"**：先跑 `ys-scrollbar` 再下结论。
