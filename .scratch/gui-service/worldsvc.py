@@ -1420,6 +1420,17 @@ CAPABILITIES = {
 }
 
 
+def ys_bell():
+    """「我在操作」提示音（用户令 2026-10-21）：每次判读/动作/看图响一次。"""
+    try:
+        import subprocess as _sp
+        _sp.Popen([os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__)))), "tools", "ys-editor", "ys-bell")],
+            stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
+    except Exception:                                      # noqa: BLE001
+        pass
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="世界状态服务 v0：look / act / wait_until（A 形态原型；fail-closed）")
@@ -1497,6 +1508,7 @@ def main(argv=None):
     p.add_argument("--invalidate", action="store_true")
 
     a = ap.parse_args(argv)
+    ys_bell()
     try:
         if a.verb == "capabilities":
             # 自证一致性：known_gaps 里点名的东西必须在源码里真实出现（防止文档漂移成谎话）

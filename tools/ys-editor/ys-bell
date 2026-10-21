@@ -1,0 +1,27 @@
+#!/bin/bash
+# ys-bell — 「我在操作屏幕」的提示音（用户令 2026-10-21）。
+#
+# 设计意图（用户原话）：「每次执行操作（包括看图），播放一次这个提示音。这样也是提醒用户，
+# 我在操作啦，请不要动屏幕哈。」⇒ 声音是**契约的一部分**：响 = 屏幕正在被占用。
+#
+# 规则：
+#   · 每次真正操作（占屏注入 / 判读 / 取帧）响一次；
+#   · 200ms 内只响一次（防止循环里刷屏）；
+#   · `YS_BELL=0` 可静音（只给批量离线回归用，交互路径不要关）。
+set -u
+[ "${YS_BELL:-1}" = "0" ] && exit 0
+SOUND="${YS_BELL_SOUND:-/usr/share/sounds/freedesktop/stereo/bell.oga}"
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/ys-bell.stamp"
+now=$(date +%s%N 2>/dev/null || echo 0)
+if [ -r "$LOCK" ]; then
+  last=$(cat "$LOCK" 2>/dev/null || echo 0)
+  [ "$last" -gt 0 ] 2>/dev/null && [ $(( (now - last) / 1000000 )) -lt 200 ] && exit 0
+fi
+printf '%s\n' "$now" > "$LOCK" 2>/dev/null || true
+if [ -r "$SOUND" ] && command -v paplay >/dev/null 2>&1; then
+  ( paplay "$SOUND" >/dev/null 2>&1 & ) >/dev/null 2>&1
+else
+  # 退路：X11 铃（KWin 会放成 bell 音效）
+  printf '\a' > "$(tty 2>/dev/null || echo /dev/null)" 2>/dev/null || true
+fi
+exit 0

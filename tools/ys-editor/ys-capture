@@ -45,6 +45,7 @@ deny() {  # deny <exit> <code> <detail>
 }
 
 cmd_latest() {
+  "$HERE/ys-bell" 2>/dev/null || true
   local OUT="" FMT="" ALLOW_BG=0 MAX_AGE_MS="${YS_CAPTURE_MAX_AGE_MS:-1000}"
   local STRICT_TTL_MS="${YS_CAPTURE_STRICT_TTL_MS:-6000}" ENC_IF=0 WAIT_ENC=0
   while [ $# -gt 0 ]; do

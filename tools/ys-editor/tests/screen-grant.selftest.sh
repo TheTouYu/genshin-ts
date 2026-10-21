@@ -41,12 +41,8 @@ echo "$out" | grep -q "GRANT_STILL_VALID" && ok "有效期内续期被拒" || ba
 
 # T6 租期模型（**会占用真实屏幕**）：默认 SKIP——回归测试绝不许在用户不知情时抬窗
 # （2026-10-21 用户反馈「说完成了却还有操作音」= 本条测试在 check --fast 里抬了游戏窗）。
-if [ "${YS_ALLOW_SCREEN_TEST:-0}" != "1" ]; then
-  echo "  · T6 SKIP（会占真实屏幕；要跑请显式 YS_ALLOW_SCREEN_TEST=1）"
-  GID=""
-else
-  GID=$(tools/ys-editor/ys-wins --attrib 2>/dev/null | grep "yuanshen" | head -1)
-fi
+# 2026-10-21 用户令：测试可以占屏（铃声=操作提示），不再默认 SKIP
+GID=$(tools/ys-editor/ys-wins --attrib 2>/dev/null | grep "yuanshen" | head -1)
 if [ -n "$GID" ]; then
   unset YS_SLOT_TEST
   "$PWD/tools/ys-editor/ys-screen-grant" revoke >/dev/null 2>&1
