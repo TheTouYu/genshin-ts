@@ -173,6 +173,10 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
 | A 手动 | 用户把窗口拖到当前桌面 | 零打扰，最快 |
 | B 自动 | `YS_ALLOW_DESKTOP_SWITCH=1 ys-follow-win yuanshen.exe` | **换掉用户整屏**，需用户明确说一句 |
 
+**2026-10-21 用户令（简化）**：`ys-session` 内**屏幕授权即含桌面借用**——游戏在别的桌面就自动切过去，
+`end` 时自动切回 `prev_desktop`（firefox 所在桌面）。不需要另设 `YS_ALLOW_DESKTOP_SWITCH`；
+那个变量只给**非会话**的 `ys-follow-win` 单独使用。
+
 **选 B 时的交还判据是三件套**：`active=用户窗` **且** `idx(用户窗)>idx(游戏)` **且**
 **当前桌面 = 开始时那张**。只把焦点还回去、桌面留在游戏那张，等于没还。
 
