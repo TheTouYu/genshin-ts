@@ -190,6 +190,20 @@ tools/ys-editor/ys-read --grep 甘雨        # 读两次，两次文字集合一
 **根因**：`kwin_state()` 基于 `stackingOrder()`，**只列当前桌面的窗口**；游戏在别的桌面时必然落空。
 （`ys-wins` 走的是 `windowList()`，能跨桌面 —— 两个通道的**视野不同**，别拿一个的结论否定另一个。）
 
+**判桌面只认一个源：`ys-wins --attrib` 的 `ds=`（窗口所在）/ `cur=`（当前）。** 2026-10-21 三方对账实测：
+
+| 来源 | 游戏窗桌面 | 可用性 |
+|---|---|---|
+| `ys-wins --attrib` | **ds=3 / cur=2** | ✅ 唯一可用 |
+| `xprop _NET_WM_DESKTOP` / `wmctrl -l` | **0** | ❌ 错的 |
+| `kwin-state` 窗口条目 | **没有 desktop 字段** | ❌ 只能给「当前桌面」，给不了「窗口在哪」 |
+
+根因是本机 **EWMH 根本没暴露虚拟桌面**：`_NET_NUMBER_OF_DESKTOPS=1`、`_NET_CURRENT_DESKTOP=0`、
+`_NET_DESKTOP_NAMES="Desktop 1"`（而 KWin 自己说有 4 张、当前第 2 张）。⇒ 任何
+`window_desktop == current_desktop` 的判据在本机是**恒真式**（`0==0`），永远发现不了「游戏在别的桌面」。
+`ys-capture status` 的 `fast.desktop_check` 现已显式报 `unavailable`（不再用"通过"冒充判过），
+判不判得了看这个字段，别看 `verdict=OK`。
+
 **现在的失败输出**（已修，`F-20261021-61`）：
 ```json
 {"error":"TARGET_NOT_FOUND",

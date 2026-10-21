@@ -291,11 +291,29 @@ class XShmGrabber:
 
 
 # ────────────────────────────────────────────────────── 归属校验（两条通道）
+def desktop_check(window_desktop, current_desktop, n_desktops):
+    """EWMH 桌面维度三态：'ok' / 'mismatch' / 'unavailable'。
+
+    **本机实测（2026-10-21）**：`_NET_NUMBER_OF_DESKTOPS=1`、`_NET_CURRENT_DESKTOP=0`、
+    原神窗 `_NET_WM_DESKTOP=0`，而 KWin（权威）说游戏 ds=3 / 当前 cur=2。
+    ⇒ `window_desktop == current_desktop` 是 **恒真式**，根本判不出「游戏在别的桌面」。
+    判不了就报 unavailable —— 不许用 0==0 冒充"通过"（那正是票 34 的失效模式）。
+    """
+    if window_desktop is None or current_desktop is None:
+        return 'unavailable'
+    if n_desktops is not None and n_desktops <= 1:
+        return 'unavailable'          # EWMH 没暴露虚拟桌面 ⇒ 该维度无从判断
+    if window_desktop not in (current_desktop, 0xffffffff):
+        return 'mismatch'
+    return 'ok'
+
+
 def fast_attrib(display, win_hex, want_class=DEFAULT_CLASS):
     """X11/EWMH 快路径（身份/最小化/桌面/遮挡）。**只是次级信号**：EWMH 会把桌面说错。"""
     t0 = time.perf_counter()
     out = {'verdict': 'UNKNOWN', 'detail': '', 'identity_ok': False, 'minimized': None,
-           'window_desktop': None, 'current_desktop': None, 'covered_ratio': None}
+           'window_desktop': None, 'current_desktop': None, 'covered_ratio': None,
+           'desktop_check': None}
     try:
         from Xlib import display as xd, X
         d = xd.Display(display)
@@ -320,6 +338,8 @@ def fast_attrib(display, win_hex, want_class=DEFAULT_CLASS):
         window_desktop = int(wd[0]) if wd is not None and len(wd) else None
         cd = prop(root, '_NET_CURRENT_DESKTOP')
         current_desktop = int(cd[0]) if cd is not None and len(cd) else None
+        nd = prop(root, '_NET_NUMBER_OF_DESKTOPS')
+        n_desktops = int(nd[0]) if nd is not None and len(nd) else None
         stacking = prop(root, '_NET_CLIENT_LIST_STACKING') or []
         stacking = [hex(int(w)) for w in stacking]
         # 目标几何（绝对坐标）与上方窗口的并集覆盖率
@@ -352,19 +372,23 @@ def fast_attrib(display, win_hex, want_class=DEFAULT_CLASS):
                 continue
         area = max(1, tgt[2] * tgt[3])
         covered = min(1.0, sum(rects) / float(area)) if rects else 0.0
-        out.update({'identity_ok': identity_ok, 'minimized': minimized,
+        dchk = desktop_check(window_desktop, current_desktop, n_desktops)
+        out.update({'identity_ok': identity_ok, 'minimized': minimized, 'desktop_check': dchk,
                     'window_desktop': window_desktop, 'current_desktop': current_desktop,
                     'covered_ratio': round(covered, 4), 'class': classes[0] if classes else ''})
         if not identity_ok:
             out.update(verdict='NOT_FOUND', detail=f'窗口 {win_hex} 的 WM_CLASS 不含 {want_class!r}')
         elif minimized:
             out.update(verdict='OCCLUDED', detail='窗口最小化')
-        elif window_desktop is not None and current_desktop is not None \
-                and window_desktop not in (current_desktop, 0xffffffff):
+        elif dchk == 'mismatch':
             out.update(verdict='OTHER_DESKTOP',
                        detail=f'_NET_WM_DESKTOP={window_desktop} != _NET_CURRENT_DESKTOP={current_desktop}')
         elif covered >= 0.995:
             out.update(verdict='OCCLUDED', detail=f'上方窗口覆盖 {covered:.1%}')
+        elif dchk == 'unavailable':
+            out.update(verdict='OK',
+                       detail='EWMH 快路径通过，但**桌面维度不可判**'
+                              f'（n_desktops={n_desktops}）——要权威判定请用 ys-wins --attrib 的 ds=/cur=')
         else:
             out.update(verdict='OK', detail='EWMH 快路径通过（仅次级信号）')
     except Exception as e:                                    # noqa: BLE001
@@ -1130,6 +1154,12 @@ def cmd_selftest(args):
         except Exception as e:                                # noqa: BLE001
             ok, detail = False, f'{type(e).__name__}: {e}'
         record(f'encode_roundtrip_{fmt}', ok, detail)
+
+    # ── ①b 桌面维度三态（本机 EWMH 只报 1 个桌面 ⇒ 该维度不可判，必须报 unavailable）
+    for (wd, cd, nd), want in (((0, 0, 1), 'unavailable'), ((3, 2, 4), 'mismatch'),
+                               ((2, 2, 4), 'ok'), ((None, 0, 4), 'unavailable')):
+        got = desktop_check(wd, cd, nd)
+        record(f'desktop_check_{wd}_{cd}_{nd}', got == want, f'got={got} want={want}')
 
     # ── ② 客户端闸门
     fx = os.path.join(root, 'fixtures')
