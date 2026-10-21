@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import time
 import math
 
 # 「能不能 seek」优先看**当帧读数**（`seek_cap`，来自 ys_scrollbar.detect：本帧有没有滚动条），
@@ -128,17 +129,77 @@ def _sig(state_name, header, count, rows):
 
 
 class ListTracker:
-    def __init__(self, max_lists=16):
+    """跨**进程**的线性扫识别（2026-10-21 用户令：CLI 单次调用也要生效）。
+
+    为什么需要落盘：tracker 原本只是进程内单例 ⇒ `worldsvc look --frame` 每次新进程都清零，
+    永远凑不满 3 次 observe，`advice` 对 CLI 调用方**恒为空**（账本 F-20261021-66）。
+    现在把每列表的状态写成 JSON（`YS_ADVICE_STATE_PATH`，默认 /run/user/<uid>/ys-advice-state.json），
+    TTL 120s：扫描是连续动作，跨轮太久的状态没有意义。
+    """
+
+    TTL_S = 120.0
+
+    def __init__(self, max_lists=16, path=None):
         self.max_lists = max_lists
         self._t = {}
         self._state = None
+        if path is None:
+            path = os.environ.get("YS_ADVICE_STATE_PATH")
+            if path is None:
+                path = "/run/user/%d/ys-advice-state.json" % os.getuid()
+        self.path = path or ""
+
+    # ── 持久化：跨进程累积（sets/tuples 要转成 JSON 友好的形状）──────────────
+    def _load(self):
+        if not self.path or not os.path.exists(self.path):
+            return
+        try:
+            d = json.load(open(self.path, encoding="utf-8"))
+            if time.time() - float(d.get("_ts", 0)) > self.TTL_S:
+                return                                   # 太旧：当作新会话
+            self._state = d.get("_state")
+            self._t = {}
+            for sig, st in (d.get("lists") or {}).items():
+                st["seen"] = set(st.get("seen") or [])
+                st["obs"] = [{"rows": [(r[0], r[1], list(r[2])) for r in o["rows"]],
+                              **{k: v for k, v in o.items() if k != "rows"}} for o in st.get("obs") or []]
+                self._t[sig] = st
+        except Exception:                                # noqa: BLE001
+            pass                                         # 状态坏了就当没有，别让它影响判态
+
+    def _save(self):
+        if not self.path:
+            return
+        try:
+            d = {"_ts": time.time(), "_state": self._state, "lists": {}}
+            for sig, st in self._t.items():
+                d["lists"][sig] = {
+                    "seen": sorted(st["seen"]), "gaps": st["gaps"], "looks": st["looks"],
+                    "attrs": st["attrs"],
+                    "obs": [{"rows": [[r[0], r[1], list(r[2])] for r in o["rows"]],
+                             **{k: v for k, v in o.items() if k != "rows"}} for o in st["obs"]],
+                }
+            tmp = self.path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(d, f, ensure_ascii=False)
+            os.replace(tmp, self.path)
+        except Exception:                                # noqa: BLE001
+            pass
+
+    def observe(self, **kw):
+        """load → 原有逻辑 → save（异常不影响返回值）。"""
+        self._load()
+        try:
+            return self._observe(**kw)
+        finally:
+            self._save()
 
     def clear(self):
         self._t.clear()
         self._state = None
 
-    def observe(self, *, state_name, containers=(), detections=(), free_text=(),
-                look_ms=0.0, now_ms=0.0, enabled=True, seek_cap=None):
+    def _observe(self, *, state_name, containers=(), detections=(), free_text=(),
+                 look_ms=0.0, now_ms=0.0, enabled=True, seek_cap=None):
         """seek_cap: None=无读数（退回滚轮上限）；dict=当帧滚动条读数
         {found, orientation, position_ratio, estimated_pages}（判据唯一源 ys_scrollbar.py）。"""
         if not enabled:
