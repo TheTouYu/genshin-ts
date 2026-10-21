@@ -159,6 +159,8 @@ class ListTracker:
         # 属性序列非递减（含全相等）；没有可排序属性 ⇒ 不二分
         flat = [v for o in obs for v in o["vals"]]
         attrs_any = bool(flat)
+        if not attrs_any:                 # 列表识别要求存在可排序属性；没有就不建议
+            return []
         monotonic = attrs_any and all(a <= b for a, b in zip(flat, flat[1:]))
         # 2026-10-21 修正：估算必须用**实测净推进**（每次新增行数中位），不是视口行数。
         net_rows = max(1.0, statistics.median(o["new"] for o in obs))
