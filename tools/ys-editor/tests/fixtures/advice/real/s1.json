@@ -1,0 +1,3733 @@
+{
+ "schema": "gui-world-state/0",
+ "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56",
+ "captured_at_ms": 1792576885109,
+ "tracked_at_ms": 1792576887147,
+ "state": {
+  "name": "GAME_FRIENDS",
+  "confidence": 1.0,
+  "ambiguous": false,
+  "evidence": [
+   {
+    "source": "ys-lookd/world",
+    "via": "daemon",
+    "readings_n": 35,
+    "native": true,
+    "attribution": {
+     "fast": "OK",
+     "fast_age_ms": 227,
+     "strict": "OK",
+     "strict_src": "kwin",
+     "strict_age_ms": 232,
+     "allow_background": 1,
+     "src": "ys-capture",
+     "capture_ms": 6,
+     "frame": {
+      "seq": 155128,
+      "age_ms": 43,
+      "crc32": "16a38cca",
+      "w": 2560,
+      "h": 1440
+     }
+    }
+   }
+  ],
+  "channel": "fast",
+  "native": true
+ },
+ "objects": [
+  {
+   "id": "det:0",
+   "parent": null,
+   "bbox": [
+    144.0,
+    154.4,
+    2272.0,
+    155.20000000000002
+   ],
+   "kind": "row",
+   "text": [
+    "右右",
+    "前往其大厅",
+    "Lv.60",
+    "千星奇域游玩中"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9991,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:1",
+   "parent": null,
+   "bbox": [
+    144.0,
+    490.4,
+    2272.0,
+    155.19999999999993
+   ],
+   "kind": "row",
+   "text": [
+    "无所事事真君",
+    "Lv.60",
+    "千星奇域游玩中",
+    "躺平挂机测试"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9972,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:2",
+   "parent": null,
+   "bbox": [
+    128.0,
+    314.4,
+    2288.0,
+    155.2
+   ],
+   "kind": "row",
+   "text": [
+    "播直晚今使天小",
+    "Lv.60",
+    "千星奇域游玩中",
+    "哈哈哈哈哈哈哈哈哈好开心虽然不知道为什么hhhhhhhh."
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9972,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:3",
+   "parent": null,
+   "bbox": [
+    2423.3733673095703,
+    22.557092428207397,
+    97.25326538085938,
+    98.8858151435852
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.997,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:4",
+   "parent": null,
+   "bbox": [
+    50.28515625,
+    3.539543867111206,
+    2475.4296875,
+    136.9209122657776
+   ],
+   "kind": "panel",
+   "text": [
+    "好友／我的好友",
+    "我的好友 173/200"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9968,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:5",
+   "parent": null,
+   "bbox": [
+    1091.73042678833,
+    2.131082773208618,
+    104.53914642333984,
+    107.73783445358276
+   ],
+   "kind": "chip",
+   "text": [
+    "田"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9944,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:6",
+   "parent": null,
+   "bbox": [
+    262.83335876464844,
+    159.50803089141846,
+    2178.333282470703,
+    1136.983938217163
+   ],
+   "kind": "panel",
+   "text": [
+    "Lv.60",
+    "今日内",
+    "要我借你一束月光吗？"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9938,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:7",
+   "parent": null,
+   "bbox": [
+    144.0,
+    1186.4,
+    2256.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "哥伦比娅"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9932,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:8",
+   "parent": null,
+   "bbox": [
+    2097.3850841522217,
+    506.7789001464844,
+    269.22983169555664,
+    90.44219970703125
+   ],
+   "kind": "button",
+   "text": [
+    "前往其大厅"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9926,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:9",
+   "parent": null,
+   "bbox": [
+    144.0,
+    1026.4,
+    1808.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "荧",
+    "Lv.60",
+    "今日内"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9924,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:10",
+   "parent": null,
+   "bbox": [
+    2144.0,
+    1026.4,
+    272.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9924,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:11",
+   "parent": null,
+   "bbox": [
+    47.77180480957031,
+    648.160484790802,
+    80.45639038085938,
+    95.679030418396
+   ],
+   "kind": "button",
+   "text": [
+    "口"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9919,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:12",
+   "parent": null,
+   "bbox": [
+    2140.878942489624,
+    160.99491953849792,
+    214.24211502075195,
+    78.01016092300415
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9918,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:13",
+   "parent": null,
+   "bbox": [
+    2405.5787143707275,
+    657.0398277640343,
+    100.84257125854492,
+    77.92034447193146
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9918,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:14",
+   "parent": null,
+   "bbox": [
+    2427.2016677856445,
+    674.7377492189407,
+    57.59666442871094,
+    74.52450156211853
+   ],
+   "kind": "icon",
+   "text": [
+    "司"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9909,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:15",
+   "parent": null,
+   "bbox": [
+    2240.0,
+    1410.8416471481323,
+    272.0,
+    10.316705703735352
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9901,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:16",
+   "parent": null,
+   "bbox": [
+    1370.4898700714111,
+    14.060647249221802,
+    91.02025985717773,
+    83.8787055015564
+   ],
+   "kind": "chip",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9885,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:17",
+   "parent": null,
+   "bbox": [
+    1900.889596939087,
+    144.93691408634186,
+    278.2208061218262,
+    78.12617182731628
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9857,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:18",
+   "parent": null,
+   "bbox": [
+    160.0,
+    650.4,
+    16.0,
+    155.19999999999993
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.985,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:19",
+   "parent": null,
+   "bbox": [
+    288.0,
+    650.4,
+    1712.0,
+    155.19999999999993
+   ],
+   "kind": "row",
+   "text": [
+    "熬夜大魔王",
+    "Lv.60",
+    "千星奇域游玩中",
+    "12点之后看到我就喊我去睡觉"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.985,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:20",
+   "parent": null,
+   "bbox": [
+    2176.0,
+    650.4,
+    240.0,
+    155.19999999999993
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.985,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:21",
+   "parent": null,
+   "bbox": [
+    1192.3177299499512,
+    14.744680285453796,
+    127.36454010009766,
+    82.51063942909241
+   ],
+   "kind": "chip",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9833,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:22",
+   "parent": null,
+   "bbox": [
+    224.0,
+    842.4,
+    1440.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "云逸",
+    "Lv.58",
+    "在线"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9816,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:23",
+   "parent": null,
+   "bbox": [
+    1776.0,
+    842.4,
+    64.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9816,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:24",
+   "parent": null,
+   "bbox": [
+    1920.0,
+    842.4,
+    32.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9816,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:25",
+   "parent": null,
+   "bbox": [
+    2112.0,
+    842.4,
+    224.0,
+    91.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "申请加入"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9816,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:26",
+   "parent": null,
+   "bbox": [
+    2088.8366355895996,
+    1128.4595940113068,
+    190.32672882080078,
+    95.08081197738647
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.966,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:27",
+   "parent": null,
+   "bbox": [
+    2161.1125831604004,
+    305.9186455011368,
+    173.77483367919922,
+    76.16270899772644
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9609,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:28",
+   "parent": null,
+   "bbox": [
+    1967.7872886657715,
+    658.1264971494675,
+    272.42542266845703,
+    139.74700570106506
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9207,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:29",
+   "parent": null,
+   "bbox": [
+    4.427406311035156,
+    465.62275314331055,
+    135.1451873779297,
+    556.7544937133789
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9119,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:30",
+   "parent": null,
+   "bbox": [
+    265.05078125,
+    1291.7913706302643,
+    285.8984375,
+    120.41725873947144
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.9106,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:31",
+   "parent": null,
+   "bbox": [
+    35.80342102050781,
+    623.3730139732361,
+    104.39315795898438,
+    241.25397205352783
+   ],
+   "kind": "icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8974,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:32",
+   "parent": null,
+   "bbox": [
+    0.0,
+    329.13526153564453,
+    1390.291976928711,
+    733.7294769287109
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8625,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:33",
+   "parent": null,
+   "bbox": [
+    1724.8922882080078,
+    279.3194854259491,
+    662.2154235839844,
+    161.3610291481018
+   ],
+   "kind": "button",
+   "text": [
+    "前往其大厅"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8486,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:34",
+   "parent": null,
+   "bbox": [
+    1932.9575233459473,
+    496.80008482933044,
+    310.08495330810547,
+    110.39983034133911
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8458,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:35",
+   "parent": null,
+   "bbox": [
+    0.0,
+    9.840466678142548,
+    179.6557159423828,
+    60.319066643714905
+   ],
+   "kind": "tile",
+   "text": [
+    "FPS:",
+    "GPU:"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.8047,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:36",
+   "parent": null,
+   "bbox": [
+    186.1544132232666,
+    683.4505423307419,
+    187.6911735534668,
+    121.09891533851624
+   ],
+   "kind": "icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7966,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:37",
+   "parent": null,
+   "bbox": [
+    1924.6648979187012,
+    671.4046665430069,
+    230.67020416259766,
+    145.1906669139862
+   ],
+   "kind": "tile",
+   "text": [
+    "前往其大厅"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7697,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:38",
+   "parent": null,
+   "bbox": [
+    1035.6531982421875,
+    42.8450790643692,
+    24.693603515625,
+    26.309841871261597
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7115,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:39",
+   "parent": null,
+   "bbox": [
+    145.40396118164062,
+    779.5279161930084,
+    237.19207763671875,
+    216.94416761398315
+   ],
+   "kind": "card",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.7022,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:40",
+   "parent": null,
+   "bbox": [
+    2157.554214477539,
+    472.7799463272095,
+    180.89157104492188,
+    94.44010734558105
+   ],
+   "kind": "chip",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6258,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:41",
+   "parent": null,
+   "bbox": [
+    144.0,
+    946.4,
+    96.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.618,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:42",
+   "parent": null,
+   "bbox": [
+    320.0,
+    946.4,
+    2096.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.618,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:43",
+   "parent": null,
+   "bbox": [
+    2433.330053329468,
+    412.80932807922363,
+    126.66994667053223,
+    662.3813438415527
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6111,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:44",
+   "parent": null,
+   "bbox": [
+    2236.8266525268555,
+    785.7394723892212,
+    214.34669494628906,
+    204.52105522155762
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.6004,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:45",
+   "parent": null,
+   "bbox": [
+    0.0,
+    1266.4,
+    32.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "min:"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5858,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:46",
+   "parent": null,
+   "bbox": [
+    144.0,
+    1266.4,
+    1984.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [
+    "max:",
+    "34.0 ms"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5858,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:47",
+   "parent": null,
+   "bbox": [
+    2256.0,
+    1266.4,
+    144.0,
+    75.20000000000005
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5858,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:48",
+   "parent": null,
+   "bbox": [
+    162.80195999145508,
+    1312.7374408841133,
+    330.39608001708984,
+    78.52511823177338
+   ],
+   "kind": "button",
+   "text": [
+    "单",
+    "竺理"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5601,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:49",
+   "parent": null,
+   "bbox": [
+    1917.2666816711426,
+    841.8267329931259,
+    341.46663665771484,
+    124.34653401374817
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5572,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:50",
+   "parent": null,
+   "bbox": [
+    2320.0,
+    36.66195907592774,
+    32.0,
+    38.67608184814452
+   ],
+   "kind": "row",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5498,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:51",
+   "parent": null,
+   "bbox": [
+    2188.1613330841064,
+    526.0103236436844,
+    119.67733383178711,
+    83.97935271263123
+   ],
+   "kind": "icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5363,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:52",
+   "parent": null,
+   "bbox": [
+    2014.0828323364258,
+    822.7225875854492,
+    371.83433532714844,
+    194.55482482910156
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5151,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:53",
+   "parent": null,
+   "bbox": [
+    1367.4007568359375,
+    12.075442790985107,
+    577.198486328125,
+    279.8491144180298
+   ],
+   "kind": "button",
+   "text": [
+    "像夜晚的凉风，倏忽而至的雨，破碎湖面一千片的梦。"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.5109,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:54",
+   "parent": null,
+   "bbox": [
+    1884.090103149414,
+    799.1376526355743,
+    439.8197937011719,
+    145.72469472885132
+   ],
+   "kind": "button",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4875,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:55",
+   "parent": null,
+   "bbox": [
+    2162.8293199539185,
+    145.54443442821503,
+    138.3413600921631,
+    76.91113114356995
+   ],
+   "kind": "icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4817,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:56",
+   "parent": null,
+   "bbox": [
+    765.2257080078125,
+    11.507217407226562,
+    853.548583984375,
+    120.98556518554688
+   ],
+   "kind": "panel",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4506,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:57",
+   "parent": null,
+   "bbox": [
+    136.91256713867188,
+    657.3862566947937,
+    190.17486572265625,
+    173.2274866104126
+   ],
+   "kind": "tile",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4077,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:58",
+   "parent": null,
+   "bbox": [
+    1270.2680358886719,
+    301.21775913238525,
+    1091.4639282226562,
+    853.5644817352295
+   ],
+   "kind": "panel",
+   "text": [
+    "离线"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.4062,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:59",
+   "parent": null,
+   "bbox": [
+    1852.2645721435547,
+    1130.3965638875961,
+    707.7354278564453,
+    155.20687222480774
+   ],
+   "kind": "icon",
+   "text": [
+    "离线"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.398,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:60",
+   "parent": null,
+   "bbox": [
+    2370.8793411254883,
+    30.1527498960495,
+    170.24131774902344,
+    115.694500207901
+   ],
+   "kind": "chip",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3874,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:61",
+   "parent": null,
+   "bbox": [
+    1832.1912117004395,
+    615.0495731830597,
+    479.6175765991211,
+    289.9008536338806
+   ],
+   "kind": "icon",
+   "text": [],
+   "text_source": "fullframe",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3665,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  },
+  {
+   "id": "det:62",
+   "parent": null,
+   "bbox": [
+    35.41849899291992,
+    14.463080525398254,
+    105.16300201416016,
+    83.07383894920349
+   ],
+   "kind": "icon",
+   "text": [
+    "DXVK v3.0",
+    "60",
+    "7%"
+   ],
+   "text_source": "fullframe+det",
+   "glyphs": [],
+   "badges": [],
+   "state": {
+    "selected": null,
+    "focused": null,
+    "disabled": null
+   },
+   "affordance": {
+    "clickable": "unknown",
+    "evidence": []
+   },
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "confidence": 0.3577,
+   "evidence": {
+    "source": "gui_det",
+    "frame_id": "sha256:203299490e0caad8ab9520240a5f4506419580dff207cf89f04089f43cdf3c56"
+   }
+  }
+ ],
+ "groups": [],
+ "slices": [],
+ "transitions": [],
+ "budget_ms": {
+  "total": 50,
+  "detect": 10,
+  "ocr": 0
+ },
+ "settled": {
+  "same_as_prev": false,
+  "prev_frame": "b7a0a25ccb82b8f2cb1eca157ced484b09a73dd2df74b637e17e26905751f7f5",
+  "tol_px": 6.0,
+  "tol_text": 0.8,
+  "reason": "shift",
+  "max_shift_px": 49.7,
+  "n_text_changed": 0,
+  "n_unmatched": 0,
+  "n_objects": 9,
+  "hint": "same_as_prev=false 时看 reason/max_shift_px/n_unmatched；动作前应重取到 true"
+ },
+ "degraded": [
+  {
+   "code": "FREE_TEXT_UNOWNED",
+   "detail": "24 条文本没有容器归属，act(text) 解析不到"
+  },
+  {
+   "code": "L2_NOT_IMPLEMENTED",
+   "detail": "groups=[]：容器 parent 链未闭合（票 26）"
+  },
+  {
+   "code": "L3_NOT_IMPLEMENTED",
+   "detail": "对象 state 三字段=null、clickable 恒 unknown（票 27/28）"
+  },
+  {
+   "code": "BUDGET_EXCEEDED",
+   "detail": "total=2036.9ms > budget.total=50ms（state=Nonems objects=Nonems）"
+  }
+ ],
+ "timing_ms": {
+  "load_ms": 156.5,
+  "structure_ms": 4.2,
+  "detector_ms": 36.9,
+  "structure": 41.5,
+  "ocr_ms": 1617.5,
+  "state_ms": 36.9,
+  "judge_ms": 36.6,
+  "objects_ms": 155.0,
+  "total_ms": 1965.9,
+  "total_full_ms": 2007.3,
+  "frame_source": "ys-capture",
+  "objects_reuse": null,
+  "structure_reuse": null,
+  "page_diff": null,
+  "structure_auto": false,
+  "ocr_source": "objects",
+  "ocr_n": 51,
+  "ocr_err": null,
+  "cache_hit": false,
+  "attribution_ms": null,
+  "total": 2036.9,
+  "rpc": 2035.9
+ },
+ "frame": {
+  "path": "(live)",
+  "source": "live",
+  "captured_at_ms": 1792576885109,
+  "captured_at_ms_source": "daemon-capture",
+  "live": true,
+  "age_ms": 2038,
+  "stale": false
+ },
+ "free_text": [
+  "DXVK v3.0",
+  "FPS:",
+  "60",
+  "好友／我的好友",
+  "田",
+  "我的好友 173/200",
+  "GPU:",
+  "7%",
+  "前往其大厅",
+  "前往其大厅",
+  "前往其大厅",
+  "口",
+  "司",
+  "前往其大厅",
+  "离线",
+  "离线",
+  "min:",
+  "9.8 ms",
+  "max:",
+  "34.0 ms",
+  "E",
+  "单",
+  "竺理",
+  "UID: 110170759"
+ ],
+ "uncertainty": [
+  {
+   "region": [
+    1690,
+    864,
+    36,
+    24
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.956,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 564px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1686,
+    1032,
+    36,
+    22
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.924,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 397px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    1922,
+    378,
+    22,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.923,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 388px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    2220,
+    746,
+    30,
+    20
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.911,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 325px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  },
+  {
+   "region": [
+    2254,
+    520,
+    86,
+    86
+   ],
+   "kind": "possible_false_positive",
+   "score": 0.899,
+   "reasons": [
+    "background_like"
+   ],
+   "hint": "该图形块中心距画面边 263px（>340 ⇒ 不在 HUD 带），可能是背景/粒子而非界面图标"
+  }
+ ],
+ "attribution": {
+  "fast": "OK",
+  "fast_age_ms": 227,
+  "strict": "OK",
+  "strict_src": "kwin",
+  "strict_age_ms": 232,
+  "allow_background": 1,
+  "src": "ys-capture",
+  "capture_ms": 6,
+  "frame": {
+   "seq": 155128,
+   "age_ms": 43,
+   "crc32": "16a38cca",
+   "w": 2560,
+   "h": 1440
+  }
+ },
+ "structure": {
+  "rows": [
+   {
+    "bbox": [
+     -24,
+     2,
+     2623,
+     143
+    ],
+    "n": 11,
+    "cy": 55.5,
+    "members": [
+     44,
+     71,
+     13,
+     65,
+     47,
+     14,
+     30,
+     25,
+     59,
+     69,
+     12
+    ]
+   },
+   {
+    "bbox": [
+     -24,
+     12,
+     2623,
+     279
+    ],
+    "n": 4,
+    "cy": 183.0,
+    "members": [
+     62,
+     26,
+     21,
+     64
+    ]
+   },
+   {
+    "bbox": [
+     144,
+     154,
+     2272,
+     155
+    ],
+    "n": 2,
+    "cy": 231.2,
+    "members": [
+     9,
+     4
+    ]
+   },
+   {
+    "bbox": [
+     128,
+     279,
+     2288,
+     190
+    ],
+    "n": 4,
+    "cy": 375.5,
+    "members": [
+     11,
+     3,
+     42,
+     36
+    ]
+   },
+   {
+    "bbox": [
+     0,
+     159,
+     2559,
+     1136
+    ],
+    "n": 9,
+    "cy": 567.5,
+    "members": [
+     41,
+     10,
+     5,
+     15,
+     67,
+     43,
+     49,
+     60,
+     52
+    ]
+   },
+   {
+    "bbox": [
+     4,
+     465,
+     2501,
+     556
+    ],
+    "n": 14,
+    "cy": 727.5,
+    "members": [
+     38,
+     40,
+     20,
+     66,
+     27,
+     45,
+     1,
+     28,
+     70,
+     46,
+     37,
+     29,
+     22,
+     23
+    ]
+   },
+   {
+    "bbox": [
+     145,
+     779,
+     2305,
+     237
+    ],
+    "n": 11,
+    "cy": 887.5,
+    "members": [
+     48,
+     0,
+     31,
+     32,
+     63,
+     58,
+     33,
+     7,
+     61,
+     34,
+     53
+    ]
+   },
+   {
+    "bbox": [
+     144,
+     946,
+     2272,
+     75
+    ],
+    "n": 2,
+    "cy": 983.5,
+    "members": [
+     50,
+     51
+    ]
+   },
+   {
+    "bbox": [
+     144,
+     978,
+     2272,
+     156
+    ],
+    "n": 3,
+    "cy": 1063.5,
+    "members": [
+     18,
+     2,
+     19
+    ]
+   },
+   {
+    "bbox": [
+     144,
+     1128,
+     2415,
+     157
+    ],
+    "n": 4,
+    "cy": 1210.2,
+    "members": [
+     16,
+     6,
+     68,
+     35
+    ]
+   },
+   {
+    "bbox": [
+     0,
+     1266,
+     2400,
+     75
+    ],
+    "n": 3,
+    "cy": 1303.5,
+    "members": [
+     54,
+     55,
+     56
+    ]
+   },
+   {
+    "bbox": [
+     162,
+     1291,
+     388,
+     120
+    ],
+    "n": 3,
+    "cy": 1351.0,
+    "members": [
+     57,
+     39,
+     8
+    ]
+   }
+  ],
+  "chains": [
+   {
+    "id": "G0",
+    "kind": "row_stack",
+    "axis": "y",
+    "bbox": [
+     144,
+     154,
+     2272,
+     1107
+    ],
+    "members": [
+     9,
+     10,
+     16
+    ],
+    "pitch": 332.0,
+    "pitch_spread": 4.0,
+    "n": 3
+   }
+  ],
+  "groups": [
+   {
+    "id": "C0",
+    "kind": "panel",
+    "bbox": [
+     -24.2,
+     -71.2,
+     2623.5,
+     284.5
+    ],
+    "members": [
+     "13"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C1",
+    "kind": "panel",
+    "bbox": [
+     -12.7,
+     448.3,
+     168.4,
+     589.4
+    ],
+    "members": [
+     "38"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C2",
+    "kind": "panel",
+    "bbox": [
+     -41.7,
+     287.3,
+     1473.4,
+     816.4
+    ],
+    "members": [
+     "41"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C3",
+    "kind": "panel",
+    "bbox": [
+     2413.1,
+     392.1,
+     165.7,
+     701.7
+    ],
+    "members": [
+     "52"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C4",
+    "kind": "panel",
+    "bbox": [
+     739.4,
+     -14.6,
+     904.2,
+     171.2
+    ],
+    "members": [
+     "65"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C5",
+    "kind": "panel",
+    "bbox": [
+     1237.3,
+     268.3,
+     1156.5,
+     918.5
+    ],
+    "members": [
+     "67"
+    ],
+    "src": "detected"
+   },
+   {
+    "id": "C6",
+    "kind": "row",
+    "bbox": [
+     144,
+     154,
+     2272,
+     155
+    ],
+    "members": [
+     "4",
+     "21"
+    ],
+    "src": "row"
+   },
+   {
+    "id": "C7",
+    "kind": "row",
+    "bbox": [
+     144,
+     490,
+     2272,
+     155
+    ],
+    "members": [
+     "5",
+     "17",
+     "43",
+     "60"
+    ],
+    "src": "row"
+   }
+  ],
+  "container_of": {
+   "4": "C6",
+   "5": "C7",
+   "7": "C5",
+   "9": "C6",
+   "10": "C7",
+   "12": "C0",
+   "14": "C4",
+   "17": "C5",
+   "20": "C1",
+   "21": "C6",
+   "23": "C3",
+   "25": "C4",
+   "27": "C2",
+   "30": "C4",
+   "32": "C5",
+   "33": "C5",
+   "34": "C5",
+   "36": "C5",
+   "37": "C5",
+   "40": "C1",
+   "42": "C5",
+   "43": "C5",
+   "44": "C0",
+   "45": "C2",
+   "46": "C5",
+   "47": "C4",
+   "48": "C2",
+   "49": "C5",
+   "50": "C2",
+   "58": "C5",
+   "59": "C0",
+   "60": "C5",
+   "61": "C5",
+   "63": "C5",
+   "66": "C2",
+   "69": "C0",
+   "70": "C5",
+   "71": "C0"
+  },
+  "group_of": {
+   "9": "G0",
+   "10": "G0",
+   "16": "G0"
+  },
+  "pitch": 332.0,
+  "pitch_method": "chain_mode",
+  "pitch_median": 127.5,
+  "pitch_median_spread": 45.71172697974858,
+  "kind_fixes": [
+   {
+    "id": 14,
+    "kind_before": "chip",
+    "kind_after": "tile",
+    "reason": "chip 但 h=107>=1.15*row(83) ar=0.97"
+   },
+   {
+    "id": 44,
+    "kind_before": "tile",
+    "kind_after": "chip",
+    "reason": "tile 但 h=60<0.9*row(90) ar=2.98"
+   },
+   {
+    "id": 69,
+    "kind_before": "chip",
+    "kind_after": "tile",
+    "reason": "chip 但 h=115>=1.15*row(83) ar=1.48"
+   }
+  ],
+  "missing_slots": [
+   {
+    "y": 896,
+    "bbox": [
+     144,
+     838,
+     2264,
+     115
+    ],
+    "group": "G0",
+    "k": 2,
+    "pitch": 332.0,
+    "reason": "链内等距缺位"
+   }
+  ],
+  "n_objects": 72,
+  "ms": 4.2,
+  "detector": {
+   "n": 63,
+   "ms": 36.9,
+   "err": null,
+   "model": "gui-det-v2.pt",
+   "dropped_kinds": [],
+   "text_attached": 48
+  },
+  "detections": [
+   {
+    "bbox": [
+     144.0,
+     154.4,
+     2272.0,
+     155.20000000000002
+    ],
+    "kind": "row",
+    "score": 0.9991342425346375,
+    "id": 0,
+    "text": [
+     "右右",
+     "前往其大厅",
+     "Lv.60",
+     "千星奇域游玩中"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     144.0,
+     490.4,
+     2272.0,
+     155.19999999999993
+    ],
+    "kind": "row",
+    "score": 0.9972326159477234,
+    "id": 1,
+    "text": [
+     "无所事事真君",
+     "Lv.60",
+     "千星奇域游玩中",
+     "躺平挂机测试"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     128.0,
+     314.4,
+     2288.0,
+     155.2
+    ],
+    "kind": "row",
+    "score": 0.9971649050712585,
+    "id": 2,
+    "text": [
+     "播直晚今使天小",
+     "Lv.60",
+     "千星奇域游玩中",
+     "哈哈哈哈哈哈哈哈哈好开心虽然不知道为什么hhhhhhhh."
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2423.3733673095703,
+     22.557092428207397,
+     97.25326538085938,
+     98.8858151435852
+    ],
+    "kind": "button",
+    "score": 0.9970301389694214,
+    "id": 3
+   },
+   {
+    "bbox": [
+     50.28515625,
+     3.539543867111206,
+     2475.4296875,
+     136.9209122657776
+    ],
+    "kind": "panel",
+    "score": 0.9968487620353699,
+    "id": 4,
+    "text": [
+     "好友／我的好友",
+     "我的好友 173/200"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1091.73042678833,
+     2.131082773208618,
+     104.53914642333984,
+     107.73783445358276
+    ],
+    "kind": "chip",
+    "score": 0.9944314360618591,
+    "id": 5,
+    "text": [
+     "田"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     262.83335876464844,
+     159.50803089141846,
+     2178.333282470703,
+     1136.983938217163
+    ],
+    "kind": "panel",
+    "score": 0.993793249130249,
+    "id": 6,
+    "text": [
+     "Lv.60",
+     "今日内",
+     "要我借你一束月光吗？"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     144.0,
+     1186.4,
+     2256.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9931744933128357,
+    "id": 7,
+    "text": [
+     "哥伦比娅"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2097.3850841522217,
+     506.7789001464844,
+     269.22983169555664,
+     90.44219970703125
+    ],
+    "kind": "button",
+    "score": 0.9926290512084961,
+    "id": 8,
+    "text": [
+     "前往其大厅"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     144.0,
+     1026.4,
+     1808.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9924085140228271,
+    "id": 9,
+    "text": [
+     "荧",
+     "Lv.60",
+     "今日内"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2144.0,
+     1026.4,
+     272.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9924085140228271,
+    "id": 10
+   },
+   {
+    "bbox": [
+     47.77180480957031,
+     648.160484790802,
+     80.45639038085938,
+     95.679030418396
+    ],
+    "kind": "button",
+    "score": 0.9919161200523376,
+    "id": 11,
+    "text": [
+     "口"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2140.878942489624,
+     160.99491953849792,
+     214.24211502075195,
+     78.01016092300415
+    ],
+    "kind": "button",
+    "score": 0.9918286204338074,
+    "id": 12
+   },
+   {
+    "bbox": [
+     2405.5787143707275,
+     657.0398277640343,
+     100.84257125854492,
+     77.92034447193146
+    ],
+    "kind": "button",
+    "score": 0.9918025135993958,
+    "id": 13
+   },
+   {
+    "bbox": [
+     2427.2016677856445,
+     674.7377492189407,
+     57.59666442871094,
+     74.52450156211853
+    ],
+    "kind": "icon",
+    "score": 0.990911066532135,
+    "id": 14,
+    "text": [
+     "司"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2240.0,
+     1410.8416471481323,
+     272.0,
+     10.316705703735352
+    ],
+    "kind": "row",
+    "score": 0.9900874495506287,
+    "id": 15
+   },
+   {
+    "bbox": [
+     1370.4898700714111,
+     14.060647249221802,
+     91.02025985717773,
+     83.8787055015564
+    ],
+    "kind": "chip",
+    "score": 0.988520085811615,
+    "id": 16
+   },
+   {
+    "bbox": [
+     1900.889596939087,
+     144.93691408634186,
+     278.2208061218262,
+     78.12617182731628
+    ],
+    "kind": "button",
+    "score": 0.985696017742157,
+    "id": 17
+   },
+   {
+    "bbox": [
+     160.0,
+     650.4,
+     16.0,
+     155.19999999999993
+    ],
+    "kind": "row",
+    "score": 0.9849846363067627,
+    "id": 18
+   },
+   {
+    "bbox": [
+     288.0,
+     650.4,
+     1712.0,
+     155.19999999999993
+    ],
+    "kind": "row",
+    "score": 0.9849846363067627,
+    "id": 19,
+    "text": [
+     "熬夜大魔王",
+     "Lv.60",
+     "千星奇域游玩中",
+     "12点之后看到我就喊我去睡觉"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2176.0,
+     650.4,
+     240.0,
+     155.19999999999993
+    ],
+    "kind": "row",
+    "score": 0.9849846363067627,
+    "id": 20
+   },
+   {
+    "bbox": [
+     1192.3177299499512,
+     14.744680285453796,
+     127.36454010009766,
+     82.51063942909241
+    ],
+    "kind": "chip",
+    "score": 0.9832830429077148,
+    "id": 21
+   },
+   {
+    "bbox": [
+     224.0,
+     842.4,
+     1440.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9816261529922485,
+    "id": 22,
+    "text": [
+     "云逸",
+     "Lv.58",
+     "在线"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1776.0,
+     842.4,
+     64.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9816261529922485,
+    "id": 23
+   },
+   {
+    "bbox": [
+     1920.0,
+     842.4,
+     32.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9816261529922485,
+    "id": 24
+   },
+   {
+    "bbox": [
+     2112.0,
+     842.4,
+     224.0,
+     91.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.9816261529922485,
+    "id": 25,
+    "text": [
+     "申请加入"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2088.8366355895996,
+     1128.4595940113068,
+     190.32672882080078,
+     95.08081197738647
+    ],
+    "kind": "button",
+    "score": 0.9660359621047974,
+    "id": 26
+   },
+   {
+    "bbox": [
+     2161.1125831604004,
+     305.9186455011368,
+     173.77483367919922,
+     76.16270899772644
+    ],
+    "kind": "button",
+    "score": 0.9608916640281677,
+    "id": 27
+   },
+   {
+    "bbox": [
+     1967.7872886657715,
+     658.1264971494675,
+     272.42542266845703,
+     139.74700570106506
+    ],
+    "kind": "button",
+    "score": 0.9206868410110474,
+    "id": 28
+   },
+   {
+    "bbox": [
+     4.427406311035156,
+     465.62275314331055,
+     135.1451873779297,
+     556.7544937133789
+    ],
+    "kind": "panel",
+    "score": 0.9118770956993103,
+    "id": 29
+   },
+   {
+    "bbox": [
+     265.05078125,
+     1291.7913706302643,
+     285.8984375,
+     120.41725873947144
+    ],
+    "kind": "button",
+    "score": 0.9105629920959473,
+    "id": 30
+   },
+   {
+    "bbox": [
+     35.80342102050781,
+     623.3730139732361,
+     104.39315795898438,
+     241.25397205352783
+    ],
+    "kind": "icon",
+    "score": 0.8974207043647766,
+    "id": 31
+   },
+   {
+    "bbox": [
+     0,
+     329.13526153564453,
+     1390.291976928711,
+     733.7294769287109
+    ],
+    "kind": "panel",
+    "score": 0.862529993057251,
+    "id": 32
+   },
+   {
+    "bbox": [
+     1724.8922882080078,
+     279.3194854259491,
+     662.2154235839844,
+     161.3610291481018
+    ],
+    "kind": "button",
+    "score": 0.8485692739486694,
+    "id": 33,
+    "text": [
+     "前往其大厅"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1932.9575233459473,
+     496.80008482933044,
+     310.08495330810547,
+     110.39983034133911
+    ],
+    "kind": "button",
+    "score": 0.8458161354064941,
+    "id": 34
+   },
+   {
+    "bbox": [
+     0,
+     9.840466678142548,
+     179.6557159423828,
+     60.319066643714905
+    ],
+    "kind": "tile",
+    "score": 0.804650604724884,
+    "id": 35,
+    "text": [
+     "FPS:",
+     "GPU:"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     186.1544132232666,
+     683.4505423307419,
+     187.6911735534668,
+     121.09891533851624
+    ],
+    "kind": "icon",
+    "score": 0.7966374158859253,
+    "id": 36
+   },
+   {
+    "bbox": [
+     1924.6648979187012,
+     671.4046665430069,
+     230.67020416259766,
+     145.1906669139862
+    ],
+    "kind": "tile",
+    "score": 0.7697004675865173,
+    "id": 37,
+    "text": [
+     "前往其大厅"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1035.6531982421875,
+     42.8450790643692,
+     24.693603515625,
+     26.309841871261597
+    ],
+    "kind": "button",
+    "score": 0.7115391492843628,
+    "id": 38
+   },
+   {
+    "bbox": [
+     145.40396118164062,
+     779.5279161930084,
+     237.19207763671875,
+     216.94416761398315
+    ],
+    "kind": "card",
+    "score": 0.7022342681884766,
+    "id": 39
+   },
+   {
+    "bbox": [
+     2157.554214477539,
+     472.7799463272095,
+     180.89157104492188,
+     94.44010734558105
+    ],
+    "kind": "chip",
+    "score": 0.6258078813552856,
+    "id": 40
+   },
+   {
+    "bbox": [
+     144.0,
+     946.4,
+     96.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.6179681420326233,
+    "id": 41
+   },
+   {
+    "bbox": [
+     320.0,
+     946.4,
+     2096.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.6179681420326233,
+    "id": 42
+   },
+   {
+    "bbox": [
+     2433.330053329468,
+     412.80932807922363,
+     126.66994667053223,
+     662.3813438415527
+    ],
+    "kind": "panel",
+    "score": 0.6110538244247437,
+    "id": 43
+   },
+   {
+    "bbox": [
+     2236.8266525268555,
+     785.7394723892212,
+     214.34669494628906,
+     204.52105522155762
+    ],
+    "kind": "button",
+    "score": 0.600364089012146,
+    "id": 44
+   },
+   {
+    "bbox": [
+     0,
+     1266.4,
+     32.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.5857740044593811,
+    "id": 45,
+    "text": [
+     "min:"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     144.0,
+     1266.4,
+     1984.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.5857740044593811,
+    "id": 46,
+    "text": [
+     "max:",
+     "34.0 ms"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2256.0,
+     1266.4,
+     144.0,
+     75.20000000000005
+    ],
+    "kind": "row",
+    "score": 0.5857740044593811,
+    "id": 47
+   },
+   {
+    "bbox": [
+     162.80195999145508,
+     1312.7374408841133,
+     330.39608001708984,
+     78.52511823177338
+    ],
+    "kind": "button",
+    "score": 0.5600658059120178,
+    "id": 48,
+    "text": [
+     "单",
+     "竺理"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1917.2666816711426,
+     841.8267329931259,
+     341.46663665771484,
+     124.34653401374817
+    ],
+    "kind": "tile",
+    "score": 0.5572019219398499,
+    "id": 49
+   },
+   {
+    "bbox": [
+     2320.0,
+     36.66195907592774,
+     32.0,
+     38.67608184814452
+    ],
+    "kind": "row",
+    "score": 0.5498453378677368,
+    "id": 50
+   },
+   {
+    "bbox": [
+     2188.1613330841064,
+     526.0103236436844,
+     119.67733383178711,
+     83.97935271263123
+    ],
+    "kind": "icon",
+    "score": 0.5362995266914368,
+    "id": 51
+   },
+   {
+    "bbox": [
+     2014.0828323364258,
+     822.7225875854492,
+     371.83433532714844,
+     194.55482482910156
+    ],
+    "kind": "tile",
+    "score": 0.5151360630989075,
+    "id": 52
+   },
+   {
+    "bbox": [
+     1367.4007568359375,
+     12.075442790985107,
+     577.198486328125,
+     279.8491144180298
+    ],
+    "kind": "button",
+    "score": 0.5109153985977173,
+    "id": 53,
+    "text": [
+     "像夜晚的凉风，倏忽而至的雨，破碎湖面一千片的梦。"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1884.090103149414,
+     799.1376526355743,
+     439.8197937011719,
+     145.72469472885132
+    ],
+    "kind": "button",
+    "score": 0.4875319302082062,
+    "id": 54
+   },
+   {
+    "bbox": [
+     2162.8293199539185,
+     145.54443442821503,
+     138.3413600921631,
+     76.91113114356995
+    ],
+    "kind": "icon",
+    "score": 0.48169296979904175,
+    "id": 55
+   },
+   {
+    "bbox": [
+     765.2257080078125,
+     11.507217407226562,
+     853.548583984375,
+     120.98556518554688
+    ],
+    "kind": "panel",
+    "score": 0.4506279230117798,
+    "id": 56
+   },
+   {
+    "bbox": [
+     136.91256713867188,
+     657.3862566947937,
+     190.17486572265625,
+     173.2274866104126
+    ],
+    "kind": "tile",
+    "score": 0.407744437456131,
+    "id": 57
+   },
+   {
+    "bbox": [
+     1270.2680358886719,
+     301.21775913238525,
+     1091.4639282226562,
+     853.5644817352295
+    ],
+    "kind": "panel",
+    "score": 0.40621665120124817,
+    "id": 58,
+    "text": [
+     "离线"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     1852.2645721435547,
+     1130.3965638875961,
+     707.7354278564453,
+     155.20687222480774
+    ],
+    "kind": "icon",
+    "score": 0.39795857667922974,
+    "id": 59,
+    "text": [
+     "离线"
+    ],
+    "text_source": "fullframe+det"
+   },
+   {
+    "bbox": [
+     2370.8793411254883,
+     30.1527498960495,
+     170.24131774902344,
+     115.694500207901
+    ],
+    "kind": "chip",
+    "score": 0.3873639404773712,
+    "id": 60
+   },
+   {
+    "bbox": [
+     1832.1912117004395,
+     615.0495731830597,
+     479.6175765991211,
+     289.9008536338806
+    ],
+    "kind": "icon",
+    "score": 0.3665105402469635,
+    "id": 61
+   },
+   {
+    "bbox": [
+     35.41849899291992,
+     14.463080525398254,
+     105.16300201416016,
+     83.07383894920349
+    ],
+    "kind": "icon",
+    "score": 0.35774144530296326,
+    "id": 62,
+    "text": [
+     "DXVK v3.0",
+     "60",
+     "7%"
+    ],
+    "text_source": "fullframe+det"
+   }
+  ]
+ },
+ "daemon_timing": {
+  "load_ms": 156.5,
+  "structure_ms": 4.2,
+  "detector_ms": 36.9,
+  "structure": 41.5,
+  "ocr_ms": 1617.5,
+  "state_ms": 36.9,
+  "judge_ms": 36.6,
+  "objects_ms": 155.0,
+  "total_ms": 1965.9,
+  "total_full_ms": 2007.3,
+  "frame_source": "ys-capture",
+  "objects_reuse": null,
+  "structure_reuse": null,
+  "page_diff": null,
+  "structure_auto": false,
+  "ocr_source": "objects",
+  "ocr_n": 51,
+  "ocr_err": null,
+  "cache_hit": false,
+  "attribution_ms": null
+ },
+ "advice": [],
+ "cache": {
+  "hit": false,
+  "layer": "miss"
+ }
+}

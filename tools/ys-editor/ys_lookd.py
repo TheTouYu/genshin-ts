@@ -2161,22 +2161,19 @@ def _seek_cap():
 
 
 def _world_advice(world, req):
-    """把「笨办法检测」交给唯一实现 ys_advice；失败不影响世界状态。"""
-    try:
-        import ys_advice as _ADV
-        objs = world.get("objects") or {}
-        tim = world.get("timing") or {}
-        return _ADV.observe(
-            state_name=(world.get("state") or {}).get("state"),
-            containers=objs.get("containers") or [],
-            detections=(world.get("structure") or {}).get("detections") or [],
-            free_text=objs.get("free_text") or [],
-            look_ms=float(tim.get("total_full_ms") or tim.get("total_ms") or 0.0),
-            now_ms=time.time() * 1000.0,
-            seek_cap=_seek_cap(),
-            enabled=bool(req.get("advice", True)))
-    except Exception:                                    # noqa: BLE001 —— advice 只建议
-        return []
+    """把「笨办法检测」交给唯一实现 ys_advice；异常由调用方记录，不静默。"""
+    import ys_advice as _ADV
+    objs = world.get("objects") or {}
+    tim = world.get("timing") or {}
+    return _ADV.observe(
+        state_name=(world.get("state") or {}).get("state"),
+        containers=objs.get("containers") or [],
+        detections=(world.get("structure") or {}).get("detections") or [],
+        free_text=objs.get("free_text") or [],
+        look_ms=float(tim.get("total_full_ms") or tim.get("total_ms") or 0.0),
+        now_ms=time.time() * 1000.0,
+        seek_cap=_seek_cap(),
+        enabled=bool(req.get("advice", True)))
 
 
 def _world(req):
@@ -2224,7 +2221,11 @@ def _world(req):
             # 修法：缓存命中时给出**显式三态**（null + 原因 + 怎么拿真值），不许静默缺字段。
             out["settled"] = {"same_as_prev": None, "reason": "cache_hit",
                               "hint": "缓存命中=没有重新比较帧；要判稳定请用 cache:false 重取"}
-            out["advice"] = _world_advice(out, req)
+            try:
+                out["advice"] = _world_advice(out, req)
+            except Exception as _e:                      # noqa: BLE001
+                out["advice"] = []
+                out["advice_error"] = "%s: %s" % (type(_e).__name__, _e)
             return out
     # 页签名只算一次（OCR 时间缓存与对象复用共用；1/8 灰度 ≈ 0.5ms）
     sig = None
@@ -2339,7 +2340,11 @@ def _world(req):
         "degraded": degraded,
         "via": "daemon",
     }
-    out["advice"] = _world_advice(out, req)
+    try:
+        out["advice"] = _world_advice(out, req)
+    except Exception as _e:                              # noqa: BLE001
+        out["advice"] = []
+        out["advice_error"] = "%s: %s" % (type(_e).__name__, _e)
     # ── 布局稳定信号（2026-10-21；F-20261021-UNSETTLED）────────────────────────
     # 事故：派蒙菜单打开后网格**仍在动**——两次读数 tile 网格 y 从 478/668/856/1046
     # 变成 452/572/760/950（≈94px）；照首读 bbox 点 (677,556) 实际落到「角色」而不是「好友」。

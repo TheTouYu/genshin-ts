@@ -23,6 +23,7 @@ import ys_advice  # noqa: E402
 
 SCREENS, ROWS, STEP = 10, 7, 5
 FIX = os.path.join(HERE, "fixtures", "advice", "screens.json")
+REAL = [os.path.join(HERE, "fixtures", "advice", "real", "s%d.json" % i) for i in (1, 2, 3)]
 def _name(i):
     """真实好友列表名字唯一——夹具也必须唯一，否则同一名字出现不同天数，
     会被单调性判据判成"不单调"（2026-10-21 自测踩到）。"""
@@ -77,7 +78,24 @@ def main():
                              free_text=tiny["free_text"], look_ms=2100, now_ms=i * 2100)
                  if tr2 is not None else []) or [])
 
-    ok_pos = (first == 2)
+    # 真机 3 帧回放（2026-10-21 空转复现）：必须第 3 帧出建议
+    if not all(os.path.isfile(p) for p in REAL):
+        print("ADVICE-RESULT error=REAL_FIXTURE_MISSING paths=%s verdict=FAIL" % REAL)
+        return 2
+    tr3 = ys_advice.ListTracker()
+    real_out = []
+    now3 = 0.0
+    for p in REAL:
+        d = json.load(open(p, encoding="utf-8"))
+        st = d.get("state")
+        st = st.get("name") if isinstance(st, dict) else st
+        now3 += 2.1
+        real_out.append(tr3.observe(state_name=st, containers=[],
+                                    detections=d.get("objects") or [],
+                                    free_text=d.get("free_text") or [],
+                                    look_ms=800, now_ms=now3 * 1000))
+    real_code = real_out[2][0].get("code") if real_out[2] else None
+    ok_pos = (first == 2) and bool(real_code)
     if seek >= 100:
         est = (advs[first][0].get("estimate") or {}) if first is not None else {}
         ok_code = (code == "SCANNING_LINEARLY" and bool(est.get("bisection_probes")))
@@ -85,9 +103,9 @@ def main():
         ok_code = (code == "LINEAR_ONLY_NO_SEEK"
                    and (advs[first][0].get("blocked_by") == "seek_capability"))
     ok = ok_pos and ok_code and not neg
-    print("ADVICE-RESULT screens=%d first=%s code=%s seek=%g neg=%d verdict=%s"
+    print("ADVICE-RESULT screens=%d first=%s code=%s seek=%g neg=%d real=s03/%s verdict=%s"
           % (len(screens), ("s%02d" % first) if first is not None else "none",
-             code, seek, len(neg), "PASS" if ok else "FAIL"))
+             code, seek, len(neg), real_code, "PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
 

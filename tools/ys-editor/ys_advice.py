@@ -47,7 +47,12 @@ def _name(t):
 
 
 def _rows(containers, detections):
-    rows = []
+    """容器行 vs 检测行：**选更多的那个**。
+
+    2026-10-21 真机空转根因：容器层只给 3–4 行（且常不随滚动变化），而 D2 检测给
+    10+ 行；旧逻辑「容器 ≥3 就不再取检测」⇒ 永远 new=0、advice 永远 []。
+    """
+    c_rows, d_rows = [], []
     for o in (containers or []):
         if str(o.get("kind") or "") != "row":
             continue
@@ -55,14 +60,16 @@ def _rows(containers, detections):
         if len(b) == 4:                                  # ys-screen 容器 bbox 是 xyxy
             w, h = float(b[2]) - float(b[0]), float(b[3]) - float(b[1])
             if w > 0 and h > 0:
-                rows.append((w, h, [str(x) for x in (o.get("text") or [])]))
-    if len(rows) < 3:
-        for o in (detections or []):
-            if str(o.get("kind") or "") != "row":
-                continue
-            b = o.get("bbox") or []
-            if len(b) == 4:                              # 检测器 bbox 是 xywh
-                rows.append((float(b[2]), float(b[3]), [str(x) for x in (o.get("text") or [])]))
+                c_rows.append((w, h, [str(x) for x in (o.get("text") or [])]))
+    for o in (detections or []):
+        if str(o.get("kind") or "") != "row":
+            continue
+        b = o.get("bbox") or []
+        if len(b) == 4:                                  # 检测器 bbox 是 xywh
+            w, h = float(b[2]), float(b[3])
+            if w > 0 and h > 0:
+                d_rows.append((w, h, [str(x) for x in (o.get("text") or [])]))
+    rows = d_rows if len(d_rows) > len(c_rows) else c_rows
     if len(rows) < 3:
         return []
     hs = [h for _, h, _ in rows]

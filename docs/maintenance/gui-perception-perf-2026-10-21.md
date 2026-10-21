@@ -441,3 +441,14 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - 断言：默认 `ADVICE-RESULT ... code=LINEAR_ONLY_NO_SEEK ... PASS`；`YS_SEEK_MAX_ROWS=999` →
   `code=SCANNING_LINEARLY ... PASS`；负例无行不给建议。
 - 账本 F-20261021-64（prevented，gate=advice，inject=advice-fixture-neg）；注入删夹具 → `FIXTURE_MISSING` rc=2。
+
+## advice 真机空转修复（2026-10-21 18:0x）
+
+- 真机 5 帧（`/tmp/verify_run2/s1..s5`）复现：`advice=[]`；scrollbar 检测在这 3 帧均
+  `found=true`（ratio 0.012 / 0.990 / 0.519），不是 seek_cap 吃掉分支。
+- **根因**：`ys_advice._rows` 优先用容器行（真实帧容器只有 9/4/3 行，且滚动时不变），
+  检测行有 63/47/59 行；旧逻辑容器 ≥3 就不看检测 ⇒ 每帧 `new=0`，永远凑不满线性扫。
+- 修法：容器行 vs 检测行**选行数更多的那个**；tracker 状态本来就是 daemon 进程级 LRU（已验证跨请求存活）。
+- 真机 3 帧回放进自测：`fixtures/advice/real/s1..s3.json`（原 look JSON），第 3 帧必须出建议。
+- 机读行：`ADVICE-RESULT ... real=s03/SUGGEST_JUMP_ONLY verdict=PASS`（默认分支）；
+  `YS_SEEK_MAX_ROWS=999` 时 `code=SCANNING_LINEARLY ... real=s03/SUGGEST_JUMP_ONLY PASS`。
