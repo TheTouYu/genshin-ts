@@ -6,7 +6,8 @@
 #   · 注入物一律临时创建，`trap` 保证还原 —— 失败/中断都不许污染仓库。
 #   · 判据是「门禁必须报红」，不是「命令没崩」；抓不住 = 用例失败。
 #
-# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg
+# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg |
+#                                        scroll-neg | capture-neg | wedge-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -23,6 +24,72 @@ case "$mode" in
       echo "INJECT-FAIL noswallow: 注入物存在但门禁没报红（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS noswallow: 注入的吞码文件被 noswallow 抓到了"; exit 0
+    ;;
+  # ③ 注入「去掉具体度消歧」→ state-precedence 必须报红
+  precedence-neg)
+    f="tools/ys-editor/ys-state"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import re, sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+s2 = re.sub(r'PRECEDENCE = \{[^}]*\}', 'PRECEDENCE = {}', s, count=1)
+assert s2 != s, 'PRECEDENCE 没被替换（注入失败）'
+open(p, 'w', encoding='utf-8').write(s2)
+PYIN
+    python3 tools/ys-editor/tests/state-precedence.selftest.py >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL precedence-neg: 去掉 PRECEDENCE 后单测仍全绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS precedence-neg: 去掉具体度消歧 → 单测报红 rc=$rc"; exit 0
+    ;;
+  # ④ 注入「滚动没动也报成功」→ scroll-movement 必须报红
+  scroll-neg)
+    f="tools/ys-editor/ys-scroll"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = """    if moved_confirmed is False:
+        return 6"""
+new = """    if False:            # INJECT: 假装「没动也算成功」
+        return 6"""
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    python3 tools/ys-editor/tests/scroll-movement.selftest.py >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL scroll-neg: 没动也返回 0 的单测仍全绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS scroll-neg: 假成功逻辑 → 单测报红 rc=$rc"; exit 0
+    ;;
+  # ⑤ 注入「守护活着但不产帧」→ capture-liveness 必须报红
+  capture-neg)
+    if echo '{"daemon_alive": true, "state": {"seq": 0, "last_err": ""}}' | python3 -c \
+        "import sys,json; d=json.load(sys.stdin); s=d.get('state') or {}; sys.exit(0 if d.get('daemon_alive') and (s.get('seq') or 0)>0 and not (s.get('last_err') or '') else 1)"; then
+      echo "INJECT-FAIL capture-neg: seq=0（一帧没产）仍被判健康（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS capture-neg: 活着但不产帧被判红"; exit 0
+    ;;
+  # ⑥ 注入「handler 无看门狗」→ lookd-wedge 必须报红（T2 会卡到 rpc 超时）
+  wedge-neg)
+    f="tools/ys-editor/ys_lookd.py"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = "            _arm(HANDLER_TIMEOUT)"
+new = "            pass  # INJECT: 摘掉 handler 看门狗"
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    python3 tools/ys-editor/tests/lookd-wedge.selftest.py >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL wedge-neg: 摘掉看门狗后自测仍全绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS wedge-neg: 无看门狗 → 自测报红 rc=$rc"; exit 0
     ;;
   # ② 注入「错标样本」→ gate1（判定回归）必须报红
   regress-neg)
