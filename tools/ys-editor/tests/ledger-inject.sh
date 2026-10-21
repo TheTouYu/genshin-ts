@@ -116,7 +116,10 @@ new = """    if prev is None:               # INJECT: 假装已切回，其实�
 assert old in s, '锚点没找到（注入失败）'
 open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
 PYIN
-    bash tools/ys-editor/tests/focus-default.selftest.sh >/dev/null 2>&1
+    # 2026-10-21 改：门禁换成 handback-noop（**全离线**，用 YS_KWIN_JS_FIXTURE 喂 KWin 状态）。
+    # 原先是跑 focus-default——那套件要抬真实窗口；F-20261021-54 给它加了可执行闸门后，
+    # 不带 YS_ALLOW_SCREEN_TEST 就直接 SKIP（rc=0），注入用例于是误报"门禁空转"。
+    python3 tools/ys-editor/tests/handback-noop.selftest.py >/dev/null 2>&1
     rc=$?
     if [ "$rc" -eq 0 ]; then
       echo "INJECT-FAIL focus-neg: 归还假装成功时自测仍绿（门禁空转）"; exit 1
