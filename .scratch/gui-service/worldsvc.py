@@ -41,6 +41,83 @@ EXPECT_TYPES = ("state_in", "text_added", "text_removed",
                 "text_added_contains", "text_removed_contains",   # G5：子串断言（OCR 常把标题与计数粘成一条）
                 "region_text_set_changed", "pixel_delta")
 
+# 2026-10-21 AGI 反馈轮：expect DSL 的**机读规格**（单一源）。
+# 之前 capabilities 只列动词不列 expect 形状，代理要靠"撞墙—读报错—再猜"问对，
+# 实测一轮连撞两次（先缺 region、再缺 texts），每次白花一次调用。
+# 这里同时喂给 capabilities.expect_schemas 和 BAD_EXPECT 的 next_actions。
+_RGB = "[x, y, w, h]（物理像素 2560×1440；也接受 'x,y,w,h' 字符串）"
+EXPECT_SCHEMAS = {
+    "state_in": {
+        "required": {"states": "list[str]"},
+        "optional": {"region": _RGB},
+        "example": {"type": "state_in", "states": ["GAME_FRIENDS"]},
+        "note": "最省事的「做了什么」断言；词表外的状态名会被拒",
+    },
+    "text_added": {
+        "required": {"region": "[x,y,w,h]", "texts": "list[str]（整串匹配）"},
+        "optional": {},
+        "example": {"type": "text_added", "region": [300, 120, 800, 300], "texts": ["好友"]},
+        "note": "整串匹配；OCR 常把标题与计数粘成一条，不确定时用 *_contains",
+    },
+    "text_removed": {
+        "required": {"region": "[x,y,w,h]", "texts": "list[str]（整串匹配）"},
+        "optional": {},
+        "example": {"type": "text_removed", "region": [1100, 1300, 400, 120], "texts": ["点击进入"]},
+        "note": "",
+    },
+    "text_added_contains": {
+        "required": {"region": "[x,y,w,h]", "texts": "list[str]（子串匹配）"},
+        "optional": {},
+        "example": {"type": "text_added_contains", "region": [300, 120, 800, 300], "texts": ["好友"]},
+        "note": "推荐默认：子串比整串稳（OCR 粘字很常见）",
+    },
+    "text_removed_contains": {
+        "required": {"region": "[x,y,w,h]", "texts": "list[str]（子串匹配）"},
+        "optional": {},
+        "example": {"type": "text_removed_contains", "region": [1100, 1300, 400, 120], "texts": ["点击进入"]},
+        "note": "",
+    },
+    "region_text_set_changed": {
+        "required": {"region": "[x,y,w,h]"},
+        "optional": {"min_jaccard_delta": "float ∈ [0,1]，缺省 0.15"},
+        "example": {"type": "region_text_set_changed", "region": [0, 0, 2560, 1440]},
+        "note": "不关心具体文字、只关心「这块变了」时用",
+    },
+    "pixel_delta": {
+        "required": {"region": "[x,y,w,h]"},
+        "optional": {"threshold_pct": "float ∈ (0,100]，缺省 5.0", "px_thr": "逐通道 |Δ| 阈值，缺省 10"},
+        "example": {"type": "pixel_delta", "region": [1100, 1300, 400, 120]},
+        "note": "纯像素通道；动画区会误报，优先用文本类",
+    },
+}
+
+
+def expect_fix_actions(t, expect=None):
+    """把一次 BAD_EXPECT 变成**可直接执行**的修正步骤（而不是让人读 detail 猜）。
+
+    2026-10-21 实测：`--expect '{"type":"text_removed_contains","text":"点击进入"}'`
+    连撞两次（缺 region → 缺 texts），两次回执的 next_actions 都是 null。
+    """
+    sch = EXPECT_SCHEMAS.get(t)
+    if not sch:
+        why = ("没传 --expect" if t is None else f"未知 expect.type={t!r}")
+        return [{"tool": "worldsvc capabilities", "args": {},
+                 "why": f"{why}；合法类型 {list(EXPECT_SCHEMAS)}（含必填字段与样例）",
+                 "cost": "0（本地，不碰屏幕）"}]
+    given = expect if isinstance(expect, dict) else {}
+    missing = [f for f in sch["required"] if f not in given]
+    acts = []
+    if missing:
+        acts.append({"tool": "worldsvc act",
+                     "args": {"--expect": {**{k: v for k, v in given.items()},
+                                           **{f: f"<{sch['required'][f]}>" for f in missing}}},
+                     "why": f"{t} 缺必填字段 {missing}", "cost": "一次调用（dry-run 不碰屏幕）"})
+    acts.append({"tool": "worldsvc act", "args": {"--expect": sch["example"]},
+                 "why": "最小可用样例：复制后只改 region/texts", "cost": "一次调用"})
+    if sch.get("note"):
+        acts.append({"tool": "(说明)", "args": {}, "why": sch["note"], "cost": "0"})
+    return acts
+
 
 class ServiceError(RuntimeError):
     """服务级失败（fail-closed）。code 稳定、detail 人读、status 用于回执。"""
@@ -685,9 +762,10 @@ class WorldService:
             if expect is None:
                 raise ServiceError(
                     "ACT_EXPECT_REQUIRED",
-                    "act 必须带语义期待 expect（有变化 ≠ 达成意图）。例："
-                    '{"type":"region_text_set_changed","region":[300,200,1200,800],'
-                    '"min_jaccard_delta":0.15}', status="invalid", rc=2)
+                    "act 必须带语义期待 expect（有变化 ≠ 达成意图）。"
+                    "机读规格见 capabilities.expect_schemas", status="invalid", rc=2,
+                    observed={"expect_given": None, "allowed_types": list(EXPECT_SCHEMAS)},
+                    next_actions=expect_fix_actions(None))
             exp = self._validate_expect(expect)
             result["expect"] = exp
             if "intent" in target:
@@ -849,7 +927,12 @@ class WorldService:
                                                "BAD_ACTION", "BAD_TARGET",
                                                "ACT_SIMULATE_REQUIRED") else exc.status
             result.update({"status": status, "ok": False,
+                           # 2026-10-21 AGI 反馈轮：错误**自带** rc，别再被 status 的映射覆盖。
+                           # 实证：BAD_EXPECT 声明 rc=2，实际进程退出码却是 5（capabilities.exit_codes
+                           # 写的是「2 = 用法/expect DSL 非法」）——声明与行为不一致，调用方无从判断。
+                           "rc": int(getattr(exc, "rc", 8)),
                            "error": {"code": exc.code, "detail": exc.detail,
+                                     "rc": int(getattr(exc, "rc", 8)),
                                      "next_action": getattr(exc, "next_action", None),
                                      "next_actions": getattr(exc, "next_actions", None),
                                      "observed": getattr(exc, "observed", None)}})
@@ -886,6 +969,24 @@ class WorldService:
         return [x, y, w, h]
 
     def _validate_expect(self, expect):
+        """校验入口：BAD_EXPECT 一律补 observed + next_actions 后抛出。
+
+        2026-10-21 AGI 反馈轮：三件套此前只有"字段"没有"内容"（实测 next_action/
+        next_actions/observed 恒为 null）——字段在 ≠ 语义在，消费方会读成"模块没有建议"。
+        """
+        try:
+            return self._validate_expect_inner(expect)
+        except ServiceError as e:
+            if e.code == "BAD_EXPECT":
+                t = expect.get("type") if isinstance(expect, dict) else None
+                if e.observed is None:
+                    e.observed = {"expect_given": expect, "expect_type": t,
+                                  "allowed_types": list(EXPECT_SCHEMAS)}
+                if e.next_actions is None:
+                    e.next_actions = expect_fix_actions(t, expect)
+            raise
+
+    def _validate_expect_inner(self, expect):
         """expect 机检 DSL（v0，2026-10-19）。未知类型/缺字段 fail-closed。"""
         if not isinstance(expect, dict):
             raise ServiceError("BAD_EXPECT", "expect 必须是 dict", rc=2)
@@ -1659,8 +1760,9 @@ CAPABILITIES = {
                          "省 OCR 会让状态静默降级（实测 f06 派蒙菜单变 UNKNOWN）；"
                          "稳态毫秒级靠 OCR TTL + 容器/结构增量复用"},
         "act": {"purpose": "解析目标 → (dry-run|注入) → 等下一稳态",
-                "key_args": ["--text", "--object-id", "--action", "--expect", "--live"],
-                "gives": ["resolved", "injected", "expect_result", "post"]},
+                "key_args": ["--text", "--object-id", "--action", "--expect（必填）", "--live"],
+                "gives": ["resolved", "injected", "expect_result", "post"],
+                "expect": "见顶层 expect_schemas；--expect 必填，漏传 argparse 只走 stderr"},
         "wait": {"purpose": "谓词等待（禁裸 sleep）", "key_args": ["--predicate", "--timeout"],
                  "gives": ["reached|timeout|violated"]},
         "drill": {"purpose": "对 look 的 uncertainty 下钻局部细节（不重处理整帧）",
@@ -1676,6 +1778,8 @@ CAPABILITIES = {
                                                           "回执 frame.layer=background / live=false）"},
                          "note": "常驻服务，热路径 ~1.1s；归属闸门在守护侧（KWin 权威）"},
     },
+    # 2026-10-21 AGI 反馈轮：把最容易被问的契约写进自述（此前完全没有）
+    "expect_schemas": EXPECT_SCHEMAS,
     "flag_contract": ("参数三态：honored（真的生效）/ rejected（明确拒绝 + observed + next_actions）/ "
                       "unsupported（后端不支持就报错）。**不接受『接受但静默忽略』**——"
                       "2026-10-21 实测 --allow-background 在 daemon 后端被吞导致代理误判。"
@@ -1816,8 +1920,8 @@ def main(argv=None):
     p.add_argument("--object-id", default=None)
     p.add_argument("--intent", default=None)
     p.add_argument("--frame", default=None, help="离线帧（解析用）")
-    p.add_argument("--expect", required=True,
-                   help='语义期待 JSON（必填），如 {"type":"region_text_set_changed",'
+    p.add_argument("--expect", required=False, default=None,
+                   help='语义期待 JSON（必填；机读规格见 capabilities.expect_schemas），如 {"type":"region_text_set_changed",'
                         '"region":[300,200,1200,800],"min_jaccard_delta":0.15}；'
                         '类型：state_in/text_added(_contains)/text_removed(_contains)/region_text_set_changed/pixel_delta')
     p.add_argument("--action", default=None,
@@ -1922,14 +2026,16 @@ def main(argv=None):
             if target is None:
                 raise ServiceError("BAD_USAGE", "act 需要 --text / --object-id / --intent 之一", rc=2)
             post = json.loads(a.post) if a.post else None
-            expect = json.loads(a.expect)
+            # 2026-10-21：--expect 改由服务层给结构化报错（带 observed+next_actions），
+            # 这里允许 None 直通，别在 CLI 层先崩成 TypeError。
+            expect = json.loads(a.expect) if a.expect else None
             action = json.loads(a.action) if a.action else None
             res = svc.act(target, expect=expect, action=action, post=post,
                           timeout_ms=a.timeout_ms, expect_timeout_ms=a.expect_timeout_ms,
                           poll_ms=a.poll_ms, inject=a.inject, live=a.live,
                           frame=a.frame, evidence_dir=a.evidence_dir)
             _emit(res, out_path=a.json_out)
-            return _exit_code_for(res["status"])
+            return int(res["rc"]) if isinstance(res.get("rc"), int) else _exit_code_for(res["status"])
 
         if a.verb == "wait":
             pred = json.loads(a.predicate)
