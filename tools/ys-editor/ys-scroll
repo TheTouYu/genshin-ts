@@ -355,6 +355,12 @@ def main():
                           "frame_diff": _diff,
                           "after_ratio": (_rb or {}).get("position_ratio"),
                           "after_found": (_rb or {}).get("found"),
+                          # 真机实测（2026-10-21 verify-run2）：seek 成功后滚动条会自动隐藏，
+                          # 于是 after_found=false 而画面确实跳对了。**判据以 frame_diff +
+                          # 事后 look 的首行为准**，不要用 after_found 判成败。
+                          "after_note": (None if (_rb or {}).get("found") else
+                                         "滚动条未在事后帧出现：游戏滚动条会自动隐藏，"
+                                         "不代表 seek 失败——看 frame_diff 与 look 后首行"),
                           "error": None if _ok else "SEEK_NO_EFFECT",
                           "reason": None if _ok else "注入返回 %d / frame_diff=%s" % (_p.returncode, _diff),
                           "next_action": None if _ok else "读 after_ratio 判断是否拖到了正确位置"},
