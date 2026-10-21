@@ -310,6 +310,62 @@ def main(argv=None):
           r["status"] == "invalid" and r.get("error", {}).get("code") == "ACT_SIMULATE_REQUIRED",
           str(r.get("error")))
 
+    # ───────── _do_action：rc 与 release_ok 不许混为一谈（2026-10-19 live 缺陷回归）─────────
+    orig_scroll = instruments.inject_scroll
+    orig_cap = svc._capture_evidence
+    try:
+        def fake_cap(frame, out, after_frame=None):
+            src = after_grid if frame is None else before
+            instruments.copy_frame(src, out)
+            return out, {"source": "selftest"}
+        svc._capture_evidence = fake_cap
+
+        instruments.inject_scroll = lambda *a, **k: {
+            "rc": 5, "result": {"ok": False, "release_ok": False, "budget": {"over": True}},
+            "stdout_tail": "", "stderr_tail": "OVER BUDGET"}
+        d = svc._do_action({"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"})
+        check("act/归还失败不冒充注入失败（rc=5+release_ok=false → ok=True+标记）",
+              d["ok"] is True and d["release_failed"] is True and d["inject_failed"] is False, str(d))
+        r = svc.act({"object_id": "c3"},
+                    expect={"type": "region_text_set_changed", "region": GRID,
+                            "min_jaccard_delta": 0.15},
+                    action={"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"},
+                    frame=before, inject=True, allow_inject=True,
+                    evidence_dir=os.path.join(EVIDENCE, "act-lease-fail"))
+        check("act/归还失败 + expect 成立 → status=ok（不因 rc=5 报 INJECT_FAILED）",
+              r["status"] == "ok" and r["ok"] is True, str(r.get("error")))
+        check("act/归还失败单独记 LEASE_RESTORE_FAILED",
+              any(x["code"] == "LEASE_RESTORE_FAILED" for x in r.get("degraded", [])),
+              str(r.get("degraded")))
+        r = svc.act({"object_id": "c3"},
+                    expect={"type": "region_text_set_changed", "region": DETAIL,
+                            "min_jaccard_delta": 0.15},
+                    action={"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"},
+                    frame=before, inject=True, allow_inject=True,
+                    evidence_dir=os.path.join(EVIDENCE, "act-lease-fail-neg"))
+        check("act/归还失败 + expect 不成立 → expect_failed（不是 INJECT_FAILED）",
+              r["status"] == "expect_failed" and r.get("error", {}).get("code") == "ACT_EXPECT_FAILED",
+              str(r.get("error")))
+
+        instruments.inject_scroll = lambda *a, **k: {
+            "rc": 5, "result": {"ok": False, "release_ok": True},
+            "stdout_tail": "", "stderr_tail": "inject failed"}
+        d = svc._do_action({"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"})
+        check("act/真注入失败仍判死（release_ok=true → ok=False）",
+              d["ok"] is False and d["inject_failed"] is True, str(d))
+        r = svc.act({"object_id": "c3"}, expect={"type": "state_in", "states": ["GAME_PAIMON"]},
+                    action={"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"},
+                    frame=before, inject=True, allow_inject=True,
+                    evidence_dir=os.path.join(EVIDENCE, "act-inject-fail"))
+        check("act/真注入失败 → INJECT_FAILED + rc=8",
+              r["status"] == "error" and r.get("error", {}).get("code") == "INJECT_FAILED" and
+              worldsvc._exit_code_for(r["status"]) == 8, str(r.get("error")))
+
+        instruments.inject_scroll = orig_scroll
+    finally:
+        instruments.inject_scroll = orig_scroll
+        svc._capture_evidence = orig_cap
+
     # ───────── wait_until ─────────
     res = svc.wait_until({"state_in": ["GAME_PAIMON"]}, frame=FRAME, timeout_ms=3000)
     check("wait/reached（三态之一）", res["status"] == "reached", res["status"])

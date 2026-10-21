@@ -28,7 +28,7 @@ tools/ys-observe┘         │                                  │
 | `.scratch/gui-service/worldsvc.py` | 三动词 + CLI（look / act / wait） |
 | `.scratch/gui-service/bench.py` | 延迟实测（三路径 × 冷/热/缓存；写 `bench.md`） |
 | `.scratch/gui-service/inproc_probe.py` | 同进程仪器尖刺（daemon 地板 / 解码地板 / 复用补丁效果） |
-| `.scratch/gui-service/selftest.py` | 契约自测（53 条，离线帧，0 注入） |
+| `.scratch/gui-service/selftest.py` | 契约自测（90 条，离线帧，0 注入） |
 
 **为什么在 `.scratch/`**：AGI-BAR §五「融合不重做」——先证明形状可用，再决定是否升级为
 `tools/` 下的共享服务。升级/改共享工具属于需要用户裁决的范畴（见 §9）。
@@ -197,8 +197,35 @@ worldsvc.py act --text 背包 --live   --action '{"type":"scroll","dy":-3,"at":[
 **退出码**：`0` 成功 / `2` 用法或 expect DSL 非法 / `3` 目标解析失败 / `4` 多义 /
 `5` 前置不符（注入未授权、live 归属闸门不过）/ `9` **expect 不成立** / `6/7/8` 同 wait。
 
-**测试**：`selftest.py` 83 项（含 expect DSL 校验 6 项、5 类判据正负例、离线注入正/负例、
+**测试**：`selftest.py` 90 项（含 expect DSL 校验 6 项、5 类判据正负例、离线注入正/负例、
 证据三件套存在性、`expect_failed → rc=9`；全离线、0 注入）。
+**注入结果的三态（2026-10-19 live 缺陷回归）**：`ys-scroll` 的退出码是
+`0 if (ok_inject and release_ok) else 5`——**它的 5 有三种含义**：注入失败 / 焦点归还失败 / 两者。
+所以 `_do_action` 不再把 rc 直接当结论，而是看它的 JSON：
+- `release_ok=false`：动作**可能已注入**，只是归还失败 ⇒ 不判死，记 `LEASE_RESTORE_FAILED` 降级，
+  **最终由 expect 判定**（成立 → `ok`；不成立 → `expect_failed`）。这正是「报告与事实一致」的要求：
+  不许把「归还失败」报成「注入失败」。
+- `result.ok=false` 且 `release_ok` 不为 false：真注入失败 ⇒ `INJECT_FAILED`、rc=8。
+- `budget.over=true`（如 live 实测 1883ms/1393ms > 目标 500ms）只是 **stderr 警告 + 性能信号**，
+  **不改变退出码**；把它误读成失败会得到「任务成功但 CLI 报错」的假红灯。
+
+**`--intent` 是固定枚举，不是自由文本**（2026-10-19 澄清）：取值只能是
+`paimon-to-activity` / `playtest-start` / `playtest-stop`（来自 `tools/ys-editor/actions/*.json` 的
+pre/post 定义；`worldsvc.py intents` 可列出）。要执行自定义动作请用 `--text`/`--object-id` +
+`--action`，不要往 `--intent` 里塞自然语言。
+
+**「CLI 报 INJECT_FAILED、meta 却是 ok」的取证结论（2026-10-19）**：
+- 已提交的 live 证据 `evidence/act-live-pos/meta.json`、`act-live-neg/meta.json` 里
+  `inject.raw.rc = 0`、`result.ok = true`、`release_ok = true`，**并没有 INJECT_FAILED**；
+  两例的 `budget.over` 都是 true（1883ms / 1393ms）。
+- `tools/ys-editor/ys-scroll` 的 OVER BUDGET 只 `print(..., file=sys.stderr)`，**不参与退出码**；
+  退出码只由 `0 if (ok_inject and release_ok) else 5` 决定。所以「OVER BUDGET ⇒ rc=5」不成立。
+- rc=5 且滚轮**确实注入**的唯一组合是 `release_ok=false`（焦点归还失败）——这正是
+  live 前那版「外层 ys-gui-slot 里嵌套 `--lease`」的形态（Lead 的修复 #2）；修复后 rc=0。
+- 为让这类情况以后不再被误报，`_do_action` 已按三态区分（见上），并加了 4 条离线回归；
+  若再出现 `release_ok=false`，回执会是 `ok` + degraded `LEASE_RESTORE_FAILED` 或
+  `expect_failed`，**不会**是 `INJECT_FAILED`。
+
 
 
 ### `wait_until(predicate, *, timeout_ms=30000, poll_ms=300)` → 三态
@@ -352,6 +379,7 @@ frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
 | 缺 post / 未授权注入 / 窗口不在栈顶 | `invalid` / `precondition_fail` | 5 |
 | 判据超时（不是故障） | `timeout` | 6 |
 | **语义期待不成立**（动作执行了，但变化不对） | `expect_failed` + `ACT_EXPECT_FAILED` | **9** |
+| 动作已注入但焦点归还失败（**不判死**，由 expect 决定） | `ok` / `expect_failed` + degraded `LEASE_RESTORE_FAILED` | 0 / 9 |
 | forbid 命中 | `violated` | 7 |
 | 仪器/schema/帧错误 | `error` | 8 |
 | 判据本身非法 | `error` + `BAD_PREDICATE` | 2 |
@@ -391,7 +419,7 @@ frame sha 非法 / 回执缺 state → `DAEMON_WORLD_BAD`。
 
 ```bash
 cd /home/h/genshin-ts
-python3 .scratch/gui-service/selftest.py        # 59 条契约自测（离线，0 注入；daemon-world 需新版服务）
+python3 .scratch/gui-service/selftest.py        # 90 条契约自测（离线，0 注入；daemon-world 需新版服务）
 bash tools/ys-editor/tests/win-attrib.selftest.sh   # 票 34 归属回归（25 项，0 抓屏）
 python3 .scratch/gui-service/bench.py           # 延迟实测 → bench.md + evidence/bench.json
 python3 .scratch/gui-service/inproc_probe.py    # 同进程仪器尖刺 → evidence/inproc.json
