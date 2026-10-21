@@ -61,7 +61,13 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('session-idle', 'session-idle.selftest.sh', 120),
           # 2026-10-21 找甘雨实任务回灌：裸注入不刷心跳（守护 8s 交还后按键打进用户窗口）、
           # 动画吞键导致同一角色连拍 4 帧。ys-key 把「focus 心跳 + 按键 + 区域变化判据」合成一步。
-          ('key', 'key.selftest.sh', 90)]
+          ('key', 'key.selftest.sh', 90),
+          # 2026-10-21 用户纠偏：摘要不带文字 ⇒ 「按文字找目标」被迫退回抓帧读图。
+          # 常驻 OCR 早就读得到，数据在 objects[].text 里，是摘要没透传。
+          ('summary-grep', 'summary-grep.selftest.py', 60),
+          # 2026-10-21 用户抓到的真 bug：「中间过程截图里角色名字和头像对不上」= 单帧落在
+          # 切换动画中间态。ys-read 用两次读到的文字集合做一致判据，不一致 rc=9。
+          ('read', 'read.selftest.py', 180)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {

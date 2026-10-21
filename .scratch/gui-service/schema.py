@@ -495,7 +495,7 @@ class WorldState:
     def to_dict(self):
         return self.raw
 
-    def summary(self):
+    def summary(self, grep=None):
         """摘要（给"一步看一眼"的调用方用）。
 
         2026-10-21 复盘修正：原先摘要**不带 `settled` 与 `uncertainty`**，而技能里推荐的正是
@@ -504,7 +504,16 @@ class WorldState:
         """
         settled = self.raw.get("settled")
         unc = (self.raw.get("uncertainty") or [])   # 存在 raw 里，不是类字段
-        return {
+        texts = []
+        for o in self.objects:
+            t = o.get("text")
+            t = " ".join(t) if isinstance(t, list) else (t or "")
+            if t.strip():
+                texts.append({"text": t.strip()[:120],
+                              "bbox": [round(float(v)) for v in o["bbox"]],
+                              "kind": o.get("kind")})
+        free_text = [x for x in (self.raw.get("free_text") or []) if isinstance(x, str)]
+        out = {
             "frame_id": self.frame_id,
             "state": self.state_name,
             "objects": len(self.objects),
@@ -517,7 +526,20 @@ class WorldState:
                             "top": (max(unc, key=lambda x: x.get("score") or 0) if unc else None)},
             "degraded": [d["code"] for d in self.degraded],
             "timing_ms": self.raw.get("timing_ms", {}),
+            # 2026-10-21 复盘：摘要原本**不带任何文字**，于是"按文字找对象"只能退回抓整帧读图。
+            # 实测常驻 OCR 早就把「冰元素／甘雨」读出来了（在 objects[].text 里），是摘要没透传。
+            "texts_n": len(texts),
+            "texts": texts[:40],
+            "free_text": free_text[:20],
         }
+        if grep:
+            g = str(grep).strip()
+            hits = [t for t in texts if g in t["text"]]
+            hits += [{"text": x, "free_text": True} for x in free_text if g in x]
+            out["grep"] = g
+            out["matches"] = hits[:20]
+            out["match_count"] = len(hits)
+        return out
 
     def __repr__(self):
         return f"WorldState(state={self.state_name!r}, objects={len(self.objects)}, frame={self.frame_id[:19]}…)"

@@ -232,7 +232,7 @@ def enforce_session_idle(verbose=False):
         return 0
     if now < float(s.get("holding_until") or 0):
         return 0
-    idle_s = int(s.get("idle_ms") or os.environ.get("YS_SESSION_IDLE_MS") or 8000) / 1000.0
+    idle_s = int(s.get("idle_ms") or os.environ.get("YS_SESSION_IDLE_MS") or 3000) / 1000.0
     last = float(s.get("last_action_ts") or s.get("created") or 0)
     if now - last < idle_s:
         return 0

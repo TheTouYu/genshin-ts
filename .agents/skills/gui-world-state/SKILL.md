@@ -80,6 +80,43 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 > **坐标空间**：所有 bbox / `--at` 都是**物理像素 2560×1440**；窗口逻辑尺寸是 1707×960，
 > **不要**把逻辑坐标传给 `--at`（y 会超出窗口高）。实测踩过：按逻辑 853,709 传参 → 滚动无效。
 
+## 2.5 一步看目标：`look --summary --grep <子串>`（**默认工作方式**，2026-10-21 用户纠偏后固化）
+
+> 用户原话：「工具给出信息，模型执行打开角色……然后工具给出布局和大致的框+文字信息，
+> 模型执行轮询切换，直到满足条件。**所以应该两次就结束了**。」
+
+**界面上的字，常驻 OCR 早就读出来了——要按文字找东西，第一步就是问它，别去抓整帧读图。**
+
+```bash
+# ① 当前界面 + 目标在不在（一次调用：state、命中文字、bbox）
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary --grep 甘雨
+#   → {"state":"GAME_CHARACTER","texts_n":3,"match_count":2,
+#      "matches":[{"text":"…冰元素／甘雨 Q 属性…","bbox":[0,0,1206,1440]}]}
+
+# ② 不在 ⇒ 切一个（本身就是"动作 + 等画面真的变了"）
+tools/ys-editor/ys-key e --wait-change 150,25,760,105
+
+# ③ 再读一次 → 命中就结束
+```
+
+**必须先过"稳定"这一关**（2026-10-21 用户抓到的真 bug）：角色界面切换时**名字先变、头像/立绘后变**，
+单帧很容易拍到「新名字 + 旧头像」的混合态——那天我拼的扫描序列因此顺序不可信。所以读文字用：
+
+```bash
+tools/ys-editor/ys-read --grep 甘雨        # 读两次，两次文字集合一致才 rc=0
+# → {"ok":true,"consistent":true,"state":"GAME_CHARACTER","match_count":2,"matches":[...]}
+# 不一致 ⇒ rc=9 UNSTABLE_UI（界面还在动，**拿这一帧下结论就是错的**）
+```
+
+**匹配纪律**
+- **先整名，再单字**（`甘雨` → `甘`/`雨`），最后才退回看框：OCR 会把一条横幅并成**一个大容器文本**
+  （实测 bbox 覆盖整屏），所以**按子串匹配，不要按"独立对象"匹配**。
+- 找不到就说"没找到"，不要说"没有"；`match_count=0` 是判据，不是失败。
+- **`--summary` 里 `state` 就是状态名**（全量回执里是 dict；两者不同型是历史包袱，别混用）。
+- OCR 是**常驻 `ys-lookd`（GPU）**：`look`（活体/`--frame` 离线帧）都走它。
+  **不要**截整帧 Read 图、**不要**用 `.scratch/gui-grounding/venv-rapidocr`（与守护抢 GPU 会
+  `Failed to allocate memory`——那天就是这么绕远的）。离线 venv 只在"守护没起、要读历史帧"时用。
+
 ## 3. 状态词表（13 态，`PRECEDENCE` 消歧）
 
 编辑器侧：`EDITOR / MENU / SAVELIST / PLAYTEST / PAUSE / SETTLE / LOADING`
@@ -103,7 +140,7 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
    同意后 `ys-screen-grant grant --task <任务id> --eta 120 --reason '做什么' --user-said '<用户原话>'`。
    **同一 `--task` 内续期不打断用户**（累计上限 1800s）；换任务必须重新问（无 `--user-said` ⇒ `TASK_MISMATCH`）。
 ③ **占用 = 动作级，空闲即还**：租期**不等于**屏幕被占。`ys-focus-guard` 每 0.5s 轮询，会话静默超过
-   `idle_ms`（缺省 8s，`YS_SESSION_IDLE_MS`）就把屏幕交还用户；下一个动作由 `ys-scroll`/`ys-pointer-click`/`ys-esc`
+   `idle_ms`（缺省 **3s**，`YS_SESSION_IDLE_MS`）就把屏幕交还用户；下一个动作由 `ys-scroll`/`ys-pointer-click`/`ys-esc`
    **内部自动重取焦点**（模型无感，照常调同一个工具；取不回焦点 ⇒ **rc=7/rc=4 拒绝注入**，绝不打进你的窗口）。
    ⇒ **模型思考的时间不计费**，也就没有"为省租期批量跑"的动机。
 ④ **凭据**单次 `--eta ≤300s`、必须带 `--user-said`；**切虚拟桌面是更重的动作**（会话内授权即含桌面借用，
@@ -333,7 +370,7 @@ tools/ys-editor/ys-session focus       # 动作前自动重取焦点（**动作�
 tools/ys-editor/ys-session end         # 统一 restore firefox + revoke
 ```
 
-**层 2 行为（2026-10-21 用户令）**：模型思考时 `ys-focus-guard` 会在静默 `idle_ms`（缺省 8s）后
+**层 2 行为（2026-10-21 用户令）**：模型思考时 `ys-focus-guard` 会在静默 `idle_ms`（缺省 **3s**）后
 **自动把屏幕交还用户**；下一个动作到达时动作工具**内部自动重取焦点**，模型侧调用方式完全不变。
 `released / reacquires / release_reason` 三个字段就是这条链的读数。
 取不回焦点 ⇒ `ys-scroll` rc=7 / `ys-session focus` rc=4，**拒绝注入**（绝不打进用户窗口）。
@@ -357,7 +394,7 @@ tools/ys-editor/ys-key esc --hold-ms 80
 3. **变化判据**：`--wait-change x,y,w,h` 按下后轮询该区域像素哈希，变了才 rc=0；超时 **rc=8 `changed=false`**
    （即"这一下可能被动画吞了"，扫描循环据此重发，而不是连拍同一帧）。
 
-**为什么重要（同一天真机踩出来的）**：裸 `ydotool` 不刷心跳 ⇒ 守护按静默 8s 把屏幕交还用户、
+**为什么重要（同一天真机踩出来的）**：裸 `ydotool` 不刷心跳 ⇒ 守护按静默 3s 把屏幕交还用户、
 桌面切走 ⇒ 后续按键**打进了用户正在用的窗口**（那天往 firefox 里发了 e/q）。凡是要连续注入的循环，
 每一步都必须经过 `ys-key`（或自己调 `ys-session focus`）。
 

@@ -121,7 +121,7 @@ def cmd_begin(a):
             # 层 2（2026-10-21）：空闲释放 —— 代理思考时屏幕已在用户手上。
             # last_action_ts 由 `focus` 每次动作刷新；guard 超过 idle_ms 就交还。
             "last_action_ts": now, "holding_until": 0.0, "released": False,
-            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "8000")),
+            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "3000")),
             "reacquires": 0, "actions": 0}
     if a.dry_run:
         save(sess)
@@ -292,7 +292,7 @@ def cmd_focus(a):
                          ensure_ascii=False))
         return 3
     now = time.time()
-    hold = float(os.environ.get("YS_SESSION_HOLD_S", "6"))
+    hold = float(os.environ.get("YS_SESSION_HOLD_S", "2"))  # 只护住注入窗口本身；空闲判据是 idle_ms(3s)
     target = cur.get("target") or {}
     if not cur.get("released"):
         cur["last_action_ts"] = now

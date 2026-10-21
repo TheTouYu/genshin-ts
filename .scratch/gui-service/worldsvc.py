@@ -1649,6 +1649,7 @@ def main(argv=None):
     p.add_argument("--latest", action="store_true", help="复用上一次的帧（会标 STALE_FRAME）")
     p.add_argument("--channel", default="fast", choices=["fast", "full"])
     p.add_argument("--summary", action="store_true", help="只打印摘要（不打印完整世界状态）")
+    p.add_argument("--grep", default="", help="在界面文字里找子串（配合 --summary 就是「一步看目标在不在」）")
     p.add_argument("--fast", action="store_true",
                    help="快速路径（daemon-world）：跳过检测+结构层（省 ~40–90ms）；"
                         "OCR/判态/容器照常（省 OCR 会让状态静默降级，实测 f06 变 UNKNOWN）")
@@ -1746,7 +1747,7 @@ def main(argv=None):
             ws = svc.look(frame=a.frame, source=None, fast=bool(getattr(a, "fast", False)),
                           advice=not bool(getattr(a, "no_advice", False)))
             if a.summary:
-                _emit(ws.summary(), out_path=a.json_out)
+                _emit(ws.summary(grep=(a.grep or None)), out_path=a.json_out)
             else:
                 _emit(ws.to_dict(), out_path=a.json_out)
             return 0

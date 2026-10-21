@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""ys-read — 读界面文字，**双读一致才报**（防"切换动画中间态"）。
+
+## 为什么必须双读（2026-10-21 用户抓到的真 bug）
+
+用户原话：「你中间过程的截图，很多角色名字和头像对不上！！！」
+
+根因不是抓错帧，而是**帧本身落在切换动画中间**：角色界面切换时，左上角名字先更新，
+右侧头像/中央立绘后更新（或反过来）。单帧读一次，就会拿到「新名字 + 旧头像」的混合态。
+我拿这些帧拼的扫描序列，**顺序因此不可信**（名字与头像错位），虽然最终答案是在一张
+**稳定帧**上复核的（名字/立绘/资料三处自洽）。
+
+## 判据
+
+    ys-read --grep 甘雨                 # 读两次，两次文字集合一致才 rc=0
+    ys-read --grep 甘 --confirm-ms 400  # 动画慢的界面加大间隔
+    ys-read --grep 甘雨 --frame /tmp/x.png   # 离线帧（同一文件两次读，恒一致，用于自测）
+
+返回：`consistent`（两次文字是否一致）/ `attempts` / `state` / `matches` / `texts_n`。
+- `consistent=false` ⇒ **rc=9**，表示"界面还在动，这一帧不能当判据"（别拿它下结论）。
+- `match_count=0` 且 `consistent=true` ⇒ **rc=0**，含义是"稳定地没找到"——这是判据，不是失败。
+
+退出码：0 一致 / 2 用法 / 9 不一致（界面仍在变化）/ 1 后端报错
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+WORLDSVC = os.environ.get("YS_WORLDSVC") or os.path.join(REPO, ".scratch", "gui-service", "worldsvc.py")
+
+
+def read_once(backend: str, frame: str, grep: str) -> dict:
+    """走 --json-out 拿结构化结果（look 的 stdout 是**多行 pretty JSON**，按行截最后一行会解析失败）。"""
+    import tempfile
+    fd, tmp = tempfile.mkstemp(prefix="ys-read-", suffix=".json")
+    os.close(fd)
+    cmd = [sys.executable, WORLDSVC, "look", "--summary", "--json-out", tmp]
+    if frame:
+        cmd += ["--frame", frame]
+    else:
+        cmd += ["--backend", backend]
+    if grep:
+        cmd += ["--grep", grep]
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    try:
+        with open(tmp, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:                                    # noqa: BLE001
+        d = {"status": "error", "stderr": (p.stderr or "")[-300:], "raw": (p.stdout or "")[-300:]}
+    finally:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+    d["_rc"] = p.returncode
+    return d
+
+
+def fingerprint(d: dict) -> str:
+    """文字指纹：只看「界面上写了什么」，不看像素（动画会让像素一直变）。"""
+    import hashlib
+    texts = []
+    for t in d.get("texts") or []:
+        texts.append(str(t.get("text") or ""))
+    texts += [str(x) for x in (d.get("free_text") or [])]
+    texts.sort()
+    return hashlib.blake2b("\n".join(texts).encode("utf-8"), digest_size=8).hexdigest()
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="读界面文字（双读一致才报）")
+    ap.add_argument("--grep", default="", help="只关心含这个子串的文字")
+    ap.add_argument("--confirm-ms", type=int, default=350, help="两次读之间的间隔")
+    ap.add_argument("--attempts", type=int, default=3, help="最多读几轮（每轮两次）")
+    ap.add_argument("--backend", default="daemon-world", choices=["daemon-world", "cli"])
+    ap.add_argument("--frame", default="", help="离线帧（自测用；同一文件两次读恒一致）")
+    a = ap.parse_args()
+
+    out = {"ok": True, "grep": a.grep or None, "confirm_ms": a.confirm_ms}
+    for attempt in range(1, max(1, a.attempts) + 1):
+        t0 = time.time()
+        first = read_once(a.backend, a.frame, a.grep)
+        if first.get("status") == "error":
+            out.update({"ok": False, "error": first, "rc": 1})
+            print(json.dumps(out, ensure_ascii=False))
+            return 1
+        time.sleep(max(0, a.confirm_ms) / 1000.0)
+        second = read_once(a.backend, a.frame, a.grep)
+        same = fingerprint(first) == fingerprint(second)
+        out.update({
+            "attempts": attempt,
+            "consistent": same,
+            "state": second.get("state"),
+            "texts_n": second.get("texts_n"),
+            "match_count": second.get("match_count"),
+            "matches": second.get("matches"),
+            "texts": second.get("texts"),
+            "elapsed_ms": round((time.time() - t0) * 1000, 1),
+        })
+        if same:
+            print(json.dumps(out, ensure_ascii=False))
+            return 0
+    out.update({"ok": False, "error": "UNSTABLE_UI", "rc": 9,
+                "hint": "两次读到的文字不一致 ⇒ 界面还在动（切换动画中间态），别拿这一帧下结论"})
+    print(json.dumps(out, ensure_ascii=False))
+    return 9
+
+
+if __name__ == "__main__":
+    sys.exit(main())
