@@ -37,8 +37,18 @@ T0=$(date +%s%N)
 PY="$(command -v python3 || echo /usr/bin/python3)"
 CMD="${1:-}"; [ $# -gt 0 ] && shift || true
 
-deny() {  # deny <exit> <code> <detail>
-  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
+recheck_desktop() {  # 0 = 目标窗确实在当前桌面（结论过期时现场刷一次，别拿 2s 前的缓存拒人）
+  # 2026-10-21 实测：会话空闲交还 → 桌面切回用户那张 → 动作工具重取焦点切回游戏，
+  # 但抓帧守护的 strict 结论还停在上一张桌面（sage 可到 2s）⇒ 连 --live 读屏都读不到。
+  local line ds cur
+  line=$("$HERE/ys-wins" --attrib 2>/dev/null | grep -i "${klass:-yuanshen}" | head -1)
+  [ -n "$line" ] || return 1
+  ds=$(printf '%s' "$line" | sed -n 's/.*ds=\([0-9]*\).*/\1/p')
+  cur=$(printf '%s' "$line" | sed -n 's/.*cur=\([0-9]*\).*/\1/p')
+  [ -n "$ds" ] && [ -n "$cur" ] && [ "$ds" = "$cur" ]
+}
+
+deny() {  # deny <exit> <code> <detail>  local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
   local extra=""
   if [ "$2" = "OTHER_DESKTOP" ]; then
     extra=',"next_action":[{"step":1,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe","--dry"],"why":"先看窗口在哪张桌面（只读）"},{"step":2,"tool":"tools/ys-editor/ys-follow-win","args":["yuanshen.exe"],"why":"切过去要单独授权：先向用户申请，再设 YS_ALLOW_DESKTOP_SWITCH=1"}]'
@@ -95,7 +105,7 @@ cmd_latest() {
   # ── 闸门①：X11/EWMH 快路径（廉价次级信号；它会把桌面说错，所以只用来「更保守地拒」）
   case "$fast" in
     OK) ;;
-    OTHER_DESKTOP) deny 4 OTHER_DESKTOP "窗口不在当前虚拟桌面（EWMH：${fage}ms 前判定）";;
+    OTHER_DESKTOP) recheck_desktop || deny 4 OTHER_DESKTOP "窗口不在当前虚拟桌面（EWMH：${fage}ms 前判定）";;
     OCCLUDED)      deny 5 OCCLUDED "窗口被遮挡/最小化（EWMH：${fage}ms 前判定）";;
     NOT_FOUND)     deny 2 NOT_FOUND "窗口身份不匹配（EWMH：${fage}ms 前判定）";;
     NOT_ATOP)      deny 2 NOT_ATOP "窗口不在栈顶（EWMH：${fage}ms 前判定）";;
@@ -109,7 +119,7 @@ cmd_latest() {
       "KWin 权威通道不可用（strict_src=${ssrc:-空}）——拒绝用 X11 快路径冒充（票 34）"
     case "$strict" in
       OK) ;;
-      OTHER_DESKTOP) deny 4 OTHER_DESKTOP "KWin：窗口不在当前虚拟桌面";;
+      OTHER_DESKTOP) recheck_desktop || deny 4 OTHER_DESKTOP "KWin：窗口不在当前虚拟桌面";;
       OCCLUDED)      deny 5 OCCLUDED "KWin：窗口被遮挡";;
       NOT_FOUND)     deny 2 NOT_FOUND "KWin：找不到目标窗口";;
       NOT_ATOP)      deny 2 NOT_ATOP "KWin：窗口不在栈顶";;

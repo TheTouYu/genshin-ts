@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""ys-key — 发一次按键（**带心跳、带变化判据**），是 GUI 扫描循环的最小动作单元。
+
+## 为什么要有它（2026-10-21 真机找甘雨，一次任务踩出三个坑）
+
+1. **裸 `ydotool` 不刷心跳**：会话空闲交还由 `ys-focus-guard` 按"距上次动作的静默时长"判，
+   而心跳只有 `ys-session focus` 会刷。裸注入跑满 8 秒后，守护把屏幕交还用户、
+   桌面切走，**后续按键就打进了用户正在用的窗口**（那天真的往 firefox 里发了 e/q）。
+2. **按键会丢/会重**：角色切换动画未结束时按键被吞（24 帧里 11 帧是同一角色），
+   扫描循环只能靠"重复就再按一次"兜底，白烧时间。
+3. 每个动作都要手写 focus→press→capture 三件套，模型侧负担重、还容易漏。
+
+## 语义
+
+    ys-key <按键> [--hold-ms 60] [--wait-change X,Y,W,H] [--max-wait-ms 1500]
+                  [--repeat N] [--interval-ms 0] [--plan] [--frame-raw PATH]
+
+- **焦点**：会话内先跑 `ys-session focus`（刷心跳 + 必要时重取焦点）；没有会话就回落
+  `ys-gui-slot` 路径（需要有效屏幕凭据）。取不回焦点 ⇒ **rc=7，一个键都不发**。
+- **变化判据**：`--wait-change` 给出一个屏幕区域（物理像素 x,y,w,h），按下后轮询该区域的
+  像素哈希，变了才返回（`changed=true`）；超时返回 `changed=false` 且 **rc=8**。
+  ⇒ 扫描循环用它，就不会再出现"同名字连拍 4 帧"。
+- 读原始帧走常驻 `ys-capture` 的 RGB 缓冲（只读文件，不抢屏、不编码 PNG）。
+- `--plan` 只打印解析结果，不注入（离线可测）。
+
+退出码：0 正常 / 2 用法 / 3 无授权 / 7 焦点取不回 / 8 等待变化超时
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SESSION = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
+CAPTURE = os.path.join(HERE, "ys-capture")
+SLOT = os.path.join(HERE, "ys-gui-slot")
+
+# Linux input event codes（ydotool 用的是这一套，不是 ASCII）
+KEYS = {
+    "esc": 1, "1": 2, "2": 3, "3": 4, "4": 5, "5": 6, "6": 7, "7": 8, "8": 9, "9": 10, "0": 11,
+    "minus": 12, "equal": 13, "backspace": 14, "tab": 15,
+    "q": 16, "w": 17, "e": 18, "r": 19, "t": 20, "y": 21, "u": 22, "i": 23, "o": 24, "p": 25,
+    "enter": 28, "a": 30, "s": 31, "d": 32, "f": 33, "g": 34, "h": 35, "j": 36, "k": 37,
+    "l": 38, "z": 44, "x": 45, "c": 46, "v": 47, "b": 48, "n": 49, "m": 50,
+    "space": 57, "up": 103, "down": 108, "left": 105, "right": 106,
+    "f1": 59, "f2": 60, "f3": 61, "f4": 62, "f5": 63, "f6": 64,
+}
+
+
+def resolve_key(k: str) -> int:
+    k = (k or "").strip().lower()
+    if k in KEYS:
+        return KEYS[k]
+    if k.isdigit():
+        return int(k)
+    raise SystemExit(json.dumps({"ok": False, "error": "BAD_KEY", "key": k,
+                                 "known": sorted(KEYS)[:20]}, ensure_ascii=False))
+
+
+def session_active() -> dict | None:
+    try:
+        with open(SESSION, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:                                    # noqa: BLE001
+        return None
+    if d.get("state") == "active" and float(d.get("expires") or 0) > time.time() and not d.get("dry_run"):
+        return d
+    return None
+
+
+def ensure_focus() -> dict:
+    """刷心跳 + 必要时重取焦点。返回 {"path": "session"|"slot", "rc": n}。"""
+    if session_active():
+        p = subprocess.run([sys.executable, os.path.join(HERE, "ys-session"), "focus"],
+                           capture_output=True, text=True, timeout=60)
+        try:
+            d = json.loads((p.stdout or "").strip().splitlines()[-1] or "{}")
+        except Exception:                                # noqa: BLE001
+            d = {}
+        return {"path": "session", "rc": p.returncode, "detail": d}
+    # 无会话：走 ys-gui-slot（自带凭据校验 + 抬窗 + 还原）
+    return {"path": "slot", "rc": 0, "detail": {"note": "no session; 按键将由 slot 包装执行"}}
+
+
+def raw_rgb_path() -> str | None:
+    try:
+        p = subprocess.run([CAPTURE, "status"], capture_output=True, text=True, timeout=10)
+        d = json.loads((p.stdout or "").strip().splitlines()[-1] or "{}")
+        return ((d.get("state") or {}).get("rgb")) or None
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def region_hash(rgb_path: str, region: tuple[int, int, int, int], width: int = 2560) -> str:
+    """读区域像素算哈希（只读 /dev/shm 的 RGB 缓冲，不解码 PNG、不碰屏幕）。"""
+    import hashlib
+    x, y, w, h = region
+    hsh = hashlib.blake2b(digest_size=8)
+    with open(rgb_path, "rb") as f:
+        for row in range(h):
+            off = ((y + row) * width + x) * 3
+            f.seek(off)
+            hsh.update(f.read(w * 3))
+    return hsh.hexdigest()
+
+
+def parse_region(s: str) -> tuple[int, int, int, int]:
+    parts = [int(v) for v in (s or "").replace(" ", "").split(",")]
+    if len(parts) != 4:
+        raise SystemExit(json.dumps({"ok": False, "error": "BAD_REGION", "region": s,
+                                     "hint": "格式 x,y,w,h（物理像素）"}, ensure_ascii=False))
+    return tuple(parts)  # type: ignore[return-value]
+
+
+def press(code: int, hold_ms: int, frame_raw: str | None) -> None:
+    if frame_raw:                                        # 离线：只演算不注入
+        return
+    os.environ.setdefault("YS_SLOT_ACTIVE", "1")         # ydotool 的 PATH shim 只认这个标记
+    subprocess.run(["ydotool", "key", f"{code}:1"], capture_output=True, text=True, timeout=10)
+    time.sleep(max(1, hold_ms) / 1000.0)
+    subprocess.run(["ydotool", "key", f"{code}:0"], capture_output=True, text=True, timeout=10)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="发一次按键（带心跳 + 屏幕变化判据）")
+    ap.add_argument("key", help="按键名或数字码：c / e / q / esc / enter / space / up / 46 …")
+    ap.add_argument("--hold-ms", type=int, default=60)
+    ap.add_argument("--repeat", type=int, default=1)
+    ap.add_argument("--interval-ms", type=int, default=0)
+    ap.add_argument("--wait-change", default="", help="等这个区域变化（物理像素 x,y,w,h）")
+    ap.add_argument("--max-wait-ms", type=int, default=1500)
+    ap.add_argument("--poll-ms", type=int, default=80)
+    ap.add_argument("--frame-raw", default="", help="离线：用这个 RGB 缓冲代替常驻抓帧（不注入）")
+    ap.add_argument("--frame-width", type=int, default=2560, help="配合 --frame-raw：缓冲宽度")
+    ap.add_argument("--plan", action="store_true", help="只打印解析结果，不注入")
+    a = ap.parse_args()
+    code = resolve_key(a.key)
+    region = parse_region(a.wait_change) if a.wait_change else None
+    out = {"ok": True, "key": a.key, "code": code, "repeat": a.repeat,
+           "wait_change": region, "session": bool(session_active())}
+    if a.plan:
+        out["plan"] = True
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
+    focus = ensure_focus()
+    out["focus"] = focus
+    if focus["path"] == "session" and focus["rc"] not in (0,):
+        out.update({"ok": False, "error": "FOCUS_NOT_READY", "rc": focus["rc"],
+                    "next_action": "焦点取不回 ⇒ 一个键都没发；先确认屏幕在谁手上"})
+        print(json.dumps(out, ensure_ascii=False))
+        return 7
+    rgb = a.frame_raw or raw_rgb_path()
+    before = region_hash(rgb, region, a.frame_width) if (region and rgb) else None
+    t0 = time.time()
+    try:
+        press(code, a.hold_ms, a.frame_raw or None)
+    except FileNotFoundError:
+        out.update({"ok": False, "error": "YDOTOOL_MISSING"})
+        print(json.dumps(out, ensure_ascii=False))
+        return 2
+    for _ in range(max(0, a.repeat - 1)):
+        time.sleep(max(0, a.interval_ms) / 1000.0)
+        press(code, a.hold_ms, a.frame_raw or None)
+    out["press_ms"] = round((time.time() - t0) * 1000, 1)
+    if region is None:
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
+    # ── 等变化：只有目标区域真的变了才算这一下按键生效 ──
+    if before is None:
+        out.update({"ok": False, "error": "NO_FRAME", "detail": "读不到抓帧缓冲（ys-capture status）"})
+        print(json.dumps(out, ensure_ascii=False))
+        return 8
+    waited = 0
+    changed = False
+    while waited <= a.max_wait_ms:
+        time.sleep(a.poll_ms / 1000.0)
+        waited += a.poll_ms
+        cur_rgb = a.frame_raw or raw_rgb_path()
+        if not cur_rgb:
+            continue
+        try:
+            if region_hash(cur_rgb, region, a.frame_width) != before:
+                changed = True
+                break
+        except Exception:                                # noqa: BLE001
+            continue
+    out["change"] = {"changed": changed, "waited_ms": waited, "region": region}
+    if not changed:
+        out.update({"ok": False, "error": "NO_CHANGE", "rc": 8,
+                    "hint": "区域在 --max-wait-ms 内没变：按键可能被动画吞了，可加大等待或重发"})
+        print(json.dumps(out, ensure_ascii=False))
+        return 8
+    print(json.dumps(out, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

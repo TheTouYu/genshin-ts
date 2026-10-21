@@ -58,7 +58,10 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           # 2026-10-21 用户令（层 2）：「模型思考时自动切回用户，执行下一个动作时自动切到游戏，
           # 不干扰模型、不给模型增加负担」。守 idle 交还 + 动作前自动重取 + 取不回就 fail-closed。
           # 全离线（假 lease / 假 hand-back），不碰屏幕。
-          ('session-idle', 'session-idle.selftest.sh', 120)]
+          ('session-idle', 'session-idle.selftest.sh', 120),
+          # 2026-10-21 找甘雨实任务回灌：裸注入不刷心跳（守护 8s 交还后按键打进用户窗口）、
+          # 动画吞键导致同一角色连拍 4 帧。ys-key 把「focus 心跳 + 按键 + 区域变化判据」合成一步。
+          ('key', 'key.selftest.sh', 90)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {

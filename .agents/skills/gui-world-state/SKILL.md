@@ -343,6 +343,24 @@ tools/ys-editor/ys-session end         # 统一 restore firefox + revoke
 对用户汇报的是**成本**：打扰总时长、抬窗次数、知情次数、交还延迟；数字必须能从 `~/.ys/` 的回执重算，
 不许只报自算的百分比。
 
+### 9.1 按键一律走 `ys-key`（2026-10-21 找甘雨实任务回灌）
+
+```bash
+tools/ys-editor/ys-key e --wait-change 150,25,760,105      # 切下一个角色，等名字条真的变了
+tools/ys-editor/ys-key c --plan                            # 只解析键码，不注入（离线可测）
+tools/ys-editor/ys-key esc --hold-ms 80
+```
+
+它把三件事合成一步，**别再手写 `ydotool` 循环**：
+1. **心跳**：先跑 `ys-session focus`（刷新 `last_action_ts`，必要时重取焦点）；取不回 ⇒ **rc=7 一个键都不发**。
+2. **按键**：键名→Linux input code（`c=46 e=18 q=16 esc=1 space=57`），`--repeat`/`--interval-ms`。
+3. **变化判据**：`--wait-change x,y,w,h` 按下后轮询该区域像素哈希，变了才 rc=0；超时 **rc=8 `changed=false`**
+   （即"这一下可能被动画吞了"，扫描循环据此重发，而不是连拍同一帧）。
+
+**为什么重要（同一天真机踩出来的）**：裸 `ydotool` 不刷心跳 ⇒ 守护按静默 8s 把屏幕交还用户、
+桌面切走 ⇒ 后续按键**打进了用户正在用的窗口**（那天往 firefox 里发了 e/q）。凡是要连续注入的循环，
+每一步都必须经过 `ys-key`（或自己调 `ys-session focus`）。
+
 live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并在 `look` 回执
 `timing.frame_source` 标 `ys-capture|import-fallback|import`；归属类拒绝仍 fail-closed。
 
