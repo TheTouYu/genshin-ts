@@ -2,11 +2,14 @@
 Description=ys-lookd - 常驻图像识别服务（GPU 常驻，GUI 自动化用）
 After=graphical-session.target
 
+# 2026-10-22 重启后事故：单元只写 DISPLAY=:1，而 XAUTHORITY 是每会话随机文件名
+# ⇒ 守护起来后 X 授权失败（px 报「截取失败 (0 != 3)」），两个门禁同时假红。
+# 修法=启动时先 source ys-env.sh（它抄运行中原神进程的 environ，权威）。
 [Service]
 Type=simple
 Environment=DISPLAY=:1
 Environment=YS_LOOKD_SOCK=/run/user/1000/ys-lookd.sock
-ExecStart=/usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_lookd.py
+ExecStart=/bin/bash -c '. /home/h/genshin-ts/tools/ys-editor/ys-env.sh >/dev/null 2>&1; exec /usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_lookd.py'
 Restart=on-failure
 RestartSec=3
 

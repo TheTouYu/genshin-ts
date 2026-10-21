@@ -164,6 +164,7 @@ tools/ys-editor/ys-read --grep 甘雨        # 读两次，两次文字集合一
 | `ys-capture`（XShm 常驻抓帧） | `tools/ys-editor/ys-capture status` | `daemon_alive && seq>0 && last_err==""`——**进程活着 ≠ 在产帧** |
 | 一键拉起 | `tools/ys-editor/ys-eyes-up` | exit 0 就绪 / 2 没窗口 / 3 守护不产帧 / **5 在产帧但窗不在当前桌面** |
 | 跨桌面 | `tools/ys-editor/ys-follow-win` | 只读探测不加 `--switch`；KWin 报 `desktop=all` 就是「在所有桌面」 |
+| **重启后 X 授权** | `tr '\0' '\n' < /proc/$(systemctl --user show ys-lookd -p MainPID --value)/environ \| grep XAUTHORITY` | 必须**有值**。两个守护的 systemd 单元现在都先 `source ys-env.sh`（2026-10-22 事故：单元只写死 `DISPLAY=:1`，而 `XAUTHORITY=/run/user/<uid>/xauth_XXXX` 每会话随机 ⇒ 重启后 `px` 全报「截取失败 (0 != 3)」，`daemon-resilience` 与 `capture-liveness` 双双假红，而进程/服务态全是绿的） |
 
 ## 4.5 回归测试默认不许碰屏幕（2026-10-21 用户反馈「说完成了却还有操作音」）
 
