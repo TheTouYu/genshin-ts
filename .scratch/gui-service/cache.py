@@ -22,7 +22,8 @@ import re
 import time
 
 # 服务自身映射逻辑的版本：改 worldsvc/schema 的映射语义时必须 +1，否则旧缓存会被当成新结论。
-LOGIC_VERSION = "worldsvc-b3-world"
+LOGIC_VERSION = "worldsvc-b4-provenance"   # 2026-10-21：raw 增加 objects_source/objects_n；
+                                               # 旧条目没有这些字段 ⇒ 升版本让它们自然失效，不靠"读到缺字段再补默认值"（那会把旧数据洗成新口径）
 
 SIG_FILES_DEFAULT = (
     ("ys-state", "tools/ys-editor/ys-state"),

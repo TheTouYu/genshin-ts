@@ -220,9 +220,19 @@ def main(argv=None):
         res = svc.act({"text": "绝对不存在的按钮"}, expect=EXPECT_SIMPLE, frame=FRAME)
         check("act/未命中 fail-closed（resolve_fail）", res["status"] == "resolve_fail" and not injected)
         res = svc.act({"text": "透雨"}, expect=EXPECT_SIMPLE, frame=FRAME)   # f06 free_text
-        check("act/free_text 命中但无坐标 → 拒绝",
-              res["status"] == "resolve_fail" and
-              any(d["code"] == "FREE_TEXT_UNOWNED" for d in res["degraded"]))
+        # 2026-10-21 起：容器文本未命中会走**整帧 OCR 兜底**（channel=ocr_frame）并给出坐标，
+        # 旧的「free_text 命中 ⇒ 必然 resolve_fail」已不成立（那是加上兜底之前的设计）。
+        # 现在要验的是：兜底真的解析出坐标，且回执**自洽**（resolved 与 resolution.status 一致）。
+        _rt = (res.get("resolution") or {}).get("status")
+        check("act/free_text 命中 → 整帧 OCR 兜底解析出坐标",
+              res["status"] == "dry_run" and _rt == "resolved"
+              and (res.get("resolution") or {}).get("channel") == "ocr_frame"
+              and bool((res.get("would_act") or {}).get("at")),
+              f"status={res['status']} channel={(res.get('resolution') or {}).get('channel')} "
+              f"at={(res.get('would_act') or {}).get('at')}")
+        check("act/回执自洽：resolved 与 resolution.status 一致",
+              bool(res.get("resolved")) == (_rt == "resolved"),
+              f"resolved={res.get('resolved')} resolution.status={_rt}")
         synth = schema.new_world(
             frame_id="sha256:" + "1" * 64, captured_at_ms=schema.now_ms(),
             state={"name": "GAME_PAIMON", "evidence": [{"source": "selftest"}], "channel": "fast"},
@@ -447,8 +457,17 @@ def main(argv=None):
         dw_cold = _ms(t0)
         check("daemon-world/state 与 cli 一致", ws_dw.state_name == ws.state_name,
               f"{ws_dw.state_name} != {ws.state_name}")
-        check("daemon-world/对象数与 cli 一致", len(ws_dw.objects) == len(ws.objects),
-              f"{len(ws_dw.objects)} != {len(ws.objects)}")
+        # 2026-10-21：两个后端 CV 源不同（cli=容器层 / daemon=D2 检测框），逐条相等是**旧设计**
+        # 的判据（"选更全的源"2026-10-19 才进 daemon）。现在验的是：来源可见 + 具名对象高度重合。
+        _named = lambda ws_: {o["text"][0] for o in ws_.objects if o.get("text")}
+        _dn, _cn = _named(ws_dw), _named(ws)
+        check("daemon-world/对象来源与两源数量可见",
+              (ws_dw.raw.get("objects_source") in ("containers", "detections")
+               and (ws.raw.get("objects_n") or {}).get("containers") is not None),
+              f"source={ws_dw.raw.get('objects_source')} n={ws_dw.raw.get('objects_n')}")
+        check("daemon-world/具名对象与 cli 重合 ≥70%（不同 CV 源，不要求逐条相等）",
+              bool(_cn) and len(_dn & _cn) / len(_cn) >= 0.70,
+              f"交集 {len(_dn & _cn)}/{len(_cn)} = {len(_dn & _cn) / max(1, len(_cn)):.0%}")
         check("daemon-world/timing 含 judge_ms/ocr_ms（禁两层缓存后直取原始回执）",
               all(k in (ws_dw.raw.get("timing_ms") or {}) for k in ("judge_ms", "ocr_ms")),
               str(ws_dw.raw.get("timing_ms")))

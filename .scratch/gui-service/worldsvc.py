@@ -67,6 +67,27 @@ def _degraded(code, detail=""):
     return {"code": code, "detail": detail}
 
 
+_SB_CACHE = {}          # (abspath, mtime_ns, size) -> detect_path 回执（确定性，可安全复用）
+_SB_CACHE_MAX = 32
+
+
+def _sb_cached(mod, path):
+    """滚动条检测记忆化：同一帧文件重算没有意义，而它是 advice 兜底里最贵的一段。"""
+    try:
+        st = os.stat(path)
+        key = (os.path.abspath(path), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return mod.detect_path(path)
+    hit = _SB_CACHE.get(key)
+    if hit is not None:
+        return hit
+    val = mod.detect_path(path)
+    if len(_SB_CACHE) >= _SB_CACHE_MAX:
+        _SB_CACHE.pop(next(iter(_SB_CACHE)))
+    _SB_CACHE[key] = val
+    return val
+
+
 def _live_next_actions(code, *, allow_background=False):
     """归属/前置拒绝时的**结构化下一步**（AGI 标准：可直接执行，带参数与代价）。
 
@@ -158,7 +179,11 @@ class WorldService:
             if path and os.path.isfile(path):
                 try:
                     import ys_scrollbar as _SB
-                    r = _SB.detect_path(path)
+                    # 2026-10-21：detect_path 每次 200–265ms（整帧解码 + 像素扫描），
+                    # 而它在同一帧上是**确定性**的 ⇒ 按 (路径, mtime, size) 记忆化。
+                    # 这是缓存命中路径 214ms→~1ms 的根因修复：缓存本身只占 0.7ms，
+                    # 是这条 advice 兜底把"命中"拖成了两百毫秒（且多数时候返回空建议）。
+                    r = _sb_cached(_SB, path)
                     cap = {"found": bool(r.get("found")),
                            "orientation": r.get("orientation"),
                            "position_ratio": r.get("position_ratio")}
@@ -225,6 +250,11 @@ class WorldService:
                                 state_res=state_res, cont_res=cont_res,
                                 screen_frame=cont_res.get("frame") or {},
                                 timing={"state": round(t_state, 1), "objects": round(t_obj, 1)})
+        # cli 后端没有 D2 检测器（只在常驻服务的 GPU 侧）⇒ 对象只来自容器层。
+        # 如实标注来源，别让调用方以为两后端给的是同一套 CV 结果。
+        raw["objects_source"] = "containers"
+        raw["objects_n"] = {"containers": len(raw.get("objects") or []),
+                            "detections": None, "used": len(raw.get("objects") or [])}
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         t_validate = (time.perf_counter() - t0) * 1000
 
@@ -337,8 +367,10 @@ class WorldService:
         use_dets = bool(dets) and (state_name == "GAME_WORLD" or not objects
                                    or len(dets) > len(objects))
         n_cont = len(objects)
+        objects_source = "containers"
         if use_dets:
             objects = [schema.object_from_detection(d, frame_id=frame_id) for d in dets]
+            objects_source = "detections"
         free_text = [str(t) for t in ((resp.get("objects") or {}).get("free_text") or [])]
         uncertainty = list((resp.get("objects") or {}).get("uncertainty") or [])
         cont_degr = bool((resp.get("objects") or {}).get("degraded") or
@@ -365,6 +397,10 @@ class WorldService:
                                       "h": resp["frame"].get("h")}),
             budget_ms=self.budget_ms)
         raw["attribution"] = resp.get("attribution")
+        # 对象来源标注（AGI 标准：两个后端 CV 源不同，必须让调用方看得见来源，而不是猜）
+        raw["objects_source"] = objects_source
+        raw["objects_n"] = {"containers": n_cont, "detections": len(dets),
+                            "used": len(objects)}
         raw["structure"] = resp.get("structure")   # D3 结构层（groups/rows/pitch），随世界状态一起返回
         raw["daemon_timing"] = resp.get("timing")
         # 2026-10-21 复盘修正：稳定信号（settled）原先**没从 daemon 回执透传**，
@@ -676,8 +712,10 @@ class WorldService:
 
             # ── dry-run（默认）：只解析与校验，不动、不写证据 ──
             if not inject:
-                result.update({"status": "dry_run", "ok": True, "expect_evaluated": False,
-                               "would_act": spec,
+                # 2026-10-21：这里漏了 resolved=True —— 回执自相矛盾（顶层 resolved:false，
+                # 而 resolution.status:"resolved" 且给了 would_act 坐标）。调用方据此会以为没解析到。
+                result.update({"status": "dry_run", "resolved": True, "ok": True,
+                               "expect_evaluated": False, "would_act": spec,
                                "degraded": [_degraded("INJECTION_BLOCKED",
                                                       "dry-run：已解析动作与 expect，未执行（默认）")]})
                 result["elapsed_ms"] = int((time.perf_counter() - t0) * 1000)
@@ -1661,6 +1699,13 @@ CAPABILITIES = {
         {"code": "BLANK_FRAME_UNDETECTED", "detail": "黑屏/空白帧无判别（账本 F-20261021-48, open）"},
         {"code": "EXPECT_EXACT_MATCH", "detail": "text_added 是整串匹配；OCR 常把标题与计数粘成一条"},
         {"code": "SCROLL_CHANNEL", "detail": "ys-scroll --lease 在游戏窗常无效，需走槽位模式"},
+        {"code": "CROSS_BACKEND_OBJECT_PARITY",
+         "detail": "cli 只有容器层（ys-screen），daemon-world 有 D2 检测框；同一帧对象集**不保证逐条相等**"
+                   "（f06 实测 cli 22 / daemon 48，具名对象 20 vs 25，共享 17 条）。"
+                   "payload 里 objects_source + objects_n 标明来源与两源数量，不要假设两后端同解"},
+        {"code": "HUD_OVERLAY_FALSE_POSITIVE",
+         "detail": "DXVK/FPS 浮层（左上角）会被容器层/检测层当成对象（f06 里出现 kind=unknown 的"
+                   "『DXVK v3.0 / FPS: 60.3』框）；它不可点，属已知假阳性"},
         {"code": "DRILL_SCOPE_LIMITED",
          "detail": "解析失败先下钻 look 的 uncertainty 区域（score≥0.8，top3），未命中再**整帧 OCR 兜底**"
                    "（channel=ocr_frame，~0.6s）；两者都不中才判 resolve_fail。"
