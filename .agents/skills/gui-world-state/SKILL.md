@@ -40,7 +40,10 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world      # 全�
 python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --fast --summary
 
 # 动：按文字/对象解析后注入（默认 dry-run，真动要 --live + 焦点授权）
-python3 .scratch/gui-service/worldsvc.py act --text 好友 --action '{"type":"click"}'
+# ⚠️ `--expect` 是**必填**：漏了直接 rc=2、stdout 为空（2026-10-21 实测连跑两次都静默失败，
+#    日志里只看到 resolved=None/injected=None）。动作后要判"世界变没变"，本来也不该省它。
+python3 .scratch/gui-service/worldsvc.py act --object-id <id> --action '{"type":"click"}' --live \
+  --expect '{"type":"state_in","states":["GAME_FRIENDS"]}' --expect-timeout-ms 10000
 
 # 等：谓词等待（禁裸 sleep）
 python3 .scratch/gui-service/worldsvc.py wait --predicate '{"state_in":["GAME_PAIMON"]}' --timeout 10
@@ -190,6 +193,10 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 ```bash
 # ① 读滚动条（只读像素，不占屏，84–200ms/帧）
 tools/ys-scrollbar /tmp/frame.png --json
+#   ⚠️ 即使给 --json，stdout 也是「一行人读行 `SCROLLBAR-RESULT …` + 一行 JSON」。
+#   json.loads(整个 stdout) 会抛 Extra data ⇒ 解析崩 ⇒ **seek 根本没执行**，
+#   而后面的 look 画面没变，很容易被误读成"seek 失败/拖动无效"（2026-10-21 实际踩过）。
+#   ⇒ 解析时取**最后一行以 `{` 开头**的 JSON。
 # → {"found":true,"orientation":"v","track_bbox":[...],"thumb_bbox":[...],
 #     "position_ratio":0.012,"estimated_pages":17.31}
 ```
@@ -303,6 +310,10 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
 一次 grant 内多个动作共享一次窗口上下文；别再「一动作一 slot」（真机实测 4–5s/次）。
 
 ```bash
+# ⚠️ begin 内部**自己**会跑一次 `ys-screen-grant grant`（不绕过用户授权）。
+#    所以**不要**先手动 grant 再 begin：实测 begin 回
+#    `GRANT_FAILED / GRANT_STILL_VALID`（有效期内禁止覆盖续期），整段租期白烧（2026-10-21 踩过）。
+#    正确顺序：问用户 → 直接 begin（--user-said 写用户原话；begin 写的那份凭据就是本段租期）。
 tools/ys-editor/ys-session begin --seconds 60 --reason '扫好友列表' --user-said '<用户原话>'
 # 会话内 ys-scroll / ys-pointer-click / ys-esc 自动直注入（读 ~/.ys/session.json）
 tools/ys-editor/ys-session status
