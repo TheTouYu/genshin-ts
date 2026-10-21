@@ -6,7 +6,7 @@
 #   · 注入物一律临时创建，`trap` 保证还原 —— 失败/中断都不许污染仓库。
 #   · 判据是「门禁必须报红」，不是「命令没崩」；抓不住 = 用例失败。
 #
-# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg |
+# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
@@ -85,6 +85,17 @@ PYIN
       echo "INJECT-FAIL advice-neg: 关掉列表检测后自测仍绿（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS advice-neg: 关掉列表检测 → 自测报红 rc=$rc"; exit 0
+    ;;
+  # ③e 注入「夹具被删」→ advice 自测必须显式 FIXTURE_MISSING（不是静默 FAIL）
+  advice-fixture-neg)
+    f="tools/ys-editor/tests/fixtures/advice/screens.json"; bak="$(mktemp)"
+    cp "$f" "$bak"; trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    rm -f "$f"
+    out=$(python3 tools/ys-editor/tests/advice.selftest.py 2>&1); rc=$?
+    if [ "$rc" -ne 2 ] || ! printf '%s' "$out" | grep -q "FIXTURE_MISSING"; then
+      echo "INJECT-FAIL advice-fixture-neg: 夹具缺失时没有显式报错（rc=$rc out=$out）"; exit 1
+    fi
+    echo "INJECT-PASS advice-fixture-neg: 夹具缺失 → FIXTURE_MISSING rc=$rc"; exit 0
     ;;
   # ③ 注入「去掉具体度消歧」→ state-precedence 必须报红
   precedence-neg)
@@ -219,5 +230,5 @@ PYIN
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL focus-lease: 死主租约没被判成该归还（门禁空转）"; exit 1; fi
     echo "INJECT-PASS focus-lease: 死主租约判红 rc=$rc"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg" >&2; exit 2 ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg" >&2; exit 2 ;;
 esac

@@ -95,6 +95,18 @@ def _attr_values(rows):
     return vals
 
 
+def _attr_one(row):
+    s = " ".join(row[2])
+    m = ATTR_RE.search(s)
+    if m:
+        return int(m.group(1))
+    if "今日内" in s:
+        return 0
+    if "在线" in s:
+        return -1
+    return None
+
+
 def _sig(state_name, header, count, rows):
     h = 0.0
     hs = [r[1] for r in rows]
@@ -148,9 +160,13 @@ class ListTracker:
             st["gaps"].append(now_ms - prev_ts)
         viewport = max([len(o["rows"]) for o in st["obs"]] + [len(rows)])
         keys = ["|".join(t) for _, _, t in rows]
-        new = sum(1 for k in keys if k not in st["seen"])
+        old_seen = set(st["seen"])
+        new = sum(1 for k in keys if k not in old_seen)
         st["seen"].update(keys)
-        vals = _attr_values(rows)
+        # 单调性只看**新出现行**：重叠行会把序列拉回去（1..7, 6..12 ⇒ 非单调），
+        # 这是 2026-10-21 advice 门禁红的真因。
+        vals = [v for row, k in zip(rows, keys) if k not in old_seen
+                for v in [_attr_one(row)] if v is not None]
         st["attrs"].append(vals)
         st["looks"].append(float(look_ms or 0))
         st["obs"].append({"rows": rows, "new": new, "first": _name(rows[0][2]),

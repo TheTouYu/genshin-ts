@@ -291,3 +291,11 @@ live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并�
 
 唯一实现：`tools/ys-editor/ys_advice.py`；回放自测 `tools/ys-editor/tests/advice.selftest.py`
 （机读行 `ADVICE-RESULT ... verdict=PASS`），已登记 `ys-gates --only 2` 套件与账本 F-20261021-63。
+
+## 11. 测试夹具纪律（2026-10-21 门禁红回灌）
+
+**夹具不许放 `.scratch/gui-service/evidence/**`**——那是真机跑会覆盖的生产目录，门禁会随机变红且分不清"夹具没了"还是"逻辑坏了"。
+- 稳定夹具放 `tools/ys-editor/tests/fixtures/<topic>/`（例：`fixtures/advice/screens.json`）。
+- 夹具缺失必须显式 `error=FIXTURE_MISSING` + 非零退出，禁止静默 FAIL。
+- 账本 F-20261021-64；注入用例 `ledger-inject.sh advice-fixture-neg` 证明删夹具必报该错。
+- 回归：`tools/failure-ledger check --fast` 要 `gate_fail=0`。

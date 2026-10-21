@@ -431,3 +431,13 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - **帧内直读名字 = 匿叶龙**，与 D465 一致，无需修正上午结论。
 - 证据：`boundary_name.png`（裁到 2300×1000，含名字+Lv+天数）、`boundary_name.json`（该帧 look JSON）。
 - 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`；本轮墙钟 17.2s。
+
+## advice 夹具与单调性修复（2026-10-21 17:4x）
+
+- **门禁红真因**：自测夹具依赖 `.scratch/gui-service/evidence/**`（真机跑会覆盖）⇒ 夹具消失；
+  且 fixture 合成时单调性用了**全部行**（含 2 行重叠）⇒ `flat=1..7,6..12` 非单调，误判 `SUGGEST_JUMP_ONLY`。
+- 修法：①夹具固定 `tools/ys-editor/tests/fixtures/advice/screens.json`（10屏×7行、净推进5、名字唯一、
+  天数严格递增）；②`ys_advice` 单调性只看**新出现行**（重叠行排除）；③缺失显式 `FIXTURE_MISSING` rc=2。
+- 断言：默认 `ADVICE-RESULT ... code=LINEAR_ONLY_NO_SEEK ... PASS`；`YS_SEEK_MAX_ROWS=999` →
+  `code=SCANNING_LINEARLY ... PASS`；负例无行不给建议。
+- 账本 F-20261021-64（prevented，gate=advice，inject=advice-fixture-neg）；注入删夹具 → `FIXTURE_MISSING` rc=2。
