@@ -176,6 +176,28 @@ tools/ys-editor/ys-read --grep 甘雨        # 读两次，两次文字集合一
 用户却又听到操作音——因为 T6 传的是 `true`（空命令）却照样占屏。
 **判据：测试里的 `ys-gui-slot` 只允许出现在 `YS_ALLOW_SCREEN_TEST=1` 分支里。**
 
+## 4.51 屏幕占用的**离线判据**（2026-10-22，账本 F-53/F-60 清账时补）
+
+两条修复（租期内不归还、到期自动归还）曾长期挂在 `unproven`，因为**判据只能在真机跑**：
+T6 要真抬窗、grant-expiry 要常驻守护真把屏幕切回来。判据不可重复 ⇒ 账本永远关不掉。
+现在它们都有离线判据，跑门禁时**默认就会执行**：
+
+| 要验什么 | 离线命令 | 判据 |
+|---|---|---|
+| 这次占用会**归还还是按租期保留** | `tools/ys-editor/ys-gui-slot --plan [win]` | 单行 JSON；`hold=true` ⇔ 租期内不归还，`would_restore=true` ⇔ 会走归还。**不抬窗、不注入、不响铃、不 sleep**，退出码恒 0 |
+| 凭据有效/无效时的契约 | `tests/screen-grant.selftest.sh`（T13/T14，不设任何 `YS_ALLOW_SCREEN_TEST` 也跑） | 有凭据 ⇒ `contract_ok=true,hold=true,would_restore=false`；无凭据 ⇒ `contract_ok=false` 且 `--plan` 仍 rc=0 |
+| 租期到期是否**由机制**归还 | `tests/grant-expiry.selftest.sh`（T1/T2/T3，~300ms） | T1 过期 ⇒ 凭据被删 + 交还调用 1 次 + 日志含 `GRANT_EXPIRED` + rc=1；T2 未过期 ⇒ 不动（防「永远归还」）；T3 无凭据 ⇒ 无动作 |
+
+**做离线判据的三条缝**（都是 env，测试指过去就不碰真实屏幕/真实服务）：
+`YS_SCREEN_GRANT_PATH`（凭据文件）、`YS_HAND_BACK_BIN`（交还可执行，**过期交还与空闲交还共用这一处**）、
+`YS_FOCUS_GUARD_BIN`（守护本体）。
+
+**设计红线**：`--plan` 与真实路径必须**共用同一个判据函数**（现为 `lease_hold_active()`）。
+plan 自己另写一份判据 ⇒ 注入实验只会让 plan 与真实行为脱钩，断言永远绿 = 空转断言。
+
+**触发条件→动作**：要给「只影响屏幕/焦点」的行为加回归 → 先想 `--plan` 这类只算不干的入口，
+再找一个 env 缝把外部副作用换成假物；**不要**为了让门禁变绿去写 `YS_ALLOW_SCREEN_TEST=1`。
+
 ## 4.55 读帧层级必须自报（2026-10-21 用户当场纠正）
 
 `--allow-background` 读的是**后台缓冲帧**：它能证明「*看得见*」（像素真实、OCR 坐标真实），
