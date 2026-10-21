@@ -810,6 +810,8 @@ def main():
     a7.add_argument("--id", default="")
     a7.add_argument("--name", default="")
     a7.add_argument("--pid", type=int, default=0)
+    a7.add_argument("--cls", default=GAME_CLASS,
+                    help="目标窗口 class（默认游戏）；负例用不存在 class 验证失败路径")
     a7.add_argument("--geom", default="")
     a7.add_argument("--class", dest="cls", default=GAME_CLASS)
     a5 = sub.add_parser("kwin-raise", help="按 id/class/caption activate+raise+验证，ys-gui-slot 用")
