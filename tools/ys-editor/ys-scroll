@@ -229,23 +229,33 @@ def main():
     btn = 5 if a.dir == "down" else 4
     FAST_DRAG = "FAST_DRAG"
     if a.drag:
-        # 拖动滚动：内容随指针 1:1 移动（慢速拖动不触发惯性加速）
+        # 拖动滚动：内容随指针 1:1 移动（慢速拖动不触发惯性加速）。
+        # 2026-10-21 修：dy 可能远大于屏高（rows=30 → 6000px），旧坐标 y1/y2 会跑到屏外
+        # 导致 ys-drag 定位失败（rc=5）。改为**按 ≤1100px 分批**，每批都在 [50,1390] 内。
         dy = abs(a.drag)
-        y1 = y + dy // 2 if a.dir == "down" else y - dy // 2
-        y2 = y1 - dy if a.dir == "down" else y1 + dy
-        # 人类拖动速度：约 400–600 px/s（200px ≈ 0.4s）。刻意放慢反而"看着难受"且拖长占用时间。
-        steps = max(8, int(round(dy / 20.0)))
+        H = int(os.environ.get("YS_H", "1440"))
+        maxd = min(1100, H - 100)
+        chunks = max(1, int(round(dy / float(maxd))))
+        step = max(8, int(round(min(dy, maxd) / 20.0)))
         hold = max(0.03, min(0.08, 0.05))
-        if a.lease:
-            # 租约内：xdotool 原生拖动（0.4s，vs ys-drag 的 3.3s —— 后者每步都走 KWin 绝对定位）
-            inc = (y2 - y1) / float(steps)
-            mv = "; ".join(f"xdotool mousemove_relative -- 0 {int(round(inc))}; sleep {hold}"
-                           for _ in range(steps))
-            script = (f"xdotool mousemove {x} {y1}; sleep 0.03; xdotool mousedown 1; sleep 0.03; "
-                      f"{mv}; xdotool mouseup 1")
-        else:
-            script = (f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
-                      f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} {steps} {hold}")
+        parts = []
+        for _ in range(chunks):
+            if a.dir == "down":
+                y1 = min(H - 50, max(50, y + maxd // 2))
+                y2 = max(50, y1 - maxd)
+            else:
+                y1 = max(50, min(H - 50, y - maxd // 2))
+                y2 = min(H - 50, y1 + maxd)
+            if a.lease:
+                inc = (y2 - y1) / float(step)
+                mv = "; ".join(f"xdotool mousemove_relative -- 0 {int(round(inc))}; sleep {hold}"
+                               for _ in range(step))
+                parts.append(f"xdotool mousemove {x} {y1}; sleep 0.03; xdotool mousedown 1; "
+                             f"sleep 0.03; {mv}; xdotool mouseup 1")
+            else:
+                parts.append(f"{PUT} {x} {y1} >/dev/null 2>&1; sleep 0.12; "
+                             f"{os.path.join(HERE, 'ys-drag')} {x} {y1} {x} {y2} {step} {hold}")
+        script = "; ".join(parts)
     else:
         # 一次调用滚完（--repeat），减少 N 次进程启停
         script = (f"{PUT} {x} {y} >/dev/null 2>&1; sleep 0.1; "

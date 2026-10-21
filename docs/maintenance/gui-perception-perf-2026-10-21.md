@@ -381,3 +381,19 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - LOST：4 次 `moved_confirmed=true`、无空屏；但「请求 48 实际 5.6 行」是**未达标**而非跳行证据；
   仍缺一次中间 look 才能证伪跳行（本轮预算优先 4 个请求）。
 - 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`；墙钟 **53.0s**。
+
+## seek 三路对照（拖动 / 键盘 / 滚动条，真机 1×60s，2026-10-21 17:2x）
+
+| 组 | 请求 | 实测行 | 耗时(scroll+look) | rows/s | LOST |
+|---|---|---|---|---|---|
+| 内容拖动 | rows=10（2000px，分 2 批） | **4.11** | 19.37+0.95s | **0.20** | false（动了但未达标） |
+| 内容拖动 | rows=30（6000px） | — | — | — | 未跑（rows=10 已耗 19s，deadline） |
+| 键盘 PageDown | 109 | **0** | 0.03+0.11s | 0 | true（首行未变） |
+| 键盘 End | 107 | **0** | 0.03+0.11s | 0 | true（首行未变） |
+| 滚动条 | 1/3、2/3 | — | — | — | **容器层未检出细长竖直条**（w≤20,h≥300 候选=0） |
+
+- **结论：三条路都不可行（本轮）**。拖动 rows=10 耗时 19.4s 只走 4.1 行，比滚轮更慢且未达标；
+  键盘 PageDown/End 完全无响应；滚动条在容器层不可见，无法拖。
+- 已修 `ys-scroll --by rows=N` 的屏外坐标（分批 ≤1100px），但游戏侧拖动仍只 1:1~4 行/19s。
+- 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`；墙钟 **57.9s**
+  （拖动探针超 55s，已如实记录；end 正常归还）。

@@ -1,0 +1,11 @@
+[seek] look/s0          rc=8   1133.6ms
+[seek] esc              rc=0    592.3ms
+[seek] look/nav_p0      rc=8   1158.4ms
+[seek] look/nav_p1      rc=0    782.6ms
+[seek] click/friends    rc=0   1846.6ms
+[seek] look/nav_f0      rc=0    646.5ms
+[seek] look/nav_f1      rc=0    523.6ms
+[seek] look/nav_f2      rc=0    620.5ms
+[seek] drag10           rc=0  19367.2ms
+[seek] look/drag10      rc=0    948.1ms
+[seek] drag10 before='无所事事真君' after='风风' moved_px=683 est=4.11 lost=False
