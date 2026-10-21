@@ -1,0 +1,22 @@
+[jump] look/s0          rc=8   1125.2ms
+[jump] start state=GAME_WORLD rows=0
+[jump] esc              rc=0    521.3ms
+[jump] look/nav_p0      rc=8   1135.8ms
+[jump] look/nav_p1      rc=0    721.9ms
+[jump] click/friends    rc=0   1343.5ms
+[jump] look/nav_f0      rc=0    667.7ms
+[jump] look/nav_f1      rc=0    726.4ms
+[jump] nav state=GAME_FRIENDS rows=2
+[jump] d8               rc=0   4367.0ms
+[jump] look/d8          rc=0    701.5ms
+[jump] N=8 clicks=61 moved_rows=None reset_ok=None LOST=False
+[jump] d16              rc=0   6262.1ms
+[jump] look/d16         rc=0    873.9ms
+[jump] N=16 clicks=None moved_rows=None reset_ok=None LOST=False
+[jump] d24              rc=0   8647.5ms
+[jump] look/d24         rc=0    964.4ms
+[jump] N=24 clicks=None moved_rows=None reset_ok=None LOST=False
+[jump] d48              rc=0  15873.4ms
+[jump] look/d48         rc=0    630.7ms
+[jump] N=48 clicks=None moved_rows=None reset_ok=None LOST=False
+JUMP-RESULT {"schema": "gui.jump-probe/1", "wall_s": 45.2, "probes": [{"request_rows": 8, "clicks": 61, "chunked": null, "chunks": null, "per_chunk_clicks": null, "total_clicks": null, "moved_px": 885, "moved_confirmed": true, "before_first": "无所事事真君", "after_first": "熬夜大魔王", "moved_rows_in_view": null, "pitch_px": 128.0, "moved_rows_est": 6.91, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4303.7, "look_ms": 701.5, "rows_per_sec": 1.38, "lost": false}, {"request_rows": 16, "clicks": 132, "chunked": true, "chunks": 2, "per_chunk_clicks": 66, "total_clicks": 132, "moved_px": 785, "moved_confirmed": true, "before_first": "熬夜大魔王", "after_first": "枫塔", "moved_rows_in_view": null, "pitch_px": 172.0, "moved_rows_est": 4.56, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 5466.1, "look_ms": 873.9, "rows_per_sec": 0.72, "lost": false}, {"request_rows": 24, "clicks": 204, "chunked": true, "chunks": 3, "per_chunk_clicks": 68, "total_clicks": 204, "moved_px": 900, "moved_confirmed": true, "before_first": "枫塔", "after_first": "心相想心今念", "moved_rows_in_view": null, "pitch_px": 160.0, "moved_rows_est": 5.62, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 7856.0, "look_ms": 964.4, "rows_per_sec": 0.64, "lost": false}, {"request_rows": 48, "clicks": 420, "chunked": true, "chunks": 6, "per_chunk_clicks": 70, "total_clicks": 420, "moved_px": -900, "moved_confirmed": true, "before_first": "心相想心今念", "after_first": "小景", "moved_rows_in_view": null, "pitch_px": 160.0, "moved_rows_est": 5.62, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 15084.7, "look_ms": 630.7, "rows_per_sec": 0.36, "lost": false}], "max_stable_rows": 48}

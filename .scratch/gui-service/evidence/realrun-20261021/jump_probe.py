@@ -119,7 +119,7 @@ def main():
         print("JUMP-RESULT error=NO_ROWS state=%s" % st, flush=True)
         return 3
     probes = []
-    for n in (8, 16, 24, 32, 48):
+    for n in (8, 16, 24, 48, 32):
         if left() < 8:
             break
         before = rows(d)
@@ -148,7 +148,10 @@ def main():
         else:
             d = d2
         lost = (af is None or af == bf or sc.get("moved_confirmed") is False or not mp)
-        probes.append({"request_rows": n, "clicks": sc.get("clicks"),
+        probes.append({"request_rows": n, "clicks": sc.get("total_clicks") or sc.get("clicks"),
+                       "chunked": sc.get("chunked"), "chunks": sc.get("chunks"),
+                       "per_chunk_clicks": sc.get("per_chunk_clicks"),
+                       "total_clicks": sc.get("total_clicks"),
                        "moved_px": sc.get("moved_px"),
                        "moved_confirmed": sc.get("moved_confirmed"),
                        "before_first": bf, "after_first": af,
@@ -156,7 +159,9 @@ def main():
                        "moved_rows_est": round(moved_est, 2) if moved_est is not None else None,
                        "advanced_beyond_viewport": af not in names,
                        "reset_ok": reset_ok,
-                       "scroll_ms": sc.get("ms"), "look_ms": ms2, "lost": bool(lost)})
+                       "scroll_ms": sc.get("ms"), "look_ms": ms2,
+                       "rows_per_sec": round((moved_est or 0) / max(0.001, (sc.get("ms", 0) + ms2) / 1000.0), 2),
+                       "lost": bool(lost)})
         print("[jump] N=%d clicks=%s moved_rows=%s reset_ok=%s LOST=%s"
               % (n, sc.get("clicks"), moved, reset_ok, lost), flush=True)
         if not after:

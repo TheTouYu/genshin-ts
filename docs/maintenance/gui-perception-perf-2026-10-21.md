@@ -365,3 +365,19 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - **结论②**：一次「跳+读」实测 **≈5.4s**（范围 5.2–6.6s，含 `--verify` 两次抓帧；纯注入滚动本身 ~1.4s）。二分 5–6 次探针 ≈ **27–32s**。
 - **LOST**：5 次都 `moved_confirmed=true`、无空屏、首行变化；但本轮**没测复位**（`reset_ok=null`，预算优先 5 个请求），所以 LOST 判据未覆盖「复位不回首行」。
 - **交还**：`active=firefox` idx8 > game idx7；`desktop=2 == prev_desktop=2`；`revoke=ok`；`handback_ok=true`；总墙钟 **43.6s**。
+
+## seek 标定：分批大跳（真机 1×60s，2026-10-21 17:3x）
+
+| 请求(行) | clicks | 批数 | 实测(行, est) | 耗时(scroll+look) | rows/s | LOST |
+|---|---|---|---|---|---|---|
+| 8 | 61 | 1 | **6.91**（pitch 128 噪声） | 4.30+0.70s | **1.38** | false |
+| 16 | 132 | 2×66 | 4.56 | 5.47+0.87s | 0.72 | false |
+| 24 | 204 | 3×68 | 5.62 | 7.86+0.96s | 0.64 | false |
+| 48 | 420 | 6×70 | 5.62 | 15.08+0.63s | **0.36** | false |
+| 32 | — | — | — | — | — | 未测（42s deadline） |
+
+- **max_safe_rows ≈ 6**（请求 8 得 6.9 行；16/24/48 都只落到 4.5–5.6 行，且耗时线性涨）。
+  大跳请求并未换来更多行位移，**分批大跳不划算**：rows/s 从 1.38 降到 0.36。
+- LOST：4 次 `moved_confirmed=true`、无空屏；但「请求 48 实际 5.6 行」是**未达标**而非跳行证据；
+  仍缺一次中间 look 才能证伪跳行（本轮预算优先 4 个请求）。
+- 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`；墙钟 **53.0s**。
