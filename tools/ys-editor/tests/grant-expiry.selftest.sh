@@ -12,7 +12,7 @@ set -u
 cd "$(dirname "$0")/../../.." || exit 1
 export DISPLAY="${DISPLAY:-:1}"
 G=$(python3 -c "import os;print(os.path.expanduser('~/.ys/screen-grant.json'))")
-systemctl --user is-active --quiet ys-focus-guard || { echo "GRANT-EXPIRY SKIP 守护没在跑"; exit 2; }
+pgrep -f '[y]s-focus-guard' >/dev/null || { echo "GRANT-EXPIRY SKIP 守护没在跑"; exit 2; }
 
 "$PWD/tools/ys-editor/ys-screen-grant" revoke >/dev/null 2>&1
 python3 - "$G" <<'PY'

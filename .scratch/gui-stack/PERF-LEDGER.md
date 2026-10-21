@@ -112,3 +112,30 @@ time python3 tools/ys-editor/ys-list --frame .scratch/gui-corpus/evidence-friend
 - ⇒ **实验必须在常驻进程里跑**（daemon 或长循环脚本），一次性脚本用 GPU 反而更慢；
 - 开关：`YS_NCC_FORCE_GPU=1` 强制 GPU；`YS_NCC_GPU_MIN_WORK` 调阈值（默认 3e9）；
 - 纪律：**实验路径 = 生产路径**（账本 F-1-11）。生产是 daemon 内热态 ⇒ 实验也要热态测。
+
+
+## 2026-10-21 分组件基准与增量复用（`bench_perf.py`，n=6，离线帧换盐冷测）
+
+> 口径：`p50`，**离线后台帧**（不是可见交互）；同一台机同时跑着原神 + 另一模型进程，p95 有 1.5–1.6s 离群。
+> 命令：`python3 .scratch/gui-service/bench_perf.py --tag after --salt 9`；判定：`python3 .scratch/gui-service/bench_check.py`。
+
+| 项 | 优化前 p50 | **优化后 p50** | 目标 | 判定 |
+|---|---|---|---|---|
+| 默认路径稳态（同页再读，world 全量） | 157.2ms | **37.6ms** | ≤50ms | ✅ |
+| world `--fast` 稳态（只跳检测+结构） | — | **36.2ms** | ≤50ms | ✅ |
+| 帧级缓存命中 | 2.2ms | **2.0ms** | ≤5ms | ✅ |
+| 判态（帧已缓冲，judge） | 101.8ms* | **34.9ms** | ≤50ms | ✅ |
+| act dry-run（warm 帧：解析+校验） | — | **2.1ms** | ≤50ms | ✅ |
+| expect state_in（同帧热） | 677–1670ms（子进程） | **0.7ms** | — | ✅ |
+| 世界 look（新帧，冷） | 802.9ms | **643.9ms** | 冷启动不计入 | ⚠️ OCR 主导 |
+| 按对象 OCR 冷（server） | 414.7ms | **407.3ms** | — | 持平（det 187 + rec 194） |
+| 对象检测单帧 | 45.6ms | **32–35ms** | ≤10ms | ❌ 3× 欠账 |
+| 帧加载（PNG→GPU float） | 165.2ms | **91.9ms** | — | 1.8× 快 |
+| 容器层冷 | 150.0ms | **166.5ms** | — | 持平（系统负载） |
+| 客户端 JSON 解析（23.5KB） | 0.29ms | **0.31ms** | — | 持平 |
+
+**本轮两处关键改动**
+1. **页级增量复用**：`_world` 用「页灰度差 <1.0 + OCR 文本盒签名完全相同 + 1.2s 上限」门控，命中时容器/检测/结构直接复用（`timing.objects_reuse/structure_reuse="prev-page"`）。稳态从 157ms → 37.6ms，**判态仍用当前帧现算**。
+2. **帧加载去 CPU 临时数组**：uint8 张量直接上 GPU 再 `/255`（旧写法在 CPU 造两份 44MB float32）；PNG 解码跳过 `.convert("RGB")` 整帧复制。
+
+**未采纳（有读数）**：OCR det 输入长边 2000→1600 只省 17ms（156→139ms），字符召回掉到 **93.97%**（min 92.0%，漏 15/172 框，全是 `min:/max:/FPS` 小字）；1280 掉到 83.1%。**召回不降是硬约束 ⇒ 不降 det 尺度。**
