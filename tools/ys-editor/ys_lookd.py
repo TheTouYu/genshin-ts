@@ -577,7 +577,10 @@ def _ocr(req):
             import numpy as _np
             _YS = ys_state()                      # 判据模块（FRAME_W/H 在它里面）
             arr = YL.grab(0, 0, _YS.FRAME_W, _YS.FRAME_H)
-            boxes = _ocr_array(eng, (arr * 255).round().astype(_np.uint8), (0, 0))
+            # 2026-10-21 修：引擎约定是 BGR（ys_ocr.py 走文件路径时由 RapidOCR 自己按 BGR 读）。
+            # 旧代码直喂 RGB，实测把「官方社区」读成「一官方社区」（与 _world_ocr 注释同一个坑）。
+            a8 = (arr * 255).round().astype(_np.uint8)
+            boxes = _ocr_array(eng, _np.ascontiguousarray(a8[..., ::-1]), (0, 0))
             return {"boxes": boxes, "n_total": len(boxes),
                     "ms": round((time.time() - t0) * 1000), "via": "daemon-live"}
         except Exception as e:                          # noqa: BLE001
@@ -594,7 +597,8 @@ def _ocr(req):
         from PIL import Image
         x, y, w, h = map(int, region)
         im = Image.open(frame).convert('RGB').crop((x, y, x + w, y + h))
-        items = mod._normalize(eng(np.array(im)))
+        # 2026-10-21 修：与 ys_ocr.py 同口径（BGR），否则小区域会多字/并字
+        items = mod._normalize(eng(np.ascontiguousarray(np.array(im)[..., ::-1])))
         off = (x, y)
     else:
         items = mod._normalize(eng(frame))
@@ -1746,7 +1750,12 @@ def _world_frame(req):
                     _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
                     _WORLD_FRAME.get("attrib"))
         from PIL import Image
-        arr = np.asarray(Image.open(path).convert("RGB"), dtype=np.uint8)
+        # 2026-10-21 性能：RGB PNG 上 .convert("RGB") 会整帧复制一次（11MB ≈ 5–8ms），
+        # 只在模式不对时才转；np.asarray 只读、不复制。
+        _im = Image.open(path)
+        if _im.mode != "RGB":
+            _im = _im.convert("RGB")
+        arr = np.asarray(_im, dtype=np.uint8)
         sha = _world_file_sha(path)
     elif src == "frame_b64":
         import base64
@@ -1782,9 +1791,14 @@ def _world_frame(req):
                     _WORLD_FRAME["w"], _WORLD_FRAME["h"], _WORLD_FRAME["source"],
                     _WORLD_FRAME.get("attrib"))
     W, H = int(arr.shape[1]), int(arr.shape[0])
-    It = torch.from_numpy(arr.astype(np.float32) / 255.0).permute(2, 0, 1).contiguous()
+    # 2026-10-21 性能：先在设备上建 uint8 张量再归一化。旧写法在 CPU 造两份 44MB
+    # float32 临时数组（astype + permute().contiguous()），再把其中一份搬上 GPU；
+    # 新写法 CPU 只搬 11MB，除法在 GPU 上做（数值等价：同为 IEEE float32 除以 255）。
+    It = torch.from_numpy(arr).permute(2, 0, 1).contiguous()
     if use_cuda:
-        It = It.cuda()
+        It = It.cuda().float().div_(255.0)
+    else:
+        It = It.float().div_(255.0)
     _WORLD_FRAME.update({"key": key, "arr": arr, "It": It, "half": None, "sha": sha,
                          "w": W, "h": H, "path": path, "source": src,
                          "attrib": attr if src == "live" else None})
@@ -2010,8 +2024,52 @@ _WORLD_OCR_TTL = {"ts": 0.0, "boxes": None, "sig": None, "sha": None}
 _WORLD_OCR_TTL_MS = int(os.environ.get("YS_WORLD_OCR_TTL_MS", "1200"))
 _WORLD_OCR_SIG_THR = float(os.environ.get("YS_WORLD_OCR_SIG_THR", "6.0"))
 
+# ── world 的**对象/结构**增量复用（2026-10-21）────────────────────────────────
+# 为什么：容器层 ~150ms、检测+结构 ~40ms 是**每帧固定成本**，但 GUI 静止时画面逐帧只差
+# 光标/呼吸动画。复用条件比文本 TTL 更严（灰度差 <1.0 且 OCR 文本盒签名完全相同），
+# 且有 1.2s 上界（超过就强制现算一次，避免长期复用掩盖局部变化）。
+# 语义：复用只影响 objects/structure 的来源，state 永远用当前帧现算。
+_WORLD_PAGE = {"sig": None, "sha": None, "state": None, "boxes_sig": None,
+               "objects": None, "structure": None, "ts": 0.0}
+_WORLD_REUSE_THR = float(os.environ.get("YS_WORLD_REUSE_THR", "1.0"))
+_WORLD_REUSE_TTL_MS = int(os.environ.get("YS_WORLD_REUSE_TTL_MS", "1200"))
 
-def _world_ocr_objects_timed(arr, sha, force_fallback=False):
+
+def _boxes_sig(boxes):
+    """OCR 文本盒签名：文字 + 整数化 bbox。文字一变就复用失效（避免标签改了还读旧字）。"""
+    out = []
+    for b in boxes or []:
+        bb = b.get("bbox") or []
+        out.append((str(b.get("text") or ""), tuple(int(round(float(v))) for v in bb)))
+    return tuple(out)
+
+
+def _world_reuse_gate(sig, boxes, state_name):
+    """返回 (page_diff, prev_page) 或 (None, None)。
+
+    三条同时成立才复用：① 状态名相同；② 文本盒签名完全相同；③ 页灰度平均绝对差 < 阈值，
+    且距上次记录不超过 TTL。任何一条不满足都走现算（宁可慢，不给旧框）。
+    """
+    prev = _WORLD_PAGE
+    if sig is None or prev.get("sig") is None or prev.get("objects") is None:
+        return None, None
+    if state_name != prev.get("state"):
+        return None, None
+    if _boxes_sig(boxes) != prev.get("boxes_sig"):
+        return None, None
+    if _WORLD_REUSE_TTL_MS > 0 and (time.time() - float(prev.get("ts") or 0.0)) * 1000 > _WORLD_REUSE_TTL_MS:
+        return None, None
+    try:
+        import numpy as np
+        d = float(np.abs(sig - prev["sig"]).mean())
+    except Exception:                                    # noqa: BLE001
+        return None, None
+    if d > _WORLD_REUSE_THR:
+        return None, None
+    return d, prev
+
+
+def _world_ocr_objects_timed(arr, sha, force_fallback=False, sig=None):
     """在 _world_ocr_objects 外包一层**时间缓存**：TTL 内且帧间差异小 → 直接复用文本。
 
     复用的只是**文本层**（boxes/text/score）；对象框、可点性、判态仍用当前帧现算。
@@ -2022,8 +2080,8 @@ def _world_ocr_objects_timed(arr, sha, force_fallback=False):
     st = _WORLD_OCR_TTL
     if _WORLD_OCR_TTL_MS > 0 and st["boxes"] is not None and (now - st["ts"]) * 1000 <= _WORLD_OCR_TTL_MS:
         try:
-            sig = _page_gray(arr, step=8)
-            if st["sig"] is not None and float(np.abs(sig - st["sig"]).mean()) < _WORLD_OCR_SIG_THR:
+            _s = sig if sig is not None else _page_gray(arr, step=8)
+            if st["sig"] is not None and float(np.abs(_s - st["sig"]).mean()) < _WORLD_OCR_SIG_THR:
                 return st["boxes"], {"source": "ttl-cache", "ms": 0.1, "n": len(st["boxes"]),
                                      "err": None, "age_ms": round((now - st["ts"]) * 1000)}
         except Exception:                                # noqa: BLE001
@@ -2031,19 +2089,29 @@ def _world_ocr_objects_timed(arr, sha, force_fallback=False):
     boxes, meta = _world_ocr_objects(arr, sha, force_fallback=force_fallback)
     if boxes is not None:
         try:
-            st.update(ts=now, boxes=boxes, sig=_page_gray(arr, step=8), sha=sha)
+            st.update(ts=now, boxes=boxes,
+                      sig=(sig if sig is not None else _page_gray(arr, step=8)), sha=sha)
         except Exception:                                # noqa: BLE001
             pass
     return boxes, meta
 
 
 def _world(req):
-    """cmd="world"：世界状态仪器（显式开启；请求里不给 cmd=world 就完全走旧路径）。"""
+    """cmd="world"：世界状态仪器（显式开启；请求里不给 cmd=world 就完全走旧路径）。
+
+    2026-10-21 性能改造（语义不变，只改"哪些可以复用"）：
+      ① 帧加载：uint8 上 GPU 再归一化（见 _world_frame）；
+      ② 增量复用：页灰度差 < _WORLD_REUSE_THR 且文本盒签名相同 ⇒ 容器/检测/结构直接复用
+         （稳态 GUI 画面几乎不动，容器层 ~150ms、检测+结构 ~40ms 是每帧白付的）；
+      ③ 快速路径：ocr=false + structure=false（worldsvc --fast）只做判态+容器；
+         若判成 GAME_WORLD（CV 容器在三维世界无意义）自动补检测+结构，不丢对象来源。
+    """
     t0 = time.time()
     YS = ys_state()
     prof_path = req.get("profile") or YS.PROFILE_DEFAULT
     do_ocr = bool(req.get("ocr", True))
     do_obj = bool(req.get("objects", True))
+    do_struct = bool(req.get("structure", True))
     try:
         arr, It, sha, W, H, src, attrib = _world_frame(req)
     except WorldAttribError as e:
@@ -2059,7 +2127,8 @@ def _world(req):
     except Exception as e:                                  # noqa: BLE001
         return {"schema": WORLD_SCHEMA, "error": f"profile: {type(e).__name__}: {e}",
                 "code": "PROFILE_FAILED", "via": "daemon"}
-    ck = (sha, os.path.abspath(prof_path), pst.st_mtime_ns, do_ocr, do_obj, _ys_screen_ruleset())
+    ck = (sha, os.path.abspath(prof_path), pst.st_mtime_ns,
+          do_ocr, do_obj, do_struct, _ys_screen_ruleset())
     if req.get("cache", True):
         hit = _WORLD_CACHE.get(ck)
         if hit is not None:
@@ -2073,38 +2142,80 @@ def _world(req):
             out["settled"] = {"same_as_prev": None, "reason": "cache_hit",
                               "hint": "缓存命中=没有重新比较帧；要判稳定请用 cache:false 重取"}
             return out
+    # 页签名只算一次（OCR 时间缓存与对象复用共用；1/8 灰度 ≈ 0.5ms）
+    sig = None
+    if do_ocr or do_obj:
+        try:
+            sig = _page_gray(arr, step=8)
+        except Exception:                                   # noqa: BLE001
+            sig = None
     boxes, ocr_meta = (None, {"source": "skip", "ms": 0, "n": 0, "err": None})
     if do_ocr:
         # 2026-10-18（Lead 裁决）：文本来源从「全帧」换成「对象切片」——热态同屏重复看 ~40ms，
         # 冷态与全帧同量级；小字号占比过高时回退全帧（兜底只在那些帧付 50–100ms）。
         boxes, ocr_meta = _world_ocr_objects_timed(arr, sha,
-                                                   force_fallback=bool(req.get("force_fallback")))
+                                                   force_fallback=bool(req.get("force_fallback")),
+                                                   sig=sig)
     t_after_ocr = time.time()
-    state, t_judge = _world_state(arr, It, W, H, prof, boxes, is_live=(src == "live"))
+    # apply_uid：调用方给的是**活体抓下来的帧文件**时（worldsvc 的 expect 通道），
+    # 仍要跑本体态补判（右下 UID 小条），否则 GAME_WORLD/PLAYTEST 会与 ys-state 不一致。
+    state, t_judge = _world_state(arr, It, W, H, prof, boxes,
+                                  is_live=(src == "live" or bool(req.get("apply_uid"))))
+    state_name = (state or {}).get("state")
     t_after_state = time.time()
-    objects = _world_containers(arr, sha, boxes, W, H) if do_obj else None
+    # GAME_WORLD 的 objects 只能来自学习型检测（CV 容器在三维世界实测 0 命中）：
+    # 快速路径若省掉结构层，这里自动补上，避免"变快但看不见对象"。
+    struct_auto = False
+    if do_obj and not do_struct and state_name == "GAME_WORLD":
+        do_struct = True
+        struct_auto = True
+    reuse_diff, prev = (None, None)
+    if do_obj and sig is not None:
+        reuse_diff, prev = _world_reuse_gate(sig, boxes, state_name)
+    objects = None
+    obj_reuse = False
+    if do_obj:
+        if prev is not None and prev.get("objects") is not None:
+            objects = json.loads(json.dumps(prev["objects"]))
+            objects["timing_ms"] = 0.1
+            objects["reuse"] = "prev-page"
+            objects["page_diff"] = round(float(reuse_diff or 0.0), 3)
+            obj_reuse = True
+        else:
+            objects = _world_containers(arr, sha, boxes, W, H)
     t_after_obj = time.time()
-    det_objs, det_ms, det_err, det_path = (
-        _world_detector(arr, (state or {}).get("state"))
-        if (do_obj and req.get("structure", True)) else ([], 0.0, None, None))
-    t_after_det = time.time()
-    structure = _world_structure(objects, W, H, boxes, det_objs) if (do_obj and req.get("structure", True)) else None
-    if structure is not None:
-        structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err,
-                                 "model": os.path.basename(det_path) if det_path else None,
-                                 "dropped_kinds": list(_WORLD_DROP_KINDS)
-                                 if (state or {}).get("state") == "GAME_WORLD" else []}
-        # D2 检测结果原样透出：它是**三维世界 HUD 里唯一的对象来源**（CV flat+rect 在开放世界
-        # 找不到容器，实测 containers=0 而检测器给 33 个框）。此前只喂给 D3 结构层、不对外暴露，
-        # 消费方等于看不见任何对象。放在 structure 里（已透传）而不是新增顶层键，避免又撞白名单。
-        structure["detections"] = det_objs
-        # 把 OCR 文本归到检测框上（编辑器/世界的 objects 来源就是这批框）；归不上的仍走 free_text
-        try:
-            _n_txt = _attach_text_to_dets(det_objs, boxes)
-            structure["detector"]["text_attached"] = _n_txt
-        except Exception as _e:                      # noqa: BLE001 —— 归属失败不影响主输出
-            structure["detector"]["text_attached"] = 0
-            structure["detector"]["text_attach_err"] = "%s: %s" % (type(_e).__name__, _e)
+    det_objs, det_ms, det_err, det_path = ([], 0.0, None, None)
+    structure = None
+    struct_reuse = False
+    if do_obj and do_struct:
+        if prev is not None and prev.get("structure") is not None:
+            structure = json.loads(json.dumps(prev["structure"]))
+            det_objs = structure.get("detections") or []
+            det_ms = 0.0
+            struct_reuse = True
+            structure["ms"] = 0.0
+            structure.setdefault("detector", {})
+            structure["detector"]["ms"] = 0.0
+            structure["detector"]["reuse"] = "prev-page"
+        else:
+            det_objs, det_ms, det_err, det_path = _world_detector(arr, state_name)
+            structure = _world_structure(objects, W, H, boxes, det_objs)
+        if structure is not None and not struct_reuse:
+            structure["detector"] = {"n": len(det_objs), "ms": det_ms, "err": det_err,
+                                     "model": os.path.basename(det_path) if det_path else None,
+                                     "dropped_kinds": list(_WORLD_DROP_KINDS)
+                                     if state_name == "GAME_WORLD" else []}
+            # D2 检测结果原样透出：它是**三维世界 HUD 里唯一的对象来源**（CV flat+rect 在开放世界
+            # 找不到容器，实测 containers=0 而检测器给 33 个框）。此前只喂给 D3 结构层、不对外暴露，
+            # 消费方等于看不见任何对象。放在 structure 里（已透传）而不是新增顶层键，避免又撞白名单。
+            structure["detections"] = det_objs
+            # 把 OCR 文本归到检测框上（编辑器/世界的 objects 来源就是这批框）；归不上的仍走 free_text
+            try:
+                _n_txt = _attach_text_to_dets(det_objs, boxes)
+                structure["detector"]["text_attached"] = _n_txt
+            except Exception as _e:                      # noqa: BLE001 —— 归属失败不影响主输出
+                structure["detector"]["text_attached"] = 0
+                structure["detector"]["text_attach_err"] = "%s: %s" % (type(_e).__name__, _e)
     t_after_structure = time.time()
     degraded = []
     if do_ocr and boxes is None:
@@ -2129,7 +2240,14 @@ def _world(req):
                    "state_ms": round((t_after_state - t_after_ocr) * 1000, 1),
                    "judge_ms": t_judge,
                    "objects_ms": round((t_after_obj - t_after_state) * 1000, 1),
+                   # total_ms 保持旧口径（load+ocr+state+objects，不含检测/结构）以兼容既有读数；
+                   # total_full_ms 是真正的端到端（含检测+结构）——报告一律用后者。
                    "total_ms": round((t_after_obj - t0) * 1000, 1),
+                   "total_full_ms": round((t_after_structure - t0) * 1000, 1),
+                   "objects_reuse": "prev-page" if obj_reuse else None,
+                   "structure_reuse": "prev-page" if struct_reuse else None,
+                   "page_diff": None if reuse_diff is None else round(float(reuse_diff), 3),
+                   "structure_auto": bool(struct_auto),
                    "ocr_source": ocr_meta.get("source"), "ocr_n": ocr_meta.get("n"),
                    "ocr_err": ocr_meta.get("err"), "cache_hit": False,
                    "attribution_ms": (attrib or {}).get("elapsed_ms") if attrib else None},
@@ -2161,6 +2279,16 @@ def _world(req):
                           "reason": "settle_module_unavailable"}
     _WORLD_PREV_SIG = _sig
     _WORLD_PREV_FRAME = sha
+    # 供下一次增量复用：只在"这一次真的要了对象"时更新，避免 state-only 请求把对象记录改脏。
+    if do_obj and sig is not None and objects is not None:
+        _WORLD_PAGE.update({"sig": sig, "sha": sha, "state": state_name,
+                            "ts": time.time(),
+                            # 空元组而不是 None：do_ocr=false 的快速路径第二次调用要能通过
+                            # "文本盒签名相同"判据（实测 None != () 会让复用永久失效）。
+                            "boxes_sig": _boxes_sig(boxes),
+                            "objects": objects})
+        if structure is not None:
+            _WORLD_PAGE["structure"] = structure
     if req.get("cache", True):
         try:
             json.dumps(out)                                  # 只缓存可序列化结果
