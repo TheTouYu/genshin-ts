@@ -98,7 +98,7 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # 1) look
     # ══════════════════════════════════════════════════════════════
-    def look(self, frame=None, *, source=None, allow_cache=True, fast=False):
+    def look(self, frame=None, *, source=None, allow_cache=True, fast=False, advice=True):
         """一次感知。fast=True：只跳过检测+结构层（省 ~40–90ms），OCR/判态/容器照常。
 
         为什么 fast 不省 OCR（2026-10-21 实测反例）：同一帧 f06 派蒙菜单，
@@ -108,7 +108,8 @@ class WorldService:
         t_start = time.perf_counter()
         src = source or (self.source if frame is None else "frame")
         if self.backend == "daemon-world":
-            return self._look_worlddaemon(frame, src, allow_cache, t_start, fast=fast)
+            return self._look_worlddaemon(frame, src, allow_cache, t_start, fast=fast,
+                                          advice=advice)
         if frame is None and self.frame_provider is not None:
             frame = self.frame_provider()
             src = "provider"
@@ -175,7 +176,7 @@ class WorldService:
     # ══════════════════════════════════════════════════════════════
     # backend=daemon-world：把感知下沉到常驻服务（ys-lookd cmd=world）
     # ══════════════════════════════════════════════════════════════
-    def _look_worlddaemon(self, frame, src, allow_cache, t_start, fast=False):
+    def _look_worlddaemon(self, frame, src, allow_cache, t_start, fast=False, advice=True):
         """显式 backend（默认 cli 完全不变）：一次 RPC 拿回 state+objects+timing+归属。
 
         与 cli 后端的语义差异（如实说明，不假装等价）：
@@ -195,6 +196,7 @@ class WorldService:
             if allow_cache and self.cache.enabled:
                 raw, layer, hit_ms = self.cache.load(frame_id, self.sig)
                 if raw is not None:
+                    raw = dict(raw); raw["advice"] = []
                     frame_meta = dict(frame_meta, source=src)
                     return self._publish(self._finalize(
                         raw, frame_meta=frame_meta, frame_id=frame_id,
@@ -207,7 +209,8 @@ class WorldService:
         # 省 OCR 会让 state 静默降级，属 AGI-BAR 禁止的"静默失能"，所以不做。
         resp = instruments.get_world_daemon(path, profile=self.profile,
                                             ocr=True, objects=True,
-                                            structure=not fast, cache=self.daemon_cache)
+                                            structure=not fast, cache=self.daemon_cache,
+                                            advice=advice)
         rpc_ms = (time.perf_counter() - t0) * 1000
         state = resp.get("state") or {}
         if not state.get("state"):
@@ -262,6 +265,7 @@ class WorldService:
         # 2026-10-21 复盘修正：稳定信号（settled）原先**没从 daemon 回执透传**，
         # 于是 `look --summary` 永远拿不到它（真机会话里打印成 settled: null，调用方只能靠肉眼）。
         raw["settled"] = resp.get("settled")
+        raw["advice"] = resp.get("advice") or []
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         if path:
             self.cache.store(frame_id, self.sig,
@@ -1491,7 +1495,7 @@ CAPABILITIES = {
         "look": {"purpose": "一次感知 → 单一世界状态", "key_args": ["--backend daemon-world|cli",
                                                                   "--frame PNG", "--summary", "--fast"],
                  "gives": ["state", "objects", "free_text", "uncertainty", "structure",
-                           "settled", "frame_id", "degraded"],
+                           "settled", "frame_id", "degraded", "advice"],
                  "fast": "只跳过检测+结构层（省 ~40–90ms）；OCR/判态/容器照常——"
                          "省 OCR 会让状态静默降级（实测 f06 派蒙菜单变 UNKNOWN）；"
                          "稳态毫秒级靠 OCR TTL + 容器/结构增量复用"},
@@ -1693,7 +1697,8 @@ def main(argv=None):
                            allow_background=getattr(a, "allow_background", False))
 
         if a.verb == "look":
-            ws = svc.look(frame=a.frame, source=None, fast=bool(getattr(a, "fast", False)))
+            ws = svc.look(frame=a.frame, source=None, fast=bool(getattr(a, "fast", False)),
+                          advice=not bool(getattr(a, "no_advice", False)))
             if a.summary:
                 _emit(ws.summary(), out_path=a.json_out)
             else:

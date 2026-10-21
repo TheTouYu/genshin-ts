@@ -332,7 +332,8 @@ def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True,
     请求里显式给 `structure` 键，旧服务会忽略未知键、语义仍是全量。
     """
     req = {"cmd": "world", "ocr": bool(ocr), "objects": bool(objects),
-           "structure": bool(structure), "cache": bool(cache)}
+           "structure": bool(structure), "cache": bool(cache),
+           "advice": bool(advice)}
     if apply_uid:
         # 帧来自文件但内容是活体抓帧 ⇒ 仍做 UID 本体态补判（与 ys-state 同判据）
         req["apply_uid"] = True

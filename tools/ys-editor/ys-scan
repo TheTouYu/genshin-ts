@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""ys-scan — 把 advice 的二分建议变成可执行计划（只读，不抓屏/不注入）。
+
+用法：
+  ys-scan --count 173 --seen 14 --net-rows 4.8 --target 30
+  ys-scan --from-world world.json --target 30     # 从 world/advice 读 count/seen/net
+  ys-scan --jump-plan --net-rows 4.8              # 列真机跳转探针（8/16/24 行）
+输出 JSON：screens_remaining / probes / jump_rows / commands / probe_plan。
+真机执行由调用方在 ys-session 内跑 `ys-scroll --rows N` + `look`；本工具不占屏。
+"""
+import argparse
+import json
+import math
+import sys
+
+
+def plan(count, seen, net, target_days=30):
+    remaining = max(0, count - seen)
+    net = max(0.1, float(net or 1))
+    screens = int(math.ceil(remaining / net))
+    probes = int(math.ceil(math.log2(max(2, screens))))
+    jumps = []
+    s = screens
+    while s > 1 and len(jumps) < probes:
+        j = max(1, int(round(s / 2.0)))
+        jumps.append(j)
+        s = max(1, s - j)
+    return {"count": count, "seen": seen, "net_rows_per_step": net,
+            "target_days": target_days, "screens_remaining": screens,
+            "bisection_probes": probes, "jump_rows": jumps,
+            "commands": ["ys-scroll --rows %d" % j for j in jumps]}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--from-world", default=None)
+    ap.add_argument("--count", type=int, default=0)
+    ap.add_argument("--seen", type=int, default=0)
+    ap.add_argument("--net-rows", type=float, default=0.0)
+    ap.add_argument("--target", type=int, default=30)
+    ap.add_argument("--jump-plan", action="store_true")
+    a = ap.parse_args(argv)
+    if a.from_world:
+        d = json.load(open(a.from_world, encoding="utf-8"))
+        adv = (d.get("advice") or [{}])[0].get("estimate") or {}
+        a.count = a.count or int(adv.get("count") or 0)
+        a.net_rows = a.net_rows or float(adv.get("net_rows_per_step") or 0)
+    if a.jump_plan:
+        rows = [8, 16, 24, 32]
+        out = {"probe_plan": [{"rows": r, "look_before": True, "look_after": True,
+                               "metric": "moved_rows", "fail": "row name gap / moved_confirmed=false"}
+                              for r in rows],
+               "note": "真机各跑一次，记录实际行位移与是否丢行；不在此工具内注入"}
+        print(json.dumps(out, ensure_ascii=False, indent=1))
+        return 0
+    if not a.count:
+        print(json.dumps({"error": "需要 --count 或 --from-world 带 count"}, ensure_ascii=False))
+        return 2
+    print(json.dumps(plan(a.count, a.seen, a.net_rows, a.target), ensure_ascii=False, indent=1))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

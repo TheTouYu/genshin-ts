@@ -273,3 +273,17 @@ tools/ys-editor/ys-session end          # 统一 restore firefox + revoke
 
 live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并在 `look` 回执
 `timing.frame_source` 标 `ys-capture|import-fallback|import`；归属类拒绝仍 fail-closed。
+
+## 10. `advice[]`：模块主动指出「笨办法」（2026-10-21 用户令）
+
+`world` 顶层新增 `advice[]`（**只建议、不阻断**；空数组=没有）。当前规则：
+
+- 有序列表：≥3 个 `kind=row`（高度 ±20%）+ 标题 `\d+/\d+` + 可排序属性（`N天前/小时前/分钟前`，`今日内`=0）。
+- 线性扫：同一 `list_sig` 连续 ≥3 次 look，净推进 < 视口且 count >> 已见 ⇒
+  `SCANNING_LINEARLY`（带 `attribute` + `order` + `estimate{net_rows_per_step,linear_screens_remaining,
+  linear_seconds,bisection_probes,bisection_seconds}`；estimate 只用实测数）。
+- 单调度不成立 ⇒ `SUGGEST_JUMP_ONLY`（不给二分估算）。
+- `look --no-advice` 关闭并清空 daemon 会话状态；换界面/换列表自动清。
+
+唯一实现：`tools/ys-editor/ys_advice.py`；回放自测 `tools/ys-editor/tests/advice.selftest.py`
+（机读行 `ADVICE-RESULT ... verdict=PASS`），已登记 `ys-gates --only 2` 套件与账本 F-20261021-63。
