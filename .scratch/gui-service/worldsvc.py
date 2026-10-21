@@ -1107,6 +1107,7 @@ class WorldService:
             # 一次都没被消费，最后退化成"人肉裁图/看图"。现在：拿 uncertainty 里分最高的几块
             # **就地 OCR 一眼**，命中就用局部坐标 + 偏移反算全局坐标。
             drilled, drilled_hit = self._drill_for_text(ws, text)
+            _via = "drill"
             if not drilled_hit:
                 # 兜底（F-20261021-57）：目标可能既无容器归属、又不在 uncertainty 区域，
                 # 例如纯 HUD 计数「我的好友 173/200」。这时**整帧 OCR 一次**（~0.6s），
@@ -1114,8 +1115,9 @@ class WorldService:
                 drilled_hit = self._ocr_frame_for_text(ws, text)
                 if drilled_hit:
                     drilled_hit["where"] = "整帧 OCR 兜底"
+                    _via = "ocr_frame"          # 通道如实报：兜底不是下钻
             if drilled_hit:
-                return {"status": "resolved", "channel": "drill", "target": text,
+                return {"status": "resolved", "channel": _via, "target": text,
                         "object": drilled_hit["object"], "candidates": 1,
                         "drilled": drilled,
                         "detail": "容器文本未命中 → uncertainty 下钻命中（%s）" % drilled_hit["where"]}
