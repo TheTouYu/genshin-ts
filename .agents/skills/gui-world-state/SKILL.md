@@ -72,6 +72,32 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | `frame_id` | `sha256:...` | 证据引用用这个，不要用截图 |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
 
+## 2.5 开跑前必做：先读当前状态（2026-10-21 实测打回）
+
+**界面停在哪是你不知道的**——上一轮代理留下的面板会一直在（实测：再开跑时原神仍停在
+`GAME_FRIENDS`，跨桌面切回后还在）。所以任何动作序列的第一条命令固定是：
+
+```bash
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
+```
+
+读出 `state.state` 再决定：`GAME_WORLD` → 直接开始；`GAME_PAIMON`/`GAME_FRIENDS`/`GAME_CHARACTER`
+→ **先归一到 `GAME_WORLD`**（ESC 逐级退回，每次退一级都重新 look 确认）；`UNKNOWN` → 先查仪器
+（`ys-capture status` / `ys-lookd` socket），不要盲发按键。
+
+**判据**：任务开始的第一条工具调用必须是 look（或同价的读状态），不是注入。
+
+## 2.6 两个必踩的调用细节
+
+| 坑 | 现象 | 正确做法 |
+|---|---|---|
+| `ys-gui-slot` 不解析 PATH | `ys-gui-slot 0x… 20 ys-esc` → **rc=127**，命令没找到，**ESC 根本没发出去**（而脚本还继续往后跑） | 传给 slot 的命令一律写**仓库内绝对路径或 `tools/ys-editor/…` 形式**：`ys-gui-slot 0x1600001 20 tools/ys-editor/ys-esc`；rc=127 要立刻中止并报错 |
+| `--summary` 与全量的 `state` 形状不同 | `--summary` 的 `state` 是**字符串**（`"GAME_FRIENDS"`），全量 `look` 的 `state` 是 **dict**（`{"state": …}`）；同一段代码按 dict 解析会 `AttributeError: 'str' object has no attribute 'get'` | 解析写兼容：`st = d["state"] if isinstance(d["state"], str) else d["state"]["state"]` |
+
+**bbox 口径**：`objects[].bbox` 是 **xywh**（x,y,w,h），中心 = `(x + w/2, y + h/2)`；
+`schema.py` 已把 `ys-screen` 原生的 xyxy 归一化过。真机例：「好友」磁贴 `[592.1,473.1,175.8,157.8]`
+→ 中心 (680,552)（上一轮成功点击 679,551 吻合）。**按 xyxy 算会落到 (384,315) 的空处。**
+
 ## 3. 状态词表（13 态，`PRECEDENCE` 消歧）
 
 编辑器侧：`EDITOR / MENU / SAVELIST / PLAYTEST / PAUSE / SETTLE / LOADING`
