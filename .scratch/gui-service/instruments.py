@@ -282,11 +282,21 @@ def inject_click(x, y, *, win=None, seconds=6, timeout=45):
     return {"rc": rc, "stdout_tail": _tail(out, 800), "stderr_tail": _tail(err, 400)}
 
 
-def daemon_rpc(req, *, timeout=180):
-    """裸 socket 调 ys-lookd（一行 JSON 请求/响应）。失败抛 InstrumentError（fail-closed）。"""
+DAEMON_RPC_TIMEOUT = float(os.environ.get("YS_DAEMON_RPC_TIMEOUT", "60"))
+
+
+def daemon_rpc(req, *, timeout=None):
+    """裸 socket 调 ys-lookd（一行 JSON 请求/响应）。失败抛 InstrumentError（fail-closed）。
+
+    2026-10-21（F-20261021-LOOKD-WEDGE 的客户端半边）：默认上界从 180s 收到 60s，
+    并把**超时单独成类**（DAEMON_TIMEOUT）。事故形态是「服务端被一个卡住的请求钉死 ⇒
+    后来者排队 ⇒ 客户端 180s 静默」，报错若只说 TimeoutError，排查者根本不知道该看服务。
+    """
     import socket
+    timeout = DAEMON_RPC_TIMEOUT if timeout is None else timeout
     if not os.path.exists(LOOKD_SOCK):
         raise InstrumentError("DAEMON_UNAVAILABLE", f"常驻服务 socket 不存在：{LOOKD_SOCK}")
+    t0 = time.time()
     try:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.settimeout(timeout)
@@ -300,6 +310,12 @@ def daemon_rpc(req, *, timeout=180):
             buf += chunk
         s.close()
         out = json.loads(buf.decode())
+    except socket.timeout:
+        raise InstrumentError(
+            "DAEMON_TIMEOUT",
+            f"常驻服务 {timeout:g}s 内没有回包（cmd={req.get('cmd')}，socket={LOOKD_SOCK}，"
+            f"已等 {time.time() - t0:.1f}s）。常见原因：ys-lookd 被某个卡住的请求钉死（单线程串行）。"
+            f"排查：systemctl --user status ys-lookd；恢复：systemctl --user restart ys-lookd")
     except (OSError, ValueError) as exc:
         raise InstrumentError("DAEMON_FAILED", f"常驻服务调用失败：{type(exc).__name__}: {exc}")
     if isinstance(out, dict) and out.get("error"):

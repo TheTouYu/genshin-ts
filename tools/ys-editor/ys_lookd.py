@@ -38,6 +38,35 @@ def ys_state():
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
 WIN = os.environ.get("YS_WIN") or __import__("ys_look")._resolve_win()
 
+# ── 单请求上界（2026-10-21 事故后加；F-20261021-LOOKD-WEDGE）──────────────────
+# 事故形态：serve() 是**单线程串行**，accept 有 30s 超时，但
+#   ① 已连接 socket 的 recv 循环**没有超时** ⇒ 客户端连上不说话/半途断开就永久阻塞；
+#   ② handle(req) **没有看门狗** ⇒ 任何一个 handler 卡住（X11 查询 / CUDA / 子进程）都会
+#      把整台感知服务钉死，后续调用者**排队到天荒地老且零报错**。
+# 实测：accept backlog Recv-Q=4、主线程 wchan=poll、闲置日志停在卡死时刻、客户 60s 零输出。
+# ⇒ 两条上界都必须有，且超时必须**回一个带 code 的错误**，不许静默。
+REQ_RECV_TIMEOUT = float(os.environ.get("YS_LOOKD_RECV_TIMEOUT", "10"))
+HANDLER_TIMEOUT = float(os.environ.get("YS_LOOKD_HANDLER_TIMEOUT", "90"))
+
+
+class _HandlerTimeout(Exception):
+    """handler 超时（由 SIGALRM 抛出，不是 handler 自身的异常）。"""
+
+
+def _alarm_handler(signum, frame):                          # noqa: ARG001
+    raise _HandlerTimeout()
+
+
+def _arm(seconds):
+    import signal
+    signal.signal(signal.SIGALRM, _alarm_handler)
+    signal.setitimer(signal.ITIMER_REAL, max(1.0, float(seconds)))
+
+
+def _disarm():
+    import signal
+    signal.setitimer(signal.ITIMER_REAL, 0)
+
 
 
 _CACHE = {}          # path -> (mtime, tensor)：只缓存**模板**（小、稳定）；离线帧见 _FRAME_CACHE
@@ -448,6 +477,43 @@ _OCR_ENGINE = None
 _UID_CACHE = {}
 _OCR_ERR = None
 
+# ── 闲置释放（2026-10-20）──────────────────────────────────────────────────
+# 背景：本服务设计成"常驻摊掉冷启动"，但**从释放过**占用——实测空转 12 分钟
+# （socket 0 连接）时就已 RSS 322MB + **swap 1666MB**。原因不是泄漏，是"冷热分层"
+# 的代价：进程长时间不访问的页会被内核换出，而它**永远不会再主动碰它们**，
+# 于是 swap 被永久占着（页面换出 → 不访问 → 不换入 → 不释放）。
+#
+# 设计取舍（为什么是"释放资源"而不是"退出进程"）：
+#   · 退出进程 → 下次调用要付 ~10s 冷启动（OCR 9680ms + 判态热路径 ~1.5s）；
+#   · 释放资源 → 保住进程与已 import 的模块，只丢 GPU 张量缓存；
+#     代价是下次 `_cached()` 重新建模板张量（几十 ms），远小于 10s。
+#   所以超时后 `torch.cuda.empty_cache()` + 清 `_CACHE`/`_FRAME_CACHE`，
+#   **不 unload OCR 引擎**（它加载要 9.7s，且释放后 ORT 会话重建同样贵）。
+#
+# 阈值：YS_LOOKD_IDLE_SEC（缺省 600s = 10 分钟）。设 0 关闭该行为。
+_IDLE_TIMEOUT = float(os.environ.get('YS_LOOKD_IDLE_SEC') or 600)
+_last_activity = time.time()
+
+
+def _release_idle():
+    """释放闲置占用的 GPU 缓存与帧/模板张量。返回释放说明；无 torch 时静默返回。"""
+    global _last_activity
+    freed_tpl = len(_CACHE)
+    freed_frm = len(_FRAME_CACHE)
+    _CACHE.clear()
+    _FRAME_CACHE.clear()
+    _UID_CACHE.clear()
+    note = f"tpl={freed_tpl} frame={freed_frm}"
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            note += f" cuda_free={round(torch.cuda.memory_reserved()/2**20)}MiB_reserved_left"
+    except Exception as e:                          # noqa: BLE001 —— 释放失败不许影响服务
+        note += f" (torch 释放跳过: {type(e).__name__})"
+    _last_activity = time.time()
+    return note
+
 
 def _ocr_engine():
     """懒加载 + 常驻。返回 (engine, err)。失败不抛，让调用方 fail-closed。
@@ -561,6 +627,9 @@ _WORLD_FRAME = {"key": None, "arr": None, "It": None, "half": None,
                 "sha": None, "w": 0, "h": 0, "path": None, "source": None}
 _WORLD_CACHE = {}
 _WORLD_CACHE_MAX = 4
+# 布局稳定信号（F-20261021-UNSETTLED）：上一帧 containers 签名 + 帧号，用来判 same_as_prev
+_WORLD_PREV_SIG = None
+_WORLD_PREV_FRAME = None
 _WORLD_SHA = {}
 _YS_SCREEN_MOD = None
 _YS_ATTR_MOD = None
@@ -2061,10 +2130,30 @@ def _world(req):
         "degraded": degraded,
         "via": "daemon",
     }
+    # ── 布局稳定信号（2026-10-21；F-20261021-UNSETTLED）────────────────────────
+    # 事故：派蒙菜单打开后网格**仍在动**——两次读数 tile 网格 y 从 478/668/856/1046
+    # 变成 452/572/760/950（≈94px）；照首读 bbox 点 (677,556) 实际落到「角色」而不是「好友」。
+    # 模块此前只报 state/objects，**不报"这帧还稳不稳"**，调用方无法知道现在动手会不会点空。
+    # 语义：settled.same_as_prev = true ⇔ 本帧 containers 的 (kind,bbox,text) 签名与**上一帧**完全相同。
+    # 第一次调用恒 false；要拿 true 至少连续取两帧同一画面（真机实测菜单约 8.8s 才稳定）。
+    try:
+        _sig = tuple((c.get("kind"), tuple(round(float(x)) for x in (c.get("bbox") or [])),
+                      tuple(c.get("text") or []))
+                     for c in ((objects or {}).get("containers") or []))
+    except Exception:                                        # noqa: BLE001
+        _sig = None
+    global _WORLD_PREV_SIG, _WORLD_PREV_FRAME
+    out["settled"] = {"same_as_prev": bool(_sig is not None and _sig == _WORLD_PREV_SIG),
+                      "prev_frame": _WORLD_PREV_FRAME,
+                      "n_objects": len(_sig or ()),
+                      "hint": "same_as_prev=false 表示画面自上一帧以来变了；动作前应重取到 true"}
+    _WORLD_PREV_SIG = _sig
+    _WORLD_PREV_FRAME = sha
     if req.get("cache", True):
         try:
             json.dumps(out)                                  # 只缓存可序列化结果
-            _WORLD_CACHE[ck] = out
+            # settled 是「相对上一帧」的时序量，绝不进帧级缓存（否则缓存命中会吐出旧值）
+            _WORLD_CACHE[ck] = {k: v for k, v in out.items() if k != "settled"}
             while len(_WORLD_CACHE) > _WORLD_CACHE_MAX:
                 _WORLD_CACHE.pop(next(iter(_WORLD_CACHE)))
         except (TypeError, ValueError):
@@ -2088,6 +2177,11 @@ def handle(req):
     _FULL["roi"] = None
     cmd = req.get("cmd")
     YL.WIN = req.get("win", WIN)
+    # 测试钩子（只在 YS_LOOKD_TEST_HOOKS=1 时存在）：让 handler 故意卡住，
+    # 用来验证 HANDLER_TIMEOUT 看门狗真的会把服务救回来（tests/lookd-wedge.selftest.sh）。
+    if cmd == "_sleep" and os.environ.get("YS_LOOKD_TEST_HOOKS") == "1":
+        time.sleep(float(req.get("ms", 1000)) / 1000.0)
+        return {"slept_ms": req.get("ms")}
     if cmd == "px":
         x, y = int(req["x"]), int(req["y"])
         p = YL.grab(x, y, 1, 1)[0, 0] * 255
@@ -2187,6 +2281,7 @@ def handle(req):
     return {"error": "unknown cmd"}
 
 def serve():
+    global _last_activity
     if os.path.exists(SOCK):
         os.unlink(SOCK)
     srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -2231,8 +2326,26 @@ def serve():
     import threading as _th
     _th.Thread(target=_warm_ocr, daemon=True, name="warm-ocr").start()
     print(f"[ys-lookd] listening {SOCK}", flush=True)
+    # accept 设超时：否则 recv 阻塞时**没有任何机会**执行闲置检查（超时释放就永远不触发）。
+    # 30s 一轮足够准（阈值是 600s 量级），又不会空转耗 CPU。
+    srv.settimeout(30.0)
     while True:
-        c, _ = srv.accept()
+        try:
+            c, _ = srv.accept()
+        except socket.timeout:
+            if _IDLE_TIMEOUT > 0 and (time.time() - _last_activity) >= _IDLE_TIMEOUT:
+                print(f"[ys-lookd] 闲置 {int(time.time()-_last_activity)}s ≥ {int(_IDLE_TIMEOUT)}s"
+                      f" → 释放缓存：{_release_idle()}", flush=True)
+            continue
+        _last_activity = time.time()
+        # 连接级读超时：客户端连上但不说完整一行 ⇒ 10s 后断开并回 RECV_TIMEOUT，
+        # 绝不把整个服务钉在 recv 上（2026-10-21 事故根因之二）。
+        try:
+            c.settimeout(REQ_RECV_TIMEOUT)
+        except OSError:
+            pass
+        t_req = time.time()
+        req = None
         try:
             data = b""
             while not data.endswith(b"\n"):
@@ -2240,7 +2353,28 @@ def serve():
                 if not chunk: break
                 data += chunk
             req = json.loads(data.decode())
-            resp = handle(req)
+            # handler 看门狗：超时抛 _HandlerTimeout，回 HANDLER_TIMEOUT 而不是永远不回。
+            # 这是「单线程串行」的结构性补丁——不换多线程，但保证任何一次卡住都有上界。
+            _arm(HANDLER_TIMEOUT)
+            try:
+                resp = handle(req)
+            finally:
+                _disarm()
+            if isinstance(resp, dict):
+                resp.setdefault("daemon", {})
+                if isinstance(resp["daemon"], dict):
+                    resp["daemon"].update({"pid": os.getpid(),
+                                           "handled_ms": round((time.time() - t_req) * 1000, 1)})
+        except socket.timeout:
+            resp = {"error": f"请求读取超时 {REQ_RECV_TIMEOUT:g}s（客户端未在时限内发完一行）",
+                    "code": "RECV_TIMEOUT"}
+            print(f"[ys-lookd] RECV_TIMEOUT: 客户端 {REQ_RECV_TIMEOUT:g}s 未发完请求，已断开",
+                  flush=True)
+        except _HandlerTimeout:
+            resp = {"error": f"handler 超时 {HANDLER_TIMEOUT:g}s（cmd={req.get('cmd') if isinstance(req, dict) else '?'}）",
+                    "code": "HANDLER_TIMEOUT"}
+            print(f"[ys-lookd] HANDLER_TIMEOUT: {HANDLER_TIMEOUT:g}s 未返回，已放弃本次请求并继续服务",
+                  flush=True)
         except Exception as e:
             resp = {"error": f"{type(e).__name__}: {e}", "tb": traceback.format_exc()[-400:]}
         # ⚠️ 回包失败**绝不许掀翻常驻服务**（2026-10-18 事故）：
