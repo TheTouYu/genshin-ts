@@ -116,13 +116,14 @@ band_unstable / no_thumb_run / thumb_full_length / ambiguous_multi_thumb / ambig
 --total-rows 173` 算出 r=0.542，与 boundary 实测 0.526 一致。
 （`now.png` 的行号是**推断**：`friends0` 末行 CH明=第 8 行，两帧无重名 ⇒ 位移 ≥8 行。）
 
-## 7. ⚠️ 已知偏差：`estimated_pages` 偏小约 1.45×
+## 7. ⚠️ 已知偏差：`estimated_pages` 偏小约 1.45×（⇒ `--total-rows` 已设为必需）
 
 好友列表实测 `estimated_pages = 17.31`（轨道 1125 / 滑块 65），但真实是 173 行 / 7 行每屏 ≈ **24.7**。
 即滑块比"按比例应有的长度"长约 40%（UI 可能给了最小滑块长度）。
-⇒ **`position_ratio` 可直接用；`--seek-rows` 必须给 `--total-rows`**（能从标题 OCR 到，如 `173/200`），
-否则用 `pages × rows-per-page` 会把目标算偏（实测 seek-rows 91 得 r=0.80，真值 0.54）。
-其它 UI 的偏差未测，按"给了 total-rows 才可信"处理。
+⇒ **`position_ratio` 可直接用；`--seek-rows` 必须给 `--total-rows`**（能从标题 OCR 到，如 `173/200`）。
+**2026-10-21 Lead 决策：不给 `--total-rows` 直接报错**（`MISSING_TOTAL_ROWS`，rc=2，附"从标题 x/y OCR"的
+next_action），**不静默兜底**——实测兜底会算出 r=0.80 而真值 0.54，等于把列表拖到完全错的位置。
+`ys_advice` 同步：建议 seek 时 `how` 里必须带 `--total-rows` 并注明「estimated_pages 不可用于 seek」。
 
 ## 8. 接到动作层：`ys-scroll --seek-ratio / --seek-rows`
 
@@ -140,9 +141,20 @@ tools/ys-editor/ys-scroll --at 0,0 --plan --seek-rows 91 --total-rows 173 --fram
 - 没有滚动条时**不猜**：`{"ok":false,"error":"NO_SCROLLBAR","reason":"...","state":{...},"next_action":"..."}`，退出码 7。
 - 拖完返回 `frame_diff` 与 `after_ratio`——**用读数证明到位**，不是只看返回码。
 
+## 8.5 `ys_advice` 的 seek 能力改成**当帧读数**（Lead 决策，单一源）
+
+`ys_advice.SEEK_MAX_ROWS=8`（滚轮上限）不再是 seek 的唯一依据：
+`ys_lookd._world_advice()` 用 `ys_scrollbar.detect_path()` 读当帧（按帧 sha 缓存，一次 ~150ms），
+把 `seek_cap={found,orientation,position_ratio,estimated_pages}` 传进 `ys_advice.observe()`。
+
+- `found=true` ⇒ `code=SCANNING_LINELY` 的变体 `seek_mode=scrollbar_seek`，`how` 直接给
+  `ys-scroll --seek-rows <目标行> --total-rows <标题总数>`（并带 `seek{orientation,position_ratio,target_row,total_rows}`）；
+- `found=false` ⇒ `LINEAR_ONLY_NO_SEEK`（现行行为），`why` 里写明「本帧没有滚动条（当帧读数）」。
+- 没传 `seek_cap`（老调用方/自测）⇒ 退回 `SEEK_MAX_ROWS` 旧口径，行为不变（`advice.selftest.py` 仍 PASS）。
+
 ## 9. 边界与未做
 
-- **横向滚动条**：判据已支持（`orient='h'`，auto 会试），但**语料里没有已核实的横向正样本**
+- **横向滚动条（能力缺口，Lead 已接受"只保证不假阳"）**：判据已支持（`orient='h'`，auto 会试），但**语料里没有已核实的横向正样本**
   （全帧扫到的横向候选全是设置页滑条行，已被 `BAND_V_STD_MAX` + `TRACK_MARGIN` 挡掉）⇒ 横向**未经正样本验收**，
   当前只保证"不假阳"，不保证"能检出"。
 - **端到端真机数字（一跳到位 vs 39.1s）**：未做，需 Lead 批准一个真机轮（几轮/验什么/失败判据）。

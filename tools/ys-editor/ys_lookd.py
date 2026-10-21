@@ -2132,6 +2132,33 @@ def _world_ocr_objects_timed(arr, sha, force_fallback=False, sig=None):
     return boxes, meta
 
 
+_SEEK_CAP_CACHE = {}
+
+
+def _seek_cap():
+    """当帧「能不能 seek」= 本帧有没有滚动条（判据唯一源 ys_scrollbar.py）。
+
+    按帧 sha 缓存（一次 ~150ms，同帧不重算）；任何异常返回 None（= 无读数，advice 退回旧口径）。
+    """
+    try:
+        import ys_scrollbar as _SB
+        path = _WORLD_FRAME.get("path")
+        if not path:
+            return None
+        key = _WORLD_FRAME.get("sha") or path
+        if key in _SEEK_CAP_CACHE:
+            return _SEEK_CAP_CACHE[key]
+        r = _SB.detect_path(path)
+        cap = {"found": bool(r.get("found")), "orientation": r.get("orientation"),
+               "position_ratio": r.get("position_ratio"),
+               "estimated_pages": r.get("estimated_pages"), "reason": r.get("reason")}
+        _SEEK_CAP_CACHE.clear()                          # 只留当帧，避免长跑攒内存
+        _SEEK_CAP_CACHE[key] = cap
+        return cap
+    except Exception:                                    # noqa: BLE001 —— advice 只建议
+        return None
+
+
 def _world_advice(world, req):
     """把「笨办法检测」交给唯一实现 ys_advice；失败不影响世界状态。"""
     try:
@@ -2145,6 +2172,7 @@ def _world_advice(world, req):
             free_text=objs.get("free_text") or [],
             look_ms=float(tim.get("total_full_ms") or tim.get("total_ms") or 0.0),
             now_ms=time.time() * 1000.0,
+            seek_cap=_seek_cap(),
             enabled=bool(req.get("advice", True)))
     except Exception:                                    # noqa: BLE001 —— advice 只建议
         return []

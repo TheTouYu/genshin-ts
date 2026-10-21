@@ -236,6 +236,17 @@ def main():
 
     # ————————————————————————————— 滚动条 seek —————————————————————————————
     # 判据唯一实现在 tools/ys-editor/ys_scrollbar.py（本文件不复制任何常数）。
+    if a.seek_rows > 0 and a.total_rows <= 0:
+        # Lead 决策 2026-10-21：**不许用 estimated_pages 静默兜底**——实测偏小 ~1.45×
+        # （好友列表 17.31 vs 真值 24.7，UI 有最小滑块长度），会算出 r=0.80 而真值 0.54。
+        print(json.dumps({"ok": False, "error": "MISSING_TOTAL_ROWS",
+                          "reason": "--seek-rows 需要显式总行数；estimated_pages 实测偏小 ~1.45×，"
+                                    "用它换算会把列表拖到完全错的位置",
+                          "state": {"seek_rows": a.seek_rows, "rows_per_page": a.rows_per_page},
+                          "next_action": "从界面标题 OCR 读「x/y」（如好友「我的好友 173/200」）"
+                                         "后传 --total-rows 173；或改用 --seek-ratio"},
+                         ensure_ascii=False))
+        return 2
     if a.seek_ratio is not None or a.seek_rows > 0:
         try:
             import ys_scrollbar as _SB
@@ -271,8 +282,7 @@ def main():
             _rpp = max(1.0, a.rows_per_page)
             # estimated_pages 由 thumb/轨道长度反推，**偏小**（好友列表实测 17.3 vs 真实 173/7≈24.7）。
             # 能给 --total-rows 就用真值，否则用估计并如实标注。
-            _total = (a.total_rows if a.total_rows > 0 else _rpp * _pages)
-            _total = max(_total, a.seek_rows + 1.0)
+            _total = max(a.total_rows, a.seek_rows + 1.0)   # 必须由 --total-rows 给出（上面已拦）
             ratio = (a.seek_rows - 1.0) / max(1.0, _total - _rpp)
         ratio = min(1.0, max(0.0, float(ratio)))
         H = int(os.environ.get("YS_H", "1440"))

@@ -21,10 +21,10 @@ import hashlib
 import os
 import math
 
-# 2026-10-21 真机实测（jump_probe，5 探针）：ys-scroll 的 clicks 被 clamp 5..80，
-# 一次最多只走 4.3–6.6 行 ⇒ **现在没有"跳到任意位置"的 seek 能力**。
-# 建议必须可执行：没有 seek 就不许建议二分（假建议比不说不更糟）。
-SEEK_MAX_ROWS = float(os.environ.get('YS_SEEK_MAX_ROWS', '8'))   # 真机标定 2026-10-21：
+# 「能不能 seek」优先看**当帧读数**（`seek_cap`，来自 ys_scrollbar.detect：本帧有没有滚动条），
+# 没有读数时退回滚轮上限 SEEK_MAX_ROWS（2026-10-21 真机标定：滚轮请求 8 行→实测 6.9 行，
+# 16/24/48 只落 4.5–5.6 ⇒ 滚轮 seek 上限 ≈8 行）。**不要新加常量**：滚动条一可用就是"能 seek"。
+SEEK_MAX_ROWS = float(os.environ.get('YS_SEEK_MAX_ROWS', '8'))
 # 滚轮请求 8 行→61 clicks→实测 6.9 行（1.38 rows/s 最优）；请求 16/24/48 虽分批执行，
 # 实测只落 4.5–5.6 行且 rows/s 掉到 0.36 ⇒ 游戏对连续滚轮有速率上限，**滚轮 seek 上限 ≈8 行**。
 # （拖动/滚动条 seek 另测，若可行再上调。）
@@ -131,7 +131,9 @@ class ListTracker:
         self._state = None
 
     def observe(self, *, state_name, containers=(), detections=(), free_text=(),
-                look_ms=0.0, now_ms=0.0, enabled=True):
+                look_ms=0.0, now_ms=0.0, enabled=True, seek_cap=None):
+        """seek_cap: None=无读数（退回滚轮上限）；dict=当帧滚动条读数
+        {found, orientation, position_ratio, estimated_pages}（判据唯一源 ys_scrollbar.py）。"""
         if not enabled:
             self.clear()
             return []
@@ -222,12 +224,30 @@ class ListTracker:
             _need = 0
             if est and est.get("linear_screens_remaining"):
                 _need = int(est["linear_screens_remaining"]) // 2
-            _seek_ok = _need <= SEEK_MAX_ROWS
+            _sb = seek_cap or {}
+            _can_seek = bool(_sb.get("found"))
+            _seek_ok = _can_seek or _need <= SEEK_MAX_ROWS
             if _seek_ok:
+                if _can_seek:
+                    # 有滚动条 ⇒ 一次跳到位，不用二分。**总行数必须来自标题（count）**：
+                    # estimated_pages 实测偏小 ~1.45×（好友列表 17.31 vs 真值 24.7），不可用于 seek。
+                    _target = min(int(count or 1), seen + max(1, int(round(net_rows))))
+                    how = ("一次跳到位：ys-scroll --seek-rows %d --total-rows %s（--total-rows "
+                           "取标题 %s；**estimated_pages 不可用于 seek**，实测偏小 ~1.45×）→ look 复核"
+                           % (_target, int(count) if count else "<标题里的总数>",
+                              header or "x/y"))
+                    _mode = "scrollbar_seek"
+                else:
+                    how = ("用二分：ys-scroll --rows <N> 跳到中部 → look → 按天数单调性折半；"
+                           "实现见 tools/ys-editor/ys-scan")
+                    _mode = "bisection"
                 adv = {"code": "SCANNING_LINEARLY", "severity": "act-now", "why": why,
-                       "attribute": attr_name, "order": order,
-                       "how": "用二分：ys-scroll --rows <N> 跳到中部 → look → 按天数单调性折半；"
-                              "实现见 tools/ys-editor/ys-scan"}
+                       "attribute": attr_name, "order": order, "how": how,
+                       "seek_mode": _mode}
+                if _can_seek:
+                    adv["seek"] = {"orientation": _sb.get("orientation"),
+                                   "position_ratio": _sb.get("position_ratio"),
+                                   "target_row": _target, "total_rows": count}
                 if est:
                     adv["estimate"] = est
                     adv["cost_if_ignored"] = ("多花约 %.0fs（线性 %.0fs vs 二分 %.0fs），"
@@ -238,8 +258,11 @@ class ListTracker:
                 # **诚实的建议**：现在没有 seek 能力（clicks clamp 5..80 ⇒ 一次最多 ~6 行），
                 # 二分跳不到中部。就不许建议二分——给出"提高单屏吞吐/减少重叠"的可执行方向。
                 adv = {"code": "LINEAR_ONLY_NO_SEEK", "severity": "info",
-                       "why": why + "；但当前**没有 seek 能力**（单次最多 %.0f 行），二分跳不到中部"
-                              % SEEK_MAX_ROWS,
+                       "why": why + ("；本帧**没有滚动条**（whence=当帧读数），"
+                                     "且单次滚轮最多 %.0f 行，二分跳不到中部" % SEEK_MAX_ROWS
+                                     if seek_cap is not None else
+                                     "；但当前**没有 seek 能力**（单次最多 %.0f 行），二分跳不到中部"
+                                     % SEEK_MAX_ROWS),
                        "attribute": attr_name, "order": order,
                        "how": "两条可执行路径：①把每屏净推进从 ~5 行提到接近视口 7 行（减少重叠）；"
                               "②补 seek 原语（键盘 PageDown/End 或拖滚动条），再回到二分",
