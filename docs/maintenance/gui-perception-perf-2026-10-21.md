@@ -350,3 +350,18 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - `tools/ys-editor/ys-scan --jump-plan` 列探针：rows=8/16/24/32，每个 before/after 各一次 look，
   记录实际行位移与是否出现行名断档；失败判据 `moved_confirmed=false` 或行名 gap。
 - 真机需求：**1×60s**（4 个探针 + 各一次 look），等用户批准；不自行占屏。
+
+## 大跳探针（真机 1×60s，2026-10-21 17:2x）
+
+| 请求(行) | clicks | moved_px | 实际(行, est) | moved_confirmed | LOST |
+|---|---|---|---|---|---|
+| 8 | 61 | 866 | **5.22** | true | false |
+| 16 | 80 | 756 | **4.50** | true | false |
+| 24 | 80 | 751 | **4.52** | true | false |
+| 32 | 80 | 756 | **6.64**（pitch 113.8 噪声） | true | false |
+| 48 | 80 | 769 | **4.27** | true | false |
+
+- **结论①**：`--rows N` 的 clicks 上限是 **80**（代码 clamp 5–80）⇒ 请求 16/24/32/48 全部被压成 80 clicks，实际只走 **4.3–6.6 行**。**能稳定拿到的实际跳幅 ≈5 行（8 请求→61 clicks→5.22 行）**；再大不生效，二分应把单步限制在 ≤5 行。
+- **结论②**：一次「跳+读」实测 **≈5.4s**（范围 5.2–6.6s，含 `--verify` 两次抓帧；纯注入滚动本身 ~1.4s）。二分 5–6 次探针 ≈ **27–32s**。
+- **LOST**：5 次都 `moved_confirmed=true`、无空屏、首行变化；但本轮**没测复位**（`reset_ok=null`，预算优先 5 个请求），所以 LOST 判据未覆盖「复位不回首行」。
+- **交还**：`active=firefox` idx8 > game idx7；`desktop=2 == prev_desktop=2`；`revoke=ok`；`handback_ok=true`；总墙钟 **43.6s**。

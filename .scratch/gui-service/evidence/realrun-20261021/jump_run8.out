@@ -1,0 +1,25 @@
+[jump] look/s0          rc=8   1195.4ms
+[jump] start state=GAME_WORLD rows=0
+[jump] esc              rc=0    533.3ms
+[jump] look/nav_p0      rc=8   1118.6ms
+[jump] look/nav_p1      rc=0   1048.1ms
+[jump] click/friends    rc=0   1385.5ms
+[jump] look/nav_f0      rc=0    653.7ms
+[jump] look/nav_f1      rc=0    690.8ms
+[jump] nav state=GAME_FRIENDS rows=2
+[jump] d8               rc=0   4655.3ms
+[jump] look/d8          rc=0    621.1ms
+[jump] N=8 clicks=61 moved_rows=None reset_ok=None LOST=False
+[jump] d16              rc=0   4858.5ms
+[jump] look/d16         rc=0    735.5ms
+[jump] N=16 clicks=80 moved_rows=None reset_ok=None LOST=False
+[jump] d24              rc=0   4828.1ms
+[jump] look/d24         rc=0   1829.2ms
+[jump] N=24 clicks=80 moved_rows=None reset_ok=None LOST=False
+[jump] d32              rc=0   4717.8ms
+[jump] look/d32         rc=0    633.7ms
+[jump] N=32 clicks=80 moved_rows=None reset_ok=None LOST=False
+[jump] d48              rc=0   4825.8ms
+[jump] look/d48         rc=0    803.3ms
+[jump] N=48 clicks=80 moved_rows=None reset_ok=None LOST=False
+JUMP-RESULT {"schema": "gui.jump-probe/1", "wall_s": 35.7, "probes": [{"request_rows": 8, "clicks": 61, "moved_px": -866, "moved_confirmed": true, "before_first": "无所事事真君", "after_first": "凌", "moved_rows_in_view": null, "pitch_px": 166.0, "moved_rows_est": 5.22, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4592.6, "look_ms": 621.1, "lost": false}, {"request_rows": 16, "clicks": 80, "moved_px": 756, "moved_confirmed": true, "before_first": "凌", "after_first": "姜水", "moved_rows_in_view": null, "pitch_px": 168.0, "moved_rows_est": 4.5, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4795.7, "look_ms": 735.5, "lost": false}, {"request_rows": 24, "clicks": 80, "moved_px": -751, "moved_confirmed": true, "before_first": "姜水", "after_first": "倒立的企鹅", "moved_rows_in_view": null, "pitch_px": 166.0, "moved_rows_est": 4.52, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4766.8, "look_ms": 1829.2, "lost": false}, {"request_rows": 32, "clicks": 80, "moved_px": 756, "moved_confirmed": true, "before_first": "倒立的企鹅", "after_first": "物当", "moved_rows_in_view": null, "pitch_px": 113.8, "moved_rows_est": 6.64, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4658.6, "look_ms": 633.7, "lost": false}, {"request_rows": 48, "clicks": 80, "moved_px": -769, "moved_confirmed": true, "before_first": "物当", "after_first": "大佬1", "moved_rows_in_view": null, "pitch_px": 180.0, "moved_rows_est": 4.27, "advanced_beyond_viewport": true, "reset_ok": null, "scroll_ms": 4763.7, "look_ms": 803.3, "lost": false}], "max_stable_rows": 48}
