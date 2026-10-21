@@ -1059,6 +1059,31 @@ class WorldService:
             rows.append(row)
         return rows, None
 
+    def _ocr_frame_for_text(self, ws, text):
+        """整帧 OCR 兜底：给"只在 free_text、无归属容器"的目标补坐标（F-20261021-57）。"""
+        raw = ws.raw if hasattr(ws, "raw") else ws
+        frame_path = (raw.get("frame") or {}).get("path")
+        if not frame_path or not os.path.isfile(frame_path):
+            return None
+        want = schema.normalize_text(text)
+        try:
+            boxes = instruments.ocr_boxes(frame_path)
+        except Exception:                                  # noqa: BLE001
+            return None
+        for b in boxes or []:
+            t = schema.normalize_text(b.get("text") or "")
+            if not t:
+                continue
+            if want and (want in t or t in want):
+                cx, cy = float(b.get("cx", 0)), float(b.get("cy", 0))
+                return {"status": "resolved", "channel": "ocr_frame", "target": text,
+                        "object": {"id": "ocr:0", "kind": "text_hit",
+                                   "bbox": [round(cx - 20), round(cy - 10), 40, 20],
+                                   "text": [b.get("text")], "source": "ocr_frame"},
+                        "candidates": 1,
+                        "detail": "整帧 OCR 命中「%s」@(%d,%d)" % (b.get("text"), cx, cy)}
+        return None
+
     def _resolve_target(self, ws, target):
         """解析 target → {status, object, ...}。未命中/多义 fail-closed，不猜。"""
         if "object_id" in target:
@@ -1082,6 +1107,13 @@ class WorldService:
             # 一次都没被消费，最后退化成"人肉裁图/看图"。现在：拿 uncertainty 里分最高的几块
             # **就地 OCR 一眼**，命中就用局部坐标 + 偏移反算全局坐标。
             drilled, drilled_hit = self._drill_for_text(ws, text)
+            if not drilled_hit:
+                # 兜底（F-20261021-57）：目标可能既无容器归属、又不在 uncertainty 区域，
+                # 例如纯 HUD 计数「我的好友 173/200」。这时**整帧 OCR 一次**（~0.6s），
+                # 用 OCR 框自带的 cx/cy 直接给坐标——比再切十块网格便宜得多。
+                drilled_hit = self._ocr_frame_for_text(ws, text)
+                if drilled_hit:
+                    drilled_hit["where"] = "整帧 OCR 兜底"
             if drilled_hit:
                 return {"status": "resolved", "channel": "drill", "target": text,
                         "object": drilled_hit["object"], "candidates": 1,
@@ -1404,9 +1436,10 @@ CAPABILITIES = {
         {"code": "EXPECT_EXACT_MATCH", "detail": "text_added 是整串匹配；OCR 常把标题与计数粘成一条"},
         {"code": "SCROLL_CHANNEL", "detail": "ys-scroll --lease 在游戏窗常无效，需走槽位模式"},
         {"code": "DRILL_SCOPE_LIMITED",
-         "detail": "解析失败时的下钻只覆盖 look 报出的 uncertainty 区域（score≥0.8，top3），"
-                   "区域外的文本（如纯 HUD 计数）仍拿不到坐标 —— 2026-10-21 真机实测："
-                   "目标『我的好友 173/200』只在 free_text，下钻 3 块未命中"},
+         "detail": "解析失败先下钻 look 的 uncertainty 区域（score≥0.8，top3），未命中再**整帧 OCR 兜底**"
+                   "（channel=ocr_frame，~0.6s）；两者都不中才判 resolve_fail。"
+                   "2026-10-21 真机：『我的好友 173/200』下钻 3 块未命中 → 兜底通路已补，"
+                   "离线用『DXVK v3.0』验证 channel=ocr_frame 命中"},
     ],
     # ── 技能是 AGI 实现的一部分（用户令 2026-10-21）─────────────────────────
     # 能力 = 工具 + 判据 + **技能**。只把能力做进代码，下一个会话就没有它——

@@ -465,3 +465,28 @@ def copy_frame(src, dst):
     os.makedirs(os.path.dirname(os.path.abspath(dst)), exist_ok=True)
     shutil.copy2(src, dst)
     return dst
+
+
+def ocr_boxes(frame, *, timeout=120):
+    """整帧 OCR → 框列表（带 cx/cy，屏幕坐标）。给「只在 free_text、无归属容器」的目标补坐标用。
+
+    走常驻服务的 `cmd=ocr`（引擎已热，~0.6s）；服务不可用才回退子进程 ys_ocr。
+    """
+    if not frame or not os.path.exists(frame):
+        return []
+    try:
+        r = daemon_rpc({"cmd": "ocr", "frame": os.path.abspath(frame)}, timeout=timeout)
+        if isinstance(r, dict) and isinstance(r.get("boxes"), list) and not r.get("error"):
+            return r["boxes"]
+    except InstrumentError:
+        pass
+    try:
+        rc, out, err = run([sys.executable, os.path.join(YS_EDITOR, "ys_ocr.py"),
+                            "ocr", os.path.abspath(frame), "--json"],
+                           timeout=timeout, env_extra=_ocr_env())
+        if rc != 0:
+            return []
+        doc = parse_json_doc(out, what="ys_ocr")
+        return doc.get("boxes") or []
+    except InstrumentError:
+        return []

@@ -18,10 +18,12 @@ if [ -r "$LOCK" ]; then
   [ "$last" -gt 0 ] 2>/dev/null && [ $(( (now - last) / 1000000 )) -lt 200 ] && exit 0
 fi
 printf '%s\n' "$now" > "$LOCK" 2>/dev/null || true
-if [ -r "$SOUND" ] && command -v paplay >/dev/null 2>&1; then
-  ( paplay "$SOUND" >/dev/null 2>&1 & ) >/dev/null 2>&1
-else
-  # 退路：X11 铃（KWin 会放成 bell 音效）
-  printf '\a' > "$(tty 2>/dev/null || echo /dev/null)" 2>/dev/null || true
+# 首选 **X11 铃**（用户 2026-10-21：「之前那个辨识度更高」——KWin 把它放成 bell 音效）。
+# 它也是我们最初听到的那个声音，辨识度明显高于 freedesktop 的 bell.oga。
+if ! python3 -c "from Xlib import display; display.Display().bell(0)" >/dev/null 2>&1; then
+  # 退路：paplay 播一个 bell 文件
+  if [ -r "$SOUND" ] && command -v paplay >/dev/null 2>&1; then
+    ( paplay "$SOUND" >/dev/null 2>&1 & ) >/dev/null 2>&1
+  fi
 fi
 exit 0
