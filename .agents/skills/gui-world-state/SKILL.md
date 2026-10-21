@@ -1,0 +1,96 @@
+---
+name: gui-world-state
+description: GUI 世界状态模块（感知层）的入口——用 `.scratch/gui-service/worldsvc.py` 的 look/act/wait 三动词与 `ys-lookd cmd=world` 读「状态 / 对象 / 结构 / 文本」，在真机里完成「看清在哪 → 找到对象 → 动作 → 复验」。当任务涉及：读界面状态、判断当前在哪个界面（含原神本体的派蒙菜单/好友/角色/活动页）、按文字找可点对象、验证动作是否真的生效、黑屏或空白帧、窗口在别的虚拟桌面、或要给 GUI 自动化加判据与防线时使用。区别于 `device-playtest-loop`（负责把真机实验跑起来：开试玩、注入、取日志、焦点归还）：本技能只管**感知与判断**这一层，不复制任何判据。
+---
+
+# GUI 世界状态（感知层）
+
+## 0. 一句话
+
+**「我以为」必须有模块读数支撑。** 读不到就说读不到，判不出就报 UNKNOWN，绝不用手工像素试探代替模块判断。
+
+## 1. 三条命令（唯一入口）
+
+```bash
+# 看：状态 + 对象 + 结构 + 文本（常驻服务，热路径 ~1.1s）
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world      # 全量回执
+
+# 动：按文字/对象解析后注入（默认 dry-run，真动要 --live + 焦点授权）
+python3 .scratch/gui-service/worldsvc.py act --text 好友 --action '{"type":"click"}'
+
+# 等：谓词等待（禁裸 sleep）
+python3 .scratch/gui-service/worldsvc.py wait --predicate '{"state_in":["GAME_PAIMON"]}' --timeout 10
+```
+
+底层就是 `ys-lookd` 的 `cmd=world`（socket 一行 JSON）：
+
+```python
+req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure": True}
+```
+
+## 2. 回执怎么读
+
+| 字段 | 含义 | 纪律 |
+|---|---|---|
+| `state.state` | 13 态之一（见 §3） | **唯一判据实现**在 `tools/ys-editor/ys-state`，别自己写 |
+| `state.readings` | 每条判据的 value/passed | 判不出时看这里，别猜 |
+| `objects.containers[]` | `kind` + `bbox` + `text[]` | `tile/row/button/panel/chip`；**离线好友可能不在 containers，只在 free_text** |
+| `objects.free_text[]` | 扁平文本序列（含 OCR 漏组的行） | 只扫 `containers` 会**系统性漏掉一类对象** |
+| `structure` | 层级/遮挡 | — |
+| `settled.same_as_prev` | 与上一帧是否逐对象一致 | **动作前必须 true**；菜单打开后本机实测要 **8.8s** 才稳定 |
+| `frame_id` | `sha256:...` | 证据引用用这个，不要用截图 |
+| `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
+
+## 3. 状态词表（13 态，`PRECEDENCE` 消歧）
+
+编辑器侧：`EDITOR / MENU / SAVELIST / PLAYTEST / PAUSE / SETTLE / LOADING`
+原神本体：`GAME_WORLD / GAME_PAIMON / GAME_ACTIVITY / GAME_FRIENDS / GAME_CHARACTER`
+兜底：`UNKNOWN`
+
+- 同层多态同时成立时按 `PRECEDENCE`（面板 3 > 派蒙/活动 2 > 世界 1）取**唯一最高**；
+  仍并列就报 `AMBIGUOUS`（**不猜**）。
+- 本体判据靠 OCR 文本：派蒙菜单 = 「冒险等阶 / 世界等级 / 左 UID」；世界 = 「右下 UID + 底部数字 + 无派蒙面板」；
+  好友 = 「好友标题 + `x/200` 计数」；角色 = 「命之座 + 圣遗物」。
+- **黑屏/无内容帧必须判 UNKNOWN**（当前尚未落地，见账本 F-20261021-48）。
+
+## 4. 仪器健康（先看这两个，再谈判据）
+
+| 东西 | 怎么查 | 判据 |
+|---|---|---|
+| `ys-lookd`（GPU 常驻判态） | `systemctl --user status ys-lookd` | 单请求有界：`YS_LOOKD_RECV_TIMEOUT=10s` / `YS_LOOKD_HANDLER_TIMEOUT=90s`，超时回 `RECV_TIMEOUT`/`HANDLER_TIMEOUT`——**不再允许静默挂住** |
+| `ys-capture`（XShm 常驻抓帧） | `tools/ys-editor/ys-capture status` | `daemon_alive && seq>0 && last_err==""`——**进程活着 ≠ 在产帧** |
+| 一键拉起 | `tools/ys-editor/ys-eyes-up` | exit 0 就绪 / 2 没窗口 / 3 守护不产帧 / **5 在产帧但窗不在当前桌面** |
+| 跨桌面 | `tools/ys-editor/ys-follow-win` | 只读探测不加 `--switch`；KWin 报 `desktop=all` 就是「在所有桌面」 |
+
+## 5. 五条实测坑（都交过学费）
+
+1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。
+   照首读 bbox 点击会落到**相邻格子**。⇒ 用 `settled.same_as_prev==true` 当动作门。
+2. **滚动会假成功**：`ys-scroll` 旧版画面逐像素一致仍 `rc=0`。现在有 `frame_diff` + `moved_confirmed` 三态，
+   没动即 **`rc=6 NO_MOVEMENT`**；`--no-verify` 时不回答「动没动」，别拿它当成功。
+3. **跨仪器会打架**：`ys-capture`（XShm 直读窗口）能拿到**全黑帧**，同一刻 `ys-lookd`（`import -window`）
+   可能拿**旧缓冲**并照旧判态。⇒ 状态异常先问「这一帧是哪台仪器、多老」（F-20261021-48）。
+4. **对话框会吞 ESC**：游戏内对话/选项打开时 ESC 先关对话、不开派蒙菜单。判据：`free_text` 出现
+   「临时 / 1 / 2 / 3」这类选项文本 ⇒ 别连续空按 ESC。
+5. **服务卡死时客户端要出声**：`daemon_rpc` 默认 60s、超时单列 `DAEMON_TIMEOUT`，消息里直接给
+   `systemctl --user restart ys-lookd`；看到 `DAEMON_DOWN` 但服务 active ⇒ 去看守护自己的 `stage=grab` 日志。
+
+## 6. 证据与防线（改这个模块时必须一起动）
+
+- **证据最小集**：`evidence/<case>/` 里的 `s*.json`（模块原始回执）+ `round.json`，**不是截图**。
+  实例：`.scratch/gui-service/evidence/friends-run/`（s0_world → s3_boundary，能重推出「第一个 30 天未上线好友 = 匿叶龙」）。
+- **失败账本**：新踩的坑登记到 `tools/failure-ledger`，`prevented` 必须绑一条**可跑闸门**且带**注入用例**
+  （`tools/ys-editor/tests/ledger-inject.sh`），否则全量 `check` 会报 `UNPROVEN` 并判 FAIL。
+- **门禁**：`./tools/ys-gates --only 2`（含 lookd-wedge / scroll-movement / state-precedence 三个套件）、
+  `--only 5`（单一源：判据不许复制）、`tools/ys-guards`（白名单投影等）。
+- **架构真相**：`docs/architecture/gui-world-state.md`（schema、三动词、成本口径、§6 单一源表）。
+
+## 7. 什么时候转别的技能
+
+| 要去哪 | 转给 |
+|---|---|
+| 开试玩、注入键鼠、取节点图日志、焦点归还 | `device-playtest-loop` |
+| 给界面帧标 bbox 真值、造检测训练集 | `gui-annotation` |
+| 解析 `.gia` 日志、还原节点执行 | `debug-log-investigator` |
+| 改被感知的界面本身（编辑器/UI 资产） | `genshin-ts-asset-operations` / `ui/AGENTS.md` |

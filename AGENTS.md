@@ -43,7 +43,7 @@
 5. **迭代一轮写知识树**：可复用规则录入 PKC（`pkc-project-operator`），不只写文档。
 6. **多轮任务走票据驱动**（2026-09-03）：先建票建看板（`/to-tickets`，规范 `docs/maintenance/ticket-driven-workflow.md`），收轮三件套（勾票 + PROGRESS 下一步 + 精确 commit）。
 
-- **记忆纪律（2026-09-16 用户定义；三条并列，must 主动不等提醒）**：① **写日记**（`memo_write`）——关键知识变长期记忆、相关时自动召回；一个可归因小点闭环即写，不攒到最后。② **压缩**（`compress`）——消费冗余提高容量；已消费的工具输出/探索过程/中间步骤即压，用户消息、当前步骤在用、需逐字引用者**不压**；**自写摘要比自动压缩保真**；AGENTS.md 重注入行挡住的区间压了不回收。③ **Tag 卫生**——回注的**枢纽告警（某 Tag ≥1/3 篇）是功能失效非美学提示**：锚覆盖 1/3 语料就区分不了任何两篇，**等于没响**，挂它的记忆渐渐召不回。**见到必当轮处理**（我连续三次只记录不处理，被用户点破）。天生会涨的四类：来源类（千星官方课程）/项目类（知识图谱）/元属性类（能力缺口）/超大领域类（优质游戏设计）——描述"谁在说"而非"在说什么"；枢纽通常是**若干篇挂错**而非某篇挂多，逐篇问"主题真的是它吗"；**换锚优于删锚**；**"为连通性搭桥"是反模式**；改完**必看连通分量=1**。实证 `GIL资产操作` 10/25→7/26。
+- **记忆纪律（2026-09-16 用户定义；三条并列，must 主动不等提醒）**：① **写日记**（`memo_write`）——关键知识变长期记忆、相关时自动召回；一个可归因小点闭环即写，不攒到最后。② **压缩**（`compress`）——消费冗余提高容量；已消费的工具输出/探索过程/中间步骤即压，用户消息、当前步骤在用、需逐字引用者**不压**；**自写摘要比自动压缩保真**；AGENTS.md 重注入行挡住的区间压了不回收。③ **Tag 卫生**——回注的**枢纽告警（某 Tag ≥1/3 篇）是功能失效非美学提示**：锚覆盖 1/3 语料就区分不了任何两篇，**等于没响**，挂它的记忆渐渐召不回。**见到必当轮处理**（我连续三次只记录不处理，被用户点破）。天生会涨的四类（来源/项目/元属性/超大领域）都在描述"谁在说"而非"在说什么"；枢纽通常是**若干篇挂错**而非某篇挂多，逐篇问"主题真的是它吗"；**换锚优于删锚**；**"为连通性搭桥"是反模式**；改完**必看连通分量=1**。实证 `GIL资产操作` 10/25→7/26。
 - **复盘**：一波任务闭环后，用 `task-retrospective` 系统复盘（历史检索 → 错误谱系 → 复盘文档 → 迭代），防止经验流失。
 - **知识落盘**：可复用的引擎规则/方法论落盘到 `docs/game-engine-knowledge/` 与 PKC 知识树（`pkc-project-operator`）；只写已证实、可复用、可行动的规则，更新到适用范围最小的文件。
 - **技能迭代**：复盘沉淀的流程/经验用 `skill-creator` 回灌到对应技能，让下次同类任务自动按新流程执行。
@@ -68,18 +68,19 @@
 | 复杂静态模型/元件/实体/装饰物拼装 | `static-gil-model-builder` |
 | 变量/挂载/UI/信号等 .gil 资源写回 | `genshin-ts-asset-operations` |
 | 读/改节点图内部逻辑 | `gil-node-graph-reading` / `gil-node-graph-editing` |
-| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md`（19 类通用复合，有现成的直接抄） |
+| 复用现成复合节点/查通用资源包（写 DSL 前先查） | `docs/composite-library/README.md` |
 | 调试节点图日志/负载 | `debug-log-investigator` |
+| **GUI 世界状态感知**（读界面/判在哪个界面/按文字找对象/验动作是否生效/黑屏与跨桌面） | `gui-world-state` + `.scratch/gui-service/worldsvc.py`（look/act/wait） |
 | **真机试玩与取数** / 编辑器窗口层故障 | `device-playtest-loop` + `tools/ys-editor/`（先查版本与已知 bug） |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
 | UI 命令层；**往任何地图写屏幕控件/悬浮页/按钮/页签/素材**（2026-09-11 W1 事故回灌） | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md`；悬浮页规范见 genshin-ts-asset-operations C2 节 |
 | 游戏内最小注入核验 | `verify-injection` |
-| 创建技能配置/客户端图资产（36/6/28 模板×普通/瞬发+绑定，含中文类型名） | `genshin-ts-asset-operations`（`assets:skill-config create\|list` / `assets:node-graphs create --type`；28 模板固定模型遗迹守卫） |
+| 创建技能配置/客户端图资产（模板矩阵，含中文类型名） | `genshin-ts-asset-operations`（命令见技能本体） |
 | Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read，勿用 skill 加载） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
-| **千星模拟器 2D UI+Lua 路线**（UI↔JSON/GIA、控件模板、Lua 挂载、runCase） | `simulator-2d-route` + 全局 `qxqy-simulator`/`qxqy-game-studio`（细节参考；改动走我方 fork） |
+| **千星模拟器 2D UI+Lua 路线**（UI/Lua/runCase） | `simulator-2d-route` + 全局 `qxqy-simulator`/`qxqy-game-studio`（改动走我方 fork） |
 | 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
