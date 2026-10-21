@@ -31,17 +31,33 @@ B="$HERE/fixtures/savelist-orderB.png"
 TMP="$(mktemp -d /tmp/resolve-click.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 VERBOSE=0; [ "${1:-}" = "-v" ] && VERBOSE=1
-PASS=0; FAIL=0
+PASS=0; FAIL=0; EMPTY=0   # EMPTY=子进程空 stdout 次数（环境/负载，不是回归）
+# jf 几乎都在 $(...) 子 shell 里调用 ⇒ 变量加不上父进程，改用**文件计数**（2026-10-21 自己踩到：
+# 先写成 EMPTY=$((EMPTY+1))，注入用例跑出 rc=1「被当成回归」，真因就是子 shell 丢计数）。
+EMPTY_LOG="$TMP/empty.log"; : > "$EMPTY_LOG"
 OUT=""; ERR=""; RC=""; INJ=""
 
 ok()  { printf '    ✓ %s\n' "$1"; PASS=$((PASS+1)); }
 bad() { printf '    ✗ %s\n' "$1"; [ -n "${2:-}" ] && printf '      ↳ %s\n' "$2"; FAIL=$((FAIL+1)); }
-jf()  { printf '%s' "$1" | python3 -c 'import json,sys
-d = json.load(sys.stdin)
+# jf: 从 JSON 里取值。**空 stdout 不许抛栈**——2026-10-21 负载高峰下并发跑本套件，
+# 子进程被压到空输出，旧实现直接 json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)，
+# 整个套件以 traceback 收尾 ⇒ 整条门槛②假红，且看不出"是负载还是回归"。现在：
+#   空输出/坏 JSON ⇒ 计 EMPTY（或给 __BAD_JSON__ 哨兵），由文末把 rc 分成 1(回归) / 3(环境) / 4(混合)。
+jf()  {
+  if [ -n "${YS_RESOLVE_SIM_EMPTY:-}" ]; then printf 'x\n' >> "$EMPTY_LOG"; return 0; fi   # 注入用例专用
+  local raw; raw="$(printf '%s' "$1")"
+  if [ -z "${raw//[[:space:]]/}" ]; then printf 'x\n' >> "$EMPTY_LOG"; return 0; fi
+  printf '%s' "$raw" | python3 -c 'import json,sys
+raw = sys.stdin.read()
+try:
+    d = json.loads(raw)
+except Exception:
+    print("__BAD_JSON__"); sys.exit(0)
 v = d
 for k in sys.argv[1].split("."):
     v = (v or {}).get(k) if isinstance(v, dict) else None
-print("" if v is None else v)' "$2"; }
+print("" if v is None else v)' "$2"
+}
 has() { [[ "$1" == *"$2"* ]]; }   # 字面匹配：$2 里的 [ ] * 不当通配符
 
 need() {
@@ -228,6 +244,25 @@ if [ "$RC" = 1 ]; then ok "④ 缺参数 → 1（与改动前一致）"; else ba
 expect_has "用法行与改动前一致" "$ERR" "用法: ys-pointer-click <x> <y> [tol] [ratio]"
 
 echo "────────────────────────────────"
+EMPTY=$(wc -l < "$EMPTY_LOG" 2>/dev/null || echo 0); EMPTY=${EMPTY:-0}
 printf '通过 %d / 失败 %d\n' "$PASS" "$FAIL"
-[ "$FAIL" = 0 ] && echo "✓ 全绿" || echo "✗ 有失败项"
-[ "$FAIL" = 0 ]
+# 退出码分三态（2026-10-21 假红回灌）：1=断言失败(回归) / 3=环境(空 stdout，不可判定) / 4=两者混杂。
+# 为什么要分开：负载高峰下并发跑时，空 stdout 会被报成 traceback ⇒ 看着像回归，实际单跑 68/0 全绿。
+if [ "$FAIL" -gt 0 ] && [ "$EMPTY" -gt 0 ]; then
+  echo "✗ 有失败项，且出现 $EMPTY 次子进程空输出（先排除负载再判回归）"
+  printf 'RESOLVE-RESULT pass=%d fail=%d empty=%d error=EMPTY_STDOUT verdict=MIXED\n' "$PASS" "$FAIL" "$EMPTY"
+  exit 4
+fi
+if [ "$FAIL" -gt 0 ]; then
+  echo "✗ 有失败项"
+  printf 'RESOLVE-RESULT pass=%d fail=%d empty=0 verdict=FAIL\n' "$PASS" "$FAIL"
+  exit 1
+fi
+if [ "$EMPTY" -gt 0 ]; then
+  echo "… 有 $EMPTY 次子进程空输出：环境/负载问题，**不是**回归（重跑或用 EXCLUSIVE 档）"
+  printf 'RESOLVE-RESULT pass=%d fail=0 empty=%d error=EMPTY_STDOUT verdict=ENV\n' "$PASS" "$EMPTY"
+  exit 3
+fi
+echo "✓ 全绿"
+printf 'RESOLVE-RESULT pass=%d fail=0 empty=0 verdict=PASS\n' "$PASS"
+exit 0

@@ -9,7 +9,8 @@
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg |
 #                                        scrollbar-neg | capture-cli-neg | session-claim-neg |
-#                                        perception-fixture-neg | perception-budget-neg
+#                                        perception-fixture-neg | perception-budget-neg |
+#                                        resolve-click-empty-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -350,5 +351,24 @@ PYIN
     fi
     echo "INJECT-PASS perception-budget-neg: BUDGET_EXCEEDED 塞回 degraded ⇒ S1 报红（生产文件未动）"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg" >&2; exit 2 ;;
+  # ⑪ 注入「子进程空 stdout」→ resolve-click 套件必须报 rc=4/3 + error=EMPTY_STDOUT，
+  #    而**不是**抛 json.JSONDecodeError traceback（2026-10-21 负载高峰假红回灌）。
+  #    做法：YS_RESOLVE_SIM_EMPTY 让 jf() 每次当"读到空输出"——不改生产工具。
+  resolve-click-empty-neg)
+    out=$(YS_RESOLVE_SIM_EMPTY=1 bash tools/ys-editor/tests/resolve-click.selftest.sh 2>&1); rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL resolve-click-empty-neg: 空 stdout 下套件仍报绿（门禁空转）"; exit 1
+    fi
+    if [ "$rc" -ne 3 ] && [ "$rc" -ne 4 ]; then
+      echo "INJECT-FAIL resolve-click-empty-neg: rc=$rc（应为 3 环境/4 混合；1 = 被当成回归了）"; exit 1
+    fi
+    if ! printf '%s' "$out" | grep -q 'error=EMPTY_STDOUT'; then
+      echo "INJECT-FAIL resolve-click-empty-neg: 没把空输出单列成 error=EMPTY_STDOUT（分不清负载与回归）"; exit 1
+    fi
+    if printf '%s' "$out" | grep -q 'Traceback'; then
+      echo "INJECT-FAIL resolve-click-empty-neg: 仍然抛 Python traceback（这正是要治的假红形态）"; exit 1
+    fi
+    echo "INJECT-PASS resolve-click-empty-neg: 空 stdout ⇒ rc=$rc + error=EMPTY_STDOUT，无 traceback"; exit 0
+    ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg" >&2; exit 2 ;;
 esac

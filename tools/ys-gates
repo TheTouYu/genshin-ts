@@ -353,7 +353,12 @@ PROBE_PATTERNS = [
 #   perception-contract —— 一次跑 10 个 look（4 张老帧 + 两帧冷/热），OCR/detector 是 GPU 重活；
 #     2026-10-21 实测：与 resolve-click（指针步进有 12 轮上界 + 耗时断言）并发时把它拖红
 #     （单独跑 68/0 全绿）⇒ 本套件属"抢资源方"，挪进独占档。
-EXCLUSIVE = {"lookd-wedge", "perception-contract"}
+#   resolve-click      —— **被动隔离，不是治本**：它跑真实工具循环（ys-find --resolve + ys-pointer-click
+#     真 12 轮步进），对 CPU/内存/负载敏感；2026-10-21 实测并发批次里 60.8s 后子进程空 stdout ⇒
+#     JSONDecodeError 假红，而单跑 68/68 PASS。治本在套件自身：已改成把"子进程空输出"报成
+#     rc=3/4 + `error=EMPTY_STDOUT`（区分环境与回归，见 resolve-click.selftest.sh 的 jf()）；
+#     EXCLUSIVE 只是把"高负载"这个外部条件先拿掉，别把它当成修复。
+EXCLUSIVE = {"lookd-wedge", "perception-contract", "resolve-click"}
 
 SKIP_DIRS = {'node_modules', '.git', 'calib', 'tests', '__pycache__', '.scratch', 'dist'}
 SELF = os.path.abspath(__file__)
