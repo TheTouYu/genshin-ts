@@ -61,43 +61,21 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 
 ## 2. 回执怎么读
 
-| 字段 | 含义 | 纪律 |
+| 字段 | 真实形状（2026-10-21 干净房间核验实测） | 纪律 |
 |---|---|---|
-| `state.state` | 13 态之一（见 §3） | **唯一判据实现**在 `tools/ys-editor/ys-state`，别自己写 |
-| `state.readings` | 每条判据的 value/passed | 判不出时看这里，别猜 |
-| `objects.containers[]` | `kind` + `bbox` + `text[]` | `tile/row/button/panel/chip`；**离线好友可能不在 containers，只在 free_text** |
-| `objects.free_text[]` | 扁平文本序列（含 OCR 漏组的行） | 只扫 `containers` 会**系统性漏掉一类对象** |
-| `structure` | 层级/遮挡 | — |
-| `settled.same_as_prev` | 与上一帧是否在**同一布局**上 | **动作前必须 true**。判据是**容差**不是相等：数量一致 + 中心位移 ≤6px + 文本相似度 ≥0.80（唯一实现在 `tools/ys-editor/ys_settle.py`）。不稳时看 `reason`（`shift`/`count`/`unmatched`/`no_prev`）与 `max_shift_px`；首帧必 false，静止画面 **2 帧内**到 true |
-| `frame_id` | `sha256:...` | 证据引用用这个，不要用截图 |
-| **`advice[]`** | 模块主动给的**策略建议**（如 `SCANNING_LINEARLY`） | **先读它再决定策略**：它看出你在对有序列表做线性扫时，会给出二分/跳转的估算与命令 |
+| **`state`** | **dict `{name, confidence, ambiguous, evidence, channel}`** | 状态名在 **`state["name"]`**，⚠️ 不是 `state["state"]`（写错会让新代理整轮判 UNKNOWN） |
+| `state.evidence` | 每条判据的 value/passed | 判不出时看这里 |
+| **`objects`** | **list**（实测 58–88 项），每项 `{id,parent,bbox,kind,text,text_source,glyphs,badges}` | ⚠️ **不是** `objects["containers"]`；`kind ∈ row/button/tile/panel/chip` |
+| `bbox` | `[x0,y0,x1,y1]` = **xyxy**，**物理像素**（屏 2560×1440） | 中心 = `((x0+x1)/2,(y0+y1)/2)`；**不是** xywh |
+| **`free_text`** | **list[str]**（实测 33 条），**没有 bbox** | 要 bbox+text 的目标只能走 `objects[]`；`free_text` 只适合"有没有这段文字" |
+| `structure` | `{detector, detections[]}` | 检测框来源 |
+| `settled` | `{same_as_prev, tol_text, n_text_changed, ...}` | 动作前必须 `same_as_prev==true` |
+| `frame_id` | `sha256:...` | 证据引用用它 |
+| **`advice[]`** | 模块主动给的策略建议（如 `SCANNING_LINEARLY` / `LINEAR_ONLY_NO_SEEK`） | **先读它再决定策略** |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
 
-## 2.5 开跑前必做：先读当前状态（2026-10-21 实测打回）
-
-**界面停在哪是你不知道的**——上一轮代理留下的面板会一直在（实测：再开跑时原神仍停在
-`GAME_FRIENDS`，跨桌面切回后还在）。所以任何动作序列的第一条命令固定是：
-
-```bash
-python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
-```
-
-读出 `state.state` 再决定：`GAME_WORLD` → 直接开始；`GAME_PAIMON`/`GAME_FRIENDS`/`GAME_CHARACTER`
-→ **先归一到 `GAME_WORLD`**（ESC 逐级退回，每次退一级都重新 look 确认）；`UNKNOWN` → 先查仪器
-（`ys-capture status` / `ys-lookd` socket），不要盲发按键。
-
-**判据**：任务开始的第一条工具调用必须是 look（或同价的读状态），不是注入。
-
-## 2.6 两个必踩的调用细节
-
-| 坑 | 现象 | 正确做法 |
-|---|---|---|
-| `ys-gui-slot` 不解析 PATH | `ys-gui-slot 0x… 20 ys-esc` → **rc=127**，命令没找到，**ESC 根本没发出去**（而脚本还继续往后跑） | 传给 slot 的命令一律写**仓库内绝对路径或 `tools/ys-editor/…` 形式**：`ys-gui-slot 0x1600001 20 tools/ys-editor/ys-esc`；rc=127 要立刻中止并报错 |
-| `--summary` 与全量的 `state` 形状不同 | `--summary` 的 `state` 是**字符串**（`"GAME_FRIENDS"`），全量 `look` 的 `state` 是 **dict**（`{"state": …}`）；同一段代码按 dict 解析会 `AttributeError: 'str' object has no attribute 'get'` | 解析写兼容：`st = d["state"] if isinstance(d["state"], str) else d["state"]["state"]` |
-
-**bbox 口径**：`objects[].bbox` 是 **xywh**（x,y,w,h），中心 = `(x + w/2, y + h/2)`；
-`schema.py` 已把 `ys-screen` 原生的 xyxy 归一化过。真机例：「好友」磁贴 `[592.1,473.1,175.8,157.8]`
-→ 中心 (680,552)（上一轮成功点击 679,551 吻合）。**按 xyxy 算会落到 (384,315) 的空处。**
+> **坐标空间**：所有 bbox / `--at` 都是**物理像素 2560×1440**；窗口逻辑尺寸是 1707×960，
+> **不要**把逻辑坐标传给 `--at`（y 会超出窗口高）。实测踩过：按逻辑 853,709 传参 → 滚动无效。
 
 ## 3. 状态词表（13 态，`PRECEDENCE` 消歧）
 
@@ -189,6 +167,22 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
    要帧用 `ys-capture latest`，要判读用 `worldsvc look`。会话里的临时命令不受仓库门禁 `no-xbell` 保护，
    所以这条只能靠技能记住。
 
+## 4.8 干净房间核验暴露的 4 条硬坑（2026-10-21，新代理 120s 未完成）
+
+> 一个只加载本技能的干净代理，120s 内**没做完任务**，卡点全在这里。以下每条都实测过。
+
+1. **`ys-session begin` 之后的前 1–2 次 `look` 可能回 `ATTRIBUTION_OTHER_DESKTOP`**（归属闸门竞态，
+   而且错误正文可能自相矛盾，如"窗口在 ds=3、当前 ds=3"）。
+   ⇒ 判据：begin 后**第一次 look 失败就重试，最多 3 次、每次间隔 ~1s**；3 次都失败才停手。
+2. **`ys-scroll` 的 `rc=5` ≠ 动作失败**：`budget.over=true`（超过 500ms 目标）就会给 rc=5，
+   而 `moved_confirmed` 可能同时是 true。
+   ⇒ 判据：**先看 `moved_confirmed` 与首行文本**；只有 `ok:false` 且 `moved_confirmed:false` 才算失败。
+   按"rc≠0 立即停手"会把一次滚动做成两次注入（实测 14 次里 7 次是重复的）。
+3. **`moved_confirmed` 会假阳性**：实测 7 帧逐字一致（首行 y、末行 y 完全没变）却报 `true`。
+   ⇒ 判据：**用"本帧首行行名是否变化"作为唯一滚动判据**；`moved_confirmed` 只当辅助信号。
+4. **滚动前必须确认坐标空间**：`--at` 吃**物理像素**（2560×1440），y 必须 < 窗口逻辑高 960 的
+   物理对应值；传逻辑坐标会"回执成功但画面不动"。
+
 ## 5. 五条实测坑（都交过学费）
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。
@@ -207,7 +201,7 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
 ## 6. 证据与防线（改这个模块时必须一起动）
 
 - **证据最小集**：`evidence/<case>/` 里的 `s*.json`（模块原始回执）+ `round.json`，**不是截图**。
-  实例：`.scratch/gui-service/evidence/friends-run/`（s0_world → s3_boundary，能重推出「第一个 30 天未上线好友 = 匿叶龙」）。
+  实例：`.scratch/gui-service/evidence/friends-run/`（s0_world → s3_boundary，能重推出边界行的 frame_id；**具体答案不写在这里**——写进技能会让后续代理"背答案"而不是"做任务"）。
 - **失败账本**：新踩的坑登记到 `tools/failure-ledger`，`prevented` 必须绑一条**可跑闸门**且带**注入用例**
   （`tools/ys-editor/tests/ledger-inject.sh`），否则全量 `check` 会报 `UNPROVEN` 并判 FAIL。
 - **门禁**：`./tools/ys-gates --only 2`（含 lookd-wedge / scroll-movement / state-precedence 三个套件）、
