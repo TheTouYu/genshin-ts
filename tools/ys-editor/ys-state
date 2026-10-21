@@ -99,6 +99,14 @@ ACCEPT_SUPPORT = 0.6
 # 全灭（真 PLAYTEST 帧最低 0.814 ⇒ 真帧最差与假帧最好间隔 0.375）。
 CRITICAL_PREFIXES = ("anchor",)
 
+# 开集判据的**契约键**（v1）：daemon 透传与本体后备共用这一份清单。
+# 2026-10-21 实测的失效形态：run_fast 用白名单从 daemon 回执里挑字段，清单里没有这些键
+# ⇒ 开集结论（novel/support/match）在 CLI 出口被静默丢弃，消费方（worldsvc）只能如实标注
+# `STATE_EVIDENCE_LEGACY` 并自行派生——同一帧 daemon 直连说「novel=True」而 CLI 说「不知道」。
+# 单一源纪律：新增开集键就加到这里，别在下面两处各抄一份。
+CONTRACT_KEYS = ("support", "criteria", "accept_support", "match", "novel", "novel_reason",
+                 "candidates")
+
 # ── 几何 / 阈值 / 探针坐标（全仓唯一）───────────────────────────
 FRAME_W, FRAME_H = 2560, 1440       # ys-observe / spectacle 全屏帧；游戏窗 0x01400001 = 2561x1440
 # ⚠️ 改这个阈值前必须先给出**新的标定四件套**（缺一不许改）：
@@ -1139,7 +1147,8 @@ def run_fast(frame=None, profile_path=None, max_age_ms=None):
         if d:
             res = {k: d[k] for k in ("state", "confidence", "ambiguous", "margin", "verdicts",
                                      "readings", "roi", "frame_bytes", "load_ms", "judge_ms",
-                                     "cache_hit", "reused", "frame_age_ms") if k in d}
+                                     "cache_hit", "reused", "frame_age_ms")
+                   + CONTRACT_KEYS if k in d}
             res["channel"] = "fast"
             res["ms"] = int(d.get("ms") or round((time.time() - t0) * 1000))
             res["via"] = "daemon"
@@ -1157,8 +1166,12 @@ def run_fast(frame=None, profile_path=None, max_age_ms=None):
                 if True:
                     _n = decide_with_native(res.get("readings") or {}, _fp)
                     if _n.get("state") != "UNKNOWN":
+                        # 契约键必须**一起换**：本体后备是用合并后的 readings 重新 decide 的，
+                        # 只换状态名会让回执自相矛盾（state=GAME_WORLD 而 novel=True 仍来自
+                        # daemon 的 fast-ROI 证据）——正是「同一结论存两份、两份不同源」的形态。
                         res.update({k: _n[k] for k in ("state", "confidence", "ambiguous",
-                                                       "margin", "verdicts") if k in _n})
+                                                       "margin", "verdicts")
+                                    + CONTRACT_KEYS if k in _n})
                         res["native"] = True
                         res["readings"] = _n.get("readings") or res.get("readings")
             return res, frame, fresh
