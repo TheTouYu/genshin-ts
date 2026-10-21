@@ -26,6 +26,13 @@ export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user
 py() { python3 -c "$1"; }
 KSTATE() { "$YS/ys-lease" kwin-state 2>/dev/null; }
 
+# 无论如何都要把屏幕留给用户：本测试会把游戏抬到焦点，失败/中断也必须归 firefox。
+# （2026-10-21 自己踩过：注入用例故意让归还失败，结果测试结束把用户留在游戏画面上。）
+restore_screen() {
+  "$YS/ys-lease" restore --prev-json "" --fallback firefox >/dev/null 2>&1 || true
+}
+trap restore_screen EXIT INT TERM
+
 GAME_ID=$(KSTATE | py 'import sys,json;d=json.load(sys.stdin);print(next((w["internalId"] for w in d.get("wins") or [] if "yuanshen" in (w.get("class") or "").lower()), ""))')
 if [ -z "$GAME_ID" ]; then
   echo "FOCUS-DEFAULT SKIP 没有原神窗口（class=yuanshen），跳过"

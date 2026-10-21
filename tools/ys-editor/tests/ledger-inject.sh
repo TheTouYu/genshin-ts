@@ -47,7 +47,9 @@ PYIN
   # ③c 注入「归还假装成功」→ focus-default 必须报红
   focus-neg)
     f="tools/ys-editor/ys-lease"; bak="$(mktemp)"; cp "$f" "$bak"
-    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    # 注意：本用例 patch 的正是"用来收尾"的工具 ⇒ trap 必须先还原再收尾，
+    # 否则屏幕会被留在游戏上（2026-10-21 自己踩到）。
+    trap 'cp "$bak" "$f"; rm -f "$bak"; "$f" restore --prev-json "" --fallback firefox >/dev/null 2>&1 || true' EXIT
     python3 - "$f" <<'PYIN'
 import sys
 p = sys.argv[1]; s = open(p, encoding='utf-8').read()
