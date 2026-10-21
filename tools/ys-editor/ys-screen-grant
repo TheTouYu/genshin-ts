@@ -62,7 +62,8 @@ def _kwin_active():
         return {"error": "%s: %s" % (type(e).__name__, e)}
 
 
-MAX_GRANT_S = int(os.environ.get('YS_SCREEN_MAX_GRANT', '120'))
+MAX_GRANT_S = int(os.environ.get('YS_SCREEN_MAX_GRANT', '300'))  # 2026-10-21 二次复盘：120s 太短，
+                                                                # 扫列表任务被逼着反复申请（纯用户等待 100s）
 
 
 def load():

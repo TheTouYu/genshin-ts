@@ -36,6 +36,9 @@ python3 .scratch/gui-service/worldsvc.py capabilities
 python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --summary
 python3 .scratch/gui-service/worldsvc.py look --backend daemon-world      # 全量回执
 
+# 快看：跳过检测+结构层（省 ~40–90ms）；OCR/判态/容器照常，稳态 ≤50ms 靠复用
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world --fast --summary
+
 # 动：按文字/对象解析后注入（默认 dry-run，真动要 --live + 焦点授权）
 python3 .scratch/gui-service/worldsvc.py act --text 好友 --action '{"type":"click"}'
 
@@ -121,6 +124,15 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 不是窗口操作、也不是游戏音效。**最常见来源 = ImageMagick `import` 抓帧**（每次抓帧敲一次铃）。
 本仓所有 `import` 调用必须带 `-silent`；闸门 `no-xbell` 静态扫描裸调用。
 抓帧后的旧守护进程不会自动加载新代码——改完要 `systemctl --user restart ys-lookd`。
+
+## 4.7 三条实测坑（2026-10-21 二次真机会话复盘）
+
+1. **`grant` 必须单独成条**：把 `grant … && <100s 的 slot 操作>` 串成一条命令，
+   耗时全部算到 grant 头上（实测一次 78.4s，而 grant 本身 1.1s）⇒ 复盘/归因全错。
+2. **`ys-esc` 自带槽，不要再套**：`ys-gui-slot <win> 20 ys-esc` 是双层占用（实测 12.2s）。
+3. **不要用裸 `import -window` 抓图**：会敲 X11 铃（用户听到莫名声音）且拿到旧缓冲；
+   要帧用 `ys-capture latest`，要判读用 `worldsvc look`。会话里的临时命令不受仓库门禁 `no-xbell` 保护，
+   所以这条只能靠技能记住。
 
 ## 5. 五条实测坑（都交过学费）
 
