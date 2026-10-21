@@ -1,6 +1,7 @@
 # GUI 世界状态服务 v0（A 形态原型）
 
 > 状态：**当前实现**（原型，位于 `.scratch/gui-service/`，尚未成为共享工具）
+> **2026-10-21 起 schema 已升级到 `gui-world-state/1`**：字段变更与迁移理由见 §2.1（§2 保留为 v0 记录）；
 > 实测日期：2026-10-18｜仓库：`/home/h/genshin-ts`｜作者：service 代理（task-2）
 > 权威依据：`.scratch/gui-stack/AGI-BAR.md` §三/§四（用户裁决「A 形态」）、
 > `docs/maintenance/design-2026-10-18-gui-agi-system.md` §9
@@ -96,6 +97,72 @@ tools/ys-observe┘         │                                  │
 v0 第一版把 container bbox 当 `[x,y,w,h]` 算中心，点击点落到 `(660, 1647)`——帧高只有 1440。
 现在所有 bbox 在 `schema.object_from_container()` 入口统一归一化成 **xywh**，`act` 另有一道
 「点击点必须在帧内」断言（`CLICK_OUT_OF_FRAME`）。selftest 里有对应回归（`bbox 宽为 0 被拒` 等）。
+
+## 2.1 v1 迁移（`schema gui-world-state/1`，2026-10-21）
+
+> 状态：**当前实现**（`schema.py:SCHEMA_ID = gui-world-state/1` 已落地；机检 `PERCEPTION-CONTRACT-RESULT rc=0 pass=6 total=6`，见本节末「验收」）。
+> 证据来源=当前代码 + `tools/ys-editor/tests/perception-contract.selftest.py` 的实测回执；**非**游戏行为验证。
+> 起因：同一台仪器（`look --backend daemon-world`）跑两张陌生画面，Firefox 整屏被判成 `PLAYTEST` conf 0.5，
+> 且**误判把诚实告警洗白**——`STATE_UNKNOWN` 只在 `state_name == "UNKNOWN"` 时才进 `degraded`。
+
+| 根因（v0） | v1 改成什么 | 机检 |
+|---|---|---|
+| 判据封闭 + 最像者胜（`ys-state:684` `any2` 多数即成立） | `state.match` 暴露 `best/second/margin/accept_support/support/candidates`；`state.novel` + `state.candidates` 表达「本帧不属于任何已知态」；**不新增状态名**（否则既有 `state_in` 消费方与回归集全废） | S3 |
+| daemon 分支只留 `readings_n`，逐条判据被丢 | `state.evidence[0]` 逐条透传 `readings/verdicts/support/criteria/margin/candidates` | S2 |
+| 不确定性带「画面类型」前提（`ys-screen:1450` `hud_like=_regular<4`、`:1519` `if hud_like and d>200`） | `uncertainty_meta{applicable,waived,scene,source}` + `uncertainty_source`：把「规则不适用」与「没有可疑对象」分开 | S4 |
+| 预算用**本次调用耗时**判（`_finalize`），同帧冷/热降级项不同 | 预算移出 `degraded`（`timing_ms.budget{total_ms,budget_ms,exceeded}`）；`degraded` 由**唯一纯函数** `worldsvc.degraded_items()` 按本帧事实重算（无时钟、无调用历史） | S1/S6 |
+
+**字段变更（对外）**
+
+```jsonc
+{
+  "schema": "gui-world-state/1",
+  "state": {
+    "name": "UNKNOWN", "confidence": 0.25, "ambiguous": false,
+    "novel": true,                        // 新增：本帧不属于任何已知态（开集识别）
+    "candidates": ["PLAYTEST"],           // 新增：最像的几个（不承诺完整性）
+    "match": {                            // 新增：判定证据的唯一结论
+      "novel": true, "novel_reason": "…", "low_support": false, "level": "v1",
+      "candidate": "PLAYTEST",            // 本次被评估的态（单数）；candidates 只表示「同时成立的多个态」
+      "ratio": 0.4, "ratio_pass": false,  // 它的支撑度 / 是否过线
+      "has_critical": true, "critical_ok": false,   // 锚点（critical）证据在不在 / 成不成立
+      "accept_support": 0.6, "accepted": false,     // 阈值本身（可复算）+ 最终采没采纳
+      "support": {"PLAYTEST": {"passed": 2, "total": 5, "ratio": 0.4, "ok": false, "rule": "any2"},
+                  "LOADING":   {"passed": 2, "total": 5, "ratio": 0.4, "ok": false, "rule": "any2"}},
+      "support_ratio": 0.4, "support_source": "v1", "criteria_n": 22
+      // ※ 没有 best/second/margin：排序由下游用 support 自算，避免两个真相源
+    },
+    "evidence": [{"readings": [{"name": "…", "passed": true, "value": 0.83}],
+                  "verdicts": {"PLAYTEST": true}, "support": {}, "criteria": [],
+                  "margin": 0.0, "candidates": ["PLAYTEST"]}]
+  },
+  "timing_ms": {"total": 327.2, "budget": {"total_ms": 327.2, "budget_ms": 50.0, "exceeded": true}},
+  "uncertainty_meta": {"applicable": [],
+                       "waived": [{"rule": "UNCERTAINTY_SOURCE_MISMATCH", "reason": "…"}],
+                       "scene": "world", "source": "containers"},
+  "uncertainty_source": "containers",
+  "degraded": [{"code": "FREE_TEXT_UNOWNED", "detail": "…"}]   // 不再有 BUDGET_EXCEEDED
+}
+```
+
+**三条最容易读错的约定**
+
+1. **`BUDGET_EXCEEDED` 不是被删了，是搬了家**：`degraded` 回答「这一帧的观测有什么缺陷」，预算回答「这次调用有多慢」。
+   `timing_ms.budget.exceeded` 仍如实告诉你超预算——**别把「degraded 里没有它」读成静默失能**。门禁 S1 同时断言
+   两件事：`degraded` 无该码 **且** `exceeded ⇔ total_ms > budget_ms`（告警没丢，只是换了位置）。
+2. **`state` 仍是 dict**（`state.name`），过渡期摘要里另有 `state_name` 别名；既有读 `state["name"]` 的代码不用改。
+3. **`state.novel=true` 时 `state.name` 只是「最像的那个」**，不是结论；直接拿它做动作就是 v0 的错法。
+   **被拒的是谁、为什么拒**写在 `state.match.candidate`（单数）/ `accepted` / `critical_ok` / `novel_reason`；
+   `state.candidates` 只表示「同时成立的多个态」，novel 路径下必须是**显式空列表 `[]`**——它**不是**"候选名单"，
+   把被拒的态塞进去会让"歧义"和"拒绝"两种完全不同的情况看起来一样。
+
+**缓存兼容**：回执缓存按帧 sha 存，v0 条目与 v1 不兼容；命中旧条目应**当 miss**（而不是抛
+`SchemaError: 应为 gui-world-state/1，实际 gui-world-state/0`）。这条由 service-contract owner 修，另行入账。
+
+**验收**：`python3 tools/ys-editor/tests/perception-contract.selftest.py`（S1–S6，机读行
+`PERCEPTION-CONTRACT-RESULT …`），语料 `tools/ys-editor/tests/fixtures/perception/`（两张 2560×1440 帧 + `baseline.json` + `README.md`）。
+期望值来源：S2–S4 是脚本顶部锁定的字段名常量；**S5 从 `baseline.json.legacy_fixtures` 读并核 `sha256`**；
+S1/S6 是自洽判据（同一次运行内可验）。想让门禁变绿，改的是实现，不是这些期望值。
 
 ## 3. 三个动词
 

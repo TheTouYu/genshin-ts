@@ -77,7 +77,12 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('capture-frame', 'capture-frame.selftest.py', 180),
           # 2026-10-21：客户端契约（18 例）此前**没有任何门禁在跑**——判据在 ys-capture selftest 里，
           # 而 SUITES 只认独立脚本 ⇒ 补包装器，否则"修好了但没人验"（D463 同族）。
-          ('capture-cli', 'capture-cli.selftest.sh', 180)]
+          ('capture-cli', 'capture-cli.selftest.sh', 180),
+          # 2026-10-21 感知层 AGI 化（D487「判错会洗白自检」）：v1 契约 S1–S6，全离线两帧语料，~4s。
+          # 判据/语料/基线在 tools/ys-editor/tests/{perception-contract.selftest.py,fixtures/perception/}。
+          # 注册前必须自己全绿——把红门禁接进全员验收器，会把红信号稀释成噪声（本轮先例：summary-grep
+          # 的 v0 过期断言曾让整条门槛②假红）。
+          ('perception-contract', 'perception-contract.selftest.py', 180)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {
@@ -343,7 +348,12 @@ PROBE_PATTERNS = [
 # 2026-10-21 实测：有的套件自己起守护实例/大量编码，与并发批次抢 CPU/GPU ⇒ 上界断言假红
 # （lookd-wedge 单跑 4/4 PASS，并发时 rc=1）。这类套件**独占跑**：等并发批次结束后串行执行。
 # 判据：凡是"起自己的常驻进程/整帧编码"的，默认进这个集合。
-EXCLUSIVE = {"lookd-wedge"}
+# 独占档：这些套件在并发批次散场后**单独跑**，避免抢资源导致别人的上界断言假红。
+#   lookd-wedge        —— 自己起独立实例、会故意把请求钉住
+#   perception-contract —— 一次跑 10 个 look（4 张老帧 + 两帧冷/热），OCR/detector 是 GPU 重活；
+#     2026-10-21 实测：与 resolve-click（指针步进有 12 轮上界 + 耗时断言）并发时把它拖红
+#     （单独跑 68/0 全绿）⇒ 本套件属"抢资源方"，挪进独占档。
+EXCLUSIVE = {"lookd-wedge", "perception-contract"}
 
 SKIP_DIRS = {'node_modules', '.git', 'calib', 'tests', '__pycache__', '.scratch', 'dist'}
 SELF = os.path.abspath(__file__)

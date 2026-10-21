@@ -22,8 +22,10 @@ import re
 import time
 
 # 服务自身映射逻辑的版本：改 worldsvc/schema 的映射语义时必须 +1，否则旧缓存会被当成新结论。
-LOGIC_VERSION = "worldsvc-b4-provenance"   # 2026-10-21：raw 增加 objects_source/objects_n；
-                                               # 旧条目没有这些字段 ⇒ 升版本让它们自然失效，不靠"读到缺字段再补默认值"（那会把旧数据洗成新口径）
+LOGIC_VERSION = "worldsvc-b6-match-passthrough"   # 2026-10-21：回执契约 v1（schema 1、state.match、
+                                                  # 顶层 uncertainty_meta、timing_ms.budget）。旧条目形状不同，
+                                                  # 升版本让它们自然失效——不靠"读到缺字段再补默认值"（那会把旧数据洗成新口径）,
+                                                  # 更不允许把旧条目直接喂给新校验器（那就是 traceback）。
 
 SIG_FILES_DEFAULT = (
     ("ys-state", "tools/ys-editor/ys-state"),
@@ -60,12 +62,23 @@ def instrument_signature(repo_root=None, extra_paths=None):
     return digest[:12]
 
 
-def frame_key(frame_id, sig):
-    """frame_id='sha256:…' + 仪器指纹 → 缓存 key（文件名安全）。"""
+def _ns(namespace):
+    """命名空间 → 文件名安全片段（"gui-world-state/1" → "gui-world-state_1"）。"""
+    return re.sub(r"[^0-9A-Za-z_.-]+", "_", str(namespace or "")).strip("_")
+
+
+def frame_key(frame_id, sig, namespace=""):
+    """frame_id='sha256:…' + 仪器指纹（+ 可选契约命名空间）→ 缓存 key（文件名安全）。
+
+    `namespace` 用来把**回执契约版本**放进 key：契约一变，旧条目自然读不到，
+    而不是"读到了再在调用方崩"（2026-10-21 实测：v0 条目被 v1 校验器拒 → 缓存命中即 traceback，
+    而 --no-cache 一切正常。缓存是加速器，**不能成为崩溃源**）。
+    """
     m = re.fullmatch(r"sha256:([0-9a-f]{64})", frame_id or "")
     if not m:
         raise ValueError(f"frame_id 非法：{frame_id!r}")
-    return f"world-{m.group(1)[:16]}-{sig}.json"
+    ns = _ns(namespace)
+    return f"world-{m.group(1)[:16]}-{sig}{('-' + ns) if ns else ''}.json"
 
 
 class FrameCache:
@@ -74,23 +87,29 @@ class FrameCache:
         self.max_memory = max(1, int(max_memory))
         self.enabled = bool(enabled)
         self._mem = collections.OrderedDict()
-        self.hits = {"memory": 0, "disk": 0, "miss": 0}
+        self.hits = {"memory": 0, "disk": 0, "miss": 0, "invalid": 0}
         if self.enabled:
             os.makedirs(self.cache_dir, exist_ok=True)
 
     # ── 查询 ──
-    def load(self, frame_id, sig):
-        """返回 (raw|None, layer, ms)；layer ∈ memory/disk/miss。"""
+    def load(self, frame_id, sig, namespace="", require=None):
+        """返回 (raw|None, layer, ms)；layer ∈ memory/disk/miss/invalid。
+
+        `require`：命中后**再校验一次**（如 `{"schema": "gui-world-state/1"}`）。不符就当 miss，
+        并把那条陈旧条目删掉——陈旧条目最坏的结局是 traceback，最好的结局是重算一遍。
+        """
         if not self.enabled:
             self.hits["miss"] += 1
             return None, "miss", 0.0
         t0 = time.perf_counter()
-        key = frame_key(frame_id, sig)
+        key = frame_key(frame_id, sig, namespace)
         mem = self._mem.get(key)
         if mem is not None:
-            self._mem.move_to_end(key)
-            self.hits["memory"] += 1
-            return json.loads(json.dumps(mem)), "memory", (time.perf_counter() - t0) * 1000
+            if self._fits(mem, require):
+                self._mem.move_to_end(key)
+                self.hits["memory"] += 1
+                return json.loads(json.dumps(mem)), "memory", (time.perf_counter() - t0) * 1000
+            self._mem.pop(key, None)
         path = os.path.join(self.cache_dir, key)
         try:
             with open(path, encoding="utf-8") as f:
@@ -98,15 +117,31 @@ class FrameCache:
         except (OSError, ValueError):
             self.hits["miss"] += 1
             return None, "miss", (time.perf_counter() - t0) * 1000
+        if not self._fits(raw, require):
+            self.hits["invalid"] = self.hits.get("invalid", 0) + 1
+            try:
+                os.remove(path)          # 陈旧条目：删掉，别留给下一次踩
+            except OSError:
+                pass
+            return None, "invalid", (time.perf_counter() - t0) * 1000
         self._remember(key, raw)
         self.hits["disk"] += 1
         return raw, "disk", (time.perf_counter() - t0) * 1000
 
-    def store(self, frame_id, sig, raw):
+    @staticmethod
+    def _fits(raw, require):
+        """命中校验：require 里的每个键都必须**逐字相等**。require=None ⇒ 不校验（旧约定）。"""
+        if not require:
+            return True
+        if not isinstance(raw, dict):
+            return False
+        return all(raw.get(k) == v for k, v in require.items())
+
+    def store(self, frame_id, sig, raw, namespace=""):
         """写入 memory + disk（原子写）。失败不抛：缓存坏了只能更慢，不能更错。"""
         if not self.enabled:
             return None
-        key = frame_key(frame_id, sig)
+        key = frame_key(frame_id, sig, namespace)
         self._remember(key, raw)
         path = os.path.join(self.cache_dir, key)
         try:

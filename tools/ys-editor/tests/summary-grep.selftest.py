@@ -53,7 +53,14 @@ class Stub:
 
 s = schema.WorldState.summary(Stub)
 (s.get("texts_n") == 2) and ok("T1 texts_n=2") or bad(f"T1 texts_n={s.get('texts_n')}")
-(s.get("state") == "GAME_CHARACTER") and ok("T1 state 给的是状态名") or bad("T1 state 不对")
+# 2026-10-21 v1 迁移（schema.py:WorldState.summary 文档串）：摘要里的 `state` 改成**对象**
+# （与全量同形 {name, confidence, novel, match}），另留过渡别名 `state_name`。
+# 旧断言 `s["state"] == "GAME_CHARACTER"` 是 v0 口径，会让"契约升级"看起来像回归——
+# 这里两条都断：**别名在** + **对象里的 name 在**（比只断字符串更严，且覆盖过渡期两种读法）。
+(s.get("state_name") == "GAME_CHARACTER") and ok("T1 state_name 过渡别名") \
+    or bad(f"T1 state_name={s.get('state_name')!r}")
+((s.get("state") or {}).get("name") == "GAME_CHARACTER") and ok("T1 state 对象含 name") \
+    or bad(f"T1 state 对象不对：{s.get('state')!r}")
 (s.get("free_text") and s["free_text"]) and ok("T1 free_text 透传") or bad("T1 free_text 丢了")
 
 g = schema.WorldState.summary(Stub, grep="甘雨")

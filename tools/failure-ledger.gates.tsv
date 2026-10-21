@@ -47,3 +47,4 @@ world-entry	python3 tools/ys-editor/tests/world-entry.selftest.py	感知层主�
 scrollbar	python3 tools/ys-editor/tests/scrollbar.selftest.py	滚动条/滑块检测：正样本 17 帧（含游戏内列表）+ 负样本 20 帧（含同 UI 去掉滚动条的合成负样本），召回≥80% 且假阳≤1 同轮判	fast
 capture-cli	bash tools/ys-editor/tests/capture-cli.selftest.sh	抓帧客户端契约（ys-capture latest）：18 例 = 编码往返 3 + fail-closed 闸门 12 + bmp/png 自动按需编码 + jpg 必须显式 + background 三态	fast
 session-claim	python3 tools/ys-editor/tests/session-claim.selftest.py	会话所有权登记（claim 复位 released 闩锁 / hold 生效 / 过期不复活 / status 暴露 orphan / 两条抬窗路径都接了 claim）	fast
+perception-contract	python3 tools/ys-editor/tests/perception-contract.selftest.py	感知层 v1 契约（S1–S6 / 两张 2560×1440 离线语料，~4s）：预算不伪装成画面缺陷 / 判据逐条透传 / 开集识别（foreign-ui 必须 UNKNOWN 且显式拒绝 PLAYTEST 并给理由）/ 不确定性 waived 可解释 / 老画面不回归 / 降级项是帧的纯函数（覆盖 D487「判错会洗白自检」）	fast

@@ -187,16 +187,139 @@ def main(argv=None):
           bool({"STALE_FRAME", "FRAME_PINNED"} & {d["code"] for d in ws_latest.degraded}),
           str([d["code"] for d in ws_latest.degraded]))
 
-    # 冷路径（禁缓存）→ 预算门禁必须报出来
+    # 冷路径（禁缓存）→ 耗时如实报在 timing_ms.budget，**不进 degraded**
+    # v1（2026-10-21）：同一帧冷调用 1861ms 报 BUDGET_EXCEEDED、热调用 1.61ms 不报 ⇒
+    # degraded 随"第几次调用"变化，把"判得对不对"和"花了多久"搅在一起。耗时是性能读数。
     svc_nc = worldsvc.WorldService(cache_enabled=False)
     t0 = time.perf_counter()
     ws_nc = svc_nc.look(frame=FRAME)
     nc_ms = _ms(t0)
     codes = {d["code"] for d in ws_nc.degraded}
-    check("look/冷路径超 50ms 必须写 BUDGET_EXCEEDED", "BUDGET_EXCEEDED" in codes, str(codes))
-    check("look/冷路径实测 >50ms（门禁未达成的证据）", nc_ms > 50, f"{nc_ms}ms")
+    _bud = ws_nc.raw["timing_ms"].get("budget") or {}
+    check("S4/超预算不再写 degraded（BUDGET_EXCEEDED 已出队）",
+          "BUDGET_EXCEEDED" not in codes, str(sorted(codes)))
+    check("S4/超预算写 timing_ms.budget.exceeded",
+          _bud.get("exceeded") is True and _bud.get("total_ms", 0) > _bud.get("budget_ms", 0),
+          str(_bud))
+    check("look/冷路径实测 >50ms（预算确实超了，读数如实）", nc_ms > 50, f"{nc_ms}ms")
     check("look/冷路径 state/objects 分项计时都有",
           all(k in ws_nc.raw["timing_ms"] for k in ("state", "objects")), str(ws_nc.raw["timing_ms"]))
+
+    # ───────── v1 S1/S2/S3：同一帧恒定 + 证据逐条可追溯 ─────────
+    # S1 的动机（实测复现）：同一帧冷调用 1861ms 报 BUDGET_EXCEEDED、热调用 1.61ms 不报，
+    # `--no-cache` 也 8.1ms（daemon 侧 _WORLD_CACHE 仍命中）⇒ 同一帧给出两套答案。
+    # 用**独立缓存目录**保证第一次真的是冷（否则前面的 svc 已把同帧写进共享缓存，
+    # "冷热对比"会退化成"disk 命中 vs memory 命中"，测不到真正要测的东西）。
+    _s1_dir = os.path.join(EVIDENCE, "s1-cache")
+    svc_p = worldsvc.WorldService(cache_enabled=True, cache_dir=_s1_dir)
+    svc_p.cache.invalidate()
+    ws_cold = svc_p.look(frame=FRAME)
+    ws_hot = svc_p.look(frame=FRAME)
+    cold_codes = sorted(d["code"] for d in ws_cold.degraded)
+    hot_codes = sorted(d["code"] for d in ws_hot.degraded)
+    check("S1/同帧冷热两次 degraded 集合相同", cold_codes == hot_codes,
+          f"cold={cold_codes} hot={hot_codes}")
+    check("S1/第一次真冷（miss）、第二次真热（memory 命中）",
+          not (ws_cold.raw.get("cache") or {}).get("hit")
+          and (ws_hot.raw.get("cache") or {}).get("hit")
+          and (ws_hot.raw.get("cache") or {}).get("layer") == "memory",
+          f"cold={ws_cold.raw.get('cache')} hot={ws_hot.raw.get('cache')}")
+    check("S1/冷热都给 timing_ms.budget{total_ms,budget_ms,exceeded}",
+          all({"total_ms", "budget_ms", "exceeded"} <= set(x.raw["timing_ms"].get("budget") or {})
+              for x in (ws_cold, ws_hot)), str(ws_hot.raw["timing_ms"].get("budget")))
+
+    ev0 = ((ws_cold.raw.get("state") or {}).get("evidence") or [{}])[0]
+    rd = ev0.get("readings") or []
+    check("S2/state.evidence[0].readings 非空（证据透传，不再是只有 readings_n）",
+          len(rd) > 0, f"n={len(rd)} keys={sorted(ev0)[:6]}")
+    check("S2/每条 readings 都含 name/passed/value",
+          bool(rd) and all(all(k in r for k in ("name", "passed", "value")) for r in rd),
+          str(rd[:1]))
+    check("S2/readings 的判据名带状态前缀（看得出是哪一态的判据）",
+          bool(rd) and all("/" in str(r["name"]) for r in rd), str(rd[:1]))
+
+    # S3：帧来源不同（离线帧 vs 复用帧）时，degraded 的差异**只允许**帧元数据决定的项
+    ws_lat = svc_p.look(source="latest")
+    lat_codes = sorted(d["code"] for d in ws_lat.degraded)
+    diff = set(lat_codes) ^ set(hot_codes)
+    check("S3/离线帧 vs 复用帧：degraded 差异只允许 FRAME_PINNED/STALE_FRAME",
+          ws_lat.frame_id == ws_hot.frame_id and diff <= {"FRAME_PINNED", "STALE_FRAME"},
+          f"diff={sorted(diff)} latest={lat_codes}")
+
+    # ───────── v1 P3：摘要与全量**一个形状**（state 是对象、degraded 是对象列表）─────────
+    sm = ws_hot.summary()
+    check("P3/summary.state 是对象 {name,confidence,novel,match}",
+          isinstance(sm.get("state"), dict) and sm["state"].get("name") == ws_hot.state_name
+          and "novel" in sm["state"] and isinstance(sm["state"].get("match"), dict),
+          str(sm.get("state"))[:140])
+    check("P3/summary 留过渡别名 state_name（字符串）", sm.get("state_name") == ws_hot.state_name)
+    check("P3/summary.degraded 与全量同形（对象列表，含 code）",
+          isinstance(sm.get("degraded"), list) and bool(sm["degraded"])
+          and all(isinstance(d, dict) and d.get("code") for d in sm["degraded"]),
+          str(sm.get("degraded"))[:140])
+    check("P3/summary 留过渡别名 degraded_codes",
+          sm.get("degraded_codes") == [d["code"] for d in ws_hot.degraded],
+          str(sm.get("degraded_codes")))
+    check("P3/schema 版本已升到 gui-world-state/1",
+          ws_hot.raw.get("schema") == "gui-world-state/1", str(ws_hot.raw.get("schema")))
+
+    match = ws_hot.state_match
+    # 最终形状（Lead 2026-10-21）：判据层透传 + worldsvc 标注。**没有** best/second/margin——
+    # support 表已给每态 passed/total/ratio/rule，`candidate` 才是判据层认定的"我以为它是谁"；
+    # 再按 ratio 排一次序就是第二个真相源（实测踩过：LOADING 1/2 与 PLAYTEST 2/4 打平，
+    # 字典序把 LOADING 排前面 ⇒ 回执里 best=LOADING 而判据层 candidate=PLAYTEST，自相矛盾）。
+    check("P3/state.match 形状 = 判据层透传 + 标注（无 best/second/margin 二手排序）",
+          {"candidate", "ratio", "has_critical", "critical_ok", "ratio_pass",
+           "accept_support", "accepted", "novel", "novel_reason", "low_support", "level",
+           "support", "support_ratio", "support_source", "criteria_n"} <= set(match)
+          and not ({"best", "best_ratio", "second", "second_ratio", "margin"} & set(match)),
+          str(sorted(match)))
+    check("P3/accept_support 是**阈值数字**、accepted 是布尔（两者都在，不许混成一个）",
+          (match.get("accept_support") is None
+           or isinstance(match.get("accept_support"), (int, float)))
+          and (match.get("accepted") is None or isinstance(match.get("accepted"), bool)),
+          f"accept_support={match.get('accept_support')!r} accepted={match.get('accepted')!r}")
+    check("P3/state.novel 与 state.match.novel 同值（一个结论一种说法）",
+          ws_hot.raw["state"].get("novel") == match.get("novel"),
+          f"{ws_hot.raw['state'].get('novel')!r} vs {match.get('novel')!r}")
+    check("P3/state.match 不含重复的 state 键（避免与 state.name 各自漂移）",
+          "state" not in match, str(sorted(match)))
+
+    # ───────── 缓存：陈旧 v0 条目必须当 miss，不许变成 traceback（Lead 实测坑）─────────
+    # 复现（修复前）：磁盘上存着改造前的 v0 回执，schema 现在要求 v1 ⇒ 缓存命中即抛
+    # `SchemaError: schema 应为 'gui-world-state/1'，实际 'gui-world-state/0'`，而 --no-cache 正常。
+    # 修法两层：① 契约版本进缓存 key（frame_key namespace）；② 命中后再校验一次，不符当 miss 并删掉。
+    svc_v0 = worldsvc.WorldService(cache_enabled=True)
+    key_v1 = cache_mod.frame_key(ws_cold.frame_id, svc_v0.sig, namespace=schema.SCHEMA_ID)
+    path_v1 = os.path.join(svc_v0.cache.cache_dir, key_v1)
+    stale_v0 = {"schema": "gui-world-state/0", "frame_id": ws_cold.frame_id,
+                "state": {"name": "GAME_PAIMON", "evidence": [{"source": "stale"}]},
+                "degraded": [], "objects": []}
+    with open(path_v1, "w", encoding="utf-8") as f:
+        json.dump(stale_v0, f)
+    raw_v0, layer_v0, _ms0 = svc_v0.cache.load(ws_cold.frame_id, svc_v0.sig,
+                                               namespace=schema.SCHEMA_ID,
+                                               require={"schema": schema.SCHEMA_ID})
+    check("缓存/契约版本不符的条目当 miss（layer=invalid，不返回陈旧 raw）",
+          raw_v0 is None and layer_v0 == "invalid", f"layer={layer_v0}")
+    with open(path_v1, "w", encoding="utf-8") as f:      # 再摆一次，走完整的 look 路径
+        json.dump(stale_v0, f)
+    try:
+        ws_v0 = svc_v0.look(frame=FRAME)
+    except Exception as exc:                             # noqa: BLE001
+        ws_v0 = None
+        check("缓存/陈旧 v0 条目命中后自动重算（不抛 SchemaError）", False,
+              f"{type(exc).__name__}: {exc}")
+    if ws_v0 is not None:
+        check("缓存/陈旧 v0 条目命中后自动重算（不抛 SchemaError）",
+              ws_v0.state_name == ws_cold.state_name, ws_v0.state_name)
+        check("缓存/重算后的 degraded 与冷路径一致",
+              sorted(d["code"] for d in ws_v0.degraded) == cold_codes,
+              str(sorted(d["code"] for d in ws_v0.degraded)))
+        check("缓存/陈旧条目计数到 cache.invalid", svc_v0.cache.stats().get("invalid", 0) >= 1,
+              str(svc_v0.cache.stats()))
+    check("缓存/key 含契约命名空间（换版本 ⇒ 旧 key 自然读不到）",
+          key_v1.endswith("-gui-world-state_1.json") and key_v1.startswith("world-"), key_v1)
 
     # ───────── act（2026-10-19：语义期待 expect）─────────
     EXPECT_SIMPLE = {"type": "pixel_delta", "region": [300, 200, 1200, 800], "threshold_pct": 5}

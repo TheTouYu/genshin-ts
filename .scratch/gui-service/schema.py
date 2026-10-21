@@ -30,10 +30,14 @@ import json
 import os
 import re
 
-SCHEMA_ID = "gui-world-state/0"
+# v1（2026-10-21）：`state` 变成**一个形状**（对象 {name,confidence,novel,match}），
+# 摘要里留过渡别名 `state_name`；`degraded` 摘要也给对象（不再 code 列表）；
+# 耗时移出 degraded → `timing_ms.budget`（性能读数 ≠ 这一帧的观测缺陷）。
+SCHEMA_ID = "gui-world-state/1"
+LEGACY_SCHEMA_IDS = ("gui-world-state/0",)   # 只用于"认出旧物并拒绝/升级"，不再产出
 
 # 预算门禁（AGI-BAR §一）：单次默认路径 ≤50ms、对象检测 ≤10ms、分块 OCR 总耗时预算。
-# 这是**契约里声明的预算**，实际耗时另见 timing_ms；超预算 ⇒ degraded BUDGET_EXCEEDED。
+# 这是**契约里声明的预算**，实际耗时另见 timing_ms.budget（v1 起不再写进 degraded）。
 BUDGET_DEFAULT_MS = {"total": 50, "detect": 10, "ocr": 0}
 
 KINDS = ("tile", "card", "button", "row", "panel", "chip", "icon", "avatar",
@@ -48,13 +52,28 @@ TEXT_SOURCES = ("slice-ocr", "fullframe", "fullframe+det")
 # 起因：编辑器/世界状态的对象来自检测框，而 object_from_detection 曾把 text 写死成 []
 # ⇒ "OCR 读到了但永远归不上去"（编辑器 45 个对象 0 个有文字）。单列一个来源值是为了能审计归属质量。
 DEGRADED_CODES = (
+    # BUDGET_EXCEEDED 已**移出 degraded**（v1，2026-10-21）：耗时是 performance 读数，
+    # 不是这一帧的观测缺陷；它现在住 timing_ms.budget.exceeded。保留登记只为认得旧回执。
     "BUDGET_EXCEEDED", "OBJECTS_DEGRADED", "STATE_UNKNOWN", "STALE_FRAME",
     "LIVE_NOT_ATOP", "STATE_VOCAB_UNVERIFIED", "FREE_TEXT_UNOWNED", "PARENT_DANGLING",
     "KIND_UNKNOWN", "L3_NOT_IMPLEMENTED", "L2_NOT_IMPLEMENTED", "ABSENCE_SINGLE_FRAME",
     "CACHE_MISS", "INSTRUMENT_FAIL", "SCHEMA_EXTRA_KEY", "ACT_POST_REQUIRED",
     "FOCUS_REQUIRED", "INJECTION_BLOCKED", "AFFORDANCE_UNKNOWN", "TARGET_UNSTABLE",
     "FRAME_PINNED", "NO_FRESH_FRAME", "WAIT_TIMEOUT_VALID",
+    # v1 新增（2026-10-21）：判定证据的质量，必须挂在**证据**上而不是挂在状态名上——
+    # 否则"判错"会把诚实告警洗白（Firefox 整屏被判 PLAYTEST 后 degraded 5 条 → 4 条）。
+    "STATE_LOW_SUPPORT",            # 有态成立但支撑度 < 门槛：判定成立、证据不足
+    "STATE_EVIDENCE_LEGACY",        # 判定证据不是契约 v1（旧 daemon / 旧 ys-state 子进程）
+    "UNCERTAINTY_SOURCE_MISMATCH",  # uncertainty 层与 objects 层不是同一个 CV 源（waived 级）
 )
+
+# 降级项的**严重级别**（v1）：degraded=这一帧确实有缺陷；waived=已知不一致、本轮不修，如实标注。
+# 只增字段不改语义：老消费方按 code 过滤仍然工作。
+DEGRADED_LEVELS = ("degraded", "waived")
+
+# 派生伪态：`decide()` 在多个非同层态同时成立时给 AMBIGUOUS（不在 ys-state 的 STATES 里，
+# 因为它表达的是"判不出唯一态"，不是"又一个界面"）。schema 必须认它，否则并列帧直接拒载。
+DERIVED_STATE_NAMES = ("AMBIGUOUS",)
 
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 YS_STATE_PATH = os.path.join(_REPO_ROOT, "tools", "ys-editor", "ys-state")
@@ -250,8 +269,17 @@ def new_world(*, frame_id, captured_at_ms, state, objects=(), groups=(), slices=
 
 _TOP_REQUIRED = ("schema", "frame_id", "captured_at_ms", "state", "objects", "groups",
                  "slices", "transitions", "budget_ms", "degraded")
+# 白名单：worldsvc 实际会写的扩展键都必须在这里。**新增顶层键不同步这里会触发
+# `顶层扩展字段` 告警 / 严格模式下拒载**——改 worldsvc 的 payload 时一起改。
 _TOP_ALLOWED = set(_TOP_REQUIRED) | {"tracked_at_ms", "timing_ms", "frame", "free_text", "advice",
-                                    "attribution", "uncertainty"}
+                                     "attribution", "uncertainty",
+                                     # v0 起就写、但一直漏登记（每次 validate 都报"顶层扩展字段"）
+                                     "objects_source", "objects_n", "structure",
+                                     "daemon_timing", "settled", "advice_computed",
+                                     # v1：不确定性层的**来源 + 覆盖范围 + 待修清单**
+                                     # （uncertainty=0 到底是"画面确定"还是"这一层没覆盖"）
+                                     "uncertainty_source", "uncertainty_meta"}
+_TOP_ALLOWED_STRICT = False     # 预留：严格模式（拒收未登记键）暂不启用，只告警
 _OBJ_REQUIRED = ("id", "parent", "bbox", "kind", "text", "text_source", "glyphs", "badges",
                  "state", "affordance", "clipped", "confidence", "evidence")
 
@@ -292,12 +320,17 @@ def validate_world(raw, *, strict_state_names=False):
             problems.append("state.name 必须是非空字符串")
         elif strict_state_names:
             vocab = state_vocabulary()
-            if vocab and st["name"] not in vocab:
+            if vocab and st["name"] not in vocab and st["name"] not in DERIVED_STATE_NAMES:
                 problems.append(f"state.name={st['name']!r} 不在 ys-state 状态名词表 {vocab}")
         if not isinstance(st.get("evidence"), list) or not st.get("evidence"):
             problems.append("state.evidence 必须是非空 list（不许无证据断言状态）")
         if st.get("channel") not in STATE_CHANNELS:
             problems.append(f"state.channel 必须是 {STATE_CHANNELS}，实际 {st.get('channel')!r}")
+        # v1：state.match 是"该不该信这个态"的唯一结论（novel/low_support/accept）。
+        # 可选（老调用方/合成状态没有），但**给了就必须是 dict**——否则下游读它会静默拿到 None。
+        mt = st.get("match")
+        if mt is not None and not isinstance(mt, dict):
+            problems.append(f"state.match 必须是 dict|null，实际 {type(mt).__name__}")
 
     # ── budget ──
     bud = raw.get("budget_ms")
@@ -463,6 +496,14 @@ class WorldState:
         return self.raw["state"]["name"]
 
     @property
+    def state_match(self):
+        """`state.match`（v1）：{novel, low_support, accept, support, level, ...}。
+
+        缺字段返回 {}——**不要**把空字典读成"没问题"，问 `assert_evidence()` 或看 degraded。
+        """
+        return self.raw["state"].get("match") or {}
+
+    @property
     def objects(self):
         return self.raw["objects"]
 
@@ -501,9 +542,16 @@ class WorldState:
         2026-10-21 复盘修正：原先摘要**不带 `settled` 与 `uncertainty`**，而技能里推荐的正是
         `look --summary` + "动作前查 settled==true" —— 于是调用方拿到的摘要里根本没有稳定信号
         （实测某轮 NewSession 打印出 `settled: null` 后只能靠肉眼判断）。判据与推荐命令必须对齐。
+
+        v1 契约统一（同一件事只有一个形状）：
+          · `state` = 对象 {name, confidence, novel, match}（与全量同形），另留过渡别名 `state_name`；
+          · `degraded` = 对象列表（与全量同形），另留过渡别名 `degraded_codes`。
+        过渡别名保留一轮，调用方应改用 `state.name` / `degraded[].code`。
         """
         settled = self.raw.get("settled")
         unc = (self.raw.get("uncertainty") or [])   # 存在 raw 里，不是类字段
+        st = self.raw.get("state") or {}
+        match = st.get("match") or {}
         texts = []
         for o in self.objects:
             t = o.get("text")
@@ -515,16 +563,31 @@ class WorldState:
         free_text = [x for x in (self.raw.get("free_text") or []) if isinstance(x, str)]
         out = {
             "frame_id": self.frame_id,
-            "state": self.state_name,
+            # ── v1：状态是对象，不再是裸字符串 ──
+            "state": {"name": self.state_name,
+                      "confidence": st.get("confidence"),
+                      # None = 判据层没作答（旧 daemon），**不是** false（"我确定它不新"）。
+                      # 摘要必须与全量同值同义，否则又变成"一个结论两种说法"。
+                      "novel": (match.get("novel") if match.get("novel") is not None
+                                else st.get("novel")),
+                      "novel_reason": (match.get("novel_reason") or st.get("novel_reason")),
+                      "candidates": (match.get("candidates")
+                                     if match.get("candidates") is not None
+                                     else st.get("candidates")),
+                      "match": match},
+            "state_name": self.state_name,      # 过渡别名（v1 保留一轮）
             "objects": len(self.objects),
             "clickable_yes": sum(1 for o in self.objects if o["affordance"]["clickable"] == "yes"),
             "clickable_unknown": sum(1 for o in self.objects if o["affordance"]["clickable"] == "unknown"),
             # 稳定信号（动作前置判据）：原样给出，缺字段就是 None（表示"没给结论"，不是"稳定"）
             "settled": settled,
-            # 不确定性：全量太多，摘要只给计数 + 最高分一条，便于"要不要再看一眼"
+            # 不确定性：全量太多，摘要只给计数 + 最高分一条 + **来源**（与 objects 同层才可对账）
             "uncertainty": {"n": len(unc),
+                            "source": self.raw.get("uncertainty_source"),
                             "top": (max(unc, key=lambda x: x.get("score") or 0) if unc else None)},
-            "degraded": [d["code"] for d in self.degraded],
+            # ── v1：摘要是对象列表（与全量同形），不再只有 code ──
+            "degraded": [dict(d) for d in self.degraded],
+            "degraded_codes": [d["code"] for d in self.degraded],   # 过渡别名
             "timing_ms": self.raw.get("timing_ms", {}),
             # 2026-10-21 复盘：摘要原本**不带任何文字**，于是"按文字找对象"只能退回抓整帧读图。
             # 实测常驻 OCR 早就把「冰元素／甘雨」读出来了（在 objects[].text 里），是摘要没透传。

@@ -8,7 +8,8 @@
 #
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg |
-#                                        scrollbar-neg | capture-cli-neg | session-claim-neg
+#                                        scrollbar-neg | capture-cli-neg | session-claim-neg |
+#                                        perception-fixture-neg | perception-budget-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -292,5 +293,62 @@ PYIN
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL focus-lease: 死主租约没被判成该归还（门禁空转）"; exit 1; fi
     echo "INJECT-PASS focus-lease: 死主租约判红 rc=$rc"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg" >&2; exit 2 ;;
+  # ⑨ 注入「语料夹具被删」→ perception 契约门禁必须 rc=2 且 error=FIXTURE_MISSING（技能 §11 夹具纪律）
+  #    为什么不用"改判据"来注入：夹具缺失是**任何实现**都必须报的错，注入物与被测实现解耦，
+  #    所以这条用例在契约迁移**进行中**也能证明门禁不是空转（不会因 S2/S3 本来就红而误判）。
+  perception-fixture-neg)
+    f="tools/ys-editor/tests/fixtures/perception/foreign-ui-2560x1440.png"
+    hid="$f.__inject_hidden"
+    trap 'mv -f "$hid" "$f" 2>/dev/null || true' EXIT
+    if [ ! -f "$f" ]; then echo "INJECT-FAIL perception-fixture-neg: 夹具不存在，无法注入（先修夹具）"; exit 1; fi
+    mv "$f" "$hid"
+    out=$(python3 tools/ys-editor/tests/perception-contract.selftest.py 2>&1); rc=$?
+    mv -f "$hid" "$f"
+    if [ "$rc" -ne 2 ]; then
+      echo "INJECT-FAIL perception-fixture-neg: 夹具被删后 rc=$rc（应为 2 环境/夹具缺失）"; echo "$out" | tail -3; exit 1
+    fi
+    if ! printf '%s' "$out" | grep -q 'error=FIXTURE_MISSING'; then
+      echo "INJECT-FAIL perception-fixture-neg: 没报 error=FIXTURE_MISSING（静默 FAIL = 分不清夹具没了还是逻辑坏了）"; exit 1
+    fi
+    if ! printf '%s' "$out" | grep -q 'foreign-ui-2560x1440.png'; then
+      echo "INJECT-FAIL perception-fixture-neg: 报了缺失但没点名是哪个文件（下一个人无从修）"; exit 1
+    fi
+    echo "INJECT-PASS perception-fixture-neg: 删掉 foreign-ui 夹具 ⇒ rc=2 error=FIXTURE_MISSING 点名该文件"; exit 0
+    ;;
+  # ⑩ 注入「把耗时重新塞回观测缺陷」→ perception 契约门禁的 **S1** 必须报红
+  #    （F-20261021-70 的 prevented 证据之二：实现无关的夹具用例证明门禁活着，
+  #      这一条证明**具体那条判据真的在判**）
+  #    做法：把 worldsvc.py 复制成**同目录副本**再打补丁，用 YS_PERCEPTION_WORLDSVC 指过去——
+  #    生产文件一个字节都不动（owner 可能正在编辑，备份-还原有互相覆盖的风险）。
+  perception-budget-neg)
+    src=".scratch/gui-service/worldsvc.py"
+    tmp=".scratch/gui-service/worldsvc.__inject_tmp.py"
+    trap 'rm -f "$tmp"' EXIT
+    base=$(python3 tools/ys-editor/tests/perception-contract.selftest.py 2>&1)
+    if ! printf '%s' "$base" | grep -q '^\[PASS\] S1'; then
+      echo "INJECT-FAIL perception-budget-neg: 基线 S1 本来就不绿，注入证明不了任何事（先修实现）"; exit 1
+    fi
+    cp "$src" "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = "    items = []\n    sm = state_match or {}"
+new = ("    items = []\n"
+       "    items.append(_degraded(\"BUDGET_EXCEEDED\", \"INJECT: 把耗时重新塞回观测缺陷\"))\n"
+       "    sm = state_match or {}")
+assert old in s, "注入点没找到（degraded_items 首行变了）"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYIN
+    out=$(YS_PERCEPTION_WORLDSVC="$tmp" python3 tools/ys-editor/tests/perception-contract.selftest.py 2>&1); rc=$?
+    rm -f "$tmp"
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL perception-budget-neg: BUDGET_EXCEEDED 回到 degraded 后门禁仍绿（S1 空转）"; exit 1
+    fi
+    if ! printf '%s' "$out" | grep -q '^\[FAIL\] S1'; then
+      echo "INJECT-FAIL perception-budget-neg: 变红但不是 S1 那条（判据串了）"; printf '%s' "$out" | grep '^\[FAIL\]' | head -3; exit 1
+    fi
+    echo "INJECT-PASS perception-budget-neg: BUDGET_EXCEEDED 塞回 degraded ⇒ S1 报红（生产文件未动）"; exit 0
+    ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg" >&2; exit 2 ;;
 esac

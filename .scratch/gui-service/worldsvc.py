@@ -140,8 +140,315 @@ class ServiceError(RuntimeError):
         super().__init__(f"[{code}] {detail}")
 
 
-def _degraded(code, detail=""):
-    return {"code": code, "detail": detail}
+def _degraded(code, detail="", *, level="degraded"):
+    """降级项。`level`：degraded=这一帧确实有缺陷；waived=已知不一致、本轮不修但如实标注。"""
+    return {"code": code, "detail": detail, "level": level}
+
+
+# ══════════════════════════════════════════════════════════════════
+# 判定证据归一 + 降级判据（v1，2026-10-21）
+# ══════════════════════════════════════════════════════════════════
+# 事故（实测，两张陌生画面）：**判错会把自检洗白**。旧实现只在 state_name=="UNKNOWN"
+# 时加 STATE_UNKNOWN，于是 Firefox 整屏被自信地判成 PLAYTEST 后，诚实告警反而消失
+# （degraded 5 条 → 4 条）。根因不是阈值，而是**降级项挂在了"名字"上，而不是"证据"上**。
+# 同一轮还暴露出第二个同族病：degraded 随**调用历史**变化（冷调用 1861ms 报
+# BUDGET_EXCEEDED，热调用 1.61ms 不报）——耗时是性能读数，不是这一帧的观测缺陷。
+# 因此 v1 的两条硬规则：
+#   ① 降级项只由 `state.match`（支撑度/开集）+ 对象表 + 文本 + 不确定性来源 + 帧元数据推导；
+#   ② 降级项只有一个实现：`degraded_items()` 纯函数（同一帧 ⇒ 同一集合）。
+# 支撑度门槛（ys-state 的 ACCEPT_SUPPORT，实测 0.6）**只有一处实现**：判据层。
+# worldsvc 不再持有自己的阈值——两处各有一个阈值，就是第二个真相源（本轮三个 bug 的共同形态）。
+_AMBIG_STATE = "AMBIGUOUS"   # decide() 的多态并列伪态（schema.DERIVED_STATE_NAMES 认可）
+
+
+def _norm_readings(readings):
+    """判据归一成**逐条列表** [{name, passed, value, kind}]。
+
+    原始形状是 `{判据名: {value, passed, kind}}`（ys-state `pixel_readings`）。改成列表是为了
+    让证据**自带判据名**——否则调用方要拿 dict key 去猜哪条判据支撑了这次判定，
+    而这正是"判错被洗白"的温床（只有条数、看不出谁过谁不过）。
+    """
+    out = []
+    if isinstance(readings, dict):
+        items = readings.items()
+    elif isinstance(readings, list):
+        items = [(r.get("name") if isinstance(r, dict) else None, r) for r in readings]
+    else:
+        return out
+    for i, (name, r) in enumerate(items):
+        r = r if isinstance(r, dict) else {"value": r}
+        out.append({"name": str(name or r.get("name") or f"reading[{i}]"),
+                    "passed": bool(r.get("passed")),
+                    "value": r.get("value"),
+                    "kind": r.get("kind")})
+    return out
+
+
+def _per_state_support(criteria):
+    """逐条判据 → 每态 {passed,total,ratio}（纯统计，不含规则）。"""
+    per = {}
+    for c in criteria or []:
+        st = str(c.get("name") or "").split("/")[0]
+        if not st:
+            continue
+        acc = per.setdefault(st, [0, 0])
+        acc[1] += 1
+        if c.get("passed"):
+            acc[0] += 1
+    return {st: {"passed": p, "total": n, "ratio": round(p / n, 3) if n else 0.0}
+            for st, (p, n) in per.items()}
+
+
+def build_state_match(*, state_name, judge_match=None, confidence=None, criteria=None,
+                      verdicts=None, support=None, novel=None, novel_reason=None,
+                      candidates=None):
+    """组装 `state.match`：**判据层（ys-state `decide()`）有什么就透传什么**，缺了不补默认值。
+
+    最终形状（Lead 2026-10-21 裁决，之后不再改）：
+
+        {candidate, ratio, has_critical, critical_ok, ratio_pass,  ← 判据层原样透传
+         accept_support, accepted,                                 ← 同上（阈值 0.6 / 判定布尔）
+         novel, novel_reason,                                      ← 判据层原样透传
+         low_support, level, support, support_ratio, support_source, criteria_n}
+
+    为什么**没有** best/best_ratio/second/second_ratio/margin：`support` 表已经给出每态
+    passed/total/ratio/rule，`match.candidate` 才是判据层认定的"我以为它是谁"。worldsvc 再按
+    ratio 排一次序就是**第二个真相源**——实测过一次：LOADING 1/2 与 PLAYTEST 2/4 打平，
+    字典序把 LOADING 排前面，于是回执里 `best="LOADING"` 而判据层 `candidate="PLAYTEST"`，
+    自相矛盾。本轮（2026-10-21）三个 bug 全是这个形态。
+
+    单一源纪律：`novel`/`novel_reason`/`candidates`/`candidate`/`accepted` 一律只复制。
+    判据层没作答（旧 daemon / 旧 ys-state）⇒ 这些键**全部 None**，不是 False、不是 0、不补默认值。
+    `support` 缺失时用逐条 criteria 派生，并标 `support_source="derived"`（同一份数据也给
+    `evidence[0].support`，绝不两处不同源）。
+    """
+    name = state_name or "UNKNOWN"
+    crit = [c for c in (criteria or []) if isinstance(c, dict)]
+    sup = support if isinstance(support, dict) else None
+    jm = judge_match if isinstance(judge_match, dict) else None
+
+    def _j(key):
+        """判据层字段：没有就是 None（不补默认值——补了就是"我替判据层作答"）。"""
+        return jm.get(key) if jm else None
+
+    # ① 支撑度表：权威优先，否则由逐条判据派生（派生值必须自报身份）
+    if sup:
+        support_map, support_source = sup, "authoritative"
+    elif crit:
+        per = _per_state_support(crit)
+        support_map = {st: {"passed": v["passed"], "total": v["total"], "ratio": v["ratio"],
+                            "ok": (bool(verdicts.get(st)) if isinstance(verdicts, dict) else None),
+                            "rule": None}                        # rule 只有判据层知道；不编
+                       for st, v in per.items()}
+        support_source = "derived"
+    else:
+        support_map, support_source = None, None
+
+    # ② 受判态的支撑度：判据层的 ratio > 派生表里的该态 > confidence（decide 的 support[st]）
+    candidate = _j("candidate")
+    ratio = _j("ratio")
+    support_ratio = ratio
+    if support_ratio is None and support_map:
+        st = candidate or name
+        support_ratio = (support_map.get(st) or {}).get("ratio")
+        if support_ratio is not None and support_source is None:
+            support_source = "derived"
+    if support_ratio is None and isinstance(confidence, (int, float)) \
+            and not isinstance(confidence, bool):
+        support_ratio, support_source = float(confidence), (support_source or "confidence")
+
+    # ③ 开集与阈值：只复制
+    novel_v = None if novel is None else bool(novel)
+    novel_r = novel_reason if novel_v else None
+    accepted = _j("accepted")
+    if accepted is None:
+        low = None                      # 判据层没作答：不替它判"支撑够不够"
+    else:
+        low = bool((novel_v is not True) and (name.upper() not in ("UNKNOWN", _AMBIG_STATE))
+                   and not bool(accepted))
+
+    level = "v1" if (jm is not None or novel is not None or sup is not None) else (
+        "derived" if crit else "legacy")
+    return {
+        # —— 判据层原样透传（None = 没作答）——
+        "candidate": candidate,
+        "ratio": ratio,
+        "has_critical": _j("has_critical"),
+        "critical_ok": _j("critical_ok"),
+        "ratio_pass": _j("ratio_pass"),
+        "accept_support": _j("accept_support"),      # **阈值数字**（如 0.6），不是布尔
+        "accepted": accepted,                        # 判定布尔
+        "novel": novel_v,
+        "novel_reason": novel_r,
+        # —— worldsvc 的标注（自述，不冒充判据）——
+        "low_support": low,
+        "level": level,
+        "support": support_map,
+        "support_ratio": support_ratio,
+        "support_source": support_source,            # authoritative | derived | confidence | None
+        "criteria_n": len(crit) if crit else None,
+    }
+
+
+def uncertainty_waivers(source, objects_source):
+    """uncertainty 层与对象层不同源时的**待修清单**（waived 级：如实标注，不假装对齐）。
+
+    唯一判据实现：`degraded_items()` 与顶层 `uncertainty_meta.waived` 都从这里取，
+    免得"回执说一致、degraded 说不一致"。
+    """
+    out = []
+    if source and objects_source and source != objects_source:
+        out.append({"rule": "UNCERTAINTY_SOURCE_MISMATCH",
+                    "reason": (f"uncertainty 来自 {source}，objects 来自 {objects_source}："
+                               "两层不是同一个 CV 源，别把 uncertainty=0 读成『画面确定』")})
+    return out
+
+
+def uncertainty_meta_public(*, source, objects_source, state_name=None):
+    """顶层 `uncertainty_meta`：不确定性层**覆盖什么、不覆盖什么**（调用方读一个对象就够）。"""
+    waived = uncertainty_waivers(source, objects_source)
+    covered = [source] if source and not waived else []
+    return {
+        "source": source,
+        "applicable": covered,          # 本轮 uncertainty 覆盖的来源（waived 时为空：别当成"画面确定"）
+        "scene": ("world" if (state_name or "") in ("GAME_WORLD", "PLAYTEST", "PAUSE", "SETTLE")
+                  else "ui"),
+        "waived": waived,
+    }
+
+
+def state_evidence(*, source, via, readings=None, verdicts=None, support=None, criteria=None,
+                   margin=None, candidates=None, confidence=None, ambiguous=None,
+                   native=None, channel=None, attribution=None, extra=None,
+                   support_source=None):
+    """`state.evidence[0]`：**逐条判据必须透传**（P1-a：daemon 分支曾把 readings 整包丢弃，
+    evidence 里只剩一个 readings_n，于是"判错"在回执里完全无迹可查）。"""
+    rd = _norm_readings(readings)
+    ev = {
+        "source": source,
+        "via": via,
+        "channel": channel,
+        "confidence": confidence,
+        "ambiguous": ambiguous,
+        "margin": margin,
+        "verdicts": verdicts,
+        # 逐条判据 [{name,passed,value,kind}]：谁过谁不过一目了然
+        "readings": rd,
+        "readings_n": len(rd),
+        # 契约 v1：每态 {passed,total,ratio,ok,rule} + 逐条 {name,state,passed,value}
+        "support": support,
+        "support_source": support_source,
+        "criteria": criteria,
+        "candidates": candidates,
+        "native": native,
+    }
+    if attribution is not None:
+        ev["attribution"] = attribution
+    if extra:
+        ev.update({k: v for k, v in extra.items() if k not in ev})
+    return ev
+
+
+def _facts_from_raw(raw, extra_facts=None):
+    """从 raw 现取降级判据的五项输入（不复制、不缓存大对象）。
+
+    `_deg_facts` 里只放**raw 里没有的小事实**（对象层是否 degraded、uncertainty 来源、
+    名词表可用性、后端附带的降级项）；state_match / objects / free_text 一律从 raw 读——
+    冷路径与缓存命中读的是同一份数据，所以"同帧同答案"是结构上成立的，不靠两边各写一遍。
+    """
+    st = raw.get("state") or {}
+    facts = {
+        "state_match": st.get("match") or {},
+        "state_name": st.get("name"),
+        "objects": raw.get("objects") or [],
+        "free_text": raw.get("free_text") or [],
+        "uncertainty_meta": {},
+        "objects_degraded": None,
+        "vocab_ok": None,
+        "extra": [],
+    }
+    if isinstance(extra_facts, dict):
+        facts.update({k: v for k, v in extra_facts.items() if k in facts})
+    return facts
+
+
+def degraded_items(*, state_match, objects=(), free_text=(), uncertainty_meta=None,
+                   frame_meta=None, objects_degraded=None, vocab_ok=None, extra=(),
+                   state_name=None):
+    """**唯一**的世界状态降级判据（纯函数，无 IO、无时钟、无调用历史）。
+
+    五个输入：`state_match`（判定证据结论）/ `objects` / `free_text` /
+    `uncertainty_meta`（{source, objects_source}）/ `frame_meta`（{source, age_ms, stale}）。
+    同一帧 ⇒ 同一集合：与"这是第几次调用、走没走缓存、花了多少毫秒"**完全无关**。
+    耗时是性能读数，见 `timing_ms.budget`。
+    """
+    items = []
+    sm = state_match or {}
+
+    # ── ① 判定证据（挂在证据上，不挂在状态名上）──
+    # novel 的判定权在 ys-state：True ⇒ 报；None（旧 daemon 没给）⇒ 只在**名字本身就是判不出态**
+    # 时报（那是 ys-state 自己的结论，不是我们重算的）。不把 None 当 False 用。
+    nv = sm.get("novel")
+    if nv is True:
+        items.append(_degraded("STATE_UNKNOWN",
+                               "判据不收敛（novel）：" + str(sm.get("novel_reason") or
+                                                          "本帧不属于任何已知态")))
+    elif nv is None and str(state_name or "").upper() in ("UNKNOWN", _AMBIG_STATE):
+        items.append(_degraded("STATE_UNKNOWN",
+                               f"判定名本身是 {state_name}（旧 daemon 无 novel 字段）："
+                               "开集结论缺失，按判不出处理"))
+    if sm.get("low_support"):
+        items.append(_degraded(
+            "STATE_LOW_SUPPORT",
+            f"受判态 {sm.get('candidate')} 支撑度 {sm.get('ratio')} 未过门槛"
+            f"（accept_support={sm.get('accept_support')}）：判定成立但证据不足；"
+            "它**不是** novel（判据层认识它），用它之前先看 state.match.accepted"))
+    if str(sm.get("support_source") or "") != "authoritative":
+        items.append(_degraded(
+            "STATE_EVIDENCE_LEGACY",
+            f"判定证据非权威（level={sm.get('level')}，support_source={sm.get('support_source')}）："
+            "支撑度由本地逐条判据派生，仅供自述，不作权威值；novel/candidates 同理为 None"))
+
+    # ── ② 对象层 ──
+    if objects_degraded:
+        items.append(_degraded("OBJECTS_DEGRADED", str(objects_degraded)[:300]))
+    objs = list(objects or [])
+    n_unknown = sum(1 for o in objs if isinstance(o, dict) and o.get("kind") == "unknown")
+    if n_unknown:
+        items.append(_degraded("KIND_UNKNOWN",
+                               f"{n_unknown}/{len(objs)} 个对象 kind=unknown（L1 学习型检测未接入）"))
+    ft = list(free_text or [])
+    if ft:
+        items.append(_degraded("FREE_TEXT_UNOWNED",
+                               f"{len(ft)} 条文本没有容器归属，act(text) 解析不到（需要切片/坐标通道）"))
+    items.append(_degraded("L2_NOT_IMPLEMENTED", "groups=[]：容器 parent 链未闭合（AGI-BAR 票 26）"))
+    items.append(_degraded("L3_NOT_IMPLEMENTED",
+                           "对象 state 三字段=null、affordance.clickable 恒 unknown（AGI-BAR 票 27/28）"))
+    if vocab_ok is False:
+        items.append(_degraded("STATE_VOCAB_UNVERIFIED",
+                               "读不到状态名词表（tools/ys-editor/ys-state 的 STATES 元组）"))
+
+    # ── ③ 不确定性层来源 ──
+    um = uncertainty_meta or {}
+    for w in uncertainty_waivers(um.get("source"), um.get("objects_source")):
+        items.append(_degraded(w["rule"], w["reason"], level="waived"))
+
+    # ── ④ 帧元数据（离线/陈旧帧是**这一帧**的属性，与调用路径无关）──
+    fm = frame_meta or {}
+    if fm.get("source") == "frame":
+        items.append(_degraded("FRAME_PINNED",
+                               f"离线帧（source=frame，age≈{fm.get('age_ms')}ms）："
+                               "不是活体读数，act 不会据此注入"))
+    elif fm.get("stale"):
+        items.append(_degraded("STALE_FRAME",
+                               f"复用的帧已 {fm.get('age_ms')}ms（> max_age_ms={fm.get('max_age_ms')}）"))
+
+    # ── ⑤ 后端自带的降级项（daemon 可能附加 OCR_UNAVAILABLE 等），原样透传 ──
+    for d in extra or []:
+        if isinstance(d, dict) and d.get("code"):
+            items.append(_degraded(str(d["code"]), str(d.get("detail") or "")[:300],
+                                   level=str(d.get("level") or "degraded")))
+    return items
 
 
 _SB_CACHE = {}          # (abspath, mtime_ns, size) -> detect_path 回执（确定性，可安全复用）
@@ -302,7 +609,7 @@ class WorldService:
         frame_id = self._frame_id(path)
         cache_hit = None
         if allow_cache and self.cache.enabled:
-            raw, layer, hit_ms = self.cache.load(frame_id, self.sig)
+            raw, layer, hit_ms = self._cache_load(frame_id)
             if raw is not None:
                 cache_hit = {"hit": True, "layer": layer, "hit_ms": round(hit_ms, 2)}
                 timing = {"total": round(hit_ms, 2), "cache_layer": layer}
@@ -340,14 +647,37 @@ class WorldService:
                   "total": round((time.perf_counter() - t_start) * 1000, 1)}
         if advice and not raw.get("advice_computed"):
             raw["advice"] = self._advice_raw(raw, path, enabled=True)
-        # 缓存只存与本次调用无关的静态部分；timing/cache/transitions 每次重算
-        self.cache.store(frame_id, self.sig, {k: v for k, v in raw.items()
-                                             if k not in ("timing_ms", "cache", "transitions",
-                                                          "tracked_at_ms")})
+        # 缓存只存与本次调用无关的静态部分；timing/cache/transitions 每次重算。
+        # 例外：`_budget_ms`（这一帧的判定成本）必须随缓存存——否则热路径会把"预算"读成
+        # 缓存命中耗时，冷热两次给出不同的预算结论（同帧不同答案的又一形态）。
+        raw["_budget_ms"] = timing.get("total")
+        self._cache_store(frame_id, raw)
         raw = self._finalize(raw, frame_meta=frame_meta, frame_id=frame_id,
                              timing=timing, cache_hit={"hit": False, "layer": "miss"},
                              t_start=t_start, validate_ms=t_validate)
         return self._publish(raw)
+
+    def _cache_load(self, frame_id):
+        """缓存读取。**只接受当前 schema 版本**：旧版本条目一律当未命中。
+
+        为什么必须拒：旧条目里没有 `_deg_facts`（降级判据的输入快照），只能退化重建，
+        重建出来的对象层事实是空的 ⇒ 热路径的 degraded 会比冷路径少几条，
+        正是"同帧不同答案"那个病。半新半旧的缓存比没有缓存更危险。
+        """
+        raw, layer, hit_ms = self.cache.load(
+            frame_id, self.sig, namespace=schema.SCHEMA_ID,
+            require={"schema": schema.SCHEMA_ID})
+        if raw is not None and raw.get("schema") != schema.SCHEMA_ID:
+            # 双保险：key 里已经带了契约命名空间，这里再按字段校验一次。
+            return None, "invalid", hit_ms
+        return raw, layer, hit_ms
+
+    def _cache_store(self, frame_id, raw):
+        """写缓存（契约命名空间参与 key：换版本 ⇒ 旧条目自然读不到，不会被新校验器判死）。"""
+        return self.cache.store(frame_id, self.sig, {k: v for k, v in raw.items()
+                                                     if k not in ("timing_ms", "cache", "transitions",
+                                                                  "tracked_at_ms")},
+                                namespace=schema.SCHEMA_ID)
 
     def _frame_id(self, path):
         """内容寻址 id：同一文件（mtime_ns+size 不变）只算一次 sha256。
@@ -387,7 +717,7 @@ class WorldService:
         if path:
             frame_id = self._frame_id(path)
             if allow_cache and self.cache.enabled:
-                raw, layer, hit_ms = self.cache.load(frame_id, self.sig)
+                raw, layer, hit_ms = self._cache_load(frame_id)
                 if raw is not None:
                     raw = dict(raw)
                     raw["advice"] = self._advice_raw(raw, path, enabled=advice)
@@ -452,23 +782,46 @@ class WorldService:
         uncertainty = list((resp.get("objects") or {}).get("uncertainty") or [])
         cont_degr = bool((resp.get("objects") or {}).get("degraded") or
                          (resp.get("objects") or {}).get("error"))
-        degraded = self._degraded_list(objects, free_text,
-                                       state_name=state.get("state"),
-                                       objects_degraded=cont_degr)
-        for d in resp.get("degraded") or []:
-            if isinstance(d, dict) and d.get("code"):
-                degraded.append(d)
+        # uncertainty 来自 objects（容器/检测层）—— 常驻服务目前不单独给来源键，
+        # 缺省按"容器层"记账（旧 daemon 的 uncertainty 确实出自 CV 容器层）。真给了就采信。
+        uncertainty_source = (resp.get("objects") or {}).get("uncertainty_source") or "containers"
+        # ── 判定证据：**透传**逐条判据（旧实现只留 readings_n，判错时回执里无迹可查）──
+        readings = _norm_readings(state.get("readings"))
+        criteria = state.get("criteria")
+        if not criteria and readings:
+            # 旧 daemon 没有 criteria：用 readings 归一（契约同形，让下游只认一个字段）
+            criteria = [{"name": r["name"], "state": r["name"].split("/")[0],
+                         "passed": r["passed"], "value": r["value"]} for r in readings]
+        match = build_state_match(state_name=state.get("state"),
+                                  judge_match=state.get("match"),
+                                  confidence=state.get("confidence"),
+                                  criteria=criteria, verdicts=state.get("verdicts"),
+                                  support=state.get("support"),
+                                  novel=state.get("novel"),
+                                  novel_reason=state.get("novel_reason"),
+                                  candidates=state.get("candidates"))
         st = {"name": state.get("state"), "confidence": state.get("confidence"),
               "ambiguous": bool(state.get("ambiguous")),
-              "evidence": [{"source": "ys-lookd/world", "via": "daemon",
-                            "readings_n": len(state.get("readings") or {}),
-                            "native": state.get("native"),
-                            "attribution": resp.get("attribution")}],
+              "novel": match["novel"],          # None = 旧 daemon 没给结论（不冒充 false）
+              "novel_reason": match["novel_reason"],
+              "candidates": state.get("candidates"),
+              "match": match,
+              "evidence": [state_evidence(
+                  source="ys-lookd/world", via="daemon", channel="fast",
+                  support_source=match["support_source"],
+                  readings=readings, verdicts=state.get("verdicts"),
+                  support=match["support"], criteria=criteria,
+                  margin=state.get("margin"), candidates=state.get("candidates"),
+                  confidence=state.get("confidence"), ambiguous=bool(state.get("ambiguous")),
+                  native=state.get("native"), attribution=resp.get("attribution"),
+                  extra={"resolved_by": state.get("resolved_by")})],
               "channel": "fast", "native": state.get("native", False)}
         raw = schema.new_world(
             frame_id=frame_id, captured_at_ms=int(frame_meta["captured_at_ms"]),
             state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
-            degraded=degraded,
+            # v1：degraded 由 `_finalize` 用**唯一纯函数**按本帧事实重算（下方 _deg_facts）。
+            # 不在这里拼：这里拼一次、_finalize 再拼一次 = 两处实现 ⇒ 冷热两次答案不同。
+            degraded=(),
             timing_ms=dict(resp.get("timing") or {}, rpc=round(rpc_ms, 1)),
             frame=dict(frame_meta, **{"w": resp["frame"].get("w"),
                                       "h": resp["frame"].get("h")}),
@@ -485,11 +838,27 @@ class WorldService:
         raw["settled"] = resp.get("settled")
         raw["advice"] = resp.get("advice") or []
         raw["advice_computed"] = True
+        # v1：不确定性层的**来源 + 覆盖范围 + 待修清单**（与 objects_source 对账，
+        # 不一致记 waived 级降级项；顶层一个对象说清"uncertainty=0 是不是等于画面确定"）
+        raw["uncertainty_source"] = uncertainty_source
+        raw["uncertainty_meta"] = uncertainty_meta_public(
+            source=uncertainty_source, objects_source=objects_source,
+            state_name=state.get("state"))
+        # 降级判据的输入快照（`_finalize` 用它重算，缓存里也带着 ⇒ 冷/热同帧答案必然相同）
+        # 只存**小事实**：state_match / objects / free_text 在 raw 里本来就有，
+        # 再复制一份会让缓存文件翻倍（实测：缓存命中 2.6ms → 5.4ms，因为 json.loads 变慢）。
+        raw["_deg_facts"] = {
+            "uncertainty_meta": {"source": uncertainty_source, "objects_source": objects_source},
+            "objects_degraded": cont_degr or None,
+            "vocab_ok": bool(schema.state_vocabulary()),
+            "extra": [d for d in (resp.get("degraded") or []) if isinstance(d, dict)],
+        }
         schema.validate_world(raw, strict_state_names=bool(schema.state_vocabulary()))
         if path:
-            self.cache.store(frame_id, self.sig,
-                             {k: v for k, v in raw.items()
-                              if k not in ("timing_ms", "cache", "transitions", "tracked_at_ms")})
+            # 判定成本随缓存一起存：预算是**帧的属性**，缓存命中时不能翻脸成"只要 0.8ms"
+            _t = resp.get("timing") or {}
+            raw["_budget_ms"] = _t.get("total_full_ms") or _t.get("total_ms")
+            self._cache_store(frame_id, raw)
         timing = dict(resp.get("timing") or {})
         timing["total"] = round((time.perf_counter() - t_start) * 1000, 1)
         timing["rpc"] = round(rpc_ms, 1)
@@ -529,23 +898,15 @@ class WorldService:
         return meta, None
 
     def _degraded_list(self, objects, free_text, *, state_name, objects_degraded):
-        degraded = []
-        if state_name == "UNKNOWN":
-            degraded.append(_degraded("STATE_UNKNOWN", "常驻服务判不出状态；证据见 state.evidence"))
-        if objects_degraded:
-            degraded.append(_degraded("OBJECTS_DEGRADED", "容器层 degraded/error，见 daemon 回执"))
-        n_unknown = sum(1 for o in objects if o["kind"] == "unknown")
-        if n_unknown:
-            degraded.append(_degraded("KIND_UNKNOWN",
-                                      f"{n_unknown}/{len(objects)} 个对象 kind=unknown（L1 学习型检测未接入）"))
-        if free_text:
-            degraded.append(_degraded("FREE_TEXT_UNOWNED",
-                                      f"{len(free_text)} 条文本没有容器归属，act(text) 解析不到"))
-        degraded.append(_degraded("L2_NOT_IMPLEMENTED", "groups=[]：容器 parent 链未闭合（票 26）"))
-        degraded.append(_degraded("L3_NOT_IMPLEMENTED", "对象 state 三字段=null、clickable 恒 unknown（票 27/28）"))
-        if not schema.state_vocabulary():
-            degraded.append(_degraded("STATE_VOCAB_UNVERIFIED", "读不到 ys-state 的 STATES 元组"))
-        return degraded
+        """**已废弃**（v1）：降级判据只剩一处实现 `degraded_items()`。
+
+        保留这个名字只为不让旧调用方 AttributeError 崩掉——它把名字翻译成 state_match，
+        再走同一个纯函数，所以行为与主路径一致（不会出现"两套判据"）。
+        """
+        match = build_state_match(state_name=state_name, criteria=[])
+        return degraded_items(state_match=match, objects=objects, free_text=free_text,
+                              objects_degraded=objects_degraded,
+                              vocab_ok=bool(schema.state_vocabulary()))
 
     def _acquire_frame(self, frame, src):
         """解析帧来源。live 只在窗口已在栈顶时取；**绝不抬窗口**。"""
@@ -621,21 +982,36 @@ class WorldService:
 
     def _build_world(self, *, frame_meta, frame_id, state_res, cont_res, timing, screen_frame=None):
         state_name = state_res.get("state") or "UNKNOWN"
-        evidence = [{
-            "source": "ys-state",
-            "channel": state_res.get("channel") or self.channel,
-            "via": state_res.get("via"),
-            "confidence": state_res.get("confidence"),
-            "ambiguous": state_res.get("ambiguous"),
-            "margin": state_res.get("margin"),
-            "verdicts": state_res.get("verdicts"),
-            "readings": state_res.get("readings"),
-            "native": state_res.get("native"),
-            "judge_ms": state_res.get("judge_ms"),
-            "rc": state_res.get("_rc"),
-        }]
+        # ── 判定证据：与 daemon 分支**同形**（同一个 state_evidence / build_state_match）──
+        readings = _norm_readings(state_res.get("readings"))
+        criteria = state_res.get("criteria")
+        if not criteria and readings:
+            criteria = [{"name": r["name"], "state": r["name"].split("/")[0],
+                         "passed": r["passed"], "value": r["value"]} for r in readings]
+        match = build_state_match(state_name=state_name,
+                                  judge_match=state_res.get("match"),
+                                  confidence=state_res.get("confidence"),
+                                  criteria=criteria, verdicts=state_res.get("verdicts"),
+                                  support=state_res.get("support"),
+                                  novel=state_res.get("novel"),
+                                  novel_reason=state_res.get("novel_reason"),
+                                  candidates=state_res.get("candidates"))
+        evidence = [state_evidence(
+            source="ys-state", via=state_res.get("via"),
+            channel=state_res.get("channel") or self.channel,
+            support_source=match["support_source"],
+            readings=readings, verdicts=state_res.get("verdicts"),
+            support=match["support"], criteria=criteria,
+            margin=state_res.get("margin"), candidates=state_res.get("candidates"),
+            confidence=state_res.get("confidence"), ambiguous=state_res.get("ambiguous"),
+            native=state_res.get("native"),
+            extra={"judge_ms": state_res.get("judge_ms"), "rc": state_res.get("_rc")})]
         st = {"name": state_name, "confidence": state_res.get("confidence"),
               "ambiguous": bool(state_res.get("ambiguous")),
+              "novel": match["novel"],          # None = 旧 ys-state 没给结论（不冒充 false）
+              "novel_reason": match["novel_reason"],
+              "candidates": state_res.get("candidates"),
+              "match": match,
               "evidence": evidence,
               "channel": state_res.get("channel") or self.channel,
               "native": state_res.get("native", False)}
@@ -644,70 +1020,82 @@ class WorldService:
                    for c in (cont_res.get("containers") or [])]
         free_text = [str(t) for t in (cont_res.get("free_text") or [])]
         uncertainty = list(cont_res.get("uncertainty") or [])
-
-        degraded = []
-        if state_name == "UNKNOWN":
-            degraded.append(_degraded("STATE_UNKNOWN",
-                                      f"ys-state rc={state_res.get('_rc')} 判不出状态；证据见 state.evidence"))
+        # cli 后端的 uncertainty 与 objects 同源（都出自 ys-screen 容器层），如实标注来源，
+        # 免得调用方把"与 objects 同层"当成跨后端的普遍性质。
+        uncertainty_source = cont_res.get("uncertainty_source") or "containers"
+        obj_deg = None
         if cont_res.get("degraded"):
-            degraded.append(_degraded("OBJECTS_DEGRADED", str(cont_res.get("degraded"))[:300]))
-        if cont_res.get("error"):
-            degraded.append(_degraded("OBJECTS_DEGRADED", "error=" + str(cont_res.get("error"))[:300]))
-        n_unknown_kind = sum(1 for o in objects if o["kind"] == "unknown")
-        if n_unknown_kind:
-            degraded.append(_degraded("KIND_UNKNOWN",
-                                      f"{n_unknown_kind}/{len(objects)} 个对象 kind=unknown（L1 学习型检测未接入）"))
-        if free_text:
-            degraded.append(_degraded("FREE_TEXT_UNOWNED",
-                                      f"{len(free_text)} 条文本没有容器归属，act(text) 解析不到（需要切片/坐标通道）"))
-        degraded.append(_degraded("L2_NOT_IMPLEMENTED", "groups=[]：容器 parent 链未闭合（AGI-BAR 票 26）"))
-        degraded.append(_degraded("L3_NOT_IMPLEMENTED",
-                                  "对象 state 三字段=null、affordance.clickable 恒 unknown（AGI-BAR 票 27/28）"))
-        if not schema.state_vocabulary():
-            degraded.append(_degraded("STATE_VOCAB_UNVERIFIED", "读不到 tools/ys-editor/ys-state 的 STATES 元组"))
+            obj_deg = str(cont_res.get("degraded"))
+        elif cont_res.get("error"):
+            obj_deg = "error=" + str(cont_res.get("error"))
 
         frame_meta = dict(frame_meta)
         sf = screen_frame or {}
         if sf.get("w") and sf.get("h"):
             frame_meta.update({"w": sf.get("w"), "h": sf.get("h"), "bytes": sf.get("bytes")})
 
-        return schema.new_world(
+        raw = schema.new_world(
             frame_id=frame_id,
             captured_at_ms=int(frame_meta["captured_at_ms"]),
             state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
-            degraded=degraded, timing_ms=timing, frame=frame_meta,
+            # v1：degraded 只在 `_finalize` 用唯一纯函数重算（见 _deg_facts）
+            degraded=(),
+            timing_ms=timing, frame=frame_meta,
             budget_ms=self.budget_ms,
             # 2026-10-21：稳定信号必须透传到 summary（技能推荐的正是 --summary）。
             # 注意：cli 后端没有 `raw`（那是 daemon-world 分支的整包回执），
             # 直接用容器结果里的 settled —— 之前写成 (raw or {}).get(...) 会让默认后端 NameError。
             settled=(cont_res or {}).get("settled"),
         )
+        raw["uncertainty_source"] = uncertainty_source
+        raw["uncertainty_meta"] = uncertainty_meta_public(
+            source=uncertainty_source, objects_source="containers", state_name=state_name)
+        raw["_deg_facts"] = {
+            "uncertainty_meta": {"source": uncertainty_source, "objects_source": "containers"},
+            "objects_degraded": obj_deg,
+            "vocab_ok": bool(schema.state_vocabulary()),
+            "extra": [],
+        }
+        return raw
 
     def _finalize(self, raw, *, frame_meta, frame_id, timing, cache_hit, t_start, validate_ms):
         raw = json.loads(json.dumps(raw))     # 深拷贝：缓存出来的对象不能被调用方改脏
+        raw["schema"] = schema.SCHEMA_ID      # 旧缓存条目（/0）就地升级，避免半新半旧契约
         raw["frame_id"] = frame_id
-        raw["timing_ms"] = timing
         raw["frame"] = dict(frame_meta)
         age_ms = schema.now_ms() - int(frame_meta["captured_at_ms"])
         raw["frame"]["age_ms"] = age_ms
         raw["frame"]["stale"] = age_ms > self.max_age_ms
         raw["cache"] = cache_hit
         raw["tracked_at_ms"] = schema.now_ms()
-        # 预算门禁：超预算要**说出来**（AGI-BAR §一「静默失能已犯 6 次」）
-        total = float(timing.get("total") or 0.0)
-        degraded = [d for d in raw["degraded"]
-                    if d.get("code") not in ("BUDGET_EXCEEDED", "FRAME_PINNED", "STALE_FRAME")]
-        if raw["frame"]["source"] == "frame":
-            degraded.append(_degraded("FRAME_PINNED",
-                                      f"离线帧（source=frame，age≈{age_ms}ms）：不是活体读数，act 不会据此注入"))
-        elif raw["frame"].get("stale"):
-            degraded.append(_degraded("STALE_FRAME",
-                                      f"复用的帧已 {age_ms}ms（> max_age_ms={self.max_age_ms}）"))
-        if total > float(self.budget_ms["total"]):
-            degraded.append(_degraded("BUDGET_EXCEEDED",
-                                      f"total={total:.1f}ms > budget.total={self.budget_ms['total']}ms"
-                                      f"（state={timing.get('state')}ms objects={timing.get('objects')}ms）"))
-        raw["degraded"] = degraded
+
+        # ── 预算：**性能读数**，不是这一帧的观测缺陷（v1）────────────────────
+        # 2026-10-21 实测反例：同一帧冷调用 1861ms 报 BUDGET_EXCEEDED、热调用 1.61ms 不报
+        # ⇒ degraded 集合随"这是第几次调用"变化，把"判得对不对"和"花了多久"搅在一起，
+        # 而调用方拿 degraded 当"这一帧可信吗"的判据。耗时如实报，但报在 timing_ms.budget。
+        total_ms = float(timing.get("total") or 0.0)      # 这一次调用的墙钟（可能命中缓存）
+        intrinsic = raw.pop("_budget_ms", None)           # 这一帧的判定成本（缓存里带着）
+        try:
+            intrinsic = float(intrinsic) if intrinsic is not None else total_ms
+        except (TypeError, ValueError):
+            intrinsic = total_ms
+        budget_total = float(self.budget_ms["total"])
+        timing = dict(timing, budget={"total_ms": round(intrinsic, 1),
+                                      "budget_ms": budget_total,
+                                      "value": "exceeded" if intrinsic > budget_total else "ok",
+                                      "exceeded": bool(intrinsic > budget_total),
+                                      "call_ms": round(total_ms, 1),
+                                      "source": "cache" if (cache_hit or {}).get("hit") else "computed"})
+        raw["timing_ms"] = timing
+
+        # ── 降级项：唯一纯函数重算（同一帧 ⇒ 同一集合，与调用历史无关）────────
+        facts = _facts_from_raw(raw, raw.pop("_deg_facts", None))
+        raw["degraded"] = degraded_items(
+            frame_meta={"source": frame_meta.get("source"), "age_ms": age_ms,
+                        "stale": bool(raw["frame"].get("stale")),
+                        "max_age_ms": self.max_age_ms},
+            **facts)
+
         # 状态转移账本（缓存命中也要记：状态可能已随新帧变化）
         transitions = []
         state_name = raw["state"]["name"]

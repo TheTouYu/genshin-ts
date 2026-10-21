@@ -76,6 +76,12 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | `frame_id` | `sha256:...` | 证据引用用它 |
 | **`advice[]`** | 模块主动给的策略建议（如 `SCANNING_LINEARLY` / `LINEAR_ONLY_NO_SEEK`） | **先读它再决定策略**，但⚠️ 它需要**常驻 daemon 的进程级累积**（≥3 次 observe 才出建议）⇒ **CLI 单次调用（新进程）永远拿到空数组**；要它生效必须走 `look --backend daemon-world` 连续调用。等不到建议时别以为功能坏了 |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
+| **`state.match`** | dict（v1）：`{candidate, ratio, has_critical, critical_ok, ratio_pass, accept_support, accepted, novel, novel_reason, low_support, level, support, support_ratio, support_source, criteria_n}` | 「你凭什么这么判」的最小可复核集：`candidate`（单数）= 本次被评估的态，`ratio`/`ratio_pass` = 它拿到的支撑度与是否过线，`critical_ok`/`has_critical` = 锚点证据成不成立，`accept_support` = 阈值本身（可复算），`accepted` = 最终采没采纳。**排序不在这里**——`support` 表有每态 `passed/total/ratio/rule`，要排名自己算（两处各排一次就会出现两个真相源）。`level ∈ v1/derived/legacy`：`derived/legacy` = 权威值缺失、由本地 readings 推导，**别当权威结论用**（degraded 会同时给 `STATE_EVIDENCE_LEGACY`） |
+| **`state.novel` / `state.candidates`** | bool / list（v1） | `novel=true` = **这张画面不属于任何已知态**（开集识别）。此时**不要**把 `state.name` 当结论——它只是"最像的那个"。⚠️ `candidates` **只表示「同时成立的多个态」**（歧义/消歧场景），novel 路径下是**显式空列表 `[]`**；**被拒的态看 `state.match.candidate`（单数）**，采纳与否看 `match.accepted`，锚点证据是否成立看 `match.critical_ok` |
+| **`state.evidence[0]`** | `{readings[{name,passed,value}], verdicts, support, criteria, margin, candidates, …}`（v1 逐条透传） | 判错时**先看这里**，别猜。`support` = 每态 `{passed,total,ratio,ok,rule}`。改造前 daemon 分支只留 `readings_n`，判错在回执里无迹可查——别再退回那个形态 |
+| **`timing_ms.budget`** | `{total_ms, budget_ms, exceeded}`（v1） | **`BUDGET_EXCEEDED` 不是被删了，是从 `degraded` 移到这里**：耗时是**性能读数**，不是这一帧的**观测缺陷**。`exceeded=true` 仍如实告诉你超预算，别把"degraded 里没有它"读成"静默失能" |
+| **`uncertainty_meta`** | `{applicable[], waived[{rule,reason}], scene, source}`（v1） | `waived` 非空 = 某条不确定性规则**这一帧不适用**（例 `UNCERTAINTY_SOURCE_MISMATCH`）。判据：只有 `applicable` 非空且 `waived` 空时，`uncertainty=[]` 才能读成"画面确定"；否则是"没测" |
+| **`uncertainty_source`** | `"containers"` / `"detections"`（v1） | 与 `objects_source` 对账：**不一致时**别把 0 条当"没有可疑对象"，两层不是同一个 CV 源 |
 
 > **坐标空间**：所有 bbox / `--at` 都是**物理像素 2560×1440**；窗口逻辑尺寸是 1707×960，
 > **不要**把逻辑坐标传给 `--at`（y 会超出窗口高）。实测踩过：按逻辑 853,709 传参 → 滚动无效。
@@ -337,6 +343,9 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
 | 跨帧对象追踪 | 无稳定 id | 只能比"前后两帧一致"，不能追踪"那个按钮去哪了" |
 | 字体/分辨率鲁棒性 | 判据靠 OCR 文本 | 换字体/缩放会掉字 → 掉判据 → 掉态 |
 | 后台帧用于动作 | 明令禁止 | `--allow-background` 只给离线分析，拿它做动作会点到别处 |
+| 富 UI 画面下的不确定性 | 规则带「画面类型」前提（`ys-screen:1450` `hud_like = _regular < 4`、`:1519` `if hud_like and d > 200`）⇒ 富 UI 上整条规则**永不触发**、静默返回 0 条 | v1 用 `uncertainty_meta.waived` 明说"不适用"（例 `UNCERTAINTY_SOURCE_MISMATCH`）。**`uncertainty=[]` 不能直接读成"画面确定"** |
+| 全新界面（没见过的应用/页面） | v1 有 `state.novel` / `state.candidates`，但状态名仍是 13 个封闭集 | `novel=true` 时**不要**把 `state.name` 当结论、更不要据此直接动作；先按结构/文字判断，或回头问用户 |
+| 预算超时的判读 | v1 起不再是 `degraded` 项（移到 `timing_ms.budget.exceeded`） | `exceeded=true` = 这次调用慢（性能读数），**不等于**这一帧有观测缺陷；别去找"少了的那条告警" |
 
 **写新判据前先看这张表**：表里"没有"的东西，不要在技能/汇报里写成"有"。
 
@@ -439,3 +448,52 @@ live 帧默认走 `ys-capture latest`（~32–46ms），失败回退 import 并�
 - 夹具缺失必须显式 `error=FIXTURE_MISSING` + 非零退出，禁止静默 FAIL。
 - 账本 F-20261021-64；注入用例 `ledger-inject.sh advice-fixture-neg` 证明删夹具必报该错。
 - 回归：`tools/failure-ledger check --fast` 要 `gate_fail=0`。
+
+## 12. 契约门禁：`perception-contract.selftest.py`（2026-10-21 感知层 AGI 化）
+
+**判据在 `tools/ys-editor/tests/perception-contract.selftest.py`，语料在
+`tools/ys-editor/tests/fixtures/perception/`（两张 2560×1440 帧 + `baseline.json` + `README.md`）。**
+机器读一行：`PERCEPTION-CONTRACT-RESULT rc=… pass=N total=M skip=K fail=… verdict=…`。
+全离线（不抓屏/不抬窗/不注入/不产新帧），约 4s。
+
+| # | 守什么 | 改造前的失败长什么样 |
+|---|---|---|
+| S1 | 预算不是观测缺陷：`degraded` 无 `BUDGET_EXCEEDED`；`timing_ms.budget` 三键齐全且 `exceeded ⇔ total_ms > budget_ms`（**告警不删，只搬家**） | 同帧冷跑 493ms 报、热跑 8.7ms 不报 |
+| S2 | `state.evidence[0]` 逐条透传 `readings/verdicts/support/criteria`；`state.match` 15 键齐全 | daemon 分支只剩 `readings_n` |
+| S3 | 开集识别：foreign-ui 必须 `state.name=UNKNOWN` + `novel is True`（bool，不是 None）+ `match.novel_reason="no_critical_evidence"` + `state.candidates==[]` + `match.candidate="PLAYTEST"` + `match.accepted is False` + `match.critical_ok is False`；degraded 的 `STATE_UNKNOWN`/`STATE_LOW_SUPPORT` 与 `novel`/`low_support` **一致**（不是无条件要求出现） | 判成 `PLAYTEST` 0.5 且告警反被洗白；**只测「名字变成 UNKNOWN」会被「把状态清空」的 bug 骗过** |
+| S4 | `uncertainty_meta{applicable,waived,scene,source}` + `uncertainty_source`；富 UI 的 `waived` 必须非空 | 富 UI 静默 0 条、无 meta |
+| S5 | 老画面不回归：`fixtures/screen/` 4 张帧状态 = `baseline.json.legacy_fixtures`（期望值从基线读，不硬编码）+ 夹具 sha256 | — |
+| S6 | 降级项是**帧的纯函数**：冷跑（`--no-cache`）/热跑（走客户端缓存）`sorted(degraded)` 相同；离线 vs live 差异只允许 `FRAME_PINNED`/`STALE_FRAME` | `BUDGET_EXCEEDED` 冷热不对称 |
+
+**读门禁输出的纪律**：`[FAIL] Sx …` 后面那句是**结论 + 复算依据**（哪个字段、期望什么、实际什么），
+照着它去指派人；别只看 `verdict=FAIL` 就去改门禁。**门禁红 ≠ 放宽判据**——本轮 S1–S4 的红全部对应真缺陷。
+**不能用 `--no-cache` 去躲"缓存命中即崩"**（那是真 bug，账本要记），本门禁两路都跑：冷跑用 `--no-cache`、
+热跑**故意走缓存路径**，就是要看见它。
+
+**S1–S6 的期望值从哪来（不是硬编码常量，改之前先看这张表）**
+
+| 判据 | 期望值的来源 | 改了会怎样 |
+|---|---|---|
+| S2 / S3 / S4 | **契约本身**：字段名与形状写在门禁顶部的 `MATCH_KEYS` / `EVIDENCE_KEYS` / `BUDGET_KEYS` / `UNCERTAINTY_META_KEYS` 常量（2026-10-21 Lead 锁定），一处改全文生效 | 只改常量 = 悄悄改契约；必须同步 Lead 锁定表 + `fixtures/perception/README.md` 的「契约 v1 字段」节 |
+| S5 | `baseline.json` 的 `legacy_fixtures`（每张老帧的 state/confidence/**sha256**）——**从基线读，不硬编码** | 换夹具/改基线都会被抓；想换基线必须走 README 的「变更记录」，不许"改期望值让它绿" |
+| S1 | **自洽判据**：`budget.exceeded ⇔ total_ms > budget_ms`，同一次回执内部就能验，不依赖历史 | 没有可调的"期望值"：读数自相矛盾就红 |
+| S6 | **自洽判据**：同一帧冷/热两次 `sorted(degraded)` 相等；离线/ live 差异 ⊆ `{FRAME_PINNED, STALE_FRAME}` | 同上；`--live-json` 必须**同代码版本 + 画面可比**的回执，否则差异里会混进内容性降级项（不是帧来源差异） |
+
+「改造前的失败长什么样」那一列的读数（PLAYTEST 0.5 / 0 条不确定 / `readings_n` 等）抄自
+`fixtures/perception/README.md` 的「改造前读数」表；那张表的唯一来源是 `baseline.json.frames.*.receipt_cold`
+（改造前 HEAD `844d9a02` 的完整回执）。**要核对就去 diff 那个 JSON，别信这里的转述。**
+
+**v1 摘要的兼容坑（2026-10-21 实际踩到，已修）**：`look --summary` 里的 `state` 已从**裸字符串**改成
+**对象** `{name, confidence, novel, match}`，另留过渡别名 **`state_name`**（`degraded` 同理：对象列表 +
+`degraded_codes`）。所以**断言要两条都查**（`state_name == "X"` **且** `state["name"] == "X"`）——
+只断旧口径会让「契约升级」看起来像回归：`tools/ys-editor/tests/summary-grep.selftest.py` 就是这么假红的
+（`pass=6 fail=1` 把整条门槛②拖红）。过渡别名只保留一轮，新代码请读 `state.name` / `degraded[].code`。
+
+**两条注入用例，分工不同（都要有）**
+1. `ledger-inject.sh perception-fixture-neg` —— **实现无关**：删/挪走夹具，任何实现都必须报
+   `rc=2` + `error=FIXTURE_MISSING` + 点名文件。它证明"门禁活着"，**契约迁移进行中（S2/S3 本来就红）也成立**；
+   反之"改判据让它红"在红着的门禁上什么都没证明。
+2. `ledger-inject.sh perception-budget-neg` —— **针对具体判据**：把 `worldsvc.py` 复制成**同目录副本**、
+   在副本的 `degraded_items()` 里塞回 `BUDGET_EXCEEDED`，再用 `YS_PERCEPTION_WORLDSVC=<副本>` 跑门禁，
+   要求 **S1 那条**报红（并且红的是 S1，不是别的串了）。
+   **生产文件一个字节都不动**——owner 可能正在编辑，备份-还原有互相覆盖的风险。这条证明"每条判据真在判"。
