@@ -36,7 +36,12 @@ restore_screen() {
 trap restore_screen EXIT INT TERM
 
 # 本测试会**把游戏抬到焦点**（为了复现事故条件）⇒ 默认 SKIP，必须显式授权才跑。
-# 2026-10-21 用户令：测试可以切游戏 + 响铃（铃声就是"我在操作"的提示），不再默认 SKIP。
+# 2026-10-21 修正（F-20261021-54 回灌）：注释早就写着"默认 SKIP"，实现却直接往下跑，
+# 于是 failure-ledger check 每次都在用户不知情时抬窗/响铃。判据要**可执行**，不能只写在注释里。
+if [ "${YS_ALLOW_SCREEN_TEST:-0}" != "1" ]; then
+  echo "FOCUS-DEFAULT SKIP 会抬真实窗口/响铃（设 YS_ALLOW_SCREEN_TEST=1 才跑）"
+  exit 0
+fi
 "$YS/ys-bell" 2>/dev/null || true
 
 GAME_ID=$(KSTATE | py 'import sys,json;d=json.load(sys.stdin);print(next((w["internalId"] for w in d.get("wins") or [] if "yuanshen" in (w.get("class") or "").lower()), ""))')

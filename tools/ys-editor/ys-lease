@@ -51,6 +51,11 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RAISE = os.path.join(HERE, "ys-kwin-raise")
+# 测试缝（2026-10-21，F-20261021-55）：「目标已是活动窗 ⇒ 零窗口操作」这条判据原本无法离线判定——
+# 回执里的 attempts 要真跑一次 KWin 才看得见，而真跑就会动用户屏幕。
+# 下面两个缝只在显式设置时生效，生产路径永远走真 KWin。
+KWIN_FIXTURE = os.environ.get("YS_KWIN_JS_FIXTURE") or ""   # {"probe": {...}, "raise": {...}}
+RAISE_LOG = os.environ.get("YS_RAISE_LOG") or ""             # 每次真 raise 追加一行
 WINS = os.environ.get("YS_WINS") or os.path.join(HERE, "ys-wins")
 LEASE = os.environ.get("YS_LEASE") or "/tmp/ys-lease.json"
 WIN = os.environ.get("YS_WIN") or ""            # 由 resolve-window 按 class 解析；禁止写死窗 id
@@ -71,6 +76,14 @@ def _kwin_js(js_fn, tag_prefix, timeout=2.0):
 
     js_fn(tag) 必须返回打印 `YS-FOCUS-<tag> <payload>` 的脚本正文。
     """
+    if KWIN_FIXTURE and os.path.isfile(KWIN_FIXTURE):
+        try:
+            fx = json.load(open(KWIN_FIXTURE, encoding="utf-8"))
+            if isinstance(fx, dict) and tag_prefix in fx:
+                v = fx[tag_prefix]
+                return v if isinstance(v, str) else json.dumps(v)
+        except Exception:                        # noqa: BLE001 —— 缝坏了就走真通道
+            pass
     tag = f"{tag_prefix}{os.getpid()}{int(time.time() * 1000) % 100000}"
     path = os.path.join(HERE, f".ys-focus-{tag}.js")
     marker = f"YS-FOCUS-{tag} "
@@ -347,6 +360,12 @@ console.info("MARK " + JSON.stringify({ raised: t ? String(t.internalId || "") :
 
 def _raise_once(want, timeout=2.0, minimize_game=False):
     """activate + raise（可选把独占全屏的游戏最小化），返回同一轮 KWin 状态（权威）。"""
+    if RAISE_LOG:
+        try:
+            with open(RAISE_LOG, "a", encoding="utf-8") as fh:
+                fh.write("raise\n")
+        except OSError:
+            pass
     raw = _kwin_js(lambda tag: _RAISE_BODY.replace("WANT_JSON", json.dumps(want, ensure_ascii=False))
                    .replace("MIN_GAME", "true" if minimize_game else "false")
                    .replace("MARK", f"YS-FOCUS-{tag}"), "raise", timeout)

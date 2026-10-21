@@ -82,7 +82,16 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           # 判据/语料/基线在 tools/ys-editor/tests/{perception-contract.selftest.py,fixtures/perception/}。
           # 注册前必须自己全绿——把红门禁接进全员验收器，会把红信号稀释成噪声（本轮先例：summary-grep
           # 的 v0 过期断言曾让整条门槛②假红）。
-          ('perception-contract', 'perception-contract.selftest.py', 180)]
+          ('perception-contract', 'perception-contract.selftest.py', 180),
+          # 2026-10-21 F-20261021-54 回灌：「说完成了却还有操作音」——测试传空命令 true 也照样抬窗。
+          # 判据=执行 ys-gui-slot/ys-act 的测试必须声明 YS_ALLOW_SCREEN_TEST(真屏) 或 YS_SLOT_TEST(假槽)。
+          # 静态扫描、实跑 ~20ms，永远不会动屏（要防的正是"跑起来才发现动了屏"）。
+          ('screen-gated', 'screen-gated-scan.py', 30),
+          # 2026-10-21 F-20261021-55 回灌：交还时对**已是活动窗**的 firefox 又 activate+raise 一次
+          # ⇒ 画面没变、用户听到操作音。判据=零操作检查（attempts==0、零 raise），
+          # 用 YS_KWIN_JS_FIXTURE 喂权威状态，全离线（这条的失败形态就是"多碰一次窗口"，
+          # 真机验证等于先把用户屏幕动一次）。
+          ('handback-noop', 'handback-noop.selftest.py', 60)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {

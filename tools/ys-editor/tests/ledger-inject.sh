@@ -416,5 +416,72 @@ PYIN
     rm -f /tmp/.xd.$$
     echo "INJECT-PASS cross-desktop-neg: 丢掉 reason ⇒ T2 报红（生产 ys-lease 未动）"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg|no-xbell-neg|cross-desktop-neg" >&2; exit 2 ;;
+  # ⑭ 注入「测试里裸调 ys-gui-slot」→ screen-gated 静态门禁必须报红（F-20261021-54 的证据）
+  #   注入物是**新建的测试文件**，不动任何生产/测试代码；扫描器只要真在扫就必须抓住它。
+  screen-gated-neg)
+    tmp="tools/ys-editor/tests/inject-screen-touch.sh"
+    trap 'rm -f "$tmp"' EXIT
+    printf '#!/bin/bash\n# 注入物：测试里裸调 ys-gui-slot（会抬真实窗口）\ntools/ys-editor/ys-gui-slot 0x1 1 true\n' > "$tmp"
+    if python3 tools/ys-editor/tests/screen-gated-scan.py >/tmp/.sgated.$$ 2>&1; then
+      echo "INJECT-FAIL screen-gated-neg: 注入裸 ys-gui-slot 后门禁仍绿（门禁空转）"; rm -f /tmp/.sgated.$$; exit 1
+    fi
+    if ! grep -q 'inject-screen-touch.sh' /tmp/.sgated.$$; then
+      echo "INJECT-FAIL screen-gated-neg: 报红但没点名注入文件（下一个人无从修）"; rm -f /tmp/.sgated.$$; exit 1
+    fi
+    rm -f /tmp/.sgated.$$
+    echo "INJECT-PASS screen-gated-neg: 注入裸 ys-gui-slot ⇒ 门禁点名该文件"; exit 0
+    ;;
+  # ⑮ 注入「关掉整帧 OCR 兜底」→ worldsvc-selftest 必须报红（F-20261021-58 的证据）
+  #   做法：worldsvc.py 复制成**同目录副本**再插一行 return None，用 YS_WORLDSVC_PATH 指过去；
+  #   生产文件不动（owner 可能正在编辑，备份-还原有互相覆盖的风险）。
+  worldsvc-selftest-neg)
+    src=".scratch/gui-service/worldsvc.py"
+    tmp=".scratch/gui-service/worldsvc.__inject_tmp.py"
+    trap 'rm -f "$tmp"' EXIT
+    cp "$src" "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = '        """整帧 OCR 兜底：给"只在 free_text、无归属容器"的目标补坐标（F-20261021-57）。"""'
+new = (old + "\n"
+       "        return None  # INJECT: 关掉整帧 OCR 兜底（F-20261021-58 的故障形态）")
+assert old in s, "注入点没找到（_ocr_frame_for_text 的 docstring 变了）"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYIN
+    if YS_WORLDSVC_PATH="$tmp" python3 .scratch/gui-service/selftest.py >/tmp/.wsvc-neg.$$ 2>&1; then
+      echo "INJECT-FAIL worldsvc-selftest-neg: 关掉 OCR 兜底后门禁仍绿（门禁空转）"; rm -f /tmp/.wsvc-neg.$$; exit 1
+    fi
+    if ! grep -q '整帧 OCR 兜底' /tmp/.wsvc-neg.$$; then
+      echo "INJECT-FAIL worldsvc-selftest-neg: 变红但不是 OCR 兜底那条（判据串了）"; grep 'FAIL' /tmp/.wsvc-neg.$$ | head -3; rm -f /tmp/.wsvc-neg.$$; exit 1
+    fi
+    rm -f /tmp/.wsvc-neg.$$
+    echo "INJECT-PASS worldsvc-selftest-neg: 关掉整帧 OCR 兜底 ⇒ 对应判据报红（生产 worldsvc.py 未动）"; exit 0
+    ;;
+  # ⑯ 注入「关掉零操作检查」→ handback-noop 必须报红（F-20261021-55 的证据）
+  #   做法：ys-lease 复制成同目录副本，把 `if _already:` 改成 `if False:`（等于旧 bug 的行为：
+  #   已活动窗也照 raise），用 YS_LEASE_TOOL 指过去。KWin 用 fixture，全程不碰真窗口。
+  handback-noop-neg)
+    src="tools/ys-editor/ys-lease"
+    tmp="tools/ys-editor/ys-lease.__inject_tmp__"
+    trap 'rm -f "$tmp"' EXIT
+    cp "$src" "$tmp"; chmod +x "$tmp"
+    python3 - "$tmp" <<'PYIN'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = "    if _already:"
+assert old in s, "注入点没找到（零操作检查变了）"
+open(p, "w", encoding="utf-8").write(s.replace(old, "    if False:  # INJECT: 关掉零操作检查", 1))
+PYIN
+    if YS_LEASE_TOOL="$tmp" python3 tools/ys-editor/tests/handback-noop.selftest.py >/tmp/.hbnoop.$$ 2>&1; then
+      echo "INJECT-FAIL handback-noop-neg: 关掉零操作检查后门禁仍绿（门禁空转）"; rm -f /tmp/.hbnoop.$$; exit 1
+    fi
+    if ! grep -q 'attempts==0' /tmp/.hbnoop.$$; then
+      echo "INJECT-FAIL handback-noop-neg: 变红但不是「attempts==0」那条（判据串了）"; grep FAIL /tmp/.hbnoop.$$ | head -3; rm -f /tmp/.hbnoop.$$; exit 1
+    fi
+    rm -f /tmp/.hbnoop.$$
+    echo "INJECT-PASS handback-noop-neg: 关掉零操作检查 ⇒ attempts!=0 报红（生产 ys-lease 未动）"; exit 0
+    ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg|advice-fixture-neg|advice-cli-neg|perception-fixture-neg|perception-budget-neg|resolve-click-empty-neg|no-xbell-neg|cross-desktop-neg|screen-gated-neg|worldsvc-selftest-neg|handback-noop-neg" >&2; exit 2 ;;
 esac

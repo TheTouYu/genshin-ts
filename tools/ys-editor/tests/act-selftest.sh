@@ -2,6 +2,10 @@
 # act-selftest.sh — ys-act 编排层自测（判据全部来自 ys-watch / ys-afford，本工具不复制判据）
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../../.." && pwd)"; cd "$ROOT" || exit 3
+# 本套件会调 ys-act，而 ys-act 内部**必走 ys-gui-slot**（真抬窗抢焦点）。
+# 这些用例判的是"变化账/rc 透传"，与真焦点无关 ⇒ 走假槽（YS_SLOT_TEST=1，不碰屏幕）。
+# 2026-10-21/F-20261021-54：门禁里不许偷偷占用户屏幕；要真屏必须显式 YS_ALLOW_SCREEN_TEST。
+export YS_SLOT_TEST="${YS_SLOT_TEST:-1}"
 FX=tools/ys-editor/tests/fixtures/unknown
 pass=0; fail=0; n=0
 ok(){ n=$((n+1)); pass=$((pass+1)); echo "  ✓ $1"; }

@@ -330,6 +330,16 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
   （`tools/ys-editor/tests/ledger-inject.sh`），否则全量 `check` 会报 `UNPROVEN` 并判 FAIL。
 - **门禁**：`./tools/ys-gates --only 2`（含 lookd-wedge / scroll-movement / state-precedence 三个套件）、
   `--only 5`（单一源：判据不许复制）、`tools/ys-guards`（白名单投影等）。
+- **UNPROVEN 的真义**（2026-10-21 清账）：`failure-ledger check` 的 `unproven=N` = 账目写了 `prevented`
+  但 `inject` 列空着 ⇒ 只证明"门禁跑得起来"，没证明"它真能拦住这个错"。**`--fast` 不计这个数**，
+  所以 `check --fast` 全绿 ≠ 账本干净。修一条 = ①写注入用例（造该故障 ⇒ 门禁必须报红且**红的必须是那条断言**）
+  ②`inject` 列填**完整命令**（`bash tools/ys-editor/tests/ledger-inject.sh <名>`，只写裸名字会 `command not found`）。
+  清账时优先怀疑**绑错 gate**（实测 4 条 `screen-grant` 里有 2 条与屏幕无关）与**空转断言**
+  （`journalctl | grep <KWin 脚本 console 标记>` 恒为 0 —— 那个串不进 user journal）。
+- **不许测试偷偷占屏**（F-20261021-54 的机械防线）：`screen-gated` 门禁扫描所有测试，凡**执行**
+  `ys-gui-slot` / `ys-act` 的文件必须声明 `YS_ALLOW_SCREEN_TEST=1`（真屏，需用户授权）或
+  `YS_SLOT_TEST=1`（假槽，不碰屏）。写会动屏的新测试时先想清楚要哪一种，别让 `failure-ledger check`
+  替你把用户屏幕切走。
 - **架构真相**：`docs/architecture/gui-world-state.md`（schema、三动词、成本口径、§6 单一源表）。
 
 ## 6.5 能力边界：我们**没有**的东西（写清楚，防止假装有）

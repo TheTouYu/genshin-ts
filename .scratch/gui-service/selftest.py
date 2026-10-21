@@ -29,7 +29,19 @@ sys.path.insert(0, HERE)
 import cache as cache_mod  # noqa: E402
 import instruments  # noqa: E402
 import schema  # noqa: E402
-import worldsvc  # noqa: E402
+
+# YS_WORLDSVC_PATH：注入用例（ledger-inject.sh worldsvc-selftest-neg）把**同目录副本**指进来，
+# 证明「整帧 OCR 兜底」这条判据真的在判，而生产 worldsvc.py 一个字节都不动。
+_ws_path = os.environ.get("YS_WORLDSVC_PATH")
+if _ws_path:
+    import importlib.util as _ilu
+
+    _spec = _ilu.spec_from_file_location("worldsvc", _ws_path)
+    worldsvc = _ilu.module_from_spec(_spec)
+    sys.modules["worldsvc"] = worldsvc
+    _spec.loader.exec_module(worldsvc)
+else:
+    import worldsvc  # noqa: E402
 
 FRAME = os.path.join(REPO, ".scratch", "gui-corpus", "f06.png")
 ALT_FRAME = os.path.join(REPO, ".scratch", "gui-corpus", "f05.png")
