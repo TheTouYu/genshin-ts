@@ -36,3 +36,4 @@ capture-liveness	tools/ys-editor/ys-capture status | python3 -c "import sys,json
 world-settle	python3 tools/ys-editor/tests/world-settle.selftest.py	布局稳定判据（容差：数量+位移+文本相似度；治「逐字相等永远 false」）	fast
 focus-default	bash tools/ys-editor/tests/focus-default.selftest.sh	交还屏幕=切回默认屏（游戏在焦点时占用也归 firefox，且过堆叠验证；用户口径 2026-10-21）	slow
 screen-grant	bash tools/ys-editor/tests/screen-grant.selftest.sh	屏幕占用契约：没有用户批准的时长凭据时底层注入必须拒绝（用户令 2026-10-21）	fast
+skill-coverage	python3 tools/ys-editor/tests/skill-coverage.selftest.py	能力必须挂在技能上（capabilities 的每个 verb 能在 skills.entry 里 grep 到；用户令 2026-10-21）	fast

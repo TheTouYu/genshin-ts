@@ -37,7 +37,9 @@ from cache import FrameCache
 REPO_ROOT = schema.repo_root()
 CACHE_DIR_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-service", ".cache")
 EVIDENCE_DIR_DEFAULT = os.path.join(REPO_ROOT, ".scratch", "gui-service", "evidence")
-EXPECT_TYPES = ("state_in", "text_added", "text_removed", "region_text_set_changed", "pixel_delta")
+EXPECT_TYPES = ("state_in", "text_added", "text_removed",
+                "text_added_contains", "text_removed_contains",   # G5：子串断言（OCR 常把标题与计数粘成一条）
+                "region_text_set_changed", "pixel_delta")
 
 
 class ServiceError(RuntimeError):
@@ -429,8 +431,10 @@ class WorldService:
             state=st, objects=objects, free_text=free_text, uncertainty=uncertainty,
             degraded=degraded, timing_ms=timing, frame=frame_meta,
             budget_ms=self.budget_ms,
-            # 2026-10-21：稳定信号必须透传到 summary（技能推荐的正是 --summary）
-            settled=(raw or {}).get("settled"),
+            # 2026-10-21：稳定信号必须透传到 summary（技能推荐的正是 --summary）。
+            # 注意：cli 后端没有 `raw`（那是 daemon-world 分支的整包回执），
+            # 直接用容器结果里的 settled —— 之前写成 (raw or {}).get(...) 会让默认后端 NameError。
+            settled=(cont_res or {}).get("settled"),
         )
 
     def _finalize(self, raw, *, frame_meta, frame_id, timing, cache_hit, t_start, validate_ms):
@@ -698,7 +702,7 @@ class WorldService:
             if "region" in expect:
                 out["region"] = self._region4(expect["region"])
             return out
-        if t in ("text_added", "text_removed"):
+        if t in ("text_added", "text_removed", "text_added_contains", "text_removed_contains"):
             if "region" not in expect:
                 raise ServiceError("BAD_EXPECT", f"{t} 必须带 region: [x,y,w,h]", rc=2)
             out["region"] = self._region4(expect["region"])
@@ -793,19 +797,34 @@ class WorldService:
             changed = [(norm(e.get("from") or ""), norm(e.get("to") or ""))
                        for e in events if e.get("kind") == "text_changed"]
             slots = pair.get("slots") or {}
-            if t in ("text_added", "text_removed"):
+            if t in ("text_added", "text_removed", "text_added_contains", "text_removed_contains"):
                 want = [norm(x) for x in exp["texts"]]
-                pool = added if t == "text_added" else removed
-                missing = [w for w in want if w not in set(pool)]
+                is_add = "added" in t
+                contains = t.endswith("_contains")
+                pool = added if is_add else removed
+                if contains:
+                    # 子串断言：OCR 经常把「好友」和「我的好友 173/200」粘成一条，
+                    # 整串相等会把正确结果判成不成立（复盘里 44s 的那次 expect 失败）。
+                    missing = [w for w in want if not any(w in p for p in pool)]
+                else:
+                    missing = [w for w in want if w not in set(pool)]
                 ok = bool(want) and not missing
-                label = "出现" if t == "text_added" else "消失"
+                label = "出现" if is_add else "消失"
+                # 失败时给出**最接近的 observed**（复盘要求：别只说不成立，要给出差多少）
+                closest = []
+                if not ok:
+                    import difflib as _dl
+                    for w in missing:
+                        cand = _dl.get_close_matches(w, list(pool), n=1, cutoff=0.0)
+                        closest.append({"want": w, "closest": (cand[0] if cand else None)})
                 what = "、".join(exp["texts"])
                 det = (f"期待{label}：{what} —— {'成立' if ok else '不成立'}"
-                       + ("" if ok else f"（实际{label}：{pool[:8] or '无'}）"))
+                       + ("" if ok else f"（实际{label}：{pool[:8] or '无'}"
+                          + (f"；最接近：{closest}" if closest else "") + "）"))
                 return {"ok": ok, "type": t, "region": region,
                         "observed": {"expected": exp["texts"], "added": added,
                                      "removed": removed, "changed": len(changed),
-                                     "slots": slots,
+                                     "closest": closest, "slots": slots,
                                      "source": "ys-watch/events"},
                         "detail": det,
                         "elapsed_ms": round((time.perf_counter() - t0) * 1000, 1)}
@@ -907,7 +926,9 @@ class WorldService:
         else:
             ok = (rc == 0) and not inject_failed
         return {"tool": "scroll", "ok": bool(ok), "release_failed": bool(release_failed),
-                "inject_failed": bool(inject_failed), "raw": raw}
+                "inject_failed": bool(inject_failed),
+                # G6：把「这次走的哪条通道、试过哪些」明写出来，调用方不用猜
+                "channel": raw.get("channel"), "attempts": raw.get("attempts"), "raw": raw}
 
     def _evidence_dir(self, evidence_dir):
         if evidence_dir:
@@ -994,6 +1015,50 @@ class WorldService:
         except (OSError, TypeError, ValueError):
             pass
 
+    def _drill_for_text(self, ws, text, top=3, min_score=0.8):
+        """G7：把 uncertainty 变成一次"看一眼"——对分最高的几块做局部 OCR，命中就反算全局坐标。
+
+        返回 (drilled_rows, hit|None)。hit = {object, where}；object 形状与其它解析一致，
+        供调用方直接点。
+        """
+        raw = ws.raw if hasattr(ws, "raw") else ws
+        unc = sorted((raw.get("uncertainty") or []), key=lambda z: -(z.get("score") or 0))
+        unc = [u for u in unc if (u.get("score") or 0) >= min_score][:top]
+        frame_path = (raw.get("frame") or {}).get("path")
+        rows = []
+        if not unc or not frame_path or not os.path.isfile(frame_path):
+            return rows, None
+        import tempfile
+        want = schema.normalize_text(text)
+        for i, u in enumerate(unc):
+            x, y, w, h = u.get("region") or [0, 0, 0, 0]
+            out = os.path.join(tempfile.gettempdir(), "ys-drill-%d-%d.png" % (os.getpid(), i))
+            r = {}
+            try:
+                r = instruments.detail_image(frame_path, [x, y, w, h], out, ocr=True)
+            except instruments.InstrumentError as e:
+                r = {"rc": getattr(e, "rc", 1), "error": str(e)[:120]}
+            row = {"kind": u.get("kind"), "score": u.get("score"), "region": [x, y, w, h],
+                   "rc": r.get("rc"), "image": out if r.get("rc") == 0 else None, "texts": []}
+            js = r.get("json") if isinstance(r.get("json"), dict) else {}
+            boxes = js.get("texts") or js.get("boxes") or []
+            for b in boxes:
+                t = schema.normalize_text(b.get("text") or "")
+                if not t:
+                    continue
+                row["texts"].append(b.get("text"))
+                if want and (want in t or t in want):
+                    cx = float(b.get("cx", 0)) + x
+                    cy = float(b.get("cy", 0)) + y
+                    row["hit"] = {"text": b.get("text"), "xy": [round(cx), round(cy)]}
+                    obj = {"id": "drill:%d" % i, "kind": "text_hit",
+                           "bbox": [round(cx - 20), round(cy - 10), 40, 20],
+                           "text": [b.get("text")], "source": "drill"}
+                    rows.append(row)
+                    return rows, {"object": obj, "where": "uncertainty#%d %s" % (i, u.get("kind"))}
+            rows.append(row)
+        return rows, None
+
     def _resolve_target(self, ws, target):
         """解析 target → {status, object, ...}。未命中/多义 fail-closed，不猜。"""
         if "object_id" in target:
@@ -1012,11 +1077,22 @@ class WorldService:
         text = target.get("text")
         hits = ws.text_hits(text)
         if not hits:
+            # ── G7：不确定性驱动下钻（2026-10-21 复盘）─────────────────────────────
+            # 旧行为：容器里没命中就放弃，尽管 look 已经报了 N 条 uncertainty（最高 0.966），
+            # 一次都没被消费，最后退化成"人肉裁图/看图"。现在：拿 uncertainty 里分最高的几块
+            # **就地 OCR 一眼**，命中就用局部坐标 + 偏移反算全局坐标。
+            drilled, drilled_hit = self._drill_for_text(ws, text)
+            if drilled_hit:
+                return {"status": "resolved", "channel": "drill", "target": text,
+                        "object": drilled_hit["object"], "candidates": 1,
+                        "drilled": drilled,
+                        "detail": "容器文本未命中 → uncertainty 下钻命中（%s）" % drilled_hit["where"]}
             free = ws.free_text_hits(text)
             detail = (f"容器文本里没有全等匹配 {text!r}（NFKC+去空白+casefold）；"
-                      f"free_text 命中 {len(free)} 条但**无归属容器/无坐标** ⇒ 无法定位")
+                      f"free_text 命中 {len(free)} 条但**无归属容器/无坐标** ⇒ 无法定位；"
+                      f"已尝试 uncertainty 下钻 {len(drilled)} 块，未命中")
             return {"status": "resolve_fail", "channel": "text", "target": text, "detail": detail,
-                    "free_text_hits": free,
+                    "free_text_hits": free, "drilled": drilled,
                     "degraded": [_degraded("FREE_TEXT_UNOWNED", detail) if free else
                                  _degraded("TARGET_UNSTABLE", detail)]}
         if len(hits) > 1:
@@ -1326,6 +1402,18 @@ CAPABILITIES = {
         {"code": "EXPECT_EXACT_MATCH", "detail": "text_added 是整串匹配；OCR 常把标题与计数粘成一条"},
         {"code": "SCROLL_CHANNEL", "detail": "ys-scroll --lease 在游戏窗常无效，需走槽位模式"},
     ],
+    # ── 技能是 AGI 实现的一部分（用户令 2026-10-21）─────────────────────────
+    # 能力 = 工具 + 判据 + **技能**。只把能力做进代码，下一个会话就没有它——
+    # 技能是"生效载体"，不是文档。所以每个 verb 必须有名有姓地挂在某个技能里，
+    # 并由门禁 skill-coverage 机械校验（verb 名要能在对应技能文件里 grep 到）。
+    "skills": {
+        "entry": ".agents/skills/gui-world-state/SKILL.md",
+        "methodology": "~/.agents/skills/gui-perception-loop/SKILL.md",
+        "injection": ".agents/skills/device-playtest-loop/SKILL.md",
+        "rule": "能力缺口与技能缺口同账：新增 verb / 新判据 / 新退出码 ⇒ 同轮写进技能，"
+                "否则能力在下一个会话等于不存在（`tools/failure-ledger check` 会报 skill-coverage）",
+        "verbs_documented_in": "gui-world-state",
+    },
     "hint": "用 `look --summary` 做每步读数；gaps 里列的东西不要假装有——记成能力缺口。",
 }
 
@@ -1361,7 +1449,7 @@ def main(argv=None):
     p.add_argument("--expect", required=True,
                    help='语义期待 JSON（必填），如 {"type":"region_text_set_changed",'
                         '"region":[300,200,1200,800],"min_jaccard_delta":0.15}；'
-                        '类型：state_in/text_added/text_removed/region_text_set_changed/pixel_delta')
+                        '类型：state_in/text_added(_contains)/text_removed(_contains)/region_text_set_changed/pixel_delta')
     p.add_argument("--action", default=None,
                    help='动作 JSON（缺省 {"type":"click"}；滚动：{"type":"scroll","dy":-3,"at":[900,600]}）')
     p.add_argument("--inject", action="store_true", help="真注入（需 allow_inject；旧开关，保留）")

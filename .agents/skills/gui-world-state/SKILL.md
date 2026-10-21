@@ -41,6 +41,13 @@ python3 .scratch/gui-service/worldsvc.py act --text 好友 --action '{"type":"cl
 
 # 等：谓词等待（禁裸 sleep）
 python3 .scratch/gui-service/worldsvc.py wait --predicate '{"state_in":["GAME_PAIMON"]}' --timeout 10
+
+# 自述 + 辅助动词（先跑 capabilities，别读源码猜能力）
+python3 .scratch/gui-service/worldsvc.py capabilities      # verbs / 退出码 / 不变量 / known_gaps / skills
+python3 .scratch/gui-service/worldsvc.py drill --at 900,600 # 对 uncertainty 下钻局部（不重处理整帧）
+python3 .scratch/gui-service/worldsvc.py vocab              # 13 态词表（单一源 ys-state）
+python3 .scratch/gui-service/worldsvc.py intents            # 列出 ys-do 意图（actions/*.json）
+python3 .scratch/gui-service/worldsvc.py cache --clear      # 帧级缓存
 ```
 
 底层就是 `ys-lookd` 的 `cmd=world`（socket 一行 JSON）：
@@ -147,3 +154,15 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | 给界面帧标 bbox 真值、造检测训练集 | `gui-annotation` |
 | 解析 `.gia` 日志、还原节点执行 | `debug-log-investigator` |
 | 改被感知的界面本身（编辑器/UI 资产） | `genshin-ts-asset-operations` / `ui/AGENTS.md` |
+
+## 8. 技能缺口与能力缺口同账（用户令 2026-10-21）
+
+**能力 = 工具 + 判据 + 技能。** 只把能力做进代码，下一个会话就没有它——技能是生效载体，不是文档。
+所以：新增 verb / 新判据 / 新退出码 / 新 known_gap ⇒ **同一轮写进本文件**，否则等于没做。
+
+机械校验：`python3 tools/ys-editor/tests/skill-coverage.selftest.py`
+（`capabilities` 里列出的每个 verb 必须能在本技能里 grep 到；三个技能文件必须存在；
+本段规则本身也在检查范围内）。闸门名 `skill-coverage`，接在 `failure-ledger check` 里。
+
+**触发条件→动作**：写完任何新能力 → 立刻在 `capabilities` 里登记 verb 与 skills 指针 →
+跑 skill-coverage；红了说明"代码有、技能没有"，别交付。

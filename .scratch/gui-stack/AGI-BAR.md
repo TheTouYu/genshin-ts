@@ -251,3 +251,38 @@
 3. **抓帧去编码**：验证用 1/4 缩放灰度（约 0.05s），不进 JPEG/PNG。
 
 **纪律**：以上三条写进 `AGI-BAR §十` 后，**任何"实测值"都不得自动成为新及格线**；要改标准必须显式写进本节并说明理由。
+
+---
+
+## 十一、技能是 AGI 实现的一部分（用户令 2026-10-21）
+
+> 用户原话：「配套的技能也是 agi 实现的一部分。你在优化项目上增加这一点。」
+
+**能力 = 工具 + 判据 + 技能。** 前两者决定「能不能做」，第三者决定「下一个会话还知不知道能做」。
+本仓已有实证：`ys-eyes-up` 的注释早写过「窗口不在时 `ys-capture serve` 直接 X BadDrawable 死掉」，
+两周后我又原样踩一次——因为那条知识只在代码注释里，不在会被自动加载的技能里。
+
+### 11.1 同账规则
+
+| 变更 | 必须同时做 |
+|---|---|
+| 新 verb / 新参数语义 | `worldsvc capabilities` 登记 + `gui-world-state` 技能写命令 |
+| 新判据 / 新退出码 | 技能写判据 + 账本绑门禁 + 注入用例 |
+| 新 known_gap | 技能「能力边界」节 + 账本 open 项 |
+| 新反模式 | 全局 `gui-perception-loop` 的反模式表 |
+
+### 11.2 机械校验（不是靠自觉）
+
+- `tools/ys-editor/tests/skill-coverage.selftest.py`：`capabilities.verbs` 的每个名字必须能在
+  `skills.entry` 指向的技能文件里 grep 到；entry/methodology/injection 三个文件必须存在；
+  「同账规则」本身也在被检查范围内。闸门名 `skill-coverage`。
+- `scripts/skill-salvage.py`：日记里出现的工具名必须在生效载体（技能/AGENTS）里出现过。
+
+### 11.3 四层分工（技能之间别互相吃）
+
+| 层 | 技能 | 只负责 |
+|---|---|---|
+| 感知/判断 | `.agents/skills/gui-world-state` | 读数、13 态词表、对象/文本、仪器健康、证据 |
+| 方法论（跨项目） | `~/.agents/skills/gui-perception-loop` | 读数化 / 不确定性 / 证据 / 屏幕契约 |
+| 注入与真机操作 | `.agents/skills/device-playtest-loop` | 试玩开关、键鼠注入、取日志、焦点与归还 |
+| 通用 GUI 兜底 | `~/.agents/skills/computer-use` | 原生应用（AT-SPI）；Wine 一律转 gui-world-state |

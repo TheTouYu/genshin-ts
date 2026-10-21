@@ -378,27 +378,43 @@ def _ocr_env():
 
 
 def inject_scroll(x, y, *, clicks=3, direction="down", drag=0, lease=True, timeout=180):
-    """滚动注入：走 `ys-scroll`（它自己走 ys-gui-slot/租约；绝不裸调 xdotool）。"""
-    cmd = [YS_SCROLL, "--at", "%d,%d" % (int(x), int(y)),
-           "--clicks", str(max(1, int(clicks))), "--dir", direction,
-           # 注意：ys-scroll **总是**输出 JSON，没有 --json 参数（传了会 rc=2 usage error）。
-           # 2026-10-19 live 验收第一次跑到这条才发现——离线测试覆盖不到子进程参数。
-           "--no-verify"]
-    if drag:
-        cmd += ["--drag", str(int(drag))]
-    # 已经在外层槽里（YS_SLOT_ACTIVE=1）就不要再套一层租约：
-    # 2026-10-19 live 实测，嵌套租约会把自己当 prev，归还时 target_idx==game_idx ⇒ RESTORE_FAILED。
+    """滚动注入：走 `ys-scroll`（它自己走 ys-gui-slot/租约；绝不裸调 xdotool）。
+
+    **G6 通道自选且透明（2026-10-21 复盘）**：`--lease` 快（~30ms）但走的是裸注入，
+    槽内 shim 会拦下 ⇒ `ok:false` 而调用方常看漏；槽位模式慢（~2s）但可靠。
+    以前写死 lease，结果真机上一路静默无效、我又去手搓 gdbus。
+    现在：**先 lease，失败自动退到 slot**，并在回执里明写 `channel` 与 `attempts`。
+    """
     import os as _os
-    if lease and not _os.environ.get("YS_SLOT_ACTIVE"):
-        cmd.append("--lease")
-    rc, out, err = run(cmd, timeout=timeout, env_extra=_ocr_env())
-    res = {}
-    try:
-        res = parse_json_doc(out, what="ys-scroll") if out.strip() else {}
-    except InstrumentError:
+    base = [YS_SCROLL, "--at", "%d,%d" % (int(x), int(y)),
+            "--clicks", str(max(1, int(clicks))), "--dir", direction,
+            # ys-scroll **总是**输出 JSON，没有 --json 参数（传了会 rc=2 usage error）
+            "--no-verify"]
+    if drag:
+        base += ["--drag", str(int(drag))]
+    in_slot = bool(_os.environ.get("YS_SLOT_ACTIVE"))
+    channels = ["slot"] if (in_slot or not lease) else ["lease", "slot"]
+    attempts = []
+    last = {"rc": None, "result": {}, "stdout_tail": "", "stderr_tail": ""}
+    for ch in channels:
+        cmd = list(base) + ([] if ch == "slot" else ["--lease"])
+        rc, out, err = run(cmd, timeout=timeout, env_extra=_ocr_env())
         res = {}
-    return {"rc": rc, "result": res, "stdout_tail": _tail(out, 600),
-            "stderr_tail": _tail(err, 400)}
+        try:
+            res = parse_json_doc(out, what="ys-scroll") if out.strip() else {}
+        except InstrumentError:
+            res = {}
+        ok = (res.get("ok") is not False) and rc == 0
+        attempts.append({"channel": ch, "rc": rc, "ok": res.get("ok"),
+                         "ms": res.get("ms"), "moved": res.get("moved_confirmed")})
+        last = {"rc": rc, "result": res, "stdout_tail": _tail(out, 600),
+                "stderr_tail": _tail(err, 400)}
+        if ok:
+            last.update({"channel": ch, "attempts": attempts})
+            return last
+    last.update({"channel": None, "attempts": attempts})
+    return last
+
 
 
 def watch_region(before, after, region, *, no_ocr=False, debug=True, timeout=300):
