@@ -174,6 +174,19 @@ def main():
     ap.add_argument("--settle-ms", type=int, default=600,
                     help="注入后固定等待 ms（缺省 600；会话扫描用 150–250）")
     ap.add_argument("--plan", action="store_true", help="只打印执行计划（in_slot/session/script），不注入")
+    # —— 滚动条 seek（2026-10-21）：滚轮一次最多 ~7 行且非线性；滚动条一次跳到位 ——
+    ap.add_argument("--seek-ratio", type=float, default=None,
+                    help="拖滚动条到轨道比例 R∈[0,1]（0=顶/左，1=底/右）")
+    ap.add_argument("--seek-rows", type=float, default=0.0,
+                    help="拖滚动条使第 N 行到视口顶部（用 estimated_pages × --rows-per-page 换算）")
+    ap.add_argument("--rows-per-page", type=float, default=7.0,
+                    help="每屏可见行数（--seek-rows 换算用；好友列表实测 7 行）")
+    ap.add_argument("--total-rows", type=float, default=0.0,
+                    help="列表总行数（能 OCR 到就用它，如好友「我的好友 173/200」）；"
+                         "0=用 estimated_pages×rows-per-page（该估计实测偏小 ~1.45×，见文档）")
+    ap.add_argument("--frame", default="", help="seek 用离线帧（不抓屏；--plan 离线可测）")
+    ap.add_argument("--seek-orient", default="auto", choices=["auto", "v", "h"],
+                    help="滚动条方向；auto=先竖后横")
     a = ap.parse_args()
     sess = _session()
     if sess:
@@ -221,6 +234,120 @@ def main():
     elif a.by == "page":
         clicks = 120
 
+    # ————————————————————————————— 滚动条 seek —————————————————————————————
+    # 判据唯一实现在 tools/ys-editor/ys_scrollbar.py（本文件不复制任何常数）。
+    if a.seek_ratio is not None or a.seek_rows > 0:
+        try:
+            import ys_scrollbar as _SB
+        except Exception as _exc:                        # noqa: BLE001
+            print(json.dumps({"ok": False, "error": "SCROLLBAR_IMPORT_FAIL",
+                              "reason": "%s: %s" % (type(_exc).__name__, _exc),
+                              "state": {"path": os.path.join(HERE, "ys_scrollbar.py")},
+                              "next_action": "确认 tools/ys-editor/ys_scrollbar.py 存在且可 import"},
+                             ensure_ascii=False))
+            return 3
+        _frm = a.frame
+        if not _frm:
+            _sd = tempfile.mkdtemp(prefix="ys-seek-")
+            _frm = capture(a.window, os.path.join(_sd, "seek.png"))
+        if not _frm or not os.path.exists(_frm):
+            print(json.dumps({"ok": False, "error": "NO_FRAME",
+                              "reason": "抓帧失败且未给 --frame",
+                              "state": {"window": a.window},
+                              "next_action": "ys-scroll --seek-ratio R --frame <png>（离线）或检查抓帧通道"},
+                             ensure_ascii=False))
+            return 5
+        _r = _SB.detect_path(_frm, orient=a.seek_orient)
+        if not _r.get("found"):
+            print(json.dumps({"ok": False, "error": "NO_SCROLLBAR", "reason": _r.get("reason"),
+                              "state": {"frame": _frm, "evidence": _r.get("evidence")},
+                              "next_action": "换一帧/换方向重试；**不猜位置**——没有滚动条就不 seek"},
+                             ensure_ascii=False))
+            return 7
+        _tr, _th = _r["track_bbox"], _r["thumb_bbox"]
+        ratio = a.seek_ratio
+        if ratio is None:
+            _pages = float(_r["estimated_pages"])
+            _rpp = max(1.0, a.rows_per_page)
+            # estimated_pages 由 thumb/轨道长度反推，**偏小**（好友列表实测 17.3 vs 真实 173/7≈24.7）。
+            # 能给 --total-rows 就用真值，否则用估计并如实标注。
+            _total = (a.total_rows if a.total_rows > 0 else _rpp * _pages)
+            _total = max(_total, a.seek_rows + 1.0)
+            ratio = (a.seek_rows - 1.0) / max(1.0, _total - _rpp)
+        ratio = min(1.0, max(0.0, float(ratio)))
+        H = int(os.environ.get("YS_H", "1440"))
+        if _r["orientation"] == "v":
+            _span = max(1, (_tr[3] - _tr[1]) - (_th[3] - _th[1]))
+            _dy = int(round(_tr[1] + ratio * _span - _th[1]))
+            x_mid = (_th[0] + _th[2]) // 2
+            y_mid = (_th[1] + _th[3]) // 2
+            x1, y1, x2, y2 = x_mid, y_mid, x_mid, y_mid + _dy
+        else:
+            _span = max(1, (_tr[2] - _tr[0]) - (_th[2] - _th[0]))
+            _dx = int(round(_tr[0] + ratio * _span - _th[0]))
+            x_mid = (_th[0] + _th[2]) // 2
+            y_mid = (_th[1] + _th[3]) // 2
+            x1, y1, x2, y2 = x_mid, y_mid, x_mid + _dx, y_mid
+        y1 = min(H - 50, max(50, y1))
+        y2 = min(H - 50, max(50, y2))
+        _maxd = min(1100, H - 100)
+        _dy_total = y2 - y1
+        _n = max(1, int(round(abs(_dy_total) / float(_maxd) + 0.5)))
+        _step = 16
+        _parts = []
+        for _i in range(_n):
+            _a0 = int(round(y1 + _dy_total * _i / float(_n)))
+            _a1 = int(round(y1 + _dy_total * (_i + 1) / float(_n)))
+            _parts.append("%s %d %d %d %d %d 0.03" % (os.path.join(HERE, "ys-drag"),
+                                                      x1, _a0, x2, _a1, _step))
+        _script = "; sleep 0.1; ".join(_parts)
+        _plan = {"seek": {"target_ratio": round(ratio, 4),
+                          "from_ratio": _r["position_ratio"],
+                          "orientation": _r["orientation"],
+                          "track_bbox": _tr, "thumb_bbox": _th,
+                          "drag": {"from": [x1, y1], "to": [x2, y2],
+                                   "chunks": _n, "step": _step},
+                          "estimated_pages": _r["estimated_pages"],
+                          "rows_per_page": a.rows_per_page if a.seek_ratio is None else None,
+                          "total_rows": a.total_rows or None,
+                          "total_rows_source": ("cli" if a.total_rows > 0 else "pages_x_rows"),
+                          "frame": _frm,
+                          "evidence": _r.get("evidence")},
+                 "in_slot": os.environ.get("YS_SLOT_ACTIVE") == "1",
+                 "session_id": os.environ.get("YS_SESSION_ID"),
+                 "script": _script}
+        if a.plan:
+            print(json.dumps({"plan": _plan}, ensure_ascii=False))
+            return 0
+        if abs(_dy_total) < 2:
+            print(json.dumps({"ok": True, "noop": True, "reason": "ALREADY_AT_TARGET",
+                              **{k: v for k, v in _plan["seek"].items()}}, ensure_ascii=False))
+            return 0
+        _t0 = time.time()
+        _env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+        if os.environ.get("YS_SLOT_ACTIVE") == "1":
+            _p = subprocess.run(["bash", "-c", _script], capture_output=True, text=True,
+                                env=_env, timeout=180)
+        else:
+            _p = subprocess.run([SLOT, (_resolve_win() or "auto"), "60", "bash", "-c", _script],
+                                capture_output=True, text=True, timeout=180)
+        _ms = int((time.time() - _t0) * 1000)
+        _fb = None
+        if not a.no_verify:
+            _fb = capture(a.window, os.path.join(tempfile.mkdtemp(prefix="ys-seek-"), "after.png"))
+        _diff = frame_diff(_frm, _fb) if _fb else None
+        _rb = _SB.detect_path(_fb) if (_fb and not a.no_verify) else None
+        _ok = _p.returncode == 0 and (_diff is None or _diff > 0.0005)
+        print(json.dumps({"ok": _ok, "ms": _ms, "rc": _p.returncode,
+                          "seek": _plan["seek"], "frame_before": _frm, "frame_after": _fb,
+                          "frame_diff": _diff,
+                          "after_ratio": (_rb or {}).get("position_ratio"),
+                          "after_found": (_rb or {}).get("found"),
+                          "error": None if _ok else "SEEK_NO_EFFECT",
+                          "reason": None if _ok else "注入返回 %d / frame_diff=%s" % (_p.returncode, _diff),
+                          "next_action": None if _ok else "读 after_ratio 判断是否拖到了正确位置"},
+                         ensure_ascii=False))
+        return 0 if _ok else 6
     tmp = tempfile.mkdtemp(prefix="ys-scroll-")
     fa = fb = None
     if not a.no_verify:

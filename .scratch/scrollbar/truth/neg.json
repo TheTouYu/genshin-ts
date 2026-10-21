@@ -1,0 +1,139 @@
+{
+ "frames": [
+  {
+   "path": ".scratch/gui-corpus/f00.png",
+   "note": "游戏内菜单（派蒙），只有 W/S 提示，无滚动条",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f01.png",
+   "note": "同族菜单",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f02.png",
+   "note": "同族菜单（左列表可滚但界面不显示滚动条）",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f03.png",
+   "note": "同族菜单",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f04.png",
+   "note": "同族菜单",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f05.png",
+   "note": "同族菜单",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f06.png",
+   "note": "派蒙菜单顶部（左下 ▲▼ 是滚动提示块，不是滚动条）",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f07.png",
+   "note": "派蒙菜单滚动后（▲▼ 仍在，仍无滚动条）",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f08.png",
+   "note": "千星奇域区（右边一列圆钮，无滚动条）",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f09.png",
+   "note": "同族",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f12.png",
+   "note": "同族",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/f13.png",
+   "note": "同族",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-corpus/neg-world.png",
+   "note": "世界 HUD 负样本",
+   "tracked": true,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-service/evidence/live-atop.png",
+   "note": "浏览器窗口世界帧，无滚动条",
+   "tracked": false,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-expect-neg/before.png",
+   "note": "玩法画面（草地/水面），无 UI 列表",
+   "tracked": false,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-lease-fail/before.png",
+   "note": "玩法画面，无 UI 列表",
+   "tracked": false,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-inject-fail/before.png",
+   "note": "玩法画面，无 UI 列表",
+   "tracked": false,
+   "verified_by": "人眼边缘条带拼图核对（无滑块）"
+  },
+  {
+   "path": ".scratch/scrollbar/truth/synth/friends0_nobar.png",
+   "tracked": false,
+   "synth_from": ".scratch/gui-service/evidence/friends-run-20261021-1555/friends0.png",
+   "synth_span": [
+    2400,
+    2412
+   ],
+   "note": "【合成】同 UI 去掉滚动条：.scratch/gui-service/evidence/friends-run-20261021-1555/friends0.png 的 x=2400..2412 用左右邻域均值填充",
+   "verified_by": "构造保证（填充后该列既无轨道也无滑块）"
+  },
+  {
+   "path": ".scratch/scrollbar/truth/synth/boundary_nobar.png",
+   "tracked": false,
+   "synth_from": ".scratch/gui-service/evidence/realrun-20261021/boundary.png",
+   "synth_span": [
+    2400,
+    2412
+   ],
+   "note": "【合成】同 UI 去掉滚动条：.scratch/gui-service/evidence/realrun-20261021/boundary.png 的 x=2400..2412 用左右邻域均值填充",
+   "verified_by": "构造保证（填充后该列既无轨道也无滑块）"
+  },
+  {
+   "path": ".scratch/scrollbar/truth/synth/now_nobar.png",
+   "tracked": false,
+   "synth_from": ".scratch/gui-service/evidence/friends-run-20261021-1555/now.png",
+   "synth_span": [
+    2400,
+    2412
+   ],
+   "note": "【合成】同 UI 去掉滚动条：.scratch/gui-service/evidence/friends-run-20261021-1555/now.png 的 x=2400..2412 用左右邻域均值填充",
+   "verified_by": "构造保证（填充后该列既无轨道也无滑块）"
+  }
+ ]
+}

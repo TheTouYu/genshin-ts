@@ -7,7 +7,8 @@
 #   · 判据是「门禁必须报红」，不是「命令没崩」；抓不住 = 用例失败。
 #
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg | advice-fixture-neg |
-#                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg
+#                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg |
+#                                        scrollbar-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -24,6 +25,25 @@ case "$mode" in
       echo "INJECT-FAIL noswallow: 注入物存在但门禁没报红（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS noswallow: 注入的吞码文件被 noswallow 抓到了"; exit 0
+    ;;
+  # ③c 注入「关掉滚动条检测的实心性闸门」→ scrollbar 自测必须变红（假阳回来）
+  scrollbar-neg)
+    f="tools/ys-editor/ys_scrollbar.py"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = "TRACK_MARGIN = 8"
+new = "TRACK_MARGIN = 0  # INJECT: 关掉「轨道两端必须留白」闸门（贴边横条会被当成轨道）"
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    out=$(python3 tools/ys-editor/tests/scrollbar.selftest.py 2>&1)
+    line=$(echo "$out" | grep -o 'SCROLLBAR-RESULT .*' | tail -1)
+    if echo "$out" | grep -q 'verdict=FAIL'; then
+      echo "INJECT-PASS scrollbar-neg: 关掉「轨道两端留白」闸门后自测变红（${line:-无读数}）"; exit 0
+    fi
+    echo "INJECT-FAIL scrollbar-neg: 关掉闸门后自测仍 PASS（门禁空转）"; echo "$out" | tail -3; exit 1
     ;;
   # ③b 注入「退回逐字相等」→ world-settle 必须报红
   settle-neg)

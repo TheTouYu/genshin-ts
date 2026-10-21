@@ -1,0 +1,327 @@
+{
+ "frames": [
+  {
+   "path": ".scratch/gui-service/evidence/friends-run-20261021-1555/friends0.png",
+   "track_bbox": [
+    2403,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2403,
+    157,
+    2408,
+    221
+   ],
+   "orientation": "v",
+   "note": "好友列表顶部；6px 暗槽 + 超亮滑块；OCR 顶部好友=热九（我的好友 173/200）",
+   "verified_by": "亲眼看裁图",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-service/evidence/friends-run-20261021-1555/now.png",
+   "track_bbox": [
+    2403,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2403,
+    196,
+    2408,
+    260
+   ],
+   "orientation": "v",
+   "note": "同一会话再滚一屏；OCR 顶部好友=花花",
+   "verified_by": "同族抽样核对",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-service/evidence/realrun-20261021/boundary.png",
+   "track_bbox": [
+    2403,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2403,
+    700,
+    2408,
+    765
+   ],
+   "orientation": "v",
+   "note": "好友列表中段（30 天分界所在屏）；滑块为六边形，比轨道宽 1–2px",
+   "verified_by": "亲眼看裁图",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-service/evidence/friends-run-native/act1_friends/after.png",
+   "track_bbox": [
+    2404,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2404,
+    156,
+    2408,
+    222
+   ],
+   "orientation": "v",
+   "note": "好友列表（另一会话）",
+   "verified_by": "同族抽样核对",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-live-pos/before.png",
+   "track_bbox": [
+    1715,
+    151,
+    1720,
+    1263
+   ],
+   "thumb_bbox": [
+    1715,
+    163,
+    1720,
+    332
+   ],
+   "orientation": "v",
+   "note": "好友列表（窗口较窄，轨道在 x=1715）",
+   "verified_by": "同族抽样核对",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-live-pos/after.png",
+   "track_bbox": [
+    1715,
+    151,
+    1720,
+    1263
+   ],
+   "thumb_bbox": [
+    1715,
+    175,
+    1720,
+    345
+   ],
+   "orientation": "v",
+   "note": "同上，滚动后",
+   "verified_by": "同族抽样核对",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-live-neg/before.png",
+   "track_bbox": [
+    1715,
+    151,
+    1720,
+    1263
+   ],
+   "thumb_bbox": [
+    1715,
+    175,
+    1720,
+    345
+   ],
+   "orientation": "v",
+   "note": "同上",
+   "verified_by": "同族抽样核对",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-service/evidence/act-live-neg/after.png",
+   "track_bbox": [
+    1715,
+    151,
+    1720,
+    1263
+   ],
+   "thumb_bbox": [
+    1715,
+    188,
+    1720,
+    357
+   ],
+   "orientation": "v",
+   "note": "同上",
+   "verified_by": "同族抽样核对",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/194915.png",
+   "track_bbox": [
+    2403,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2403,
+    157,
+    2408,
+    221
+   ],
+   "orientation": "v",
+   "note": "好友列表（10-18 抓帧），与 friends0 同族",
+   "verified_by": "同族抽样核对",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195029.png",
+   "track_bbox": [
+    2403,
+    144,
+    2408,
+    1268
+   ],
+   "thumb_bbox": [
+    2403,
+    157,
+    2408,
+    329
+   ],
+   "orientation": "v",
+   "note": "好友列表，滑块更长（该屏条目更多）",
+   "verified_by": "同族抽样核对",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195258.png",
+   "track_bbox": [
+    1264,
+    291,
+    1269,
+    1340
+   ],
+   "thumb_bbox": [
+    1264,
+    304,
+    1269,
+    346
+   ],
+   "orientation": "v",
+   "note": "邮件列表（邮件珍藏 339/100），轨道在面板内侧 x≈1264",
+   "verified_by": "亲眼看裁图",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195235.png",
+   "track_bbox": [
+    1271,
+    151,
+    1276,
+    1288
+   ],
+   "thumb_bbox": [
+    1271,
+    163,
+    1276,
+    655
+   ],
+   "orientation": "v",
+   "note": "邮件列表（同族，滑块更长）",
+   "verified_by": "同族抽样核对",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195158.png",
+   "track_bbox": [
+    2426,
+    259,
+    2431,
+    1275
+   ],
+   "thumb_bbox": [
+    2426,
+    272,
+    2431,
+    520
+   ],
+   "orientation": "v",
+   "note": "游戏内「基础设置」列表，滑块靠上（ratio 0.017）",
+   "verified_by": "亲眼看裁图",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195206.png",
+   "track_bbox": [
+    2426,
+    259,
+    2431,
+    1275
+   ],
+   "thumb_bbox": [
+    2426,
+    717,
+    2431,
+    965
+   ],
+   "orientation": "v",
+   "note": "同一界面滑块在中段（ratio 0.596）——位置比对照用",
+   "verified_by": "亲眼看裁图",
+   "tracked": false
+  },
+  {
+   "path": ".scratch/gui-corpus/f10.png",
+   "track_bbox": [
+    2425,
+    164,
+    2431,
+    1372
+   ],
+   "thumb_bbox": [
+    2425,
+    176,
+    2431,
+    848
+   ],
+   "orientation": "v",
+   "note": "编辑器设置·图像页：10–12px 亮滑块 + 暗槽",
+   "verified_by": "亲眼看裁图",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-corpus/f11.png",
+   "track_bbox": [
+    2423,
+    164,
+    2433,
+    1362
+   ],
+   "thumb_bbox": [
+    2423,
+    687,
+    2433,
+    1357
+   ],
+   "orientation": "v",
+   "note": "同页滚到底：同一轨道、滑块位移（ratio 0.98）",
+   "verified_by": "亲眼看裁图",
+   "tracked": true
+  },
+  {
+   "path": ".scratch/gui-corpus/capture-2026-10-18/195634.png",
+   "track_bbox": [
+    269,
+    206,
+    275,
+    1404
+   ],
+   "thumb_bbox": [
+    269,
+    381,
+    275,
+    1305
+   ],
+   "orientation": "v",
+   "note": "编辑器左树面板滚动条（面板内侧，不在帧边缘）",
+   "verified_by": "亲眼看裁图",
+   "tracked": false
+  }
+ ]
+}

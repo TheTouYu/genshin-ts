@@ -18,6 +18,7 @@
   静默  失败没有信号（退出码 0 / stderr 空 / 静默降级），调用方无从发现
   归因  没做分层取证就下因果结论（结论先行、证据缺失）
   判据  判据/刻度本身不可信（阈值脆、单帧过拟合、量错对象或刻度）
+  能力缺口 感知层没有对应读数，导致下游只能靠猜或降级（例：没有滚动条检测 ⇒ 只能滚轮逐屏、无法 seek）
 
 用法:
   tools/failure-ledger add --class 身份 --symptom "..." --evidence "..." \
@@ -37,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 LEDGER = os.path.join(ROOT, 'docs/maintenance/failure-ledger.tsv')
 GATES = os.path.join(HERE, 'failure-ledger.gates.tsv')
-CLASSES = ('遗漏', '身份', '环境', '静默', '归因', '判据')
+CLASSES = ('遗漏', '身份', '环境', '静默', '归因', '判据', '能力缺口')
 COLS = ('id', 'date', 'class', 'symptom', 'evidence', 'prevention', 'gate', 'inject', 'status', 'note')
 
 
