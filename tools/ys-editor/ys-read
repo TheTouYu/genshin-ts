@@ -36,6 +36,16 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 WORLDSVC = os.environ.get("YS_WORLDSVC") or os.path.join(REPO, ".scratch", "gui-service", "worldsvc.py")
 
 
+def heartbeat() -> None:
+    """读屏同样要刷会话心跳（2026-10-21 实测：空闲窗口 3s，而两次读要 2–4s，
+    不刷心跳时守护会在两次读之间把屏幕交还、桌面切走 ⇒ 第二次读必然 ATTRIBUTION_OTHER_DESKTOP）。"""
+    try:
+        subprocess.run([sys.executable, os.path.join(HERE, "ys-session"), "focus"],
+                       capture_output=True, text=True, timeout=30)
+    except Exception:                                    # noqa: BLE001
+        pass
+
+
 def read_once(backend: str, frame: str, grep: str) -> dict:
     """走 --json-out 拿结构化结果（look 的 stdout 是**多行 pretty JSON**，按行截最后一行会解析失败）。"""
     import tempfile
@@ -86,13 +96,23 @@ def main() -> int:
     out = {"ok": True, "grep": a.grep or None, "confirm_ms": a.confirm_ms}
     for attempt in range(1, max(1, a.attempts) + 1):
         t0 = time.time()
+        heartbeat()
         first = read_once(a.backend, a.frame, a.grep)
         if first.get("status") == "error":
             out.update({"ok": False, "error": first, "rc": 1})
             print(json.dumps(out, ensure_ascii=False))
             return 1
         time.sleep(max(0, a.confirm_ms) / 1000.0)
+        heartbeat()
         second = read_once(a.backend, a.frame, a.grep)
+        for tag, r in (("first", first), ("second", second)):
+            if r.get("status") == "error":
+                out.update({"ok": False, "error": "READ_FAILED", "which": tag,
+                            "detail": r.get("error") or r.get("stderr") or r,
+                            "rc": 1,
+                            "hint": "底层读屏失败（不是界面不稳）：先看窗口在不在当前桌面/守护是否健康"})
+                print(json.dumps(out, ensure_ascii=False))
+                return 1
         same = fingerprint(first) == fingerprint(second)
         out.update({
             "attempts": attempt,

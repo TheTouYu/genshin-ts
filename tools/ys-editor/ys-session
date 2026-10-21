@@ -277,6 +277,28 @@ def cmd_end(a):
     return 0 if res["ok"] else 9
 
 
+
+def attr_desktops(classes=("yuanshen",)):
+    """从 `ys-wins --attrib` 同时读**窗口所在桌面 ds=** 与**当前桌面 cur=**（同一行、同一权威源）。
+
+    为什么不能用 kwin-state 的 desktop 字段：2026-10-21 实测它会与真实当前桌面不一致
+    （kwin-state 说 3，抓帧守护与 ys-wins 都说 2）⇒ focus 据此判断"不用切桌面"，
+    于是抬了个在别的桌面上的窗口，读屏/抓帧照样被拒。
+    """
+    try:
+        r = subprocess.run([WINS, "--attrib"], capture_output=True, text=True, timeout=20)
+    except Exception:                                        # noqa: BLE001
+        return None, None
+    for line in (r.stdout or "").splitlines():
+        low = line.lower()
+        if not any(c in low for c in classes):
+            continue
+        ds = re.search(r"\bds=(\d+)", line)
+        cur = re.search(r"\bcur=(\d+)", low)
+        return (int(ds.group(1)) if ds else None, int(cur.group(1)) if cur else None)
+    return None, None
+
+
 def cmd_focus(a):
     """动作前确保焦点在目标窗（层 2：空闲释放之后的重取）。
 
@@ -306,21 +328,14 @@ def cmd_focus(a):
     tgt = str(target.get("internalId") or "")
     game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe")
     if tgt and str(act.get("internalId") or "") != tgt:
-        wins = (st or {}).get("wins") or []
-        listed = any(str(w.get("internalId") or "") == tgt for w in wins)
-        if not listed:
-            # 目标不在当前桌面的窗口表里 ⇒ 多半在别的虚拟桌面（空闲交还时桌面被切回用户那张）。
-            # 会话内授权即含桌面借用（用户令 2026-10-21）。
-            try:
-                gd = window_desktop((game_cls.split(".")[0].lower(),))
-            except Exception:                               # noqa: BLE001
-                gd = None
-            if gd is not None and gd != (st or {}).get("desktop"):
-                subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"), game_cls],
-                               capture_output=True, text=True, timeout=40,
-                               env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
-                st = lease(["kwin-state"])
-                act = (st or {}).get("active") or {}
+        # 桌面差用**权威同行读数**（ds= 窗口桌面 / cur= 当前桌面），不用 kwin-state 的 desktop
+        win_ds, cur_ds = attr_desktops((game_cls.split(".")[0].lower(),))
+        if win_ds is not None and cur_ds is not None and win_ds != cur_ds:
+            subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"), game_cls],
+                           capture_output=True, text=True, timeout=40,
+                           env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
+            st = lease(["kwin-state"])
+            act = (st or {}).get("active") or {}
         if str(act.get("internalId") or "") != tgt:
             rs = lease(["kwin-raise", "--id", tgt])
             if not (rs or {}).get("ok"):
