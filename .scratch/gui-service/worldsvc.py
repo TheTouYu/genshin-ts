@@ -1403,6 +1403,10 @@ CAPABILITIES = {
         {"code": "BLANK_FRAME_UNDETECTED", "detail": "黑屏/空白帧无判别（账本 F-20261021-48, open）"},
         {"code": "EXPECT_EXACT_MATCH", "detail": "text_added 是整串匹配；OCR 常把标题与计数粘成一条"},
         {"code": "SCROLL_CHANNEL", "detail": "ys-scroll --lease 在游戏窗常无效，需走槽位模式"},
+        {"code": "DRILL_SCOPE_LIMITED",
+         "detail": "解析失败时的下钻只覆盖 look 报出的 uncertainty 区域（score≥0.8，top3），"
+                   "区域外的文本（如纯 HUD 计数）仍拿不到坐标 —— 2026-10-21 真机实测："
+                   "目标『我的好友 173/200』只在 free_text，下钻 3 块未命中"},
     ],
     # ── 技能是 AGI 实现的一部分（用户令 2026-10-21）─────────────────────────
     # 能力 = 工具 + 判据 + **技能**。只把能力做进代码，下一个会话就没有它——
