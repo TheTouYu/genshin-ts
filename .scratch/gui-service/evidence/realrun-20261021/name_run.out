@@ -1,0 +1,9 @@
+[name] look/before    rc=8   1141.3ms
+[name] before rows=0 first=None
+[name] up0            rc=0   3061.0ms
+[name] look/after0    rc=0    849.3ms
+[name] after0 rows=5 top={'y': 16.0, 'bbox': [339.30873107910156, 16.019068479537964, 1865.3825378417969, 111.96186304092407], 'text': []}
+[name] up1            rc=0   3120.3ms
+[name] look/after1    rc=0    911.2ms
+[name] after1 rows=10 top={'y': 17.0, 'bbox': [351.92897033691406, 16.984116554260254, 1840.1420593261719, 110.03176689147949], 'text': []}
+NAME-RESULT error=STILL_CLIPPED

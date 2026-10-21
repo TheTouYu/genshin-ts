@@ -421,3 +421,13 @@ python3 tools/ys-editor/tests/advice.selftest.py
 - 重叠优化：`--rows 6`（43 clicks）实测净推进 **26 行/5 屏=5.2 行/屏**（重叠约 1.8 行），未到 6；
   下一档 `--rows 7` 未测。
 - 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`。
+
+## 命中行名字帧内复核（2026-10-21 17:35）
+
+上滚 2 行（一次 2 行 + 一次 2 行，实际滚到列表顶部）后，帧内直接读到完整行：
+
+- **`匿叶龙 / Lv.60 / 31天前最后登录`**（容器 `bbox=[144,331.6,1472,152.9]`；free_text 同一行也有 `匿叶龙`、`Lv.60`、`31天前最后登录`）。
+- 同屏完整行序：朵朵(26) → **匿叶龙(31)** → Violet(31) → 莘(31) → 闲鱼真的闲(31) → 菜月昴(31)。
+- **帧内直读名字 = 匿叶龙**，与 D465 一致，无需修正上午结论。
+- 证据：`boundary_name.png`（裁到 2300×1000，含名字+Lv+天数）、`boundary_name.json`（该帧 look JSON）。
+- 交还：`active=firefox` idx8>game7、`desktop=2=prev`、`revoke=ok`、`handback_ok=true`；本轮墙钟 17.2s。
