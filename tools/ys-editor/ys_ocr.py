@@ -43,6 +43,8 @@ sys.path.insert(0, HERE)
 
 _ENGINE = None
 _GPU_STATE = None          # None=未探测 / True=GPU / False=CPU / str=失败原因
+_FORCE_CPU = False         # 推理期 CUDA 炸过（见 _infer）⇒ 本进程此后只用 CPU
+_FALLBACK = None           # 回退原因（进回执，别让"降级"静默）
 
 
 def _enable_gpu():
@@ -53,6 +55,8 @@ def _enable_gpu():
     global _GPU_STATE
     if _GPU_STATE is not None:
         return (_GPU_STATE is True), (_GPU_STATE if isinstance(_GPU_STATE, str) else '')
+    if _FORCE_CPU:
+        return False, (_GPU_STATE if isinstance(_GPU_STATE, str) else '')
     if os.environ.get('YS_OCR_CPU') == '1':
         _GPU_STATE = 'YS_OCR_CPU=1（显式走 CPU）'
         return False, _GPU_STATE
@@ -128,10 +132,44 @@ def _normalize(result):
     return out
 
 
+def _cuda_failure(exc):
+    s = ('%s: %s' % (type(exc).__name__, exc)).lower()
+    return any(k in s for k in ('cudnn', 'cuda', 'onnxruntime', 'onnxruntimeerror'))
+
+
+def _infer(img, verbose=False):
+    """一次推理；**CUDA 在推理期炸就重建 CPU 引擎重试一次**。
+
+    为什么"探测通过"不够（2026-10-22 实测）：`_enable_gpu()` 只证明 provider 注册成功；
+    显存吃紧时 `cudnnCreate` 会在**第一次 run** 抛 `CUDNN_STATUS_INTERNAL_ERROR`
+    （实测 GPU 5166/6144 MiB，游戏与常驻守护都占着显存）。那时整条 OCR 链直接抛异常，
+    上游 `ys-slider` / `ys-brief` 两个门禁因此恒红——而 CPU 通道结果**完全正确**
+    （同一帧 value_max=100、拖拽目标 x=1584 都能读出来）。
+    所以：**能用 GPU 就用，GPU 在跑的时候炸了就降级，并且把降级原因写进回执**
+    （静默降级是明令禁止的失能形态）。
+    """
+    global _ENGINE, _GPU_STATE, _FORCE_CPU, _FALLBACK
+    eng = _engine(verbose=verbose)
+    try:
+        return _normalize(eng(img))
+    except Exception as exc:                                  # noqa: BLE001
+        if _GPU_STATE is not True or not _cuda_failure(exc):
+            raise
+        # ONNX 的异常串是多行 traceback，第一行只是 "Traceback..."；要挑出**真正的判据行**
+        lines = [ln.strip() for ln in str(exc).splitlines() if ln.strip()]
+        pick = next((ln for ln in reversed(lines)
+                     if 'cudnn' in ln.lower() or 'cuda_' in ln.lower()), None)
+        _FALLBACK = '%s: %s' % (type(exc).__name__, (pick or (lines[-1] if lines else ''))[:200])
+        _GPU_STATE = '推理期 CUDA 失败 ⇒ 回退 CPU（%s）' % _FALLBACK
+        _FORCE_CPU = True
+        _ENGINE = None
+        sys.stderr.write('[ys_ocr] %s\n' % _GPU_STATE)
+        return _normalize(_engine(verbose=verbose)(img))
+
+
 def cmd_ocr(a):
-    eng = _engine(verbose=True)
     t0 = time.time()
-    items = _normalize(eng(a.image))
+    items = _infer(a.image, verbose=True)
     ms = int((time.time() - t0) * 1000)
     wants = [w for w in (a.want or '').split(',') if w]
     boxes = []
@@ -145,7 +183,9 @@ def cmd_ocr(a):
                       'box': [[int(p[0]), int(p[1])] for p in box]})
     out = {'channel': 'text', 'image': os.path.abspath(a.image), 'boxes': boxes, 'ms': ms,
            'n_total': len(items),
-           'engine': 'cuda' if _GPU_STATE is True else 'cpu'}
+           'engine': 'cuda' if _GPU_STATE is True else 'cpu',
+           'gpu_note': _GPU_STATE if isinstance(_GPU_STATE, str) else None,
+           'fallback': _FALLBACK}
     print(json.dumps(out, ensure_ascii=False) if a.json else
           '\n'.join('%-8s (%d,%d) %.2f' % (b['text'], b['cx'], b['cy'], b['score']) for b in boxes))
     return 0
