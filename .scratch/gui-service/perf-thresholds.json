@@ -1,7 +1,8 @@
 {
  "schema": "gui.perception/perf-thresholds/1",
- "updated": "2026-10-21",
+ "updated": "2026-10-22",
  "note": "bars=AGI-BAR 目标（只 WARN）；regression=本机实测 p50 留 1.5–2× 余量的回归线（FAIL 即退化）",
+ "precondition": "回归线依赖运行条件。游戏占用 GPU 时：12 个锚点模板 NCC 由 35→125ms（D421 2026-10-19 独立测量；2026-10-22 复测 35.66 游戏关 / 103 游戏开，GPU 停在 855/2100MHz 档位），连带把含 OCR 的端到端项抬高 1.5–2×。故这些项有两条线，bench_check 按「游戏是否在跑」自动选；游戏没开时仍用严格线。整表不松绑：containers/ocr_objects/look_fast_warm/act_dry 两项实测未见条件依赖，保持原线。",
  "bars": {
   "cache_hit": 5,
   "steady_full": 50,
@@ -20,5 +21,12 @@
   "world_cold": 1100,
   "look_fast_warm": 130,
   "act_dry": 130
+ },
+ "regression_game_running": {
+  "_why": "游戏占用 GPU 时的本机实测参考（2026-10-22 三次独立跑）：state 102.7/103.0/104.0、steady_full 108.9/110.0/133.0、steady_fast 107.1/115.9/130.4、world_cold 994.7/1103.0/1183.5。按原口径留 ~1.5× 余量定线。只放宽有实测依据的项，别整表松绑。",
+  "state": 160,
+  "steady_full": 180,
+  "steady_fast": 180,
+  "world_cold": 1800
  }
 }

@@ -30,6 +30,43 @@ BENCH = os.path.join(HERE, "bench_perf.py")
 EVIDENCE = os.path.join(HERE, "evidence")
 
 
+def runtime_condition(cfg=None):
+    """判定时的**运行条件**——回归线必须带条件，否则同一份代码在两种机器状态下给两个答案。
+
+    为什么需要（2026-10-22 实测）：`state` 的锚点是 12 个 GPU 模板 NCC。游戏占用 GPU 时
+    实测 35→125ms（D421 2026-10-19；重启后复测 35.66 游戏关 vs 103 游戏开，且 855MHz/2100MHz
+    的时钟档位下稳定在 103）。照"游戏关"的读数标定的 90ms 线，在"游戏开"时**恒红**——
+    这不是退化，是判据漏了前提。同族教训：D421「报性能必须写清什么负载下」。
+
+    `YS_PERF_GAME_RUNNING=0|1` 可显式覆盖（自测用，避免让测试依赖"此刻机器上有没有开游戏"）。
+    """
+    cfg = cfg or {}
+    env = os.environ.get("YS_PERF_GAME_RUNNING")
+    if env in ("0", "1"):
+        game = env == "1"
+    else:
+        try:
+            game = subprocess.run(["pgrep", "-f", "YuanShen.exe"],
+                                  capture_output=True, timeout=5).returncode == 0
+        except Exception:                                   # noqa: BLE001 —— 判不出就按"没开"
+            game = False
+    clk = None
+    try:
+        r = subprocess.run(["nvidia-smi", "--query-gpu=clocks.sm,clocks.max.sm",
+                            "--format=csv,noheader,nounits"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            cur, mx = [x.strip() for x in r.stdout.strip().splitlines()[0].split(",")]
+            clk = "%s/%sMHz" % (cur, mx)
+    except Exception:                                       # noqa: BLE001
+        clk = None
+    applied = {}
+    if game:
+        applied = dict(cfg.get("regression_game_running") or {})
+        applied.pop("_why", None)
+    return {"game_running": game, "gpu_clk_mhz": clk, "reg": applied, "applied": applied}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=3)
@@ -71,13 +108,16 @@ def main(argv=None):
         ("act_dry", "act_dry_warm", "wall", "act dry-run（warm 帧）"),
     ]
     fails, warns = [], []
+    cond = runtime_condition(cfg)
+    print("PERF-COND game_running=%d gpu_clk=%s reg_overrides=%s"
+          % (cond["game_running"], cond["gpu_clk_mhz"] or "?", cond["applied"]))
     for key, metric, field, label in checks:
         val = p50(metric, field)
         if val is None:
             fails.append((key, label, "MISSING", None))
             continue
         bar = cfg["bars"].get(key)
-        reg = cfg["regression"].get(key)
+        reg = cond["reg"].get(key, cfg["regression"].get(key))
         status = "OK"
         if reg is not None and val > reg:
             status = "FAIL"
