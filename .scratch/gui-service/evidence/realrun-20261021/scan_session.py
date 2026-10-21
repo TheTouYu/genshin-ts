@@ -128,7 +128,7 @@ def days(rs):
             if m: out.append({"days":int(m.group(1)),"y":r["y"],"name":r["name"],"text":r["text"],"bbox":r["bbox"]})
     return out
 def scroll(tag):
-    rc,out,err,ms=run([os.path.join(TOOLS,"ys-scroll"),"--at","1800,900","--rows","5",
+    rc,out,err,ms=run([os.path.join(TOOLS,"ys-scroll"),"--at","1800,900","--rows","6",
                        "--settle-ms","150","--no-hint","--no-verify"],tag)
     info={"tag":tag,"rc":rc,"ms":ms}
     try: info.update(json.loads((out.strip().splitlines() or ["{}"])[-1]))
