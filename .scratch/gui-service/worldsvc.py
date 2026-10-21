@@ -1394,6 +1394,8 @@ CAPABILITIES = {
         "动作前查 settled.same_as_prev==true（容差判据，不是逐字相等）",
         "动作返回值只说明注入成功，不说明世界变了；复验要落独立观测",
         "取帧归属不过就 fail-closed，且不为了取数抬窗口",
+        # 2026-10-21 真机踩到：容器 bbox 是 **xyxy**（x0,y0,x1,y1），我按 xywh 算中心点歪了 (972,795) vs 正确 (677,556)
+        "objects[].bbox 是 xyxy（x0,y0,x1,y1）；中心 = ((x0+x1)/2, (y0+y1)/2)，不是 (x0+w/2, y0+h/2)",
     ],
     "known_gaps": [
         {"code": "CLICKABLE_UNKNOWN", "detail": "affordance.clickable 恒为 unknown（不是置信度）"},
