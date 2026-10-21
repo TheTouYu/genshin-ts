@@ -33,3 +33,5 @@ lookd-wedge	python3 tools/ys-editor/tests/lookd-wedge.selftest.py	常驻服务�
 scroll-movement	python3 tools/ys-editor/tests/scroll-movement.selftest.py	滚动必须能回答「动没动」（frame_diff + moved_confirmed 三态 + rc=6 NO_MOVEMENT）	fast
 state-precedence	python3 tools/ys-editor/tests/state-precedence.selftest.py	面板态压过世界态（GAME_FRIENDS/GAME_CHARACTER + PRECEDENCE，并列仍 AMBIGUOUS）	fast
 capture-liveness	tools/ys-editor/ys-capture status | python3 -c "import sys,json; d=json.load(sys.stdin); s=d.get('state') or {}; sys.exit(0 if d.get('daemon_alive') and (s.get('seq') or 0)>0 and not (s.get('last_err') or '') else 1)"	抓帧守护必须活着且**在产帧**（进程在 ≠ 有帧）	fast
+world-settle	python3 tools/ys-editor/tests/world-settle.selftest.py	布局稳定判据（容差：数量+位移+文本相似度；治「逐字相等永远 false」）	fast
+focus-default	bash tools/ys-editor/tests/focus-default.selftest.sh	交还屏幕=切回默认屏（游戏在焦点时占用也归 firefox，且过堆叠验证；用户口径 2026-10-21）	slow

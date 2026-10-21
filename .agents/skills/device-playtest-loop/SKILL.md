@@ -121,6 +121,19 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
    （「命之座」+「圣遗物」）。同层冲突由 `PRECEDENCE` 消歧（面板 3 > 派蒙/活动 2 > 世界 1），
    并列仍 `AMBIGUOUS`。**走到派蒙菜单里的二级页面时，别再用 `GAME_WORLD` 当判据**。
 
+## 🖐「交还屏幕」= 切回默认屏（firefox），不是"恢复到我拿之前的窗"
+
+用户口径（2026-10-21 第 N 次强调，已两次投诉）：
+- 判据两条同时成立：`activeWindow == firefox` **且** `stacking.index(firefox) > stacking.index(原神)`。
+  只 activate 不 raise = 焦点回去了、画面没回去（D424）。
+- **占用时目标已在焦点也要切回**：那是 noop 租约，但释放仍必须归 firefox。旧实现直接 `return`，
+  用户仍盯着游戏而回执 ok:true（已记 F-20261021-49）。
+- 失败、超时、看守放弃 —— **一律切回 firefox**，且**非零退出**（rc=9），不许给调用方"可忽略的失败"。
+- 底层：`ys-lease _restore(None)` + `ys-gui-slot` 的 `ALREADY_FOCUSED` 分支；
+  回归 `tools/ys-editor/tests/focus-default.selftest.sh`（闸门 `focus-default`）。
+- **报"屏幕已还"之前必须先取一次 KWin 权威读数**——`xdotool getactivewindow` 在 KWin/Wayland 下
+  返回 1×1 幽灵窗（`0x200000`），拿它当"焦点还在游戏"会得出完全相反的结论（D428）。
+
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：

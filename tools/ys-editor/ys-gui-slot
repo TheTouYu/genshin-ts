@@ -79,7 +79,18 @@ restore() {
   [ "$RESTORED" = "1" ] && return
   RESTORED=1
   if [ "$ALREADY_FOCUSED" = "1" ]; then
-    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗，未改动"
+    # 2026-10-21（用户口径）：占用时目标已在焦点 ≠ 无需归还。旧行为直接 return，
+    # 结果是用户仍盯着游戏、而这里打「未改动」。正确语义 = 切回默认屏（firefox）并验证堆叠。
+    local out2 rc2 ti2 gi2
+    out2=$("$LEASE_BIN" restore --prev-json "" --fallback "$FALLBACK_CLASS" 2>&1); rc2=$?
+    ti2=$(json_get "$out2" "d.get('target_index')")
+    gi2=$(json_get "$out2" "d.get('game_index')")
+    if [ "$rc2" -eq 0 ]; then
+      echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗 ⇒ 已切回默认屏：$(json_get "$out2" "d.get('restored','')")（idx $ti2 > game $gi2）"
+      return
+    fi
+    echo "[ys-gui-slot] ⚠️ 切回默认屏失败（$FALLBACK_CLASS）：$out2" >&2
+    RESTORE_RC=9
     return
   fi
   local out rc ti gi desc

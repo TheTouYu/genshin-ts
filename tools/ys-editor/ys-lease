@@ -548,9 +548,15 @@ def release(force=False, fast=False, discard=False, fallback_class=FALLBACK_CLAS
     prev = d.get("prev")
     prev_is_game = isinstance(prev, dict) and GAME_CLASS in (prev.get("class") or "").lower()
     if d.get("noop") or d.get("prev_is_target") or prev_is_game:
-        # 没有"用户窗"可还（目标本来就在焦点）⇒ 直接清租约，绝不 raise/activate
-        _remove()
-        return {"ok": True, "noop": True, "restored": "(no-op: 目标已在焦点，无需归还)"}
+        # 2026-10-21（用户口径；D424/D428 的补充）：没有"用户窗"可还时**不是什么都不做**。
+        # 事故：我拿屏幕时游戏已在焦点 ⇒ noop 租约 ⇒ release 零窗口操作 ⇒ 用户仍盯着游戏，
+        # 而回执是 ok:true，我还对外报「屏幕已还」。正确语义 = **主动切回默认屏（firefox）并验证堆叠**。
+        res = _restore(None, fast=fast, fallback_class=fallback_class, recover=recover)
+        res["fallback_reason"] = res.get("fallback_reason") or "PREV_IS_TARGET"
+        if res.get("ok") or discard:
+            _remove()
+        res["lease_kept"] = os.path.exists(LEASE)
+        return res
     if not force and d.get("expires", 0) < time.time():
         return {"ok": False, "error": "EXPIRED",
                 "hint": "租约已过期；归还得用 --force（看门狗就是这么做的）"}

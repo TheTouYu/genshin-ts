@@ -7,7 +7,7 @@
 #   · 判据是「门禁必须报红」，不是「命令没崩」；抓不住 = 用例失败。
 #
 # 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg |
-#                                        scroll-neg | capture-neg | wedge-neg
+#                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
 cd "$ROOT" || exit 3
@@ -24,6 +24,46 @@ case "$mode" in
       echo "INJECT-FAIL noswallow: 注入物存在但门禁没报红（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS noswallow: 注入的吞码文件被 noswallow 抓到了"; exit 0
+    ;;
+  # ③b 注入「退回逐字相等」→ world-settle 必须报红
+  settle-neg)
+    f="tools/ys-editor/ys_settle.py"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = "    same = (n_unmatched == 0) and (max_shift <= tol_px)"
+new = "    same = (n_unmatched == 0) and (max_shift <= 0.0) and (n_text_changed == 0)  # INJECT: 退回逐字相等"
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    python3 tools/ys-editor/tests/world-settle.selftest.py >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL settle-neg: 退回逐字相等后自测仍全绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS settle-neg: 退回逐字相等 → 自测报红 rc=$rc"; exit 0
+    ;;
+  # ③c 注入「归还假装成功」→ focus-default 必须报红
+  focus-neg)
+    f="tools/ys-editor/ys-lease"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = """    state0 = kwin_state()"""
+new = """    if prev is None:               # INJECT: 假装已切回，其实一个窗口都没动
+        return {"ok": True, "restored": "(INJECT: 未真正切窗)"}
+    state0 = kwin_state()"""
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    bash tools/ys-editor/tests/focus-default.selftest.sh >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL focus-neg: 归还假装成功时自测仍绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS focus-neg: 归还假装成功 → 自测报红 rc=$rc"; exit 0
     ;;
   # ③ 注入「去掉具体度消歧」→ state-precedence 必须报红
   precedence-neg)
