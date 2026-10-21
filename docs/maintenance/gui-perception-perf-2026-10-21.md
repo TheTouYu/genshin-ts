@@ -306,3 +306,47 @@ PY
 **为什么没到边界（读数，不是猜）**：10 屏对象文本里每天都是 `今日内`（`free_text` 同样只有「今日内」），
 说明该好友列表「今日内」档很长；48 行还没进入「1天前」。按 5 行/屏、2.1s/屏，需要更多轮次而非修代码。
 **已有修复**：STALL 误判（短 token）、capture fast/strict 冲突、`prev_active` 优先 firefox、handback 三件校验。
+
+---
+
+# advice[]：模块主动指出「笨办法」（当前实现，2026-10-21）
+
+> **口径**：离线回放（`session_run13` 的 10 屏 JSON），不是真机/可见交互。真机大跳探针待批。
+
+## 唯一实现
+`tools/ys-editor/ys_advice.py`（`ListTracker.observe`）；daemon `_world_advice()`、离线回放
+`tests/advice.selftest.py`、`ys-scan` 全部 import 它，**没有第二份阈值**。
+
+## 识别与估算
+- 有序列表：≥3 个 `kind=row`（高度 ±20%）+ 标题 `\d+/\d+` + 可排序属性（`N天前/小时前/分钟前`；
+  `今日内`=0，`在线`=-1）。
+- `list_sig = sha1(state | header | count)`；**不用首行**（滚动每步都变），标题缺失才退回首行+高度。
+- 线性扫：同一 sig 连续 ≥3 次 look，`0 < 本次新增行 ≤ 视口` 且其中 ≥2 次 top 行变化，
+  且 `count >> 已见`；**每次新增行数中位 = `net_rows_per_step`**（不用视口行数）。
+- estimate：`screens=ceil((count-seen)/net)`、`linear_seconds=round(screens*loop_p50/1000,1)`、
+  `probes=ceil(log2(max(2,screens)))`；`loop_p50` = look 间隔中位（含客户端滚动）。
+- 降级：无 count ⇒ 不给 `linear_screens_remaining`；无 loop_p50 ⇒ 不给 `*_seconds`；
+  单调度不成立 ⇒ `SUGGEST_JUMP_ONLY`（不给二分估算）。
+- `attribute`/`order`：原样属性名 + 实测单调方向（`asc/desc`，不确定 `null`）。
+
+## 离线回放断言（可重算）
+```bash
+python3 tools/ys-editor/tests/advice.selftest.py
+# ADVICE-RESULT screens=10 first=s02 code=SCANNING_LINEARLY estimate_ok=1 neg=1 verdict=PASS
+```
+输入：`session_run13.out`（10 屏 scroll/look 实测）+ `screen/s00..s09.json`。
+断言：第 3 次 observe（s02）出 `SCANNING_LINEARLY`；`linear_seconds` 用实测 gap p50 重算一致；
+`net_rows_per_step=4` 与实测 48 行/10 屏=4.8 的误差 16.7% ≤20%；负例（无 row）不出建议。
+
+## 门禁 / 账本（已接主链）
+- `tools/ys-gates --only 2` 套件表新增 `advice`：实跑 `ADVICE-RESULT ... PASS`（92ms）。
+- `tools/failure-ledger.gates.tsv` 新增 gate `advice`；账本 **F-20261021-63**（判据/prevented）；
+  `tests/ledger-inject.sh advice-neg`：把列表检测关掉 → 自测必须红（实测 `INJECT-PASS`）。
+- `failure-ledger check --fast`：`gates=21 gate_fail=0 unproven=0 verdict=PASS`。
+
+## `ys-scan` 大跳可行性（未测，不冒充结论）
+- 已有实测：`ys-scroll --rows 5`（34 clicks）在 run13 的净推进 **≈4.8 行/步**（48 行/10 屏）。
+- **一次 `--rows N` 最大稳定跳多少行、会不会丢事件：没有离线数据**（需要真机）。
+- `tools/ys-editor/ys-scan --jump-plan` 列探针：rows=8/16/24/32，每个 before/after 各一次 look，
+  记录实际行位移与是否出现行名断档；失败判据 `moved_confirmed=false` 或行名 gap。
+- 真机需求：**1×60s**（4 个探针 + 各一次 look），等用户批准；不自行占屏。

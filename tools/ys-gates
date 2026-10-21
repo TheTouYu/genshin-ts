@@ -49,7 +49,9 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('scroll-movement', 'scroll-movement.selftest.py', 90),
           ('state-precedence', 'state-precedence.selftest.py', 90),
           # 2026-10-21：布局稳定判据从「逐字相等」改成容差（旧判据真机 12.5s 等不到 true）
-          ('world-settle', 'world-settle.selftest.py', 60)]
+          ('world-settle', 'world-settle.selftest.py', 60),
+          # 2026-10-21：有序列表线性扫的主动建议（advice[]）；回放 run13 的 10 屏
+          ('advice', 'advice.selftest.py', 60)]
 ROUND_HOME = os.path.expanduser('~/ys-round')
 
 GATE_NAMES = {

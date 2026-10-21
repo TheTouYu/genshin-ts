@@ -6,7 +6,7 @@
 #   · 注入物一律临时创建，`trap` 保证还原 —— 失败/中断都不许污染仓库。
 #   · 判据是「门禁必须报红」，不是「命令没崩」；抓不住 = 用例失败。
 #
-# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg |
+# 用法: ledger-inject.sh <mode>      mode ∈ noswallow | regress-neg | precedence-neg | advice-neg |
 #                                        scroll-neg | capture-neg | wedge-neg | settle-neg | focus-neg
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; YS="$(dirname "$HERE")"; ROOT="$(dirname "$(dirname "$YS")")"
@@ -66,6 +66,25 @@ PYIN
       echo "INJECT-FAIL focus-neg: 归还假装成功时自测仍绿（门禁空转）"; exit 1
     fi
     echo "INJECT-PASS focus-neg: 归还假装成功 → 自测报红 rc=$rc"; exit 0
+    ;;
+  # ③d 注入「关掉列表检测」→ advice 自测必须报红
+  advice-neg)
+    f="tools/ys-editor/ys_advice.py"; bak="$(mktemp)"; cp "$f" "$bak"
+    trap 'cp "$bak" "$f"; rm -f "$bak"' EXIT
+    python3 - "$f" <<'PYIN'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+old = "    return rows if len(rows) >= 3 else []"
+new = "    return []  # INJECT: 关掉列表检测"
+assert old in s, '锚点没找到（注入失败）'
+open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+PYIN
+    python3 tools/ys-editor/tests/advice.selftest.py >/dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "INJECT-FAIL advice-neg: 关掉列表检测后自测仍绿（门禁空转）"; exit 1
+    fi
+    echo "INJECT-PASS advice-neg: 关掉列表检测 → 自测报红 rc=$rc"; exit 0
     ;;
   # ③ 注入「去掉具体度消歧」→ state-precedence 必须报红
   precedence-neg)
@@ -200,5 +219,5 @@ PYIN
     if [ "$rc" -eq 0 ]; then echo "INJECT-FAIL focus-lease: 死主租约没被判成该归还（门禁空转）"; exit 1; fi
     echo "INJECT-PASS focus-lease: 死主租约判红 rc=$rc"; exit 0
     ;;
-  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease" >&2; exit 2 ;;
+  *) echo "用法: $0 noswallow|regress-neg|path-typo|unit-domain|model-trace|focus-lease|advice-neg" >&2; exit 2 ;;
 esac
