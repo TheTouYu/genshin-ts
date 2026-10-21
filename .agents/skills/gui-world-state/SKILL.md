@@ -71,7 +71,7 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 | `structure` | `{detector, detections[]}` | 检测框来源 |
 | `settled` | `{same_as_prev, tol_text, n_text_changed, ...}` | ⚠️ 实测**画面静止时 `same_as_prev` 仍可能连续 5 帧为 false** ⇒ **它不是动作前的硬门**。替代判据：连取两次 look，比较**首行行名+行数**是否一致；一致即可动 |
 | `frame_id` | `sha256:...` | 证据引用用它 |
-| **`advice[]`** | 模块主动给的策略建议（如 `SCANNING_LINEARLY` / `LINEAR_ONLY_NO_SEEK`） | **先读它再决定策略** |
+| **`advice[]`** | 模块主动给的策略建议（如 `SCANNING_LINEARLY` / `LINEAR_ONLY_NO_SEEK`） | **先读它再决定策略**，但⚠️ 它需要**常驻 daemon 的进程级累积**（≥3 次 observe 才出建议）⇒ **CLI 单次调用（新进程）永远拿到空数组**；要它生效必须走 `look --backend daemon-world` 连续调用。等不到建议时别以为功能坏了 |
 | `daemon.handled_ms` | 服务端处理耗时 | 冒烟用 |
 
 > **坐标空间**：所有 bbox / `--at` 都是**物理像素 2560×1440**；窗口逻辑尺寸是 1707×960，
