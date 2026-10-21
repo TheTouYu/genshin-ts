@@ -43,3 +43,4 @@ grant-expiry	bash tools/ys-editor/tests/grant-expiry.selftest.sh	租期到期必
 no-dead-window-id	bash tools/ys-editor/tests/no-dead-window-id.selftest.sh	生产工具不许把已过期的窗 id 当默认/兜底值（游戏重启 id 必变）	fast
 cross-desktop	python3 tools/ys-editor/tests/cross-desktop.selftest.py	跨桌面/找不到窗口时失败必须自解释（reason+state+next_action）	fast
 advice	python3 tools/ys-editor/tests/advice.selftest.py	有序列表线性扫建议（回放 session_run13 的 10 屏；第 3 屏必须出 SCANNING_LINEARLY 且 estimate 可重算/净推进误差 ≤20%）	fast
+world-entry	python3 tools/ys-editor/tests/world-entry.selftest.py	感知层主入口不许崩（实跑 look --backend daemon-world，断言无 traceback 且失败自带下一步）	fast

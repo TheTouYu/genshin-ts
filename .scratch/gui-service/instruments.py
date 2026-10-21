@@ -319,13 +319,35 @@ def daemon_rpc(req, *, timeout=None):
     except (OSError, ValueError) as exc:
         raise InstrumentError("DAEMON_FAILED", f"常驻服务调用失败：{type(exc).__name__}: {exc}")
     if isinstance(out, dict) and out.get("error"):
-        raise InstrumentError(out.get("code") or "DAEMON_ERROR",
-                              f"常驻服务报错：{str(out.get('error'))[:300]}")
+        _code = out.get("code") or "DAEMON_ERROR"
+        _detail = f"常驻服务报错：{str(out.get('error'))[:300]}"
+        if "ATTRIBUTION" in _code or "OTHER_DESKTOP" in _code or "OTHER_DESKTOP" in str(out.get("error")):
+            _detail += _cross_desktop_suffix()
+        raise InstrumentError(_code, _detail)
     return out
 
 
+def _cross_desktop_suffix():
+    """归属失败时补「窗口在哪张桌面 / 你在哪张 / 下一步」——复用 ys-lease 的唯一实现，不在这里重算。"""
+    try:
+        import subprocess as _sp
+        here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # .scratch/
+        tool = os.path.join(os.path.dirname(here), "tools", "ys-editor", "ys-lease")
+        r = _sp.run([tool, "resolve-window"], capture_output=True, text=True, timeout=20)
+        d = json.loads((r.stdout or "{}").strip().splitlines()[-1])
+        st = d.get("state") or {}
+        if st.get("found"):
+            return (f"；窗口在桌面 ds={st.get('window_desktop')}、当前 ds={st.get('current_desktop')}"
+                    f" ⇒ 切过去要授权（YS_ALLOW_DESKTOP_SWITCH=1 tools/ys-editor/ys-follow-win yuanshen.exe），"
+                    f"或请用户把窗口拖到当前桌面")
+    except Exception:                                            # noqa: BLE001
+        pass
+    return ""
+
+
 def get_world_daemon(frame=None, *, profile=None, ocr=True, objects=True,
-                     structure=True, cache=True, apply_uid=False, timeout=180):
+                     structure=True, cache=True, apply_uid=False, timeout=180,
+                     advice=True):
     """世界状态仪器（ys-lookd cmd=world，**新版服务才有**；旧服务会报 unknown cmd）。
 
     structure=False 是 2026-10-21 新增的快速路径（跳过 D2 检测 + D3 结构层）；
