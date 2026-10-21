@@ -235,6 +235,41 @@ def cmd_begin(a):
     return 0
 
 
+def cmd_claim(a):
+    """认领屏幕所有权（任何抬窗路径都必须调它）。
+
+    2026-10-21 真机事故：会话在 begin 后 3s 就按空闲交还（released=True），
+    随后代理**手工**跑 `ys-follow-win` 把桌面切到游戏——这条路径不经过会话，
+    `released` 仍是 True，而 `ys-focus-guard.enforce_session_idle()` 开头就是
+    `if s.get("released"): return 0` ⇒ **没人负责把屏幕收回**，一直停在游戏上。
+
+    语义：把 `released` 闩锁**复位**，并刷新 `last_action_ts` / `holding_until`，
+    于是警卫重新接管，空闲超时后照常交还用户。
+    `--hold-seconds` 用于"我接下来 N 秒要独占"（ys-gui-slot 用槽位时限），
+    期间警卫不插手。
+    """
+    cur = load()
+    now = time.time()
+    if (not cur or cur.get("state") != "active" or cur.get("dry_run")
+            or float(cur.get("expires") or 0) <= now):
+        # 没有活动会话也能安全调用：手工抬窗（如调试）不该因此报错
+        print(json.dumps({"ok": True, "claimed": False, "reason": "NO_ACTIVE_SESSION"},
+                         ensure_ascii=False))
+        return 0
+    hold = float(a.hold_seconds) if a.hold_seconds else float(os.environ.get("YS_SESSION_HOLD_S", "2"))
+    was_released = bool(cur.get("released"))
+    cur["released"] = False
+    cur["last_action_ts"] = now
+    cur["holding_until"] = now + max(0.0, hold)
+    cur["reacquires"] = int(cur.get("reacquires") or 0) + 1
+    cur["claim"] = {"at": now, "by": a.reason or "raise", "hold_s": hold, "was_released": was_released}
+    save(cur)
+    print(json.dumps({"ok": True, "claimed": True, "session_id": cur.get("session_id"),
+                      "was_released": was_released, "holding_until": cur["holding_until"],
+                      "reacquires": cur["reacquires"]}, ensure_ascii=False))
+    return 0
+
+
 def cmd_end(a):
     cur = load()
     if not cur:
@@ -380,6 +415,16 @@ def cmd_status(_a):
     d = dict(cur)
     d["left_s"] = round(float(d.get("expires") or 0) - time.time(), 1)
     d["active"] = bool(d.get("state") == "active" and d["left_s"] > 0 and not d.get("dry_run"))
+    # 孤儿屏：所有权已释放（released=True）但画面仍在游戏上 ⇒ 没有任何角色会收回它。
+    # 这正是 2026-10-21 用户报的「切到游戏后没自动切回来」（D485）。
+    orph = d.get("orphan_since")
+    d["orphan"] = {"on_game": bool(orph), "since": orph,
+                   "seconds": round(time.time() - float(orph), 1) if orph else None,
+                   "window": d.get("orphan_active")} if orph else {"on_game": False}
+    if orph and d.get("released"):
+        d["orphan"]["next_action"] = ("所有权已释放但屏幕还在 %s 上：抬窗路径没跑 "
+                                      "`ys-session claim`（或人手切换）。收回：ys-session end，"
+                                      "或 ys-session claim 后等空闲。" % d["orphan"]["window"])
     print(json.dumps(d, ensure_ascii=False))
     return 0
 
@@ -400,6 +445,11 @@ def main(argv=None):
     e = sub.add_parser("end")
     e.add_argument("--dry-run", action="store_true")
     e.set_defaults(fn=cmd_end)
+    c = sub.add_parser("claim", help="认领屏幕所有权（抬窗路径必调：复位 released 闩锁，交给警卫托管）")
+    c.add_argument("--hold-seconds", type=float, default=0.0,
+                   help="接下来独占 N 秒（期间警卫不插手）；缺省读 YS_SESSION_HOLD_S 或 2s")
+    c.add_argument("--reason", default="raise")
+    c.set_defaults(fn=cmd_claim)
     s = sub.add_parser("status")
     s.set_defaults(fn=cmd_status)
     a = ap.parse_args(argv)

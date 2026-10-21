@@ -59,6 +59,10 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           # 不干扰模型、不给模型增加负担」。守 idle 交还 + 动作前自动重取 + 取不回就 fail-closed。
           # 全离线（假 lease / 假 hand-back），不碰屏幕。
           ('session-idle', 'session-idle.selftest.sh', 120),
+          # 2026-10-21 用户实测事故（D485）：会话空闲交还后，手工 ys-follow-win 又把屏幕
+          # 拿去，released 闩锁让警卫永远不再管这块屏 ⇒ 画面停在游戏上没人收回。
+          # 修法=任何抬窗路径都 claim 所有权；本套件断言 claim 语义 + 两条路径都接了。全离线。
+          ('session-claim', 'session-claim.selftest.py', 120),
           # 2026-10-21 找甘雨实任务回灌：裸注入不刷心跳（守护 8s 交还后按键打进用户窗口）、
           # 动画吞键导致同一角色连拍 4 帧。ys-key 把「focus 心跳 + 按键 + 区域变化判据」合成一步。
           ('key', 'key.selftest.sh', 90),
@@ -177,14 +181,22 @@ def gate2():
 
     import concurrent.futures
     jobs = max(1, int(os.environ.get('YS_GATES_JOBS', '8')))
+    _excl = [t for t in SUITES if t[0] in EXCLUSIVE]
+    _par = [t for t in SUITES if t[0] not in EXCLUSIVE]
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as ex:
         # fake-success（执行器级自测，~10s）与套件互不依赖 ⇒ 一起并发，别等它们跑完再串行付
         fake_f = ex.submit(run, ['bash', FAKE_SUCCESS], timeout=300)
-        for name, rec, gap in ex.map(_one, SUITES):
+        for name, rec, gap in ex.map(_one, _par):
             suites[name] = rec
             if gap:
                 g['gaps'].append(gap)
         _src, _out, _err, _sms = fake_f.result()
+    # 独占档：并发批次散场后单独跑，避免抢资源导致上界断言假红
+    for _t in _excl:
+        name, rec, gap = _one(_t)
+        suites[name] = rec
+        if gap:
+            g['gaps'].append(gap)
     rc, out, err, ms = _src, _out, _err, _sms
     g['ms'] = ms
     cases = {}
@@ -328,6 +340,11 @@ PROBE_PATTERNS = [
     (re.compile(r'\bjudge\s+\d+\s+\d+'), 'judge'),
     (re.compile(r'\bwait_(?:light|dark)\s+\d+\s+\d+'), 'wait_light/wait_dark'),
 ]
+# 2026-10-21 实测：有的套件自己起守护实例/大量编码，与并发批次抢 CPU/GPU ⇒ 上界断言假红
+# （lookd-wedge 单跑 4/4 PASS，并发时 rc=1）。这类套件**独占跑**：等并发批次结束后串行执行。
+# 判据：凡是"起自己的常驻进程/整帧编码"的，默认进这个集合。
+EXCLUSIVE = {"lookd-wedge"}
+
 SKIP_DIRS = {'node_modules', '.git', 'calib', 'tests', '__pycache__', '.scratch', 'dist'}
 SELF = os.path.abspath(__file__)
 

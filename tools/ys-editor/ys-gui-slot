@@ -154,6 +154,11 @@ if [ "$ALREADY_FOCUSED" != "1" ]; then
     exit 3
   fi
 fi
+# 2026-10-21：占用窗口后登记所有权，免得会话闩锁让警卫永远不管这块屏幕。
+# hold = 槽位时限：这段时间里警卫不插手，槽位结束后按空闲规则交还。
+if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
+  "$YS_HOME/ys-session" claim --hold-seconds "$MAX" --reason gui-slot >/dev/null 2>&1 || true
+fi
 echo "[ys-gui-slot] 已取得 $WIN_HEX（$TARGET_DESC）焦点｜时限 ${MAX}s"
 
 # ── 3) 执行（硬时限）→ 显式归还（失败 9）─────────────────────────────────────

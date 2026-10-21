@@ -204,6 +204,33 @@ def _is_game(cls):
     return any(k in c for k in GAME_MARKS)
 
 
+def _orphan_probe(s):
+    """记录"屏幕在游戏上、但所有权已释放"的孤儿状态（只观测，不抢画面）。
+
+    判据：每 ≥2s 探一次（kwin-state 是子进程，别在 0.5s 循环里裸调）：
+      · 游戏是活动窗 且 尚未记录 ⇒ 记 `orphan_since = now`
+      · 否则 ⇒ 清掉标记
+    之所以不自动收回：用户自己切到游戏时，系统**无法区分**那是不是我们的动作；
+    真正能区分的是 claim（抬窗路径登记所有权）。孤儿读数用于暴露漏登记的路径。
+    """
+    now = time.time()
+    if now - float(s.get("orphan_probe_ts") or 0) < 2.0:
+        return
+    act = _kwin_active()
+    on_game = _is_game(act.get("class"))
+    s2 = _read_json(SESSION)
+    if not s2:
+        return
+    s2["orphan_probe_ts"] = now
+    if on_game:
+        s2.setdefault("orphan_since", now)
+        s2["orphan_active"] = act.get("class")
+    else:
+        s2.pop("orphan_since", None)
+        s2.pop("orphan_active", None)
+    _write_json(SESSION, s2)
+
+
 def enforce_session_idle(verbose=False):
     """会话空闲 ⇒ 把屏幕交还用户（层 2，2026-10-21 用户令）。
 
@@ -229,6 +256,12 @@ def enforce_session_idle(verbose=False):
         _write_json(SESSION, s)
         return 1
     if s.get("released"):
+        # 2026-10-21 事故（D485）：交还是一道单向闩锁，只防"重复交还"。
+        # 释放之后若**有人（手工 ys-follow-win / 未经 claim 的抬窗路径）又把屏幕拿走**，
+        # 没有任何角色负责收回 —— 屏幕会一直停在游戏上。
+        # 修法不是"无条件再抢回来"（那会和用户自己切过去打架），而是**把孤儿状态记下来**：
+        # 所有权由 claim 登记，没登记的抬窗在这里显形，`ys-session status` 会报 orphan。
+        _orphan_probe(s)
         return 0
     if now < float(s.get("holding_until") or 0):
         return 0

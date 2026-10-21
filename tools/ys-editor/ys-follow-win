@@ -113,6 +113,16 @@ else {{
             return 8
         if any("MISMATCH" in ln for ln in lines):
             return 9
+        # 2026-10-21 事故回灌：抬窗/切桌面**必须登记所有权**。否则会话的 released 闩锁
+        # 仍为 True，ys-focus-guard 开头 `if s.get("released"): return 0` ⇒ 没人负责
+        # 把屏幕收回，画面会一直停在游戏上（真机实测 21:30:52 切过去后无人交还）。
+        try:
+            subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                         "ys-session"),
+                            "claim", "--reason", "follow-win"],
+                           capture_output=True, timeout=15)
+        except Exception:                                    # noqa: BLE001
+            pass
         return 0
     finally:
         _gdbus("unloadScript", tag)
