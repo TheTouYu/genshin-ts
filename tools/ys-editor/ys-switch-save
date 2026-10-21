@@ -114,7 +114,7 @@ SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$YS_WIN" 200 bash -c '
   echo "切换后 state=$(st)"
 
   # ④ 证据：收尾只取一张裁切图（全窗 import 2893ms → 裁切 ~166ms）
-  import -window "$W" -crop 900x520+0+0 +repage /tmp/ys-switch-after.png 2>/dev/null
+  import -silent -window "$W" -crop 900x520+0+0 +repage /tmp/ys-switch-after.png 2>/dev/null
 ' "$HERE" 2>&1 | grep -vE "^[0-9]+ [0-9]+$"); SLOT_RC=$?
 printf '%s\n' "$SLOT_OUT"
 if [ "$SLOT_RC" -ne 0 ]; then

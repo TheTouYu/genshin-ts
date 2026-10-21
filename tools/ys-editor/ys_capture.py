@@ -2,7 +2,7 @@
 """ys_capture.py — `ys-capture` 的常驻抓帧守护（票 25/33；独立工具，不改 ys-observe）。
 
 为什么是独立文件（2026-10-18 实测，见 .scratch/gui-perf/capture-bench.md）：
-  · `spectacle -b -n -f -o` 全屏 PNG **946ms**；`import -window <win>` 出 PNG **1099ms**、
+  · `spectacle -b -n -f -o` 全屏 PNG **946ms**；`import -silent -window <win>` 出 PNG **1099ms**、
     出 raw rgb **~97ms**；ffmpeg x11grab 连续流 ~33ms/帧；
     **进程内 XShmGetImage（共享内存读回）2–12ms** —— 差 100 倍的是「读回路径 + 进程启动」，
     不是抓图本身。所以本工具把读回搬进常驻进程。

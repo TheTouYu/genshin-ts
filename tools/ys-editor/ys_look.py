@@ -65,7 +65,7 @@ def grab(x, y, w, h, retries=2):
             pass
     out = b""
     for _ in range(retries + 1):
-        out = subprocess.run(["import", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
+        out = subprocess.run(["import", "-silent", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
                              capture_output=True).stdout
         if len(out) == w * h * 3:
             break
@@ -256,7 +256,7 @@ def main():
         print(f"{X + x + tw // 2} {Y + y + th // 2} {s:.4f} {backend}(local)")
     elif cmd == "grab":
         X, Y, W, H, out = int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]), sys.argv[6]
-        subprocess.run(["import", "-window", WIN, "-crop", f"{W}x{H}+{X}+{Y}", "+repage", out], check=True)
+        subprocess.run(["import", "-silent", "-window", WIN, "-crop", f"{W}x{H}+{X}+{Y}", "+repage", out], check=True)
     else:
         print(__doc__); sys.exit(2)
 

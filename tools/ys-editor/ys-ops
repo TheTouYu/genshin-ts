@@ -80,7 +80,7 @@ def grab(out):
     ⚠ 陈旧 backing store：窗口被遮挡时抓到的可能是旧帧 ⇒ **必须在槽内调用**
     （ys-gui-slot 会把目标窗抬到最上；见 ys-act 第 30 行的同款用法）。"""
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    r = subprocess.run(["import", "-window", win(), out], env=_env(),
+    r = subprocess.run(["import", "-silent", "-window", win(), out], env=_env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=25)
     return out if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 4096 else None
 

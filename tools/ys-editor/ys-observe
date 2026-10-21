@@ -1,7 +1,7 @@
 #!/bin/bash
 # ys-observe — 唯一取数入口：读数必须自带「新鲜度证明」+「窗口归属证明」（gui-stack 票 01 / 票 34）
 #
-# 存在理由（2026-10-17 实测）：`import -window <id>` 在窗口被别的应用压住时返回**陈旧帧**——
+# 存在理由（2026-10-17 实测）：`import -silent -window <id>` 在窗口被别的应用压住时返回**陈旧帧**——
 # 实测按空格前后两帧**字节完全相同**，而我据此推断「输入没生效」，整轮结论作废。
 # 本工具把「拿到可信读数」变成默认行为：
 #   ① 取数前校验窗口存在；
@@ -137,7 +137,7 @@ grab() {
   GRAB_ERR="$(head -2 "$errf" 2>/dev/null | tr '\n' ' ')"; rm -f "$errf"
   # 回退：窗口在栈顶时逐窗 `import` 与合成器抓图**逐通道一致**（2026-10-17 实测 11059200 字节同尺寸）。
   # 只回退抓取方式，不放松归属校验——陈旧帧风险来自「窗口被压住」，那条判据仍在前面。
-  if timeout 25 import -window "$WIN" -crop 2560x1440+0+0 +repage "$1" >/dev/null 2>&1 && [ -s "$1" ]; then
+  if timeout 25 import -silent -window "$WIN" -crop 2560x1440+0+0 +repage "$1" >/dev/null 2>&1 && [ -s "$1" ]; then
     GRAB_SOURCE="import-window-fallback"; return 0
   fi
   return 1

@@ -21,7 +21,7 @@ act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断
 slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）	slow
 brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）	slow
 probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）	slow
-gui-skills	bash .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本	fast
+gui-skills	bash tools/ys-editor/tests/screen-gated.sh bash .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本	fast
 guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）	fast
 unitselftest	./tools/ys-editor/ys-state --selftest-units	单位域护栏（0..1 浮点归一、越界夹紧，治 F-2-08 静默错值）	fast
 subagent-verdict	./tools/subagent-verdict --latest --check	子代理自述复核四读数齐全自洽（治 F-20261019-34 信任自述）	fast
@@ -37,3 +37,4 @@ world-settle	python3 tools/ys-editor/tests/world-settle.selftest.py	布局稳定
 focus-default	bash tools/ys-editor/tests/focus-default.selftest.sh	交还屏幕=切回默认屏（游戏在焦点时占用也归 firefox，且过堆叠验证；用户口径 2026-10-21）	slow
 screen-grant	bash tools/ys-editor/tests/screen-grant.selftest.sh	屏幕占用契约：没有用户批准的时长凭据时底层注入必须拒绝（用户令 2026-10-21）	fast
 skill-coverage	python3 tools/ys-editor/tests/skill-coverage.selftest.py	能力必须挂在技能上（capabilities 的每个 verb 能在 skills.entry 里 grep 到；用户令 2026-10-21）	fast
+no-xbell	bash tools/ys-editor/tests/no-xbell.sh	ImageMagick import 必须带 -silent（裸调用会敲 X11 铃 = 用户听到的提示音）	fast

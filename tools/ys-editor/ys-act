@@ -3,7 +3,7 @@
 #
 # 存在理由（2026-10-17 连续踩坑）：
 #   `ys-gui-slot` 只做 `workspace.activeWindow = t`，**不改堆叠顺序**；窗口被压住时
-#   `import -window` 返回**陈旧 backing store**。实测：点击已生效（菜单确实开了），
+#   `import -silent -window` 返回**陈旧 backing store**。实测：点击已生效（菜单确实开了），
 #   但抓图返回旧帧 ⇒ 我据此误判了 5+ 轮（以为 ESC 没反应、以为点击没命中）。
 #   ⇒ 任何「动作 + 看结果」必须 **先 ys-kwin-raise 真抬升**。
 #
@@ -27,7 +27,7 @@ SLOT_OUT=$(set -o pipefail; "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-120}" bash -c 
   export HERE='$HERE'
   bash '$SCRIPT'
   sleep 0.8
-  import -window '$WIN' '$OUT' 2>/dev/null
+  import -silent -window '$WIN' '$OUT' 2>/dev/null
 " 2>&1 | grep -v '^[0-9]* [0-9]*$' | tail -12); SLOT_RC=$?
 printf '%s\n' "$SLOT_OUT"
 if [ "$SLOT_RC" -ne 0 ]; then

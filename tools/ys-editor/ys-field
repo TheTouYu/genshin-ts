@@ -86,7 +86,7 @@ def ocr_boxes(png):
 
 
 def grab(out):
-    r = subprocess.run(["import", "-window", win(), out], env=env(),
+    r = subprocess.run(["import", "-silent", "-window", win(), out], env=env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
     return out if r.returncode == 0 and os.path.getsize(out) > 4096 else None
 

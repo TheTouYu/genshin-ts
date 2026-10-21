@@ -76,11 +76,11 @@ click() { local rc=0; ./ys-pointer-click "$1" "$2" >/dev/null || rc=$?; [ "$rc" 
   load_card2
   echo "    切走后 state=$(st)"
   to_savelist || exit 4
-  import -window "$W" /tmp/ys-reload-2.png 2>/dev/null
+  import -silent -window "$W" /tmp/ys-reload-2.png 2>/dev/null
   echo "▶ 第 2 段：切回我的存档（= 从磁盘重载）"
   load_card2
   echo "    切回后 state=$(st)"
-  import -window "$W" /tmp/ys-reload-3.png 2>/dev/null
+  import -silent -window "$W" /tmp/ys-reload-3.png 2>/dev/null
   echo "✓ 重载流程结束"
 ' "$HERE" 2>&1 | grep -vE '^[0-9]+ [0-9]+$' | tail -16); SLOT_RC=$?
 printf '%s\n' "$SLOT_OUT"

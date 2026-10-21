@@ -2,7 +2,7 @@
 # ys-peek — 把目标窗口**真正抬到最上层**再抓一张真值图，然后自动还原焦点
 #
 # 为什么要有它（2026-10-17 两次实测踩坑）：
-#   ① `import -window <id>` 在窗口被**遮挡**时返回陈旧 backing store（实测两张抓图 sha 完全相同，
+#   ① `import -silent -window <id>` 在窗口被**遮挡**时返回陈旧 backing store（实测两张抓图 sha 完全相同，
 #      而画面其实已变）；`spectacle` 全屏抓虽是真值，但**试玩全屏下会 core dump**。
 #   ② `ys-gui-slot` 只做 `workspace.activeWindow = t`（**改焦点不改堆叠**）⇒ 窗口仍被压住，
 #      于是「点完抓图看结果」的判断会全部失真（本轮为此在菜单/ESC 上反复误判）。
@@ -22,7 +22,7 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys
 RAISE=$("$HERE/ys-kwin-raise" "$TITLE" 2>&1 | tail -1)
 echo "[ys-peek] raise: $RAISE"
 
-"$HERE/ys-gui-slot" "$WIN" 60 bash -c "sleep 0.9; import -window '$WIN' '$OUT'" >/dev/null 2>&1
+"$HERE/ys-gui-slot" "$WIN" 60 bash -c "sleep 0.9; import -silent -window '$WIN' '$OUT'" >/dev/null 2>&1
 rc=$?
 if [ ! -s "$OUT" ]; then echo "[ys-peek] 抓图失败（rc=$rc）" >&2; exit 3; fi
 SMALL="${OUT%.png}-s.png"

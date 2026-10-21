@@ -285,7 +285,7 @@ s_wait() {   # s_wait <界面态> <超时秒> [act]：ys-wait + ys-state --print
 
 shot() {   # shot <名>：**唯一写盘 PNG 的地方**（证据帧；上限 7）
   local n=$1 png="$OUT/frames/$1.png" st
-  if ! import -window "$YS_WIN" "$png" 2>/dev/null || [ ! -s "$png" ]; then
+  if ! import -silent -window "$YS_WIN" "$png" 2>/dev/null || [ ! -s "$png" ]; then
     say "  ⚠ 取帧失败 frames/$n.png"; CUR_FRAME=""; CUR_STATE=""; return 1
   fi
   B_FRAMES=$((B_FRAMES + 1))

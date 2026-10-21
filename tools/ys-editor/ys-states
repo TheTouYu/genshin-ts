@@ -47,7 +47,7 @@ def env():
 
 def grab(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    r = subprocess.run(["import", "-window", WIN, path], env=env(),
+    r = subprocess.run(["import", "-silent", "-window", WIN, path], env=env(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
     return path if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 4096 else None
 

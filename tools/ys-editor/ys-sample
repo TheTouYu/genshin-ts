@@ -38,7 +38,7 @@ case "$cmd" in
     state="${2:-}"; note="${3:-}"
     [ -n "$state" ] || usage
     out="$REG/$(date +%H%M%S)-grab.png"
-    import -window "${YS_WIN:-0x01400001}" "$out" 2>/dev/null || { echo "抓图失败" >&2; exit 3; }
+    import -silent -window "${YS_WIN:-0x01400001}" "$out" 2>/dev/null || { echo "抓图失败" >&2; exit 3; }
     echo "已抓: $out"
     # 抓图落盘后走同一条 add 路径
     set -- add "$out" "$state" "$note"

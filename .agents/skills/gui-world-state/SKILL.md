@@ -108,6 +108,13 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 用户却又听到操作音——因为 T6 传的是 `true`（空命令）却照样占屏。
 **判据：测试里的 `ys-gui-slot` 只允许出现在 `YS_ALLOW_SCREEN_TEST=1` 分支里。**
 
+## 4.6 听到「提示音」先查 X11 铃（2026-10-21 三次复盘）
+
+**判据**：`pactl list sink-inputs` 看到 `application.name=KWin` 且 `media.name=bell` ⇒ 是 X11 响铃，
+不是窗口操作、也不是游戏音效。**最常见来源 = ImageMagick `import` 抓帧**（每次抓帧敲一次铃）。
+本仓所有 `import` 调用必须带 `-silent`；闸门 `no-xbell` 静态扫描裸调用。
+抓帧后的旧守护进程不会自动加载新代码——改完要 `systemctl --user restart ys-lookd`。
+
 ## 5. 五条实测坑（都交过学费）
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。
