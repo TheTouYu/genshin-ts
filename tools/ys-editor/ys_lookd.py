@@ -1693,9 +1693,8 @@ def _capture_frame_via_ys_capture():
     from PIL import Image
     here = os.path.dirname(os.path.abspath(__file__))
     out = "/dev/shm/ys-lookd-frame-%d.bmp" % os.getpid()
-    cmd = [os.path.join(here, "ys-capture"), "latest", "--out", out, "--format", "bmp"]
-    if os.environ.get("YS_LOOKD_ALLOW_BACKGROUND") == "1":
-        cmd.append("--allow-background")
+    cmd = [os.path.join(here, "ys-capture"), "latest", "--out", out, "--format", "bmp",
+           "--allow-background"]
     p = _sp.run(cmd, capture_output=True, text=True, timeout=20,
                 env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY") or ":1"))
     try:
@@ -1714,6 +1713,12 @@ def _capture_frame_via_ys_capture():
     attr.setdefault("src", "ys-capture")
     attr["capture_ms"] = meta.get("ms")
     attr["frame"] = meta.get("frame")
+    # --allow-background 只关掉 capture 的 fast(EWMH) 门；**KWin strict 仍是权威**：
+    # strict 不是 OK 就 fail-closed（否则桌面不对也返回像素）。
+    strict = attr.get("strict")
+    if strict and strict != "OK" and os.environ.get("YS_LOOKD_ALLOW_BACKGROUND") != "1":
+        raise WorldAttribError({"verdict": strict, "detail": "ys-capture strict",
+                                "rc": 0, "src": "ys-capture", "attribution": attr})
     return arr, attr
 
 

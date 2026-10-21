@@ -33,7 +33,9 @@ if [ "${1:-}" = "--plan" ]; then
 fi
 T0=$(date +%s%3N)
 if [ "$SESS" = "1" ]; then
-  bash -c "ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep ${SETTLE_S}"
+  # 会话内直注入也必须带 YS_SLOT_ACTIVE=1：ydotool 的 PATH shim 只认这个标记，
+  # 否则按键被拦下、rc 仍可能为 0（2026-10-21 真机：ESC 没生效但状态仍 WORLD）。
+  YS_SLOT_ACTIVE=1 bash -c "ydotool key 1:1; sleep 0.12; ydotool key 1:0; sleep ${SETTLE_S}"
   RC=$?
 else
   "$HERE/ys-gui-slot" "$WIN" "${YS_MAX:-20}" bash -c \

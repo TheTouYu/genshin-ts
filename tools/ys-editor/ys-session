@@ -36,6 +36,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LEASES = os.path.join(HERE, "ys-lease")
 GRANT = os.path.join(HERE, "ys-screen-grant")
 DEFAULT_PATH = os.path.expanduser("~/.ys/session.json")
+# 本机 X11 会话是 :1（systemd 服务同值）；缺 DISPLAY 时 xdotool 解析窗口会返回空，
+# 表现为 RESOLVE_FAILED/TARGET_NOT_FOUND（2026-10-21 真机第一次 W2 的实际死因）。
+os.environ.setdefault("DISPLAY", ":1")
 
 
 def path():
@@ -110,18 +113,48 @@ def cmd_begin(a):
         print(json.dumps({"ok": False, "error": "GRANT_FAILED", "detail": gd,
                           "next_action": "先向用户申请"}, ensure_ascii=False))
         return 6
-    # 2) 一次 kwin-state + resolve + raise（后续动作不再付）
+    # 2) 一次 kwin-state + 选目标 + raise（后续动作不再付）
     st = lease(["kwin-state"])
-    sess["prev_active"] = st.get("active") if st.get("ok") else None
-    win = sess["win"] or ""
-    rw = lease(["resolve-window", "--id", win])
-    if not (rw.get("ok") and (rw.get("target") or {}).get("internalId")):
-        print(json.dumps({"ok": False, "error": "RESOLVE_FAILED", "detail": rw,
-                          "next_action": "看 ys-wins --attrib / ys-capture status"}, ensure_ascii=False))
+    prev = st.get("active") if st.get("ok") else None
+    # 交还目标优先 firefox：begin 时用户可能有个瞬时 Tk/通知窗在焦点（2026-10-21 实测
+    # prev_active=素材快收[Tk]，restore 先把 Tk 抬起来，靠 revoke 才回到 firefox）。
+    if str((prev or {}).get("class") or "").lower() != "firefox":
+        ffs = [w for w in (st.get("wins") or [])
+               if "firefox" in str(w.get("class") or "").lower() and not w.get("min")]
+        if ffs:
+            prev = ffs[-1]
+    sess["prev_active"] = prev
+    sess["prev_desktop"] = st.get("desktop")
+    game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe").lower()
+
+    def pick(state):
+        for w in (state or {}).get("wins") or []:
+            cls = str(w.get("class") or w.get("cls") or "").lower()
+            if game_cls in cls and not w.get("min"):
+                return w
+        return None
+
+    game = pick(st)
+    if game is None and os.environ.get("YS_ALLOW_DESKTOP_SWITCH") == "1":
+        t0 = time.time()
+        fw = subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"),
+                             os.environ.get("YS_GAME_CLASS", "yuanshen.exe")],
+                            capture_output=True, text=True, timeout=40,
+                            env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
+        sess["desktop_switch_ms"] = round((time.time() - t0) * 1000, 1)
+        sess["desktop_switch"] = {"rc": fw.returncode, "out": (fw.stdout or "")[-300:]}
+        st = lease(["kwin-state"])
+        game = pick(st)
+    if game is None:
+        print(json.dumps({"ok": False, "error": "TARGET_NOT_FOUND",
+                          "detail": {"desktop": st.get("desktop"), "wins": len(st.get("wins") or [])},
+                          "next_action": "ys-wins --attrib 看游戏窗 ds=；窗口在别的桌面时"
+                                         "需手动拖回或授权 YS_ALLOW_DESKTOP_SWITCH=1"}, ensure_ascii=False))
         subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
         return 3
-    sess["target"] = rw["target"]
-    rs = lease(["kwin-raise", "--id", rw["target"]["internalId"]])
+    sess["target"] = game
+    rs = lease(["kwin-raise", "--id", game["internalId"]])
+    sess["desktop_after_raise"] = lease(["kwin-state"]).get("desktop")
     if not rs.get("ok"):
         print(json.dumps({"ok": False, "error": "RAISE_FAILED", "detail": rs,
                           "next_action": "先确认游戏窗存在且可激活"}, ensure_ascii=False))
@@ -145,12 +178,47 @@ def cmd_end(a):
         prev = json.dumps(cur.get("prev_active") or None, ensure_ascii=False)
         rs = lease(["restore", "--prev-json", prev, "--fallback", "firefox"], timeout=90)
         res["restore"] = rs
+        # 桌面也回到开始那张（用户令：三件交还判据含 current desktop）
+        try:
+            st2 = lease(["kwin-state"])
+            prev_ds = cur.get("prev_desktop")
+            res["desktop_after_restore"] = st2.get("desktop")
+            if prev_ds is not None and st2.get("desktop") != prev_ds:
+                fw = subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"), "firefox"],
+                                    capture_output=True, text=True, timeout=40,
+                                    env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
+                res["desktop_restore"] = {"rc": fw.returncode,
+                                          "out": (fw.stdout or "")[-300:],
+                                          "desktop": lease(["kwin-state"]).get("desktop")}
+        except Exception as exc:                             # noqa: BLE001
+            res["desktop_restore"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         g = subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True,
                            timeout=20)
         try:
             res["revoke"] = json.loads((g.stdout or "").strip().splitlines()[-1])
         except Exception:                                    # noqa: BLE001
             res["revoke"] = {"ok": False, "rc": g.returncode}
+        # 三件交还判据：active=firefox、firefox.idx>game.idx、桌面回开始那张
+        try:
+            st3 = lease(["kwin-state"])
+            act = st3.get("active") or {}
+            game_idx = next((w.get("index") for w in (st3.get("wins") or [])
+                             if "yuanshen" in str(w.get("class") or "").lower()), None)
+            res["handback"] = {
+                "active_class": act.get("class"), "active_idx": act.get("index"),
+                "game_idx": game_idx, "desktop": st3.get("desktop"),
+                "desktop_prev": cur.get("prev_desktop")}
+            ok_hb = (str(act.get("class") or "").lower() == "firefox"
+                     and game_idx is not None and act.get("index") is not None
+                     and int(act["index"]) > int(game_idx)
+                     and st3.get("desktop") == cur.get("prev_desktop"))
+            res["handback_ok"] = bool(ok_hb)
+            if not ok_hb:
+                res["ok"] = False
+        except Exception as exc:                             # noqa: BLE001
+            res["handback"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
+            res["handback_ok"] = False
+            res["ok"] = False
         if not (rs.get("ok") and (res["revoke"] or {}).get("ok")):
             res["ok"] = False
     cur["state"] = "ended"
