@@ -119,21 +119,17 @@ class Net(nn.Module):
         e4 = self.e4(e3)
         u3 = self.up3(torch.cat([F.interpolate(e4, scale_factor=2, mode="nearest"), e3], 1))
         out = self.head(u3)
-        return out[:, :len(KINDS)].sigmoid(), out[:, len(KINDS):]
+        return out[:, :len(KINDS)], out[:, len(KINDS):]   # logits（sigmoid 在损失/解码里做）
 
 
-def focal(pred, gt):
-    p = pred.clamp(1e-4, 1 - 1e-4)
-    pos = (gt > 0.99).float()
-    neg = 1 - pos
-    pos_loss = -((1 - p) ** 2) * torch.log(p) * pos
-    neg_loss = -((1 - gt) ** 4) * (p ** 2) * torch.log(1 - p) * neg
-    n = pos.sum().clamp(min=1)
-    return (pos_loss.sum() + neg_loss.sum()) / n
+def heat_loss(logits, gt, pos_weight=200.0):  # 200 经 overfit 验证：heatmax 0.23→0.97
+    w = torch.tensor(pos_weight, device=logits.device)
+    return F.binary_cross_entropy_with_logits(logits, gt, pos_weight=w)
 
 
-def decode(hm, wh, thr=0.35, topk=120):
-    """峰值 → 框（xywh 原图坐标）"""
+def decode(hm_logits, wh, thr=0.35, topk=120):
+    """峰值 → 框（xywh 原图坐标）；入参是 logits，这里先 sigmoid。"""
+    hm = torch.sigmoid(hm_logits)
     pool = F.max_pool2d(hm.unsqueeze(0), 3, 1, 1)[0]
     peaks = (hm >= pool - 1e-6) & (hm > thr)
     scores, idxs = [], []
@@ -216,7 +212,7 @@ def main():
             mask = torch.stack(ms).to(DEV)
             with torch.amp.autocast("cuda"):
                 ph, pwh = model(x)
-                l_hm = focal(ph.float(), hm.float())
+                l_hm = heat_loss(ph.float(), hm.float())
                 l_wh = (torch.abs(pwh - wh).sum(1) * mask).sum() / mask.sum().clamp(min=1)
                 loss = l_hm + 1.0 * l_wh
             opt.zero_grad(set_to_none=True)

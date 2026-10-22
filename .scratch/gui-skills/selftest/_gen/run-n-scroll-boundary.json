@@ -2,7 +2,7 @@
  "kind": "gui-run",
  "skill": "selftest.n-scroll-boundary",
  "app": "原神",
- "started_at": "2026-10-18T19:52:52",
+ "started_at": "2026-10-22T12:37:23",
  "limits": {
   "step_wait_max_ms": 10000,
   "step_wait_default_ms": 8000
@@ -25,7 +25,7 @@
    "expected": "state=GAME_PAIMON",
    "observed": "GAME_PAIMON",
    "kind": null,
-   "ms": 694,
+   "ms": 796,
    "evidence": {
     "sequence": "[GAME_PAIMON]",
     "polls": 1,
@@ -67,7 +67,7 @@
      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-above.txt",
      "sha256": "e21b5c3d472befae97c3f41a75813827138fb4e6a679fea03bf37e38c3fc53dd",
      "bytes": 643,
-     "captured_at": "2026-10-18T19:52:52"
+     "captured_at": "2026-10-22T12:37:24"
     }
    },
    "detail": "断言含「冒险等阶」"
@@ -111,7 +111,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:52"
+       "captured_at": "2026-10-22T12:37:24"
       },
       "reader": "override"
      }
@@ -122,7 +122,7 @@
  ],
  "ok": false,
  "exit": 3,
- "t0": 1792324372.1062202,
+ "t0": 1792643843.571778,
  "frames_meta": {
   "/home/h/genshin-ts/.scratch/gui-corpus/f06.png": {
    "kind": "frame",
@@ -132,7 +132,7 @@
    "captured_at": "2026-10-18T16:33:39"
   }
  },
- "elapsed_ms": 699,
+ "elapsed_ms": 802,
  "budget": {
   "frames": 0,
   "frames_offline": 1,
@@ -171,7 +171,7 @@
       "source": "xdotool:getactivewindow",
       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
       "bytes": 39,
-      "captured_at": "2026-10-18T19:52:52"
+      "captured_at": "2026-10-22T12:37:24"
      },
      "reader": "override"
     }

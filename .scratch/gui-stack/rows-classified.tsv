@@ -105,3 +105,91 @@ path	text	cx	cy	stdev	range	class	frame
 关卡设置 > 基础	关卡初始时间点	1107	974	16.4	219	setting	00	/tmp/rowclass.png
 关卡设置 > 基础	8.8	74	1308	26.48	255	nav	25.4 ms	/tmp/rowclass.png
 关卡设置 > 基础	UID:110170759	2371	1418	5.13	28	description		/tmp/rowclass.png
+关卡设置 > 基础	DXVK	30	19	60.4	255	nav	115	/tmp/rowclass.png
+关卡设置 > 基础	FPS!	30	41	50.98	255	nav	ms	/tmp/rowclass.png
+关卡设置 > 基础	44%	83	66	27.54	206	nav		/tmp/rowclass.png
+关卡设置 > 基础	实体布设组管理	136	86	27.07	168	nav		/tmp/rowclass.png
+关卡设置 > 基础	搜索	86	153	34.9	90	nav		/tmp/rowclass.png
+关卡设置 > 基础	暂无实体布设组	238	763	20.68	77	nav		/tmp/rowclass.png
+关卡设置 > 基础	14.6 ms	88	1307	29.85	255	nav	19.4 ms	/tmp/rowclass.png
+关卡设置 > 基础	UID:110170759	2371	1418	6.66	36	description		/tmp/rowclass.png
+关卡设置 > 基础	DXVK	31	19	44.49	255	nav	104	/tmp/rowclass.png
+关卡设置 > 基础	FPS: 60.2	61	41	34.46	146	nav	ms	/tmp/rowclass.png
+关卡设置 > 基础	GPU:	30	66	25.99	255	nav		/tmp/rowclass.png
+关卡设置 > 基础	实体布设组管理	135	85	19.5	121	nav		/tmp/rowclass.png
+关卡设置 > 基础	搜索	86	152	25.2	65	nav		/tmp/rowclass.png
+关卡设置 > 基础	关卡设置	654	358	0.0	0	nav		/tmp/rowclass.png
+关卡设置 > 基础	基础	633	420	24.45	170	nav	基础	/tmp/rowclass.png
+关卡设置 > 基础	阵营	633	470	20.09	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	运行后场景生效范围	1125	489	34.11	219	setting	100×100×100	/tmp/rowclass.png
+关卡设置 > 基础	出生点	645	521	22.05	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	② 关卡环境等级	1116	538	8.27	219	setting		/tmp/rowclass.png
+关卡设置 > 基础	复苏点	645	572	30.65	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	是否启用全额绽放伤害	1161	585	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	人数设置	655	622	17.5	171	nav	人数设置	/tmp/rowclass.png
+关卡设置 > 基础	加载界面	654	673	13.77	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	当前可进关人数: 1,2,3,4,5,6,7,8	1176	696	22.73	219	setting	编辑	/tmp/rowclass.png
+关卡设置 > 基础	结算	633	723	18.89	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	节点图与组件	1099	745	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	暂无实体布设组	239	763	31.52	213	nav	地形导航	/tmp/rowclass.png
+关卡设置 > 基础	关卡实体	1080	809	18.29	219	setting	查看	/tmp/rowclass.png
+关卡设置 > 基础	优化选项	655	825	15.6	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	全局脚本	1080	860	18.68	219	setting	Q	/tmp/rowclass.png
+关卡设置 > 基础	协作模式	655	876	17.62	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	时间设置	1080	910	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	关卡初始时间点	1107	974	16.4	219	setting	00	/tmp/rowclass.png
+关卡设置 > 基础	14.7 ms	88	1307	24.37	255	nav	18.7 ms	/tmp/rowclass.png
+关卡设置 > 基础	UID:110170759	2371	1418	5.12	28	description		/tmp/rowclass.png
+关卡设置 > 基础	DXVK	31	19	44.49	255	nav	149	/tmp/rowclass.png
+关卡设置 > 基础	FPS: 60.4	61	41	34.42	146	nav	ms	/tmp/rowclass.png
+关卡设置 > 基础	GPU:	30	66	25.99	255	nav		/tmp/rowclass.png
+关卡设置 > 基础	实体布设组管理	135	85	19.5	121	nav		/tmp/rowclass.png
+关卡设置 > 基础	搜索	86	152	25.2	65	nav		/tmp/rowclass.png
+关卡设置 > 基础	关卡设置	654	358	0.0	0	nav		/tmp/rowclass.png
+关卡设置 > 基础	基础	633	420	24.45	170	nav	基础	/tmp/rowclass.png
+关卡设置 > 基础	阵营	633	470	20.09	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	运行后场景生效范围	1125	489	34.11	219	setting	100×100×100	/tmp/rowclass.png
+关卡设置 > 基础	出生点	645	521	22.05	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	② 关卡环境等级	1116	538	8.27	219	setting		/tmp/rowclass.png
+关卡设置 > 基础	复苏点	645	572	30.65	171	nav	是否启用全额绽放伤害	/tmp/rowclass.png
+关卡设置 > 基础	人数设置	655	622	17.5	171	nav	人数设置	/tmp/rowclass.png
+关卡设置 > 基础	加载界面	654	673	13.77	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	当前可进关人数: 1,2,3,4,5,6,7,8	1176	696	22.73	219	setting	编辑	/tmp/rowclass.png
+关卡设置 > 基础	结算	633	723	18.89	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	节点图与组件	1099	745	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	暂无实体布设组	239	763	31.52	213	nav	地形导航	/tmp/rowclass.png
+关卡设置 > 基础	关卡实体	1080	809	18.29	219	setting	查看	/tmp/rowclass.png
+关卡设置 > 基础	优化选项	655	825	15.6	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	全局脚本	1080	860	18.68	219	setting	Q	/tmp/rowclass.png
+关卡设置 > 基础	协作模式	655	876	17.62	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	时间设置	1080	910	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	关卡初始时间点	1107	974	16.4	219	setting	00	/tmp/rowclass.png
+关卡设置 > 基础	7.3	72	1308	26.73	255	nav	79.5 ms	/tmp/rowclass.png
+关卡设置 > 基础	UID:110170759	2371	1418	5.12	28	description		/tmp/rowclass.png
+关卡设置 > 基础	DXVK	31	19	44.49	255	nav	奇域礼盒管理86 ms	/tmp/rowclass.png
+关卡设置 > 基础	FPS: 60.4	61	41	34.46	146	nav		/tmp/rowclass.png
+关卡设置 > 基础	GPU:	30	66	25.99	255	nav		/tmp/rowclass.png
+关卡设置 > 基础	实体布设组管理	135	85	19.5	121	nav		/tmp/rowclass.png
+关卡设置 > 基础	搜索	86	152	25.2	65	nav		/tmp/rowclass.png
+关卡设置 > 基础	关卡设置	654	358	0.0	0	nav		/tmp/rowclass.png
+关卡设置 > 基础	基础	633	420	24.45	170	nav	基础	/tmp/rowclass.png
+关卡设置 > 基础	阵营	633	470	20.09	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	运行后场景生效范围	1125	489	34.11	219	setting	100×100×100	/tmp/rowclass.png
+关卡设置 > 基础	出生点	645	521	22.05	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	② 关卡环境等级	1116	538	8.27	219	setting		/tmp/rowclass.png
+关卡设置 > 基础	复苏点	645	572	30.65	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	是否启用全额绽放伤害	1161	585	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	人数设置	655	622	17.5	171	nav	人数设置	/tmp/rowclass.png
+关卡设置 > 基础	加载界面	654	673	13.77	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	当前可进关人数: 1,2,3,4,5,6,7,8	1176	696	22.73	219	setting	编辑	/tmp/rowclass.png
+关卡设置 > 基础	结算	633	723	18.89	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	节点图与组件	1099	745	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	暂无实体布设组	239	763	31.52	213	nav	地形导航	/tmp/rowclass.png
+关卡设置 > 基础	关卡实体	1080	809	18.29	219	setting	查看	/tmp/rowclass.png
+关卡设置 > 基础	优化选项	655	825	15.6	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	全局脚本	1080	860	18.68	219	setting	Q	/tmp/rowclass.png
+关卡设置 > 基础	协作模式	655	876	17.62	171	nav		/tmp/rowclass.png
+关卡设置 > 基础	时间设置	1080	910	0.0	0	description		/tmp/rowclass.png
+关卡设置 > 基础	关卡初始时间点	1107	974	16.4	219	setting	00	/tmp/rowclass.png
+关卡设置 > 基础	14.9 ms	88	1307	24.49	255	nav	18.1 ms	/tmp/rowclass.png
+关卡设置 > 基础	UID:110170759	2371	1418	5.12	28	description		/tmp/rowclass.png

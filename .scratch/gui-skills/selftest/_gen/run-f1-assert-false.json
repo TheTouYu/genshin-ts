@@ -2,7 +2,7 @@
  "kind": "gui-run",
  "skill": "selftest.f1-assert-false",
  "app": "原神编辑器",
- "started_at": "2026-10-18T19:51:51",
+ "started_at": "2026-10-22T12:36:27",
  "limits": {
   "step_wait_max_ms": 10000,
   "step_wait_default_ms": 8000
@@ -25,7 +25,7 @@
    "expected": "state=EDITOR",
    "observed": "EDITOR",
    "kind": null,
-   "ms": 128,
+   "ms": 377,
    "evidence": {
     "sequence": "[EDITOR]",
     "polls": 1,
@@ -74,7 +74,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:51:51"
+       "captured_at": "2026-10-22T12:36:28"
       },
       "reader": "override"
      },
@@ -89,7 +89,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:51:51"
+       "captured_at": "2026-10-22T12:36:28"
       },
       "reader": "override"
      },
@@ -99,14 +99,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:51:51"
+       "captured_at": "2026-10-22T12:36:28"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:51:51"
+       "captured_at": "2026-10-22T12:36:28"
       }
      ]
     }
@@ -118,30 +118,30 @@
    "target": null,
    "ok": false,
    "expected": "state=MENU",
-   "observed": "PLAYTEST",
+   "observed": "EDITOR",
    "kind": "ASSERT-FALSE",
-   "ms": 8004,
+   "ms": 8005,
    "evidence": {
-    "sequence": "[EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR, PLAYTEST]",
-    "polls": 22,
+    "sequence": "[EDITOR, EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR]",
+    "polls": 17,
     "stop": "BUDGET-WOULD-OVERRUN",
     "channel": "fast",
-    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+    "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
     "frame_meta": {
      "kind": "frame",
-     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
-     "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
-     "bytes": 3213364,
+     "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+     "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+     "bytes": 4068202,
      "captured_at": "2026-10-17T08:55:59"
     },
     "class_hint": "F1 断言为假"
    },
-   "detail": "state=PLAYTEST（22 次轮询，序列=[EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR, PLAYTEST]）"
+   "detail": "state=EDITOR（17 次轮询，序列=[EDITOR, EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR]）"
   }
  ],
  "ok": false,
  "exit": 3,
- "t0": 1792324311.245176,
+ "t0": 1792643787.7742445,
  "frames_meta": {
   "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
    "kind": "frame",
@@ -158,31 +158,31 @@
    "captured_at": "2026-10-17T08:55:59"
   }
  },
- "elapsed_ms": 8147,
+ "elapsed_ms": 8398,
  "budget": {
   "frames": 0,
-  "frames_offline": 23,
+  "frames_offline": 18,
   "focus": 0,
   "sleeps": 0,
-  "polls": 23,
+  "polls": 18,
   "desktop_calls": 0
  },
  "failure": {
   "step": 2,
   "class": "ASSERT-FALSE",
   "expected": "state=MENU",
-  "observed": "PLAYTEST",
+  "observed": "EDITOR",
   "evidence": {
-   "sequence": "[EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR, PLAYTEST]",
-   "polls": 22,
+   "sequence": "[EDITOR, EDITOR, PLAYTEST, PLAYTEST, EDITOR, EDITOR]",
+   "polls": 17,
    "stop": "BUDGET-WOULD-OVERRUN",
    "channel": "fast",
-   "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
+   "frame": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
    "frame_meta": {
     "kind": "frame",
-    "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
-    "sha256": "6427d2b86f2281f6f893868aa1c76225637db78bbdd9fbde135748e52fdcd716",
-    "bytes": 3213364,
+    "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png",
+    "sha256": "b020ad0f25bc783abdbbac0289525a1ecbad5f9658d401a6c36bed97e11ab506",
+    "bytes": 4068202,
     "captured_at": "2026-10-17T08:55:59"
    },
    "class_hint": "F1 断言为假"

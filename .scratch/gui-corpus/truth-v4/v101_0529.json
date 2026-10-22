@@ -13,7 +13,7 @@
   "插画背景",
   "预测面板"
  ],
- "units": 18,
+ "units": 19,
  "_provenance": {
   "family": "活动一览",
   "method": "列表行 y 由 preview 比例 + edges.py x=600 扫描带复核（选中行药丸 300 起，其余 120 步长）；右侧按钮/面板/阵营卡按可见像素估",
@@ -23,7 +23,28 @@
    "列表行高选中行 110、其余推测同为 110（未逐行扫描）",
    "预测面板外沿与两个阵营卡 x 边界 ±20px"
   ],
-  "tool_crosscheck": "ys-screen(cv) 命中 1/18 = 5.6%（iou 0.763，fp=1）"
+  "tool_crosscheck": "ys-screen(cv) 命中 1/18 = 5.6%（iou 0.763，fp=1）",
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 18,
+     "kind": "panel",
+     "bbox": [
+      1340,
+      300,
+      1180,
+      850
+     ],
+     "text": "活动详情区",
+     "note": "R3/R7 补框：右详情区皮肤（含 判测胜券本征/剩余参与时间/预测评分/尚未参与本轮预测）"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "详情区左沿 1340 落在插画上（该页详情区无可见皮肤边界，按内容外沿取），误差约 ±20px。"
+  }
  },
  "objects": [
   {
@@ -494,6 +515,33 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": 18,
+   "kind": "panel",
+   "bbox": [
+    1340,
+    300,
+    1180,
+    850
+   ],
+   "text": [
+    "活动详情区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R3/R7 补框：右详情区皮肤（含 判测胜券本征/剩余参与时间/预测评分/尚未参与本轮预测）"
   }
  ]
 }

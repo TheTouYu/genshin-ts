@@ -8,6 +8,7 @@
 """
 import json
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
@@ -449,9 +450,25 @@ META = {
 }
 
 
+FORCE = '--force' in sys.argv
+
+
 def main():
-    written = 0
+    written, skipped = 0, []
     for name, objs in TRUTH.items():
+        # 守卫（2026-10-19 QC 返工）：本脚本是**数据源**，会用上面的表覆盖 JSON。
+        # 若某帧已被人工/QC 补过区域框与 patch（_provenance.qc_2026_10_19），默认不覆盖，
+        # 否则一次重生成就把那批修复抹掉。确需重生成请显式 --force 并重新合并 qc 记录。
+        out_f = os.path.join(HERE, name + '.json')
+        if not FORCE and os.path.exists(out_f):
+            try:
+                old = json.load(open(out_f, encoding='utf-8'))
+            except Exception:
+                old = {}
+            if (old.get('_provenance') or {}).get('qc_2026_10_19'):
+                skipped.append(name)
+                print('%s SKIP（含 qc_2026_10_19 修复记录，需 --force 才覆盖）' % name)
+                continue
         for i, o in enumerate(objs):
             o['id'] = i
         doc = {
@@ -466,13 +483,14 @@ def main():
             '_provenance': frame_provenance(name),
             'objects': objs,
         }
-        with open(os.path.join(HERE, name + '.json'), 'w', encoding='utf-8') as f:
+        with open(out_f, 'w', encoding='utf-8') as f:
             json.dump(doc, f, ensure_ascii=False, indent=1)
             f.write('\n')
         written += 1
         print('%s units=%d kinds=%s' % (name, len(objs),
                                         sorted({o['kind'] for o in objs})))
-    print('TOTAL frames=%d units=%d' % (written, sum(len(v) for v in TRUTH.values())))
+    print('TOTAL frames=%d units=%d skipped=%s'
+          % (written, sum(len(TRUTH[n]) for n in TRUTH if n not in skipped), skipped or '无'))
     return 0
 
 

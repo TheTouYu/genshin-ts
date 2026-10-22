@@ -2,7 +2,7 @@
  "kind": "gui-run",
  "skill": "selftest.f4-object-drift",
  "app": "原神编辑器",
- "started_at": "2026-10-18T19:52:06",
+ "started_at": "2026-10-22T12:36:44",
  "limits": {
   "step_wait_max_ms": 10000,
   "step_wait_default_ms": 8000
@@ -25,7 +25,7 @@
    "expected": "state=EDITOR",
    "observed": "EDITOR",
    "kind": null,
-   "ms": 249,
+   "ms": 387,
    "evidence": {
     "sequence": "[EDITOR]",
     "polls": 1,
@@ -74,7 +74,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:06"
+       "captured_at": "2026-10-22T12:36:45"
       },
       "reader": "override"
      },
@@ -89,7 +89,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:06"
+       "captured_at": "2026-10-22T12:36:45"
       },
       "reader": "override"
      },
@@ -99,14 +99,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:06"
+       "captured_at": "2026-10-22T12:36:45"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:06"
+       "captured_at": "2026-10-22T12:36:45"
       }
      ]
     }
@@ -120,7 +120,7 @@
    "expected": "state=MENU",
    "observed": "MENU",
    "kind": null,
-   "ms": 244,
+   "ms": 374,
    "evidence": {
     "sequence": "[MENU]",
     "polls": 1,
@@ -158,7 +158,7 @@
    "expected": "MENU",
    "observed": "PLAYTEST",
    "kind": "OBJECT-MISMATCH",
-   "ms": 348,
+   "ms": 565,
    "evidence": {
     "class_hint": "F4 对象不符（写动作的对象身份没对上）",
     "identity": {
@@ -172,7 +172,7 @@
       "channel": "state",
       "identity": "MENU",
       "expect": "state=MENU",
-      "ms": 117,
+      "ms": 225,
       "artifact": {
        "kind": "frame",
        "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
@@ -182,7 +182,7 @@
       },
       "judge": {
        "channel": "fast",
-       "ms": 113
+       "ms": 221
       }
      },
      "post": {
@@ -190,7 +190,7 @@
       "channel": "state",
       "identity": "PLAYTEST",
       "expect": "state=MENU",
-      "ms": 230,
+      "ms": 340,
       "artifact": {
        "kind": "frame",
        "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
@@ -200,7 +200,7 @@
       },
       "judge": {
        "channel": "fast",
-       "ms": 227
+       "ms": 336
       }
      }
     }
@@ -210,7 +210,7 @@
  ],
  "ok": false,
  "exit": 4,
- "t0": 1792324326.4620826,
+ "t0": 1792643804.6063578,
  "frames_meta": {
   "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
    "kind": "frame",
@@ -234,7 +234,7 @@
    "captured_at": "2026-10-17T08:55:59"
   }
  },
- "elapsed_ms": 857,
+ "elapsed_ms": 1344,
  "budget": {
   "frames": 0,
   "frames_offline": 4,
@@ -261,7 +261,7 @@
      "channel": "state",
      "identity": "MENU",
      "expect": "state=MENU",
-     "ms": 117,
+     "ms": 225,
      "artifact": {
       "kind": "frame",
       "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/menu.png",
@@ -271,7 +271,7 @@
      },
      "judge": {
       "channel": "fast",
-      "ms": 113
+      "ms": 221
      }
     },
     "post": {
@@ -279,7 +279,7 @@
      "channel": "state",
      "identity": "PLAYTEST",
      "expect": "state=MENU",
-     "ms": 230,
+     "ms": 340,
      "artifact": {
       "kind": "frame",
       "path": "/home/h/genshin-ts/tools/ys-editor/calib/regress/playtest.png",
@@ -289,7 +289,7 @@
      },
      "judge": {
       "channel": "fast",
-      "ms": 227
+      "ms": 336
      }
     }
    }

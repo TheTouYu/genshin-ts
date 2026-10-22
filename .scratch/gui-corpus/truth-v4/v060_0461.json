@@ -13,7 +13,7 @@
   "纯图标列",
   "红点角标"
  ],
- "units": 31,
+ "units": 33,
  "_provenance": {
   "family": "派蒙菜单（千星奇域版）",
   "method": "网格由 edges.py 两条扫描线定（列 165/375/585/795、行 438/648/858/1068/1278；格 204×205、pitch 210）；左列图标沿用同 UI 实测；「返回提瓦特」按可见药丸量",
@@ -23,7 +23,40 @@
    "本帧是千星版派蒙菜单，格子比旧版大（204×205 vs 176×161），已用扫描线定边界（±8px）",
    "底行（第 5 行）被屏底与录制 HUD 裁切，只标可见部分"
   ],
-  "tool_crosscheck": "ys-screen(cv) 命中 10/31 = 32.3%（iou 0.663，fp=4）"
+  "tool_crosscheck": "ys-screen(cv) 命中 10/31 = 32.3%（iou 0.663，fp=4）",
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 31,
+     "kind": "panel",
+     "bbox": [
+      22,
+      486,
+      1108,
+      912
+     ],
+     "text": "左图标栏",
+     "note": "R6 补框：左列 6 图标并集 ±8px"
+    },
+    {
+     "id": 32,
+     "kind": "panel",
+     "bbox": [
+      139,
+      412,
+      886,
+      1028
+     ],
+     "text": "功能网格区",
+     "note": "R7 补框：21 个格子的并集 ±26px"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "2 条未覆盖是 3D 世界内玩家名牌「钟珍」「透雨」（世界内容，非 UI 单元，同 neg-world 口径），故意不标。网格区下沿被屏裁切已 clamp 到 1440 并记 clipped。"
+  }
  },
  "objects": [
   {
@@ -949,6 +982,62 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": 31,
+   "kind": "panel",
+   "bbox": [
+    22,
+    486,
+    1108,
+    912
+   ],
+   "text": [
+    "左图标栏"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R6 补框：左列 6 图标并集 ±8px"
+  },
+  {
+   "id": 32,
+   "kind": "panel",
+   "bbox": [
+    139,
+    412,
+    886,
+    1028
+   ],
+   "text": [
+    "功能网格区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [
+     "bottom"
+    ],
+    "cut_by": "screen",
+    "px": 26
+   },
+   "note": "R7 补框：21 个格子的并集 ±26px"
   }
  ]
 }

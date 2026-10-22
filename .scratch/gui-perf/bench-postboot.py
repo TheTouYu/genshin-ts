@@ -141,7 +141,10 @@ def bench_action(n=10):
     """租约内动作：取一次租约，连做 n 次 ESC（每次 release? 不——保持租约），最后释放。"""
     import instruments as I  # noqa: F401  （仅确保路径可用）
     lease = os.path.join(ROOT, "tools/ys-editor/ys-lease")
-    subprocess.run([sys.executable, lease, "acquire", "--max", "60"], capture_output=True, timeout=60)
+    acq = subprocess.run([sys.executable, lease, "acquire", "--max", "60", "--owner-pid", str(os.getpid())],
+                         capture_output=True, timeout=60)
+    if acq.returncode != 0:
+        raise RuntimeError("ys-lease acquire failed rc=%d: %r" % (acq.returncode, (acq.stdout or acq.stderr)[:300]))
     env = dict(os.environ, YS_SLOT_ACTIVE="1")
     vals = []
     for _ in range(n):
@@ -152,7 +155,9 @@ def bench_action(n=10):
             continue
         vals.append((time.perf_counter() - t) * 1000)
         time.sleep(0.3)
-    subprocess.run([sys.executable, lease, "release"], capture_output=True, timeout=30)
+    rel = subprocess.run([sys.executable, lease, "release", "--force"], capture_output=True, timeout=60)
+    if rel.returncode != 0:
+        raise RuntimeError("ys-lease release failed rc=%d: %r" % (rel.returncode, (rel.stdout or rel.stderr)[:300]))
     return vals
 
 

@@ -12,7 +12,7 @@
   "不透明纯色网格",
   "裁切行"
  ],
- "units": 28,
+ "units": 30,
  "_provenance": {
   "method": "人眼（read_image）判对象与身份 → grid.py 网格量边（50px 步长，原帧坐标标签） → boxer.py 量小图标像素紧致边界",
   "tool_assist": {
@@ -39,6 +39,39 @@
    "miss_reason": "id=10–13 是被裁切行（只剩 174×64 文字带，长宽比 2.7 超出矩形先验）；id=25 底部渐隐",
    "tool": ".scratch/gui-corpus/tools/remeasure_grid.py",
    "verdict": "完整格子几何实测通过（extra=0，无错位）；未匹配均为裁切行/渐隐行，属滤波器边界而非真值错误"
+  },
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 28,
+     "kind": "panel",
+     "bbox": [
+      22,
+      486,
+      102,
+      649
+     ],
+     "text": "左图标栏",
+     "note": "R6 补框：6 个左列图标 x∈[30,116] y∈[494,1127] 的并集 ±8px"
+    },
+    {
+     "id": 29,
+     "kind": "panel",
+     "bbox": [
+      148,
+      426,
+      850,
+      984
+     ],
+     "text": "功能网格区",
+     "note": "R7 补框：全部格子的并集 ±26px（紧贴米色皮肤列）"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "同 f06 的缺口；「装扮搭配」tile 的 OCR 框比格子宽 93px，靠网格区覆盖到 0.73（不是靠格子本身），tile 自身边界未动。"
   }
  },
  "objects": [
@@ -782,6 +815,60 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": 28,
+   "kind": "panel",
+   "bbox": [
+    22,
+    486,
+    102,
+    649
+   ],
+   "text": [
+    "左图标栏"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R6 补框：6 个左列图标 x∈[30,116] y∈[494,1127] 的并集 ±8px"
+  },
+  {
+   "id": 29,
+   "kind": "panel",
+   "bbox": [
+    148,
+    426,
+    850,
+    984
+   ],
+   "text": [
+    "功能网格区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R7 补框：全部格子的并集 ±26px（紧贴米色皮肤列）"
   }
  ]
 }

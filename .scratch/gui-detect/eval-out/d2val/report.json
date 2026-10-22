@@ -29,7 +29,7 @@
    "--out",
    ".scratch/gui-detect/eval-out/d2val"
   ],
-  "time": "2026-10-19 17:11:57"
+  "time": "2026-10-19 18:00:40"
  },
  "audit": {},
  "frames": [
@@ -42,6 +42,7 @@
    "H": 1440,
    "layout": "左上玩家信息卡（插画皮肤）→ 左列图标栏（6 图标）→ 4×5 网格（每格 192×173）→ 底部 HUD/四角件",
    "gt": 51,
+   "area_max": 0.948,
    "kinds": {
     "panel": 4,
     "avatar": 1,
@@ -61,6 +62,7 @@
    "H": 1440,
    "layout": "教程页：顶栏（教程／全部 + 已解锁条目 733）+ 搜索 + 左列表两组（最近解锁 7 条 / 当前区域相关 2 条）+ 右详情",
    "gt": 18,
+   "area_max": 0.508,
    "kinds": {
     "panel": 3,
     "chip": 3,
@@ -77,6 +79,7 @@
    "H": 1440,
    "layout": "①顶栏 / ②左资源栏 / ③3D 视口/浮动工具条 / ④四角小件",
    "gt": 44,
+   "area_max": 0.783,
    "kinds": {
     "panel": 6,
     "icon": 4,
@@ -94,6 +97,7 @@
    "H": 1440,
    "layout": "①顶栏 / ②左竖栏(树+调色板) / ③视口+浮动工具条 / ④模型资产库弹窗 / ⑤右属性面板（逐行） / ⑥底部对象操作条",
    "gt": 117,
+   "area_max": 0.602,
    "kinds": {
     "panel": 9,
     "icon": 4,
@@ -112,6 +116,7 @@
    "H": 1440,
    "layout": "①顶栏 / ②左树+调色板 / ③视口 / ④背景音乐窗口+库 / ⑤右属性面板/底部",
    "gt": 128,
+   "area_max": 0.783,
    "kinds": {
     "panel": 11,
     "icon": 7,
@@ -130,6 +135,7 @@
    "H": 1440,
    "layout": "①标签栏 / ②左资源树 / ③视口+调色板 / ④右属性面板+组件弹窗 / ⑤底部/四角",
    "gt": 74,
+   "area_max": 0.746,
    "kinds": {
     "panel": 5,
     "chip": 15,
@@ -147,6 +153,7 @@
    "H": 1440,
    "layout": "①顶栏窗口控件 / ②橙色工作区 / ③特效播放面板 / ④时间轴",
    "gt": 88,
+   "area_max": 0.527,
    "kinds": {
     "panel": 4,
     "icon": 5,
@@ -160,56 +167,20 @@
   "v1.prod": {
    "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v1.pt",
    "strict": {
-    "P": 0.217,
+    "P": 0.216,
     "R": 0.246,
     "F1": 0.23
    },
    "total": {
     "gt": 516,
-    "det": 586,
+    "det": 588,
     "tp": 127,
+    "fp": 461,
     "fn": 389,
-    "fp": 459,
     "leg_hit": 128,
     "leg_ndet": 127
    },
    "per_kind": {
-    "row": {
-     "gt": 202,
-     "det": 218,
-     "tp": 16,
-     "fn": 186,
-     "fp": 202,
-     "leg_hit": 16,
-     "leg_ndet": 16
-    },
-    "chip": {
-     "gt": 83,
-     "det": 55,
-     "tp": 19,
-     "fn": 64,
-     "fp": 36,
-     "leg_hit": 19,
-     "leg_ndet": 19
-    },
-    "tile": {
-     "gt": 43,
-     "det": 51,
-     "tp": 34,
-     "fn": 9,
-     "fp": 17,
-     "leg_hit": 34,
-     "leg_ndet": 34
-    },
-    "panel": {
-     "gt": 42,
-     "det": 33,
-     "tp": 17,
-     "fn": 25,
-     "fp": 16,
-     "leg_hit": 18,
-     "leg_ndet": 17
-    },
     "icon": {
      "gt": 31,
      "det": 31,
@@ -218,6 +189,15 @@
      "fp": 21,
      "leg_hit": 10,
      "leg_ndet": 10
+    },
+    "row": {
+     "gt": 202,
+     "det": 218,
+     "tp": 16,
+     "fn": 186,
+     "fp": 202,
+     "leg_hit": 16,
+     "leg_ndet": 16
     },
     "button": {
      "gt": 114,
@@ -230,12 +210,39 @@
     },
     "avatar": {
      "gt": 1,
-     "det": 1,
+     "det": 3,
      "tp": 1,
      "fn": 0,
-     "fp": 0,
+     "fp": 2,
      "leg_hit": 1,
      "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 55,
+     "tp": 19,
+     "fn": 64,
+     "fp": 36,
+     "leg_hit": 19,
+     "leg_ndet": 19
+    },
+    "panel": {
+     "gt": 42,
+     "det": 33,
+     "tp": 17,
+     "fn": 25,
+     "fp": 16,
+     "leg_hit": 18,
+     "leg_ndet": 17
+    },
+    "tile": {
+     "gt": 43,
+     "det": 51,
+     "tp": 34,
+     "fn": 9,
+     "fp": 17,
+     "leg_hit": 34,
+     "leg_ndet": 34
     },
     "card": {
      "gt": 0,
@@ -250,10 +257,10 @@
    "per_family": {
     "game_ui": {
      "gt": 65,
-     "det": 116,
+     "det": 118,
      "tp": 36,
      "fn": 29,
-     "fp": 80,
+     "fp": 82,
      "leg_hit": 36,
      "leg_ndet": 36
     },
@@ -571,8 +578,8 @@
     }
    },
    "lat_ms": {
-    "p50": 45.4,
-    "p90": 52.1
+    "p50": 45.9,
+    "p90": 51.4
    }
   },
   "v1.train": {
@@ -586,48 +593,12 @@
     "gt": 516,
     "det": 717,
     "tp": 133,
-    "fn": 383,
     "fp": 584,
+    "fn": 383,
     "leg_hit": 134,
     "leg_ndet": 138
    },
    "per_kind": {
-    "row": {
-     "gt": 202,
-     "det": 242,
-     "tp": 14,
-     "fn": 188,
-     "fp": 228,
-     "leg_hit": 14,
-     "leg_ndet": 14
-    },
-    "chip": {
-     "gt": 83,
-     "det": 81,
-     "tp": 28,
-     "fn": 55,
-     "fp": 53,
-     "leg_hit": 28,
-     "leg_ndet": 29
-    },
-    "tile": {
-     "gt": 43,
-     "det": 51,
-     "tp": 34,
-     "fn": 9,
-     "fp": 17,
-     "leg_hit": 34,
-     "leg_ndet": 34
-    },
-    "panel": {
-     "gt": 42,
-     "det": 54,
-     "tp": 16,
-     "fn": 26,
-     "fp": 38,
-     "leg_hit": 17,
-     "leg_ndet": 19
-    },
     "icon": {
      "gt": 31,
      "det": 41,
@@ -636,6 +607,15 @@
      "fp": 31,
      "leg_hit": 10,
      "leg_ndet": 10
+    },
+    "row": {
+     "gt": 202,
+     "det": 242,
+     "tp": 14,
+     "fn": 188,
+     "fp": 228,
+     "leg_hit": 14,
+     "leg_ndet": 14
     },
     "card": {
      "gt": 0,
@@ -663,6 +643,33 @@
      "fp": 2,
      "leg_hit": 1,
      "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 81,
+     "tp": 28,
+     "fn": 55,
+     "fp": 53,
+     "leg_hit": 28,
+     "leg_ndet": 29
+    },
+    "panel": {
+     "gt": 42,
+     "det": 54,
+     "tp": 16,
+     "fn": 26,
+     "fp": 38,
+     "leg_hit": 17,
+     "leg_ndet": 19
+    },
+    "tile": {
+     "gt": 43,
+     "det": 51,
+     "tp": 34,
+     "fn": 9,
+     "fp": 17,
+     "leg_hit": 34,
+     "leg_ndet": 34
     }
    },
    "per_family": {
@@ -989,63 +996,27 @@
     }
    },
    "lat_ms": {
-    "p50": 34.6,
-    "p90": 34.8
+    "p50": 35.1,
+    "p90": 36.2
    }
   },
   "v2.prod": {
    "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
    "strict": {
     "P": 0.204,
-    "R": 0.329,
-    "F1": 0.252
+    "R": 0.331,
+    "F1": 0.253
    },
    "total": {
     "gt": 516,
-    "det": 835,
-    "tp": 170,
-    "fn": 346,
-    "fp": 665,
-    "leg_hit": 171,
-    "leg_ndet": 174
+    "det": 837,
+    "tp": 171,
+    "fp": 666,
+    "fn": 345,
+    "leg_hit": 172,
+    "leg_ndet": 175
    },
    "per_kind": {
-    "row": {
-     "gt": 202,
-     "det": 302,
-     "tp": 56,
-     "fn": 146,
-     "fp": 246,
-     "leg_hit": 56,
-     "leg_ndet": 56
-    },
-    "chip": {
-     "gt": 83,
-     "det": 120,
-     "tp": 24,
-     "fn": 59,
-     "fp": 96,
-     "leg_hit": 24,
-     "leg_ndet": 24
-    },
-    "tile": {
-     "gt": 43,
-     "det": 74,
-     "tp": 31,
-     "fn": 12,
-     "fp": 43,
-     "leg_hit": 31,
-     "leg_ndet": 31
-    },
-    "panel": {
-     "gt": 42,
-     "det": 69,
-     "tp": 17,
-     "fn": 25,
-     "fp": 52,
-     "leg_hit": 18,
-     "leg_ndet": 21
-    },
     "icon": {
      "gt": 31,
      "det": 63,
@@ -1054,6 +1025,15 @@
      "fp": 51,
      "leg_hit": 12,
      "leg_ndet": 12
+    },
+    "row": {
+     "gt": 202,
+     "det": 302,
+     "tp": 56,
+     "fn": 146,
+     "fp": 246,
+     "leg_hit": 56,
+     "leg_ndet": 56
     },
     "card": {
      "gt": 0,
@@ -1075,23 +1055,50 @@
     },
     "avatar": {
      "gt": 1,
-     "det": 0,
-     "tp": 0,
-     "fn": 1,
+     "det": 1,
+     "tp": 1,
+     "fn": 0,
      "fp": 0,
-     "leg_hit": 0,
-     "leg_ndet": 0
+     "leg_hit": 1,
+     "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 121,
+     "tp": 24,
+     "fn": 59,
+     "fp": 97,
+     "leg_hit": 24,
+     "leg_ndet": 24
+    },
+    "panel": {
+     "gt": 42,
+     "det": 69,
+     "tp": 17,
+     "fn": 25,
+     "fp": 52,
+     "leg_hit": 18,
+     "leg_ndet": 21
+    },
+    "tile": {
+     "gt": 43,
+     "det": 74,
+     "tp": 31,
+     "fn": 12,
+     "fp": 43,
+     "leg_hit": 31,
+     "leg_ndet": 31
     }
    },
    "per_family": {
     "game_ui": {
      "gt": 65,
-     "det": 181,
-     "tp": 37,
-     "fn": 28,
-     "fp": 144,
-     "leg_hit": 37,
-     "leg_ndet": 37
+     "det": 183,
+     "tp": 38,
+     "fn": 27,
+     "fp": 145,
+     "leg_hit": 38,
+     "leg_ndet": 38
     },
     "editor": {
      "gt": 451,
@@ -1103,12 +1110,12 @@
      "leg_ndet": 137
     }
    },
-   "legacy_micro_R": 0.3314,
+   "legacy_micro_R": 0.3333,
    "geom": {
     "row/aspect/≤2": {
      "n": 1,
-     "hit": 1,
-     "r": 1.0
+     "hit": 0,
+     "r": 0.0
     },
     "row/aspect/2–6": {
      "n": 33,
@@ -1117,8 +1124,8 @@
     },
     "row/aspect/>6": {
      "n": 168,
-     "hit": 51,
-     "r": 0.304
+     "hit": 52,
+     "r": 0.31
     },
     "row/h/≤32px": {
      "n": 10,
@@ -1142,13 +1149,13 @@
     },
     "row/contrast/中": {
      "n": 67,
-     "hit": 15,
-     "r": 0.224
+     "hit": 14,
+     "r": 0.209
     },
     "row/contrast/高": {
      "n": 68,
-     "hit": 9,
-     "r": 0.132
+     "hit": 10,
+     "r": 0.147
     },
     "row/flat/低": {
      "n": 67,
@@ -1157,13 +1164,13 @@
     },
     "row/flat/中": {
      "n": 67,
-     "hit": 22,
-     "r": 0.328
+     "hit": 21,
+     "r": 0.313
     },
     "row/flat/高": {
      "n": 68,
-     "hit": 13,
-     "r": 0.191
+     "hit": 14,
+     "r": 0.206
     },
     "button/aspect/≤2": {
      "n": 88,
@@ -1407,63 +1414,27 @@
     }
    },
    "lat_ms": {
-    "p50": 70.6,
-    "p90": 91.5
+    "p50": 70.3,
+    "p90": 85.9
    }
   },
   "v2.train": {
    "path": "/home/h/genshin-ts/tools/ys-editor/models/gui-det-v2.pt",
    "strict": {
-    "P": 0.167,
-    "R": 0.326,
-    "F1": 0.221
+    "P": 0.166,
+    "R": 0.324,
+    "F1": 0.22
    },
    "total": {
     "gt": 516,
     "det": 1004,
-    "tp": 168,
-    "fn": 348,
-    "fp": 836,
-    "leg_hit": 169,
-    "leg_ndet": 173
+    "tp": 167,
+    "fp": 837,
+    "fn": 349,
+    "leg_hit": 168,
+    "leg_ndet": 172
    },
    "per_kind": {
-    "row": {
-     "gt": 202,
-     "det": 303,
-     "tp": 56,
-     "fn": 146,
-     "fp": 247,
-     "leg_hit": 56,
-     "leg_ndet": 56
-    },
-    "chip": {
-     "gt": 83,
-     "det": 185,
-     "tp": 23,
-     "fn": 60,
-     "fp": 162,
-     "leg_hit": 23,
-     "leg_ndet": 23
-    },
-    "tile": {
-     "gt": 43,
-     "det": 82,
-     "tp": 31,
-     "fn": 12,
-     "fp": 51,
-     "leg_hit": 31,
-     "leg_ndet": 31
-    },
-    "panel": {
-     "gt": 42,
-     "det": 95,
-     "tp": 16,
-     "fn": 26,
-     "fp": 79,
-     "leg_hit": 17,
-     "leg_ndet": 20
-    },
     "icon": {
      "gt": 31,
      "det": 70,
@@ -1472,6 +1443,15 @@
      "fp": 58,
      "leg_hit": 12,
      "leg_ndet": 12
+    },
+    "row": {
+     "gt": 202,
+     "det": 303,
+     "tp": 55,
+     "fn": 147,
+     "fp": 248,
+     "leg_hit": 55,
+     "leg_ndet": 55
     },
     "card": {
      "gt": 0,
@@ -1499,6 +1479,33 @@
      "fp": 0,
      "leg_hit": 1,
      "leg_ndet": 1
+    },
+    "chip": {
+     "gt": 83,
+     "det": 185,
+     "tp": 23,
+     "fn": 60,
+     "fp": 162,
+     "leg_hit": 23,
+     "leg_ndet": 23
+    },
+    "panel": {
+     "gt": 42,
+     "det": 95,
+     "tp": 16,
+     "fn": 26,
+     "fp": 79,
+     "leg_hit": 17,
+     "leg_ndet": 20
+    },
+    "tile": {
+     "gt": 43,
+     "det": 82,
+     "tp": 31,
+     "fn": 12,
+     "fp": 51,
+     "leg_hit": 31,
+     "leg_ndet": 31
     }
    },
    "per_family": {
@@ -1514,19 +1521,19 @@
     "editor": {
      "gt": 451,
      "det": 759,
-     "tp": 130,
-     "fn": 321,
-     "fp": 629,
-     "leg_hit": 131,
-     "leg_ndet": 134
+     "tp": 129,
+     "fn": 322,
+     "fp": 630,
+     "leg_hit": 130,
+     "leg_ndet": 133
     }
    },
-   "legacy_micro_R": 0.3275,
+   "legacy_micro_R": 0.3256,
    "geom": {
     "row/aspect/≤2": {
      "n": 1,
-     "hit": 1,
-     "r": 1.0
+     "hit": 0,
+     "r": 0.0
     },
     "row/aspect/2–6": {
      "n": 33,
@@ -1545,8 +1552,8 @@
     },
     "row/h/33–64px": {
      "n": 179,
-     "hit": 55,
-     "r": 0.307
+     "hit": 54,
+     "r": 0.302
     },
     "row/h/>64px": {
      "n": 13,
@@ -1560,8 +1567,8 @@
     },
     "row/contrast/中": {
      "n": 67,
-     "hit": 15,
-     "r": 0.224
+     "hit": 14,
+     "r": 0.209
     },
     "row/contrast/高": {
      "n": 68,
@@ -1575,8 +1582,8 @@
     },
     "row/flat/中": {
      "n": 67,
-     "hit": 22,
-     "r": 0.328
+     "hit": 21,
+     "r": 0.313
     },
     "row/flat/高": {
      "n": 68,
@@ -1825,8 +1832,8 @@
     }
    },
    "lat_ms": {
-    "p50": 60.3,
-    "p90": 72.6
+    "p50": 54.4,
+    "p90": 63.6
    }
   }
  },
@@ -1835,5 +1842,38 @@
   "v1.train": [],
   "v2.prod": [],
   "v2.train": []
+ },
+ "gt_redundancy": {
+  "r003_snap_2026-10-19_00-17-26": {
+   "peer": null,
+   "ratio": 0.0,
+   "kind": null
+  },
+  "r016_snap_2026-10-19_00-24-17": {
+   "peer": null,
+   "ratio": 0.0,
+   "kind": null
+  },
+  "r026_snap_2026-10-19_00-27-05": {
+   "peer": "r034_snap_2026-10-19_00-31-33",
+   "ratio": 0.432
+  },
+  "r028_snap_2026-10-19_00-27-49": {
+   "peer": "r034_snap_2026-10-19_00-31-33",
+   "ratio": 0.453
+  },
+  "r034_snap_2026-10-19_00-31-33": {
+   "peer": "r028_snap_2026-10-19_00-27-49",
+   "ratio": 0.422
+  },
+  "r041_snap_2026-10-19_00-36-21": {
+   "peer": "r028_snap_2026-10-19_00-27-49",
+   "ratio": 0.176
+  },
+  "r045_snap_2026-10-19_00-38-06": {
+   "peer": null,
+   "ratio": 0.0,
+   "kind": null
+  }
  }
 }

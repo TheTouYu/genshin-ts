@@ -4,3 +4,13 @@ ep  20 loss=59.7496 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, '
 ep  30 loss=30.3083 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 109s
 ep  40 loss=18.0867 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 142s
 ep  50 loss=12.9487 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 175s
+ep  60 loss=9.7861 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 208s
+ep  70 loss=8.3806 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 240s
+ep  80 loss=7.0095 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 273s
+ep  90 loss=5.8412 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 305s
+ep 100 loss=5.3012 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 338s
+ep 110 loss=4.8901 val_micro=0.0 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'icon': 0.0, 'tile': 0.0, 'chip': 0.0, 'card': 0.0, 'row': 0.0} 376s
+ep  20 loss=2.9106 micro=0.199 coarse=0.221 {'panel': 0.0, 'avatar': 0.0, 'button': 0.0, 'row': 0.0, 'icon': 0.0, 'tile': 0.506, 'glyph_icon': 0.0} 54s
+ep  40 loss=2.3331 micro=0.373 coarse=0.412 {'panel': 0.0, 'avatar': 0.0, 'button': 0.222, 'row': 0.061, 'icon': 0.0, 'tile': 0.85, 'glyph_icon': 0.065} 101s
+ep  60 loss=1.7554 micro=0.485 coarse=0.507 {'panel': 0.0, 'avatar': 0.0, 'button': 0.25, 'row': 0.045, 'icon': 0.333, 'tile': 1.0, 'glyph_icon': 0.161} 149s
+ep  80 loss=1.4689 micro=0.5 coarse=0.52 {'panel': 0.0, 'avatar': 0.0, 'button': 0.306, 'row': 0.03, 'icon': 0.333, 'tile': 1.0, 'glyph_icon': 0.242} 196s

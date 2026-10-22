@@ -2,7 +2,7 @@
  "kind": "gui-run",
  "skill": "selftest.n-hold-too-short",
  "app": "原神编辑器",
- "started_at": "2026-10-18T19:52:52",
+ "started_at": "2026-10-22T12:37:24",
  "limits": {
   "step_wait_max_ms": 10000,
   "step_wait_default_ms": 8000
@@ -25,7 +25,7 @@
    "expected": "state=EDITOR",
    "observed": "EDITOR",
    "kind": null,
-   "ms": 118,
+   "ms": 211,
    "evidence": {
     "sequence": "[EDITOR]",
     "polls": 1,
@@ -74,7 +74,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:24"
       },
       "reader": "override"
      },
@@ -89,7 +89,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:24"
       },
       "reader": "override"
      },
@@ -99,14 +99,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:24"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:24"
       }
      ]
     }
@@ -120,7 +120,7 @@
    "expected": "state=MENU",
    "observed": "MENU",
    "kind": null,
-   "ms": 249,
+   "ms": 366,
    "evidence": {
     "sequence": "[MENU]",
     "polls": 1,
@@ -177,7 +177,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       "reader": "override"
      },
@@ -192,7 +192,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       "reader": "override"
      },
@@ -202,14 +202,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       }
      ]
     }
@@ -240,7 +240,7 @@
      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/editor-tree.txt",
      "sha256": "d7e044edf88a7dfebc2bf78867bce589e287a3fc9713c55d26b63a7e77bb18a9",
      "bytes": 818,
-     "captured_at": "2026-10-18T19:52:53"
+     "captured_at": "2026-10-22T12:37:25"
     }
    },
    "detail": "断言含「直接上传」"
@@ -284,7 +284,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       "reader": "override"
      },
@@ -299,7 +299,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       "reader": "override"
      },
@@ -309,14 +309,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       }
      ]
     }
@@ -362,7 +362,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:53"
+       "captured_at": "2026-10-22T12:37:25"
       },
       "reader": "override"
      }
@@ -373,7 +373,7 @@
  ],
  "ok": false,
  "exit": 3,
- "t0": 1792324372.907913,
+ "t0": 1792643844.624702,
  "frames_meta": {
   "/home/h/genshin-ts/tools/ys-editor/calib/regress/editor-grass-shadow.png": {
    "kind": "frame",
@@ -390,7 +390,7 @@
    "captured_at": "2026-10-17T08:55:59"
   }
  },
- "elapsed_ms": 380,
+ "elapsed_ms": 600,
  "budget": {
   "frames": 0,
   "frames_offline": 2,
@@ -422,7 +422,7 @@
       "source": "xdotool:getactivewindow",
       "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
       "bytes": 39,
-      "captured_at": "2026-10-18T19:52:53"
+      "captured_at": "2026-10-22T12:37:25"
      },
      "reader": "override"
     }

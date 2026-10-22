@@ -26,7 +26,7 @@ DIRS = [
     ".scratch/gui-corpus/truth-v4",
     ".scratch/gui-corpus/truth-v5",
     ".scratch/gui-corpus/truth-v6",
-    ".scratch/gui-corpus/truth-v7",
+    ".scratch/gui-corpus/truth-v7", ".scratch/gui-corpus/truth-v8-game", ".scratch/gui-corpus/truth-v8-editor", ".scratch/gui-corpus/truth-v8-fix",
 ]
 LEVEL = {"panel": "big", "card": "big", "row": "row"}
 COLOR = {"big": (192, 132, 252), "row": (96, 165, 250), "el": (52, 211, 153)}

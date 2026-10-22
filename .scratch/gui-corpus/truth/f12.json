@@ -12,7 +12,7 @@
   "半透明胶囊行",
   "左导航高亮（组内相对态）"
  ],
- "units": 14,
+ "units": 16,
  "_provenance": {
   "method": "人眼（read_image）判对象与身份 → grid.py 网格量边（50px 步长，原帧坐标标签） → boxer.py 量小图标像素紧致边界",
   "tool_assist": {
@@ -21,7 +21,40 @@
    "icons/avatars": "boxer.py 像素边界（独立于 ys-screen 的容器层）"
   },
   "independence_note": "ys-screen 的前提=Lab 边缘能量低（平坦皮肤）；remeasure 的前提=低亮度同色连通域。两者互不依赖 ⇒ 同框即可判几何实测通过。",
-  "bias_measured": "独立测量把格子外发光/阴影一起框进来，每边约 +9px（192×173 vs 174×156），故 IoU≈0.80 而非 1.0；位置一致（无一片错位）。"
+  "bias_measured": "独立测量把格子外发光/阴影一起框进来，每边约 +9px（192×173 vs 174×156），故 IoU≈0.80 而非 1.0；位置一致（无一片错位）。",
+  "qc_2026_10_19": {
+   "source": "quality-report.md（QC 返工）",
+   "why": "B→A：补区域级对象(R3/R6/R7)、修几何偏差(R4/R8)、去重",
+   "added": [
+    {
+     "id": 14,
+     "kind": "panel",
+     "bbox": [
+      112,
+      146,
+      284,
+      859
+     ],
+     "text": "左导航栏",
+     "note": "R6 补框：9 个左导航项的并集 ±26px"
+    },
+    {
+     "id": 15,
+     "kind": "panel",
+     "bbox": [
+      620,
+      224,
+      1808,
+      317
+     ],
+     "text": "设置列表区",
+     "note": "R7 补框：全部设置行的并集 ±26px"
+    }
+   ],
+   "patched": [],
+   "deduped": [],
+   "unresolved": "同 f09；本帧只有 3 行设置，列表区下沿=第 3 行下沿 +26px，未延伸到屏底（页面上没有更多行）。"
+  }
  },
  "objects": [
   {
@@ -401,6 +434,60 @@
     "cut_by": null,
     "px": 0
    }
+  },
+  {
+   "id": 14,
+   "kind": "panel",
+   "bbox": [
+    112,
+    146,
+    284,
+    859
+   ],
+   "text": [
+    "左导航栏"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R6 补框：9 个左导航项的并集 ±26px"
+  },
+  {
+   "id": 15,
+   "kind": "panel",
+   "bbox": [
+    620,
+    224,
+    1808,
+    317
+   ],
+   "text": [
+    "设置列表区"
+   ],
+   "parent": null,
+   "clickable": "no",
+   "state": {
+    "selected": false,
+    "focused": false,
+    "disabled": false
+   },
+   "badges": [],
+   "clipped": {
+    "edges": [],
+    "cut_by": null,
+    "px": 0
+   },
+   "note": "R7 补框：全部设置行的并集 ±26px"
   }
  ]
 }

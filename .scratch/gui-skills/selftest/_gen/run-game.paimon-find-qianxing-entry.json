@@ -2,7 +2,7 @@
  "kind": "gui-run",
  "skill": "game.paimon-find-qianxing-entry",
  "app": "原神",
- "started_at": "2026-10-18T19:52:53",
+ "started_at": "2026-10-22T12:37:25",
  "limits": {
   "step_wait_max_ms": 10000,
   "step_wait_default_ms": 8000
@@ -25,7 +25,7 @@
    "expected": "state=GAME_PAIMON",
    "observed": "GAME_PAIMON",
    "kind": null,
-   "ms": 706,
+   "ms": 838,
    "evidence": {
     "sequence": "[GAME_PAIMON]",
     "polls": 1,
@@ -67,7 +67,7 @@
      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
      "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
      "bytes": 627,
-     "captured_at": "2026-10-18T19:52:54"
+     "captured_at": "2026-10-22T12:37:26"
     }
    },
    "detail": "断言含「冒险等阶」"
@@ -109,7 +109,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:54"
+       "captured_at": "2026-10-22T12:37:26"
       },
       "reader": "override"
      },
@@ -124,7 +124,7 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:54"
+       "captured_at": "2026-10-22T12:37:26"
       },
       "reader": "override"
      },
@@ -134,14 +134,14 @@
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:54"
+       "captured_at": "2026-10-22T12:37:26"
       },
       {
        "kind": "text",
        "source": "xdotool:getactivewindow",
        "sha256": "00c9fe6fe403c1a5383a68c778140832c5bd7af039f8c3b58dc1691c1b88c64d",
        "bytes": 39,
-       "captured_at": "2026-10-18T19:52:54"
+       "captured_at": "2026-10-22T12:37:26"
       }
      ]
     }
@@ -172,7 +172,7 @@
      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
      "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
      "bytes": 627,
-     "captured_at": "2026-10-18T19:52:54"
+     "captured_at": "2026-10-22T12:37:26"
     }
    },
    "detail": "断言含「千星奇域」"
@@ -205,14 +205,14 @@
      "source": "/home/h/genshin-ts/.scratch/gui-skills/fixtures/paimon-tree-scrolled.txt",
      "sha256": "d938287849bead66c00ac1ee52dda1554b16ad11d0ae6eaa583c97d3399cb7ce",
      "bytes": 627,
-     "captured_at": "2026-10-18T19:52:54"
+     "captured_at": "2026-10-22T12:37:26"
     }
    }
   }
  ],
  "ok": true,
  "exit": 0,
- "t0": 1792324373.392426,
+ "t0": 1792643845.4488254,
  "frames_meta": {
   "/home/h/genshin-ts/.scratch/gui-corpus/f06.png": {
    "kind": "frame",
@@ -222,7 +222,7 @@
    "captured_at": "2026-10-18T16:33:39"
   }
  },
- "elapsed_ms": 713,
+ "elapsed_ms": 844,
  "budget": {
   "frames": 0,
   "frames_offline": 1,
