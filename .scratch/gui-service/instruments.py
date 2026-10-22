@@ -138,6 +138,10 @@ def grab_frame(*, timeout=60, skip_atop=False, allow_background=False, backend=N
         cmd = [YS_CAPTURE, "latest", "--out", out, "--format", "bmp"]
         if allow_background:
             cmd.append("--allow-background")
+        # 2026-10-22：用户在别的虚拟桌面时（游戏 ds=3、当前 ds=2），只读感知仍要能取到游戏画面。
+        # 默认仍拒（避免把"用户看不见的画面"当成所见）；显式环境变量才放行。
+        if os.environ.get("YS_CAPTURE_ALLOW_OTHER_DESKTOP") == "1":
+            cmd.append("--allow-other-desktop")
         rc, so, se = run(cmd, timeout=timeout)
         try:
             meta = json.loads((so or "").strip().splitlines()[-1]) if so.strip() else {}
