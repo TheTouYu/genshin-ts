@@ -1257,6 +1257,7 @@ class WorldService:
             # ③预算前瞻：剩余时间不够再跑一轮 expect 就立刻停（不为多看一眼顶破上限）。
             polls = 0
             wait_s = 0.02
+            capture_blocked = False
             t_inject = time.perf_counter()
             while True:
                 if wait_s > 0:
@@ -1274,8 +1275,19 @@ class WorldService:
                     if _code not in ("LIVE_NOT_ATOP", "OTHER_DESKTOP", "NOT_ATOP", "OCCLUDED") \
                             or after_frame:
                         raise
-                    after, after_meta = self._capture_evidence(
-                        None, os.path.join(edir, "after.png"), after_frame=after_frame, background=True)
+                    try:
+                        after, after_meta = self._capture_evidence(
+                            None, os.path.join(edir, "after.png"), after_frame=after_frame, background=True)
+                    except (ServiceError, instruments.InstrumentError) as _e2:
+                        # 连后台帧都拿不到 ⇒ **不是动作失败，是这次没验成**。
+                        # 回执必须给第四态 `unverified`：injected=true / reached=null。
+                        # 把"看不到"写成"失败"会让上层重放一个已经成功的动作（2026-10-22 实测过）。
+                        capture_blocked = True
+                        result["degraded"].append(_degraded(
+                            "CAPTURE_BLOCKED",
+                            f"live 与后台取帧都被拒（{_code} / {getattr(_e2, 'code', None)}）："
+                            "动作已注入但本次无法验证世界是否改变"))
+                        break
                     result["degraded"].append(_degraded(
                         "EXPECT_BACKGROUND_FRAME",
                         f"expect 轮询被归属闸门拒（{_code}）⇒ 改用后台帧判定（只能证明『看得见』，"
@@ -1298,6 +1310,17 @@ class WorldService:
                         f"上一轮 expect {1000 * last_s:.0f}ms×1.1，提前停（不顶破 timeout）"))
                     break
                 wait_s = min(max(0.05, poll_ms / 1000.0), max(wait_s * 2, 0.05))
+            if capture_blocked:
+                # 第四态：动作发了，世界没验成。**不要读成"动作失败"**（2026-10-22 实测：
+                # 点完「点击进入」后取帧通道全拒，游戏其实已经进了提瓦特）。
+                result.update({
+                    "status": "unverified", "ok": False, "reached": None,
+                    "error": {"code": "ACT_UNVERIFIED",
+                              "detail": "动作已注入，但 live 与后台取帧都被拒 ⇒ 本次**没验成**；"
+                                        "先确认窗口在栈顶/当前桌面，再重跑一次 expect（不要重放动作）"},
+                })
+                result["elapsed_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+                return result
             result["polls"] = polls
             result["timings"] = {
                 "resolve_ms": result.get("resolve_ms"),
@@ -2223,7 +2246,9 @@ def _exit_code_for(status):
             "resolve_fail": 3, "ambiguous": 4, "invalid": 5, "precondition_fail": 5,
             "timeout": 6, "violated": 7, "error": 8,
             # 2026-10-19：语义期待不成立（有变化 ≠ 达成意图）
-            "expect_failed": 9}.get(status, 8)
+            "expect_failed": 9,
+            # 2026-10-22：动作已注入但没验成（取帧通道被拒）——不是"失败"，是"不知道"
+            "unverified": 8}.get(status, 8)
 
 
 def cmd_drill(a):
