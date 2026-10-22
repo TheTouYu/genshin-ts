@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+"""ys-usage — 工具**真实使用台账**：谁在真机任务里被调用过，谁只是自测在碰。
+
+## 存在理由（2026-10-22 用户提问）
+
+用户的原话是：「现在全跑要 400s，但是它真的值得吗？因为我们其实没有真正去游戏里面测试，
+哪些功能真的好用，真的需要用测试来保留。」
+
+过去的判据是"有没有失败账目"，而账目只证明**出过事故**，不证明**这东西在用**。
+`ys-probe` 就是典型：4 条门禁 + 自测全绿，但全仓没有一个技能或真机流程调用它。
+
+本工具把"用没用"变成可复算的读数：扫本仓的 DSH 会话（`~/.dsh/sessions/<桶>/`），
+数每个工具在 **bash 工具调用**里出现几次，并**把自测/门禁产生的调用单独计数**——
+因为跑 `probe-selftest.sh` 也会让 `ys-probe` 计数 +1，那不算"用过"。
+
+## 用法
+
+  tools/ys-usage                 # 表格：工具 / 手工调用 / 自测调用 / 会话数 / 最后一次
+  tools/ys-usage --json          # 同上，JSON
+  tools/ys-usage --days 30       # 只看最近 30 天有改动的会话文件
+  tools/ys-usage --frozen-days 30 # 额外列出"手工调用为 0 或超过 N 天未手工调用"的工具
+
+## 判据（怎么读这张表）
+
+- **手工调用** = 命令里**没有**出现自测/门禁特征的调用次数（`selftest` / `tests/` /
+  `ys-gates` / `failure-ledger` / `ledger-inject`）。
+- **自测调用** = 命中上述特征的那些。数量高但手工为 0 ⇒ **只有测试在用它**。
+- 建议规则：`手工调用 == 0 且 30 天未手工调用` ⇒ 移出默认回归（代码留着，标 open），
+  像 `ys-probe` 那样等真机用起来再加回。
+
+退出码：0 正常 / 2 用法错 / 3 找不到会话目录
+"""
+from __future__ import annotations
+
+import argparse
+import collections
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+SESSIONS_ROOT = os.path.expanduser('~/.dsh/sessions')
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 自测/门禁命令的特征：命中就不算"手工使用"
+# 注意：不要把 `ys-gates` 写进来——它自己就是被测量的工具（2026-10-22 实测把它算成 0 手工调用）。
+HARNESS_PAT = re.compile(
+    r'(selftest|\.selftest\.|/tests/|tests/inject|failure-ledger|ledger-inject)')
+
+# 别名归一：同一个东西的不同写法合成一行（否则表里会同时出现 ys-capture / ys_capture）
+ALIAS = {
+    'ys_capture': 'ys-capture', 'ys-capture': 'ys-capture',
+    'ys_lookd': 'ys-lookd', 'ys-lookd': 'ys-lookd',
+    'ys_look': 'ys-look', 'ys-look': 'ys-look',
+    'ys_env.sh': 'ys-env', 'ys-env.sh': 'ys-env',
+}
+
+# 不是工具：补丁源码 / 备份 / systemd 单元 / systemd 实例名
+SKIP_SUFFIX = ('.c', '.h', '.bak', '.service', '.md', '.json', '.tsv')
+SKIP_PAT = re.compile(r'(\.bak-|\.service$|^ys-.+\.c$|^ys-.+\.h$)')
+
+# 工具的显示别名 → 在命令里匹配的正则（有的工具名带下划线，如 ys_lookd）
+EXTRA = {
+    'worldsvc': r'worldsvc\.py|worldsvc\b',
+    'ys_lookd': r'ys_lookd\.py|ys-lookd\b',
+    'ys_look': r'ys_look\.py|ys-look\b',
+    'ys_capture': r'ys_capture\.py|ys-capture\b',
+    'ys_ocr': r'ys_ocr\.py',
+}
+
+
+def discover_tools():
+    """从仓库里自动发现工具名（`tools/ys-*` + 若干下划线命名），新工具自动进表。"""
+    names = set(EXTRA)
+    tdir = os.path.join(REPO, 'tools')
+    try:
+        for fn in os.listdir(tdir):
+            if fn.startswith('ys-') and os.path.isfile(os.path.join(tdir, fn)):
+                names.add(fn)
+    except OSError:
+        pass
+    edir = os.path.join(tdir, 'ys-editor')
+    try:
+        for fn in os.listdir(edir):
+            if fn.startswith('ys-') and os.path.isfile(os.path.join(edir, fn)):
+                names.add(fn)
+            if fn.startswith('ys_') and fn.endswith('.py'):
+                names.add(fn[:-3].replace('_', '_'))
+    except OSError:
+        pass
+    out = set()
+    for n in names:
+        if SKIP_PAT.search(n) or n.endswith(SKIP_SUFFIX):
+            continue
+        out.add(ALIAS.get(n, n))
+    return sorted(out)
+
+
+def tool_regex(name):
+    if name in EXTRA:
+        return re.compile(r'(?:' + EXTRA[name] + r')')
+    # 归一后的名字要把所有别名写法都算上（ys-env 要匹配 ys-env.sh / ys_env.sh）
+    forms = {name, name.replace('-', '_'), name + '.sh', name.replace('-', '_') + '.sh'}
+    alt = '|'.join(re.escape(f) for f in sorted(forms, key=len, reverse=True))
+    return re.compile(r'(?<![\w-])(?:' + alt + r')(?![\w-])')
+
+
+def bucket_for(workspace):
+    """`/home/h/genshin-ts` → `--home-h-genshin-ts--`（DSH 的桶命名规则）。"""
+    path = os.path.abspath(workspace).strip('/').replace('/', '-')
+    return '--' + path + '--'
+
+
+def iter_sessions(bucket_dir, days):
+    now = time.time()
+    for name in sorted(os.listdir(bucket_dir)):
+        sdir = os.path.join(bucket_dir, name)
+        f = os.path.join(sdir, 'session.v4.jsonl.zstd')
+        if not os.path.isfile(f):
+            continue
+        if days:
+            try:
+                if now - os.path.getmtime(f) > days * 86400:
+                    continue
+            except OSError:
+                continue
+        yield name, f
+
+
+def scan(bucket_dir, tools, days=None, verbose=False):
+    pats = {t: tool_regex(t) for t in tools}
+    stats = {t: {'manual': 0, 'harness': 0, 'sessions': set(), 'last': 0} for t in tools}
+    n_sessions = 0
+    for sid, f in iter_sessions(bucket_dir, days):
+        n_sessions += 1
+        try:
+            raw = subprocess.run(['zstd', '-dc', f], capture_output=True, timeout=180).stdout
+        except Exception as exc:                        # noqa: BLE001
+            if verbose:
+                print('skip %s: %s' % (sid, exc), file=sys.stderr)
+            continue
+        txt = raw.decode('utf-8', 'ignore')
+        for line in txt.split('\n'):
+            if '"type":"tool/call"' not in line:
+                continue
+            try:
+                rec = json.loads(line)
+            except Exception:                            # noqa: BLE001
+                continue
+            data = rec.get('data') or {}
+            if data.get('name') != 'bash':
+                continue
+            try:
+                args = json.loads(data.get('arguments') or '{}')
+            except Exception:                            # noqa: BLE001
+                continue
+            cmd = args.get('command') or ''
+            if not cmd:
+                continue
+            harness = bool(HARNESS_PAT.search(cmd))
+            ts = int(rec.get('time') or 0)
+            for t, pat in pats.items():
+                if not pat.search(cmd):
+                    continue
+                key = 'harness' if harness else 'manual'
+                stats[t][key] += 1
+                if not harness:
+                    stats[t]['sessions'].add(sid)
+                    if ts > stats[t]['last']:
+                        stats[t]['last'] = ts
+    return stats, n_sessions
+
+
+def fmt_ts(ms):
+    if not ms:
+        return '—'
+    return time.strftime('%Y-%m-%d', time.localtime(ms / 1000.0))
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='工具真实使用台账（扫 DSH 会话的 bash 调用）')
+    ap.add_argument('--workspace', default=REPO, help='工作区路径（默认本仓）')
+    ap.add_argument('--bucket', default='', help='直接给会话桶名（默认由 workspace 推导）')
+    ap.add_argument('--days', type=int, default=0, help='只看最近 N 天有改动的会话文件')
+    ap.add_argument('--frozen-days', type=int, default=0,
+                    help='列出"手工调用为 0 或超过 N 天未手工调用"的工具（建议冻结）')
+    ap.add_argument('--json', action='store_true')
+    ap.add_argument('--verbose', action='store_true')
+    a = ap.parse_args(argv)
+
+    bucket = a.bucket or bucket_for(a.workspace)
+    bucket_dir = os.path.join(SESSIONS_ROOT, bucket)
+    if not os.path.isdir(bucket_dir):
+        print('YS-USAGE-NO-SESSIONS 找不到会话桶：%s' % bucket_dir, file=sys.stderr)
+        return 3
+
+    tools = discover_tools()
+    stats, n = scan(bucket_dir, tools, days=(a.days or None), verbose=a.verbose)
+
+    rows = []
+    for t in tools:
+        s = stats[t]
+        rows.append({'tool': t, 'manual': s['manual'], 'harness': s['harness'],
+                     'sessions': len(s['sessions']), 'last': fmt_ts(s['last']),
+                     'last_ms': s['last']})
+    rows.sort(key=lambda r: (-r['manual'], -r['harness'], r['tool']))
+
+    frozen = []
+    if a.frozen_days:
+        cutoff = (time.time() - a.frozen_days * 86400) * 1000
+        frozen = [r['tool'] for r in rows
+                  if r['manual'] == 0 or (r['last_ms'] and r['last_ms'] < cutoff)
+                  or (r['manual'] > 0 and r['last_ms'] and r['last_ms'] < cutoff)]
+
+    if a.json:
+        print(json.dumps({'bucket': bucket, 'sessions': n, 'rows': rows,
+                          'frozen': frozen}, ensure_ascii=False, indent=1))
+        return 0
+
+    print('YS-USAGE bucket=%s sessions=%d tools=%d' % (bucket, n, len(tools)))
+    print('%-20s %8s %8s %8s  %s' % ('工具', '手工调用', '自测调用', '会话数', '最后一次手工调用'))
+    for r in rows:
+        if r['manual'] == 0 and r['harness'] == 0:
+            continue                                     # 连自测都没有：不占版面
+        print('%-20s %8d %8d %8d  %s'
+              % (r['tool'], r['manual'], r['harness'], r['sessions'], r['last']))
+    if a.frozen_days:
+        print('\n建议冻结（手工调用为 0，或超过 %d 天未手工调用）：' % a.frozen_days)
+        print('  ' + (' '.join(frozen) if frozen else '（无）'))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
