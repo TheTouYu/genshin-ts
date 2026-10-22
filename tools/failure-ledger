@@ -147,6 +147,37 @@ def cmd_dashboard(a):
     return 0
 
 
+def audit_inject(gates_all):
+    """静态审计：不执行任何门禁，只回答「注入用例到底能不能证明东西」。
+
+    三类（2026-10-22 加，起因是发现 72 条里 15 条的 inject 就是 gate 命令本身）：
+      · 真实注入   inject 是另一条命令（通常会先造故障再跑门禁）
+      · 假注入     inject == 该账目自己的 gate 命令 ⇒ 只是重跑门禁，恒绿，证明不了任何事
+      · 无注入     空 ⇒ 本来就是 unproven
+    只比命令串（去空白归一），不执行——判内容必须跑起来才知道，那是 check 全量的活。
+    """
+    rows = [r for r in load() if r['status'] == 'prevented']
+    real, fake, missing = [], [], []
+    for r in rows:
+        inj = ' '.join((r.get('inject') or '').split())
+        _gl = [x.strip() for x in (r.get('gate') or '').split(',') if x.strip()]
+        cmds = {' '.join((gates_all.get(one, {}).get('command') or '').split()) for one in _gl}
+        if not inj:
+            missing.append((r['id'], r.get('gate', '')))
+        elif inj in cmds:
+            fake.append((r['id'], r.get('gate', ''), inj))
+        else:
+            real.append((r['id'], r.get('gate', '')))
+    for i, g, inj in fake:
+        print('  [FAKE]  %-16s gate=%-20s inject 就是门禁命令：%s' % (i, g, inj[:80]))
+    for i, g in missing:
+        print('  [NONE]  %-16s gate=%s' % (i, g))
+    print('INJECT-AUDIT prevented=%d real=%d fake=%d missing=%d verdict=%s'
+          % (len(rows), len(real), len(fake), len(missing),
+             'PASS' if not fake and not missing else 'FAIL'))
+    return 0 if (not fake and not missing) else 1
+
+
 def cmd_check(a):
     """（--fast：只跑 tier=fast 的 gate；慢 gate 留给出轮/夜间全量跑）"""
     """真跑每条 prevented 的 gate（去重）+ 它的注入用例；缺用例 = UNPROVEN，退出码 1。
@@ -155,12 +186,14 @@ def cmd_check(a):
     不能证明"它真能拦住这条账目对应的错误"。注入用例 = 主动造一次故障，门禁必须报红。
     """
     gates_all = read_gates()
+    if a.get('audit_inject', False):
+        return audit_inject(gates_all)
     gates = gates_all
     if a.get('fast', False):
         gates = {k: v for k, v in gates_all.items() if (v.get('tier') or 'fast') != 'slow'}
     skipped = 0
     rows = load()
-    used_gates, fails, unproven, inject_fail = [], 0, 0, 0
+    used_gates, fails, unproven, inject_fail, fake = [], 0, 0, 0, 0
     inj_done, inj_seen = {}, set()          # 注入用例按命令去重（见下）
     gate_ms, inject_ms = {}, {}             # 每项耗时（2026-10-22：优化前先量）
     _t_start = time.time()
@@ -201,6 +234,19 @@ def cmd_check(a):
         if not inj:
             print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1
             continue
+        # 2026-10-22：**假注入**判别——inject 与它自己的 gate 命令完全相同 ⇒ 没造故障，
+        # 只是把门禁又跑了一遍，恒绿。这类"有 inject 但证明不了任何事"的账目比空 inject 更危险：
+        # 账本上它是绿的，看不出防线从未被检验过。实测当日 72 条里有 15 条是这种。
+        # 判据只比命令串（去空白归一），不比脚本内容——比内容要跑起来才知道，代价太大。
+        _inj_n = ' '.join(inj.split())
+        _gate_cmds = {' '.join((gates_all.get(one, {}).get('command') or '').split())
+                      for one in _gl}
+        if _inj_n and _inj_n in _gate_cmds:
+            # 2026-10-22：**不执行**——它等于把刚跑过的门禁再跑一遍，纯浪费（实测 13 条 ≈117s）。
+            # 但也绝不记成通过：这类账目的防线从未被检验过，必须显式暴露成 fake。
+            print('  [FAKE]   %-16s inject 与 gate 命令相同（重跑门禁，未造故障）' % r['id'])
+            fake += 1
+            continue
         # 注入用例**按命令去重**（2026-10-18 实测）：以前只对 gate 去重、对 inject 不去重，
         # 而同一条注入用例会被多条账目共用（`ledger-inject.sh regress-neg` 被 6 条引用）⇒
         # 同一条命令白跑 5 次。整轮 check 从 523s 降到 ~220s，纯属重复执行。
@@ -229,10 +275,11 @@ def cmd_check(a):
     print('LEDGER-TIMING total=%.1fs top=%s' % (time.time() - _t_start,
                                                 ' | '.join('%s %.1fs' % (k, v / 1000.0)
                                                            for k, v in _top)))
-    print('LEDGER-RESULT gates=%d skipped=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
-          % (len(used_gates), skipped, fails, unproven, inject_fail,
-             'PASS' if (fails + unproven + inject_fail) == 0 else 'FAIL'))
-    return 0 if (fails + unproven + inject_fail) == 0 else 1
+    print('LEDGER-RESULT gates=%d skipped=%d gate_fail=%d unproven=%d fake_inject=%d '
+          'inject_fail=%d verdict=%s'
+          % (len(used_gates), skipped, fails, unproven, fake, inject_fail,
+             'PASS' if (fails + unproven + fake + inject_fail) == 0 else 'FAIL'))
+    return 0 if (fails + unproven + fake + inject_fail) == 0 else 1
 
 
 def main():
@@ -251,6 +298,8 @@ def main():
     a3.set_defaults(func=cmd_dashboard)
     a4 = sub.add_parser('check')
     a4.add_argument('--fast', action='store_true', help='只跑 tier=fast 的 gate（快检）')
+    a4.add_argument('--audit-inject', action='store_true',
+                    help='静态审计注入用例（不执行任何门禁）：空 inject / 假 inject（== gate 命令）')
     a4.set_defaults(func=cmd_check)
     a = vars(ap.parse_args())
     return a['func'](a)
