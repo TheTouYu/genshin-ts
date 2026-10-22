@@ -9,12 +9,34 @@
 #   ④ no-op 租约（prev==game / noop 标志）⇒ release **切回默认屏 firefox** 并过堆叠验证
 #      （2026-10-21 用户口径：没有"用户窗"可还 ≠ 什么都不做；但绝不 raise 游戏本身）
 #
+# 参数：`--only abandon|noop` 只跑相关段落（注入用例用；**缺省不传 = 跑全部，输出与旧版逐字节一致**）
+#   abandon = ①+②+③（假 lease 永远失败那条链，零窗口操作）
+#   noop    = ④（会调 ys-lease 归还 firefox；注入用例跑不到这里，避免动窗口）
+# 被测守护可用 YS_FOCUS_GUARD_BIN 指向副本（注入用例改一处判据验它会红），缺省 = 生产文件。
+#
 # 机读行: FOCUS-FAILURE-RESULT first_calls=<n> no_more=<0|1> abandoned=<0|1> fuse=<0|1> noop_raises=<n> prevgame_raises=<n> verdict=PASS|FAIL
 # 退出码: 0 全绿 / 1 有失败
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
 YSE="$REPO/tools/ys-editor"
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only) ONLY="${2:-}"; shift || true; [ $# -gt 0 ] && shift || true;;
+    --only=*) ONLY="${1#--only=}"; shift;;
+    *) echo "用法: $0 [--only abandon|noop]" >&2; exit 2;;
+  esac
+done
+want() { [ -z "$ONLY" ] && return 0; case ",${ONLY}," in *",$1,"*) return 0;; esac; return 1; }
+# 段落名写错时**不许静默跑 0 条还判 PASS**
+if [ -n "$ONLY" ]; then
+  for _c in ${ONLY//,/ }; do
+    case "$_c" in abandon|noop) ;; *) echo "未知段落名: $_c（可选 abandon noop）" >&2; exit 2;; esac
+  done
+fi
+# 被测守护：注入用例指一份**同目录副本**（只改一处判据），生产文件一个字节不动。不设 = 测生产工具。
+GUARD="${YS_FOCUS_GUARD_BIN:-$YSE/ys-focus-guard}"
 TMP="$(mktemp -d)"; GUARD_PID=""
 cleanup() { [ -n "$GUARD_PID" ] && kill -9 "$GUARD_PID" 2>/dev/null; rm -rf "$TMP"; }
 trap cleanup EXIT
@@ -42,13 +64,16 @@ PY
 }
 
 fails=0
+# --only 时没跑的段落不能让机读行撞上 set -u（ABANDONED 取退出码语义：0=已标记）
+FIRST=0; SECOND=0; ABANDONED=1
 ok()  { echo "  ✓ $*"; }
 bad() { echo "  ✗ $*"; fails=$((fails+1)); }
 
 # ── 1+2+3 守护进程：假 lease 永远失败 ────────────────────────────────────────
+if want abandon; then
 write_lease 1000
 FAKE_COUNT="$COUNT" YS_LEASE="$LEASE" YS_LEASE_BIN="$FAKE" YS_FOCUS_GUARD_STOP="touch '$STOP'" \
-  YS_FOCUS_GUARD_LOG="$LOG" "$YSE/ys-focus-guard" --interval 0.1 >"$TMP/guard.out" 2>&1 &
+  YS_FOCUS_GUARD_LOG="$LOG" "$GUARD" --interval 0.1 >"$TMP/guard.out" 2>&1 &
 GUARD_PID=$!
 sleep 2.6
 FIRST=$(wc -l < "$COUNT" 2>/dev/null || echo 0)
@@ -72,8 +97,10 @@ for _ in $(seq 1 60); do [ -e "$STOP" ] && break; sleep 0.1; done
 [ -e "$STOP" ] && ok "连续 5 次失败后自停命令被调用" || bad "自停命令未被调用"
 grep -q "CRITICAL 连续 5 次无法恢复" "$LOG" && ok "日志有 CRITICAL" || bad "日志缺 CRITICAL"
 kill -9 "$GUARD_PID" 2>/dev/null; GUARD_PID=""
+fi
 
 # ── 4 no-op 租约：零 raise ───────────────────────────────────────────────────
+if want noop; then
 raises_before=$(journalctl --user --since "5 seconds ago" 2>/dev/null | grep -c "YS-FOCUS-raise" || true)
 cat > "$LEASE" <<JSON
 {"noop": true, "prev_is_target": true, "acquired_at": 3000, "owner_pid": 999999,
@@ -102,6 +129,7 @@ PREVGAME_RAISES=$(( raises_after2 - raises_before2 ))
 [ "$rc2" -eq 0 ] && ok "prev==game 租约 release 成功（rc=0）" || bad "prev==game release rc=$rc2 out=$out2"
 echo "$out2" | grep -q '"class": "firefox"' && ok "prev==game 归还目标=firefox" || bad "prev==game 未归 firefox：$out2"
 [ "$PREVGAME_RAISES" -le 1 ] && ok "prev==game 只 raise 了 $PREVGAME_RAISES 次" || bad "prev==game raise 了 $PREVGAME_RAISES 次（应 ≤1）"
+fi
 
 VERDICT=PASS; [ "$fails" -gt 0 ] && VERDICT=FAIL
 printf 'FOCUS-FAILURE-RESULT first_calls=%s no_more=%s abandoned=%s fuse=%s noop_raises=%s prevgame_raises=%s verdict=%s\n' \

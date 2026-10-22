@@ -65,8 +65,16 @@ def grab(x, y, w, h, retries=2):
             pass
     out = b""
     for _ in range(retries + 1):
-        out = subprocess.run(["import", "-silent", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
-                             capture_output=True).stdout
+        # 2026-10-22：**必须带 timeout**。目标窗口消失时 `import -window <id>` 会一直等，
+        # 而这条路径跑在常驻服务的主线程里 ⇒ 一个 px 请求能把整台感知服务钉死到
+        # HANDLER_TIMEOUT（90s），后面所有 CLI 调用排队超时。
+        # 实测：原神退出后 daemon-resilience 的 px 探针 → 服务"活着但不说话"，
+        # worldsvc-selftest 由 30s 涨到 133s。3s 足够（健康截取 ~13ms）。
+        try:
+            out = subprocess.run(["import", "-silent", "-window", WIN, "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-depth", "8", "rgb:-"],
+                                 capture_output=True, timeout=3).stdout
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"截取超时 3s（窗口 {WIN} 可能已消失）")
         if len(out) == w * h * 3:
             break
     a = np.frombuffer(out, dtype=np.uint8)

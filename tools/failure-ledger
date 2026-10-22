@@ -178,6 +178,31 @@ def audit_inject(gates_all):
     return 0 if (not fake and not missing) else 1
 
 
+def env_missing(requires):
+    """环境前提探针：gate 声明 requires 后，前提不满足就**明说**，不冒充红也不冒充绿。
+
+    2026-10-22 实证：原神退出后一次全量 check 冒出 4 个红（screen-grant / focus-failure /
+    perf-bench / perception-contract），全是「游戏没开」——它们硬依赖游戏窗口却没有声明。
+    后果比跑得慢更糟：**绿色取决于没人注意的环境状态**，读到 FAIL 的人会去查代码。
+    返回 None = 前提满足；否则返回一句人读的缺失原因。
+    """
+    req = (requires or '').strip()
+    if not req:
+        return None
+    if req == 'game':
+        p = subprocess.run(['pgrep', '-f', 'YuanShen.exe'], capture_output=True, text=True)
+        if p.returncode != 0 or not (p.stdout or '').strip():
+            return '需要原神在运行（pgrep -f YuanShen.exe 无匹配）'
+        return None
+    if req == 'gpu':
+        p = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'],
+                           capture_output=True, text=True)
+        if p.returncode != 0:
+            return '需要可用 GPU（nvidia-smi 失败）'
+        return None
+    return '未知的 requires=%r（gates.tsv 只认 game/gpu）' % req
+
+
 def cmd_check(a):
     """（--fast：只跑 tier=fast 的 gate；慢 gate 留给出轮/夜间全量跑）"""
     """真跑每条 prevented 的 gate（去重）+ 它的注入用例；缺用例 = UNPROVEN，退出码 1。
@@ -195,6 +220,7 @@ def cmd_check(a):
     rows = load()
     used_gates, fails, unproven, inject_fail, fake = [], 0, 0, 0, 0
     inj_done, inj_seen = {}, set()          # 注入用例按命令去重（见下）
+    env_skipped_gates = set()               # 因环境前提缺失而没跑的 gate（多账目共享同一 gate 时要能被后续行看到）
     gate_ms, inject_ms = {}, {}             # 每项耗时（2026-10-22：优化前先量）
     _t_start = time.time()
     for r in rows:
@@ -209,16 +235,29 @@ def cmd_check(a):
         if a.get('fast', False) and _gl and all((one in gates_all and one not in gates) for one in _gl):
             skipped += 1
             continue
+        _env_skipped_row = 0
         for one in _gl:
             if one in used_gates:
                 continue
             if one in gates_all and one not in gates:
                 skipped += 1
                 continue
+            # 同一 gate 被多条账目共享时，前一行已判过环境 ⇒ 本行也据此跳过 inject，
+            # 否则会拿"没环境的红"冒充"抓到了"（实测 F-20261021-52 就是这样假红的）。
+            if one in env_skipped_gates:
+                skipped += 1; _env_skipped_row += 1
+                continue
             used_gates.append(one)
             cmd = gates[one]['command'] if one in gates else ''
             if not cmd:
                 print('  [FAIL] %-16s gate=%s 未在 gates.tsv 登记' % (r['id'], one)); fails += 1; continue
+            # 环境前提（2026-10-22）：前提不满足就明说 ENV-SKIP，不冒充红也不冒充绿。
+            _miss = env_missing(gates[one].get('requires'))
+            if _miss:
+                print('  [ENV-SKIP] %-12s gate=%-20s %s' % (r['id'], one, _miss))
+                env_skipped_gates.add(one)
+                skipped += 1; _env_skipped_row += 1
+                continue
             _t0 = time.time()
             p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
             _ms = int((time.time() - _t0) * 1000)
@@ -231,6 +270,9 @@ def cmd_check(a):
         inj = r.get('inject', '')
         if a.get('fast', False):
             continue          # fast = 只验门禁可跑；注入用例（造故障）留全量
+        # 整行的 gate 都因环境前提缺失而没跑 ⇒ 注入用例也不跑（否则会拿"没环境的红"冒充"抓到了"）。
+        if _gl and _env_skipped_row == len(set(_gl)):
+            continue
         if not inj:
             print('  [UNPROVEN] %-12s 无注入用例（无法证明门禁非空转）' % r['id']); unproven += 1
             continue

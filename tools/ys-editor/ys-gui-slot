@@ -211,7 +211,6 @@ ALREADY_FOCUSED=0
 # ── 屏幕占用契约（用户令 2026-10-21）────────────────────────────────────────
 # 「这个系统不是你一个人在用」：动手前先看清屏幕在谁手上，并校验**用户批准过的时长凭据**。
 # 没有凭据就拒绝——把"每次使用都要申请"做成设计，而不是靠调用方自觉。
-"$YS_HOME/ys-bell" 2>/dev/null || true
 echo "[ys-gui-slot] 占用前活动窗口：${PREV_DESC}"
 if [ "${YS_SLOT_TEST:-0}" != "1" ]; then
   if ! "$YS_HOME/ys-screen-grant" status >/dev/null 2>&1; then
@@ -220,6 +219,10 @@ if [ "${YS_SLOT_TEST:-0}" != "1" ]; then
     "$YS_HOME/ys-screen-grant" explain --blocked-by ys-gui-slot --target "${WIN_HEX}" >&2
     exit 6
   fi
+  # 2026-10-22：响铃必须**在契约之后**——铃是"我现在真的要占你屏幕"的听觉提示。
+  # 原先铃在契约检查之前，于是「无凭据被拒绝」也会响一声：用户跑门禁时听到莫名操作音，
+  # 而我实际一步都没动。拒绝路径（exit 6）与测试模式（YS_SLOT_TEST=1）一律不响。
+  "$YS_HOME/ys-bell" 2>/dev/null || true
 fi
 START=$(date +%s); CMD_RC=0; RESTORE_RC=0; RESTORED=0
 

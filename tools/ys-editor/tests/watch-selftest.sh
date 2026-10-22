@@ -13,11 +13,34 @@ export YS_SLOT_TEST=1
 #   * 每条断言失败都打印「期望 vs 实测」，不吞诊断；机读行为最后一行：
 #       WATCH-RESULT cases=<n> assert=<n> pass=<n> fail=<n> derived=<n> verdict=PASS|FAIL
 #
-# 用法：bash tools/ys-editor/tests/watch-selftest.sh
-# 退出码：0 = 全 PASS / 1 = 有断言失败 / 2 = 环境缺件（工具、帧或 python3+pillow 缺失）
+# 用法：bash tools/ys-editor/tests/watch-selftest.sh [--only <case>]
+#   case ∈ claim | same | score | timer | numbers | hud | hud_raw | autoroi_real | noocr |
+#          fullframe | multiframe | live | d_text | d_time | err_frame | err_roi | err_live |
+#          err_noroi | err_roi_cnt | err_ocr | err_size
+#   --only 是给**注入用例**用的：造一次故障只跑受影响的那一条用例（无参数 = 全跑，行为不变）。
+# 退出码：0 = 全 PASS / 1 = 有断言失败 / 2 = 环境缺件（工具、帧或 python3+pillow 缺失）/ 3 = 用法错
 # 耗时：本机 ~20~40s（RapidOCR 子进程冷启动 + 若干 2560×1440 解码是固定开销，CPU 争抢时会翻倍）；
 #       本测试自用空缓存目录，跑第二遍同样冷——**不做热跑取巧**，因为首跑成本就是实战成本。
 set -uo pipefail
+
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only) ONLY="${2:-}"; shift 2 ;;
+    *) printf 'WATCH-SELFTEST-USAGE 未知参数 %s（用法: [--only <case>]）\n' "$1" >&2; exit 3 ;;
+  esac
+done
+WATCH_CASES=" claim same score timer numbers hud hud_raw autoroi_real noocr fullframe
+multiframe live d_text d_time err_frame err_roi err_live err_noroi err_roi_cnt err_ocr err_size "
+WATCH_CASES=$(printf '%s' "$WATCH_CASES" | tr -s ' \n' ' ')
+if [ -n "$ONLY" ]; then
+  case "$WATCH_CASES" in
+    *" $ONLY "*) ;;
+    *) printf 'WATCH-SELFTEST-USAGE 未知 --only 用例 %s（可选:%s）\n' "$ONLY" "$WATCH_CASES" >&2
+       exit 3 ;;
+  esac
+fi
+want(){ [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }   # 无 --only ⇒ 全部 want 成立（默认行为不变）
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
@@ -106,45 +129,50 @@ EOF
 chmod +x "$TMP/stub-capture.sh"
 printf '%s\n' "$CLAIM_BEFORE" "$CLAIM_AFTER" "$CLAIM_AFTER" >"$TMP/stub-list.txt"
 
-run_case claim       --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220
-run_case same        --frames "$CLAIM_AFTER" "$CLAIM_AFTER" --roi 1650,400,300,220
-run_case score       --frames "$EVENTS" "$REWARD" --roi 2000,900,400,140
-run_case timer       --frames "$BATTLE" "$SETTLE" --roi 1150,270,340,110
-run_case numbers     --frames "$BATTLE" "$SETTLE" --roi 1180,780,820,340
+want claim       && run_case claim       --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220
+want same        && run_case same        --frames "$CLAIM_AFTER" "$CLAIM_AFTER" --roi 1650,400,300,220
+want score       && run_case score       --frames "$EVENTS" "$REWARD" --roi 2000,900,400,140
+want timer       && run_case timer       --frames "$BATTLE" "$SETTLE" --roi 1150,270,340,110
+want numbers     && run_case numbers     --frames "$BATTLE" "$SETTLE" --roi 1180,780,820,340
 # HUD 叠加层（DXVK/FPS/GPU/耗时/UID）每帧都在抖：默认必须当作噪声吞掉，且**可被关掉验证**
-run_case hud         --frames "$EVENTS" "$REWARD" --roi 0,0,260,90
-run_case hud_raw     --frames "$EVENTS" "$REWARD" --roi 0,0,260,90 --no-default-ignore
-run_case autoroi_real --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --auto-roi --no-ocr
-run_case noocr       --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220 --no-ocr
-run_case fullframe   --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --full-frame --no-ocr
-run_case multiframe  --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" "$CLAIM_AFTER" --roi 1650,400,300,220
+want hud         && run_case hud         --frames "$EVENTS" "$REWARD" --roi 0,0,260,90
+want hud_raw     && run_case hud_raw     --frames "$EVENTS" "$REWARD" --roi 0,0,260,90 --no-default-ignore
+want autoroi_real && run_case autoroi_real --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --auto-roi --no-ocr
+want noocr       && run_case noocr       --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220 --no-ocr
+want fullframe   && run_case fullframe   --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --full-frame --no-ocr
+want multiframe  && run_case multiframe  --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" "$CLAIM_AFTER" --roi 1650,400,300,220
 rm -f "$TMP/stub-state"
-run_case live        --live 3 --capture-cmd "$TMP/stub-capture.sh {out}" \
+want live        && run_case live        --live 3 --capture-cmd "$TMP/stub-capture.sh {out}" \
                      --roi 1650,400,300,220 --interval 0
 if [ "$DERIVED" = 1 ]; then
-  run_case d_text    --frames "$CLAIM_BEFORE" "$TMP/derived-claimed.png" --auto-roi
-  run_case d_time    --frames "$BATTLE" "$TMP/derived-timer-0031.png" --roi 1150,270,340,110
+  want d_text    && run_case d_text    --frames "$CLAIM_BEFORE" "$TMP/derived-claimed.png" --auto-roi
+  want d_time    && run_case d_time    --frames "$BATTLE" "$TMP/derived-timer-0031.png" --roi 1150,270,340,110
 fi
 # 错误路径：退出码 + 机读 token（契约 §3ter：失败要能 grep 到）
-run_case err_frame   --frames "$TMP/不存在.png" "$CLAIM_AFTER" --no-ocr
-run_case err_roi     --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1,2,3 --no-ocr
-run_case err_live    --live 3
-run_case err_noroi   --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --no-ocr
-run_case err_roi_cnt --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220 \
+want err_frame   && run_case err_frame   --frames "$TMP/不存在.png" "$CLAIM_AFTER" --no-ocr
+want err_roi     && run_case err_roi     --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1,2,3 --no-ocr
+want err_live    && run_case err_live    --live 3
+want err_noroi   && run_case err_noroi   --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --no-ocr
+want err_roi_cnt && run_case err_roi_cnt --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" --roi 1650,400,300,220 \
                      --roi 0,0,100,100 --no-ocr
+if want err_size; then
 python3 -c "from PIL import Image; Image.new('RGB', (100, 100)).save('$TMP/small.png')"
 run_case err_size    --frames "$CLAIM_BEFORE" "$TMP/small.png" --roi 10,10,20,20 --no-ocr
+fi
+if want err_ocr; then
 YS_RAPIDOCR_PY=/nonexistent/venv/bin/python "$YS" --frames "$CLAIM_BEFORE" "$CLAIM_AFTER" \
   --roi 1650,400,300,220 >"$TMP/err_ocr.out" 2>"$TMP/err_ocr.err"
 echo "$?" >"$TMP/err_ocr.rc"
+fi
 
 # --------------------------------------------------------------------------- 断言
-python3 - "$TMP" "${DERIVED}" <<'PY' >"$TMP/checks.txt"
+python3 - "$TMP" "${DERIVED}" "$ONLY" <<'PY' >"$TMP/checks.txt"
 import json
 import os
 import sys
 
 TMP, DERIVED = sys.argv[1], sys.argv[2] == '1'
+ONLY = (sys.argv[3] if len(sys.argv) > 3 else '').strip()   # '' = 全跑（默认）
 KINDS = {'color_delta', 'time_changed', 'number_changed', 'text_changed',
          'text_removed', 'text_added'}
 CHECKS = []
@@ -346,7 +374,8 @@ nd = load('live')[0] or []
 chk('J4 live NDJSON = 2 对 + 1 汇总', len(nd) == 3 and nd[-1].get('kind') == 'summary',
     '3 行（末行 summary）', '%d 行' % len(nd))
 chk('J5 live 事件里点名「领取」',
-    any(e['kind'] == 'text_removed' and e['text'] == '领取' for e in nd[0]['events']),
+    any(e['kind'] == 'text_removed' and e['text'] == '领取'
+        for e in (nd[0]['events'] if nd else [])),
     'text_removed 领取', [e['kind'] for e in nd[0]['events']] if nd else '?')
 
 # ---- K. 派生帧：领取 → 已领取（text_changed，且不误报"领取消失"） ------------------
@@ -423,6 +452,30 @@ chk('N5 每条带位置的事件都有 cx/cy',
     bool(point_ev) and all(('cx' in e and 'cy' in e) for e in point_ev),
     '非 color_delta 事件均有 cx/cy', [e['kind'] for e in events(doc)])
 
+# 断言名 → 用例名（供 --only 过滤；默认 ONLY='' 时这张表不参与任何逻辑）
+CASE_OF = {
+    'A1': 'claim', 'A2': 'claim', 'A3': 'claim', 'A4': 'claim', 'A5': 'claim',
+    'A6': 'claim', 'A7': 'claim',
+    'B1': 'same', 'B2': 'same', 'B3': 'same', 'B4': 'same',
+    'C1': 'score', 'C2': 'score', 'C3': 'score',
+    'D1': 'timer', 'D2': 'timer', 'D3': 'timer',
+    'E1': 'numbers', 'E2': 'numbers', 'E3': 'numbers', 'E4': 'numbers', 'E5': 'numbers',
+    'E6': 'hud', 'E7': 'hud', 'E8': 'hud_raw',
+    'F1': 'autoroi_real', 'F2': 'autoroi_real', 'F3': 'autoroi_real',
+    'F4': 'autoroi_real', 'F5': 'autoroi_real',
+    'G1': 'noocr', 'G2': 'noocr', 'G3': 'noocr', 'G4': 'noocr',
+    'H1': 'fullframe', 'H2': 'fullframe',
+    'I1': 'multiframe', 'I2': 'multiframe', 'I3': 'multiframe', 'I4': 'multiframe',
+    'J1': 'live', 'J2': 'live', 'J3': 'live', 'J4': 'live', 'J5': 'live',
+    'K1': 'd_text', 'K2': 'd_text', 'K3': 'd_text', 'K4': 'd_text', 'K5': 'd_text',
+    'L1': 'd_time',
+    'M1': 'err_frame', 'M2': 'err_roi', 'M3': 'err_live', 'M4a': 'err_noroi',
+    'M4b': 'err_roi_cnt', 'M4': 'err_ocr', 'M5': 'err_size',
+    'N1': 'claim', 'N2': 'claim', 'N3': 'claim', 'N4': 'claim', 'N5': 'claim',
+}
+if ONLY:
+    CHECKS = [c for c in CHECKS if CASE_OF.get(c[0].split()[0]) == ONLY]
+
 for name, ok, expect, actual in CHECKS:
     print('%s\x1f%s\x1f%s\x1f%s' % ('PASS' if ok else 'FAIL', name, expect, actual))
 print('SUM\x1f%d\x1f%d' % (len(CHECKS), sum(1 for c in CHECKS if c[1])))
@@ -438,6 +491,11 @@ while IFS=$'\x1f' read -r tag name expect actual; do
     SUM)  : ;;
   esac
 done <"$TMP/checks.txt"
+
+# --only 若一条断言都没匹配上，必须报错而不是"0 条断言 = 全绿"
+if [ -n "$ONLY" ] && [ "$CASES" -eq 0 ]; then
+  echo "WATCH-SELFTEST-USAGE --only $ONLY 没有匹配到任何断言" >&2; exit 3
+fi
 
 # 证据摘要：人不用开 JSON 也能读到关键读数
 python3 - "$TMP" <<'PY'

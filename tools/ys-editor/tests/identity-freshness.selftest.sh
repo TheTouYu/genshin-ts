@@ -11,8 +11,10 @@
 #
 # 离线：只读落盘物（帧/日志/.gil 都是仓内夹具），DISPLAY 置空，--no-judge 不启 ys-state。
 #
-# 用法: bash tools/ys-editor/tests/identity-freshness.selftest.sh [-v]
-# 退出码: 0 全绿 / 1 有失败项 / 2 环境不全（缺 round-report 或夹具）
+# 用法: bash tools/ys-editor/tests/identity-freshness.selftest.sh [-v] [--only <case>]
+#   case ∈ emit | keep-ts | fresh | sha-mismatch | no-sha | no-captured-at
+#   --only 是给**注入用例**用的：造一次故障只需要跑受影响的那一条（无参数 = 全跑，行为不变）。
+# 退出码: 0 全绿 / 1 有失败项 / 2 环境不全（缺 round-report 或夹具）/ 3 用法错
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -21,7 +23,18 @@ FIX="$HERE/fixtures/round"
 REG="$ROOT/tools/ys-editor/calib/regress"
 TMP="$(mktemp -d /tmp/identity-freshness.XXXXXX)"
 VERBOSE=0
-[ "${1:-}" = "-v" ] && VERBOSE=1
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -v) VERBOSE=1; shift ;;
+    --only) ONLY="${2:-}"; shift 2 ;;
+    *) printf 'IDENTITY-SELFTEST-USAGE 未知参数 %s（用法: [-v] [--only <case>]）\n' "$1" >&2; exit 3 ;;
+  esac
+done
+case "$ONLY" in
+  ''|emit|keep-ts|fresh|sha-mismatch|no-sha|no-captured-at) ;;
+  *) printf 'IDENTITY-SELFTEST-USAGE 未知 --only 用例 %s（可选: emit keep-ts fresh sha-mismatch no-sha no-captured-at）\n' "$ONLY" >&2; exit 3 ;;
+esac
 PASS=0; FAIL=0
 LAST_OUT=""; LAST_CODE=""
 ok()  { printf '    ✓ %s\n' "$1"; PASS=$((PASS+1)); }
@@ -60,10 +73,19 @@ run_cmd() {       # run_cmd <名称> <期望退出码> <命令…>（DISPLAY 一
 has() { case "$LAST_OUT" in *"$1"*) ok "输出含「$1」";;
                    *) bad "输出缺「$1」" "$(printf '%s' "$LAST_OUT" | tail -4 | tr '\n' ' ')";; esac; }
 
+want() { [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }   # 无 --only ⇒ 全部 want 都成立（默认行为不变）
+prep_ok() {   # ③④⑤⑥ 依赖 ① 的 $D：还没备好就静默备一份（默认模式下 ① 已备好 ⇒ 空操作）
+  D="$TMP/ok"
+  [ -f "$D/round.json" ] && return 0
+  materialize "$D"
+  DISPLAY= "$RR" --emit-round "$D" >/dev/null 2>&1
+}
+
 printf '══ 证据新鲜度自测 %s ══\n' "$(date '+%F %T')"
 printf 'round-report %s\n夹具 %s\n帧 %s\n临时目录 %s\n' "$RR" "$FIX" "$REG" "$TMP"
 
 # ── ① emit-round 必须给每张引用帧补 sha + 抓取时刻 ───────────────────────
+if want emit; then
 D="$TMP/ok"; materialize "$D"
 run_cmd "--emit-round 证据齐全 ⇒ 落盘 round.json" 0 "$RR" --emit-round "$D"
 EMIT_EXIT=$LAST_CODE
@@ -90,8 +112,10 @@ assert not problems, problems
 print(f'    ✓ round.json 的 {len(frames)} 张帧都带 sha256+captured_at')
 PY
 [ $? -eq 0 ] && PASS=$((PASS+1)) || bad "round.json 帧元数据不合规"
+fi
 
 # ── ② 执行器给了真抓取时刻 ⇒ emit 必须保留，不覆盖 ───────────────────────
+if want keep-ts; then
 D2="$TMP/keep-ts"; materialize "$D2"
 python3 - "$D2/round.draft.json" <<'PY'
 import json, sys
@@ -111,15 +135,20 @@ assert m.get('captured_at') == '2026-10-17T19:00:01', m
 print('    ✓ 执行器给的 captured_at/sha 未被覆盖（source=runner）')
 PY
 [ $? -eq 0 ] && PASS=$((PASS+1)) || bad "emit-round 覆盖了执行器给的真抓取时刻"
+fi
 
 # ── ③ 齐全 ⇒ replay PASS（帧新鲜度项必须真出现，不许沉默跳过）──────────
-D="$TMP/ok"
+if want fresh; then
+prep_ok
 run_cmd "--replay 证据齐全 ⇒ PASS(0)" 0 "$RR" --replay "$D" --no-judge
 FRESH_EXIT=$LAST_CODE
 has "结论: PASS"
 has "帧新鲜度   PASS"
+fi
 
 # ── ④ sha 与文件不符 ⇒ ERROR(2)（不是 PASS，也不是 DIFF）────────────────
+if want sha-mismatch; then
+prep_ok
 D3="$TMP/sha-mismatch"; cp -r "$D" "$D3"
 printf 'tampered-frame\n' >> "$D3/playtest.png"      # 帧在 emit 之后被换/被改
 run_cmd "--replay 帧 sha 与文件不符 ⇒ ERROR(2)" 2 "$RR" --replay "$D3" --no-judge
@@ -127,8 +156,11 @@ SHA_EXIT=$LAST_CODE
 has "帧新鲜度   ERROR"
 has "sha 不符"
 has "结论: ERROR"
+fi
 
 # ── ⑤ 无 sha ⇒ ERROR(2)（旧帧/共享临时帧被当证据）────────────────────────
+if want no-sha; then
+prep_ok
 D4="$TMP/no-sha"; cp -r "$D" "$D4"
 python3 - "$D4/round.json" <<'PY'
 import json, sys
@@ -140,8 +172,11 @@ run_cmd "--replay 帧无 sha ⇒ ERROR(2)" 2 "$RR" --replay "$D4" --no-judge
 NOSHA_EXIT=$LAST_CODE
 has "无 sha"
 has "结论: ERROR"
+fi
 
 # ── ⑥ 无抓取时刻 ⇒ ERROR(2)（有 sha 但不知道是不是这一轮抓的）──────────
+if want no-captured-at; then
+prep_ok
 D5="$TMP/no-captured-at"; cp -r "$D" "$D5"
 python3 - "$D5/round.json" <<'PY'
 import json, sys
@@ -154,6 +189,7 @@ run_cmd "--replay 帧无 captured_at ⇒ ERROR(2)" 2 "$RR" --replay "$D5" --no-j
 NOCAP_EXIT=$LAST_CODE
 has "无 captured_at"
 has "结论: ERROR"
+fi
 
 printf '\n────────────────\n'
 printf '用例: emit 补算/保留 + replay PASS + sha 不符/无 sha/无时刻 三例 ERROR\n'

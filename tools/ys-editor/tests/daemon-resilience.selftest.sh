@@ -24,10 +24,26 @@
 #   ③ 服务端有出声（systemd 版读 journal；手工启动版读 stderr 目标文件；都不可读则显式 skipped，
 #      不判红也不假装通过）
 #
-# 用法: bash tools/ys-editor/tests/daemon-resilience.selftest.sh
+# 用法: bash tools/ys-editor/tests/daemon-resilience.selftest.sh [--only <case>]
+#   case ∈ alive（客户端断开不熄火）| served（事后仍回包）| spoke（服务端出声）
+#   --only 是给**注入用例**（tests/inject/daemon-resilience-neg.sh）用的：本套件每跑一次
+#   要对 daemon 发两发断开 + 等 4s，造一次故障不必重跑三条。无参数 = 照旧跑全部（行为不变）。
 # 机读行: DAEMON-RESULT alive=<0|1> served=<0|1> spoke=<0|1|skipped> pid_before=<n> pid_after=<n> verdict=PASS|FAIL
 # 退出码: 0 全绿 / 1 有失败项（含 socket 无应答）/ 2 环境未就绪（socket 不存在或取不到对端 pid）
 set -u
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only) ONLY="${2:-}"; shift 2 ;;
+    *) echo "DAEMON-SELFTEST-USAGE 未知参数 $1（可用 --only <case>）" >&2; exit 2 ;;
+  esac
+done
+want(){ [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }
+# case 名写错必须报错，不能"零用例 ⇒ 全绿"：注入用例里 typo 会变成一条永远绿的门禁
+case "$ONLY" in
+  ""|alive|served|spoke) ;;
+  *) echo "DAEMON-SELFTEST-USAGE 未知 case「$ONLY」（可用: alive|served|spoke）" >&2; exit 3 ;;
+esac
 SOCK="${YS_LOOKD_SOCK:-/run/user/$(id -u)/ys-lookd.sock}"
 declare -i TOTAL=0 PASS=0 FAIL=0
 
@@ -68,7 +84,9 @@ try:
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.settimeout(float(__import__("os").environ.get("YS_LOOKD_PROBE_TIMEOUT", "8")))
     s.connect(sock)
-    s.sendall((json.dumps({"cmd": "px", "x": 100, "y": 100}) + "\n").encode())
+    # 2026-10-22：探针从 cmd=px 改成 cmd=ping —— 本门禁守的是"客户端断开不会掀翻服务"，
+    # 与「目标窗口在不在」无关。用 px 会让"原神关掉"被误读成"守护卡死"（实测 alive=0）。
+    s.sendall((json.dumps({"cmd": "ping"}) + "\n").encode())
     data = b""
     while not data.endswith(b"\n"):
         ch = s.recv(4096)
@@ -77,8 +95,8 @@ try:
         data += ch
     s.close()
     r = json.loads(data.decode())
-    if "v" in r:
-        print("ok %s" % r["v"])
+    if r.get("ok") or "v" in r:
+        print("ok %s" % (r.get("pid") or r.get("v")))
         sys.exit(0)
     sys.exit(1)
 except Exception as e:                                  # noqa: BLE001
@@ -155,15 +173,18 @@ PY
 sleep 3
 PID_AFTER="$(peer_pid || true)"
 alive=0
+if want alive; then
 if [ -n "$PID_AFTER" ] && [ "$PID_AFTER" = "$PID_BEFORE" ]; then
   ok "服务没被掀翻（socket 对端 pid 仍为 $PID_AFTER）"
   alive=1
 else
   bad "服务退出了（socket 对端 pid $PID_BEFORE → ${PID_AFTER:-NONE}）—— 客户端断开把常驻服务杀了"
 fi
+fi
 
 # ── 2 事后仍能正确回包 ───────────────────────────────────────────────────
 served=0
+if want served; then
 if python3 - "$SOCK" <<'PY'
 import json, socket, sys
 sock = sys.argv[1]
@@ -189,11 +210,13 @@ then
 else
   bad "断开之后回包失败 —— 服务虽活着但已不可用"
 fi
+fi
 
 # ── 3 服务端必须出声（静默吞掉 = 下一次照样不知道发生了什么）───────────────
 # systemd 版读 journal；手工 setsid 版读该进程 stderr 指向的文件；都没有则显式 skipped。
 # ⚠️ 窗口必须只覆盖**本次运行**（MARK 在断开之前取），否则会命中上一次运行的日志 ⇒ 假绿。
 spoke=skipped
+if want spoke; then
 if command -v journalctl >/dev/null 2>&1 && systemctl --user is-active --quiet ys-lookd.service; then
   if journalctl --user -u ys-lookd --since "$MARK" --no-pager 2>/dev/null | grep -q '客户端提前断开'; then
     ok "服务端出声了（journal，$MARK 之后含「客户端提前断开」）"; spoke=1
@@ -211,6 +234,7 @@ else
   else
     echo "  · spoke=skipped：非 systemd 启动且 stderr 目标不可读（${ERRFILE:-unknown}）—— 不判红、不假装通过"
   fi
+fi
 fi
 
 VERDICT=PASS

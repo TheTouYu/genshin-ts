@@ -18,8 +18,11 @@
 #     DISPLAY=:99 指向不存在的显示、YS_SLOT_ACTIVE=1 禁止进槽 ⇒ 真碰桌面会当场失败；
 #   · 每轮结束断言 ydotool 日志：离线用例**一条注入都没有**（不是"应该没点"，是没调用）。
 #
-# 用法: bash tools/ys-editor/tests/resolve-click.selftest.sh [-v]
-# 退出码: 0 全绿 / 1 有失败项 / 2 环境不全（缺帧/缺 venv ⇒ 明说，不静默跳过）
+# 用法: bash tools/ys-editor/tests/resolve-click.selftest.sh [-v] [--only <case>]
+#   case ∈ d1 | d2 | d3 | d4 | f | u（默认无参数 = 全跑）
+#   --only 是给**注入用例**用的（tests/inject/resolve-click-neg.sh）：造一次故障只需要跑
+#   受影响的那些断言，不必重跑整份套件；不带 --only 时行为与输出逐字节不变。
+# 退出码: 0 全绿 / 1 有失败项 / 2 环境不全或用法错（缺帧/缺 venv/未知参数 ⇒ 明说，不静默跳过）
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -30,7 +33,17 @@ A="$YS/calib/regress/live-savelist-20261017.png"
 B="$HERE/fixtures/savelist-orderB.png"
 TMP="$(mktemp -d /tmp/resolve-click.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
-VERBOSE=0; [ "${1:-}" = "-v" ] && VERBOSE=1
+VERBOSE=0; ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -v) VERBOSE=1; shift ;;
+    --only) ONLY="${2:-}"; shift 2 ;;
+    *) echo "用法: $0 [-v] [--only d1|d2|d3|d4|f|u]" >&2; exit 2 ;;
+  esac
+done
+# 用例分段（--only 用）：默认 ONLY 为空 ⇒ want 恒真 ⇒ 全部按原顺序跑
+case "$ONLY" in ''|d1|d2|d3|d4|f|u) ;; *) echo "--only 未知用例「$ONLY」（可选 d1 d2 d3 d4 f u）" >&2; exit 2 ;; esac
+want() { [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }
 PASS=0; FAIL=0; EMPTY=0   # EMPTY=子进程空 stdout 次数（环境/负载，不是回归）
 # jf 几乎都在 $(...) 子 shell 里调用 ⇒ 变量加不上父进程，改用**文件计数**（2026-10-21 自己踩到：
 # 先写成 EMPTY=$((EMPTY+1))，注入用例跑出 rc=1「被当成回归」，真因就是子 shell 丢计数）。
@@ -144,6 +157,7 @@ mk_stubs
 
 echo "══ resolve-click ══"
 
+if want d1; then
 echo "[D1] 同一标签、两种布局 → 坐标不同、matched_text 相同"
 try 0 "A 帧解析「输入探针v2」" -- "$CLICK" --text 输入探针v2 --frame "$A"
 XA="$(jf "$OUT" x)"; YA="$(jf "$OUT" y)"; MA="$(jf "$OUT" matched_text)"
@@ -158,7 +172,9 @@ expect_no_inject "$INJ"
 if [ "$XA" != "$XB" ] && [ "$MA" = "$MB" ]; then
   ok "同名字在两种布局下换了坐标（A=($XA,$YA) B=($XB,$YB)），身份一致"
 else bad "同名字应解析到不同坐标" "A=($XA,$YA) B=($XB,$YB) match=$MA/$MB"; fi
+fi
 
+if want d2; then
 echo "[D2] 身份 vs 坐标：同一物理点在两帧上属于不同对象"
 try 0 "A 帧：「输入探针v2」的【编辑】" -- "$CLICK" --anchor 输入探针v2 --offset 241,195 --frame "$A"
 EXA="$(jf "$OUT" x)"; EYA="$(jf "$OUT" y)"; EMA="$(jf "$OUT" matched_text)"
@@ -174,7 +190,9 @@ if [ "$_dx" -le 4 ] && [ "$_dy" -le 4 ] && [ "$EMA" != "$EMB" ]; then
   ok "同一坐标 (1681,387) 两帧上属于不同对象（$EMA / $EMB）——坐标不携带身份"
 else bad "身份/坐标解耦判据不成立" "A=($EXA,$EYA,$EMA) B=($EXB,$EYB,$EMB)"; fi
 expect_no_inject "$INJ"
+fi
 
+if want d3; then
 echo "[D3] 回读断言能抓住「点错对象」（用户 2026-10-17 当场发现的错法）"
 try 5 "A 帧解析点 + B 帧观测 → 断言不符" -- \
   "$CLICK" --text 输入探针v2 --frame "$A" --after-frame "$B" --assert-name 输入探针v2 --assert-pad 300
@@ -182,7 +200,9 @@ expect_has "诊断行" "$ERR" "ASSERT-FALSE"
 expect_has "打印期望" "$ERR" '期望="输入探针v2"'
 expect_has "打印实测（该位置实际是另一张存档）" "$ERR" "未分类页签_存档_1"
 expect_no_inject "$INJ"
+fi
 
+if want d4; then
 echo "[D4] 回读断言通过 / 弱断言 / 严格断言"
 try 0 "B 帧解析 + B 帧观测 → 断言通过" -- \
   "$CLICK" --text 未分类页签_存档_1 --frame "$B" --after-frame "$B" --assert-name 未分类页签_存档_1 --assert-pad 300
@@ -193,7 +213,9 @@ try 5 "--assert-strict：点前已有 ⇒ 不能证明状态变化" -- \
   --assert-pad 300 --assert-strict
 expect_has "严格断言诊断" "$ERR" "ASSERT-FALSE"
 expect_no_inject "$INJ"
+fi
 
+if want f; then
 echo "[F] 三种失败各有退出码与诊断行"
 try 4 "解析不到（候选=0）" -- "$CLICK" --text 不存在的存档名 --frame "$A"
 expect_has "诊断行" "$ERR" "候选=0"
@@ -221,7 +243,9 @@ expect_eq "matched_text" "$(jf "$OUT" matched_text)" "新建存档"
 expect_eq "target.role" "$(jf "$OUT" target.role)" "button"
 try 2 "坏 target JSON" -- "$CLICK" --target '{"role":' --frame "$B"
 expect_no_inject "$INJ"
+fi
 
+if want u; then
 echo "[U] 旧坐标用法行为不变（PATH 桩跑真循环：位置读回 + 相对移动 + 点击）"
 legacy 0 "① 闭环命中并点击" "0 0" 1681 387
 expect_has "命中行" "$OUT" "→ 已点击（第"
@@ -242,6 +266,7 @@ if has "$INJ" "click"; then bad "未命中却发生了点击" "$INJ"; else ok "�
 OUT="$(OFF "$CLICK" 2>"$TMP/err")"; RC=$?; ERR="$(cat "$TMP/err")"
 if [ "$RC" = 1 ]; then ok "④ 缺参数 → 1（与改动前一致）"; else bad "缺参数退出码变了" "rc=$RC"; fi
 expect_has "用法行与改动前一致" "$ERR" "用法: ys-pointer-click <x> <y> [tol] [ratio]"
+fi
 
 echo "────────────────────────────────"
 EMPTY=$(wc -l < "$EMPTY_LOG" 2>/dev/null || echo 0); EMPTY=${EMPTY:-0}

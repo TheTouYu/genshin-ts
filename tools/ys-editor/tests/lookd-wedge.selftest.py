@@ -96,7 +96,10 @@ def main():
     silent.connect(SOCK)
     t0 = time.time()
     out, dt = rpc({"cmd": "ping"}, timeout=RECV_T + 8)
-    alive_ok = isinstance(out, dict) and "error" in out and out.get("error") == "unknown cmd"
+    # 2026-10-22：daemon 现在有真正的 `cmd=ping`（回 {"ok":true,...}）。此处原先靠
+    # 「ping 回 unknown cmd 说明服务在应答」来判断存活——那是把**偶然细节**当判据，
+    # 一旦真加了 ping 命令就假红。两种形态都算活着（兼容旧服务）。
+    alive_ok = isinstance(out, dict) and (out.get("ok") is True or out.get("error") == "unknown cmd")
     say("T1", alive_ok and dt <= RECV_T + 4,
         "静默客户端在场时 ping 仍被服务 dt=%.1fs（上界 %.0fs）resp=%s" % (dt, RECV_T + 4, out))
     silent.close()
@@ -109,7 +112,7 @@ def main():
 
     # T3 两次故障之后服务仍活着
     out3, dt3 = rpc({"cmd": "ping"}, timeout=8)
-    ok3 = isinstance(out3, dict) and out3.get("error") == "unknown cmd"
+    ok3 = isinstance(out3, dict) and (out3.get("ok") is True or out3.get("error") == "unknown cmd")
     say("T3", ok3, "故障后服务存活 dt=%.1fs resp=%s" % (dt3, out3))
 
     proc.kill()

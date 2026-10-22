@@ -5,8 +5,11 @@
 # 每条断言失败都打印「期望 vs 实测」，不吞诊断；机读行为最后一行：
 #   SCREEN-RESULT frames=<n> assert=<n> pass=<n> verdict=PASS|FAIL
 #
-# 用法：bash tools/ys-editor/tests/screen-digest.selftest.sh
-# 退出码：0 = 全 PASS / 1 = 有断言失败 / 2 = 环境缺件（帧或工具不存在）
+# 用法：bash tools/ys-editor/tests/screen-digest.selftest.sh [--only <case>]
+#   case ∈ button | occlusion | savelist（默认无参数 = 四帧全跑）
+#   --only 是给**注入用例**用的（tests/inject/screen-digest-neg.sh）：造一次故障只需分析
+#   受影响的帧，不必把四帧全跑一遍；不带 --only 时行为与输出**逐字节不变**。
+# 退出码：0 = 全 PASS / 1 = 有断言失败 / 2 = 环境缺件（帧或工具不存在）或用法错
 set -uo pipefail
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -22,7 +25,20 @@ export YS_FIND_CACHE_DIR="$TMP/ocr-cache"
 
 # 四帧：前三帧是三个界面态；第四帧是**同一颗按钮的另一种内部样式**（改名前后），
 # 专门锁"换帧就检不出"这条回归（2026-10-17 实测过）。
-FRAMES=("menu-esc-云阶" "menu-esc-pre-rename" "editor-dxvk-occluded" "savelist-orderB")
+ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only) ONLY="${2:-}"; shift 2 ;;
+    *) echo "用法: $0 [--only button|occlusion|savelist]" >&2; exit 2 ;;
+  esac
+done
+case "$ONLY" in
+  "")        FRAMES=("menu-esc-云阶" "menu-esc-pre-rename" "editor-dxvk-occluded" "savelist-orderB") ;;
+  button)    FRAMES=("menu-esc-云阶" "menu-esc-pre-rename") ;;
+  occlusion) FRAMES=("editor-dxvk-occluded") ;;
+  savelist)  FRAMES=("savelist-orderB") ;;
+  *) echo "--only 未知用例「$ONLY」（可选 button occlusion savelist）" >&2; exit 2 ;;
+esac
 
 [ -x "$YS" ] || { echo "FAIL 前置：$YS 不存在或不可执行（期望：可执行文件；实测：缺失）" >&2; exit 2; }
 [ -d "$FIX" ] || { echo "FAIL 前置：fixtures 目录缺失 $FIX" >&2; exit 2; }
@@ -79,13 +95,14 @@ echo "   计时见末尾 TIME 行（cold=首次含 OCR 子进程；warm=同帧�
 
 # 断言全部在 python 里做（JSON 判据写一处），输出机读行给 shell 计数
 CHECK_OUT="$TMP/checks.txt"
-python3 - "$TMP" "${FRAMES[@]}" <<'PY' >"$CHECK_OUT"
+python3 - "$TMP" "$ONLY" "${FRAMES[@]}" <<'PY' >"$CHECK_OUT"
 import json
 import os
 import sys
 
 tmp = sys.argv[1]
-FRAMES = sys.argv[2:]
+CASE = sys.argv[2]          # "" = 全跑；否则只跑该用例的断言（--only）
+FRAMES = sys.argv[3:]
 SEP = '\x1f'
 ANCHOR = (518, 86)          # 铅笔圆钮实测中心（两帧一致；任务书写的 (523,96) 是没测就写的）
 PROBE = (0, 0, 400, 120)    # 任务书给的左上角遮挡探针区
@@ -184,88 +201,91 @@ def check_button(frame):
         bad('digest-mentions-circle/' + frame, 'digest 含 %s' % mark, digest[:160])
 
 
-# ---- 帧 1/2：改名后（内部"白框+铅笔"）与改名前的同一颗圆钮，两种内部样式都必须报 -------
-check_button('menu-esc-云阶')
-check_button('menu-esc-pre-rename')
+if CASE in ('', 'button'):
+    # ---- 帧 1/2：改名后（内部"白框+铅笔"）与改名前的同一颗圆钮，两种内部样式都必须报 -------
+    check_button('menu-esc-云阶')
+    check_button('menu-esc-pre-rename')
 
-# 新帧标题必须是「云阶」（2026-10-17 Lead 换的真帧；旧帧叫「未分类页签_存档_1」）
-d, err = load('menu-esc-云阶')
-if not err:
-    title = (d.get('title') or {}).get('text') or ''
-    if '云阶' in title:
-        ok('f1-title-is-云阶', 'title=%r' % title)
-    else:
-        bad('f1-title-is-云阶', '标题含「云阶」', 'title=%r' % title)
+    # 新帧标题必须是「云阶」（2026-10-17 Lead 换的真帧；旧帧叫「未分类页签_存档_1」）
+    d, err = load('menu-esc-云阶')
+    if not err:
+        title = (d.get('title') or {}).get('text') or ''
+        if '云阶' in title:
+            ok('f1-title-is-云阶', 'title=%r' % title)
+        else:
+            bad('f1-title-is-云阶', '标题含「云阶」', 'title=%r' % title)
 
-# ---- 帧 3：遮挡（半透明 DXVK 叠加层）必须报，且带数值依据 ---------------------------
-d, err = load('editor-dxvk-occluded')
-if err:
-    bad('json/editor-dxvk-occluded', '可解析 JSON', err)
-else:
-    pa = (PROBE[2] - PROBE[0]) * (PROBE[3] - PROBE[1])
-    best, bestc = None, -1.0
-    for o in d['occlusion']:
-        b = o['bbox']
-        ix = max(0, min(b[2], PROBE[2]) - max(b[0], PROBE[0]))
-        iy = max(0, min(b[3], PROBE[3]) - max(b[1], PROBE[1]))
-        cover = ix * iy / float(pa)
-        if cover > bestc:
-            best, bestc = o, cover
-    if best is None:
-        bad('occlusion-top-left', '存在落在左上角 (0,0)-(400,120) 的遮挡条目', 'occlusion 为空')
+if CASE in ('', 'occlusion'):
+    # ---- 帧 3：遮挡（半透明 DXVK 叠加层）必须报，且带数值依据 ---------------------------
+    d, err = load('editor-dxvk-occluded')
+    if err:
+        bad('json/editor-dxvk-occluded', '可解析 JSON', err)
     else:
-        b = best['bbox']
-        corners_ok = b[0] <= 40 and b[1] <= 40
-        # 重叠阈值 0.25 → 0.20（2026-10-18 标定）：判定「左上角有没有遮挡块」靠 corners_ok，
-        # 重叠率只是**松紧参考**。换 OCR 引擎（RapidOCR 2.x→3.10）后检测框由 6 框变
-        # [0,4,111,103]（更紧），重叠率 23%。bbox 仍含左上角、conf 0.90、digest 描述准确
-        # ⇒ 结论没变，是阈值对引擎版本过敏。0.20 仍能挡住"遮挡块飘在别处"的假阳性。
-        if corners_ok and bestc >= 0.20:
-            ok('occlusion-top-left', 'bbox=%s 与探针重叠 %.0f%%，conf=%.2f' % (
-                b, bestc * 100, best['confidence']))
+        pa = (PROBE[2] - PROBE[0]) * (PROBE[3] - PROBE[1])
+        best, bestc = None, -1.0
+        for o in d['occlusion']:
+            b = o['bbox']
+            ix = max(0, min(b[2], PROBE[2]) - max(b[0], PROBE[0]))
+            iy = max(0, min(b[3], PROBE[3]) - max(b[1], PROBE[1]))
+            cover = ix * iy / float(pa)
+            if cover > bestc:
+                best, bestc = o, cover
+        if best is None:
+            bad('occlusion-top-left', '存在落在左上角 (0,0)-(400,120) 的遮挡条目', 'occlusion 为空')
         else:
-            bad('occlusion-top-left', 'bbox 含左上角(≤40,≤40) 且与探针重叠 ≥20%',
-                'bbox=%s 含角=%s 重叠=%.0f%%' % (b, corners_ok, bestc * 100))
-        ev = best.get('evidence') or {}
-        cues = []
-        if 6 <= float(ev.get('bg_mean') or -1) <= 210:
-            cues.append('非纯黑 L=%.0f' % float(ev['bg_mean']))
-        if float(ev.get('bg_std') or 999) <= 22:
-            cues.append('低方差 std=%.1f' % float(ev['bg_std']))
-        if float(ev.get('texture_ratio') or 9) <= 0.55:
-            cues.append('纹理对比骤降 %.2f×' % float(ev['texture_ratio']))
-        if int(ev.get('n_texts') or 0) >= 2:
-            cues.append('自带小字 %d 框' % int(ev['n_texts']))
-        if len(cues) >= 2:
-            ok('occlusion-evidence', '；'.join(cues))
-        else:
-            bad('occlusion-evidence', '≥2 条数值依据（非纯黑/低方差/纹理骤降/小字）',
-                '；'.join(cues) or '无')
-        if '遮挡' in (d.get('digest') or ''):
-            ok('digest-mentions-occlusion', 'digest 有遮挡行')
-        else:
-            bad('digest-mentions-occlusion', 'digest 含"遮挡"', (d.get('digest') or '')[:160])
+            b = best['bbox']
+            corners_ok = b[0] <= 40 and b[1] <= 40
+            # 重叠阈值 0.25 → 0.20（2026-10-18 标定）：判定「左上角有没有遮挡块」靠 corners_ok，
+            # 重叠率只是**松紧参考**。换 OCR 引擎（RapidOCR 2.x→3.10）后检测框由 6 框变
+            # [0,4,111,103]（更紧），重叠率 23%。bbox 仍含左上角、conf 0.90、digest 描述准确
+            # ⇒ 结论没变，是阈值对引擎版本过敏。0.20 仍能挡住"遮挡块飘在别处"的假阳性。
+            if corners_ok and bestc >= 0.20:
+                ok('occlusion-top-left', 'bbox=%s 与探针重叠 %.0f%%，conf=%.2f' % (
+                    b, bestc * 100, best['confidence']))
+            else:
+                bad('occlusion-top-left', 'bbox 含左上角(≤40,≤40) 且与探针重叠 ≥20%',
+                    'bbox=%s 含角=%s 重叠=%.0f%%' % (b, corners_ok, bestc * 100))
+            ev = best.get('evidence') or {}
+            cues = []
+            if 6 <= float(ev.get('bg_mean') or -1) <= 210:
+                cues.append('非纯黑 L=%.0f' % float(ev['bg_mean']))
+            if float(ev.get('bg_std') or 999) <= 22:
+                cues.append('低方差 std=%.1f' % float(ev['bg_std']))
+            if float(ev.get('texture_ratio') or 9) <= 0.55:
+                cues.append('纹理对比骤降 %.2f×' % float(ev['texture_ratio']))
+            if int(ev.get('n_texts') or 0) >= 2:
+                cues.append('自带小字 %d 框' % int(ev['n_texts']))
+            if len(cues) >= 2:
+                ok('occlusion-evidence', '；'.join(cues))
+            else:
+                bad('occlusion-evidence', '≥2 条数值依据（非纯黑/低方差/纹理骤降/小字）',
+                    '；'.join(cues) or '无')
+            if '遮挡' in (d.get('digest') or ''):
+                ok('digest-mentions-occlusion', 'digest 有遮挡行')
+            else:
+                bad('digest-mentions-occlusion', 'digest 含"遮挡"', (d.get('digest') or '')[:160])
 
-# ---- 帧 4：≥5 个卡片名 + ≥3 条「卡片名 → 该列按钮」邻接 -----------------------------
-d, err = load('savelist-orderB')
-if err:
-    bad('json/savelist-orderB', '可解析 JSON', err)
-else:
-    cards = [t for t in d['text'] if t.get('kind') == 'content']
-    names = [t['text'] for t in cards]
-    if len(cards) >= 5:
-        ok('card-names', '%d 个：%s' % (len(cards), ' / '.join(names[:7])))
+if CASE in ('', 'savelist'):
+    # ---- 帧 4：≥5 个卡片名 + ≥3 条「卡片名 → 该列按钮」邻接 -----------------------------
+    d, err = load('savelist-orderB')
+    if err:
+        bad('json/savelist-orderB', '可解析 JSON', err)
     else:
-        bad('card-names', '≥5 个 kind=content 的卡片名', '%d 个：%s' % (len(cards), names))
-    card_set = set(names)
-    actions = [a for a in d['adjacency']
-               if a['text'] in card_set and (a.get('label') or '').startswith(('编辑', '保存', '另存为'))]
-    if len(actions) >= 3:
-        ok('card->button', '%d 条：%s' % (len(actions), '；'.join(
-            '%s→%s(%s,%dpx)' % (a['text'], a['target'], a['dir'], a['gap_px']) for a in actions[:4])))
-    else:
-        bad('card->button', '≥3 条 卡片名 → 编辑/保存 邻接',
-            '%d 条：%s' % (len(actions), [(a['text'], a.get('label')) for a in d['adjacency']][:8]))
+        cards = [t for t in d['text'] if t.get('kind') == 'content']
+        names = [t['text'] for t in cards]
+        if len(cards) >= 5:
+            ok('card-names', '%d 个：%s' % (len(cards), ' / '.join(names[:7])))
+        else:
+            bad('card-names', '≥5 个 kind=content 的卡片名', '%d 个：%s' % (len(cards), names))
+        card_set = set(names)
+        actions = [a for a in d['adjacency']
+                   if a['text'] in card_set and (a.get('label') or '').startswith(('编辑', '保存', '另存为'))]
+        if len(actions) >= 3:
+            ok('card->button', '%d 条：%s' % (len(actions), '；'.join(
+                '%s→%s(%s,%dpx)' % (a['text'], a['target'], a['dir'], a['gap_px']) for a in actions[:4])))
+        else:
+            bad('card->button', '≥3 条 卡片名 → 编辑/保存 邻接',
+                '%d 条：%s' % (len(actions), [(a['text'], a.get('label')) for a in d['adjacency']][:8]))
 
 # ---- 每帧 digest ≤10 行 --------------------------------------------------------------
 short, tall = [], []

@@ -1703,8 +1703,18 @@ def _capture_frame_via_ys_capture(allow_background=False):
     out = "/dev/shm/ys-lookd-frame-%d.bmp" % os.getpid()
     cmd = [os.path.join(here, "ys-capture"), "latest", "--out", out, "--format", "bmp",
            "--allow-background"]
-    p = _sp.run(cmd, capture_output=True, text=True, timeout=20,
-                env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY") or ":1"))
+    p = None
+    # 2026-10-22：timeout 20s → 4s。健康抓帧 13ms，4s 已宽到离谱；而 20s 的代价是
+    # **单线程服务被钉死**——实测原神退出后一次 world 请求在这里阻塞，随后 ping 也排不上队：
+    # worldsvc-selftest 30s→133s、daemon-resilience 直接 alive=0（仪器"活着但不说话"）。
+    # 失败要快、要能回退，别让"没有目标窗口"升级成"整台感知服务卡住"。
+    try:
+        p = _sp.run(cmd, capture_output=True, text=True, timeout=4,
+                    env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY") or ":1"))
+    except _sp.TimeoutExpired:
+        raise WorldAttribError({"verdict": "CAPTURE_TIMEOUT",
+                                "detail": "ys-capture 4s 未返回（目标窗口不存在时常发）",
+                                "rc": 124, "src": "ys-capture"})
     try:
         meta = json.loads((p.stdout or "").strip().splitlines()[-1]) if p.stdout.strip() else {}
     except ValueError:
@@ -2460,6 +2470,11 @@ def handle(req):
     if cmd == "_sleep" and os.environ.get("YS_LOOKD_TEST_HOOKS") == "1":
         time.sleep(float(req.get("ms", 1000)) / 1000.0)
         return {"slept_ms": req.get("ms")}
+    if cmd == "ping":
+        # 2026-10-22：只证"对象活着并会回包"，**不抓帧、不依赖目标窗口**。
+        # 由来：daemon-resilience 门禁原来用 cmd=px 当健康探针，于是"原神关掉"会被读成
+        # "守护卡死"（alive=0）——门禁把「游戏在跑」跟「服务健康」搅成同一个判据。
+        return {"ok": True, "pid": os.getpid(), "win": YL.WIN}
     if cmd == "px":
         x, y = int(req["x"]), int(req["y"])
         p = YL.grab(x, y, 1, 1)[0, 0] * 255
