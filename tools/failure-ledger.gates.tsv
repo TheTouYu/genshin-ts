@@ -49,3 +49,4 @@ worldsvc-selftest	python3 .scratch/gui-service/selftest.py	感知层服务三动
 handback-noop	python3 tools/ys-editor/tests/handback-noop.selftest.py	交还/归还时目标已是活动窗必须零窗口操作（attempts==0、零 raise）：用 YS_KWIN_JS_FIXTURE 喂 KWin 权威状态，全离线不碰屏幕（覆盖 F-20261021-55「说完成了却还有提示音」）	fast	
 ocr-channel	python3 tools/ys-editor/tests/ocr-channel.selftest.py	ys_ocr 通道选择（4 断言：有服务走 daemon 且文字来自服务 / 服务报错回退本地 / 显存余量不足直走 CPU 并说明原因 / 无 socket 走本地）	fast	
 env-single-source	python3 tools/ys-editor/tests/env-single-source-scan.py	X11 会话环境解析「单一源」严格门禁：扫描 tools/ys-editor + tools 顶层，执行 xdotool/ydotool 却未引用统一入口（bash . ys-env.sh / python import ys_env）⇒ 红；无 EXEMPT/NOTE 通道。注释、文档串、纯查表、re.* 判据模式不算；提示语里 source 一句不算。治 3 周内 4 次各自修同一根因（bf11dfa6/4431b48c/26b2a96e/4946d448）	fast	
+no-dead-window-id	bash tools/ys-editor/tests/no-dead-window-id.selftest.sh	窗口 id 唯一入口：生产工具里不许出现 7-8 位十六进制窗口 id 字面量（注释/docstring/noqa: phantom-id 不算；tests/、二进制、.c、*.bak 不扫）。治 2026-10-21 连踩三次（ESC 发不出/抓图空/守护空转）；扫描 tools/ys-editor 生产工具，无文件级豁免	fast	

@@ -72,3 +72,6 @@ subprocess.run(["ydotool", "key", "1:1"], env=ys_env.env(YS_SLOT_ACTIVE="1"))
   `re.*` 判据模式不算；只在提示语里 `source …/ys-env.sh` 不算引用。
 - 环境变量（`DISPLAY` / `XAUTHORITY` / `YDOTOOL_SOCKET`）不要在工具里写死：socket 路径也别写
   `/run/user/1000/…`（换 uid / 换机就错），一律由入口提供。
+- **窗口 id 同理只有一处实现**：`ys_win.py`（python: `import ys_win; ys_win.resolve()` /
+  `ys_win.resolve_editor()`；bash: `"$(ys-win-id)"`）。不要在工具里写死任何窗口 id 或回退旧 id——
+  解析不到就报错退出（fail-closed）。门禁 `no-dead-window-id` 会扫（判据：7-8 位十六进制 id 字面量）。
