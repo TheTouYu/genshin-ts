@@ -67,8 +67,12 @@ def _free_vram_mib():
         return None
 
 
-def _daemon_ocr(image, timeout=None):
-    """向常驻服务要一次 OCR（单一 CUDA context）。任何失败返回 None ⇒ 调用方回退本地。"""
+def _daemon_ocr(image, timeout=None, extra=None):
+    """向常驻服务要一次 OCR（单一 CUDA context）。任何失败返回 None ⇒ 调用方回退本地。
+
+    `extra` 是透传给服务的实验/排障参数（cache/pipeline/use_cls/det_max/region）：
+    A/B 必须只改被测开关、其余全同，否则读数不可比。
+    """
     if os.environ.get('YS_OCR_LOCAL') == '1':
         return None
     import socket
@@ -79,7 +83,9 @@ def _daemon_ocr(image, timeout=None):
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.settimeout(timeout)
         s.connect(LOOKD_SOCK)
-        s.sendall((json.dumps({'cmd': 'ocr', 'frame': os.path.abspath(image)}) + '\n').encode())
+        req = {'cmd': 'ocr', 'frame': os.path.abspath(image)}
+        req.update(extra or {})
+        s.sendall((json.dumps(req) + '\n').encode())
         buf = b''
         while not buf.endswith(b'\n'):
             chunk = s.recv(1 << 20)
@@ -235,11 +241,31 @@ def cmd_ocr(a):
     fb = _FALLBACK
     engine = 'cuda' if _GPU_STATE is True else 'cpu'
 
-    resp = _daemon_ocr(a.image)
+    timing = None
+    cached = None
+    pipeline = None
+    extra = {}
+    if a.no_cache:
+        extra['cache'] = False
+    if a.pipeline:
+        extra['pipeline'] = a.pipeline
+    if a.use_cls is not None:
+        extra['use_cls'] = bool(a.use_cls)
+    if a.det_max:
+        extra['det_max'] = int(a.det_max)
+    if a.region:
+        extra['region'] = [int(v) for v in a.region]
+    resp = _daemon_ocr(a.image, extra=extra)
     if resp is not None:
         boxes = [dict(b) for b in resp['boxes'] if isinstance(b, dict)]
         n_total = int(resp.get('n_total') or len(boxes))
-        via, engine, gt_note, fb = 'daemon', 'daemon', None, None
+        # 常驻服务如实报**它自己的引擎**（cuda/cpu）。以前这里写死 'daemon'，
+        # 于是"守护其实掉到 CPU 了"在回执里看不出来——显存预检把守护切成 CPU 时，
+        # 客户端只会看到 via=daemon、一切正常，延迟却是 3 倍。老版本守护没这个字段 ⇒ 回退 'daemon'。
+        via, engine, gt_note, fb = 'daemon', (resp.get('engine') or 'daemon'), None, None
+        timing = resp.get('timing')
+        cached = resp.get('cached')
+        pipeline = resp.get('pipeline')
     else:
         items = _infer(a.image, verbose=True)
         n_total = len(items)
@@ -258,7 +284,9 @@ def cmd_ocr(a):
     ms = int((time.time() - t0) * 1000)
     out = {'channel': 'text', 'image': os.path.abspath(a.image), 'boxes': boxes, 'ms': ms,
            'n_total': n_total, 'engine': engine, 'via': via,
-           'gpu_note': gt_note, 'fallback': fb}
+           'gpu_note': gt_note, 'fallback': fb,
+           # 分阶段读数/缓存命中：没有它就只能看到"总 ms"，看不出是解码、det 还是 rec 慢
+           'timing': timing, 'cached': cached, 'pipeline': pipeline}
     print(json.dumps(out, ensure_ascii=False) if a.json else
           '\n'.join('%-8s (%d,%d) %.2f' % (b['text'], b['cx'], b['cy'], b['score']) for b in boxes))
     return 0
@@ -306,6 +334,15 @@ def main(argv=None):
     s1.add_argument('image')
     s1.add_argument('--want', default='')
     s1.add_argument('--json', action='store_true')
+    # 性能排障/对照实验（只在走常驻服务时生效；本地引擎忽略这些）
+    s1.add_argument('--no-cache', dest='no_cache', action='store_true',
+                    help='禁用服务端帧级缓存（量"每次真推理"的耗时）')
+    s1.add_argument('--pipeline', choices=['plain', 'buckets'], default=None,
+                    help='plain=整体引擎调用；buckets=det 一次+按行宽分桶并行 rec（更快，文本可能略有差异）')
+    s1.add_argument('--use-cls', dest='use_cls', action='store_true', default=None)
+    s1.add_argument('--no-cls', dest='use_cls', action='store_false')
+    s1.add_argument('--det-max', dest='det_max', type=int, default=0)
+    s1.add_argument('--region', nargs=4, type=int, default=None, metavar=('X', 'Y', 'W', 'H'))
     s2 = sub.add_parser('match')
     s2.add_argument('image')
     s2.add_argument('tpl')

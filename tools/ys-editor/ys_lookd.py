@@ -481,6 +481,23 @@ _OCR_ENGINE = None
 _OCR_INIT_LOCK = threading.RLock()
 _UID_CACHE = {}
 _OCR_ERR = None
+# 引擎实际通道（'cuda'/'cpu'）：回执里必须如实报——热引擎 0.9s 与"以为在用 GPU"读起来一样
+_OCR_ENGINE_INFO = {'gpu': None}
+
+# ── cmd=ocr 的帧级缓存与分阶段计时（2026-10-22 性能专项）───────────────
+# 2026-10-22 实测（f06 2560×1440，daemon 热，原神在跑、GPU 855MHz）：单帧 929ms
+# （p50，12 次）——但回执只有总 ms，"花在哪"只能靠猜。这里补三件事：
+#   ① 分阶段计时（load/det/cls/rec/other）进回执；
+#   ② 按**文件身份**（abspath+mtime_ns+size）内容寻址缓存整份结果；
+#   ③ `pipeline=buckets`：det 一次 + 按行宽分桶并行 rec（省 cls，避开"宽行把整批 padding 撑大"）。
+# 注意：缓存命中不是计算变快。回执里 `cached=true` + `compute_ms` 是原始计算耗时。
+_OCR_RES_CACHE = {}                      # key -> 回执体（不含 ms/cached）
+_OCR_RES_CACHE_MAX = 32
+_OCR_RULESET = 'ocr-2026-10-22a'         # 改 OCR 预处理/输出约定必须 +1（旧缓存即失效）
+# 默认 **plain**：buckets 更快但 6 帧里 5 帧文本签名与 plain 不同（f06 少 1 框、'maxt'↔'max:'、'!'↔'！'），
+# 换管线必须显式要（`pipeline=buckets`），默认路径不许静默改识别结果。
+_OCR_PIPE = (os.environ.get('YS_LOOKD_OCR_PIPE') or 'plain').strip().lower()
+_OCR_TEXT_SCORE = 0.5                    # 与 RapidOCR 的 Global.text_score 同口径
 
 # ── 闲置释放（2026-10-20）──────────────────────────────────────────────────
 # 背景：本服务设计成"常驻摊掉冷启动"，但**从释放过**占用——实测空转 12 分钟
@@ -543,6 +560,7 @@ def _ocr_engine():
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             _OCR_ENGINE = mod._engine(verbose=True)   # 判别/GPU 开关全在 ys_ocr.py（唯一实现）
+            _OCR_ENGINE_INFO['gpu'] = 'cuda' if mod._GPU_STATE is True else 'cpu'
             print(f"[ys-lookd] OCR 引擎就绪（{'CUDA' if mod._GPU_STATE is True else 'CPU'}）", flush=True)
         except Exception as e:                        # noqa: BLE001
             _OCR_ERR = f"{type(e).__name__}: {e}"
@@ -568,6 +586,82 @@ def _ocr_array(eng, arr, offset):
                     'score': round(sc, 4),
                     'box': [[int(p[0] + ox), int(p[1] + oy)] for p in box]})
     return out
+
+
+def _ocr_read_rgb(path):
+    """图 → RGB uint8 数组。cv2 优先（PNG 解码比 PIL 快一截），失败回退 PIL。
+
+    为什么自己解码而不是把路径丢给引擎：RapidOCR 内部解码不给读数，
+    「解码占多少」就永远只能猜；自己解码后才能把 load / det / cls / rec 分开报。
+    """
+    import numpy as np
+    t0 = time.time()
+    arr = None
+    how = 'cv2'
+    try:
+        import cv2
+        bgr = cv2.imread(path, cv2.IMREAD_COLOR)
+        if bgr is not None:
+            arr = np.ascontiguousarray(bgr[..., ::-1])
+    except Exception:                                   # noqa: BLE001 —— 缺 cv2 就回退
+        arr = None
+    if arr is None:
+        how = 'pil'
+        from PIL import Image
+        arr = np.ascontiguousarray(np.asarray(Image.open(path).convert('RGB')))
+    return arr, round((time.time() - t0) * 1000, 1), how
+
+
+def _ocr_detect_rec(eng, rgb, pipeline, mod, det_max=2000, parallel=1, batch=None,
+                    rec_buckets=True, use_cls=None):
+    """一次识别，返回 ([(poly, txt, score)], timing)。
+
+    pipeline='plain'   ⇒ RapidOCR 整体调用（det + cls + rec，内部批 6，宽行撑大 padding）；
+    pipeline='buckets' ⇒ det 一次 + 按行宽分桶并行 rec（跳 cls；宽行不再拖累窄行批）。
+    两条通道的过滤口径必须一致：空文本丢弃 + score ≥ 0.5（= RapidOCR 的 Global.text_score）。
+    """
+    import numpy as np
+    t0 = time.time()
+    timing = {}
+    if pipeline == 'buckets':
+        res = _ocr_objects_core(rgb, det_max=det_max, parallel=parallel, batch=batch,
+                                cache=False, rec_buckets=rec_buckets)
+        if not res.get('error'):
+            items = []
+            for o in res.get('objects') or []:
+                txt = str(o.get('text') or '').strip()
+                sc = float(o.get('score') or 0.0)
+                poly = o.get('box') or []
+                if not txt or sc < _OCR_TEXT_SCORE or len(poly) < 3:
+                    continue
+                items.append((poly, txt, sc))
+            timing = {'pipeline': 'buckets', 'infer': round((time.time() - t0) * 1000, 1),
+                      'det': res.get('det_ms'), 'cls': 0.0, 'rec': res.get('rec_ms'),
+                      'crop': res.get('crop_ms'), 'n_det': len(res.get('objects') or []),
+                      'rec_batch': res.get('rec_batch'), 'parallel': res.get('parallel'),
+                      'free_mb': res.get('free_mb')}
+            return items, timing
+        # fail-closed：分桶通道任何异常都不许静默降级，记原样原因再走 plain
+        timing['buckets_error'] = str(res.get('error'))[:160]
+    # cls 是**共享引擎**上的开关：用完必须还原，否则一次请求会把后续调用永久改成无 cls
+    _prev_cls = getattr(eng, 'use_cls', None)
+    if use_cls is not None:
+        eng.use_cls = bool(use_cls)
+    try:
+        res = eng(np.ascontiguousarray(rgb[..., ::-1]))
+    finally:
+        if use_cls is not None and _prev_cls is not None:
+            eng.use_cls = _prev_cls
+    infer = round((time.time() - t0) * 1000, 1)
+    el = list(getattr(res, 'elapse_list', None) or [])
+    _b = getattr(res, 'boxes', None)          # ndarray：truth value 有歧义，必须显式判 None
+    timing.update({'pipeline': 'plain', 'use_cls': (use_cls if use_cls is not None else _prev_cls),
+                   'infer': infer,
+                   'det': round(el[0] * 1000, 1) if len(el) > 0 and el[0] else None,
+                   'cls': round(el[1] * 1000, 1) if len(el) > 1 and el[1] else None,
+                   'rec': round(el[2] * 1000, 1) if len(el) > 2 and el[2] else None,
+                   'n_det': (len(_b) if _b is not None else 0)})
+    return mod._normalize(res), timing
 
 
 def _ocr(req):
@@ -599,18 +693,48 @@ def _ocr(req):
         'ys_ocr_mod2', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    region = req.get("region")
+    region = [int(v) for v in req.get("region")] if req.get("region") else None
+    if not os.path.isfile(frame):
+        return {"error": f"帧不存在：{frame}", "code": "BAD_FRAME"}
+    # 管线选择：默认 plain（= 原行为，文本逐帧一致）；ROI 也默认 plain。
+    # buckets 更快但文本签名会变（6 帧里 5 帧不同，见 docs/maintenance/ocr-perf-2026-10-22.md），
+    # 必须显式 `pipeline=buckets` 才走——默认路径不许静默改识别结果。
+    pipeline = str(req.get("pipeline") or ('' if region else _OCR_PIPE) or 'plain').lower()
+    use_cache = bool(req.get("cache", True)) and os.environ.get('YS_LOOKD_OCR_CACHE', '1') != '0'
+    engine = _OCR_ENGINE_INFO.get('gpu') or 'unknown'
+    ckey = None
+    if use_cache:
+        st = os.stat(frame)
+        # 缓存身份 = 文件内容身份（mtime_ns+size，改名不改内容仍命中）+ ROI + 管线 + 规则版本
+        ckey = (os.path.abspath(frame), st.st_mtime_ns, st.st_size,
+                tuple(region) if region else None, pipeline, _OCR_RULESET, engine,
+                int(req.get('det_max') or 2000), int(req.get('parallel') or 1),
+                int(req.get('rec_batch') or 0), bool(req.get('rec_buckets', True)),
+                repr(req.get('use_cls')))
+        hit = _OCR_RES_CACHE.get(ckey)
+        if hit is not None:
+            out = dict(hit)
+            out['cached'] = True
+            out['ms'] = round((time.time() - t0) * 1000, 1)
+            out['compute_ms'] = hit.get('compute_ms')
+            return out
+    rgb, load_ms, how = _ocr_read_rgb(frame)
+    off = (0, 0)
     if region:                                     # 只裁一块再识别（省推理面积）
-        import numpy as np
-        from PIL import Image
-        x, y, w, h = map(int, region)
-        im = Image.open(frame).convert('RGB').crop((x, y, x + w, y + h))
-        # 2026-10-21 修：与 ys_ocr.py 同口径（BGR），否则小区域会多字/并字
-        items = mod._normalize(eng(np.ascontiguousarray(np.array(im)[..., ::-1])))
+        x, y, w, h = region
+        rgb = rgb[max(0, y):y + max(0, h), max(0, x):x + max(0, w)]
         off = (x, y)
-    else:
-        items = mod._normalize(eng(frame))
-        off = (0, 0)
+    det_max = int(req.get('det_max') or 2000)
+    parallel = int(req.get('parallel') or 1)
+    rec_batch = int(req.get('rec_batch') or 0) or None
+    rec_buckets = bool(req.get('rec_buckets', True))
+    use_cls = None if req.get('use_cls') is None else bool(req.get('use_cls'))
+    items, timing = _ocr_detect_rec(
+        eng, rgb, pipeline, mod, det_max=det_max, parallel=parallel,
+        batch=rec_batch, rec_buckets=rec_buckets, use_cls=use_cls)
+    timing['load'] = load_ms
+    timing['decode'] = how
+    timing['total'] = round((time.time() - t0) * 1000, 1)
     boxes = []
     for box, txt, sc in items:
         xs = [p[0] + off[0] for p in box]
@@ -619,8 +743,18 @@ def _ocr(req):
                       'cx': int(sum(xs) / len(xs)), 'cy': int(sum(ys) / len(ys)),
                       'score': round(sc, 4),
                       'box': [[int(p[0] + off[0]), int(p[1] + off[1])] for p in box]})
-    return {"boxes": boxes, "n_total": len(items),
-            "ms": round((time.time() - t0) * 1000), "via": "daemon"}
+    out = {"boxes": boxes, "n_total": len(boxes),
+           "ms": round((time.time() - t0) * 1000), "via": "daemon",
+           "engine": engine, "pipeline": timing.get('pipeline'),
+           "timing": timing, "cached": False}
+    if ckey is not None:
+        if len(_OCR_RES_CACHE) >= _OCR_RES_CACHE_MAX:
+            _OCR_RES_CACHE.pop(next(iter(_OCR_RES_CACHE)))
+        # 缓存里保留首次计算耗时（compute_ms）：命中时既要报"现在多快"（ms），
+        # 也要报"这份结果当初算了多久"（compute_ms），否则改前改后无法对账
+        _OCR_RES_CACHE[ckey] = {k: v for k, v in out.items() if k not in ('ms', 'cached')}
+        _OCR_RES_CACHE[ckey]['compute_ms'] = out['ms']
+    return out
 
 
 
@@ -796,7 +930,7 @@ def _vram_free_mb():
 
 
 def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
-                      max_objects=200, rec_buckets=False):
+                      max_objects=200, rec_buckets=False, batch=None):
     """rec_buckets=True：按行宽分桶（<320/<640/<960/更宽）分别 rec——同一桶内 padding 到
     该桶 max_wh_ratio，避免「一个 1550 宽的宽行把整批 6 个窄行都撑到 1550」（实测宽批 48ms vs 窄批 12ms）。
     输出与逐条 rec 一致（只是批分组不同），字符召回实测不变。"""
@@ -845,14 +979,20 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
         hit = _OBJ_CACHE.get(key) if cache else None
         bb = [int(b[:, 0].min()), int(b[:, 1].min()),
               int(b[:, 0].max() - b[:, 0].min()), int(b[:, 1].max() - b[:, 1].min())]
+        # det 四边形原样带出（2026-10-22）：`cmd=ocr` 的 buckets 管线要用它当 boxes[].box，
+        # 否则「按对象」与「整体 OCR」两条通道的输出形状对不上（调用方只认 polygon）。
+        poly = [[int(x), int(y)] for x, y in b.tolist()]
         if hit is not None:
-            objects[i] = {'i': i, 'bbox': bb, 'text': hit['text'], 'score': hit['score'],
-                          'cached': True}
+            objects[i] = {'i': i, 'bbox': bb, 'box': poly, 'text': hit['text'],
+                          'score': hit['score'], 'cached': True}
         else:
-            todo.append((i, key, crop, bb))
+            todo.append((i, key, crop, bb, poly))
     crop_ms = round((time.time() - t2) * 1000, 1)
     free = _vram_free_mb()
-    batch = _REC_BATCH if not (0 <= free < 300) else 4
+    # 批大小可被调用方覆盖（性能实验/ROI 小图）：太小时每次 session.run 都要付一次固定开销
+    batch = int(batch) if batch else (_REC_BATCH if not (0 <= free < 300) else 4)
+    if 0 <= free < 300:
+        batch = min(batch, 4)                         # 显存紧自动缩批（不改调用方的默认值）
     if 0 <= free < 120:
         return {"error": f"显存不足（free={free}MB <120MB），拒绝 OCR 以免 OOM",
                 "code": "VRAM_LOW", "det_ms": det_ms, "free_mb": free}
@@ -886,11 +1026,11 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
         def work(k):
             try:
                 items = jobs[k]
-                r = rec(TextRecInput(img=[c for _, _, c, _ in items], return_word_box=False))
+                r = rec(TextRecInput(img=[c for _, _, c, _, _ in items], return_word_box=False))
                 txts = list(r.txts or [])
                 scs = list(r.scores or [])
                 out[k] = [(items[j][0], items[j][1], txts[j] if j < len(txts) else '',
-                           float(scs[j]) if j < len(scs) else 0.0, items[j][3])
+                           float(scs[j]) if j < len(scs) else 0.0, items[j][3], items[j][4])
                           for j in range(len(items))]
             except Exception as e:                        # noqa: BLE001
                 errs[k] = f'{type(e).__name__}: {e}'
@@ -907,9 +1047,9 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
             if errs[k] and not got:
                 return {"error": f"rec 失败: {errs[k]}", "code": "REC_FAILED",
                         "det_ms": det_ms, "free_mb": free}
-            for (i, key, txt, sc, bb) in (got or []):
-                objects[i] = {'i': i, 'bbox': bb, 'text': txt, 'score': round(sc, 4),
-                              'cached': False}
+            for (i, key, txt, sc, bb, poly) in (got or []):
+                objects[i] = {'i': i, 'bbox': bb, 'box': poly, 'text': txt,
+                              'score': round(sc, 4), 'cached': False}
                 if cache and len(_OBJ_CACHE) < _OBJ_CACHE_MAX:
                     _OBJ_CACHE[key] = {'text': txt, 'score': round(sc, 4)}
     objects = [o for o in objects if o is not None]
@@ -946,7 +1086,8 @@ def _ocr_objects(req):
                              parallel=int(req.get("parallel") or 4),
                              cache=bool(req.get("cache", True)),
                              max_objects=int(req.get("max_objects") or 200),
-                             rec_buckets=bool(req.get("rec_buckets", False)))
+                             rec_buckets=bool(req.get("rec_buckets", False)),
+                             batch=int(req.get("rec_batch") or 0) or None)
 
 
 # ── 分块差量 OCR（2026-10-19；用户点名方向：空间换时间）────────────────────────

@@ -7,11 +7,12 @@
     上游 ys-slider / ys-brief 两个门禁恒红。
   · 同一台机器同一帧，常驻服务（引擎热）~0.5s vs 一次性进程（冷启动）~12s，**差 20 倍**。
 
-四条断言（全部离线、不碰屏幕）：
+五条断言（全部离线、不碰屏幕）：
   A1 有常驻服务 ⇒ 走 daemon（`via=daemon`，文字原样来自服务，不是本地重算）
   A2 服务回 error ⇒ 自动回退本地（`via=local`），不许把 CLI 打死
   A3 显存余量不足 ⇒ 直接 CPU（`engine=cpu` 且 `gpu_note` 说明原因），不先建 context
   A4 没有服务 socket ⇒ 走本地（负样本：别把"服务不在"误判成 daemon 成功）
+  A5 daemon 回执里的**真实引擎**（cuda/cpu）与 timing 必须透传到客户端（别写死 engine='daemon'）
 
 用法：python3 tools/ys-editor/tests/ocr-channel.selftest.py [--json]
 退出码：0 全绿 / 1 有失败。
@@ -138,6 +139,26 @@ def main(argv=None):
             bad("A1 \u670d\u52a1\u5728 \u21d2 via=daemon", "\u6ca1\u4f18\u5148\u7528\u5e38\u9a7b\u670d\u52a1",
                 "via=daemon + SENTINEL-FROM-DAEMON", json.dumps(
                     {"via": r.get("via"), "texts": texts}, ensure_ascii=False))
+    finally:
+        fd.close()
+
+    # ── A5：服务的**真实引擎**必须透传到客户端（2026-10-22 新增）
+    # 为什么：daemon 通道以前把 engine 写死成 'daemon'，于是守护因显存预检掉到 CPU 时，
+    # 客户端回执看起来一切正常、只是慢 3 倍——"静默降级"看不见。这条守住"引擎可见"。
+    fd = FakeDaemon({"boxes": [{"text": "X", "cx": 1, "cy": 1, "score": 0.9,
+                                "box": [[0, 0], [2, 0], [2, 2], [0, 2]]}],
+                     "n_total": 1, "ms": 3, "via": "daemon", "engine": "cpu",
+                     "pipeline": "plain", "cached": True,
+                     "timing": {"load": 1.0, "det": 2.0, "cls": 0.0, "rec": 3.0}})
+    try:
+        r = run_ocr(tiny, {"YS_LOOKD_SOCK": fd.path, "YS_OCR_MIN_FREE_MIB": "999999"})
+        if r.get("via") == "daemon" and r.get("engine") == "cpu" and r.get("timing"):
+            ok("A5 daemon 的真实引擎透传到客户端", "engine=cpu timing\u2713 cached=%s" % r.get("cached"))
+        else:
+            bad("A5 daemon 的真实引擎透传到客户端", "\u56de\u6267\u628a\u5f15\u64ce\u5199\u6b7b\u6210 daemon \u6216\u4e22\u4e86 timing",
+                "engine=cpu + timing \u975e\u7a7a",
+                json.dumps({"via": r.get("via"), "engine": r.get("engine"),
+                            "timing": r.get("timing")}, ensure_ascii=False))
     finally:
         fd.close()
 
