@@ -36,10 +36,14 @@ import subprocess
 import sys
 import time
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "ys-editor"))
+import ys_env  # noqa: E402
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.join(REPO, ".scratch", "gui-collect")
 SOCK = os.environ.get("YS_LOOKD_SOCK", f"/run/user/{os.getuid()}/ys-lookd.sock")
-ENV = dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":0"))
+ENV = ys_env.env()   # 环境只走统一入口（DISPLAY 空串兜底 :1 + 每会话随机的 XAUTHORITY）
 
 # —— 状态判据（与 .scratch/gui-feedback/drive.py 同源；改这里要同时改那儿，或合并）——
 YS_STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),

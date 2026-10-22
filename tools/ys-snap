@@ -29,6 +29,9 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "ys-editor"))
+import ys_env  # noqa: E402
+
 CAP_MODULE = os.path.join(HERE, "ys-editor", "ys_capture.py")
 INBOX_DEFAULT = ".scratch/gui-corpus/inbox"
 GAME_HINTS = ("yuanshen", "genshin")
@@ -179,7 +182,7 @@ SLOW_PATH_HINT = (
 def _warn_slow_path():
     import sys as _s
     try:
-        if os.path.exists("/run/user/1000/ys-lookd.sock") or os.path.exists("/tmp/ys-lookd.sock"):
+        if os.path.exists(f"/run/user/{os.getuid()}/ys-lookd.sock") or os.path.exists("/tmp/ys-lookd.sock"):
             print(SLOW_PATH_HINT, file=_s.stderr)
     except Exception:                                    # noqa: BLE001
         pass
@@ -598,6 +601,7 @@ def run_gui(display, snap, want=""):
 
 def main():
     _warn_slow_path()
+    ys_env.apply()   # 进程内 os.environ 一次到位：本工具的 xdotool 子进程全继承它
     ap = argparse.ArgumentParser()
     ap.add_argument("--display", default=os.environ.get("DISPLAY", ":1"))
     ap.add_argument("--inbox", default=INBOX_DEFAULT)

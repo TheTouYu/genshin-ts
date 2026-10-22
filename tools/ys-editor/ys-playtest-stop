@@ -2,9 +2,9 @@
 # ys-playtest-stop — 退出千星试玩（判据全部走 ys-state 的具名探针，本文件不含坐标阈值）
 # 退出码：0 已退出 / 5 未见结算页「离开」/ 4 未见暂停菜单（与旧版一致，ys-round 依赖）
 set -u
-DISPLAY="${DISPLAY:-:1}"; export DISPLAY
-YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"; export YDOTOOL_SOCKET
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# X 会话环境（DISPLAY/XAUTHORITY/YDOTOOL_SOCKET）只走统一入口
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
 WIN="${1:-${YS_WIN:?YS_WIN 未解析：先 source tools/ys-editor/ys-env.sh}}"; export YS_WIN="$WIN"
 if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then exec "$HERE/ys-gui-slot" "$WIN" 30 env YS_SLOT_ACTIVE=1 bash "$0" "$WIN"; fi
 . "$HERE/_ys-ui.sh"

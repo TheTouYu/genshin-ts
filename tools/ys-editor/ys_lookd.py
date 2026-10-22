@@ -17,6 +17,7 @@
 import json, os, socket, sys, threading, time, traceback
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ys_look as YL
+import ys_env  # noqa: E402
 
 # 判据**只有一份**：把 `ys-state` 当模块 import（它是无扩展名的可执行脚本，用 SourceFileLoader 加载）。
 # 本服务只负责「取数」（抓原始像素 + 锚点匹配），投票/阈值/状态名全在 ys-state 里。
@@ -133,7 +134,7 @@ def _full_shot():
     if _FULL.get("rgb") is not None:
         return _FULL["rgb"]
     import ys_capture as CAP
-    disp = os.environ.get("DISPLAY") or ":1"
+    disp = ys_env.resolve().display or ":1"   # 环境只走统一入口（DISPLAY 空串兜底）
     key = int(str(YL.WIN), 0) if not isinstance(YL.WIN, int) else YL.WIN
     if _XGRAB["g"] is None or _XGRAB["win"] != key:
         _XGRAB["g"] = CAP.XShmGrabber(disp, key, 2560, 1440)
@@ -196,7 +197,8 @@ def _load_frame(req):
                 import subprocess                      # 兜底：窗口真实 geometry（坐标不符由 geom 校验兜住）
                 g = dict(l.split("=") for l in subprocess.run(
                     ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
-                    capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+                    capture_output=True, text=True, env=ys_env.env()).stdout.strip().splitlines()
+                    if "=" in l)
                 X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
                 arr = YL.grab(X, Y, W, H)
         req["_origin"] = (X, Y)
@@ -1866,7 +1868,7 @@ def _capture_frame_via_ys_capture(allow_background=False):
     # 失败要快、要能回退，别让"没有目标窗口"升级成"整台感知服务卡住"。
     try:
         p = _sp.run(cmd, capture_output=True, text=True, timeout=4,
-                    env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY") or ":1"))
+                    env=ys_env.env())
     except _sp.TimeoutExpired:
         raise WorldAttribError({"verdict": "CAPTURE_TIMEOUT",
                                 "detail": "ys-capture 4s 未返回（目标窗口不存在时常发）",
@@ -2611,7 +2613,8 @@ def _grab_geo():
     import subprocess
     g = dict(l.split("=") for l in subprocess.run(
         ["xdotool", "getwindowgeometry", "--shell", YL.WIN],
-        capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+        capture_output=True, text=True, env=ys_env.env()).stdout.strip().splitlines()
+        if "=" in l)
     _GRAB_GEO["wh"] = (int(g["WIDTH"]), int(g["HEIGHT"]))
     return _GRAB_GEO["wh"]
 
@@ -2647,7 +2650,8 @@ def handle(req):
             X, Y, W, H = map(int, req["region"])
         else:
             g = dict(l.split("=") for l in subprocess.run(
-                ["xdotool", "getwindowgeometry", "--shell", YL.WIN], capture_output=True, text=True).stdout.strip().splitlines() if "=" in l)
+                ["xdotool", "getwindowgeometry", "--shell", YL.WIN], capture_output=True,
+                text=True, env=ys_env.env()).stdout.strip().splitlines() if "=" in l)
             X, Y, W, H = 0, 0, int(g["WIDTH"]), int(g["HEIGHT"])
         I = YL.grab(X, Y, W, H)
         x, y, s, backend = YL.ncc(I, T)
@@ -2767,6 +2771,9 @@ def _warm_all():
 
 def serve():
     global _last_activity
+    # 进程内 XShm/ctypes 从 os.environ 读 DISPLAY/XAUTHORITY：服务启动自愈一次
+    # （2026-10-22 重启后 XAUTHORITY 变成新文件名，守护里的旧值必须能被重新解析）
+    ys_env.apply()
     if os.path.exists(SOCK):
         os.unlink(SOCK)
     srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)

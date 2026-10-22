@@ -29,6 +29,10 @@ import subprocess
 import sys
 import time
 
+# X 会话环境解析只走统一入口（ys_env.py）；下面的裸环境探测**保持不变**（它就是要看裸环境）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ys_env  # noqa: E402
+
 T0 = time.monotonic()
 BUDGET_MS = 300
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -223,6 +227,8 @@ def cmd_audit_live(ctx, want_domain, need, as_json):
     domain = ctx["domain"]
     lines = []
     lines.append("ys-slot-check  cwd=%s  repo=%s" % (ctx["realcwd"], ctx["repo_root"]))
+    # 统一入口的结论：与上面的裸环境探测并列显示（换会话后该看哪一边，一眼可分）
+    lines.append("  环境入口 %s" % ys_env.explain())
     lines.append("  域=%s（%s）  预算=%dms" % (
         domain, "槽内 YS_SLOT_ACTIVE=1" if domain == "in_slot" else "槽外 YS_SLOT_ACTIVE 未设置",
         BUDGET_MS))

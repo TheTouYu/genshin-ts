@@ -16,7 +16,6 @@ set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 QUICK=0; [ "${1:-}" = "--quick" ] && QUICK=1
 YS_STATE="$HERE/ys-state"

@@ -51,6 +51,8 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 YS = os.path.join(HERE, 'ys-editor')
+sys.path.insert(0, YS)
+import ys_env  # noqa: E402
 OB = os.path.join(YS, 'ys-observe')
 SOCK = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
 
@@ -187,6 +189,7 @@ def scroll(direction, step, region=None, at=None):
 
 
 def main(argv=None):
+    ys_env.apply()   # 进程内 os.environ 一次到位：scroll() 的 xdotool 子进程全继承它
     ap = argparse.ArgumentParser()
     ap.add_argument('--region', default='')
     ap.add_argument('--direction', default='down', choices=('down', 'up'))

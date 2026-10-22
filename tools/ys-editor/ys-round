@@ -143,8 +143,8 @@ fi
 SLOT_MODE="acquired"
 [ "${YS_ROUND_OUTER_SLOT:-0}" = "1" ] && SLOT_MODE="inherited"
 
-export DISPLAY="${DISPLAY:-:1}"
-export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
+# X 会话环境（DISPLAY/XAUTHORITY/YDOTOOL_SOCKET）只走统一入口
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
 ROUND_ID="$(date +%m%d-%H%M%S)"
 OUT="$HOME/ys-round/$ROUND_ID"; mkdir -p "$OUT/frames"
 LOG="$OUT/run.log"

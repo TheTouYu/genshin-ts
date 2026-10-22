@@ -18,7 +18,6 @@ X="${1:?用法: ys-put <x> <y> [容差] [轮次]}"; Y="${2:?}"
 TOL="${3:-6}"; MAX="${4:-40}"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
-export YDOTOOL_SOCKET="${YDOTOOL_SOCKET:-/run/user/1000/.ydotool_socket}"
 
 loc() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x+0, y+0}'; }
 
