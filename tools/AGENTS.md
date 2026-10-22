@@ -34,3 +34,35 @@
 
 - 不要把注入、批量修改、CI/发布任务放入这里。
 - 不要把工具的成功输出写成“已在游戏内验证”。
+
+## ys-editor（GUI 注入/感知）：X 会话环境必须走唯一入口
+
+本机是 Wayland(KWin) + Xwayland `:1`，X 访问要 `XAUTHORITY=/run/user/<uid>/xauth_*`（**每会话随机文件名**）。
+同一条根因（环境解析散落在各工具里）3 周内被独立修了 4 次（`bf11dfa6`/`4431b48c`/`26b2a96e`/`4946d448`），
+所以：**凡是要碰 X 或 ydotool 的工具，环境只从统一入口取，不在调用点自己读 `os.environ`。**
+
+| 栈 | 统一入口 | 一行接入 |
+| --- | --- | --- |
+| bash | `tools/ys-editor/ys-env.sh` | `. "$HERE/ys-env.sh"` |
+| python | `tools/ys-editor/ys_env.py` | `env=ys_env.env(YS_SLOT_ACTIVE="1")` |
+
+可复制模板（新增工具时抄这两行）：
+
+```bash
+# bash：先定 HERE，再 source；之后 xdotool/ydotool/wmctrl 直接用
+HERE="$(dirname "$(readlink -f "$0")")"; . "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+```
+
+```python
+# python：子进程一律传 env=（DISPLAY 空串兜底 :1、XAUTHORITY 取最新 xauth_*、YDOTOOL_SOCKET 缺省）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ys_env
+subprocess.run(["ydotool", "key", "1:1"], env=ys_env.env(YS_SLOT_ACTIVE="1"))
+```
+
+- 进程内 X 客户端（ctypes/XShm/XQueryPointer）用 `ys_env.apply()` 写 `os.environ`；子进程只认 `env()`。
+- 诊断：`python3 tools/ys-editor/ys_env.py --json`；失败分支把 `ys_env.explain()` 拼进 stderr——
+  只回 `injected:false` 不算错误信息（4946d448 的坑）。
+- 门禁 `env-single-source`（`python3 tools/ys-editor/tests/env-single-source-scan.py`，登记在
+  `tools/failure-ledger.gates.tsv`，tier=fast）：执行 xdotool/ydotool 却未引用入口 ⇒ 红；
+  注释、文档串、纯查表不算。
