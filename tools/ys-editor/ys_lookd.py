@@ -929,6 +929,17 @@ def _vram_free_mb():
     return _VRAM_LAST['free_mb']
 
 
+def _vram_hint(det_max):
+    """显存分配失败时的可执行提示：**点名 det_max** 与上限开关（2026-10-22 显存专项）。
+
+    为什么要包一层：ORT 的原始报错是 `ONNXRuntimeError: ... Available memory ...`，
+    调用方看不出是自己传的 det_max 顶的，还是显存被别的进程吃了。
+    """
+    cap = int(os.environ.get('YS_OCR_GPU_MEM_LIMIT_MIB', '512'))
+    return (f"显存分配失败：det_max={int(det_max)}，单会话上限={cap}MiB"
+            f"（YS_OCR_GPU_MEM_LIMIT_MIB=0 可解除上限；或把 det_max 降到 ≤2400）")
+
+
 def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
                       max_objects=200, rec_buckets=False, batch=None):
     """rec_buckets=True：按行宽分桶（<320/<640/<960/更宽）分别 rec——同一桶内 padding 到
@@ -966,6 +977,8 @@ def _ocr_objects_core(arr, frame_sha=None, det_max=2000, parallel=4, cache=True,
     t1 = time.time()
     try:
         d = eng.text_det(bgr)
+    except Exception as e:                                # noqa: BLE001
+        raise RuntimeError(f"{_vram_hint(det_max)}: {type(e).__name__}: {str(e)[:200]}") from e
     finally:
         det.limit_type, det.limit_side_len = _prev
     det_ms = round((time.time() - t1) * 1000, 1)
@@ -1191,6 +1204,8 @@ def _ocr_region_bgr(bgr, rect, det, rec, det_max, batch, old_boxes=None,
     det.limit_side_len = int(det_max)
     try:
         d = det(crop)
+    except Exception as e:                                # noqa: BLE001
+        raise RuntimeError(f"{_vram_hint(det_max)}: {type(e).__name__}: {str(e)[:200]}") from e
     finally:
         det.limit_type, det.limit_side_len = _prev
     if d.boxes is None:

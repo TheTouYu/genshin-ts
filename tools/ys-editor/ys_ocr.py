@@ -53,6 +53,26 @@ _FALLBACK = None           # 回退原因（进回执，别让"降级"静默）
 LOOKD_SOCK = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
 _MIN_FREE_MIB = int(os.environ.get('YS_OCR_MIN_FREE_MIB', '900'))
 
+# ── CUDA 会话显存参数（2026-10-22 显存专项）───────────────────────────────
+# 默认 `arena_extend_strategy=kNextPowerOfTwo`：要 200MiB 就先向驱动要 256MiB 再翻倍留白。
+# 实测（3 会话 + 一次 2560×1440 全帧推理、独立进程、per-pid 读 nvidia-smi）：
+#   base 852MiB → kSameAsRequested 644MiB（−24%），28 个框的文本指纹逐字相同。
+# `gpu_mem_limit` 是**每会话硬顶**：要不到就抛错，而不是继续吃显存。
+# 实测边界：256MiB 分配失败 / 384MiB 成功（det 输入 2000×1120 的默认路径）。
+# 取 512 而不是 384：`det_max=2560/3000` 是**合法调用**（`cmd=ocr` 的 det_max 参数），
+# 512 覆盖到 det≈2400px；**512 在 det_max=3000 上会显式报错**，不是静默降级。
+# `YS_OCR_GPU_MEM_LIMIT_MIB=0` 恢复旧行为（排障/对照实验用）。
+_GPU_MEM_LIMIT_MIB = int(os.environ.get('YS_OCR_GPU_MEM_LIMIT_MIB', '512'))
+
+
+def _cuda_params():
+    """RapidOCR/ORT 的 CUDA 会话参数（引擎与显存探针共用同一份实现）。"""
+    params = {"EngineConfig.onnxruntime.use_cuda": True}
+    if _GPU_MEM_LIMIT_MIB > 0:
+        params["EngineConfig.onnxruntime.cuda_ep_cfg.arena_extend_strategy"] = "kSameAsRequested"
+        params["EngineConfig.onnxruntime.cuda_ep_cfg.gpu_mem_limit"] = _GPU_MEM_LIMIT_MIB * 2 ** 20
+    return params
+
 
 def _free_vram_mib():
     """GPU 剩余显存（MiB）；查不到返回 None（不猜、不阻止）。"""
@@ -161,13 +181,15 @@ def _engine(verbose=False):
     # 老的 venv 里叫 `rapidocr_onnxruntime`(2.x，**只有 kwargs API**)。两者的 CUDA 开关不同。
     try:
         from rapidocr import RapidOCR          # 3.x
-        _ENGINE = RapidOCR(params={"EngineConfig.onnxruntime.use_cuda": True} if ok else {})
+        _ENGINE = RapidOCR(params=_cuda_params() if ok else {})
     except ImportError:
         from rapidocr_onnxruntime import RapidOCR     # 2.x（venv）
         kw = {'det_use_cuda': True, 'cls_use_cuda': True, 'rec_use_cuda': True} if ok else {}
         _ENGINE = RapidOCR(**kw)
     if verbose:
-        sys.stderr.write(f"[ys_ocr] 引擎={'CUDA' if ok else 'CPU'}{('（' + why + '）') if why else ''}\n")
+        cap = (f"（gpu_mem_limit={_GPU_MEM_LIMIT_MIB}MiB/会话, arena=kSameAsRequested；"
+               f"验证到 det_max≈2400，det_max=3000 会显式报错）") if ok and _GPU_MEM_LIMIT_MIB > 0 else ""
+        sys.stderr.write(f"[ys_ocr] 引擎={'CUDA' if ok else 'CPU'}{('（' + why + '）') if why else ''}{cap}\n")
     return _ENGINE
 
 
