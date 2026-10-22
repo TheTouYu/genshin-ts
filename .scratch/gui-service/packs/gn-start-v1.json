@@ -1,0 +1,39 @@
+{
+  "schema": "gui.statepack/v1",
+  "pack": "gn-start-v1",
+  "desc": "原神登录门（点击进入屏）的开始态判据。用户 2026-10-22 任务的第一条断言：识别「点击进入」= 游戏开始态。",
+  "coord_space": "physical",
+  "frame_size": [2560, 1440],
+  "accept_support": 0.6,
+  "states": [
+    {
+      "id": "START",
+      "desc": "登录门：屏幕下部有「点击进入」提示行，且没有派蒙菜单标题",
+      "precedence": 10,
+      "rule": "all",
+      "predicates": [
+        {
+          "type": "text_present",
+          "region": [600, 1250, 1700, 190],
+          "texts": ["点击进入"],
+          "match": "contains",
+          "min_items": 1
+        },
+        {
+          "type": "text_absent",
+          "texts": ["冒险等阶"],
+          "match": "contains"
+        }
+      ]
+    }
+  ],
+  "evidence": {
+    "positive": "2026-10-22 16:5x 后台帧 sha256:a38cef16279f…；texts 命中「点击进入」bbox [816,1346,1104,43]（xywh），free_text 亦含该串",
+    "negative": ".scratch/gui-corpus/f06.png（派蒙菜单，state=GAME_PAIMON，texts 20 条，无「点击进入」）"
+  },
+  "notes": [
+    "区域口径 xywh、物理像素 2560×1440；换分辨率必须改 coord_space 或换包",
+    "「点击进入」的 bbox 是 OCR 实测值；region 已留边（左 216 / 右 200 / 上 96 / 下 4）",
+    "本包只断言开始态，不含 点击→加载→终态 的转移；转移写进 transitions（下一步）"
+  ]
+}
