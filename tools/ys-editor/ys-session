@@ -121,7 +121,7 @@ def cmd_begin(a):
             # 层 2（2026-10-21）：空闲释放 —— 代理思考时屏幕已在用户手上。
             # last_action_ts 由 `focus` 每次动作刷新；guard 超过 idle_ms 就交还。
             "last_action_ts": now, "holding_until": 0.0, "released": False,
-            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "3000")),
+            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "10000")),  # 2026-10-22 用户令：3s→10s
             "reacquires": 0, "actions": 0}
     if a.dry_run:
         save(sess)
@@ -143,9 +143,34 @@ def cmd_begin(a):
     # 2) 一次 kwin-state + 选目标 + raise（后续动作不再付）
     st = lease(["kwin-state"])
     prev = st.get("active") if st.get("ok") else None
-    # 交还目标优先 firefox：begin 时用户可能有个瞬时 Tk/通知窗在焦点（2026-10-21 实测
-    # prev_active=素材快收[Tk]，restore 先把 Tk 抬起来，靠 revoke 才回到 firefox）。
-    if str((prev or {}).get("class") or "").lower() != "firefox":
+    # 交还目标 = **用户发起时真正的前台窗口**（2026-10-22 用户实测纠错：他在 kitty 里发起，
+    # 交还却回到了 firefox —— 因为这里原先写着"优先 firefox"的硬回退）。
+    # 只在"prev 明显不是用户的工作窗"时才回退 firefox：类名为空、是瞬时窗（Tk 弹框/通知）、
+    # 或已最小化/几何过小。判断不了就信 prev —— 猜错也比一律换成 firefox 好。
+    def _looks_transient(w):
+        if not w:
+            return True
+        cls = str(w.get("class") or "").strip().lower()
+        cap = str(w.get("caption") or "").strip()
+        if not cls:
+            return True
+        if cls in ("tk", "xmessage", "notify-send", "plasmashell", "kwin_wayland", "kded6"):
+            return True
+        if w.get("min"):
+            return True
+        g = w.get("geom") or ""
+        try:
+            wh = g.split(" ", 1)[1].split("x")
+            if int(wh[0]) < 300 or int(wh[1]) < 200:
+                return True
+        except Exception:                                # noqa: BLE001
+            pass
+        # 无标题的小窗多半是瞬时弹窗
+        if not cap and cls not in ("kitty", "konsole", "alacritty", "wezterm"):
+            return True
+        return False
+
+    if _looks_transient(prev):
         ffs = [w for w in (st.get("wins") or [])
                if "firefox" in str(w.get("class") or "").lower() and not w.get("min")]
         if ffs:
@@ -387,7 +412,7 @@ def cmd_focus(a):
                          ensure_ascii=False))
         return 3
     now = time.time()
-    hold = float(os.environ.get("YS_SESSION_HOLD_S", "2"))  # 只护住注入窗口本身；空闲判据是 idle_ms(3s)
+    hold = float(os.environ.get("YS_SESSION_HOLD_S", "2"))  # 只护住注入窗口本身；空闲判据是 idle_ms(10s)
     target = cur.get("target") or {}
     if not cur.get("released"):
         # 快速路径也要验一次**真实栈顶**：闩锁只说明"我们没交还"，不说明没人盖上来。
@@ -452,6 +477,21 @@ def cmd_focus(a):
     return 0
 
 
+def cmd_busy(a):
+    """标记/清除"交互进行中"。
+
+    2026-10-22 用户令：检测到滚动/拖动这类连续交互在跑时，**不要切屏打断**，
+    安静等它执行完再交还。交互工具开头 `busy <秒>`，结束时 `busy 0`。
+    """
+    s = load() or {}
+    until = 0.0 if int(a.seconds) <= 0 else time.time() + int(a.seconds)
+    s["busy_until"] = until
+    save(s)
+    print(json.dumps({"ok": True, "busy_until": until, "seconds": int(a.seconds)},
+                     ensure_ascii=False))
+    return 0
+
+
 def cmd_status(_a):
     cur = load()
     if not cur:
@@ -495,6 +535,9 @@ def main(argv=None):
                    help="接下来独占 N 秒（期间警卫不插手）；缺省读 YS_SESSION_HOLD_S 或 2s")
     c.add_argument("--reason", default="raise")
     c.set_defaults(fn=cmd_claim)
+    bz = sub.add_parser("busy", help="标记交互进行中（busy <秒>；0=清除），空闲交还期间跳过切屏")
+    bz.add_argument("seconds", type=int)
+    bz.set_defaults(fn=cmd_busy)
     s = sub.add_parser("status")
     s.set_defaults(fn=cmd_status)
     a = ap.parse_args(argv)

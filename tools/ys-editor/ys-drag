@@ -28,6 +28,10 @@ if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
   exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-60}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
 fi
 
+# 2026-10-22 用户令：拖动期间不切屏（与 ys-scroll 同一机制，best-effort）
+"$(cd "$(dirname "$0")" && pwd)/ys-session" busy 20 >/dev/null 2>&1 || true
+trap '"$(cd "$(dirname "$0")" && pwd)/ys-session" busy 0 >/dev/null 2>&1 || true' EXIT
+
 put() { "$HERE/ys-kwin-put" "$1" "$2" >/dev/null 2>&1 || { echo "[ys-drag] 定位失败 ($1,$2)" >&2; exit 5; }; }
 
 put "$X1" "$Y1"; sleep 0.2

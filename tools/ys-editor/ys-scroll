@@ -505,6 +505,14 @@ def main():
                 ambient = frame_diff(fa, _fa2)
         except Exception:                                # noqa: BLE001
             ambient = None
+    # 2026-10-22 用户令：滚动/拖动这类连续交互期间不切屏——开头标忙，结束清忙（best-effort）。
+    _sess_bin = os.path.join(HERE, "ys-session")
+    def _busy(sec):
+        try:
+            subprocess.run([_sess_bin, "busy", str(sec)], capture_output=True, timeout=5)
+        except Exception:                                # noqa: BLE001
+            pass
+    _busy(20)
     in_slot = os.environ.get("YS_SLOT_ACTIVE") == "1"
     t_inj = time.time()
     if lease_ok or in_slot:
@@ -573,6 +581,7 @@ def main():
             hint = hp.stdout.strip() or None
         except Exception:                                # noqa: BLE001
             hint = None
+    _busy(0)
     _ms = round((time.time() - t0) * 1000, 1)
     _budget = {"target_ms": 500, "actual_ms": _ms, "over": _ms > 500}
     if _budget["over"]:

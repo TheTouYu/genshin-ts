@@ -272,7 +272,11 @@ def enforce_session_idle(verbose=False):
         return 0
     if now < float(s.get("holding_until") or 0):
         return 0
-    idle_s = int(s.get("idle_ms") or os.environ.get("YS_SESSION_IDLE_MS") or 3000) / 1000.0
+    # 2026-10-22 用户令：**检测到滚动/拖动等交互正在进行时不要切屏**，安静等它跑完。
+    # 交互工具在开头写 busy_until（now+15s）、结束时清 0；这里见到未到期就跳过本拍。
+    if now < float(s.get("busy_until") or 0):
+        return 0
+    idle_s = int(s.get("idle_ms") or os.environ.get("YS_SESSION_IDLE_MS") or 10000) / 1000.0
     last = float(s.get("last_action_ts") or s.get("created") or 0)
     if now - last < idle_s:
         return 0
