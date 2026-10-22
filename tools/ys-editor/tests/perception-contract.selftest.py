@@ -70,7 +70,7 @@ FRAMES = [("foreign-ui", os.path.join(FIX, "foreign-ui-2560x1440.png")),
 # （本轮三个 bug：顶层 vs match 双写 / accept_support 类型 / best 排序，全是这个形态）。
 MATCH_KEYS = ("candidate", "ratio", "has_critical", "critical_ok", "ratio_pass",
               "accept_support", "accepted",
-              "novel", "novel_reason", "low_support", "level",
+              "novel", "novel_reason", "level",
               "support", "support_ratio", "support_source", "criteria_n")
 EVIDENCE_KEYS = ("readings", "verdicts", "support", "criteria")
 BUDGET_KEYS = ("total_ms", "budget_ms", "exceeded")
@@ -212,7 +212,7 @@ def s2_evidence_passthrough(ctx):
         if mt_missing:
             bad.append("%s:state.match 缺 %s" % (name, ",".join(mt_missing)))
     return (not bad), ("; ".join(bad) if bad else
-                       "两张帧的 evidence[0] 逐条判据齐全，state.match 15 键齐全")
+                       "两张帧的 evidence[0] 逐条判据齐全，state.match %d 键齐全" % len(MATCH_KEYS))
 
 
 def s3_open_set(ctx):
@@ -255,20 +255,18 @@ def s3_open_set(ctx):
     if mt.get("critical_ok") is not False:
         bad.append("state.match.critical_ok=%r（锚点证据不成立必须 False）" % (mt.get("critical_ok"),))
 
-    # 降级项不再是"必须有 STATE_UNKNOWN"，而是**必须与 novel / low_support 一致**——
+    # 降级项不再是"必须有 STATE_UNKNOWN"，而是**必须与 novel 一致**——
     # 这样"判错洗白"和"随便清空状态"两种退化都会被抓。
+    # 2026-10-22 精简：删掉 STATE_LOW_SUPPORT 一致性断言——它依赖 match.low_support，
+    # 而那个布尔**恒 False**（判出去的态必然 accepted=True），是死字段 + 死分支。
     want_unknown = st.get("novel") is True
     if ("STATE_UNKNOWN" in cs) != want_unknown:
         bad.append("degraded 的 STATE_UNKNOWN 与 novel 不一致（novel=%r, codes=%s）"
                    % (st.get("novel"), codes_str(cs)))
-    want_low = bool(mt.get("low_support"))
-    if ("STATE_LOW_SUPPORT" in cs) != want_low:
-        bad.append("degraded 的 STATE_LOW_SUPPORT 与 match.low_support 不一致（low_support=%r, codes=%s）"
-                   % (mt.get("low_support"), codes_str(cs)))
 
     return (not bad), ("; ".join(bad) if bad else
                        "foreign-ui: UNKNOWN + novel=True(reason=%s)，拒绝候选 %r（accepted=false/critical_ok=false），"
-                       "candidates=[]，降级项与 novel/low_support 一致"
+                       "candidates=[]，降级项与 novel 一致"
                        % (mt.get("novel_reason"), mt.get("candidate")))
 
 

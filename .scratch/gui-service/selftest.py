@@ -290,7 +290,7 @@ def main(argv=None):
     # 字典序把 LOADING 排前面 ⇒ 回执里 best=LOADING 而判据层 candidate=PLAYTEST，自相矛盾）。
     check("P3/state.match 形状 = 判据层透传 + 标注（无 best/second/margin 二手排序）",
           {"candidate", "ratio", "has_critical", "critical_ok", "ratio_pass",
-           "accept_support", "accepted", "novel", "novel_reason", "low_support", "level",
+           "accept_support", "accepted", "novel", "novel_reason", "level",
            "support", "support_ratio", "support_source", "criteria_n"} <= set(match)
           and not ({"best", "best_ratio", "second", "second_ratio", "margin"} & set(match)),
           str(sorted(match)))

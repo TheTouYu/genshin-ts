@@ -62,7 +62,6 @@ DEGRADED_CODES = (
     "FRAME_PINNED", "NO_FRESH_FRAME", "WAIT_TIMEOUT_VALID",
     # v1 新增（2026-10-21）：判定证据的质量，必须挂在**证据**上而不是挂在状态名上——
     # 否则"判错"会把诚实告警洗白（Firefox 整屏被判 PLAYTEST 后 degraded 5 条 → 4 条）。
-    "STATE_LOW_SUPPORT",            # 有态成立但支撑度 < 门槛：判定成立、证据不足
     "STATE_EVIDENCE_LEGACY",        # 判定证据不是契约 v1（旧 daemon / 旧 ys-state 子进程）
     "UNCERTAINTY_SOURCE_MISMATCH",  # uncertainty 层与 objects 层不是同一个 CV 源（waived 级）
 )
@@ -326,7 +325,7 @@ def validate_world(raw, *, strict_state_names=False):
             problems.append("state.evidence 必须是非空 list（不许无证据断言状态）")
         if st.get("channel") not in STATE_CHANNELS:
             problems.append(f"state.channel 必须是 {STATE_CHANNELS}，实际 {st.get('channel')!r}")
-        # v1：state.match 是"该不该信这个态"的唯一结论（novel/low_support/accept）。
+        # v1：state.match 是"该不该信这个态"的唯一结论（novel/accepted/ratio）。
         # 可选（老调用方/合成状态没有），但**给了就必须是 dict**——否则下游读它会静默拿到 None。
         mt = st.get("match")
         if mt is not None and not isinstance(mt, dict):
@@ -497,7 +496,7 @@ class WorldState:
 
     @property
     def state_match(self):
-        """`state.match`（v1）：{novel, low_support, accept, support, level, ...}。
+        """`state.match`（v1）：{novel, accepted, ratio, support, level, ...}。
 
         缺字段返回 {}——**不要**把空字典读成"没问题"，问 `assert_evidence()` 或看 degraded。
         """

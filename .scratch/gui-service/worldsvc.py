@@ -209,7 +209,7 @@ def build_state_match(*, state_name, judge_match=None, confidence=None, criteria
         {candidate, ratio, has_critical, critical_ok, ratio_pass,  ← 判据层原样透传
          accept_support, accepted,                                 ← 同上（阈值 0.6 / 判定布尔）
          novel, novel_reason,                                      ← 判据层原样透传
-         low_support, level, support, support_ratio, support_source, criteria_n}
+         level, support, support_ratio, support_source, criteria_n}
 
     为什么**没有** best/best_ratio/second/second_ratio/margin：`support` 表已经给出每态
     passed/total/ratio/rule，`match.candidate` 才是判据层认定的"我以为它是谁"。worldsvc 再按
@@ -261,11 +261,6 @@ def build_state_match(*, state_name, judge_match=None, confidence=None, criteria
     novel_v = None if novel is None else bool(novel)
     novel_r = novel_reason if novel_v else None
     accepted = _j("accepted")
-    if accepted is None:
-        low = None                      # 判据层没作答：不替它判"支撑够不够"
-    else:
-        low = bool((novel_v is not True) and (name.upper() not in ("UNKNOWN", _AMBIG_STATE))
-                   and not bool(accepted))
 
     level = "v1" if (jm is not None or novel is not None or sup is not None) else (
         "derived" if crit else "legacy")
@@ -281,7 +276,8 @@ def build_state_match(*, state_name, judge_match=None, confidence=None, criteria
         "novel": novel_v,
         "novel_reason": novel_r,
         # —— worldsvc 的标注（自述，不冒充判据）——
-        "low_support": low,
+        # 2026-10-22 删 `low_support`：判出去的态必然 accepted=True ⇒ 它恒 False；
+        # 而 novel_reason 里也有个 "low_support"，含义相反（拒答理由），留着只会误导。
         "level": level,
         "support": support_map,
         "support_ratio": support_ratio,
@@ -397,12 +393,8 @@ def degraded_items(*, state_match, objects=(), free_text=(), uncertainty_meta=No
         items.append(_degraded("STATE_UNKNOWN",
                                f"判定名本身是 {state_name}（旧 daemon 无 novel 字段）："
                                "开集结论缺失，按判不出处理"))
-    if sm.get("low_support"):
-        items.append(_degraded(
-            "STATE_LOW_SUPPORT",
-            f"受判态 {sm.get('candidate')} 支撑度 {sm.get('ratio')} 未过门槛"
-            f"（accept_support={sm.get('accept_support')}）：判定成立但证据不足；"
-            "它**不是** novel（判据层认识它），用它之前先看 state.match.accepted"))
+    # 2026-10-22 删 STATE_LOW_SUPPORT：它依赖 match.low_support，而那个布尔**恒 False**
+    # （判出去的态必然 accepted=True）⇒ 这条降级项从来没触发过，是死分支。
     if str(sm.get("support_source") or "") != "authoritative":
         items.append(_degraded(
             "STATE_EVIDENCE_LEGACY",

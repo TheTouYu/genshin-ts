@@ -781,15 +781,26 @@ def decide(readings):
                        "ok": bool(verdicts[st_]), "rule": RULE.get(st_, "all")}
 
     def _match(st):
-        """门禁中间量：描述「最该被判出去的那个态」过了哪几道门（供门禁/复盘逐条复核）。"""
+        """门禁中间量：描述「最该被判出去的那个态」过了哪几道门（供门禁/复盘逐条复核）。
+
+        2026-10-22 精简（用户令「精简」，实测回执暴露三处会误读的字段）：
+          · 没有候选时 `ratio` 给 **None**——原来给 0.0，读起来像"最像的态只匹配 0%"，
+            真相是"根本没有候选"；
+          · 没有关键证据时 `critical_ok` 给 **None**——原来给 True，是空真值（vacuous），
+            读起来像"关键证据通过了"；
+          · 删 `low_support` 布尔：它恒为 False（判出去的态必然 accepted=True），
+            且与 `novel_reason="low_support"` **同名不同义**（一个说"支撑不足所以拒答"，
+            一个说"判出了但支撑不足"），保留只会误导。
+        """
         if st is None:
-            return {"candidate": None, "ratio": 0.0, "has_critical": False,
-                    "critical_ok": True, "ratio_pass": True,
+            return {"candidate": None, "ratio": None, "has_critical": False,
+                    "critical_ok": None, "ratio_pass": None,
                     "accept_support": ACCEPT_SUPPORT, "accepted": False}
         g = gates.get(st, {})
+        has_crit = bool(g.get("has_critical", False))
         return {"candidate": st, "ratio": round(support.get(st, 0.0), 3),
-                "has_critical": bool(g.get("has_critical", False)),
-                "critical_ok": bool(g.get("critical_ok", True)),
+                "has_critical": has_crit,
+                "critical_ok": (bool(g.get("critical_ok", True)) if has_crit else None),
                 "ratio_pass": bool(g.get("ratio_pass", True)),
                 "accept_support": ACCEPT_SUPPORT,
                 "accepted": bool(g.get("ok", False))}
