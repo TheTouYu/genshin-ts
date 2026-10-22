@@ -130,7 +130,7 @@ def main(argv=None):
     try:
         # 故意**不覆盖** YS_OCR_LOCAL：注入用例靠它关掉 daemon 优先；测试自己把它清掉
         # 就等于把注入条件抹了（第一版这么写，注入用例当场报「门禁空转」）。
-        r = run_ocr(tiny, {"YS_LOOKD_SOCK": fd.path})
+        r = run_ocr(tiny, {"YS_LOOKD_SOCK": fd.path, "YS_OCR_MIN_FREE_MIB": "999999"})
         texts = [b.get("text") for b in r.get("boxes") or []]
         if r.get("via") == "daemon" and texts == ["SENTINEL-FROM-DAEMON"]:
             ok("A1 \u670d\u52a1\u5728 \u21d2 via=daemon \u4e14\u6587\u5b57\u6765\u81ea\u670d\u52a1", f"boxes={texts}")
@@ -164,7 +164,8 @@ def main(argv=None):
             json.dumps({"engine": r.get("engine"), "gpu_note": note}, ensure_ascii=False))
 
     # ── A4：没有服务 socket ⇒ 走本地（负样本）
-    r = run_ocr(tiny, {"YS_LOOKD_SOCK": os.path.join(tmp, "nope.sock"), "YS_OCR_LOCAL": "1"})
+    r = run_ocr(tiny, {"YS_LOOKD_SOCK": os.path.join(tmp, "nope.sock"), "YS_OCR_LOCAL": "1",
+                       "YS_OCR_MIN_FREE_MIB": "999999"})
     if r.get("via") == "local":
         ok("A4 \u65e0\u670d\u52a1 socket \u21d2 \u8d70\u672c\u5730", f"engine={r.get('engine')}")
     else:

@@ -2555,8 +2555,44 @@ def handle(req):
     if cmd == "world":                     # 显式开启的世界状态仪器；旧命令不受影响
         return _world(req)
     if cmd == "warm":
-        return {"ok": True, "gpu": True}
+        return _warm_all()
     return {"error": "unknown cmd"}
+
+def _warm_all():
+    """cmd="warm"：**真预热**（2026-10-22 修：此前是直接 return {"ok":True} 的空壳）。
+
+    为什么重要：`perf-bench` 在门禁序列里排在别的 gate 之后，那些 gate 会重启/扰动常驻服务，
+    于是 `world_cold` 量到的是**冷 daemon**（实测 p50=2339ms > 1800 线，假红），
+    而单独跑是 1068ms。给它一个可主动调用的预热入口，判据才可重复。
+
+    逐项预热并**如实报告每一项的耗时与失败原因**（不许"看起来 warm 了"）。
+    """
+    t_all = time.time()
+    out = {"ok": True, "parts": {}, "errors": {}}
+
+    def _one(name, fn):
+        t0 = time.time()
+        try:
+            fn()
+        except Exception as e:                                # noqa: BLE001
+            out["errors"][name] = f"{type(e).__name__}: {e}"
+            out["ok"] = False
+        out["parts"][name] = round((time.time() - t0) * 1000, 1)
+
+    _one("ocr", lambda: _ocr_engine()[0] is not None or (_ for _ in ()).throw(
+        RuntimeError("OCR 引擎不可用")))
+    _one("state", lambda: ys_state())
+
+    def _det():
+        for st in ("GAME_WORLD", "GAME_FRIENDS"):
+            d, _ = _detector_for(st)
+            import numpy as _np
+            d.detect(_np.zeros((360, 640, 3), dtype=_np.uint8))
+    _one("detector", _det)
+    _one("screen", lambda: _ys_screen())
+    out["ms"] = round((time.time() - t_all) * 1000, 1)
+    return out
+
 
 def serve():
     global _last_activity

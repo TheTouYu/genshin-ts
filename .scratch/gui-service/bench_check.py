@@ -67,6 +67,53 @@ def runtime_condition(cfg=None):
     return {"game_running": game, "gpu_clk_mhz": clk, "reg": applied, "applied": applied}
 
 
+def _prewarm(timeout=180):
+    """让常驻服务先真热起来，再量"冷帧"——否则量到的是冷 daemon（假红）。
+
+    2026-10-22 实测：门禁序列里 perf-bench 排在别的 gate 之后（那些 gate 会重启服务），
+    world_cold 被量成 p50=2339ms > 1800 线；单独跑是 1068ms。判据不可重复 = 判据失效。
+    返回 (ok, 说明)；服务不在就返回 (None, 原因)，不阻断测量。
+    """
+    import socket
+    sock = os.environ.get("YS_LOOKD_SOCK", "/run/user/%d/ys-lookd.sock" % os.getuid())
+    # 服务刚被重启时 socket 可能还没 listen（实测 ConnectionRefused）⇒ 有界重试，别把
+    # "还没起来"当成"没有服务"。上界 20s 是为门禁链里"前一个 gate 刚重启过"的场景留的。
+    deadline = time.time() + 20
+    while time.time() < deadline:
+        if os.path.exists(sock):
+            try:
+                _probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                _probe.settimeout(2)
+                _probe.connect(sock)
+                _probe.close()
+                break
+            except Exception:                                # noqa: BLE001
+                time.sleep(0.5)
+        else:
+            time.sleep(0.5)
+    else:
+        return None, "no-socket-after-20s"
+    try:
+        t0 = time.time()
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(sock)
+        s.sendall(b'{"cmd":"warm"}\n')
+        buf = b""
+        while not buf.endswith(b"\n"):
+            chunk = s.recv(1 << 20)
+            if not chunk:
+                break
+            buf += chunk
+        s.close()
+        resp = json.loads(buf.decode() or "{}")
+        return bool(resp.get("ok")), "%.1fs %s" % (time.time() - t0,
+                                                   json.dumps(resp.get("parts") or {},
+                                                              ensure_ascii=False))
+    except Exception as e:                                    # noqa: BLE001
+        return False, "%s: %s" % (type(e).__name__, e)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=3)
@@ -80,6 +127,9 @@ def main(argv=None):
     if a.from_json:
         doc = json.load(open(a.from_json, encoding="utf-8"))
     else:
+        # 先预热常驻服务（见 _prewarm 注释：不预热会把"冷 daemon"量成"冷帧"）
+        _wok, _wmsg = _prewarm()
+        print("PERF-WARM ok=%s %s" % (_wok, _wmsg))
         # 每次换盐：避免上一次 bench 的磁盘缓存把"冷"项测成热（默认按分钟取盐）
         salt = int(os.environ.get("YS_BENCH_SALT") or (int(time.time()) // 60 % 999))
         p = subprocess.run([sys.executable, BENCH, "--tag", a.tag, "--runs", str(a.runs),
