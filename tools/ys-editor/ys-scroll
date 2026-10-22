@@ -494,25 +494,62 @@ def main():
             lease_ok = False
     # 2026-10-21 真机吞吐修：已经在大租期的 ys-gui-slot 里（长扫描批）就**直接注入**，
     # 不再套一层 slot。嵌套 slot 每次多付 kwin-state/resolve/raise ~2s，60s 窗口只能扫 8 屏。
+    # 2026-10-22 真机实测（用户要求）：这台机器上原神画面**无动作时两帧也差 6.5%**
+    # （HUD/粒子/加载动画），固定阈值 0.1% 会把环境噪声判成"动过"。所以先量一次安静基线，
+    # 判据改成相对阈值；噪声本身过高时直接报 unreliable，而不是给一个看起来确定的答案。
+    ambient = None
+    if not a.no_verify and fa:
+        try:
+            _fa2 = capture(a.window, os.path.join(tmp, "a2.png"))
+            if _fa2:
+                ambient = frame_diff(fa, _fa2)
+        except Exception:                                # noqa: BLE001
+            ambient = None
     in_slot = os.environ.get("YS_SLOT_ACTIVE") == "1"
     t_inj = time.time()
     if lease_ok or in_slot:
-        env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+        # 2026-10-22 真机实测：DISPLAY 被设成**空串**时 `get(...,":1")` 不会兜底，
+        # xdotool 直接报 "DISPLAY environment variable is empty" → 注入静默失败。
+        _disp = os.environ.get("DISPLAY") or ":1"
+        env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=_disp)
+        # 本机 XAUTHORITY 是每会话随机文件名；不显式带上就报
+        # "Authorization required, but no authorization protocol specified"（同样静默）。
+        if not env.get("XAUTHORITY"):
+            import glob as _glob
+            _xa = sorted(_glob.glob(f"/run/user/{os.getuid()}/xauth_*"))
+            if _xa:
+                env["XAUTHORITY"] = _xa[-1]
         p = subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=120)
     else:
         p = subprocess.run([SLOT, (_resolve_win() or "auto"), "60", "bash", "-c", script],
                            capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
     inject_ms = round((time.time() - t_inj) * 1000, 1)
+    if not ok_inject:
+        # 2026-10-22 真机验证发现：注入失败时回执只有 injected=false，看不到原因（stderr 被吞），
+        # 调用方只能干瞪眼。失败必须自解释。
+        print(f"⚠️ 注入失败 rc={p.returncode}：{(p.stderr or p.stdout or '').strip()[:400]}",
+              file=sys.stderr)
     # 2026-10-22（用户纠正）：原神这类列表**条目少时会回弹**——松手后内容弹回原位，
     # 只看"settle 之后"的前后帧永远判成"没动"，模型据此断言"不能滚"（pi 任务就卡在这里）。
     # 所以在 settle 之前**立刻**再抓一帧当"过程中"取样，与松手后帧组合区分三态。
+    # 2026-10-22 真机实测：回弹在松手后几百毫秒内完成，而一次 capture 就要 200–300ms，
+    # 单张"过程中"帧很容易正好落在弹回之后（用户肉眼看到动了，工具却没抓到）。
+    # 改成**连拍**：注入返回后立刻连抓 3 张，取与 before 差异最大的一张作为"过程中"证据。
     fd = None
+    during_samples = []
     if not a.no_verify and fa:
-        try:
-            fd = capture(a.window, os.path.join(tmp, "d.png"))
-        except Exception:                                # noqa: BLE001
-            fd = None
+        for _i in range(3):
+            try:
+                _p = capture(a.window, os.path.join(tmp, f"d{_i}.png"))
+                if _p:
+                    _dv = frame_diff(fa, _p)
+                    during_samples.append({"i": _i, "diff": round(_dv, 6), "path": _p})
+                    if fd is None or _dv > max(x["diff"] for x in during_samples[:-1] or [{"diff": -1}]):
+                        fd = _p
+            except Exception:                            # noqa: BLE001
+                break
+            time.sleep(0.08)
     t_set = time.time()
     time.sleep(max(0, a.settle_ms) / 1000.0)
     settle_ms = round((time.time() - t_set) * 1000, 1)
@@ -525,8 +562,8 @@ def main():
         if fa and fb:
             moved = shift_px(fa, fb)
             diff = frame_diff(fa, fb)
-        if fa and fd:
-            diff_during = frame_diff(fa, fd)
+        if during_samples:
+            diff_during = max(x["diff"] for x in during_samples)
     verify_ms = round((time.time() - t_ver) * 1000, 1)
     hint = None
     if a.hint and not a.no_hint:
@@ -553,17 +590,27 @@ def main():
     # 2026-10-22（pi 独立任务实测）：moved_px 与 frame_diff 会打架——DXVK 的 FPS/GPU HUD 每秒跳动，
     # 光看 frame_diff 会假阳（实测 moved_px=0 却 frame_diff=4%）。有 moved_px 就以它为准：
     # |moved_px| < 3 ⇒ 没滚动（到底/焦点不在列表），并把"哪个通道判的"写进回执。
+    _amb = ambient if ambient is not None else 0.0
+    # 判据从"绝对阈值/倍数"改成"**高出环境噪声多少**"：真机实测一次轻滚只比噪声高 1.2 个百分点
+    # （during 2.73% vs ambient 1.50%），用 1.5×/2× 倍数会把它判成噪声——而用户肉眼确实看到动了。
+    _thr = _amb + 0.008                   # 至少比安静基线高 0.8 个百分点才算"动过"
     if moved is not None:
         moved_after = abs(moved) >= 3
         moved_source = "moved_px"
     elif diff is not None:
-        moved_after = diff > 0.001
+        moved_after = diff > _thr
         moved_source = "frame_diff"
     else:
         moved_after, moved_source = None, None
-    moved_during = None if diff_during is None else (diff_during > 0.001)
+    moved_during = None if diff_during is None else (diff_during > _thr)
     # 三态：真的留在了新位置 / 动过但弹回来了（回弹列表的正常表现）/ 根本没动
-    if moved_after:
+    # 2026-10-22 真机实测：原神画面**无动作两帧差 1.1%~6.5%**（HUD/粒子/加载动画），
+    # 而一次滚轮造成的"过程中"差异只有 ~2.6% —— 噪声与信号同量级 ⇒ 帧差判不了"动没动"。
+    # 判据：只有 during 明显大于环境噪声（>2×）才算"动过"，否则如实报 unreliable，让调用方
+    # 改用内容判据（文本集合/选中项），别给一个看起来确定的假答案。
+    if diff_during is not None and _amb > 0.15:
+        verdict = "unreliable"            # 基线本身就极吵（>15%），帧差不再可信
+    elif moved_after:
         verdict = "moved"
     elif moved_during:
         verdict = "moved_then_bounced"
@@ -571,7 +618,7 @@ def main():
         verdict = "unverified"
     else:
         verdict = "no_move"
-    moved_confirmed = None if verdict == "unverified" else (verdict != "no_move")
+    moved_confirmed = None if verdict in ("unverified", "unreliable") else (verdict != "no_move")
     # ok 必须包含「真的动了」：注入成功但没滚动 ≠ 成功（否则调用方会把 noop 当成翻页完成）
     out = {"ok": bool(ok_inject and release_ok and moved_confirmed is not False),
            "injected": bool(ok_inject), "noop": (moved_confirmed is False),
@@ -582,8 +629,10 @@ def main():
            "timing": {"inject_ms": inject_ms, "settle_ms": settle_ms,
                       "verify_ms": verify_ms, "total_ms": _ms},
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
+           "ambient_diff": (None if ambient is None else round(ambient, 6)),
+           "threshold": round(_thr, 6),
            "moved_during": moved_during, "moved_after": moved_after, "verdict": verdict,
-           "frame_during": fd, "frame_diff_during": (None if diff_during is None else round(diff_during, 6)),
+           "frame_during": fd, "during_samples": during_samples, "frame_diff_during": (None if diff_during is None else round(diff_during, 6)),
            "frame_diff": (None if diff is None else round(diff, 6)),
            "moved_confirmed": moved_confirmed,
            "verified": diff is not None,
