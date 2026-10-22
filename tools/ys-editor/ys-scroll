@@ -504,17 +504,29 @@ def main():
                            capture_output=True, text=True, timeout=120)
     ok_inject = p.returncode == 0
     inject_ms = round((time.time() - t_inj) * 1000, 1)
+    # 2026-10-22（用户纠正）：原神这类列表**条目少时会回弹**——松手后内容弹回原位，
+    # 只看"settle 之后"的前后帧永远判成"没动"，模型据此断言"不能滚"（pi 任务就卡在这里）。
+    # 所以在 settle 之前**立刻**再抓一帧当"过程中"取样，与松手后帧组合区分三态。
+    fd = None
+    if not a.no_verify and fa:
+        try:
+            fd = capture(a.window, os.path.join(tmp, "d.png"))
+        except Exception:                                # noqa: BLE001
+            fd = None
     t_set = time.time()
     time.sleep(max(0, a.settle_ms) / 1000.0)
     settle_ms = round((time.time() - t_set) * 1000, 1)
     moved = None
     diff = None
+    diff_during = None
     t_ver = time.time()
     if not a.no_verify:
         fb = capture(a.window, os.path.join(tmp, "b.png"))
         if fa and fb:
             moved = shift_px(fa, fb)
             diff = frame_diff(fa, fb)
+        if fa and fd:
+            diff_during = frame_diff(fa, fd)
     verify_ms = round((time.time() - t_ver) * 1000, 1)
     hint = None
     if a.hint and not a.no_hint:
@@ -542,11 +554,24 @@ def main():
     # 光看 frame_diff 会假阳（实测 moved_px=0 却 frame_diff=4%）。有 moved_px 就以它为准：
     # |moved_px| < 3 ⇒ 没滚动（到底/焦点不在列表），并把"哪个通道判的"写进回执。
     if moved is not None:
-        moved_confirmed = abs(moved) >= 3
+        moved_after = abs(moved) >= 3
         moved_source = "moved_px"
+    elif diff is not None:
+        moved_after = diff > 0.001
+        moved_source = "frame_diff"
     else:
-        moved_confirmed = None if diff is None else (diff > 0.001)
-        moved_source = "frame_diff" if diff is not None else None
+        moved_after, moved_source = None, None
+    moved_during = None if diff_during is None else (diff_during > 0.001)
+    # 三态：真的留在了新位置 / 动过但弹回来了（回弹列表的正常表现）/ 根本没动
+    if moved_after:
+        verdict = "moved"
+    elif moved_during:
+        verdict = "moved_then_bounced"
+    elif moved_after is None and moved_during is None:
+        verdict = "unverified"
+    else:
+        verdict = "no_move"
+    moved_confirmed = None if verdict == "unverified" else (verdict != "no_move")
     # ok 必须包含「真的动了」：注入成功但没滚动 ≠ 成功（否则调用方会把 noop 当成翻页完成）
     out = {"ok": bool(ok_inject and release_ok and moved_confirmed is not False),
            "injected": bool(ok_inject), "noop": (moved_confirmed is False),
@@ -557,6 +582,8 @@ def main():
            "timing": {"inject_ms": inject_ms, "settle_ms": settle_ms,
                       "verify_ms": verify_ms, "total_ms": _ms},
            "moved_px": moved, "shifted": (moved is not None and abs(moved) >= 3),
+           "moved_during": moved_during, "moved_after": moved_after, "verdict": verdict,
+           "frame_during": fd, "frame_diff_during": (None if diff_during is None else round(diff_during, 6)),
            "frame_diff": (None if diff is None else round(diff, 6)),
            "moved_confirmed": moved_confirmed,
            "verified": diff is not None,
