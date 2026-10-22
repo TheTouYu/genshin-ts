@@ -464,7 +464,11 @@ new = (old + "\n"
 assert old in s, "注入点没找到（_ocr_frame_for_text 的 docstring 变了）"
 open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
 PYIN
-    if YS_WORLDSVC_PATH="$tmp" python3 .scratch/gui-service/selftest.py >/tmp/.wsvc-neg.$$ 2>&1; then
+    # 2026-10-22：只跑受影响的那一条（--only）。此前为证 1 条断言要重跑整份 123 条（~24s）；
+    # 现在套件会把未命中用例的**计算**也跳过（`maybe`/`_Skipped`），实测 24s → ~2.4s。
+    # 证明力不降：注入要证的就是"OCRF 兜底那条会红"，其它用例在不在都改变不了这一点。
+    if YS_WORLDSVC_PATH="$tmp" python3 .scratch/gui-service/selftest.py \
+         --only '整帧 OCR 兜底' >/tmp/.wsvc-neg.$$ 2>&1; then
       echo "INJECT-FAIL worldsvc-selftest-neg: 关掉 OCR 兜底后门禁仍绿（门禁空转）"; rm -f /tmp/.wsvc-neg.$$; exit 1
     fi
     if ! grep -q '整帧 OCR 兜底' /tmp/.wsvc-neg.$$; then
