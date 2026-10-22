@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-10-22 19:2x
+> 最近校验：2026-10-23 00:2x
 > 读法：接手先读本文件 → 需要细节再看 `dossiers/`
 
 ---
@@ -50,6 +50,7 @@ systemctl --user stop dsh-embed.service dsh-decision.service
 | `worldsvc-selftest` | **123/123**，31.1s→**24.5s** | 注入用例 23.7s→**1.66s** |
 | `ocr-channel.selftest` | **5/5 PASS**（含 A5 引擎透传） | `0856fb0e` |
 | `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
+| `tools/ys-guards` | **rc=0**（G-FOCUS/G-WHITELIST/G-OBJECT 全 PASS） | 2026-10-23 00:2x |
 
 ## 四、机器与常驻服务（只读实测，19:2x）
 
@@ -73,6 +74,9 @@ GPU                 2162/6144 MiB 已用；clocks.sm 锁在 855/2100 MHz（41%�
 
 | commit | 内容 |
 |---|---|
-| `d4837ed1` | 补回主线起源（三个游戏→GUI 先行）+ 三游戏看板现状横幅 |
-| `77fc2615` | GUI AGI 上下文恢复报告 + 交接文档入仓 |
-| `d1573547` | 三条长尾降档，`--fast` 82.0→69.9s |
+| `2e3c04bc` | 4 个 GUI 自测接进门禁（gates=35） |
+| `32f56195` | ys-peek 不再吞抬窗槽的退出码（guards 实测点名） |
+| `c13fe509` | handback-target 门禁：交还目标必须有记录优先 |
+| `6ccfc337`/`46f8ca41`/`bb061df5` | 窗口 id 收口 ys_win.py + no-dead-window-id 真门禁 |
+| `4b64c332`/`0c39447e`/`2b0b27e7` | env-single-source 转严格（无豁免）+ 29 个绕过者迁移 |
+| `9842a6e2` | ys-text（行框→段落重建）+ ys-peek 零打扰 + screen schema v2 |
