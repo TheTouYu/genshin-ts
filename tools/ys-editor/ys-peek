@@ -94,7 +94,14 @@ fi
 [ -z "$WIN" ] && WIN="${YS_WIN:?YS_WIN 未解析，见 ys-env.sh}"
 RAISE=$("$HERE/ys-kwin-raise" "$TITLE" 2>&1 | tail -1)
 echo "[ys-peek] raise: $RAISE" >&2
-"$HERE/ys-gui-slot" "$WIN" 60 bash -c "sleep 0.9; import -silent -window '$WIN' '$OUT'" >/dev/null 2>&1
-rc=$?
-if [ ! -s "$OUT" ]; then echo "[ys-peek] 抓图失败（rc=$rc）" >&2; exit 3; fi
+# 2026-10-23（guards G-FOCUS-RETURN 实测）：原来把 slot 的输出整体丢进 /dev/null 且 rc 只用于
+# "文件空不空"，等于丢掉"槽是否成功进入/归还"这个最关键的结果——正是 FOCUS 族事故的形态。
+# 注意：错误分支里不要出现 " | tail"，否则 G-FOCUS-RETURN 会把整条调用判成"吞退出码"
+# （守卫把 6 行窗口内的管道当 rc 丢失）。取最后一行用参数展开。
+if ! SLOT_OUT="$("$HERE/ys-gui-slot" "$WIN" 60 bash -c "sleep 0.9; import -silent -window '$WIN' '$OUT'" 2>&1)"; then
+  LAST="${SLOT_OUT##*$'\n'}"
+  echo "[ys-peek] 抬窗槽执行失败：${LAST}" >&2
+  exit 3
+fi
+if [ ! -s "$OUT" ]; then echo "[ys-peek] 抓图失败：槽执行成功但没有产出帧（$OUT）" >&2; exit 3; fi
 emit raise "\"raise\":\"$(printf '%s' "$RAISE" | sed 's/"/\\"/g')\""
