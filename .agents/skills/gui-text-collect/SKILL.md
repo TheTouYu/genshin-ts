@@ -106,3 +106,8 @@ tools/ys-editor/ys-text FRAME --region X Y W H --json-out out.json
 | 服务端双重编码 | '噩梦…'→'å™©æ¢¦…'（同图确定性复现） | 客户端已自动 latin-1→UTF-8 修复 |
 | 右缘暗角区阈值法 | 全列"有墨"误判 | 邻近短行同区参照对比 |
 | 显示省略行尾标点 | 以为 OCR 丢字 | 双通道都无→按原样保留并注明 |
+
+## 等批处理/等稳定：谓词优先（2026-10-23 复盘）
+- 等远端 OCR 批量完成：`ys-wait --files-min <outdir> <条数> --timeout 300`（**不要 `sleep`**）；
+  客户端缺条时非零退出 + `[SUMMARY] ... missing=[...]`，据此判成败。
+- 判"画面不动了"：`ys-wait --settled`（连续 N 帧帧差 < 阈值），不要固定 sleep。
