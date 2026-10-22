@@ -5,12 +5,23 @@
 #   那一晚 15 个错误里，最大一族是「默认前提未取读数就往下建」——
 #   最常见的是「假设上一步的结果就是我预期的结果」。每一条都白烧 10 分钟以上。
 #   用户的原话是「你又缺少探索就定目标」。
-#   ⇒ 本工具把 14 条默认前提里**可自动核验的 12 条**做成一条命令：
+#   ⇒ 本工具把 14 条默认前提里**可自动核验的 13 条**做成一条命令：
 #     把「要记得先验证」变成「跑一下 ys-preflight」。
 #
 # 判定口径：界面态/控件可见性**一律向 ys-state 要**（门槛⑤ 单一源；本文件不含坐标与阈值）。
+#
+# 2026-10-23 增补 DESKTOP_HIDDEN（「窗在别的虚拟桌面」这条默认前提）：
+#   原神窗在**别的虚拟桌面**时 KWin 会把它 unmaps，于是 ydotool 的点击/按键**一个都收不到**，
+#   而本工具当时仍 PASS —— 2026-10-23 的一次采集因此白烧约 5 分钟并打扰了用户一次。
+#   唯一权威读数是 `ys-wins --attrib` 的 `ds=`（窗口所在桌面）与 `cur=`（当前桌面）。
+#   本检查**只读**（绝不自己切桌面/抬窗/注入）；修复由人决定，命令写在 FAIL 行里。
+#   夹具：`YS_PREFLIGHT_FAKE_ATTRIB=<文件>` 用该文件替代 `ys-wins --attrib` 的输出，
+#         于是「ds==cur ⇒ PASS」的正样本可以在**不移动任何窗口**的前提下被测到。
+#
 # 用法: ys-preflight                # 全部检查
 #       ys-preflight --quick        # 只跑本地检查（不截图、不查 CLI）
+#                                   # 注：桌面归属检查在 --quick 下**也跑**（代价一次 KWin 查询或 0）
+#       YS_PREFLIGHT_FAKE_ATTRIB=F ys-preflight --quick   # 用夹具判桌面归属（不碰屏幕）
 # 退出码: 0 = 全部 OK / 1 = 有 FAIL（先修再动手）/ 2 = 有 WARN（可继续但有风险）
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -19,10 +30,11 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys
 WIN="${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}"
 QUICK=0; [ "${1:-}" = "--quick" ] && QUICK=1
 YS_STATE="$HERE/ys-state"
-FAIL=0; WARN=0
+FAIL=0; WARN=0; SKIP=0
 ok()   { printf '  [OK]   %-22s %s\n' "$1" "${2:-}"; }
 bad()  { printf '  [FAIL] %-22s %s\n' "$1" "${2:-}"; FAIL=$((FAIL+1)); }
 warn() { printf '  [WARN] %-22s %s\n' "$1" "${2:-}"; WARN=$((WARN+1)); }
+skip() { printf '  [SKIP] %-22s %s\n' "$1" "${2:-}"; SKIP=$((SKIP+1)); }   # 前置不成立，未判定（不是红也不是黄）
 
 echo "══ ys-preflight $(date '+%F %T') ══"
 
@@ -38,9 +50,62 @@ for t in ys-state ys-peek ys-pointer-click ys-ui-state ys-where2 ys-round; do
   [ -x "$HERE/$t" ] && ok "$t" || bad "$t" "缺失或不可执行"
 done
 
-# ── 2 焦点/堆叠：看不见的窗口 = 拿不到的读数（对应复盘 #1）
+# ── 2 焦点/堆叠 + 虚拟桌面：看不见的窗口 = 拿不到的读数（对应复盘 #1）
+#
+# desktop_check — 「原神在不在**当前**虚拟桌面」的唯一判据（2026-10-23 加）。
+#   为什么必须在这里判：窗在别的桌面时 KWin 会 unmaps 它，ydotool 的点击/按键**一个都收不到**，
+#   后续所有取数/注入都是在跟一个"屏幕上并不存在的窗口"对话。读数只认 `ys-wins --attrib`：
+#     [n] caption | <WM_CLASS> | x,y WxH | min= | ds=<窗口所在桌面集合> | cur=<当前桌面> | idx= | act=
+#   · ds 与 cur 不等（且 ds 不是「不限定桌面」） ⇒ FAIL DESKTOP_HIDDEN
+#   · 相等                                        ⇒ OK
+#   · 找不到 yuanshen.exe 窗口（游戏没在跑）       ⇒ SKIP（**不判 FAIL**：不是故障，是没有对象）
+#   · 取不到读数（KWin 脚本不可用 / 行里没有 ds=）  ⇒ WARN（判定不了 ≠ 没问题）
+#   只读：本函数不切桌面、不抬窗、不注入。修桌面是人的决定，命令印在 FAIL 行里。
+#   ds 的空值/-1/4294967295 = 「在所有桌面」⇒ 视为可达（与 ys-atop 的 visible_on 同口径，
+#   避免同一事实两处判据打架）。
+desktop_check() {
+  local lines src row ds cur same=0
+  if [ -n "${YS_PREFLIGHT_FAKE_ATTRIB:-}" ]; then
+    if [ ! -r "$YS_PREFLIGHT_FAKE_ATTRIB" ]; then
+      warn "窗口所在桌面" "夹具不可读：$YS_PREFLIGHT_FAKE_ATTRIB —— 桌面归属未判定"
+      return
+    fi
+    lines="$(cat "$YS_PREFLIGHT_FAKE_ATTRIB" 2>/dev/null)"
+    src="夹具 $(basename "$YS_PREFLIGHT_FAKE_ATTRIB")"
+  else
+    lines="$(timeout 30 "$HERE/ys-wins" --attrib 2>/dev/null)"
+    src="ys-wins --attrib"
+  fi
+  [ -z "${lines:-}" ] && { warn "窗口所在桌面" "$src 无输出（KWin 脚本不可用）—— 桌面归属未判定，注入前请人工确认"; return; }
+  # 认窗用 WM_CLASS（标题会变，且「原神编辑器」也含"原神"）；class 两侧带分隔符，避开 caption
+  # 里出现 " | " 的错位（ys-atop 同一教训）。多窗取栈序最上那个（最后一行 = idx 最大）。
+  row="$(printf '%s\n' "$lines" | grep -Ei '\|[[:space:]]*yuanshen\.exe[[:space:]]*\|' | tail -1)"
+  if [ -z "$row" ]; then
+    skip "窗口所在桌面" "找不到 yuanshen.exe 窗口（游戏没在跑）—— 桌面归属无从判定，跳过（不是 FAIL）"
+    return
+  fi
+  printf '%s' "$row" | grep -q 'ds=' || {
+    warn "窗口所在桌面" "$src 的行里没有 ds= 字段（ys-wins 输出格式变了？）—— 桌面归属未判定"
+    return; }
+  ds="$(printf '%s' "$row" | grep -o 'ds=[-0-9,]*' | head -1 | cut -d= -f2)"
+  cur="$(printf '%s' "$row" | grep -o 'cur=[-0-9]*' | head -1 | cut -d= -f2)"
+  if [ -z "${cur:-}" ] || [ "$cur" = "-1" ]; then
+    warn "窗口所在桌面" "$src 没给出当前桌面（cur='${cur:-}'）—— 桌面归属未判定"
+    return
+  fi
+  [ -z "$ds" ] && same=1                                  # 空 = 不限定桌面（与 ys-atop 同口径）
+  case "$ds" in -1|4294967295) same=1;; esac              # 在所有桌面 ⇒ 当前桌面也看得到
+  case ",$ds," in *",$cur,"*) same=1;; esac               # ds 可能是 "0,2" 这种桌面集合
+  if [ "$same" != "1" ]; then
+    bad "窗口所在桌面" "DESKTOP_HIDDEN 原神在桌面 ${ds}、当前桌面 ${cur} ⇒ KWin 把窗口 unmaps，点击/按键全部无效（这次采集会白烧数分钟并打扰用户）。修复：YS_ALLOW_DESKTOP_SWITCH=1 tools/ys-editor/ys-follow-win yuanshen.exe"
+  else
+    ok "窗口所在桌面" "原神 ds=${ds:-<不限>} cur=${cur}（同桌面，输入可达）"
+  fi
+}
+
+echo "② 窗口与堆叠"
+desktop_check    # 无论 --quick 都跑：这一条不成立时，后面所有读数与注入都是白烧
 if [ "$QUICK" = "0" ]; then
-  echo "② 窗口与堆叠"
   if xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
     ok "原神窗 $WIN" "$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')"
   else bad "原神窗 $WIN" "窗口不存在（游戏没开？）"; fi
@@ -84,6 +149,7 @@ if [ "$QUICK" = "0" ] && [ -n "${GSTS_LOCALLOW_DIR:-}" ] && [ -n "${YS_MAP_ID:-}
 fi
 
 echo "───────────────────────────────"
+[ "${SKIP:-0}" -gt 0 ] && echo "· $SKIP 项 SKIP —— 前置不成立，未判定（不要把 SKIP 当通过）"
 if [ "$FAIL" -gt 0 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"; exit 1; fi
 if [ "$WARN" -gt 0 ]; then echo "⚠ $WARN 项 WARN —— 可继续，但请确认你已读过每一条"; exit 2; fi
 echo "✓ 全部通过 —— 可以动手"; exit 0
