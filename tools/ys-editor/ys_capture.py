@@ -1252,7 +1252,11 @@ def cmd_selftest(args):
     cases = [
         # name, kwargs, expected_rc, expect_pixels, extra_args, skip_daemon
         ('ok_bmp', {}, 0, True, [], True),
-        ('strict_other_desktop', {'strict': 'OTHER_DESKTOP'}, 4, False, [], True),
+        # 2026-10-22 策略变更（用户裁决：AI 不该为了读一眼屏幕先学切虚拟桌面）
+        # 感知默认允许跨桌面；只有动作前校验才要求"与用户当前所见一致"。
+        ('other_desktop_allowed', {'strict': 'OTHER_DESKTOP'}, 0, True, [], True),
+        ('other_desktop_require_current', {'strict': 'OTHER_DESKTOP'}, 4, False,
+         ['--require-current-desktop'], True),
         ('strict_occluded', {'strict': 'OCCLUDED'}, 5, False, [], True),
         ('strict_stale', {'sage': 60000}, 9, False, [], True),
         ('fast_occluded', {'fast': 'OCCLUDED'}, 5, False, [], True),

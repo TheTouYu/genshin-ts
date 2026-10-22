@@ -65,7 +65,11 @@ deny() {  # deny <exit> <code> <detail>
 cmd_latest() {
   "$HERE/ys-bell" 2>/dev/null || true
   local OUT="" FMT="" ALLOW_BG=0 MAX_AGE_MS="${YS_CAPTURE_MAX_AGE_MS:-1000}"
-  local STRICT_TTL_MS="${YS_CAPTURE_STRICT_TTL_MS:-6000}" ENC_IF=0 WAIT_ENC=0 ALLOW_OD=0
+  # 2026-10-22 用户裁决：**感知默认自动跨桌面**。理由：这些工具是给 AI 用的，AI 不该为了
+  # "读一眼屏幕"先学会切虚拟桌面/加参数；而且 XShm 读的是窗口 pixmap，桌面归属不影响速度
+  # （实测跨桌面 34ms，与同桌面同级）。"用户看不见"只对**动作**构成风险，对**读取**不构成。
+  # 需要"必须与用户所见一致"的调用方（动作前校验）显式带 --require-current-desktop。
+  local STRICT_TTL_MS="${YS_CAPTURE_STRICT_TTL_MS:-6000}" ENC_IF=0 WAIT_ENC=0 ALLOW_OD=1
   while [ $# -gt 0 ]; do
     case "$1" in
       --out) OUT="${2:?--out 需要路径}"; shift 2;;
@@ -73,9 +77,10 @@ cmd_latest() {
       --max-age-ms) MAX_AGE_MS="${2:?}"; shift 2;;
       --strict-ttl-ms) STRICT_TTL_MS="${2:?}"; shift 2;;
       --allow-background) ALLOW_BG=1; shift;;
-      # 2026-10-22：只读感知需要读「用户在别的虚拟桌面上的窗口」（游戏在 ds=3、当前 ds=2）。
-      # 默认仍拒（避免把用户看不见的画面当成"所见"）；显式打开才放行，并在 stderr 打告警。
+      # 兼容旧调用（默认就是允许，显式写也无害）
       --allow-other-desktop) ALLOW_OD=1; shift;;
+      # 动作类调用：要求帧与「用户当前所见」一致，跨桌面即拒
+      --require-current-desktop) ALLOW_OD=0; shift;;
       --encode-if-needed) ENC_IF=1; shift;;
       --wait-encode-ms) WAIT_ENC="${2:?}"; shift 2;;
       --json) shift;;
@@ -126,7 +131,7 @@ cmd_latest() {
   case "$fast" in
     OK) ;;
     OTHER_DESKTOP) if [ "$ALLOW_OD" = 1 ]; then
-                     echo "[warn] EWMH 判窗口不在当前虚拟桌面；已按 --allow-other-desktop 放行（帧内容来自别的桌面）" >&2
+                     [ "${YS_CAPTURE_VERBOSE:-0}" = "1" ] && echo "[note] 窗口在其他虚拟桌面（感知默认跨桌面读取；动作请加 --require-current-desktop）" >&2
                    else
                      recheck_desktop || deny 4 OTHER_DESKTOP "窗口不在当前虚拟桌面（EWMH：${fage}ms 前判定）"
                    fi;;
@@ -144,7 +149,7 @@ cmd_latest() {
     case "$strict" in
       OK) ;;
       OTHER_DESKTOP) if [ "$ALLOW_OD" = 1 ]; then
-                       echo "[warn] KWin 判窗口不在当前虚拟桌面；已按 --allow-other-desktop 放行（该帧不是用户当前所见）" >&2
+                       [ "${YS_CAPTURE_VERBOSE:-0}" = "1" ] && echo "[note] KWin：窗口在其他虚拟桌面（感知默认跨桌面读取）" >&2
                      else
                        recheck_desktop || deny 4 OTHER_DESKTOP "KWin：窗口不在当前虚拟桌面"
                      fi;;
