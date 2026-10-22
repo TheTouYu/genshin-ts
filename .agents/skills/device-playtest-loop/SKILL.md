@@ -816,3 +816,21 @@ tools/ys-editor/ys-text /tmp/panel.png --region 1100 170 1420 1270 --json
 ## 纯文本模型（2026-10-23 实测）
 独立模型/子代理**看不了图**：`read *.png` 只回 "Current model does not support images"。
 看屏幕走 `ys-screen`（结构+坐标，字段 `{id,text,cx,cy,bbox,w,h,score,kind}`）或 `ys-text`（行文本+段落）。
+
+## 抓帧通道会「停滞」：seq 涨了、rgb 文件没换（2026-10-23 实证）
+
+`ys-capture latest` 正常时每次返回新的 `f-<seq>.rgb`；但实测出现过**两次 grab 的 `src` 是同一个文件**
+（`seq` 178583→178601，`src` 都是 `f-000178583.rgb`，`frames_reused` 巨大）。daemon 认为画面没变就不再落新帧。
+
+**后果**：任何「抓帧 → 判定 → 动作」的闭环都会用旧画面做判断，而且**症状像渲染慢**
+（正文总是上一条、界面状态差一步）。那一轮为此连续加长等待 6 轮，全部无效。
+
+**判据（写进任何批量抓帧脚本）**：
+```bash
+j=$(ys-capture latest --out /tmp/f.png --format png)
+seq=$(grep -o '"seq":[0-9]*' <<<"$j"); src=$(grep -o '"src": "[^"]*"' <<<"$j")
+# 连续两次 grab：seq 与 src **都不动** ⇒ 旧帧；换通道或重抓
+```
+**换通道**：`ys-observe frame`（`source: spectacle-fullscreen`，返回 `fresh/reused` 与 `diffFromPrev`），
+或截图后与上一帧比 `diff/像素数`。
+**别做**：把「画面没变」直接解释成「游戏没反应」。
