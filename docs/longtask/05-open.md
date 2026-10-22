@@ -30,6 +30,11 @@
 | O-2026-10-22-4 | 文字按 y 行硬合并 → 跨栏混串（一行 bbox 2336px） | 按文字定位会错到别的栏 | 按 x 间隙切列后再合并 |
 | O-2026-10-22-5 | `--format png` fail-closed（`FORMAT_NOT_READY`） | 取帧偶发失败 | 提高 ring 深度或同步返回预编码帧 |
 | O-2026-10-22-6 | 三个游戏看板状态表停在 10-17 04:00 | 接手者把 5 天前当现状 | 回主线前刷新（已有顶部横幅兜底） |
+| O-2026-10-22-16 | **`dsh-game-mode.sh --on` 会被 30s timer 悄悄撤销**：stop 后建 STATE，`auto` 见「无游戏 ∧ 有 STATE」→ `start_services` 拉回 | 想停 AI 服务腾显存，30 秒后自己回来 | 脚本 `--on` 分支同时 `stop dsh-game-mode.timer`，或写 `manual` 标记让 auto 只读不写；恢复清单=服务+STATE+timer 三件 |
+| O-2026-10-22-17 | 显存预检 `_MIN_FREE_MIB=900` 与「原神在跑」实测余量 **856–903 MiB 重叠**；daemon 通道曾把 `engine` 写死 `'daemon'`（已修） | 同一配置重启一次可能随机落 cuda/cpu，且掉 CPU 曾看不见 | 加 daemon 侧引擎选择门禁：回执给出选择理由（显存不足/强制/正常）+ 阈值边界取值用例；底座=`ocr-channel` A3 |
+| O-2026-10-22-18 | OCR 单会话显存无上限（arena 可涨到 694 MiB/会话） | 与游戏共存时被撑大、挤兑 | ocr-vram 提案 `kSameAsRequested` + `gpu_mem_limit=512MiB`（−24%，文本指纹逐字相同）；**待验收后定默认** |
+| O-2026-10-22-19 | A 段（原神在跑）**改后** OCR 读数缺失 | 无法回答"优化在真实负载下值多少" | 下次开游戏补测，不混报 |
+| O-2026-10-22-20 | `use_cls=false`（−118.6ms）与 `buckets` 有文本反例；竖排/旋转帧 6 帧里 0 个，**未覆盖** | 不能默认开启，只能可选 | 找含竖排/旋转文本的帧建反例集，补齐后再议 |
 
 ## C. 待用户拍板
 
@@ -56,3 +61,5 @@
 |---|---|---|
 | O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 / 包求值 0.1ms / `state_vocab=UNKNOWN` |
 | O-2026-10-22-10 | act 借屏竞态已修：动作前 `ys-session focus`（hold 8s）+ 抬窗后按 TTL 有界重试取帧（NOT_ATOP/OCCLUDED/COPY_FAILED ≤2 次）；`ys-session focus` 快速路径改为**验真实栈顶**（闩锁说没交还也可能被别的窗口盖住） | 真机 dry-run：`focus_raise={ok:true,raised:true,ms:2907}` → `resolution={status:resolved,channel:ocr_frame,target:点击进入}`，以前同一命令在 0.2s 内 rc=5；离线 `selftest.py` 123/123；交还核对 firefox ACTIVE / ds=2 |
+| OCR-1（定位结论） | **全帧 OCR 地板 = 529ms（游戏退出）/ 929ms（游戏在跑）**，不是回归；「100–200ms」对应的是模板 NCC 147ms / 同帧缓存 0.5–1.1ms / ROI 小图 231–242ms | `docs/maintenance/ocr-perf-2026-10-22.md`；commit `0856fb0e`/`92f88c14`/`265fabdc` |
+| OCR-2（定位结论） | **2.6GB 不是泄漏也不是权重**：det 全帧输入是主导项（694/852 MiB 单会话）；`import torch` 150 MiB；ORT 会话懒建且三会话共用一份 context；200 次混合帧显存不涨 | `docs/maintenance/ocr-vram-2026-10-22.md`（ocr-vram 在写）；D514 |
