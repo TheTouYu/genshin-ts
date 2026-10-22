@@ -1,0 +1,532 @@
+{
+ "schema": "gui-world-state/1",
+ "frame_id": "sha256:1a2f8ed6fcff621edb244ae0a3cde6eb40f82188a819f26e038361b48319f95b",
+ "captured_at_ms": 1792663944505,
+ "tracked_at_ms": 1792664040765,
+ "state": {
+  "name": "UNKNOWN",
+  "confidence": 0.5,
+  "ambiguous": false,
+  "novel": true,
+  "novel_reason": "low_support",
+  "candidates": [],
+  "match": {
+   "candidate": null,
+   "ratio": null,
+   "has_critical": false,
+   "critical_ok": null,
+   "ratio_pass": null,
+   "accept_support": 0.6,
+   "accepted": false,
+   "novel": true,
+   "novel_reason": "low_support",
+   "level": "v1",
+   "support": {
+    "MENU": {
+     "passed": 1,
+     "total": 3,
+     "ratio": 0.3333333333333333,
+     "ok": false,
+     "rule": "all"
+    },
+    "SAVELIST": {
+     "passed": 0,
+     "total": 3,
+     "ratio": 0.0,
+     "ok": false,
+     "rule": "all"
+    },
+    "PLAYTEST": {
+     "passed": 0,
+     "total": 4,
+     "ratio": 0.0,
+     "ok": false,
+     "rule": "any2"
+    },
+    "SETTLE": {
+     "passed": 1,
+     "total": 4,
+     "ratio": 0.25,
+     "ok": false,
+     "rule": "all"
+    },
+    "LOADING": {
+     "passed": 1,
+     "total": 2,
+     "ratio": 0.5,
+     "ok": false,
+     "rule": "all"
+    },
+    "EDITOR": {
+     "passed": 0,
+     "total": 4,
+     "ratio": 0.0,
+     "ok": false,
+     "rule": "all"
+    },
+    "PAUSE": {
+     "passed": 0,
+     "total": 2,
+     "ratio": 0.0,
+     "ok": false,
+     "rule": "all"
+    }
+   },
+   "support_ratio": 0.5,
+   "support_source": "authoritative",
+   "criteria_n": 22
+  },
+  "evidence": [
+   {
+    "source": "ys-state",
+    "via": "daemon",
+    "channel": "fast",
+    "confidence": 0.5,
+    "ambiguous": false,
+    "margin": -0.5,
+    "verdicts": {
+     "MENU": false,
+     "SAVELIST": false,
+     "PLAYTEST": false,
+     "SETTLE": false,
+     "LOADING": false,
+     "EDITOR": false,
+     "PAUSE": false
+    },
+    "readings": [
+     {
+      "name": "MENU/A px(300,300) 三通道>200",
+      "passed": true,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "SAVELIST/A 亮蓝底栏+整屏暗+无白卡",
+      "passed": false,
+      "value": "底栏(255, 255, 255) 背景(255, 255, 255) 卡顶(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "PLAYTEST/B px(100,400) 蓝主导且亮",
+      "passed": false,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "PLAYTEST/C px(300,300) 亮蓝天",
+      "passed": false,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "SETTLE/A px(1280,100) 纯白卡顶",
+      "passed": true,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "SETTLE/B px(1280,500) 深蓝且不偏紫",
+      "passed": false,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "LOADING/A px(300,300) 浅蓝底色",
+      "passed": false,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "LOADING/B 中央无纹理(采样极差)",
+      "passed": true,
+      "value": "spread=0.0",
+      "kind": "pixel"
+     },
+     {
+      "name": "EDITOR/A px(100,400) 绿主导",
+      "passed": false,
+      "value": "(255, 255, 255)",
+      "kind": "pixel"
+     },
+     {
+      "name": "EDITOR/B 左面板存在(列差)",
+      "passed": false,
+      "value": "diff=0.0",
+      "kind": "pixel"
+     },
+     {
+      "name": "EDITOR/anchor editor_4",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "EDITOR/anchor editor_5",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "MENU/anchor menu_12",
+      "passed": false,
+      "value": "score=0.266",
+      "kind": "anchor"
+     },
+     {
+      "name": "MENU/anchor menu_4",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "PAUSE/anchor pause_25",
+      "passed": false,
+      "value": "score=0.337",
+      "kind": "anchor"
+     },
+     {
+      "name": "PAUSE/anchor pause_26",
+      "passed": false,
+      "value": "score=0.267",
+      "kind": "anchor"
+     },
+     {
+      "name": "PLAYTEST/anchor playtest_3",
+      "passed": false,
+      "value": "score=0.586",
+      "kind": "anchor"
+     },
+     {
+      "name": "PLAYTEST/anchor playtest_22",
+      "passed": false,
+      "value": "score=0.092",
+      "kind": "anchor"
+     },
+     {
+      "name": "SAVELIST/anchor savelist_24",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "SAVELIST/anchor savelist_12",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "SETTLE/anchor settle_14",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     },
+     {
+      "name": "SETTLE/anchor settle_10",
+      "passed": false,
+      "value": "score=0.000",
+      "kind": "anchor"
+     }
+    ],
+    "readings_n": 22,
+    "support": {
+     "MENU": {
+      "passed": 1,
+      "total": 3,
+      "ratio": 0.3333333333333333,
+      "ok": false,
+      "rule": "all"
+     },
+     "SAVELIST": {
+      "passed": 0,
+      "total": 3,
+      "ratio": 0.0,
+      "ok": false,
+      "rule": "all"
+     },
+     "PLAYTEST": {
+      "passed": 0,
+      "total": 4,
+      "ratio": 0.0,
+      "ok": false,
+      "rule": "any2"
+     },
+     "SETTLE": {
+      "passed": 1,
+      "total": 4,
+      "ratio": 0.25,
+      "ok": false,
+      "rule": "all"
+     },
+     "LOADING": {
+      "passed": 1,
+      "total": 2,
+      "ratio": 0.5,
+      "ok": false,
+      "rule": "all"
+     },
+     "EDITOR": {
+      "passed": 0,
+      "total": 4,
+      "ratio": 0.0,
+      "ok": false,
+      "rule": "all"
+     },
+     "PAUSE": {
+      "passed": 0,
+      "total": 2,
+      "ratio": 0.0,
+      "ok": false,
+      "rule": "all"
+     }
+    },
+    "support_source": "authoritative",
+    "criteria": [
+     {
+      "name": "MENU/A px(300,300) 三通道>200",
+      "state": "MENU",
+      "passed": true,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "SAVELIST/A 亮蓝底栏+整屏暗+无白卡",
+      "state": "SAVELIST",
+      "passed": false,
+      "value": "底栏(255, 255, 255) 背景(255, 255, 255) 卡顶(255, 255, 255)"
+     },
+     {
+      "name": "PLAYTEST/B px(100,400) 蓝主导且亮",
+      "state": "PLAYTEST",
+      "passed": false,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "PLAYTEST/C px(300,300) 亮蓝天",
+      "state": "PLAYTEST",
+      "passed": false,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "SETTLE/A px(1280,100) 纯白卡顶",
+      "state": "SETTLE",
+      "passed": true,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "SETTLE/B px(1280,500) 深蓝且不偏紫",
+      "state": "SETTLE",
+      "passed": false,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "LOADING/A px(300,300) 浅蓝底色",
+      "state": "LOADING",
+      "passed": false,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "LOADING/B 中央无纹理(采样极差)",
+      "state": "LOADING",
+      "passed": true,
+      "value": "spread=0.0"
+     },
+     {
+      "name": "EDITOR/A px(100,400) 绿主导",
+      "state": "EDITOR",
+      "passed": false,
+      "value": "(255, 255, 255)"
+     },
+     {
+      "name": "EDITOR/B 左面板存在(列差)",
+      "state": "EDITOR",
+      "passed": false,
+      "value": "diff=0.0"
+     },
+     {
+      "name": "EDITOR/anchor editor_4",
+      "state": "EDITOR",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "EDITOR/anchor editor_5",
+      "state": "EDITOR",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "MENU/anchor menu_12",
+      "state": "MENU",
+      "passed": false,
+      "value": "score=0.266"
+     },
+     {
+      "name": "MENU/anchor menu_4",
+      "state": "MENU",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "PAUSE/anchor pause_25",
+      "state": "PAUSE",
+      "passed": false,
+      "value": "score=0.337"
+     },
+     {
+      "name": "PAUSE/anchor pause_26",
+      "state": "PAUSE",
+      "passed": false,
+      "value": "score=0.267"
+     },
+     {
+      "name": "PLAYTEST/anchor playtest_3",
+      "state": "PLAYTEST",
+      "passed": false,
+      "value": "score=0.586"
+     },
+     {
+      "name": "PLAYTEST/anchor playtest_22",
+      "state": "PLAYTEST",
+      "passed": false,
+      "value": "score=0.092"
+     },
+     {
+      "name": "SAVELIST/anchor savelist_24",
+      "state": "SAVELIST",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "SAVELIST/anchor savelist_12",
+      "state": "SAVELIST",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "SETTLE/anchor settle_14",
+      "state": "SETTLE",
+      "passed": false,
+      "value": "score=0.000"
+     },
+     {
+      "name": "SETTLE/anchor settle_10",
+      "state": "SETTLE",
+      "passed": false,
+      "value": "score=0.000"
+     }
+    ],
+    "candidates": [],
+    "native": null,
+    "judge_ms": 732,
+    "rc": 4
+   }
+  ],
+  "channel": "fast",
+  "native": false
+ },
+ "objects": [],
+ "groups": [],
+ "slices": [],
+ "transitions": [],
+ "budget_ms": {
+  "total": 50,
+  "detect": 10,
+  "ocr": 0
+ },
+ "settled": null,
+ "degraded": [
+  {
+   "code": "STATE_UNKNOWN",
+   "detail": "判据不收敛（novel）：low_support",
+   "level": "degraded"
+  },
+  {
+   "code": "FREE_TEXT_UNOWNED",
+   "detail": "5 条文本没有容器归属，act(text) 解析不到（需要切片/坐标通道）",
+   "level": "degraded"
+  },
+  {
+   "code": "L2_NOT_IMPLEMENTED",
+   "detail": "groups=[]：容器 parent 链未闭合（AGI-BAR 票 26）",
+   "level": "degraded"
+  },
+  {
+   "code": "L3_NOT_IMPLEMENTED",
+   "detail": "对象 state 三字段=null、affordance.clickable 恒 unknown（AGI-BAR 票 27/28）",
+   "level": "degraded"
+  },
+  {
+   "code": "FRAME_PINNED",
+   "detail": "离线帧（source=frame，age≈96260ms）：不是活体读数，act 不会据此注入",
+   "level": "degraded"
+  }
+ ],
+ "timing_ms": {
+  "state": 1791.1,
+  "objects": 37554.7,
+  "validate": 7.39,
+  "total": 39847.0,
+  "budget": {
+   "total_ms": 39847.0,
+   "budget_ms": 50.0,
+   "value": "exceeded",
+   "exceeded": true,
+   "call_ms": 39847.0,
+   "source": "computed"
+  }
+ },
+ "frame": {
+  "path": "/home/h/genshin-ts/.scratch/gui-service/evidence/start-click-20261022-181207/after.png",
+  "source": "frame",
+  "captured_at_ms": 1792663944505,
+  "captured_at_ms_source": "file_mtime",
+  "live": false,
+  "age_ms": 96260,
+  "stale": true
+ },
+ "free_text": [
+  "DXVK v3. 0",
+  "min: 6.7 ns",
+  "max:",
+  "2690.7 ms",
+  "UID:110170759"
+ ],
+ "uncertainty": [
+  {
+   "region": [
+    8,
+    1370,
+    112,
+    30
+   ],
+   "kind": "possible_miss",
+   "score": 0.581,
+   "reasons": [
+    "below_size_gate",
+    "no_text",
+    "low_flatness",
+    "clipped_edge"
+   ],
+   "hint": "这里是 112x30 的图形块（对比度 120.0），但没有平坦皮肤矩形 ⇒ 容器层接不住，可能是一个可交互图标"
+  }
+ ],
+ "uncertainty_source": "containers",
+ "uncertainty_meta": {
+  "source": "containers",
+  "applicable": [
+   "containers"
+  ],
+  "scene": "ui",
+  "waived": []
+ },
+ "objects_source": "containers",
+ "objects_n": {
+  "containers": 0,
+  "detections": null,
+  "used": 0
+ },
+ "advice": [],
+ "cache": {
+  "hit": false,
+  "layer": "miss"
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "task": "start-click-teyvat",
+ "when": "2026-10-22T18:12+08:00",
+ "pack": "gn-start-v1",
+ "steps": [
+  {
+   "n": 1,
+   "what": "look --pack（后台帧）",
+   "state": "START",
+   "confidence": 1.0,
+   "eval_ms": 0.1
+  },
+  {
+   "n": 2,
+   "what": "act --text 点击进入 --live",
+   "resolved": "resolved",
+   "injected": true,
+   "inject_tool": "click",
+   "expect": {
+    "state": "UNKNOWN",
+    "expected": [
+     "GAME_WORLD",
+     "EDITOR"
+    ],
+    "via": "daemon/world",
+    "confidence": 0.5
+   }
+  },
+  {
+   "n": 3,
+   "what": "look 复核（后台帧）",
+   "state": "GAME_WORLD",
+   "novel": true,
+   "confidence": 0.6
+  }
+ ],
+ "verdict": "reached",
+ "verdict_note": "点击后进入 GAME_WORLD（提瓦特）；act 自身的 expect 因取帧通道报 OTHER_DESKTOP 而判失败（已修，未复验）",
+ "frame_ids": {
+  "world": "sha256:db3afa3085bdce089093dfbba28bed3be3669eae82190dd1bd88f7ec832dfcb3",
+  "after": "sha256:1a2f8ed6fcff621edb244ae0a3cde6eb40f82188a819f26e038361b48319f95b"
+ },
+ "elapsed_ms": 17960,
+ "findings": [
+  "点击后 +0.5s 的画面是白色加载屏：state=UNKNOWN（13 态词表无此判据）——典型的『不知道下一屏是什么』",
+  "act 的 expect 轮询在加载期撞 OTHER_DESKTOP，把整条 act 打成 rc=8；世界其实已经变了"
+ ],
+ "files": {
+  "act_receipt": "act_receipt.json",
+  "before": "before.png",
+  "after": "after.png",
+  "world": "s3_world.json",
+  "after_look": "after_look.json",
+  "view": "view_after/"
+ }
+}

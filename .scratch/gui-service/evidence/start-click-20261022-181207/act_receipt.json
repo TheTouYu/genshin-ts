@@ -1,0 +1,184 @@
+{
+ "verb": "act",
+ "target": {
+  "text": "点击进入"
+ },
+ "status": "error",
+ "ok": false,
+ "resolved": false,
+ "injected": true,
+ "reached": null,
+ "expect": {
+  "type": "state_in",
+  "states": [
+   "GAME_WORLD",
+   "EDITOR"
+  ]
+ },
+ "expect_result": {
+  "ok": false,
+  "type": "state_in",
+  "region": null,
+  "observed": {
+   "state": "UNKNOWN",
+   "expected": [
+    "GAME_WORLD",
+    "EDITOR"
+   ],
+   "via": "daemon/world",
+   "confidence": 0.5
+  },
+  "detail": "界面态 UNKNOWN ∉ 期待集合 ['GAME_WORLD', 'EDITOR']",
+  "elapsed_ms": 529.9,
+  "capture_ms": 30.0
+ },
+ "expect_evaluated": true,
+ "action": {
+  "type": "click",
+  "at": [
+   1278,
+   1358
+  ]
+ },
+ "post_predicate": null,
+ "post": null,
+ "transitions": [],
+ "degraded": [
+  {
+   "code": "INSTRUMENT_FAIL",
+   "detail": "OTHER_DESKTOP: ys-capture latest rc=4：OTHER_DESKTOP KWin：窗口不在当前虚拟桌面（）",
+   "level": "degraded"
+  }
+ ],
+ "evidence": {
+  "dir": "/home/h/genshin-ts/.scratch/gui-service/evidence/start-click-20261022-181207",
+  "before": "/home/h/genshin-ts/.scratch/gui-service/evidence/start-click-20261022-181207/before.png",
+  "after": "/home/h/genshin-ts/.scratch/gui-service/evidence/start-click-20261022-181207/after.png",
+  "detail": null,
+  "before_meta": {
+   "source": "ys-capture",
+   "attribution": {
+    "fast": "OK",
+    "fast_age_ms": 105,
+    "strict": "OK",
+    "strict_src": "kwin",
+    "strict_age_ms": 597,
+    "allow_background": 0
+   },
+   "layer": "visible",
+   "capture_ms": 6,
+   "frame": {
+    "seq": 136211,
+    "age_ms": 56,
+    "crc32": "868d7de9",
+    "w": 2560,
+    "h": 1440
+   }
+  },
+  "after_meta": {
+   "source": "ys-capture",
+   "attribution": {
+    "fast": "OK",
+    "fast_age_ms": 296,
+    "strict": "OK",
+    "strict_src": "kwin",
+    "strict_age_ms": 1654,
+    "allow_background": 0
+   },
+   "layer": "visible",
+   "capture_ms": 6,
+   "frame": {
+    "seq": 136295,
+    "age_ms": 12,
+    "crc32": "d7791046",
+    "w": 2560,
+    "h": 1440
+   }
+  }
+ },
+ "elapsed_ms": 17960,
+ "focus_raise": {
+  "ok": true,
+  "rc": 0,
+  "hold_s": 8.0,
+  "ms": 2970.8,
+  "raised": true
+ },
+ "resolve_ms": 8701.0,
+ "resolution": {
+  "status": "resolved",
+  "channel": "ocr_frame",
+  "target": "点击进入",
+  "object": {
+   "id": "ocr:0",
+   "kind": "text_hit",
+   "bbox": [
+    1258,
+    1348,
+    40,
+    20
+   ],
+   "text": [
+    "点击进入"
+   ],
+   "source": "ocr_frame"
+  },
+  "candidates": 1,
+  "drilled": [
+   {
+    "kind": "possible_false_positive",
+    "score": 0.978,
+    "region": [
+     1280,
+     724,
+     22,
+     64
+    ],
+    "rc": 0,
+    "image": "/var/tmp/dsh/ys-drill-2473156-0.png",
+    "texts": []
+   },
+   {
+    "kind": "possible_false_positive",
+    "score": 0.974,
+    "region": [
+     746,
+     768,
+     22,
+     24
+    ],
+    "rc": 0,
+    "image": "/var/tmp/dsh/ys-drill-2473156-1.png",
+    "texts": []
+   },
+   {
+    "kind": "possible_false_positive",
+    "score": 0.968,
+    "region": [
+     1314,
+     610,
+     20,
+     40
+    ],
+    "rc": 0,
+    "image": "/var/tmp/dsh/ys-drill-2473156-2.png",
+    "texts": []
+   }
+  ],
+  "detail": "容器文本未命中 → uncertainty 下钻命中（整帧 OCR 兜底）"
+ },
+ "simulated": false,
+ "inject": {
+  "tool": "click",
+  "ok": true,
+  "raw": {
+   "rc": 0,
+   "stdout_tail": "[ys-gui-slot] 占用前活动窗口：原神 [yuanshen.exe]\n[ys-gui-slot] 已取得 0x01400001（原神 [yuanshen.exe]）焦点｜时限 6s\n40 110\n80 110\n[ys-pointer-click] 命中 (1283,1370) → 已点击（第 3 轮）\n[ys-gui-slot] 租期内不归还（凭据剩 261s）——到期或 revoke 时统一交还",
+   "stderr_tail": "CLICK-TIMING {\"total_ms\": 2569, \"rounds\": 3}"
+  }
+ },
+ "error": {
+  "code": "OTHER_DESKTOP",
+  "detail": "ys-capture latest rc=4：OTHER_DESKTOP KWin：窗口不在当前虚拟桌面（）"
+ }
+}

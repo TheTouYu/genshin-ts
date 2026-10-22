@@ -925,7 +925,7 @@ class WorldService:
                 # 立刻取帧会撞到**上一拍的 NOT_ATOP**；编码文件按帧轮换，取帧瞬间也可能被回收
                 # （COPY_FAILED）。两者都是"晚一拍就好"，所以有界重试（最多 2 次，总代价 ≤2s），
                 # 仍失败才 fail-closed —— 不对真遮挡睁眼。
-                _retry_codes = {"NOT_ATOP", "OCCLUDED", "COPY_FAILED"}
+                _retry_codes = {"NOT_ATOP", "OCCLUDED", "COPY_FAILED", "OTHER_DESKTOP"}
                 _last = None
                 for _i in range(3):
                     try:
@@ -936,7 +936,7 @@ class WorldService:
                         _last = _e
                         if _i >= 2 or _e.code not in _retry_codes:
                             raise
-                        time.sleep(0.7 if _e.code != "COPY_FAILED" else 0.12)
+                        time.sleep(0.12 if _e.code == "COPY_FAILED" else (0.9 if _e.code == "OTHER_DESKTOP" else 0.7))
                 if _last is not None:
                     raise _last
             except instruments.InstrumentError as e:
@@ -1265,16 +1265,21 @@ class WorldService:
                 try:
                     after, after_meta = self._capture_evidence(
                         None, os.path.join(edir, "after.png"), after_frame=after_frame)
-                except ServiceError as _e:
-                    # 动作后窗口可能已被空闲交还给用户：live 取帧会被归属闸门拒。
+                except (ServiceError, instruments.InstrumentError) as _e:
+                    # 动作后窗口可能已被空闲交还给用户 / 桌面被切走：live 取帧会被归属闸门拒。
                     # 「动作之后世界变没变」属于**感知**，用后台帧判是契约允许的（layer 自报）。
-                    if _e.code != "LIVE_NOT_ATOP" or after_frame:
+                    # 2026-10-22 实测：点完「点击进入」后桌面/栈顶变化，expect 轮询撞 OTHER_DESKTOP
+                    # 直接把整条 act 打成 rc=8 —— 明明已经进了 GAME_WORLD，却因为取帧通道报错而看不到。
+                    _code = getattr(_e, "code", None)
+                    if _code not in ("LIVE_NOT_ATOP", "OTHER_DESKTOP", "NOT_ATOP", "OCCLUDED") \
+                            or after_frame:
                         raise
                     after, after_meta = self._capture_evidence(
                         None, os.path.join(edir, "after.png"), after_frame=after_frame, background=True)
                     result["degraded"].append(_degraded(
                         "EXPECT_BACKGROUND_FRAME",
-                        "窗口已交还用户，expect 改用后台帧（只能证明『看得见』，不证明『看得见』在栈顶）"))
+                        f"expect 轮询被归属闸门拒（{_code}）⇒ 改用后台帧判定（只能证明『看得见』，"
+                        "不证明画面在栈顶；动作本身的注入另由 inject 回执负责）"))
                 cap_ms = (time.perf_counter() - t_cap) * 1000
                 ev = self.evaluate_expect(exp, before, after, profile=self.profile)
                 ev["capture_ms"] = round(cap_ms, 1)
