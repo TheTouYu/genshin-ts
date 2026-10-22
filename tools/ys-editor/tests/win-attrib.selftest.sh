@@ -18,6 +18,11 @@ set -u
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 ATOP="$HERE/ys-atop"; OBS="$HERE/ys-observe"
 export DISPLAY="${DISPLAY:-:1}"
+# 2026-10-22：本机 XAUTHORITY 是每会话随机文件名（/run/user/<uid>/xauth_XXXX）。
+# 不 source ys-env.sh 时 xprop 读不到 EWMH 属性 → 快路径返回 UNKNOWN → 三条断言假红
+# （实测：带 XAUTHORITY 25/25 全绿，不带 22/25）。工具自己找环境，别依赖调用者 shell。
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+export DISPLAY XAUTHORITY
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/win-attrib.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 PASS=0; FAIL=0
