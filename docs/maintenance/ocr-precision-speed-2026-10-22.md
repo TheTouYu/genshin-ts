@@ -134,11 +134,24 @@ python3 .scratch/ocr-precision/metrics.py --runs .scratch/ocr-precision/runs/gpu
 | **可选（任务级开关）** | ① `rec_batch16`（+cls_batch16）：−74ms / −14%，CJK 98.2%、ASCII 100%、0 丢行<br>② `det1280`：289ms，**只给大字/面板标题定位**，禁止用于读数值/坐标 | 表 1 |
 | **不可行** | fp16 全模型（det 0 框）、INT8（CUDA 慢 7×、CPU 慢 8.5×）、det1600（小字 ASCII −38%，只省 22ms） | §3 |
 
-**换模型对照（B 段，未进基准表）**：`PP-OCRv5 mobile/server`、`PP-OCRv4 mobile` 已能加载并跑通（模型从
-modelscope 下载，落到 `.scratch/ocr-precision/models/dl/`，见 bench 的 `v5_*`/`v4_*` 档位），
-**本轮没有进 GPU 基准表（缺 2 分钟窗口），只记"可跑通、未测速/未测召回"**；
+### 4.1 换模型对照（同表同口径，19:47:58，free 4229MiB / 855MHz / 游戏未开）
+
+同帧 f06/f01、n=2、cache 关、每档独立进程；baseline 为同表复测（不是主表数字，避免跨时段比）。
+
+| 档位 | p50 | p95 | det/cls/rec | 显存 | CJK | ASCII | 小字 ASCII | 丢行 | 判定 |
+|---|---|---|---|---|---|---|---|---|---|
+| baseline（现役 v6 small） | **521.4** | 539.5 | 116/115/208 | — | 100 | 100 | 100 | 0 | 基线 |
+| v5_mobile | 638.2 | 747.5 | 153/145/242 | 848 MiB | 96.2 | 76.4 | **28.6** | 8 | 不可用（+22% 且更差） |
+| v4_mobile | 563.9 | 599.1 | 173/129/174 | 780 MiB | 96.7 | 87.5 | 85.7 | 7 | 不可用（+8% 且更差） |
+| v5_server | — | — | — | — | — | — | — | — | **不可用：CUDA 推理期原生崩溃**（`rapidocr/main.py:368 recognize_txt` 内进程直接死，无 Python 异常；复现 2 次） |
+
+**读法**：①现役 v6 small 是三档里**唯一 CJK/ASCII/小字全 100% 且最快**的——"花很多时间选定"这个判断
+被数据支持；②v5/v4 mobile 更慢且更差，小字号 ASCII 尤其崩（28.6% / 85.7%）；③v5_server 在 6GB 卡上
+加载后一推理就原生崩溃，按 Lead 指示不做调参尝试，记为**不可用**。
 `PP-OCRv6 medium` 本地有（`~/.paddlex/official_models`，60MB det + 74MB rec，paddle 格式）——
-它**只是更大更慢的同族 medium**，不是新模型族，故按 Lead 裁决**不做对照实验**。
+**同族更大更慢**，不是新模型族，按 Lead 裁决不做对照实验。
+模型来源：modelscope 自动下载到 `.scratch/ocr-precision/models/dl/`（`bench_tiers.py` 的 `v5_*`/`v4_*` 档位，
+  `Global.model_root_dir` 指到工作区——不指的话 RapidOCR 会往 `/usr/lib/...` 写，权限拒绝）。
 
 ---
 
