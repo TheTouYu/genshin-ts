@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""ys-view —— 一次调用产出「整体 + 标注 + 局部切片」的看图包。
+
+为什么有它：当 OCR/检测判不准（`degraded[]` 非空、`state=UNKNOWN`、`novel=true`），
+模型必须自己看图。但如果拿图要跑一堆命令（抓帧→裁剪→拼图），模型会绕开这条路去硬猜。
+所以把它们做成**一条命令**：给 look 回执 + 帧，输出可直接 Read 的图 + 索引。
+
+用法：
+    ys-view --look /tmp/look.json --frame /tmp/f.png --out /tmp/view
+    ys-view --look /tmp/look.json --out /tmp/view          # 帧路径从回执 frame.path 取
+    ys-view --look /tmp/look.json --frame f.png --grid 3x2 --max-objects 40
+
+产物（--out 目录内）：
+    whole.png        整帧（宽 ≤1280，便于模型一次看全）
+    annotated.png    整帧 + 对象框 + id/kind 标注（对照 index.json 定位）
+    tiles/tNN.png    网格切片（缺省 2×2，每片 ~1280×720 原像素，细节可读）
+    index.json       尺寸/缩放/切片坐标/对象/文字/状态，模型据此把"看到"与"读数"对齐
+退出码：0 成功 / 2 用法错 / 8 帧或回执读不了。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except Exception as e:  # noqa: BLE001
+    print(json.dumps({"ok": False, "error": "PIL_MISSING", "detail": str(e)}), file=sys.stderr)
+    raise SystemExit(8)
+
+
+def _font(size: int):
+    for p in ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+              "/usr/share/fonts/TTF/DejaVuSans.ttf"):
+        if Path(p).is_file():
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:  # noqa: BLE001
+                continue
+    return ImageFont.load_default()
+
+
+def _texts_of(o) -> str:
+    t = o.get("text")
+    if isinstance(t, list):
+        return " / ".join(str(x) for x in t)
+    return str(t or "")
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description="看图包：整体 + 标注 + 切片")
+    ap.add_argument("--look", required=True, help="worldsvc look 的 JSON 回执")
+    ap.add_argument("--frame", help="帧文件；缺省取回执 frame.path")
+    ap.add_argument("--out", required=True, help="输出目录")
+    ap.add_argument("--grid", default="2x2", help="切片网格，如 2x2 / 3x2")
+    ap.add_argument("--max-objects", type=int, default=40)
+    ap.add_argument("--whole-width", type=int, default=1280)
+    a = ap.parse_args(argv)
+
+    try:
+        payload = json.loads(Path(a.look).read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        print(json.dumps({"ok": False, "error": "LOOK_UNREADABLE", "detail": str(e)}), file=sys.stderr)
+        return 8
+
+    frame = a.frame or (payload.get("frame") or {}).get("path")
+    if not frame or not Path(frame).is_file():
+        print(json.dumps({"ok": False, "error": "FRAME_MISSING",
+                          "detail": f"帧不存在：{frame}；用 --frame 指定"}, ensure_ascii=False),
+              file=sys.stderr)
+        return 8
+
+    out = Path(a.out)
+    (out / "tiles").mkdir(parents=True, exist_ok=True)
+    img = Image.open(frame).convert("RGB")
+    W, H = img.size
+
+    # 整帧（缩放到可一次读全的宽度）
+    scale = min(1.0, a.whole_width / W)
+    whole = img.resize((int(W * scale), int(H * scale)), Image.LANCZOS) if scale < 1.0 else img.copy()
+    whole.save(out / "whole.png")
+
+    # 标注图：对象框 + id/kind（坐标回到缩放后的画布）
+    ann = whole.copy()
+    d = ImageDraw.Draw(ann)
+    f = _font(14)
+    objs = payload.get("objects") if isinstance(payload.get("objects"), list) else []
+    drawn = []
+    for o in objs[: a.max_objects]:
+        bb = o.get("bbox") or []
+        if len(bb) != 4:
+            continue
+        x, y, w, h = [v * scale for v in bb]
+        d.rectangle([x, y, x + w, y + h], outline=(255, 64, 64), width=2)
+        label = f"{o.get('id')} {o.get('kind')}"
+        tx = _texts_of(o)[:24]
+        if tx:
+            label += f" {tx}"
+        d.text((x + 3, max(0, y + 2)), label, fill=(255, 235, 60), font=f)
+        drawn.append({"id": o.get("id"), "kind": o.get("kind"), "bbox": bb,
+                      "text": _texts_of(o)})
+    ann.save(out / "annotated.png")
+
+    # 网格切片（原分辨率裁，细节不糊）
+    try:
+        gx, gy = (int(v) for v in a.grid.lower().split("x"))
+    except Exception:  # noqa: BLE001
+        gx, gy = 2, 2
+    tiles = []
+    for j in range(gy):
+        for i in range(gx):
+            x0, y0 = int(i * W / gx), int(j * H / gy)
+            x1, y1 = int((i + 1) * W / gx), int((j + 1) * H / gy)
+            name = f"t{j}{i}.png"
+            img.crop((x0, y0, x1, y1)).save(out / "tiles" / name)
+            tiles.append({"name": f"tiles/{name}", "bbox": [x0, y0, x1 - x0, y1 - y0],
+                          "path": str(out / "tiles" / name)})
+
+    st = payload.get("state") or {}
+    index = {
+        "ok": True,
+        "guide": "先读 whole.png 看整体，再看 annotated.png 对 id/kind，需要细节时按 tiles[].bbox 读对应切片；"
+                 "所有读数（state/degraded/objects）以 index.json 为准，图只用来补 OCR 看不清的部分。",
+        "frame_id": payload.get("frame_id"),
+        "frame_path": str(Path(frame).resolve()),
+        "size": [W, H],
+        "whole_scale": round(scale, 4),
+        "files": {"whole": str(out / "whole.png"),
+                  "annotated": str(out / "annotated.png")},
+        "state": st.get("name") if isinstance(st, dict) else st,
+        "state_novel": st.get("novel") if isinstance(st, dict) else None,
+        "degraded": payload.get("degraded_codes") or [],
+        "tiles": tiles,
+        "objects": drawn,
+        "texts": payload.get("texts") or [],
+        "free_text": (payload.get("free_text") or [])[:30],
+    }
+    (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(json.dumps({"ok": True, "out": str(out), "files": 3 + len(tiles),
+                      "tiles": len(tiles), "objects_drawn": len(drawn),
+                      "state": index["state"], "degraded": index["degraded"]}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -9,7 +9,7 @@
 - GIA 解码/结构：`decode-gia.ts`、`analyze-composite-gia.ts`、`parse-gia-graphs.ts`、`inventory-gia-units.ts`。
 - GIL 节点图/追踪/信号/变量：`parse-gil-node-graph.ts`、`explain-gil-node-graph.ts`、`trace-gil-exec-flow.ts`、`trace-gil-dataflow.ts`、`list-gil-node-graphs.ts`、`compare-gil-node-graph.ts`、`wire-inspect.ts`、`decode-gil-raw.ts`、`scan-gil-signals.ts`、`inspect-gil-custom-variables.ts`。
 - 差分/布局：`diff-gil-files.ts`、`dump-layout.ts`、`topology.ts`。
-- 屏幕/可点性（GUI 感知层，离线只读帧）：`ys-screen`（文本/控件/分区/邻接/遮挡/**容器层 containers[]**——面板/卡片/格子/按钮，含 skin/text/glyphs/badges/clipped；`--containers` 轻量输出）、`ys-layer`（层级/模态/scrim/关闭控件）、`ys-afford`（可点性打分：红点>一小一大>颜色对比>圆环>邻近文字）、`ys-watch`（ROI 变化事件：文字/颜色/数值/时间）。
+- 屏幕/可点性（GUI 感知层，离线只读帧）：`ys-screen`（文本/控件/分区/邻接/遮挡/**容器层 containers[]**——面板/卡片/格子/按钮，含 skin/text/glyphs/badges/clipped；`--containers` 轻量输出）、`ys-layer`（层级/模态/scrim/关闭控件）、`ys-afford`（可点性打分：红点>一小一大>颜色对比>圆环>邻近文字）、`ys-watch`（ROI 变化事件：文字/颜色/数值/时间）、`ys-editor/ys-view`（看图包：整帧+标注+2×2 切片+index.json，一条命令，供判不准时模型自己看）。
 - PKC：`pkc.py`、`evaluate_pkc_retrieval.py`、`validate_pkc_bundle.py`（知识树操作，不是游戏分析工具）。
 
 ## 修改前
