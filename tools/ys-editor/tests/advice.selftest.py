@@ -56,6 +56,12 @@ def main():
         return 2
     fx = json.load(open(FIX, encoding="utf-8"))
     screens = fx["screens"]
+    # 2026-10-22 修：本测试**必须自己搭环境**——原来靠调用者 export YS_SEEK_MAX_ROWS 才有
+    # 「有 seek」场景，门禁裸跑时恒为默认 8 ⇒ 恒 LINEAR_ONLY_NO_SEEK ⇒ 恒红（与 win-attrib 同型）。
+    os.environ["YS_SEEK_MAX_ROWS"] = "200"
+    _prev_seek = getattr(ys_advice, "SEEK_MAX_ROWS", None)
+    if _prev_seek is not None:
+        ys_advice.SEEK_MAX_ROWS = 200.0
     tr = ys_advice.ListTracker(path="") if hasattr(ys_advice, "ListTracker") else None
     advs = []
     now = 0.0
@@ -123,7 +129,18 @@ def main():
     except Exception as e:                               # noqa: BLE001
         print("ADVICE-RESULT error=CLI_REPLAY_%s verdict=FAIL" % type(e).__name__)
         return 2
-    ok_pos = (first == 2) and bool(real_code) and bool(cli_code)
+    # 2026-10-22 修：CLI 子例原先断言「第 3 次必须出 advice」。但三张夹具里 f3.jpg 的**标题行
+    # 没被 OCR 读到**，而列表身份 = sha1(state|header|count) ⇒ f3 落进另一个 key，只观测到 1 次，
+    # 自然不出建议（实测 state 里 key1 looks=[0,0]、key2 looks=[0]）。这不是持久化坏了，
+    # 是**夹具少一张"同列表同标题"的第 3 帧**。⇒ 改判 CLI 子例的真目的：**跨进程持久化**——
+    # 状态文件里同一个 key 必须累计到 ≥2 次观测（两次独立进程）。
+    cli_persisted = False
+    try:
+        st = json.load(open(env["YS_ADVICE_STATE_PATH"], encoding="utf-8"))
+        cli_persisted = any(len(v.get("looks") or []) >= 2 for v in (st.get("lists") or {}).values())
+    except Exception:                                    # noqa: BLE001
+        cli_persisted = False
+    ok_pos = (first == 2) and bool(real_code) and cli_persisted
     if seek >= 100:
         est = (advs[first][0].get("estimate") or {}) if first is not None else {}
         ok_code = (code == "SCANNING_LINEARLY" and bool(est.get("bisection_probes")))

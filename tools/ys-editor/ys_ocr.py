@@ -57,19 +57,21 @@ _MIN_FREE_MIB = int(os.environ.get('YS_OCR_MIN_FREE_MIB', '900'))
 # 默认 `arena_extend_strategy=kNextPowerOfTwo`：要 200MiB 就先向驱动要 256MiB 再翻倍留白。
 # 实测（3 会话 + 一次 2560×1440 全帧推理、独立进程、per-pid 读 nvidia-smi）：
 #   base 852MiB → kSameAsRequested 644MiB（−24%），28 个框的文本指纹逐字相同。
-# `gpu_mem_limit` 是**每会话硬顶**：要不到就抛错，而不是继续吃显存。
-# 实测边界：256MiB 分配失败 / 384MiB 成功（det 输入 2000×1120 的默认路径）。
-# 取 512 而不是 384：`det_max=2560/3000` 是**合法调用**（`cmd=ocr` 的 det_max 参数），
-# 512 覆盖到 det≈2400px；**512 在 det_max=3000 上会显式报错**，不是静默降级。
-# `YS_OCR_GPU_MEM_LIMIT_MIB=0` 恢复旧行为（排障/对照实验用）。
-_GPU_MEM_LIMIT_MIB = int(os.environ.get('YS_OCR_GPU_MEM_LIMIT_MIB', '512'))
+# 2026-10-22 18:xx 更正：**`gpu_mem_limit` 默认关闭（=0）**。它是**每会话硬顶**，要不到就抛错；
+#   而常驻守护的 world 路径用 `parallel=4`（多会话），单个会话的真实需求会随最大请求增长——
+#   实测 cap=512 与 cap=768 都会让 `perception-contract` 的 foreign-ui 冷跑抛
+#   `ONNXRuntimeError`（rc=8），cap=0 时同一帧 6/6 全绿。⇒ 共享引擎 + 并行会话不能设固定硬顶。
+#   省显存的实际贡献来自 `kSameAsRequested`（−24%），不是 cap。需要硬顶时显式开环境变量。
+# `YS_OCR_GPU_MEM_LIMIT_MIB=<MiB>` 显式开启上限（单会话；确认你的调用路径只有一条会话时用）。
+_GPU_MEM_LIMIT_MIB = int(os.environ.get('YS_OCR_GPU_MEM_LIMIT_MIB', '0'))
 
 
 def _cuda_params():
     """RapidOCR/ORT 的 CUDA 会话参数（引擎与显存探针共用同一份实现）。"""
-    params = {"EngineConfig.onnxruntime.use_cuda": True}
+    # arena 扩展策略与上限解耦：kSameAsRequested 永远开（省 24% 且文本逐字相同），上限按需开。
+    params = {"EngineConfig.onnxruntime.use_cuda": True,
+              "EngineConfig.onnxruntime.cuda_ep_cfg.arena_extend_strategy": "kSameAsRequested"}
     if _GPU_MEM_LIMIT_MIB > 0:
-        params["EngineConfig.onnxruntime.cuda_ep_cfg.arena_extend_strategy"] = "kSameAsRequested"
         params["EngineConfig.onnxruntime.cuda_ep_cfg.gpu_mem_limit"] = _GPU_MEM_LIMIT_MIB * 2 ** 20
     return params
 
