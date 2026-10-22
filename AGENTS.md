@@ -74,27 +74,27 @@
 | 游戏正文采集（故事/对话页文字→结构化文档；OCR 分歧裁定） | `gui-text-collect` |
 | **真机试玩与取数** / 编辑器窗口层故障 | `device-playtest-loop` + `tools/ys-editor/` |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
-| 客户端节点图（服务端调用客户端图/技能实例创建与施放/客户端图不触发/客户端信号回传/客户端读变量） | `client-nodegraph-development` |
+| 客户端节点图（调用客户端图／技能实例／不触发／信号回传） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
-| UI 命令层；**往任何地图写屏幕控件/悬浮页/按钮/页签/素材**（2026-09-11 W1 事故回灌） | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md`；悬浮页规范见 genshin-ts-asset-operations C2 节 |
+| UI 命令层／写屏幕控件、悬浮页、页签、素材 | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md`（W1 事故回灌） |
 | 游戏内最小注入核验 | `verify-injection` |
-| 创建技能配置/客户端图资产（模板矩阵，含中文类型名） | `genshin-ts-asset-operations` |
-| Composite/GIA 文档导航与维护 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read，勿用 skill 加载） |
+| 技能配置／客户端图资产（模板矩阵） | `genshin-ts-asset-operations` |
+| Composite/GIA 文档导航 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | **千星模拟器 2D UI+Lua 路线**（UI/Lua/runCase） | `simulator-2d-route` + 全局 `qxqy-simulator`/`qxqy-game-studio`（fork） |
-| 项目记忆/领域知识路由（诊断、写回、验证） | `genshin-ts-project-adapter` |
+| 项目记忆／领域知识路由 | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
 | 派独立模型/评估技能 | `isolated-model-evaluator` |
 | 会话开始上下文恢复/任务调度/收尾/分流 | `task-command-center` |
-| 生成任务启动提示词/任务书（开启新任务/新会话/委派子代理/持久目标） | `task-prompt-builder` |
-| 写"一轮出项目"生成类提示词（one-shot / vibe coding / 单指令长跑） | `oneshot-prompt-builder` |
+| 任务启动提示词／任务书 | `task-prompt-builder` |
+| one-shot／vibe coding 提示词 | `oneshot-prompt-builder` |
 | 建/改技能 | `skill-creator` |
 | 注入文件（AGENTS.md/CLAUDE.md）审计/巡检/目录覆盖检查 | `agents-md-auditor` |
-| 文档治理/状态头/doc_health 拦截修复/PROGRESS 归档 | `document-governance` |
+| 文档治理／doc_health 拦截／PROGRESS 归档 | `document-governance` |
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
-| Beyond/千星语义资源（票01/effectID→TextMapHash/状态效果名/MiHoYoBinData/Blb3/global-metadata/IL2CPP/RoleStatus 资源分类） | `beyond-semantic-resource-reverse` |
-| 差分+抓包学 wire 并快速开发/扩展 `gsts assets:*` CLI（框架先行，donor 按需补） | `diff-capture-cli-builder` |
+| Beyond 语义资源（effectID→TextMapHash／状态效果名／IL2CPP） | `beyond-semantic-resource-reverse` |
+| 差分+抓包学 wire／扩展 `gsts assets:*` | `diff-capture-cli-builder` |
 | 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须确认。**技能加载失败=基础设施故障，当轮报告并附报错原文** |
 
 ## 写回真实地图红线（高频违规点）
