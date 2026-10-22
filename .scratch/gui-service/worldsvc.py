@@ -1220,7 +1220,12 @@ class WorldService:
                                    f"{spec['type']} 注入失败 rc={inj['raw'].get('rc')}："
                                    f"{str(inj['raw'].get('stderr_tail') or inj['raw'].get('stdout_tail'))[:300]}",
                                    status="error", rc=8)
-            deadline = time.perf_counter() + max(0.2, float(expect_timeout_ms) / 1000.0)
+            # 2026-10-22（门禁提速）：`after_frame` 是**静态离线帧**，轮询它没有任何意义
+            # ——帧不会变，等到超时也不会有新证据。此前每跑一次负例要白等满 5s
+            # （worldsvc-selftest 里两条负例共 11s）。有 after_frame 就把截止时间压到 0.2s：
+            # 仍然"轮询到失败"，语义不变，只是不再空转。
+            _budget = 0.2 if after_frame else float(expect_timeout_ms) / 1000.0
+            deadline = time.perf_counter() + max(0.2, _budget)
             ev = None
             after = None
             # 2026-10-21 动作路径优化：①注入后先等 20ms 再拍第一帧（UI 更新有物理延迟，

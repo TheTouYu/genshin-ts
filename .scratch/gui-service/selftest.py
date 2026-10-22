@@ -51,8 +51,16 @@ EVIDENCE = os.path.join(HERE, "evidence")
 RESULTS = []
 
 
+_LAST_T = [None]          # 上一个用例结束时刻，用来算"这一条花了多久"
+
+
 def check(name, cond, detail=""):
-    RESULTS.append({"name": name, "ok": bool(cond), "detail": detail})
+    # 2026-10-22：给每条断言计时——不装表就只能看总时长，优化只能靠猜。
+    # 读法：top 里那些"单条 >1s"的才是可攻点；几十条 0.1s 的加起来不构成大头。
+    now = time.perf_counter()
+    dt = 0.0 if _LAST_T[0] is None else (now - _LAST_T[0]) * 1000
+    _LAST_T[0] = now
+    RESULTS.append({"name": name, "ok": bool(cond), "detail": detail, "ms": round(dt, 1)})
     print(("PASS " if cond else "FAIL ") + name + (f"  [{detail}]" if detail and not cond else ""))
     return bool(cond)
 
@@ -466,7 +474,7 @@ def main(argv=None):
     r = svc.act({"object_id": "c3"}, expect={"type": "region_text_set_changed",
                                              "region": GRID, "min_jaccard_delta": 0.15},
                 action={"type": "click"}, frame=before, after_frame=after_grid,
-                inject=True, simulate_action=True, evidence_dir=dpos)
+                inject=True, simulate_action=True, evidence_dir=dpos, expect_timeout_ms=200)
     check("act/离线模拟正例 → ok", r["status"] == "ok" and r["ok"] is True and
           r.get("simulated") is True, str(r.get("error")))
     files = {f: os.path.exists(os.path.join(dpos, f))
@@ -475,7 +483,7 @@ def main(argv=None):
     r = svc.act({"object_id": "c3"}, expect={"type": "region_text_set_changed",
                                              "region": DETAIL, "min_jaccard_delta": 0.15},
                 action={"type": "click"}, frame=before, after_frame=after_grid,
-                inject=True, simulate_action=True,
+                inject=True, simulate_action=True, expect_timeout_ms=200,
                 evidence_dir=os.path.join(EVIDENCE, "act-expect-neg"))
     check("act/离线模拟负例 → expect_failed（画面变了但不是我期待的区域）",
           r["status"] == "expect_failed" and r["ok"] is False and
@@ -514,6 +522,8 @@ def main(argv=None):
                             "min_jaccard_delta": 0.15},
                     action={"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"},
                     frame=before, inject=True, allow_inject=True,
+                    # 捕获被 fake_cap 接管 ⇒ 帧不变，轮询只会空转到 5s（实测 1.9s→0.3s）
+                    expect_timeout_ms=200,
                     evidence_dir=os.path.join(EVIDENCE, "act-lease-fail"))
         check("act/归还失败 + expect 成立 → status=ok（不因 rc=5 报 INJECT_FAILED）",
               r["status"] == "ok" and r["ok"] is True, str(r.get("error")))
@@ -525,6 +535,7 @@ def main(argv=None):
                             "min_jaccard_delta": 0.15},
                     action={"type": "scroll", "at": [900, 600], "clicks": 4, "dir": "down"},
                     frame=before, inject=True, allow_inject=True,
+                    expect_timeout_ms=200,
                     evidence_dir=os.path.join(EVIDENCE, "act-lease-fail-neg"))
         check("act/归还失败 + expect 不成立 → expect_failed（不是 INJECT_FAILED）",
               r["status"] == "expect_failed" and r.get("error", {}).get("code") == "ACT_EXPECT_FAILED",
@@ -673,6 +684,12 @@ def main(argv=None):
                "results": RESULTS}
     with open(a.json_out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)
+    # 2026-10-22：耗时排行（只列 >300ms 的，其余是零头）
+    _slow = sorted((r for r in RESULTS if r.get("ms", 0) >= 300),
+                   key=lambda r: -r["ms"])[:12]
+    print("[selftest] TIMING wall=%ss slow_cases(>=300ms)=%s"
+          % (summary["wall_s"],
+             " | ".join("%s %.1fs" % (r["name"][:34], r["ms"] / 1000.0) for r in _slow) or "none"))
     print(f"\n[selftest] {n_pass}/{len(RESULTS)} PASS, {n_fail} FAIL"
           f"（冷 look {cold_ms}ms / 禁缓存 {nc_ms}ms / 缓存命中 {max(hit)}ms）")
     print(f"[selftest] 证据 → {a.json_out}")
