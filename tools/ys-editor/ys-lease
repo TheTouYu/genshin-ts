@@ -479,15 +479,22 @@ def _fallback(state, cls=FALLBACK_CLASS):
                  if (w.get("cls") or "").lower() == cls.lower() and not w.get("min")), None)
 
 
-def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
-    """按 KWin 权威记录归还：activate + raise + 堆叠验证（重试 3 次）。
+def _parse_prev(prev_json):
+    """--prev-json 字符串 → dict/None（唯一解析：真实 restore 与 --dry-run 共用）。"""
+    try:
+        return json.loads(prev_json) if (prev_json or "").strip() else None
+    except Exception:                                    # noqa: BLE001
+        return None
 
-    prev 可以是旧格式字符串（兼容旧租约）或记录 dict。**不碰租约文件**——
-    ys-lease release 与 ys-gui-slot restore 共用这一份验证逻辑。
+
+def _resolve_target(state0, prev, fallback_class=FALLBACK_CLASS):
+    """**交还目标解析的唯一实现**：`_restore()`（真实路径）与 `restore --dry-run` 共用。
+
+    规则（2026-10-22 用户实测纠错）：授权时记录的用户窗优先；只有记录缺失/窗已消失才回退
+    `fallback_class`（缺省 firefox）。**dry-run 绝不能另写一份判据**——否则注入后门禁仍绿、
+    真实路径照旧交还 firefox（原理由见账目 F-20261022-77）。
+    返回 (want, want_rec, rec, fallback_reason, fallback_win)；找不到回落窗时 want=None。
     """
-    state0 = kwin_state()
-    if state0 is None:
-        return {"ok": False, "error": "KWIN_UNAVAILABLE"}
     fallback_reason = None
     if isinstance(prev, dict):
         rec = prev
@@ -498,27 +505,60 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
     else:
         rec = None
         fallback_reason = "NO_PREV"
-
     want = None
     if rec and rec.get("usable", True) and fallback_reason is None:
         if _pick(state0, rec) is not None:
             want = _selector(rec)
         else:
             fallback_reason = "PREV_GONE"
+    fb = None
     if want is None:
         fb = _fallback(state0, fallback_class)
-        if fb is None:
-            return {"ok": False, "error": "FALLBACK_NOT_FOUND",
-                    "fallback_reason": fallback_reason,
-                    "detail": f"原焦点不可用（{fallback_reason}），且找不到回落窗 {fallback_class}"}
-        # 注意：KWin 记录里的字段名是 internalId / caption，不是 id / c
-        # （旧写法让"目标已是活动窗"的判定永远匹配不上，白白多一次 activate/raise = 用户听到的操作音）
-        want = {"id": fb.get("internalId") or fb.get("id") or "",
-                "cls": fallback_class.lower(),
-                "c": fb.get("caption") or fb.get("c") or "",
-                "geom": f"{fb.get('x', 0)},{fb.get('y', 0)} {fb.get('w', 0)}x{fb.get('h', 0)}"}
+        if fb is not None:
+            # KWin 记录里的字段名是 internalId / caption，不是 id / c
+            want = {"id": fb.get("internalId") or fb.get("id") or "",
+                    "cls": fallback_class.lower(),
+                    "c": fb.get("caption") or fb.get("c") or "",
+                    "geom": f"{fb.get('x', 0)},{fb.get('y', 0)} {fb.get('w', 0)}x{fb.get('h', 0)}"}
+    return want, (_want_record(want) if want else None), rec, fallback_reason, fb
 
-    want_rec = _want_record(want)
+
+def dry_restore(prev_json, fallback_class=FALLBACK_CLASS):
+    """只算不做：回答「这次交还会回到哪个窗」。不 activate / 不 raise / 不碰租约文件。"""
+    state0 = kwin_state()
+    if state0 is None:
+        return {"ok": False, "dry_run": True, "error": "KWIN_UNAVAILABLE"}
+    prev = _parse_prev(prev_json)
+    want, want_rec, rec, fr, fb = _resolve_target(state0, prev, fallback_class)
+    if want is None:
+        return {"ok": False, "dry_run": True, "error": "FALLBACK_NOT_FOUND",
+                "fallback_reason": fr, "fallback_class": fallback_class}
+    return {"ok": True, "dry_run": True,
+            "source": "prev" if fr is None else "fallback",
+            "fallback_reason": fr,
+            "target": {"class": want_rec.get("class") or "",
+                       "caption": want_rec.get("caption") or "",
+                       "internalId": want_rec.get("internalId") or ""},
+            "prev": _display(rec) if rec else "",
+            "fallback_class": fallback_class,
+            "touched_windows": False}
+
+
+def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
+    """按 KWin 权威记录归还：activate + raise + 堆叠验证（重试 3 次）。
+
+    prev 可以是旧格式字符串（兼容旧租约）或记录 dict。**不碰租约文件**——
+    ys-lease release 与 ys-gui-slot restore 共用这一份验证逻辑。
+    """
+    state0 = kwin_state()
+    if state0 is None:
+        return {"ok": False, "error": "KWIN_UNAVAILABLE"}
+    # 目标解析只有一处实现（dry-run 与真实路径共用，注入后不会脱钩）
+    want, want_rec, rec, fallback_reason, fb = _resolve_target(state0, prev, fallback_class)
+    if want is None:
+        return {"ok": False, "error": "FALLBACK_NOT_FOUND",
+                "fallback_reason": fallback_reason,
+                "detail": f"原焦点不可用（{fallback_reason}），且找不到回落窗 {fallback_class}"}
 
     # 2026-10-21（用户反馈「还是听到操作提示音，但画面没切换」）：
     # 目标**已经是活动窗**时，旧实现仍会 activate+raise 一次 —— 画面看不出变化，
@@ -840,6 +880,7 @@ def main():
     a5.add_argument("--pid", type=int, default=0)
     a6 = sub.add_parser("restore", help="按已记录的 prev JSON 归还（ys-gui-slot trap 用）")
     a6.add_argument("--prev-json", required=True)
+    a6.add_argument("--dry-run", action="store_true", help="只算不做：只回答会回到哪个窗")
     a6.add_argument("--fast", action="store_true")
     a6.add_argument("--fallback", default=FALLBACK_CLASS)
     a6.add_argument("--recover", action="store_true")
@@ -857,7 +898,11 @@ def main():
     elif a.cmd == "kwin-raise":
         res = kwin_raise_cmd(caption=a.caption, cls=a.cls, internal_id=a.id, pid=a.pid)
     elif a.cmd == "restore":
-        res = restore_prev(a.prev_json, fast=a.fast, fallback_class=a.fallback, recover=a.recover)
+        if a.dry_run:
+            res = dry_restore(a.prev_json, fallback_class=a.fallback)
+        else:
+            res = restore_prev(a.prev_json, fast=a.fast, fallback_class=a.fallback,
+                               recover=a.recover)
     else:
         spec = a.spec[1:] if a.spec and a.spec[0] == "--" else a.spec
         res = run_in_lease(spec)

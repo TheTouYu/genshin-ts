@@ -14,13 +14,23 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"
 export DISPLAY="${DISPLAY:-:1}"
 
 PREV=""
+DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --prev-json) PREV="${2:-}"; shift 2 ;;
     --prev-json=*) PREV="${1#*=}"; shift ;;
+    --dry-run) DRY=1; shift ;;
     *) echo "[ys-hand-back] 未知参数：$1" >&2; exit 2 ;;
   esac
 done
+
+# --dry-run：只回答「这次交还会回到哪个窗」（判据由 ys-lease 的 _resolve_target 提供，
+# 与真实路径**共用同一个函数**；不 activate / 不 raise / 不碰租约文件）。门禁 handback-target 用它。
+if [ "$DRY" = 1 ]; then
+  out=$("$YS_HOME/ys-lease" restore --dry-run --prev-json "$PREV" --fallback firefox 2>&1); rc=$?
+  printf '%s\n' "$out"
+  exit "$rc"
+fi
 
 out=$("$YS_HOME/ys-lease" restore --prev-json "$PREV" --fallback firefox 2>&1); rc=$?
 printf '%s\n' "$out"

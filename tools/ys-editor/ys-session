@@ -295,6 +295,16 @@ def cmd_claim(a):
     return 0
 
 
+def _expected_handback_class(rs, cur):
+    """交还后应当是哪个窗：**以 restore 回执为准**（记录优先，解析唯一源在 ys-lease），
+    回执缺字段才退回 prev_active，最后才 firefox。写死 firefox 会在「用户在 kitty 发起」时
+    把一次成功的交还判成失败（2026-10-22 实测同族问题）。
+    """
+    return str(((rs or {}).get("restored_info") or {}).get("class")
+               or ((cur or {}).get("prev_active") or {}).get("class")
+               or "firefox").strip().lower()
+
+
 def cmd_end(a):
     cur = load()
     if not cur:
@@ -325,7 +335,7 @@ def cmd_end(a):
             res["revoke"] = json.loads((g.stdout or "").strip().splitlines()[-1])
         except Exception:                                    # noqa: BLE001
             res["revoke"] = {"ok": False, "rc": g.returncode}
-        # 三件交还判据：active=firefox、firefox.idx>game.idx、桌面回开始那张
+        # 三件交还判据：active=<交还目标>、目标.idx>game.idx、桌面回开始那张
         try:
             st3 = lease(["kwin-state"])
             act = st3.get("active") or {}
@@ -335,7 +345,8 @@ def cmd_end(a):
                 "active_class": act.get("class"), "active_idx": act.get("index"),
                 "game_idx": game_idx, "desktop": st3.get("desktop"),
                 "desktop_prev": cur.get("prev_desktop")}
-            ok_hb = (str(act.get("class") or "").lower() == "firefox"
+            _exp_cls = _expected_handback_class(rs, cur)
+            ok_hb = (str(act.get("class") or "").lower() == _exp_cls
                      and game_idx is not None and act.get("index") is not None
                      and int(act["index"]) > int(game_idx)
                      and st3.get("desktop") == cur.get("prev_desktop"))
