@@ -18,17 +18,28 @@ LOG=gui-test/.02/collect.log
 PX=1150; PY=240; PW=1300; PH=1130   # 正文面板区域（.01/.02 帧离线验证过）
 PANEL_X=1850; PANEL_Y=780           # 正文面板悬停点（滚轮作用区）
 
-grab()  { "$CAP" latest --out "$1" --format png >>"$LOG" 2>&1; }
-md5p()  { magick "$1" -crop ${PW}x${PH}+${PX}+${PY} +repage -format '%#' info: 2>/dev/null; }
+# grab <out.png>：抓帧并 echo 该帧的 daemon seq（新鲜度证据；JSON 同时入日志）
+grab() {
+  local j
+  j=$("$CAP" latest --out "$1" --format png 2>>"$LOG")
+  echo "$j" >>"$LOG"
+  printf '%s' "$j" | grep -oP '"seq":\s*\K[0-9]+' | head -1
+}
+md5p() { magick "$1" -crop ${PW}x${PH}+${PX}+${PY} +repage -format '%#' info: 2>/dev/null; }
 
-# settle <out.png>：抓帧直到连续两帧面板 md5 相同（动画结束），echo 最终 md5
+# 2026-10-23 修复：settle 的「md5 相等」会被 daemon 同一帧（seq 未推进）骗过。
+# 改法：只有帧 seq 前进过之后的两帧 md5 相等，才判稳定。
 settle() {
-  local out="$1" ma="" mb="" i
-  grab "$out"; ma=$(md5p "$out")
+  local out="$1" ma="" mb="" sa="" sb="" i
+  sa=$(grab "$out")
+  ma=$(md5p "$out")
   for i in 1 2 3 4 5 6 7 8; do
-    grab "$out.p.png"; mb=$(md5p "$out.p.png")
+    sb=$(grab "$out.p.png")
+    mb=$(md5p "$out.p.png")
+    # 帧未推进（同 seq）：拿不到新鲜证据，重抓，不当稳定
+    if [ -n "$sa" ] && [ "$sb" = "$sa" ]; then continue; fi
     if [ "$ma" = "$mb" ]; then rm -f "$out.p.png"; echo "$ma"; return 0; fi
-    mv "$out.p.png" "$out"; ma="$mb"
+    mv "$out.p.png" "$out"; ma="$mb"; sa="$sb"
   done
   echo "$ma"
 }

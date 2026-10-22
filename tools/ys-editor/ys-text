@@ -287,8 +287,10 @@ def clean_markdown(md):
     return ''.join(out)
 
 
-def refine_lines(img_path, lines, max_lines, poll, keep_dir, timeout):
-    """逐行裁条 → PaddleOCR-VL 精读。返回 (refined_map, note, ms)。失败=降级，不抛。"""
+def refine_lines(img_path, lines, max_lines, poll, keep_dir, timeout, jobs=4):
+    """逐行裁条 → PaddleOCR-VL 精读。返回 (refined_map, note, ms)。失败=降级，不抛。
+    2026-10-23：客户端支持 --jobs 并发（单条服务端排队 20~60s，串行 N 条=N×单条），
+    这里默认 4 并发；timeout 由调用方按 ceil(N/jobs)×单条上限自动放宽。"""
     if not os.path.exists(VL_CLIENT):
         return {}, 'skip:no_client(%s)' % VL_CLIENT, 0
     if not net_ok():
@@ -312,7 +314,7 @@ def refine_lines(img_path, lines, max_lines, poll, keep_dir, timeout):
         idxs.append(i)
     if not strips:
         return {}, 'skip:no_strip', int((time.time() - t0) * 1000)
-    cmd = [sys.executable, VL_CLIENT] + strips + ['-o', outdir, '--poll', str(poll)]
+    cmd = [sys.executable, VL_CLIENT] + strips + ['-o', outdir, '--poll', str(poll), '--jobs', str(jobs)]
     try:
         r = subprocess.run(cmd, env=ys_env.env(), capture_output=True, text=True,
                            timeout=timeout)
@@ -400,6 +402,10 @@ def main(argv):
     ap.add_argument('--refine-max', type=int, default=40)
     ap.add_argument('--refine-poll', type=float, default=1.0)
     ap.add_argument('--refine-keep', default=None)
+    ap.add_argument('--refine-timeout', type=int, default=0,
+                    help='精读子进程超时(秒)。0=自动：max(--timeout, ceil(条数/并发)×45+60)。'
+                         '2026-10-23 实测：共享 --timeout 时 17 条×22s 必超时降级，等于白白不精读')
+    ap.add_argument('--refine-jobs', type=int, default=4, help='精读云端并发数')
     a = ap.parse_args(argv)
 
     t0 = time.time()
@@ -452,12 +458,33 @@ def main(argv):
     # （2026-10-22 实测 bug：先加偏移后精读 ⇒ --region 下每条裁条都越界，回执只显 skip:no_strip）
     refined, refine_note, refine_ms = False, 'off(--refine 未给)', 0
     if a.refine and lines:
+        n_strips = min(len(lines), a.refine_max)
+        rto = a.refine_timeout or max(a.timeout, -(-n_strips // max(1, a.refine_jobs)) * 45 + 60)
         got, refine_note, refine_ms = refine_lines(work, lines, a.refine_max,
-                                                   a.refine_poll, a.refine_keep, a.timeout)
+                                                   a.refine_poll, a.refine_keep, rto,
+                                                   jobs=a.refine_jobs)
         for i, txt in got.items():
             lines[i]['text_ocr'] = lines[i]['text']
             lines[i]['text'] = txt
         refined = bool(got)
+
+    # 2026-10-23 裁窗截断告警：行 bbox 贴住裁图边缘 ⇒ 字符可能被切（.01/.02 双双犯过：
+    # 正文列右缘 x≈2490 超出裁窗 2450，满/野/。被吞）。必须在加帧偏移前用裁图坐标判。
+    edge_hits = []
+    if region:
+        rw = region[2]
+        for l in lines:
+            x0, y0, x1, y1 = l['bbox']
+            if x1 >= rw - 3:
+                edge_hits.append('L? 右缘 x1=%d>=裁宽%d-3（行尾字符可能被切，扩大 --region W 重跑）' % (x1, rw))
+            if x0 <= 2:
+                edge_hits.append('L? 左缘 x0=%d<=2（行首字符可能被切）' % x0)
+        if edge_hits:
+            n = len(edge_hits)
+            first_y = min(l['bbox'][1] for l in lines
+                          if l['bbox'][2] >= region[2] - 3 or l['bbox'][0] <= 2)
+            print('[ys-text][WARN] 裁窗截断嫌疑 %d 处（首次 y≈%d）——例如: %s'
+                  % (n, first_y, edge_hits[0]), file=sys.stderr)
 
     # 裁图坐标 → 帧坐标
     ox, oy = (region[0], region[1]) if region else (0, 0)
@@ -483,6 +510,7 @@ def main(argv):
             'colw': colw, 'median_gap': mg, 'gap_refills': gap_refills,
             'lines': len(lines), 'paragraphs': len(paras),
             'row_merge': not a.no_row_merge,
+            'edge_truncation_suspects': len(edge_hits),
         },
     }
     if a.only == 'lines':
