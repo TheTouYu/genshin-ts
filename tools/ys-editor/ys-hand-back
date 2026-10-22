@@ -3,7 +3,9 @@
 #
 # 为什么要单独一个文件：归还必须只有一处实现（判据单一源），
 # 否则每个工具各写一份 subprocess 调 ys-lease，守卫 G-FOCUS-RETURN 也无法统一校验。
-# 语义：切回默认屏（firefox）并**验证堆叠**（firefox.idx > 原神.idx）；失败非零退出。
+# 语义：切回**授权时记下的用户窗**（`--prev-json`），验证堆叠；没有记录或那窗已消失才回退 firefox。
+#   2026-10-22 实测（pi 任务）：grant 时记下了 `{"caption":"π - gui-test","class":"kitty"}`，
+#   但 revoke 仍交还到 firefox——本文件写死 `--prev-json ""`，把记录丢了。
 #
 # 退出码：0 已交还并验证｜1 交还失败（调用方必须把失败暴露给用户，不许静默）
 set -u
@@ -11,9 +13,25 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"
 [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
 export DISPLAY="${DISPLAY:-:1}"
 
-out=$("$YS_HOME/ys-lease" restore --prev-json "" --fallback firefox 2>&1); rc=$?
+PREV=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --prev-json) PREV="${2:-}"; shift 2 ;;
+    --prev-json=*) PREV="${1#*=}"; shift ;;
+    *) echo "[ys-hand-back] 未知参数：$1" >&2; exit 2 ;;
+  esac
+done
+
+out=$("$YS_HOME/ys-lease" restore --prev-json "$PREV" --fallback firefox 2>&1); rc=$?
 printf '%s\n' "$out"
+# 2026-10-22：prev 窗已消失时 ys-lease 会回退 firefox 并已验证堆叠，但它用 ok:false + rc=1
+# 表达"没回到原来那个窗"。对调用方来说屏幕**已经安全回到用户手上**，不该报失败——
+# 否则 revoke 会对一次成功的交还报红（实测 PREV_GONE 场景）。判据改成看 fallback_verified。
 if [ "$rc" -ne 0 ]; then
+  if printf '%s' "$out" | grep -q '"fallback_verified": *true'; then
+    echo "[ys-hand-back] 原窗已消失，已回退 firefox 并验证堆叠（不当失败）" >&2
+    exit 0
+  fi
   echo "[ys-hand-back] ✗ 交还失败（rc=$rc）——屏幕可能仍在目标窗，请人工确认" >&2
   exit 1
 fi
