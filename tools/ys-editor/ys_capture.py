@@ -72,7 +72,14 @@ import threading
 import time
 import zlib
 
-STATE_VERSION = 'v1'
+STATE_VERSION = 'v2'
+STATE_VERSIONS = ('v1', 'v2')     # 客户端必须两种都认（滚动升级：旧守护 + 新客户端）
+# v2 追加字段（顺序即 state.tsv 尾部）：content_seq static_ms stale_events
+#   audit_ok audit_stale audit_verdict audit_age_ms kwin_fallback
+# 语义：「帧停滞」修复（2026-10-23）——把「抓帧新鲜度」与「内容新鲜度」拆开：
+#   seq      每抓一次 +1（通道活着）
+#   content_seq  仅当**内容真的变了** +1；static_ms = 距上次内容变化多久
+#   stale_events 稽核判定「主通道陈旧」的次数（见 Daemon.audit_loop）
 DEFAULT_DIR = '/dev/shm/ys-capture'
 DEFAULT_WIN = 'auto'   # 2026-10-21: 原 '0x01400001' 是写死的旧 id；游戏重启后窗口 id 会变
                        # （实测 0x01400001 → 0x1800001 → 0x1600001），写死 ⇒ X BadDrawable
@@ -80,6 +87,18 @@ DEFAULT_WIN = 'auto'   # 2026-10-21: 原 '0x01400001' 是写死的旧 id；游�
                        # 把默认值设成 auto 才是唯一不会过期的那条路。
 DEFAULT_CLASS = 'yuanshen.exe'
 FRAME_W, FRAME_H = 2560, 1440
+
+# ── 帧停滞稽核参数（2026-10-23 实测标定，见 Daemon.audit_loop 注释）
+AUDIT_AFTER_MS = 600          # 内容静止 ≥ 这么久才值得付稽核成本（KWin 抓一帧 ~250ms）
+AUDIT_INTERVAL_MS = 1200      # 两次稽核的最小间隔（确认"真静止"后指数退避）
+AUDIT_MAX_INTERVAL_MS = 6000  # 退避上限
+AUDIT_PAIR_GAP_S = 0.22       # 同一通道两次抓帧的间隔
+FALLBACK_HOLD_MS = 6000       # 判定陈旧后，改走合成器通道的保持时长
+DEMAND_WINDOW_S = 3.0         # 有人在读帧的判据窗口（客户端最新一次 latest 距今 < 3s）
+SIG_BW, SIG_BH = 64, 36       # 内容签名：64×36 块均值（对动画相位不敏感，对内容变化敏感）
+SIG_BLOCK_TOL = 4             # 块均值容差（0-255）
+SIG_BLOCK_FRAC = 0.02         # 超过 2% 的块变了才算"内容变了"
+
 VERDICT_CODES = {'OK': 0, 'NOT_ATOP': 2, 'NOT_FOUND': 2, 'OTHER_DESKTOP': 4,
                  'OCCLUDED': 5, 'UNKNOWN': 9}
 EXIT = {'OK': 0, 'DAEMON_DOWN': 7, 'STALE_FRAME': 8, 'STRICT_UNAVAILABLE': 9,
@@ -499,6 +518,49 @@ for (var i = 0; i < ord.length; i++) {{
 _HANDLE_CACHE = {}
 
 
+# QImage::Format 编号 → 内存通道序。猜错不会有任何报错，只会**颜色悄悄错**：
+#   4=Format_RGB32 / 5=ARGB32 / 6=ARGB32_Premultiplied  → 内存 B,G,R,X
+#   16=RGBX8888 / 17=RGBA8888 / 18=RGBA8888_Premultiplied → 内存 R,G,B,X
+# 2026-10-23 实测（原实现一律按 BGRA 反转 ⇒ fmt=18 时 R/B 互换）：
+#   同一窗口同一时刻，daemon(XShm) 帧均值 R83/G143/B164，KWin 帧 R165/G143/B83。
+# OCR 看不出（灰白文字），但颜色判据全错、交叉通道稽核永远「不一致」。
+RGBA_FMTS = (16, 17, 18)
+BGRA_FMTS = (4, 5, 6)
+
+
+def raw_to_rgb(arr, fmt):
+    """QImage 原始像素 → RGB（按 format 选通道序，不猜）。返回 (rgb, channel_order)。"""
+    import numpy as np
+    if int(fmt) in RGBA_FMTS:
+        return np.ascontiguousarray(arr[:, :, :3]), 'rgb'
+    # 未知 format 沿用历史行为（BGRA）——但把 channel_order 记进回执，便于事后对账
+    order = 'bgr' if int(fmt) in BGRA_FMTS else f'bgr(unknown-fmt-{fmt})'
+    return np.ascontiguousarray(arr[:, :, 2::-1]), order
+
+
+def coarse_sig(rgb, bw=SIG_BW, bh=SIG_BH):
+    """内容签名：把帧压成 bw×bh 个块均值（int16）。对动画相位不敏感，对内容变化敏感。
+
+    为什么不用 crc：同一窗口两帧只要有**任何**像素差 crc 就变，60fps 动画下永远"在变"；
+    而"内容是否换了"要的是粗粒度判据（标题/正文/面板整体换没换）。
+    """
+    import numpy as np
+    h, w = rgb.shape[:2]
+    bb = np.ascontiguousarray(rgb[:h - h % bh, :w - w % bw])
+    hh, ww = bb.shape[0] // bh, bb.shape[1] // bw
+    return bb.reshape(bh, hh, bw, ww, 3).mean(axis=(1, 3)).astype(np.int16)
+
+
+def sig_changed(a, b, tol=SIG_BLOCK_TOL, frac=SIG_BLOCK_FRAC):
+    """两个签名是否"内容不同"：块均值差 > tol 的块占比 > frac。返回 (changed, frac)。"""
+    import numpy as np
+    if a is None or b is None or a.shape != b.shape:
+        return True, 1.0
+    d = np.abs(a - b)
+    f = float((d > tol).any(axis=2).mean())
+    return f > frac, round(f, 4)
+
+
 class KWinSS2:
     """KWin ScreenShot2 CaptureWindow：**按窗口自身缓冲**抓，与是否在栈顶/当前桌面无关。
 
@@ -562,8 +624,9 @@ class KWinSS2:
         if h <= 0 or stride <= 0 or len(data) < h * stride:
             raise GrabError(f'KWin: 像素长度不符 bytes={len(data)} h={h} stride={stride}')
         arr = np.frombuffer(data[:h * stride], np.uint8).reshape(h, stride // 4, 4)
-        rgb = np.ascontiguousarray(arr[:, :, 2::-1])      # BGRA → RGB
-        return rgb, ms, {'src': 'kwin-ss2', 'format': int(meta.get('format') or 0),
+        fmt = int(meta.get('format') or 0)
+        rgb, order = raw_to_rgb(arr, fmt)              # BGRA → RGB（按 format，不猜）
+        return rgb, ms, {'src': 'kwin-ss2', 'format': fmt, 'channel_order': order,
                          'scale': float(meta.get('scale') or 1), 'height': h,
                          'width': int(meta.get('width') or (stride // 4))}
 
@@ -609,8 +672,10 @@ class KWinScreen(KWinSS2):
         if h <= 0 or stride <= 0 or len(data) < h * stride:
             raise GrabError(f'KWin: 像素长度不符 bytes={len(data)} h={h} stride={stride}')
         arr = np.frombuffer(data[:h * stride], np.uint8).reshape(h, stride // 4, 4)
-        rgb = np.ascontiguousarray(arr[:, :, 2::-1])
-        return rgb, ms, {'src': 'kwin-screen', 'scale': float(meta.get('scale') or 1)}
+        fmt = int(meta.get('format') or 0)
+        rgb, order = raw_to_rgb(arr, fmt)
+        return rgb, ms, {'src': 'kwin-screen', 'format': fmt, 'channel_order': order,
+                         'scale': float(meta.get('scale') or 1)}
 
 
 # ─────────────────────────────────────────────────────────────── 编码器
@@ -713,6 +778,39 @@ class Daemon:
             raise SystemExit(f'未知 --source {self.source}（screen|window）')
         self.last_src = 'xshm-window'
         self.kwin = None
+        self.frame_w, self.frame_h = args.width, args.height
+
+        # ── 帧停滞：内容身份（与"抓帧序号"分开）
+        self.content_crc = None
+        self.content_seq = 0
+        self.content_ts = time.time()
+
+        # ── 双通道稽核 + 合成器回退（2026-10-23）
+        self.kwin_lock = threading.Lock()          # KWin 通道同一时刻只给一个线程用
+        self.audit_enabled = bool(getattr(args, 'audit', True))
+        self.audit_after_ms = int(getattr(args, 'audit_after_ms', AUDIT_AFTER_MS))
+        self.audit_interval_ms = int(getattr(args, 'audit_interval_ms', AUDIT_INTERVAL_MS))
+        self.audit_max_interval_ms = int(getattr(args, 'audit_max_interval_ms',
+                                                 AUDIT_MAX_INTERVAL_MS))
+        self.fallback_hold_ms = int(getattr(args, 'fallback_hold_ms', FALLBACK_HOLD_MS))
+        self._audit_interval_cur = self.audit_interval_ms
+        self.audit_last_at = 0.0
+        self.audit_count = 0
+        self.audit_ok = 0
+        self.audit_stale = 0
+        self.audit_unavailable = 0
+        self.audit_verdict = 'PENDING'
+        self.audit_last_ms = 0
+        self.stale_events = 0
+        self.audit_hit = None                      # 稽核线程 → 主循环：判定陈旧时把 KWin 帧交过去
+        self.audit_hit_lock = threading.Lock()
+        self.fallback_until = 0.0
+        self._fallback_xcrc = None
+        self._resume_count = 0
+        # 「点单」判据：客户端每次 latest 会 touch 这个文件；3s 内有人读 ⇒ 才值得付合成器抓帧
+        self.demand_path = os.path.join(self.dir, 'demand')
+        self.demand_window_s = float(getattr(args, 'demand_window_s', DEMAND_WINDOW_S))
+        self.demand_hits = 0
 
     # ---- 窗口发现（--win auto 或 id 失效时按 WM_CLASS 找）
     def discover_window(self):
@@ -868,14 +966,216 @@ class Daemon:
         except Exception as e:                            # noqa: BLE001
             if self.source != 'window':
                 raise
-            if self.kwin is None:
-                self.kwin = KWinSS2(self.want_class)
             try:
-                rgb, ms, kinfo = self.kwin.grab()
+                rgb, ms, kinfo = self._kwin_grab()
             except Exception as e2:                       # noqa: BLE001
                 raise GrabError(f'XShm: {type(e).__name__}: {e}; '
                                 f'KWin: {type(e2).__name__}: {e2}') from e2
             return rgb, ms, kinfo.get('src', 'kwin-ss2')
+
+    def _kwin_grab(self):
+        """合成器通道：KWin ScreenShot2 按窗口抓（不依赖 X11 的窗口像素**读回**路径）。
+
+        代价实测 240–570ms/帧（XShm 是 2–12ms，贵 20–40×）⇒ 只在「主通道疑似陈旧」时用，
+        不做常规通道。为什么它能当真相源：它读的是合成器持有的窗口缓冲，而 XShm 读的是
+        X 侧的窗口像素——两者在本机**实测会分叉**（见 audit_loop 注释）。
+        """
+        with self.kwin_lock:
+            if self.kwin is None:
+                self.kwin = KWinSS2(self.want_class, want_w=self.args.width,
+                                    want_h=self.args.height)
+            return self.kwin.grab()
+
+    def _demand_fresh(self):
+        """最近有没有人在读帧（客户端 touch `$DIR/demand`）。
+
+        为什么要这道门：合成器通道一帧 240–570ms（含 GPU 回读），看不见窗口时若**常驻**走它，
+        就是拿一整个核去服务一个没人看的窗口。没人读时走 XShm（2–12ms）即可——
+        反正没人看；有人读就切到合成器通道，保证"读到的是真画面"。
+        """
+        try:
+            age = time.time() - os.path.getmtime(self.demand_path)
+        except OSError:
+            return False
+        if age < self.demand_window_s:
+            self.demand_hits += 1
+            return True
+        return False
+
+    def _window_invisible(self):
+        """窗口当前是否"看不见"（被遮挡/别的虚拟桌面/不在栈顶）——返回 (bool, verdict)。
+
+        为什么这决定抓帧通道（2026-10-23 实测）：X11 对**不可见**窗口的 GetImage 内容本来就是
+        未定义的，Xwayland 只是**偶尔**把新内容同步进窗口像素 ⇒ 实测滞后 0.3–2.23s；
+        同一时段合成器通道（KWin ScreenShot2）13/13 连续帧都在变。所以"看不见"时直接用合成器
+        通道当主通道（慢 3–4fps，但内容是真的），"看得见"时用 XShm（10fps）并由稽核兜底。
+        """
+        st = self.strict or {}
+        v = st.get('verdict') or 'UNKNOWN'
+        if v in ('OCCLUDED', 'OTHER_DESKTOP'):
+            return True, v
+        if v == 'NOT_ATOP':
+            # 只是"不在栈顶"但没有任何窗口压在上面（covered_ratio=0）时，XShm 读回是可靠的；
+            # 只有真被压住（有重叠）才算"看不见"。
+            return (st.get('covered_ratio') or 0) > 0, v
+        return False, v
+
+    def static_ms(self):
+        """距**内容**上一次真正变化多少毫秒（不是距上一次抓帧）。"""
+        return int(max(0.0, time.time() - self.content_ts) * 1000)
+
+    def _log_event(self, stage, **kw):
+        """状态变化打一行 JSON 到 stdout（journal 可见），同类限频 2s 防刷。
+
+        2026-10-21 的老教训：失败路径静默 ⇒ 外部只能猜。**成功路径的判据变化**同理，
+        不能让「通道悄悄换了」这件事只活在内存里。
+        """
+        now = time.time()
+        seen = getattr(self, '_last_evt', None)
+        if seen is None:
+            seen = self._last_evt = {}
+        if now - seen.get(stage, 0.0) < 2.0:
+            return
+        seen[stage] = now
+        rec = {'ok': True, 'role': 'serve', 'stage': stage, 'seq': self.seq,
+               'content_seq': self.content_seq, 'static_ms': self.static_ms(),
+               'channel': self.last_src, 'stale_events': self.stale_events}
+        rec.update(kw)
+        rec['ts'] = time.strftime('%Y-%m-%dT%H:%M:%S%z')
+        print(json.dumps(rec, ensure_ascii=False), flush=True)
+
+    def audit_loop(self):
+        """帧停滞稽核：主通道"静止"时，用合成器通道验一次「画面到底动没动」。
+
+        判据为什么是「KWin 自己连抓三帧、两两不同」而不是「XShm 帧 vs KWin 帧」：
+          两条通道各抓不同时刻，60fps 动画下逐像素比对必然不同（实测 30–50%）——
+          **对齐问题会制造假阳性**。让同一个通道跟自己比就绕开了对齐：
+            · KWin 在变、XShm 静止 ⇒ 主通道陈旧（画面在动，我们没看到）；
+            · KWin 也不变          ⇒ 画面真的静止（不是缺陷，退避）。
+        实测（2026-10-23，原神窗在另一虚拟桌面但仍在 60fps 渲染，10s 采样）：
+          XShm 内容变化间隔 0.05–2.23s（**最长冻结 2.23s**），同一时段 KWin 13/13 连续对都在变。
+          ⇒ .03/.04 里「按了键要等 2.2s 才看到新内容」的真身就是这条 XShm 读回滞后，
+          不是游戏动画、也不是"面板两段式动画"。
+        """
+        while not self.stop.is_set():
+            self.stop.wait(0.2)
+            if self.stop.is_set() or not self.audit_enabled:
+                continue
+            try:
+                self._audit_once()
+            except Exception as e:                        # noqa: BLE001
+                self.last_err = f'audit: {type(e).__name__}: {e}'
+                self.audit_unavailable += 1
+                self.audit_verdict = 'AUDIT_ERROR'
+                self._log_event('audit-error', detail=self.last_err)
+                self.stop.wait(1.0)
+
+    def _audit_once(self):
+        now = time.time()
+        if now < self.fallback_until:      # 已经在合成器通道上，无需稽核
+            return
+        if self.grabber is None:           # 主通道没起来，谈不上「陈旧」
+            return
+        if self._window_invisible()[0]:    # 看不见时合成器就是主通道，无需稽核
+            return
+        if not self._demand_fresh():       # 没人读帧就不必付稽核成本（2–3 次合成器抓帧）
+            return
+        if self.static_ms() < self.audit_after_ms:
+            return
+        if (now - self.audit_last_at) * 1000 < self._audit_interval_cur:
+            return
+        self.audit_last_at = now
+        self.audit_count += 1
+        t0 = time.perf_counter()
+        frames = []
+        try:
+            # 两帧先判一次（成本 ~0.5s）：没变就是"真静止"，不必再付第三帧。
+            for _i in range(2):
+                if frames:
+                    self.stop.wait(AUDIT_PAIR_GAP_S)
+                rgb, _ms, _kinfo = self._kwin_grab()
+                frames.append(rgb)
+            # 变了才需要第三帧确认（排除"合成器偶发抖动/缓冲交替"造成的假陈旧）
+            if sig_changed(coarse_sig(frames[0]), coarse_sig(frames[1]))[0]:
+                self.stop.wait(AUDIT_PAIR_GAP_S)
+                rgb, _ms, _kinfo = self._kwin_grab()
+                frames.append(rgb)
+        except Exception as e:                            # noqa: BLE001
+            self.audit_unavailable += 1
+            self.audit_verdict = 'KWIN_UNAVAILABLE'
+            self.audit_last_ms = int((time.perf_counter() - t0) * 1000)
+            self._audit_interval_cur = min(self._audit_interval_cur * 2,
+                                           self.audit_max_interval_ms)
+            self._log_event('audit-unavailable', detail=f'{type(e).__name__}: {e}')
+            return
+        sigs = [coarse_sig(f) for f in frames]
+        ch1, f1 = sig_changed(sigs[0], sigs[1])
+        if len(sigs) > 2:
+            ch2, f2 = sig_changed(sigs[1], sigs[2])
+        else:
+            ch2, f2 = False, 0.0
+        ms = int((time.perf_counter() - t0) * 1000)
+        self.audit_last_ms = ms
+        if ch1 and ch2:
+            # 画面在动、主通道却静止 ⇒ 主通道陈旧：立刻换合成器通道并记账
+            self.audit_stale += 1
+            self.stale_events += 1
+            self.audit_verdict = 'XSHM_STALE'
+            with self.audit_hit_lock:
+                self.audit_hit = {'rgb': frames[-1], 'ms': ms, 'src': 'kwin-ss2'}
+            # 反复陈旧 ⇒ 保持更久（6s→12s→24s，上限 60s）：每次"切回再切走"都要白付一次稽核。
+            self._stale_streak = getattr(self, '_stale_streak', 0) + 1
+            hold_ms = min(self.fallback_hold_ms * (2 ** (self._stale_streak - 1)), 60000)
+            self.fallback_until = time.time() + hold_ms / 1000.0
+            self._fallback_xcrc = self.content_crc
+            self._resume_count = 0
+            self._audit_interval_cur = self.audit_interval_ms
+            self._log_event('stale-detected', audit_ms=ms, frac_a=f1, frac_b=f2,
+                            static_ms=self.static_ms(), fallback_ms=self.fallback_hold_ms)
+        else:
+            self.audit_ok += 1
+            self._stale_streak = 0
+            self.audit_verdict = 'CONTENT_STATIC'
+            self._audit_interval_cur = min(self._audit_interval_cur * 2,
+                                           self.audit_max_interval_ms)
+            self._log_event('audit-static-confirmed', audit_ms=ms, frac_a=f1, frac_b=f2)
+
+    def _warm_kwin(self):
+        """启动时就付掉合成器通道的一次性成本（解析 internalId ≈1.6–4s + 首帧 250–570ms）。
+
+        不预热的话，"没人读 → XShm → 有人读 → 切合成器"的**第一次**切换要 2–4s，
+        客户端会先拿到一个 xshm 旧帧或直接 STALE_FRAME（实测踩到：age=1219ms > 1000ms）。
+        """
+        try:
+            _rgb, ms, kinfo = self._kwin_grab()
+            self._log_event('kwin-warm', ms=int(ms),
+                            src=(kinfo or {}).get('src', 'kwin-ss2') if isinstance(kinfo, dict)
+                            else 'kwin-ss2')
+        except Exception as e:                            # noqa: BLE001
+            self._log_event('kwin-warm-failed', detail=f'{type(e).__name__}: {e}')
+
+    def _probe_resume(self):
+        """回退期顺带探一次主通道：**它又开始变了**（连续 4 次）就切回 XShm。
+
+        只判「变了」不判「变对了」：滞后本身也可能是"变"的，所以切回后稽核会再验一遍；
+        频繁来回切的代价是多付一次稽核（~1s），比永远滞后的代价小一个量级。
+        """
+        if self.grabber is None:
+            return
+        try:
+            xrgb, _ms = self.grabber.grab()
+        except Exception:                                 # noqa: BLE001
+            return
+        xcrc = zlib.crc32(xrgb) & 0xffffffff
+        if self._fallback_xcrc is not None and xcrc != self._fallback_xcrc:
+            self._resume_count += 1
+        else:
+            self._resume_count = 0
+        self._fallback_xcrc = xcrc
+        if self._resume_count >= 4:
+            self.fallback_until = 0.0
+            self._resume_count = 0
+            self._log_event('channel-resumed')
 
     def _log_fail(self, stage):
         """限频把抓帧失败打到 stdout（journal/nohup 日志里能看见）。
@@ -894,9 +1194,53 @@ class Daemon:
                           'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')}, ensure_ascii=False),
               flush=True)
 
+    def _adopt_frame(self, rgb):
+        """把一帧登记为「当前内容」：**内容 id / 内容时间只在内容真的变了时前进**。
+
+        这是「帧停滞」的读数基础：`seq` 每抓一次 +1（通道活着），`content_seq` 只在内容变了
+        +1（画面真的变了）。此前两者混为一谈 ⇒ 守护报 `age_ms=8ms`（看着很新鲜），
+        而内容已经 2.2s 没变了，消费者只能靠"等 src 变化"自己猜。
+
+        返回 (crc, changed, rgb_path)。
+        """
+        crc = zlib.crc32(rgb) & 0xffffffff
+        crc8 = f'{crc:08x}'
+        changed = crc != self.content_crc
+        if changed:
+            self.content_crc = crc
+            self.content_seq += 1
+            self.content_ts = time.time()
+        if changed or not (self.last_rgb_path and os.path.exists(self.last_rgb_path)):
+            rgb_path = os.path.join(self.dir, f'f-{self.seq:09d}.rgb')
+            write_rgb_atomic(rgb_path, rgb)   # 原子：读者不会看到半帧（2026-10-21）
+            self.last_rgb_path = rgb_path
+            self.frames_written += 1
+            self.frame_h, self.frame_w = int(rgb.shape[0]), int(rgb.shape[1])
+        else:
+            # 内容与上一帧逐字节相同：**不重写 11MB、不重编码**（复用同一份内容文件）
+            self.frames_reused += 1
+            rgb_path = self.last_rgb_path
+        self.last_crc = self.content_crc
+        if changed:
+            # BMP **同步**编码（3–5ms）：保证 state 一写出去，--format bmp 就一定命中当前内容
+            # （异步编码会让客户端偶发 FORMAT_NOT_READY，实测 6/20 失败）。
+            if 'bmp' in self.pre and self.enc['bmp']['crc'] != crc8:
+                try:
+                    self._write_enc('bmp', crc, rgb)
+                except Exception as e:                    # noqa: BLE001
+                    self.last_err = f'encode bmp: {type(e).__name__}: {e}'
+            with self.enc_lock:
+                for fmt in self.pre:
+                    if fmt == 'bmp':
+                        continue
+                    if self.enc[fmt]['crc'] != crc8:
+                        self.enc_queue[fmt] = (crc, rgb)
+            if self.enc_queue:
+                self.enc_event.set()
+        return crc, changed, rgb_path
+
     def capture_loop(self):
         period = 1.0 / self.fps
-        last_ok = 0.0
         while not self.stop.is_set():
             t0 = time.perf_counter()
             if self.seq % 15 == 0 and not self._free_shm_ok():
@@ -918,8 +1262,33 @@ class Daemon:
                 self.stop.wait(1.0)
                 continue
             self.env_fails = 0
+            fallback = time.time() < self.fallback_until      # 稽核判定的回退
+            invisible, invis_v = self._window_invisible()     # 看不见 ⇒ XShm 内容不可信
+            demanded = self._demand_fresh()
+            if invisible and not fallback and demanded:
+                # 有人读 + 看不见 ⇒ 合成器通道（240–570ms/帧，但内容是真的）
+                fallback = True
+                self._demand_driven = True
+            if not demanded:
+                # 没人读 ⇒ 一律用便宜的 XShm（2–12ms）；贵的回退只服务于"正在看的人"
+                fallback = False
             try:
-                rgb, ms, src = self._grab_once()
+                if fallback:
+                    # 合成器通道：慢（240–570ms/帧）但内容是真的（fallback 已含"看不见且有人读"）
+                    rgb, ms, kinfo = self._kwin_grab()
+                    src = (kinfo or {}).get('src', 'kwin-ss2') if isinstance(kinfo, dict) \
+                        else 'kwin-ss2'
+                    if fallback and not invisible:
+                        self._probe_resume()
+                else:
+                    hit = None
+                    with self.audit_hit_lock:
+                        if self.audit_hit is not None:
+                            hit, self.audit_hit = self.audit_hit, None
+                    if hit is not None:
+                        rgb, ms, src = hit['rgb'], hit['ms'], hit['src']
+                    else:
+                        rgb, ms, src = self._grab_once()
                 self.capture_ms = ms
                 self.last_src = src
                 self.last_err = ''
@@ -931,6 +1300,7 @@ class Daemon:
                 except Exception:                             # noqa: BLE001
                     pass
                 self.grabber = None
+                self.fallback_until = 0.0
                 if self.kwin is not None:
                     self.kwin.handle = None
                 # 退避：窗口真的没了（缩窗/最小化/换 id）时不要每 0.5s 重建一次 grabber
@@ -940,40 +1310,10 @@ class Daemon:
                 continue
             self.fail_backoff = 0.5
             self.seq += 1
-            crc = zlib.crc32(rgb) & 0xffffffff
-            crc8 = f'{crc:08x}'
-            changed = crc != self.last_crc
-            if not changed and self.last_rgb_path and os.path.exists(self.last_rgb_path):
-                # 内容与上一帧逐字节相同：**不重写 11MB、不重编码**，只把「内容在此刻被再次确认」
-                # 写进 wall_ns（age_ms 的语义 = 距最近一次内容确认，不是文件 mtime）。
-                self.frames_reused += 1
-                rgb_path = self.last_rgb_path
-            else:
-                self.last_crc = crc
-                rgb_path = os.path.join(self.dir, f'f-{self.seq:09d}.rgb')
-                write_rgb_atomic(rgb_path, rgb)   # 原子：读者不会看到半帧（2026-10-21）
-                self.last_rgb_path = rgb_path
-                self.frames_written += 1
-            if changed:
-                # BMP **同步**编码（3–5ms）：保证 state 一写出去，--format bmp 就一定命中当前内容
-                # （异步编码会让客户端偶发 FORMAT_NOT_READY，实测 6/20 失败）。
-                if 'bmp' in self.pre and self.enc['bmp']['crc'] != crc8:
-                    try:
-                        self._write_enc('bmp', crc, rgb)
-                    except Exception as e:                    # noqa: BLE001
-                        self.last_err = f'encode bmp: {type(e).__name__}: {e}'
-                with self.enc_lock:
-                    for fmt in self.pre:
-                        if fmt == 'bmp':
-                            continue
-                        if self.enc[fmt]['crc'] != crc8:
-                            self.enc_queue[fmt] = (crc, rgb)
-                if self.enc_queue:
-                    self.enc_event.set()
+            crc, changed, rgb_path = self._adopt_frame(rgb)
             if self.frames_written % 2 == 0:
                 self._prune_rgb()
             self.write_state(rgb_path, crc)
-            last_ok = time.time()
             dt = time.perf_counter() - t0
             self.loop_ms = dt * 1000
             self.stop.wait(max(0.0, period - dt))
@@ -1000,9 +1340,11 @@ class Daemon:
             strict_age = int(max(0.0, time.time() - self.strict_ts) * 1000) if self.strict_ts else 999999
         with self.enc_lock:
             enc = {f: dict(v) for f, v in self.enc.items()}
+        static_ms = self.static_ms()
+        audit_age = int(max(0.0, now - self.audit_last_at) * 1000) if self.audit_last_at else 999999
         fields = [STATE_VERSION, str(self.seq), str(time.time_ns()),
-                  time.strftime('%Y-%m-%dT%H:%M:%S%z'), str(self.args.width),
-                  str(self.args.height), f'{crc:08x}', rgb_path,
+                  time.strftime('%Y-%m-%dT%H:%M:%S%z'), str(self.frame_w),
+                  str(self.frame_h), f'{crc:08x}', rgb_path,
                   enc.get('bmp', {}).get('path', ''), enc.get('bmp', {}).get('crc', ''),
                   enc.get('png', {}).get('path', ''), enc.get('png', {}).get('crc', ''),
                   enc.get('jpg', {}).get('path', ''), enc.get('jpg', {}).get('crc', ''),
@@ -1011,14 +1353,19 @@ class Daemon:
                   str(self.win or ''), self.want_class,
                   str(0), str(os.getpid()),
                   ('background' if self.source == 'window' else 'screen'),
-                  self.last_src,
-                  ('1' if self.strict.get('verdict') == 'OK' else '0')]
+                  str(self.last_src),
+                  ('1' if self.strict.get('verdict') == 'OK' else '0'),
+                  # v2：内容身份 / 静止时长 / 稽核（帧停滞的机读判据）
+                  str(self.content_seq), str(static_ms), str(self.stale_events),
+                  str(self.audit_ok), str(self.audit_stale), self.audit_verdict,
+                  str(audit_age), ('1' if now < self.fallback_until else '0'),
+                  str(int(self.loop_ms))]
         line = '\x1f'.join(fields) + '\n'
         tmp = os.path.join(self.dir, '.state.tsv.tmp')
         with open(tmp, 'w') as f:
             f.write(line)
         os.replace(tmp, os.path.join(self.dir, 'state.tsv'))
-        if self.seq % 10 == 0:
+        if True:   # 每次迭代都写：status 与 latest 必须同一份读数（旧版每 10 seq 才写 ⇒ seq 不同源）
             json_tmp = os.path.join(self.dir, '.state.json.tmp')
             with open(json_tmp, 'w') as f:
                 json.dump({'seq': self.seq, 'crc32': f'{crc:08x}', 'rgb': rgb_path,
@@ -1028,6 +1375,20 @@ class Daemon:
                            'loop_ms': round(self.loop_ms, 2),
                            'frames_written': self.frames_written,
                            'frames_reused': self.frames_reused,
+                           'content': {'content_seq': self.content_seq,
+                                       'static_ms': static_ms,
+                                       'age_ms': int(max(0.0, now - self.content_ts) * 1000),
+                                       'crc32': self.content_crc and f'{self.content_crc:08x}'},
+                           'audit': {'enabled': self.audit_enabled, 'count': self.audit_count,
+                                     'ok': self.audit_ok, 'stale': self.audit_stale,
+                                     'unavailable': self.audit_unavailable,
+                                     'verdict': self.audit_verdict,
+                                     'last_ms': self.audit_last_ms,
+                                     'age_ms': audit_age,
+                                     'interval_ms': self._audit_interval_cur},
+                           'stale_events': self.stale_events,
+                           'channel': self.last_src,
+                           'kwin_fallback': now < self.fallback_until,
                            'win': self.win, 'class': self.want_class,
                            'last_err': self.last_err,
                            'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')},
@@ -1042,12 +1403,20 @@ class Daemon:
                    threading.Thread(target=self.strict_loop, daemon=True, name='strict')]
         if self.pre:
             threads.append(threading.Thread(target=self.encode_loop, daemon=True, name='enc'))
+        if self.audit_enabled:
+            threads.append(threading.Thread(target=self.audit_loop, daemon=True, name='audit'))
+        # 合成器句柄预热（一次性；与主循环并行，不占关键路径）
+        threads.append(threading.Thread(target=self._warm_kwin, daemon=True, name='kwin-warm'))
         for t in threads:
             t.start()
         print(json.dumps({'ok': True, 'role': 'serve', 'pid': os.getpid(), 'dir': self.dir,
                           'fps': self.fps, 'ring': self.ring, 'pre': self.pre,
-                          'win': self.win, 'class': self.want_class}, ensure_ascii=False),
-              flush=True)
+                          'win': self.win, 'class': self.want_class,
+                          'audit': {'enabled': self.audit_enabled,
+                                    'after_ms': self.audit_after_ms,
+                                    'interval_ms': self.audit_interval_ms,
+                                    'fallback_hold_ms': self.fallback_hold_ms}},
+                         ensure_ascii=False), flush=True)
         try:
             self.capture_loop()
         except KeyboardInterrupt:
@@ -1064,6 +1433,83 @@ class Daemon:
 
 
 # ─────────────────────────────────────────────────────────────── CLI 子命令
+def read_state_fields(d):
+    """读 state.tsv → dict（v1/v2 都认；缺的键给默认值，不 KeyError）。"""
+    p = os.path.join(d, 'state.tsv')
+    if not os.path.exists(p):
+        return None
+    with open(p) as f:
+        fs = f.read().strip().split('\x1f')
+    keys = ['ver', 'seq', 'wall_ns', 'wall_iso', 'w', 'h', 'crc', 'rgb', 'bmp', 'bcrc',
+            'png', 'pcrc', 'jpg', 'jcrc', 'fast', 'fage', 'strict', 'sage', 'ssrc',
+            'win', 'klass', 'pid', 'dpid', 'mode', 'src', 'visible',
+            'content_seq', 'static_ms', 'stale_events', 'audit_ok', 'audit_stale',
+            'audit_verdict', 'audit_age_ms', 'kwin_fallback']
+    out = {k: (fs[i] if i < len(fs) else '') for i, k in enumerate(keys)}
+    return out
+
+
+def cmd_audit(args):
+    """一次性交叉通道稽核（只读，不动窗口）：判「内容真静止」还是「主通道陈旧」。
+
+    为什么需要它：`.03/.04` 的采集被"按了键要等 2.2s"拖慢一倍，当时只能靠猜（先猜动画、
+    再猜帧停滞）。这条命令把这个判断变成一次读数：
+      · KWin 连抓 3 帧两两不同 + state 里 XShm 内容静止 ⇒ `XSHM_STALE`（主通道滞后）；
+      · KWin 也不变                                  ⇒ `CONTENT_STATIC`（画面真的没动）。
+    退出码：0 = 通道健康（含"真静止"）／3 = XSHM_STALE（发现停滞）／2 = 判不了（无状态/KWin 不可用）。
+    """
+    d = args.dir
+    st = read_state_fields(d)
+    if not st:
+        print(json.dumps({'ok': False, 'error': 'DAEMON_DOWN',
+                          'detail': f'没有 state.tsv：{d}（先 ys-capture serve）'},
+                         ensure_ascii=False))
+        return 2
+    static_ms = int(st.get('static_ms') or 0)
+    frames = []
+    t0 = time.perf_counter()
+    try:
+        K = KWinSS2(args.class_, want_w=int(st.get('w') or FRAME_W),
+                    want_h=int(st.get('h') or FRAME_H))
+        for i in range(3):
+            if i:
+                time.sleep(AUDIT_PAIR_GAP_S)
+            rgb, _ms, _info = K.grab()
+            frames.append(rgb)
+    except Exception as e:                                # noqa: BLE001
+        print(json.dumps({'ok': False, 'error': 'KWIN_UNAVAILABLE',
+                          'detail': f'{type(e).__name__}: {e}',
+                          'static_ms': static_ms, 'content_seq': st.get('content_seq')},
+                         ensure_ascii=False))
+        return 2
+    sigs = [coarse_sig(f) for f in frames]
+    ch1, f1 = sig_changed(sigs[0], sigs[1])
+    ch2, f2 = sig_changed(sigs[1], sigs[2])
+    kwin_ms = int((time.perf_counter() - t0) * 1000)
+    if ch1 and ch2 and static_ms >= AUDIT_AFTER_MS:
+        verdict, rc = 'XSHM_STALE', 3
+    elif ch1 and ch2:
+        verdict, rc = 'XSHM_LIVE', 0        # 主通道也在变（static_ms 短），无停滞
+    elif not ch1 and not ch2:
+        verdict, rc = 'CONTENT_STATIC', 0
+    else:
+        verdict, rc = 'INCONCLUSIVE', 2
+    print(json.dumps({'ok': rc == 0, 'verdict': verdict,
+                      'state': {'content_seq': st.get('content_seq'),
+                                'static_ms': static_ms, 'seq': st.get('seq'),
+                                'channel': st.get('src'),
+                                'audit_verdict': st.get('audit_verdict'),
+                                'stale_events': st.get('stale_events')},
+                      'kwin': {'frames': len(frames), 'ms': kwin_ms,
+                               'frac_a': f1, 'frac_b': f2,
+                               'changed_a': ch1, 'changed_b': ch2},
+                      'next_action': ({'step': 1, 'why': '守护会自动改用合成器通道并记账',
+                                       'check': 'ys-capture status | jq .state.audit'}
+                                      if rc == 3 else None)},
+                     ensure_ascii=False))
+    return rc
+
+
 def cmd_serve(args):
     d = Daemon(args)
 
@@ -1197,16 +1643,24 @@ def cmd_selftest(args):
                  rgb=frame, bmp=bmp, bcrc=crc, png='', pcrc='', jpg='', jcrc='',
                  fast='OK', fage=12, strict='OK', sage=200, ssrc='kwin',
                  win='0x01400001', klass='yuanshen.exe', pid=0, dpid=os.getpid(),  # noqa: phantom-id 自测夹具的合成状态，不是真实窗口
-                 mode='screen', src='xshm-window', visible='1')
+                 mode='screen', src='xshm-window', visible='1',
+                 content_seq=1, static_ms=40, stale_events=0, audit_ok=0, audit_stale=0,
+                 audit_verdict='PENDING', audit_age_ms=999999, kwin_fallback='0',
+                 ver=STATE_VERSION)
         d.update(kw)
-        line = '\x1f'.join(str(v) for v in [STATE_VERSION, d['seq'], d['wall_ns'],
-                                          time.strftime('%Y-%m-%dT%H:%M:%S%z'),
-                                          d['w'], d['h'], d['crc'], d['rgb'],
-                                          d['bmp'], d['bcrc'], d['png'], d['pcrc'],
-                                          d['jpg'], d['jcrc'], d['fast'], d['fage'],
-                                          d['strict'], d['sage'], d['ssrc'], d['win'],
-                                          d['klass'], d['pid'], d['dpid'],
-                                          d['mode'], d['src'], d['visible']]) + '\n'
+        fields = [d['ver'], d['seq'], d['wall_ns'],
+                  time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+                  d['w'], d['h'], d['crc'], d['rgb'],
+                  d['bmp'], d['bcrc'], d['png'], d['pcrc'],
+                  d['jpg'], d['jcrc'], d['fast'], d['fage'],
+                  d['strict'], d['sage'], d['ssrc'], d['win'],
+                  d['klass'], d['pid'], d['dpid'],
+                  d['mode'], d['src'], d['visible']]
+        if d['ver'] == 'v2':      # v1 夹具只写 26 列，验证客户端向后兼容
+            fields += [d['content_seq'], d['static_ms'], d['stale_events'],
+                       d['audit_ok'], d['audit_stale'], d['audit_verdict'],
+                       d['audit_age_ms'], d['kwin_fallback']]
+        line = '\x1f'.join(str(v) for v in fields) + '\n'
         p = os.path.join(fx, f'state-{name}.tsv')
         with open(p, 'w') as f:
             f.write(line)
@@ -1258,6 +1712,11 @@ def cmd_selftest(args):
          12, False, [], True),
         ('background_identity_fail', {'mode': 'background', 'fast': 'NOT_FOUND'}, 2, False,
          ['--allow-background'], True),
+        # ── 帧停滞（2026-10-23）：内容身份闸门 + v1 向后兼容
+        # 消费者可以带「我至少要 content_id >= N」来原子地"等画面推进"，不用自己比对文件路径。
+        ('content_id_ok', {'content_seq': 5}, 0, True, ['--min-content-id', '5'], True),
+        ('content_id_denied', {'content_seq': 5}, 13, False, ['--min-content-id', '9'], True),
+        ('v1_compat', {'ver': 'v1'}, 0, True, [], True),
     ]
     for name, kw, want_rc, want_px, extra, skip in cases:
         sp = write_state(name, **kw)
@@ -1306,9 +1765,21 @@ def main(argv=None):
                    help='screen=要求窗口可见（原语义）；window=按窗口抓（后台窗口也能抓，明示 background）')
     s.add_argument('--fast-sec', type=float, default=0.3)
     s.add_argument('--strict-sec', type=float, default=1.5)
+    s.add_argument('--audit', dest='audit', action='store_true', default=True,
+                   help='开内容停滞稽核（默认开：主通道静止时用合成器通道验一次）')
+    s.add_argument('--no-audit', dest='audit', action='store_false')
+    s.add_argument('--audit-after-ms', type=int, default=AUDIT_AFTER_MS)
+    s.add_argument('--audit-interval-ms', type=int, default=AUDIT_INTERVAL_MS)
+    s.add_argument('--audit-max-interval-ms', type=int, default=AUDIT_MAX_INTERVAL_MS)
+    s.add_argument('--fallback-hold-ms', type=int, default=FALLBACK_HOLD_MS)
     s.add_argument('--width', type=int, default=FRAME_W)
     s.add_argument('--height', type=int, default=FRAME_H)
     s.set_defaults(func=cmd_serve)
+    au = sub.add_parser('audit')
+    au.add_argument('--dir', default=os.environ.get('YS_CAPTURE_DIR', DEFAULT_DIR))
+    au.add_argument('--class', dest='class_', default=DEFAULT_CLASS)
+    au.add_argument('--json', action='store_true')
+    au.set_defaults(func=cmd_audit)
     st = sub.add_parser('status')
     st.add_argument('--dir', default=os.environ.get('YS_CAPTURE_DIR', DEFAULT_DIR))
     st.add_argument('--pretty', action='store_true')

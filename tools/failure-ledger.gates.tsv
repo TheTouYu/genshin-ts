@@ -55,3 +55,4 @@ text-paragraphs	python3 tools/ys-editor/tests/text.selftest.py	ys-text 段落重
 peek-readonly	python3 tools/ys-editor/tests/frame-daemon.selftest.py	ys-peek 默认零打扰：daemon 帧优先、只读拿不到帧必须 rc=4 且不产帧文件（不抬窗不抢焦点），抬窗只在显式 --allow-raise 闸门之后（源码顺序也断言）。治「取帧顺手把游戏抬到前台」	fast	
 containers-textbox	python3 tools/ys-editor/tests/containers-textbox.selftest.py	ys-screen containers[].text_boxes（schema v2）：每个容器必须有该键、条目与顶层 text[] 同字段集、bbox 4 整数、容器 text 与 text_boxes 文本序列一致、缓存命中时也带、全量路径也带。治「消费者静默失去文本坐标」	fast	
 find-wording	python3 tools/ys-editor/tests/find-wording.selftest.py	ys-find 无 --expect 时的措辞：必须说「未给判据，仅列 N 个匹配（如需结论请加 --expect X,Y）」，不再输出 结论: unknown（把「没判据」说成「结论未知」）。文本/JSON 两条通道同一句	fast	
+capture-stagnation	python3 tools/ys-editor/tests/capture-stagnation.selftest.py	帧停滞稽核与自愈（离线注入）：主通道恒给同一帧而合成器帧在变 ⇒ 必须检出 XSHM_STALE、内容换成合成器帧、通道切 kwin-ss2、state 暴露 content_seq/static_ms/kwin_fallback；两通道都静止 ⇒ 零误报；合成器通道不可用 ⇒ 记账并继续出帧；主通道连续 4 次变化 ⇒ 切回。治 2026-10-23「gui-test .03/.04 帧停滞（按了键要等 2.2s）」	fast	

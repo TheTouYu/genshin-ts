@@ -19,6 +19,7 @@
 #   10 FORMAT_NOT_READY（请求的预编码格式与当前帧内容不符）
 #   11 COPY_FAILED
 #   12 BACKGROUND_NOT_ALLOWED（守护是 window 模式/帧是后台帧，但调用方没带 --allow-background）
+#   13 CONTENT_NOT_ADVANCED（--min-content-id N：画面内容还没推进到 N；帧是新的、内容没变）
 #   唯一例外：显式 `--allow-background`（只供离线分析目标窗口自身缓冲，**不得用于动作**）。
 #
 # 用法：
@@ -51,6 +52,25 @@ recheck_desktop() {  # 0 = 目标窗确实在当前桌面（**只在结论过期
   [ -n "$ds" ] && [ -n "$cur" ] && [ "$ds" = "$cur" ]
 }
 
+content_json() {  # 回执片段：内容身份 + 通道 + 稽核读数（v1 状态给 null/unknown，不猜）
+  local id="null" st="null" aud="null"
+  case "${content_seq:-}" in ''|*[!0-9]*) ;; *) id="$content_seq";; esac
+  case "${static_ms:-}" in ''|*[!0-9]*) ;; *) st="$static_ms";; esac
+  case "${audage:-}" in ''|*[!0-9]*) ;; *) aud="$audage";; esac
+  local lp="null"
+  case "${loop_ms:-}" in ''|*[!0-9]*) ;; *) lp="$loop_ms";; esac
+  printf '"content":{"id":%s,"static_ms":%s},"channel":"%s","demand_wait_ms":%s,"daemon":{"loop_ms":%s},"audit":{"verdict":"%s","stale_events":%s,"age_ms":%s}' \
+    "$id" "$st" "${fsrc:-unknown}" "${demand_wait_ms:-0}" "$lp" "${audit_verdict:-unknown}" "${stale_events:-0}" "$aud"
+}
+
+read_state() {  # 读 state.tsv → 变量（v1 只有 26 列，v2 追加 8 列；缺的给空串）
+  IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
+    fast fage strict sage ssrc win klass _pid dpid mode fsrc visible \
+    content_seq static_ms stale_events audit_ok audit_stale audit_verdict \
+    audage kwin_fallback loop_ms < "$STATE"
+  content_seq="${content_seq:-}"; static_ms="${static_ms:-}"; audage="${audage:-}"; loop_ms="${loop_ms:-}"
+}
+
 deny() {  # deny <exit> <code> <detail>
   local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
   local extra=""
@@ -70,6 +90,7 @@ cmd_latest() {
   # （实测跨桌面 34ms，与同桌面同级）。"用户看不见"只对**动作**构成风险，对**读取**不构成。
   # 需要"必须与用户所见一致"的调用方（动作前校验）显式带 --require-current-desktop。
   local STRICT_TTL_MS="${YS_CAPTURE_STRICT_TTL_MS:-6000}" ENC_IF=0 WAIT_ENC=0 ALLOW_OD=1
+  local MIN_CONTENT_ID=
   while [ $# -gt 0 ]; do
     case "$1" in
       --out) OUT="${2:?--out 需要路径}"; shift 2;;
@@ -83,6 +104,9 @@ cmd_latest() {
       --require-current-desktop) ALLOW_OD=0; shift;;
       --encode-if-needed) ENC_IF=1; shift;;
       --wait-encode-ms) WAIT_ENC="${2:?}"; shift 2;;
+      # 内容推进闸门（帧停滞修复）：消费者声明「我至少要 content_id >= N」。
+      # 比"自己轮询 src 路径有没有变"可靠——src 在内容不变时**本来就该**保持不变。
+      --min-content-id) MIN_CONTENT_ID="${2:?--min-content-id 需要整数}"; shift 2;;
       --json) shift;;
       *) deny 1 BAD_ARG "未知参数 $1";;
     esac
@@ -91,11 +115,29 @@ cmd_latest() {
   [ -r "$STATE" ] || deny 7 DAEMON_DOWN "状态文件不存在：$STATE（先跑 ys-capture serve）"
   # 23 字段（\x1f 分隔；tab 会被 read 折叠，别改回 tab）：v1 seq wall_ns wall_iso w h crc rgb bmp bcrc png pcrc jpg jcrc
   #          fast fast_age strict strict_age strict_src win class pid dpid
-  IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
-    fast fage strict sage ssrc win klass _pid dpid mode fsrc visible < "$STATE"
-  [ "${ver:-}" = "v1" ] || deny 9 STRICT_UNAVAILABLE "状态文件版本不认识：${ver:-空}"
+  # 「点单」：告诉守护"有人在看"，它才愿意付合成器抓帧（240–570ms/帧）
+  : > "$DIR/demand" 2>/dev/null || true
+  read_state
+  case "${ver:-}" in
+    v1|v2) ;;
+    *) deny 9 STRICT_UNAVAILABLE "状态文件版本不认识：${ver:-空}" ;;
+  esac
   if [ "${YS_CAPTURE_SKIP_DAEMON_CHECK:-0}" != "1" ]; then
     [ -n "${dpid:-}" ] && kill -0 "$dpid" 2>/dev/null || deny 7 DAEMON_DOWN "守护进程 ${dpid:-?} 不在"
+  fi
+  # ── 帧停滞（客户端半边）：窗口看不见（被遮挡/别的虚拟桌面）时 XShm 读回实测滞后
+  #    0.3–2.23s。已点单，这里**等守护把通道切到合成器**（kwin-ss2）再交付像素，
+  #    最多 YS_CAPTURE_DEMAND_WAIT_MS（默认 1500ms）；看得见/已切换则零等待。
+  local demand_wait_ms=0
+  if [ "${ver:-v1}" = "v2" ] && [ "${visible:-1}" != "1" ] && [ "${fsrc:-}" = "xshm-window" ]; then
+    local dw="${YS_CAPTURE_DEMAND_WAIT_MS:-1500}" dl t_dw0
+    t_dw0=$(date +%s%N); dl=$(( t_dw0 + dw * 1000000 ))
+    while [ "$(date +%s%N)" -lt "$dl" ]; do
+      sleep 0.01
+      read_state
+      [ "${fsrc:-}" != "xshm-window" ] && break
+    done
+    demand_wait_ms=$(( ($(date +%s%N) - t_dw0) / 1000000 ))
   fi
   local now age_ms
   now=$(date +%s%N)
@@ -107,14 +149,24 @@ cmd_latest() {
   _have=$(stat -c %s "$rgb" 2>/dev/null || echo 0)
   if [ "$_have" != "$_want" ]; then
     sleep 0.05
-    IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
-      fast fage strict sage ssrc win klass _pid dpid mode fsrc visible < "$STATE"
+    read_state
     _want=$(( fw * fh * 3 ))
     _have=$(stat -c %s "$rgb" 2>/dev/null || echo 0)
     [ -n "${rgb:-}" ] && [ "$_have" = "$_want" ] || deny 8 FRAME_RACE \
       "帧文件不完整（${_have:-0} 字节，应为 ${_want}）：半帧/正在回收，重读一次仍不行"
   fi
   [ "$age_ms" -le "$MAX_AGE_MS" ] || deny 8 STALE_FRAME "最新帧已 ${age_ms}ms 旧（> --max-age-ms=$MAX_AGE_MS）"
+  # ── 闸门③：内容推进（帧停滞修复）。age_ms 只说明「抓过帧」，不说明「画面变了」；
+  #    要"等画面推进"的调用方用 --min-content-id，别自己比对 src 路径（内容不变时它本就该不变）。
+  if [ -n "${MIN_CONTENT_ID:-}" ]; then
+    case "${content_seq:-}" in
+      ''|*[!0-9]*) deny 13 CONTENT_NOT_ADVANCED \
+        "守护状态是 ${ver}，没有 content_id —— 重启守护（ys-capture serve）后再用 --min-content-id" ;;
+    esac
+    if [ "$content_seq" -lt "$MIN_CONTENT_ID" ]; then
+      deny 13 CONTENT_NOT_ADVANCED "内容未推进：content_id=$content_seq（要求 ≥$MIN_CONTENT_ID；已静止 ${static_ms:-?}ms，通道 ${fsrc:-?}）"
+    fi
+  fi
   # ── background 模式（--source window）：**按窗口抓，不要求可见**；只查身份与新鲜度。
   #    绝不冒充「在栈顶」：输出固定带 capture_mode=background 与 visible/src。
   if [ "${mode:-screen}" = "background" ]; then
@@ -165,8 +217,8 @@ cmd_latest() {
   # ── 选格式（按 --out 后缀，其次 --format；无 --out 则只回源路径）
   if [ -z "$OUT" ]; then
     local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-    printf '{"ok":true,"copied":false,"capture_mode":"%s","visible":%s,"src":"%s","format":"raw","path":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
-      "${mode:-screen}" "${visible:-0}" "${fsrc:-xshm}" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
+    printf '{"ok":true,"copied":false,"capture_mode":"%s","visible":%s,"src":"%s","format":"raw","path":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s",%s}\n' \
+      "${mode:-screen}" "${visible:-0}" "${fsrc:-xshm}" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass" "$(content_json)"
     return 0
   fi
   case "$OUT" in
@@ -187,8 +239,7 @@ cmd_latest() {
     local deadline=$(( $(date +%s%N) + WAIT_ENC * 1000000 ))
     while [ "$(date +%s%N)" -lt "$deadline" ]; do
       sleep 0.005
-      IFS=$'\x1f' read -r ver seq wall_ns wall_iso fw fh crc rgb bmp bcrc png pcrc jpg jcrc \
-        fast fage strict sage ssrc win klass _pid dpid < "$STATE"
+      read_state
       case "$FMT" in
         png) src="$png"; src_crc="$pcrc";; jpg) src="$jpg"; src_crc="$jcrc";;
         bmp) src="$bmp"; src_crc="$bcrc";; raw) src="$rgb"; src_crc="$crc";;
@@ -213,8 +264,8 @@ cmd_latest() {
       [ "$keep" = "$rgb" ] || rm -f "$keep"
       [ "$erc" = "0" ] || deny 10 FORMAT_NOT_READY "按需编码 $FMT 失败（rc=$erc，源=$keep）"
       ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-      printf '{"ok":true,"copied":true,"encoded":true,"capture_mode":"%s","visible":%s,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s}}\n' \
-        "${mode:-screen}" "${visible:-0}" "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage"
+      printf '{"ok":true,"copied":true,"encoded":true,"capture_mode":"%s","visible":%s,"format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","strict":"%s","strict_src":"%s","strict_age_ms":%s},%s}\n' \
+        "${mode:-screen}" "${visible:-0}" "$FMT" "$OUT" "$rgb" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" "$fast" "$strict" "$ssrc" "$sage" "$(content_json)"
       return 0
     fi
     deny 10 FORMAT_NOT_READY \
@@ -227,9 +278,9 @@ cmd_latest() {
   fi
   [ -s "$OUT" ] || deny 11 COPY_FAILED "输出为空：$OUT"
   local ms=$(( ($(date +%s%N) - T0) / 1000000 ))
-  printf '{"ok":true,"copied":true,"capture_mode":"%s","visible":%s,"frame_source":"%s","format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s"}\n' \
+  printf '{"ok":true,"copied":true,"capture_mode":"%s","visible":%s,"frame_source":"%s","format":"%s","out":"%s","src":"%s","ms":%s,"frame":{"seq":%s,"age_ms":%s,"crc32":"%s","w":%s,"h":%s},"attribution":{"fast":"%s","fast_age_ms":%s,"strict":"%s","strict_src":"%s","strict_age_ms":%s,"allow_background":%s},"win":"%s","class":"%s",%s}\n' \
     "${mode:-screen}" "${visible:-0}" "${fsrc:-xshm}" "$FMT" "$OUT" "$src" "$ms" "$seq" "$age_ms" "$crc" "$fw" "$fh" \
-    "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass"
+    "$fast" "$fage" "$strict" "$ssrc" "$sage" "$ALLOW_BG" "$win" "$klass" "$(content_json)"
   return 0
 }
 
@@ -261,6 +312,7 @@ case "$CMD" in
   latest)   cmd_latest "$@";;
   status)   exec "$PY" "$HERE/ys_capture.py" status --dir "$DIR" "$@";;
   stop)     exec "$PY" "$HERE/ys_capture.py" stop --dir "$DIR" "$@";;
+  audit)    exec "$PY" "$HERE/ys_capture.py" audit --dir "$DIR" "$@";;
   bench)    cmd_bench "$@";;
   selftest) exec "$PY" "$HERE/ys_capture.py" selftest --cli "$HERE/ys-capture" "$@";;
   ""|-h|--help|help)
