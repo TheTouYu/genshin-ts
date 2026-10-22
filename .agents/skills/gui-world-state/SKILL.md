@@ -164,11 +164,20 @@ bash .scratch/gui-service/state_pack.selftest.sh       # 5 例：正/负/期望�
 - region 一律 **xywh**；`text_absent` 是防误判的第一道门（"必须没有什么"），别只写"有什么"。
 - 多态同时成立按 `precedence` 取最高；并列 ⇒ 回 `ambiguous`，**不猜**。
 - 包里写 `evidence.positive/negative`：这张判据是哪一帧、哪条文字量出来的——判据本身要可复算。
-- **还没接进 `look`**：现在 `look` 仍走 13 态代码判据，包求值器独立可用（`eval`）。
-  接入方式下一步做：`look --pack <path>`（给了包就用包，没给回退 13 态）。
+- **已接进 `look`**（2026-10-22）：`look --pack <path>` 直接用包判态，**一条命令替代 look+eval 两步**。
+
+```bash
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world \
+    --pack .scratch/gui-service/packs/gn-start-v1.json --summary --allow-background
+# → state.name=START / confidence=1.0 / pack.state=START / state_vocab=UNKNOWN（原 13 态结论退居对照）
+```
+
+契约：**命中** `state.name` = 包里的 id；**未命中** `UNKNOWN` + `novel=true`（不猜最像的）；
+原 13 态结论留在 `state_vocab`（只作对照，不当结论）；每条谓词的实测值进 `state.evidence`。
 
 **已有包**：`packs/gn-start-v1.json`（START = 登录门「点击进入」，物理坐标，region `[600,1250,1700,190]`）。
-实测：登录门帧 → `START`（2/2 谓词，eval 0.1ms）；派蒙菜单帧 f06 → `None`（1/2，正谓词不成立）。
+实测三档：登录门**离线回执**→ `START`（2/2）；派蒙菜单帧 f06 → `None`（1/2）；**真机后台帧**（2026-10-22 17:5x，
+`--allow-background`）→ `START` conf 1.0，包求值 **0.1ms**（整条 look 热态 1.26–1.87s，钱花在抓帧+OCR 上，不在判据上）。
 
 **判完之后要动、要连跑多步 → 走 `gui-state-machine` 技能**（状态包 + 前置自检 + 降级看图 + 证据资产）。
 **判不准要看图 → `tools/ys-editor/ys-view --look … --frame … --out …`**：一条命令出整帧/标注图/2×2 切片/index.json，

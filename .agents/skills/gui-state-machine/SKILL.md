@@ -35,7 +35,15 @@ SP=.scratch/gui-service/state_pack.py; P=.scratch/gui-service/packs/gn-start-v1.
 python3 $SP list --dir .scratch/gui-service/packs          # 现有哪些包
 python3 $SP validate --pack $P                             # 结构非法直接 rc=2（别带着错包跑）
 python3 $SP eval --pack $P --look /tmp/look.json --expect-state START
-bash .scratch/gui-service/state_pack.selftest.sh           # 5 例自检（正/负/期望不符/非法包）
+bash .scratch/gui-service/state_pack.selftest.sh           # 7 例自检（正/负/期望不符/非法包 + 2 条 look 集成）
+```
+
+**在线判态用一条命令**（2026-10-22 起 `look --pack` 已接入，不用再 look+eval 两步）：
+
+```bash
+python3 .scratch/gui-service/worldsvc.py look --backend daemon-world \
+    --pack $P --summary --allow-background        # 后台帧；要动作则去掉 --allow-background 并走会话授权
+# → {"state":{"name":"START","confidence":1.0},"pack":{"state":"START","eval_ms":0.1},"state_vocab":"UNKNOWN"}
 ```
 
 **建一个包（3 步）**
@@ -137,7 +145,7 @@ worldsvc machine --pack $P --goal '{"state_in":["GAME_WORLD","HALL","EDITOR"]}' 
 | 后台帧与前台是否同步未实测 | 后台观察可能读到旧帧 | O-22-12 |
 | 千星奇域大厅无状态名 | 三终态断言缺一 | O-22-13 |
 | `machine` 未实现 | 循环靠模型拼 | O-22-14 |
-| `look --pack` 未接入 | 判态要两条命令合并 | O-22-9 余项 |
+| `wait` 只能判终点状态，无「转移过程」语义 | 加载期抖动 → 假到达 | O-22-11 |
 
 ## 8. 交付前检查清单
 

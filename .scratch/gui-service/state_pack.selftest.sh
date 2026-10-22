@@ -41,5 +41,31 @@ PY
 python3 "$SP" validate --pack "$bad" >/dev/null 2>&1; chk "非法包被拒" 2 $?
 rm -f "$bad"
 
+# 6. 集成：worldsvc look --pack（判据走包，13 态结论退居 state_vocab）
+if [ -f .scratch/gui-service/worldsvc.py ]; then
+  probe=$(mktemp /tmp/probe.XXXXXX.json)
+  cat > "$probe" <<'J'
+{"schema":"gui.statepack/v1","pack":"probe-v1","coord_space":"physical",
+ "states":[{"id":"PROBE","precedence":10,"rule":"all","predicates":[
+   {"type":"text_present","texts":["好友"],"match":"contains"}]}]}
+J
+  out=$(timeout 60 python3 .scratch/gui-service/worldsvc.py look \
+        --frame "${FRAME_NEG:-.scratch/gui-corpus/f06.png}" --pack "$probe" --summary 2>/dev/null)
+  got=$(printf '%s' "$out" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['state']['name'])" 2>/dev/null)
+  voc=$(printf '%s' "$out" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('state_vocab'))" 2>/dev/null)
+  if [ "$got" = "PROBE" ] && [ "$voc" = "GAME_PAIMON" ]; then
+    echo "PASS 集成 look --pack（state=PROBE / state_vocab=GAME_PAIMON）"
+  else
+    echo "FAIL 集成 look --pack 期望 PROBE/GAME_PAIMON 实得 $got/$voc"; FAIL=$((FAIL+1))
+  fi
+
+  # 7. 集成：不命中的包必须回 UNKNOWN + novel=true（不猜最像的）
+  out=$(timeout 60 python3 .scratch/gui-service/worldsvc.py look \
+        --frame "${FRAME_NEG:-.scratch/gui-corpus/f06.png}" --pack "$PACK" --summary 2>/dev/null)
+  got=$(printf '%s' "$out" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['state']['name'],d['state'].get('novel'))" 2>/dev/null)
+  if [ "$got" = "UNKNOWN True" ]; then echo "PASS 未命中回 UNKNOWN+novel"; else echo "FAIL 未命中 期望 'UNKNOWN True' 实得 '$got'"; FAIL=$((FAIL+1)); fi
+  rm -f "$probe"
+fi
+
 echo "----"
 if [ "$FAIL" -eq 0 ]; then echo "RESULT: PASS"; exit 0; else echo "RESULT: FAIL ($FAIL)"; exit 1; fi

@@ -2080,6 +2080,53 @@ def _emit(obj, *, json_only=False, out_path=None):
     print(text)
 
 
+def _apply_state_pack(ws, pack_path):
+    """用状态包改写 world 的 state（判据是数据，不是代码）。
+
+    为什么：13 态硬编码在 ys-state 里，接一个新任务（例：登录门「点击进入」）就要改代码。
+    包给的是**任务级**判据，模型可写可改，不改代码。
+
+    契约：
+      · 命中 → `state.name` = 包里的 state id；未命中 → `"UNKNOWN"` + `novel=true`（**不猜最像的**）
+      · 原来的 13 态结论保留在 `state_vocab`（只作对照，不当结论）
+      · 每条谓词的实测值进 `state.evidence`，判错时能指着看
+    """
+    import state_pack as sp
+
+    pack = sp.load_pack(pack_path)
+    raw = ws.raw
+    legacy = dict(raw.get("state") or {})
+    frame = (raw.get("frame") or {}).get("path")
+    res = sp.evaluate(raw, pack, frame_path=frame if frame and os.path.isfile(frame) else None)
+    name = res["state"]
+    raw["state"] = {
+        "name": name or "UNKNOWN",
+        "confidence": res["confidence"],
+        "evidence": [{"state": e["state"], "predicates": e["predicates"]} for e in res["evidence"]],
+        "channel": legacy.get("channel") or "full",
+        "novel": name is None,
+        "match": {
+            "candidate": name,
+            "accepted": name is not None,
+            "ratio": res["confidence"],
+            "accept_support": float(pack.get("accept_support", 0.6)),
+            "novel": name is None,
+            "novel_reason": None if name else "pack_no_match",
+            "support": res["support"],
+            "level": "pack",
+        },
+    }
+    raw["state_vocab"] = legacy.get("name")
+    raw["pack"] = {"id": res["pack"], "state": name, "ambiguous": res["ambiguous"],
+                   "coord_space": res["coord_space"], "eval_ms": res["eval_ms"],
+                   "path": os.path.abspath(pack_path)}
+    try:
+        schema.validate_world(raw, strict_state_names=False)
+    except schema.SchemaError as e:  # 包产出的 state 不合 schema ⇒ 当场拒，不带病输出
+        raise ServiceError("PACK_STATE_INVALID", f"状态包产出的 state 不合 schema：{e}", rc=2)
+    return res
+
+
 def _exit_code_for(status):
     return {"ok": 0, "reached": 0, "dry_run": 0,
             "resolve_fail": 3, "ambiguous": 4, "invalid": 5, "precondition_fail": 5,
@@ -2298,6 +2345,9 @@ def main(argv=None):
     p.add_argument("--fast", action="store_true",
                    help="快速路径（daemon-world）：跳过检测+结构层（省 ~40–90ms）；"
                         "OCR/判态/容器照常（省 OCR 会让状态静默降级，实测 f06 变 UNKNOWN）")
+    p.add_argument("--pack", default=None,
+                   help="状态包 JSON 路径：用它判态（判据是数据，不改代码）；"
+                        "未命中回 UNKNOWN+novel=true，原 13 态结论留在 state_vocab")
 
     p = sub.add_parser("act", help="解析目标 → (dry-run|注入) → 等下一稳态")
     common(p)
@@ -2398,6 +2448,8 @@ def main(argv=None):
         if a.verb == "look":
             ws = svc.look(frame=a.frame, source=None, fast=bool(getattr(a, "fast", False)),
                           advice=not bool(getattr(a, "no_advice", False)))
+            if getattr(a, "pack", None):
+                _apply_state_pack(ws, a.pack)
             if a.summary:
                 _emit(ws.summary(grep=(a.grep or None)), out_path=a.json_out)
             else:

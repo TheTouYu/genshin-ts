@@ -277,7 +277,10 @@ _TOP_ALLOWED = set(_TOP_REQUIRED) | {"tracked_at_ms", "timing_ms", "frame", "fre
                                      "daemon_timing", "settled", "advice_computed",
                                      # v1：不确定性层的**来源 + 覆盖范围 + 待修清单**
                                      # （uncertainty=0 到底是"画面确定"还是"这一层没覆盖"）
-                                     "uncertainty_source", "uncertainty_meta"}
+                                     "uncertainty_source", "uncertainty_meta",
+                                     # v1（2026-10-22）：状态包判态。`state_vocab` = 原 13 态结论（只对照），
+                                     # `pack` = {id,state,ambiguous,coord_space,eval_ms,path}
+                                     "state_vocab", "pack"}
 _TOP_ALLOWED_STRICT = False     # 预留：严格模式（拒收未登记键）暂不启用，只告警
 _OBJ_REQUIRED = ("id", "parent", "bbox", "kind", "text", "text_source", "glyphs", "badges",
                  "state", "affordance", "clipped", "confidence", "evidence")
@@ -594,6 +597,11 @@ class WorldState:
             "texts": texts[:40],
             "free_text": free_text[:20],
         }
+        # 状态包判态时，摘要必须同样带出「哪条包、支持度、原 13 态结论」——
+        # 否则摘要里 state=START 却没有来源，读的人分不清它是包判的还是词表判的。
+        if self.raw.get("pack"):
+            out["pack"] = dict(self.raw["pack"])
+            out["state_vocab"] = self.raw.get("state_vocab")
         if grep:
             g = str(grep).strip()
             hits = [t for t in texts if g in t["text"]]

@@ -21,7 +21,7 @@
 
 | 编号 | 问题 | 影响 | 下一步 |
 |---|---|---|---|
-| O-2026-10-22-9 | 状态判据硬编码在 `tools/ys-editor/ys-state`，无法按任务配置 | 加一个状态 = 改代码 = 为产品适配，违背通用性 | **本轮在做**：状态包（state pack）求值器 |
+| O-2026-10-22-9 | 状态判据硬编码在 `tools/ys-editor/ys-state`，无法按任务配置 | 加一个状态 = 改代码 = 为产品适配，违背通用性 | ✅ **已关闭 2026-10-22**：状态包 `state_pack.py` + `look --pack`，真机后台帧判出 START（详见"已关闭"） |
 | O-2026-10-22-10 | `act` 不自行借屏：`focus` hold 2s 后自动交还，`act` live 取帧报 `LIVE_NOT_ATOP` | 看见 ≠ 点得动；真机动作卡在第一步 | act 在 live 前自己 claim（或 focus --hold） |
 | O-2026-10-22-11 | `wait` 无多帧稳定确认（单帧满足即 reached） | 过渡帧抖动 → 假到达 | 加 `require_stable: N` |
 | O-2026-10-22-12 | 后台帧与前台是否同步**未实测** | 后台观察若读到陈旧帧，判据全废 | 用户已定：**待会实测** |
@@ -49,3 +49,9 @@
 | 文本 Jaccard 代像素判据 | 0.78 判"没变" vs 实际变 0.6553 | 2026-10-19 复盘 |
 | 为取一个读数抬窗 | 抢用户屏幕，代价远超收益 | AGI-BAR 形态 A 契约 |
 | 交接文档放 `/tmp` | 重启即失 | 2026-10-22 实证 |
+
+## E. 已关闭
+
+| 编号 | 结论 | 证据 |
+|---|---|---|
+| O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 / 包求值 0.1ms / `state_vocab=UNKNOWN` |
