@@ -2234,8 +2234,11 @@ def _focus_for_action(budget_s=None):
     out = {"ok": bool(p.returncode == 0 and js.get("ok")),
            "rc": p.returncode, "hold_s": hold,
            "ms": round((time.perf_counter() - t0) * 1000, 1)}
-    out.update({k: js.get(k) for k in ("raised", "fast", "error", "ms", "hold_s")
-                if k in js})
+    # 2026-10-22 guards G-WHITELIST：原来是白名单重建（只挑 raised/fast/error/ms/hold_s），
+    # 上游新增字段会静默蒸发。改为黑名单式：js 的全部字段保留，本层已算的键（ok/rc/hold_s/ms）优先。
+    for _k, _v in js.items():
+        if _k not in out:
+            out[_k] = _v
     if not out["ok"] and js.get("error") == "NO_SESSION":
         out["note"] = "无活动会话：不抬窗、不注入（交给 fail-closed）"
     return out
