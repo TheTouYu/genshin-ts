@@ -709,3 +709,11 @@ tools/ys-editor/ys-sample list
 
 **失败路径的验收口径（新增）**：任何守护/重试逻辑的自测，**必须包含「永远失败」场景**，并报两个数——
 ① 连续失败几次后停止；② 该场景下用户被打扰次数。只有成功路径全绿 = 没测完。
+
+## 会话与交互纪律（2026-10-22 真机实测落地，别再踩）
+
+- **空闲交还 = 10s**（`YS_SESSION_IDLE_MS`）。3s 时代一次 `ys-scroll` 就要 7.3–7.9s，动作之间屏幕被还回去再抢回来（实测一条任务里 `reacquires: 10`），帧还可能跨越桌面切换被抓到 ⇒ 环境噪声被放大。
+- **滚动/拖动期间不切屏**：交互工具开头 `ys-session busy 20`、结束 `busy 0`；`ys-focus-guard` 见到 `busy_until` 未到期就跳过本期交还。新增交互类工具**必须**标忙，并用 `trap ... EXIT` 保证异常也清忙（否则屏幕被"忙"钉住）。
+- **交还目标是用户真实的前台窗**（在 kitty 里发起就回 kitty）。只有它像瞬时窗（空类名 / `tk`、`xmessage`、`plasmashell` / 最小化 / <300×200 / 无标题且非终端）才回退 firefox。旧实现无条件"优先 firefox"，会把人从他自己的终端踢到浏览器。
+- **环境解析只能有一个入口**：bash 用 `. tools/ys-editor/ys-env.sh`，python 用 `ys_env.env()`。`DISPLAY` 空串与 `XAUTHORITY` 缺失都会让注入**静默失败**——回执只写 `injected:false` 是最坑的形态；失败必须把 stderr 原因打出来。
+- **判"动没动"要先量环境噪声**：本机原神画面**无动作两帧也差 1.1%–6.5%**（FPS HUD/粒子/加载）。`ys-scroll` 现在先抓一张安静基线，判据是"during 比基线高 ≥0.8 个百分点"，并输出三态 `moved / moved_then_bounced / no_move`；**回弹列表**（条目少、松手弹回）只能判成 `moved_then_bounced`，别当"不能滚"。
