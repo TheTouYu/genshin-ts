@@ -474,6 +474,11 @@ def _probe(req):
 #   ② ORT 的 CUDA EP 要 CUDA **12** 运行库（libcudart.so.12 / libcublas.so.12）；本机系统 CUDA 是 13，
 #      所以由 venv 里的 nvidia-*-cu12 包提供，需要把它们加进 LD_LIBRARY_PATH。
 _OCR_ENGINE = None
+# 2026-10-22（真事故）：两个预热线程并发 import rapidocr 会撞 CPython 模块锁死锁
+# （实测 `_DeadlockError: deadlock detected by _ModuleLock('rapidocr.utils')`）⇒
+# OCR 引擎**永久**不可用、state 全变 UNKNOWN，且日志只有一行 'OCR 预热跳过'。
+# 修法：①这里加一把初始化锁；②serve() 起线程前先在主线程把重模块 import 掉。
+_OCR_INIT_LOCK = threading.RLock()
 _UID_CACHE = {}
 _OCR_ERR = None
 
@@ -528,17 +533,20 @@ def _ocr_engine():
     global _OCR_ENGINE, _OCR_ERR
     if _OCR_ENGINE is not None or _OCR_ERR is not None:
         return _OCR_ENGINE, _OCR_ERR
-    try:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(
-            'ys_ocr_mod', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        _OCR_ENGINE = mod._engine(verbose=True)      # 判别/GPU 开关全在 ys_ocr.py（唯一实现）
-        print(f"[ys-lookd] OCR 引擎就绪（{'CUDA' if mod._GPU_STATE is True else 'CPU'}）", flush=True)
-    except Exception as e:                          # noqa: BLE001
-        _OCR_ERR = f"{type(e).__name__}: {e}"
-        print(f"[ys-lookd] OCR 引擎不可用：{_OCR_ERR}", flush=True)
+    with _OCR_INIT_LOCK:                    # 双检：并发首请求不许各建一份引擎
+        if _OCR_ENGINE is not None or _OCR_ERR is not None:
+            return _OCR_ENGINE, _OCR_ERR
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                'ys_ocr_mod', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_ocr.py'))
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            _OCR_ENGINE = mod._engine(verbose=True)   # 判别/GPU 开关全在 ys_ocr.py（唯一实现）
+            print(f"[ys-lookd] OCR 引擎就绪（{'CUDA' if mod._GPU_STATE is True else 'CPU'}）", flush=True)
+        except Exception as e:                        # noqa: BLE001
+            _OCR_ERR = f"{type(e).__name__}: {e}"
+            print(f"[ys-lookd] OCR 引擎不可用：{_OCR_ERR}", flush=True)
     return _OCR_ENGINE, _OCR_ERR
 
 
@@ -2619,6 +2627,18 @@ def serve():
         except Exception as e:                            # noqa: BLE001
             print(f"[ys-lookd] 感知预热失败（不影响启动）: {type(e).__name__}: {e}", flush=True)
     import threading as _th
+    # 2026-10-22（真事故）：两条预热线程**并发 import 重模块**会撞 CPython 模块锁死锁——
+    # 实测 `_DeadlockError: deadlock detected by _ModuleLock('rapidocr.utils')`，
+    # 后果是 OCR 引擎永久不可用、此后每次 world 都 STATE_UNKNOWN/OCR_UNAVAILABLE，
+    # 而日志只留一行「OCR 预热跳过」。判据就在这一行：看到它 ⇒ 本次重启的 OCR 是死的。
+    # 修法：**在主线程把重模块先 import 掉**（模块锁只在主线程拿一次），
+    # 线程此后只做「建引擎 + 跑首次 kernel」，不再触发 import 竞争。
+    import importlib as _il
+    for _m in ("rapidocr", "rapidocr_onnxruntime", "numpy", "PIL.Image"):
+        try:
+            _il.import_module(_m)
+        except Exception:                            # noqa: BLE001 —— 装哪个是哪个，缺了不致命
+            pass
     _th.Thread(target=_warm_ocr, daemon=True, name="warm-ocr").start()
     _th.Thread(target=_warm_perception, daemon=True, name="warm-perception").start()
     print(f"[ys-lookd] listening {SOCK}", flush=True)
