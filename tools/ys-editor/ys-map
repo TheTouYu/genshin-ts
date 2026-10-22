@@ -21,24 +21,26 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
+
 WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
-DISPLAY = os.environ.get("DISPLAY", ":1")
 
 
 def tool(name, *args, timeout=240):
     return subprocess.run([os.path.join(HERE, name), *[str(a) for a in args]],
                           capture_output=True, text=True, timeout=timeout,
-                          env=dict(os.environ, DISPLAY=DISPLAY))
+                          env=ys_env.env())
 
 
 def click(x, y, hold=0.5):
-    env = dict(os.environ, DISPLAY=DISPLAY, YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
+    env = ys_env.env(YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
     return subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(x), str(y)],
                           env=env, capture_output=True, text=True, timeout=180).returncode == 0
 
 
 def send_key(code, hold=0.12):
-    env = dict(os.environ, DISPLAY=DISPLAY, YS_SLOT_ACTIVE="1")
+    env = ys_env.env(YS_SLOT_ACTIVE="1")
     subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=30)
     time.sleep(hold)
     subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
@@ -60,7 +62,7 @@ def where():
 
 def raise_game():
     subprocess.run([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE],
-                   capture_output=True, timeout=60, env=dict(os.environ, DISPLAY=DISPLAY))
+                   capture_output=True, timeout=60, env=ys_env.env())
     time.sleep(1)
 
 

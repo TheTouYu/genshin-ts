@@ -3,12 +3,12 @@
 # 故显式声明逃生口（shim 见 tools/ys-editor/shims/）。
 export YS_ALLOW_RAW=1
 
+# X 会话环境（DISPLAY/XAUTHORITY）只走统一入口；原先自己从 Xwayland 的 /proc environ 抄，已删。
+. "$(dirname "$(readlink -f "$0")")/ys-env.sh" >/dev/null 2>&1 || true
+
 # 千星编辑器卡死自救:取消置顶/钉住/全屏并最小化所有 beyondeditor 窗口
-XW=$(pgrep -f '[X]wayland' | head -1)
-XD=$(tr '\0' '\n' < /proc/$XW/environ | grep '^DISPLAY=' | cut -d= -f2)
-XA=$(tr '\0' '\n' < /proc/$XW/environ | grep '^XAUTHORITY=' | cut -d= -f2)
-for id in $(DISPLAY=$XD XAUTHORITY=$XA xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
-  W=$(printf '0x%x' $id)
-  DISPLAY=$XD XAUTHORITY=$XA wmctrl -i -b remove,above,sticky,fullscreen -r $W 2>/dev/null
-  DISPLAY=$XD XAUTHORITY=$XA wmctrl -i -b add,hidden -r $W 2>/dev/null
+for id in $(xdotool search --class 'beyondeditor.exe' 2>/dev/null); do
+  W=$(printf '0x%x' "$id")
+  wmctrl -i -b remove,above,sticky,fullscreen -r "$W" 2>/dev/null
+  wmctrl -i -b add,hidden -r "$W" 2>/dev/null
 done

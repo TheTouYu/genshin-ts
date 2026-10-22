@@ -27,8 +27,8 @@ for a in "$@"; do
   esac
 done
 set -- ${ARGS[@]+"${ARGS[@]}"}
-export DISPLAY="${DISPLAY:-:1}"
-export XAUTHORITY="${XAUTHORITY:-/run/user/1000/xauth_oypYEi}"
+# X 会话环境只走统一入口；原先写死的 xauth_oypYEi 是上一次会话的文件名（重启/换会话后必失效）。
+. "$(dirname "$(readlink -f "$0")")/ys-env.sh" >/dev/null 2>&1 || true
 
 geom() { wmctrl -l -G | awk -v id="$1" 'tolower($1)==tolower(id){print $3" "$4" "$5" "$6; exit}'; }
 

@@ -19,6 +19,9 @@
 #
 # 自证：本脚本先检查 ydotool/ydotoold/socket 三项，缺一即退出 3（不做盲实验）。
 set -u
+HERE="$(dirname "$(readlink -f "$0")")"
+# X 会话环境只走统一入口（DISPLAY 空串兜底 + 每会话随机的 XAUTHORITY）
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
 VARIANT="${1:-}"
 
 if [ "${1:-}" = "--dry" ]; then DRY=1; VARIANT="${2:-}"; else DRY=0; fi
@@ -27,7 +30,7 @@ if [ "${1:-}" = "--dry" ]; then DRY=1; VARIANT="${2:-}"; else DRY=0; fi
 if [ "$DRY" = 0 ]; then
   command -v ydotool >/dev/null || { echo "✗ ydotool 不在 PATH" >&2; exit 3; }
   pgrep -x ydotoold >/dev/null || { echo "✗ ydotoold 未运行" >&2; exit 3; }
-  ls /run/user/1000/.ydotool_socket >/dev/null 2>&1 || { echo "✗ ydotool socket 不存在" >&2; exit 3; }
+  ls "${YDOTOOL_SOCKET:-/run/user/$(id -u)/.ydotool_socket}" >/dev/null 2>&1 || { echo "✗ ydotool socket 不存在" >&2; exit 3; }
   [ "${YS_SLOT_ACTIVE:-0}" = 1 ] || { echo "✗ 未在 ys-gui-slot 槽内（裸调被禁）" >&2; exit 3; }
 fi
 

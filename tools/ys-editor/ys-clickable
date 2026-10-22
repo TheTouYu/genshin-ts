@@ -52,12 +52,13 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import importlib.util
+import ys_env  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location('ys_capture_mod', os.path.join(HERE, 'ys_capture.py'))
 cap = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(cap)
 
-DEFAULT_DISPLAY = os.environ.get('DISPLAY') or ':1'
+DEFAULT_DISPLAY = ys_env.resolve().display or ':1'   # 环境解析只走统一入口（空串兜底）
 PIXEL_DELTA = 10          # 单通道差值超过它才算"这个像素变了"（压 JPEG/抖动噪声；XShm 是精确像素）
 MIN_CHANGED_PX = 300      # ROI 内至少这么多像素变化才算"界面真的响应了"（实测标定见 README）
 
@@ -120,7 +121,7 @@ print('%d,%d' % (x.value, y.value))
 
 def window_origin(win):
     out = subprocess.run([sys.executable, '-c', QUERY_ORIGIN, hex(win)],
-                         capture_output=True, text=True, timeout=10)
+                         capture_output=True, text=True, timeout=10, env=ys_env.env())
     try:
         a, b = out.stdout.strip().split(',')
         return int(a), int(b)
@@ -155,7 +156,7 @@ def pointer_movable():
     p = subprocess.run([os.path.join(HERE, 'shims', 'ydotool') if os.path.exists(os.path.join(HERE, 'shims', 'ydotool')) else 'ydotool',
                         'mousemove', '-x', '24', '-y', '16'],
                        capture_output=True, text=True, timeout=10,
-                       env={**os.environ, 'YS_SLOT_ACTIVE': '1'})
+                       env=ys_env.env(YS_SLOT_ACTIVE='1'))
     b = _qptr()
     if b is None:
         return False, 'XQueryPointer(读回) 失败'
@@ -189,6 +190,7 @@ def main():
     win = int(args.win, 16) if args.win.lower().startswith('0x') else int(args.win)
     res = {'win': hex(win), 'roi': None, 'hover_px': None, 'steps': [], 'verdict': 'ERROR',
            't': time.strftime('%Y-%m-%dT%H:%M:%S%z')}
+    ys_env.apply()          # 进程内 XShm/XQueryPointer 读的是 os.environ，子进程才用 env()
     try:
         g = cap.XShmGrabber(DEFAULT_DISPLAY, win)
     except Exception as e:                                    # noqa: BLE001

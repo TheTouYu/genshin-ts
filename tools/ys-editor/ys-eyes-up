@@ -17,7 +17,8 @@
 #   0 OK（首帧可用于动作）｜2 游戏窗口不存在｜3 抓帧守护起不来/不产帧
 #   4 首帧拿不到（其它原因）｜5 眼睛在产帧，但**目标窗不在当前虚拟桌面**（用 ys-follow-win）
 set -u
-cd "$(dirname "$(readlink -f "$0")")/../.." || exit 3
+HERE="$(dirname "$(readlink -f "$0")")"
+cd "$HERE/../.." || exit 3
 TO=${YS_EYES_TIMEOUT:-25}
 UNIT=ys-capture.service
 
@@ -41,8 +42,12 @@ if [ "${1:-}" = "--probe" ]; then
   exit 3
 fi
 
+# X 会话环境只走统一入口（DISPLAY 空串兜底 + 每会话随机的 XAUTHORITY）。
+# 放在 --probe 之后：轮询路径不付这次解析的钱。
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+
 # 1) 游戏窗口存在吗（按 class，不用 idx —— 序号会漂）
-if ! DISPLAY=${DISPLAY:-:1} xdotool search --class yuanshen >/dev/null 2>&1; then
+if ! xdotool search --class yuanshen >/dev/null 2>&1; then
   echo "[ys-eyes-up] ✗ 没有找到原神窗口（class=yuanshen）——请先启动游戏" >&2
   exit 2
 fi

@@ -22,6 +22,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
 import numpy as np  # noqa: E402
 from ys_look import ncc  # noqa: E402
 
@@ -147,7 +148,8 @@ def current_focus_class():
 # ── 注入 ──────────────────────────────────────────────────────────
 def send_key(code, hold=0.12):
     """发一个按键（evdev 码）。ESC=1、空格=57、W=17、F=33。"""
-    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+    # 环境解析只走 ys_env（DISPLAY 空串/None 兜底、XAUTHORITY 每会话随机名，见 4946d448）
+    env = ys_env.env(YS_SLOT_ACTIVE="1")
     subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=20)
     time.sleep(hold)
     subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=20)
@@ -163,8 +165,7 @@ def click(x, y, hold=0.5):
       · **游戏内 UI 的按住时长必须 ≥500ms**：游戏 6~11 FPS，130ms 的按放会被整帧吞掉。
         Wine 菜单 ≥120ms 即可，两者取严 ⇒ 缺省 0.5s。
     ys-do 已在调用前校验窗口在栈顶，故设 YS_SLOT_ACTIVE=1 跳过重复进槽。"""
-    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"),
-               YS_CLICK_HOLD=str(hold))
+    env = ys_env.env(YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
     r = subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(int(x)), str(int(y))],
                        env=env, capture_output=True, text=True, timeout=120)
     return r.returncode == 0

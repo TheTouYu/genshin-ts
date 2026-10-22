@@ -35,6 +35,9 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
+
 SESSION = os.environ.get("YS_SESSION_PATH") or os.path.expanduser("~/.ys/session.json")
 CAPTURE = os.path.join(HERE, "ys-capture")
 SLOT = os.path.join(HERE, "ys-gui-slot")
@@ -120,9 +123,10 @@ def press(code: int, hold_ms: int, frame_raw: str | None) -> None:
     if frame_raw:                                        # 离线：只演算不注入
         return
     os.environ.setdefault("YS_SLOT_ACTIVE", "1")         # ydotool 的 PATH shim 只认这个标记
-    subprocess.run(["ydotool", "key", f"{code}:1"], capture_output=True, text=True, timeout=10)
+    env = ys_env.env()                                  # DISPLAY/XAUTHORITY 只走统一入口
+    subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, text=True, timeout=10)
     time.sleep(max(1, hold_ms) / 1000.0)
-    subprocess.run(["ydotool", "key", f"{code}:0"], capture_output=True, text=True, timeout=10)
+    subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, text=True, timeout=10)
 
 
 def main() -> int:

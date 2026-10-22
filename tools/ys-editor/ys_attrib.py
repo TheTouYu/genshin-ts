@@ -31,6 +31,9 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ys_env  # noqa: E402
+
 WIN_DEFAULT = os.environ.get("YS_WIN") or ""     # 动态解析；禁止写死已过期的窗 id
 TITLE_DEFAULT = os.environ.get("YS_WIN_TITLE", "原神")
 CLASS_DEFAULT = os.environ.get("YS_WIN_CLASS", "yuanshen.exe")
@@ -39,7 +42,8 @@ ALL_DESKTOPS = 4294967295
 
 def _run(cmd, timeout=4):
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                           env=ys_env.env())
         return p.returncode, p.stdout or "", p.stderr or ""
     except Exception as e:                                  # noqa: BLE001
         return 1, "", f"{type(e).__name__}: {e}"

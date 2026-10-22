@@ -31,6 +31,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
 
 GSTS_LOCALLOW = os.environ.get("GSTS_LOCALLOW_DIR", "")
 UID = os.environ.get("YS_UID", "110170759")
@@ -70,14 +71,13 @@ def where2():
 
 
 def click(x, y, hold=0.5):
-    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"),
-               YS_CLICK_HOLD=str(hold))
+    env = ys_env.env(YS_SLOT_ACTIVE="1", YS_CLICK_HOLD=str(hold))
     return subprocess.run([os.path.join(HERE, "ys-pointer-click"), str(x), str(y)],
                           env=env, capture_output=True, text=True, timeout=180).returncode == 0
 
 
 def send_key(code):
-    env = dict(os.environ, YS_SLOT_ACTIVE="1", DISPLAY=os.environ.get("DISPLAY", ":1"))
+    env = ys_env.env(YS_SLOT_ACTIVE="1")
     subprocess.run(["ydotool", "key", f"{code}:1"], env=env, capture_output=True, timeout=30)
     time.sleep(0.12)
     subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
@@ -87,7 +87,7 @@ def raise_game():
     """把原神抬到栈顶并取焦点（注入前必做）。"""
     subprocess.run([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE],
                    capture_output=True, timeout=60,
-                   env=dict(os.environ, DISPLAY=os.environ.get("DISPLAY", ":1")))
+                   env=ys_env.env())
     time.sleep(1)
 
 
