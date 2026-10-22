@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path('/home/h/genshin-ts/gui-test/.02')
 
-CHAR = '旅行者（空／荧）'
+CHAR = '旅行者（荧）'   # 依据：story3「了解哥哥在这世间的种种」→ 血亲为兄（空），可操作角色为荧
 
 TABS = [
     ('profile', '角色详细', 'unlocked'),
