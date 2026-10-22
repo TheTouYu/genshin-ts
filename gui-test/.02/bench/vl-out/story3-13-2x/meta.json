@@ -1,0 +1,14 @@
+{
+ "file": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-13-2x.png",
+ "model": "PaddleOCR-VL-1.6",
+ "job_id": "106796037823062016",
+ "submit_secs": 0.3,
+ "total_secs": 0.37,
+ "states": [
+  [
+   "done",
+   0.37
+  ]
+ ],
+ "pages": 1
+}

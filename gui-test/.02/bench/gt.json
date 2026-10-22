@@ -1,0 +1,418 @@
+[
+ {
+  "id": "story1-00",
+  "tab": "story1",
+  "i": 0,
+  "gt": "陌生的天空下，少年少女立于尘沙。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-00-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-00-2x.png"
+ },
+ {
+  "id": "story1-01",
+  "tab": "story1",
+  "i": 1,
+  "gt": "你们是一对旅行中的双子，远渡重天，曾经跨越诸多",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-01-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-01-2x.png"
+ },
+ {
+  "id": "story1-02",
+  "tab": "story1",
+  "i": 2,
+  "gt": "世界。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-02-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-02-2x.png"
+ },
+ {
+  "id": "story1-03",
+  "tab": "story1",
+  "i": 3,
+  "gt": "在降临名为「提瓦特」的大陆之前，你希望能与这个",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-03-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-03-2x.png"
+ },
+ {
+  "id": "story1-04",
+  "tab": "story1",
+  "i": 4,
+  "gt": "世界相处愉快。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-04-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-04-2x.png"
+ },
+ {
+  "id": "story1-05",
+  "tab": "story1",
+  "i": 5,
+  "gt": "然而当你从陨星中复苏，却见到天变地异、灾祸横",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-05-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-05-2x.png"
+ },
+ {
+  "id": "story1-06",
+  "tab": "story1",
+  "i": 6,
+  "gt": "行——",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-06-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-06-2x.png"
+ },
+ {
+  "id": "story1-07",
+  "tab": "story1",
+  "i": 7,
+  "gt": "你们想要离开这里、前往下一个世界…但此时有陌",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-07-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-07-2x.png"
+ },
+ {
+  "id": "story1-08",
+  "tab": "story1",
+  "i": 8,
+  "gt": "生的神灵出现，拦在你们面前。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-08-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-08-2x.png"
+ },
+ {
+  "id": "story1-09",
+  "tab": "story1",
+  "i": 9,
+  "gt": "一尘不染的神，漂浮在浊世的天空。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-09-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-09-2x.png"
+ },
+ {
+  "id": "story1-10",
+  "tab": "story1",
+  "i": 10,
+  "gt": "俯视着你。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-10-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-10-2x.png"
+ },
+ {
+  "id": "story1-11",
+  "tab": "story1",
+  "i": 11,
+  "gt": "神带走了你唯一的血亲，而你也被神封印，陷入充满",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-11-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-11-2x.png"
+ },
+ {
+  "id": "story1-12",
+  "tab": "story1",
+  "i": 12,
+  "gt": "噩梦的沉眠…",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-12-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-12-2x.png"
+ },
+ {
+  "id": "story1-13",
+  "tab": "story1",
+  "i": 13,
+  "gt": "再度醒来，天地间风景已变。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-13-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-13-2x.png"
+ },
+ {
+  "id": "story1-14",
+  "tab": "story1",
+  "i": 14,
+  "gt": "眼前已不再有战火，也不再有任何熟悉的景象。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-14-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-14-2x.png"
+ },
+ {
+  "id": "story1-15",
+  "tab": "story1",
+  "i": 15,
+  "gt": "自己究竟又沉睡了多少年？这也无从知晓。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-15-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-15-2x.png"
+ },
+ {
+  "id": "story1-16",
+  "tab": "story1",
+  "i": 16,
+  "gt": "于是你孤身一人踏上旅途，去寻找曾经目睹的神灵",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-16-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story1-16-2x.png"
+ },
+ {
+  "id": "story2-00",
+  "tab": "story2",
+  "i": 0,
+  "gt": "在那之后，你遇到旅伴派蒙，一起流浪了一段时间。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-00-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-00-2x.png"
+ },
+ {
+  "id": "story2-01",
+  "tab": "story2",
+  "i": 1,
+  "gt": "你得知此世的神灵共有七位，以「尘世七执政」之名",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-01-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-01-2x.png"
+ },
+ {
+  "id": "story2-02",
+  "tab": "story2",
+  "i": 2,
+  "gt": "统治七国。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-02-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-02-2x.png"
+ },
+ {
+  "id": "story2-03",
+  "tab": "story2",
+  "i": 3,
+  "gt": "你们将驻足的第一站定为诗与酒的自由城邦，蒙德，",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-03-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-03-2x.png"
+ },
+ {
+  "id": "story2-04",
+  "tab": "story2",
+  "i": 4,
+  "gt": "那是风神建立的国度。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-04-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-04-2x.png"
+ },
+ {
+  "id": "story2-05",
+  "tab": "story2",
+  "i": 5,
+  "gt": "你作为异乡人踏足蒙德时，它正与其它国家一样，遭",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-05-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-05-2x.png"
+ },
+ {
+  "id": "story2-06",
+  "tab": "story2",
+  "i": 6,
+  "gt": "受着来自人类之外与人类内部的双重威胁。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-06-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-06-2x.png"
+ },
+ {
+  "id": "story2-07",
+  "tab": "story2",
+  "i": 7,
+  "gt": "人类之外的威胁，是非人之物构成的「深渊教团」。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-07-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-07-2x.png"
+ },
+ {
+  "id": "story2-08",
+  "tab": "story2",
+  "i": 8,
+  "gt": "人类内部的威胁，则是至冬国的神灵，冰之女皇的野",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-08-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-08-2x.png"
+ },
+ {
+  "id": "story2-09",
+  "tab": "story2",
+  "i": 9,
+  "gt": "心。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-09-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-09-2x.png"
+ },
+ {
+  "id": "story2-10",
+  "tab": "story2",
+  "i": 10,
+  "gt": "深渊教团腐化了风神的眷属——蒙德「四风守护」中",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-10-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-10-2x.png"
+ },
+ {
+  "id": "story2-11",
+  "tab": "story2",
+  "i": 11,
+  "gt": "的东风之龙。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-11-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-11-2x.png"
+ },
+ {
+  "id": "story2-12",
+  "tab": "story2",
+  "i": 12,
+  "gt": "至冬国的使团借口对抗深渊，对蒙德层层施压。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-12-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-12-2x.png"
+ },
+ {
+  "id": "story2-13",
+  "tab": "story2",
+  "i": 13,
+  "gt": "内外交困，因而引来神的回归。风之神化身吟游诗",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-13-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-13-2x.png"
+ },
+ {
+  "id": "story2-14",
+  "tab": "story2",
+  "i": 14,
+  "gt": "人，与你一同行动，解救巨龙。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-14-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-14-2x.png"
+ },
+ {
+  "id": "story2-15",
+  "tab": "story2",
+  "i": 15,
+  "gt": "然而此时的你尚未见到，在陷入深渊的巨龙瞳中，倒",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-15-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-15-2x.png"
+ },
+ {
+  "id": "story2-16",
+  "tab": "story2",
+  "i": 16,
+  "gt": "映出的那个人影…",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-16-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-16-2x.png"
+ },
+ {
+  "id": "story2-17",
+  "tab": "story2",
+  "i": 17,
+  "gt": "统领深渊之人。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-17-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-17-2x.png"
+ },
+ {
+  "id": "story2-18",
+  "tab": "story2",
+  "i": 18,
+  "gt": "那位少年也曾远渡重天，与你一起跨越诸多世界。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-18-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story2-18-2x.png"
+ },
+ {
+  "id": "story3-00",
+  "tab": "story3",
+  "i": 0,
+  "gt": "尽管你并未作出允诺，尽管是对方单方面的「约定」",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-00-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-00-2x.png"
+ },
+ {
+  "id": "story3-01",
+  "tab": "story3",
+  "i": 1,
+  "gt": "你还是为了抵达「旅途的终点」而踏上了游历七国的",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-01-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-01-2x.png"
+ },
+ {
+  "id": "story3-02",
+  "tab": "story3",
+  "i": 2,
+  "gt": "旅程。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-02-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-02-2x.png"
+ },
+ {
+  "id": "story3-03",
+  "tab": "story3",
+  "i": 3,
+  "gt": "这很难称得上是一段惬意的旅途，随着旅者的脚步",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-03-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-03-2x.png"
+ },
+ {
+  "id": "story3-04",
+  "tab": "story3",
+  "i": 4,
+  "gt": "不断前进，你见证并卷入了各个国家的种种危机…",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-04-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-04-2x.png"
+ },
+ {
+  "id": "story3-05",
+  "tab": "story3",
+  "i": 5,
+  "gt": "或许这并不是巧合，危机的浪潮可能源自于世界更",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-05-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-05-2x.png"
+ },
+ {
+  "id": "story3-06",
+  "tab": "story3",
+  "i": 6,
+  "gt": "深层次的剧震。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-06-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-06-2x.png"
+ },
+ {
+  "id": "story3-07",
+  "tab": "story3",
+  "i": 7,
+  "gt": "至冬女皇收集神之心的计划正有序推进，侵蚀世界",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-07-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-07-2x.png"
+ },
+ {
+  "id": "story3-08",
+  "tab": "story3",
+  "i": 8,
+  "gt": "的可怖力量亦伺机而动，",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-08-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-08-2x.png"
+ },
+ {
+  "id": "story3-09",
+  "tab": "story3",
+  "i": 9,
+  "gt": "而「深渊教团」，你的血亲所统领的组织——",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-09-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-09-2x.png"
+ },
+ {
+  "id": "story3-10",
+  "tab": "story3",
+  "i": 10,
+  "gt": "从「命运的织机原动计划」到「新世界的经纬图」完",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-10-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-10-2x.png"
+ },
+ {
+  "id": "story3-11",
+  "tab": "story3",
+  "i": 11,
+  "gt": "成，你深知他们也将左右世界的命运。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-11-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-11-2x.png"
+ },
+ {
+  "id": "story3-12",
+  "tab": "story3",
+  "i": 12,
+  "gt": "你逐渐在了解这个世界，也在了解哥哥在这世间的",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-12-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-12-2x.png"
+ },
+ {
+  "id": "story3-13",
+  "tab": "story3",
+  "i": 13,
+  "gt": "种种",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-13-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-13-2x.png"
+ },
+ {
+  "id": "story3-14",
+  "tab": "story3",
+  "i": 14,
+  "gt": "但旅行的脚步丝毫没有因此而变得轻快一些，这与",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-14-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-14-2x.png"
+ },
+ {
+  "id": "story3-15",
+  "tab": "story3",
+  "i": 15,
+  "gt": "你一开始所想象的很不一样。",
+  "s1": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-15-1x.png",
+  "s2": "/home/h/genshin-ts/gui-test/.02/bench/strips/story3-15-2x.png"
+ }
+]
