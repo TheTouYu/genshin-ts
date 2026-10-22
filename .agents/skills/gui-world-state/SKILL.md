@@ -135,6 +135,41 @@ tools/ys-editor/ys-read --grep 甘雨        # 读两次，两次文字集合一
   好友 = 「好友标题 + `x/200` 计数」；角色 = 「命之座 + 圣遗物」。
 - **黑屏/无内容帧必须判 UNKNOWN**（当前尚未落地，见账本 F-20261021-48）。
 
+### 3.5 可配置状态包（state pack）——**判据是数据，不是代码**（2026-10-22 新增）
+
+13 态表是**代码里硬编码**的（`tools/ys-editor/ys-state` 的 `put("GAME_WORLD/A …")`）。
+接一个新任务（例：判断「点击进入」= 游戏开始态）就要改代码 ⇒ 等于为产品适配。
+所以另有一条**不改代码**的路：把判据写进 JSON 包，由求值器加载。
+
+```bash
+SP=.scratch/gui-service/state_pack.py
+python3 $SP list --dir .scratch/gui-service/packs      # 看现有哪些包
+python3 $SP validate --pack .scratch/gui-service/packs/gn-start-v1.json
+python3 $SP eval --pack .scratch/gui-service/packs/gn-start-v1.json \
+    --look /tmp/look.json --frame /tmp/f.png --expect-state START
+bash .scratch/gui-service/state_pack.selftest.sh       # 5 例：正/负/期望不符/非法包
+```
+
+**包的结构**（`schema: gui.statepack/v1`）：
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `pack` | ✅ | 包名（按任务命名，不绑产品） |
+| `coord_space` | ✅ | `physical`(2560×1440) / `logical`(1707×960)——**混用会整体偏移且不报错** |
+| `states[]` | ✅ | `{id, rule: all/any/any2, precedence, predicates[]}`；id 大写字母数字下划线 |
+| `accept_support` | — | 缺省 0.6（与 ys-state 同口径） |
+| `predicates[]` | ✅ | `text_present` / `text_absent`（region+texts+match: contains/equals/regex）、`object_count`、`region_stat`（mean_luma·std_luma·dark_ratio·bright_ratio，需 `--frame`）、`pixel_at`（需 `--frame`） |
+
+**规矩**
+- region 一律 **xywh**；`text_absent` 是防误判的第一道门（"必须没有什么"），别只写"有什么"。
+- 多态同时成立按 `precedence` 取最高；并列 ⇒ 回 `ambiguous`，**不猜**。
+- 包里写 `evidence.positive/negative`：这张判据是哪一帧、哪条文字量出来的——判据本身要可复算。
+- **还没接进 `look`**：现在 `look` 仍走 13 态代码判据，包求值器独立可用（`eval`）。
+  接入方式下一步做：`look --pack <path>`（给了包就用包，没给回退 13 态）。
+
+**已有包**：`packs/gn-start-v1.json`（START = 登录门「点击进入」，物理坐标，region `[600,1250,1700,190]`）。
+实测：登录门帧 → `START`（2/2 谓词，eval 0.1ms）；派蒙菜单帧 f06 → `None`（1/2，正谓词不成立）。
+
 **屏幕占用契约（2026-10-21 重设计：许可 / 占用 / 观测三件事解耦）**：这个桌面不是只有我们在用。
 
 > 旧模型把三者绑在**一个秒表**上，实测反作用：租期是稀缺资源 ⇒ 代理为省租期把整条流程
