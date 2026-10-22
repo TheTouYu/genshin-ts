@@ -215,9 +215,12 @@ imports="$(sed -n 's/^import \([a-z_0-9]*\).*/\1/p;s/^from \([a-z_0-9]*\) import
 bad_imports=""
 for m in $imports; do
   case "$m" in
-    argparse|json|os|re|shutil|signal|subprocess|sys|time) ;;
-    *) bad_imports="$bad_imports $m" ;;
+    argparse|json|os|re|shutil|signal|subprocess|sys|time) continue ;;
   esac
+  # 仓内本地模块不算「新增依赖」（如 ys_env.py：X 会话环境的唯一入口，就在同目录）；
+  # 判据仍是「没有第三方依赖」——本地 .py 找不到才算可疑。
+  if ls "$HERE/$m.py" >/dev/null 2>&1; then continue; fi
+  bad_imports="$bad_imports $m"
 done
 if [ -z "$bad_imports" ]; then ok "import 全在标准库：$imports"; else bad "可疑 import:$bad_imports"; fi
 

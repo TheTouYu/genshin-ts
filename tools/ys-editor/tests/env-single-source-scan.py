@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""env-single-source-scan.py — 「X11 会话环境解析只许有一个源」的静态门禁（F-20261022-75）。
+"""env-single-source-scan.py — 「X11 会话环境解析只许有一个源」的**严格**静态门禁（F-20261022-75）。
 
 症状（3 周内被独立修了 4 次，用户令「彻底杜绝」）：
     bf11dfa6 常驻服务启动时 source ys-env.sh（重启后 XAUTHORITY 丢失，px 全线失败）
@@ -9,10 +9,14 @@
 每次只修当时出事的工具，因为解析规则散落在 ~19 个文件里：各自
 `os.environ.get("DISPLAY", ":1")`、XAUTHORITY 不读、DISPLAY 空串不兜底。
 
-判据：`tools/ys-editor/` 下凡是**执行** xdotool / ydotool（或把它们写进将要执行的脚本串）的文件，
-必须引用统一入口——
-    · bash    → `. "$HERE/ys-env.sh"`（或任意引用 `ys-env.sh`）
-    · python  → `import ys_env`
+判据（**无豁免通道**：任何例外都必须先改代码，不允许在门禁里开口子）：
+扫描范围 = `tools/ys-editor/` 顶层工具 + `tools/` 顶层工具。`tests/` 与 `shims/` 除外——
+它们故意构造裸命令串来测门禁本身（注入用例、ydotool 替身）。
+凡是**执行** xdotool / ydotool（或把它们写进将要执行的脚本串）的文件，必须真的引用统一入口：
+    · bash    → `. <path>/ys-env.sh` 或 `source <path>/ys-env.sh`（**在命令位置**；
+                只在注释/提示文案里提到不算——2026-10-22 实测有个工具正是靠提示语混过去的）
+    · python  → `import ys_env`，或调用参数里出现字面量 `ys-env.sh`
+                （如 `os.path.join(HERE, "ys-env.sh")`，既有 ys_look/ys_capture/ys-state 的形态）
 注释、文档字符串、纯查表（没进任何调用）不算执行。
 
 为什么不动态检测：本门禁要防的正是「跑起来才发现环境不对」；而且动态检测本身就要先解析环境。
@@ -27,12 +31,12 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-YSDIR = os.path.dirname(HERE)
-ROOT = os.path.dirname(os.path.dirname(YSDIR))
+YSDIR = os.path.dirname(HERE)                     # tools/ys-editor
+TOOLS = os.path.dirname(YSDIR)                    # tools
+ROOT = os.path.dirname(TOOLS)
+ROOTS = (YSDIR, TOOLS)
 
-# 只扫 ys-editor 顶层的工具（tests/ 自己会造故障串，shims/ 是 ydotool 的替身，都不算工具）
-SKIP_DIRS = {"tests", "shims", "actions", "calib", "models", "templates", "__pycache__",
-             "domain.json"}
+SKIP_DIRS = {"tests", "shims", "actions", "calib", "models", "templates", "__pycache__"}
 SCAN_SUFFIX = ("", ".sh", ".py")
 SKIP_SUFFIX = (".md", ".json", ".tsv", ".c", ".service", ".bak", ".log", ".txt", ".html",
                ".pyc", ".so")
@@ -40,14 +44,10 @@ SKIP_SUFFIX = (".md", ".json", ".tsv", ".c", ".service", ".bak", ".log", ".txt",
 # 统一入口的**定义处**（它们当然会提到命令名）
 ENTRY = {"ys-env.sh", "ys_env.py"}
 
-# 豁免必须带理由，且每次运行都打印出来（不许静默变绿）
-EXEMPT = {
-    # task-2（常驻 OCR 守护显存）正在改这个文件；它的 X 环境靠 ys_capture/ys_look 自愈。
-    # 迁移已排期：等 task-2 收尾后改成 import ys_env（不要为过门禁抢改别人的文件）。
-    "ys_lookd.py": "task-2 写作用域中，X 环境由 ys_capture._refresh_env() 自愈；迁移待其收尾",
-}
-
-# 这些是"名字出现在命令位置"以外的只读上下文，不算执行
+# bash 里 command 位置的 source/.：`[ -f X ] && . X` 也算
+BASH_SRC = re.compile(
+    r"(?:^|[\n;&|)]|\bthen|\bdo|\belse)\s*(?:\[[^\]\n]*\]\s*&&\s*)?"
+    r"(?:\.|source)\s+[^\n]*ys-env\.sh", re.M)
 SH_SKIP = re.compile(r"^\s*(?:#|grep|rg|sed|awk|echo|printf|cat|wc|ls|command -v|type|which|"
                      r"pgrep|pkill|test|\[)")
 SH_HIT = re.compile(
@@ -56,8 +56,6 @@ SH_HIT = re.compile(
 PY_HIT = re.compile(
     r"(?:\A|[;&|]\s+|\(\s*)(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*[\"']?(?:/usr/bin/|/bin/|shims/)?"
     r"(xdotool|ydotool)(?=\s+[a-z])")
-BASH_REF = re.compile(r"\bys-env\.sh\b|\bys_env\.py\b")
-PY_REF = re.compile(r"^\s*(?:import\s+ys_env\b|from\s+ys_env\s+import\b)", re.M)
 
 
 def _shebang_kind(path: str, first: str) -> str:
@@ -71,9 +69,16 @@ def _shebang_kind(path: str, first: str) -> str:
 
 
 def _strip_sh_comment(line: str) -> str:
-    """去掉行尾注释（够用即可：本仓工具不在字符串里写 ' #'）。"""
     idx = line.find(" #")
     return line if idx < 0 else line[:idx]
+
+
+def sh_code_only(text: str) -> str:
+    """去掉整行注释与行尾注释后再判「是否引用入口」——注释里写一句 source 不算。"""
+    out = []
+    for raw in text.splitlines():
+        out.append("" if raw.lstrip().startswith("#") else _strip_sh_comment(raw))
+    return "\n".join(out)
 
 
 def scan_sh(text: str):
@@ -82,8 +87,7 @@ def scan_sh(text: str):
         line = _strip_sh_comment(raw)
         if not line.strip() or SH_SKIP.search(line):
             continue
-        m = SH_HIT.search(line)
-        if m:
+        if SH_HIT.search(line):
             hits.append((no, raw.strip()[:110]))
     return hits
 
@@ -100,32 +104,36 @@ def _py_docstrings(tree: ast.AST) -> set:
     return out
 
 
+RE_FUNCS = {"compile", "search", "match", "fullmatch", "findall", "finditer", "sub", "subn",
+            "split"}
+
+
+def _is_re_call(node: ast.Call) -> bool:
+    """`re.search(r"\b(xdotool click|ydotool key)", cmd)` 是**判据模式**，不是执行。"""
+    f = node.func
+    return (isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)
+            and f.value.id == "re" and f.attr in RE_FUNCS)
+
+
 def _is_cmd_str(s: str) -> bool:
     return s.strip() in ("xdotool", "ydotool") or bool(PY_HIT.search(s))
 
 
 def scan_py(text: str):
-    """只用 AST 看**会进到调用里的字符串常量**：注释/文档串/纯查表不算。
-
-    · 列表形态 `subprocess.run(["ydotool", "key", ...])` → 常量正好是命令名
-    · 脚本串形态 `[PUT, "x y; xdotool click ..."]` / `bash -c "ydotool key ..."` → 命令位置
-    """
+    """只用 AST 看**会进到调用里的字符串常量**：注释/文档串/纯查表不算。"""
     try:
         tree = ast.parse(text)
     except SyntaxError as exc:
         return [(exc.lineno or 0, "语法错误：%s" % exc.msg)]
     docs = _py_docstrings(tree)
-    hits = []
-    seen = set()
+    hits, seen = [], set()
     for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
+        if not isinstance(node, ast.Call) or _is_re_call(node):
             continue
         for sub in ast.walk(node):
             if not (isinstance(sub, ast.Constant) and isinstance(sub.value, str)):
                 continue
-            if id(sub) in docs or id(sub) in seen:
-                continue
-            if not _is_cmd_str(sub.value):
+            if id(sub) in docs or id(sub) in seen or not _is_cmd_str(sub.value):
                 continue
             seen.add(id(sub))
             hits.append((sub.lineno, sub.value.strip().replace("\n", " ")[:110]))
@@ -133,7 +141,29 @@ def scan_py(text: str):
     return hits
 
 
+def py_refs_entry(text: str) -> bool:
+    """真的引用了入口：import ys_env / 调用参数里带 ys-env.sh 字面量。"""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(a.name == "ys_env" for a in node.names):
+                return True
+        elif isinstance(node, ast.ImportFrom):
+            if (node.module or "").split(".")[0] == "ys_env":
+                return True
+        elif isinstance(node, ast.Call):
+            for sub in ast.walk(node):
+                if (isinstance(sub, ast.Constant) and isinstance(sub.value, str)
+                        and sub.value.endswith("ys-env.sh")):
+                    return True
+    return False
+
+
 def files_to_scan(directory: str):
+    """只扫目录**顶层**的文件（tools/ys-editor/ 与 tools/ 各一层）。"""
     out = []
     if not os.path.isdir(directory):
         return out
@@ -170,69 +200,40 @@ def main() -> int:
         print("ENV-SINGLE-SOURCE-BROKEN 统一入口自检失败：%s" % "；".join(problems))
         return 2
 
-    files = files_to_scan(YSDIR)
-    violators = []
-    exempted = []
-    scanned = 0
-    for path in files:
-        name = os.path.basename(path)
-        if name in ENTRY:
-            continue
-        try:
-            with open(path, encoding="utf-8", errors="replace") as fh:
-                text = fh.read()
-        except OSError as exc:
-            print("ENV-SINGLE-SOURCE-BROKEN 读不了 %s：%s" % (path, exc))
-            return 2
-        kind = _shebang_kind(path, text.splitlines()[0] if text else "")
-        hits = scan_py(text) if kind == "py" else scan_sh(text)
-        if not hits:
-            continue
-        scanned += 1
-        # 两条栈互认：python 工具可调 ys-env.sh（既有做法），bash 工具也可调 ys_env.py
-        referenced = bool(PY_REF.search(text) or BASH_REF.search(text))
-        if referenced:
-            continue
-        rel = os.path.relpath(path, ROOT)
-        if name in EXEMPT:
-            exempted.append((rel, EXEMPT[name], hits[0][0]))
-            continue
-        violators.append((rel, kind, hits))
+    scanned, violators, seen_paths = 0, [], set()
+    for base in ROOTS:
+        for path in files_to_scan(base):
+            name = os.path.basename(path)
+            if name in ENTRY or path in seen_paths:
+                continue
+            seen_paths.add(path)
+            try:
+                with open(path, encoding="utf-8", errors="replace") as fh:
+                    text = fh.read()
+            except OSError as exc:
+                print("ENV-SINGLE-SOURCE-BROKEN 读不了 %s：%s" % (path, exc))
+                return 2
+            kind = _shebang_kind(path, text.splitlines()[0] if text else "")
+            hits = scan_py(text) if kind == "py" else scan_sh(text)
+            if not hits:
+                continue
+            scanned += 1
+            referenced = py_refs_entry(text) if kind == "py" else bool(
+                BASH_SRC.search(sh_code_only(text)))
+            if referenced:
+                continue
+            violators.append((os.path.relpath(path, ROOT), kind, hits))
 
-    # ② 范围外的同类（先记录、不扩：写作用域在 task-4 之外，交 Lead 决策）
-    notes = []
-    for path in files_to_scan(os.path.join(ROOT, "tools")):
-        name = os.path.basename(path)
-        if not name.startswith("ys-") or name in ENTRY:
-            continue
-        try:
-            with open(path, encoding="utf-8", errors="replace") as fh:
-                text = fh.read()
-        except OSError:
-            continue
-        kind = _shebang_kind(path, text.splitlines()[0] if text else "")
-        hits = scan_py(text) if kind == "py" else scan_sh(text)
-        if hits and not (PY_REF.search(text) if kind == "py" else BASH_REF.search(text)):
-            notes.append((os.path.relpath(path, ROOT), hits[0][0]))
-
-    for rel, reason, line in exempted:
-        print("  [EXEMPT] %-38s L%-5s %s" % (rel, line, reason))
-    for rel, line in notes:
-        print("  [NOTE 未纳入本次迁移] %-30s L%-5s 同类绕过，写作用域外（Lead 决策）" % (rel, line))
-
-    if violators:
-        for rel, kind, hits in violators:
-            how = "bash: . \"$HERE/ys-env.sh\"" if kind == "sh" else "python: import ys_env"
-            print("  ✗ %-38s L%-5s 执行 xdotool/ydotool 但未引用统一环境入口（%s）" % (
-                rel, hits[0][0], how))
-            for line, snippet in hits[:2]:
-                print("      L%-5s %s" % (line, snippet))
-        print("ENV-SINGLE-SOURCE-RESULT scanned=%d violators=%d exempt=%d note=%d verdict=FAIL"
-              % (scanned, len(violators), len(exempted), len(notes)))
-        return 1
-    print("ENV-SINGLE-SOURCE-RESULT scanned=%d violators=0 exempt=%d note=%d verdict=PASS"
-          % (scanned, len(exempted), len(notes)))
-    return 0
+    for rel, kind, hits in violators:
+        how = "python: import ys_env（或调用 ys-env.sh）" if kind == "py" else \
+            'bash: . "$HERE/ys-env.sh"'
+        print("  ✗ %-40s L%-5s 执行 xdotool/ydotool 但未引用统一环境入口（%s）" % (
+            rel, hits[0][0], how))
+        for line, snippet in hits[:2]:
+            print("      L%-5s %s" % (line, snippet))
+    print("ENV-SINGLE-SOURCE-RESULT roots=ys-editor,tools scanned=%d violators=%d verdict=%s"
+          % (scanned, len(violators), "FAIL" if violators else "PASS"))
+    return 1 if violators else 0
 
 
 if __name__ == "__main__":

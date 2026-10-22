@@ -29,6 +29,9 @@
 - 使用仓库内或用户明确提供的最小样本运行工具，检查帮助、错误路径和正常输出。
 - 改动 TypeScript 后运行 `npm run build`（若适用）和 `git diff --check`。
 - 修改 PKC 工具后按 `tools/pkc.py --help` 或对应 `validate_pkc_bundle.py` 做冒烟验证。
+- **验证参数行为前先 `grep -n "argparse\|sys.argv" <工具>`**：没有 argparse 的工具会把 `--help` 当真参数执行
+  （2026-10-22 实测：给 `ys-loop` 传 `--help` 直接开跑一轮真机流程、抬了一次原神窗）。没有 argparse 就只做
+  `py_compile` / `bash -n` / import，绝不追加未知参数。
 
 ## 不要做
 
@@ -64,5 +67,8 @@ subprocess.run(["ydotool", "key", "1:1"], env=ys_env.env(YS_SLOT_ACTIVE="1"))
 - 诊断：`python3 tools/ys-editor/ys_env.py --json`；失败分支把 `ys_env.explain()` 拼进 stderr——
   只回 `injected:false` 不算错误信息（4946d448 的坑）。
 - 门禁 `env-single-source`（`python3 tools/ys-editor/tests/env-single-source-scan.py`，登记在
-  `tools/failure-ledger.gates.tsv`，tier=fast）：执行 xdotool/ydotool 却未引用入口 ⇒ 红；
-  注释、文档串、纯查表不算。
+  `tools/failure-ledger.gates.tsv`，tier=fast）：扫描 `tools/ys-editor/` 与 `tools/` 顶层，执行
+  xdotool/ydotool 却未引用入口 ⇒ 红（**严格模式，没有 EXEMPT/NOTE 通道**）。注释、文档串、纯查表、
+  `re.*` 判据模式不算；只在提示语里 `source …/ys-env.sh` 不算引用。
+- 环境变量（`DISPLAY` / `XAUTHORITY` / `YDOTOOL_SOCKET`）不要在工具里写死：socket 路径也别写
+  `/run/user/1000/…`（换 uid / 换机就错），一律由入口提供。
