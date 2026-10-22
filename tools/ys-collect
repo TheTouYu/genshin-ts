@@ -184,7 +184,7 @@ def cmd_new(a):
         if i < a.n - 1:
             time.sleep(a.gap)
     cap = {"case": a.case, "at": a.at, "n": len(rows), "gap": a.gap,
-           "window": "0x1800001", "frames": rows}
+           "window": ys_win.resolve(prefer_sandbox=True), "frames": rows}
     json.dump(cap, open(os.path.join(base, "capture.json"), "w"), ensure_ascii=False, indent=1)
     json.dump(fingerprint(), open(os.path.join(base, "fingerprint.json"), "w"),
               ensure_ascii=False, indent=1)

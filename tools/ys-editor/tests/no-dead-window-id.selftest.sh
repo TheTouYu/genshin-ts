@@ -7,7 +7,8 @@
 # 0x1200001 → 0x04000008），任何把某个 id 写成默认值/兜底的工具，在没有显式传参时都会
 # 静默失败——实测 `ys-act`/`ys-drag`/`ys-game-env.sh` 都留着 0x01400001，ys-esc 的 ESC 发不出去。
 #
-# 判据（严格，无文件级豁免）：代码里出现 7-8 位十六进制窗口 id 字面量（0x0?[0-9a-f]{6,7}）即红。
+# 判据（严格，无文件级豁免）：扫描 tools/ys-editor 生产工具 + tools/ 顶层工具；
+#   代码里出现 7-8 位十六进制窗口 id 字面量（0x0?[0-9a-f]{6,7}）即红。
 #   不算：注释、docstring、行内 `# noqa: phantom-id`（幽灵窗识别/离线自测夹具，逐行声明）、
 #   二进制/编译产物、`.c/.h`、`*.bak-*` 备份、`tests/`。
 #
@@ -18,7 +19,8 @@ hits=$(python3 - <<'PY'
 import glob, os, re
 pat = re.compile(r'0x0?[0-9a-f]{6,7}\b', re.I)
 files = (glob.glob('tools/ys-editor/ys-*') + glob.glob('tools/ys-editor/*.py')
-         + glob.glob('tools/ys-editor/*.sh'))
+         + glob.glob('tools/ys-editor/*.sh')
+         + glob.glob('tools/ys-*') + glob.glob('tools/*.py'))   # tools/ 顶层工具也归同一判据
 bad = []
 for f in files:
     if '/tests/' in f or os.path.isdir(f) or f.endswith(('.c', '.h', '.o', '.so')):
