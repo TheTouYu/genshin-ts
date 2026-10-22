@@ -1,0 +1,389 @@
+#!/usr/bin/env python3
+"""ys-latency — 一条命令量出「发一个动作 → 画面/文字过多久才变」（时延标定仪）。
+
+## 存在理由（2026-10-23 采集流水线实测缺口）
+
+采集类 GUI 任务一直在**猜等待**：`gui-test/.03` 把等待加到 3.6s 仍失败，`.04` 固定
+2.2s/条。标定后的实测数字是：按键→画面变化 **0.02–0.19s**、`frame.age_ms` **5–54ms**、
+正确循环下 **0.37–0.68s/条**（含标题 OCR）—— 与「猜」的等待差 **4–6 倍**。
+猜等待的下游代价是双向的：等太短 ⇒ 读到上一条（静默跳条）；等太长 ⇒ 白烧 N 倍时间。
+所以等待必须**由读数决定**，而读数得先有一条命令能量出来 —— 就是本工具。
+
+## 语义
+
+    ys-latency [--key <evdev 码|键名> | --none] [--samples N] [--interval 秒]
+               [--region X Y W H] [--json] [--frames-dir DIR]
+
+- **必须在 `ys-gui-slot` 槽内**（没有 `YS_SLOT_ACTIVE=1` 一律 rc=2 拒绝执行）：
+  本工具会注入按键、会读屏，属于「动作类」调用，必须走申请制占用。
+  它自己**绝不取焦点、绝不抬窗**（那是 ys-gui-slot 的活）。
+- 一个样本 = 一次 `ys-capture latest`（读状态 + 可选拷帧），记录
+  `(t, src, seq, age_ms, crc, text?)`：`src` 取**顶层**字段，`seq/age_ms/crc32` 取
+  `frame` 里的字段 —— 这两个口径不同（2026-10-23 实测，写错就会全记成 null）。
+- `--none`：只采样不发动作（量「画面自己在动」的基线，也是离线自证路径）。
+- `--region X Y W H`（帧坐标 x,y,w,h）：给了就**逐样本 OCR 该区域**，走现成的
+  `ys-text --only lines`。OCR 是同步的 ⇒ 采样周期实际是 `max(interval, ocr_ms)`；
+  回执里给 `period_ms` 与 `ocr_ms` 的实测中位数，**不假装 interval 被遵守**。
+- 样本 0 是**动作之前**的基线（`src`/`text` 的参照物）。
+
+## 摘要（判据，可直接喂给采集循环）
+
+- `src_change_delay`：从按下动作到**第一个 src 变化**的样本的毫秒数（无变化 = null）。
+- `text_change_delay`：同上，但看 OCR 文本（只在给了 `--region` 时存在）。
+- `max_age`：所有样本里 `frame.age_ms` 的最大值（新鲜度的天花板）。
+- `stable_windows`：`src` **连续不动的窗口数**（最大同值游程且长度 ≥2 的段数）。
+  它 ≈ 0 说明帧在飞速推进；它很大说明画面基本静止（或你等错了判据）。
+- `period_ms`：相邻样本的真实间隔中位数（含 OCR 开销）。
+
+退出码：0 OK / 2 用法错或不在槽内 / 3 抓帧失败 / 4 OCR 失败（样本仍保留）。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
+
+CAPTURE = os.path.join(HERE, "ys-capture")
+YSTEXT = os.path.join(HERE, "ys-text")
+SLOT_HINT = ("请用 tools/ys-editor/ys-gui-slot 包一层（会注入按键/读屏的工具都必须在槽内跑）：\n"
+             "  . tools/ys-editor/ys-env.sh\n"
+             "  tools/ys-editor/ys-screen-grant grant --task <id> --eta 60 --reason '…' --user-said '<用户原话>'\n"
+             "  W=$(tools/ys-editor/ys-win-id)\n"
+             "  tools/ys-editor/ys-gui-slot \"$W\" 60 tools/ys-editor/ys-latency --key 31 --samples 20")
+
+# 键名 → evdev 码（ydotool 用的是 Linux input 码，不是 ASCII）。数字码原样接受。
+KEYS = {
+    "esc": 1, "tab": 15, "enter": 28, "space": 57, "backspace": 14,
+    "q": 16, "w": 17, "e": 18, "r": 19, "a": 30, "s": 31, "d": 32, "f": 33,
+    "up": 103, "down": 108, "left": 105, "right": 106,
+}
+
+
+# ────────────────────────────── 基础 ──────────────────────────────
+def die(msg: str, rc: int, as_json: bool, **extra) -> int:
+    if as_json:
+        out = {"schema": "ys-latency/1", "ok": False, "error": msg, "rc": rc}
+        out.update(extra)
+        print(json.dumps(out, ensure_ascii=False))
+    print("[ys-latency] %s" % msg, file=sys.stderr)
+    return rc
+
+
+def resolve_key(spec: str):
+    """'31' → 31；'s' → 31；'S' → 31；不认识的键名抛 ValueError。"""
+    spec = (spec or "").strip()
+    if spec.lstrip("-").isdigit():
+        return int(spec)
+    key = spec.lower()
+    if key in KEYS:
+        return KEYS[key]
+    raise ValueError("不认识的键名 %r（可用：%s，或直接给 evdev 数字码）"
+                     % (spec, ", ".join(sorted(KEYS))))
+
+
+def parse_region(vals):
+    if not vals:
+        return None
+    if len(vals) == 1:
+        vals = [t for t in vals[0].replace(",", " ").split() if t]
+    if len(vals) != 4:
+        raise ValueError("--region 要 4 个数（X Y W H，帧坐标）：%r" % (vals,))
+    return tuple(int(float(v)) for v in vals)
+
+
+def grab(as_json: bool, out_path: str | None = None):
+    """读一次 `ys-capture latest`。返回 dict：ok/src/seq/age_ms/crc32/rc/error。
+
+    字段口径（实测）：`src` 在**顶层**；`seq`/`age_ms`/`crc32` 在 `frame` 里。
+    rc=8（STALE_FRAME）由调用方当「陈旧」处理并重抓，不算致命错误。
+    """
+    cmd = [CAPTURE, "latest", "--json"]
+    if out_path:
+        cmd += ["--out", out_path, "--format", "bmp"]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=20,
+                           env=ys_env.env())
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"ok": False, "rc": -1, "error": "%s: %s" % (type(exc).__name__, exc),
+                "src": None, "seq": None, "age_ms": None, "crc32": None}
+    rec = {"ok": False, "rc": p.returncode, "src": None, "seq": None,
+           "age_ms": None, "crc32": None, "error": None}
+    raw = (p.stdout or "").strip()
+    try:
+        d = json.loads(raw.splitlines()[-1]) if raw else {}
+    except (ValueError, IndexError):
+        d = {}
+    rec["src"] = d.get("src")
+    fr = d.get("frame") or {}
+    rec["seq"] = fr.get("seq")
+    rec["age_ms"] = fr.get("age_ms")
+    rec["crc32"] = fr.get("crc32")
+    rec["ok"] = bool(d.get("ok")) and p.returncode == 0
+    if not rec["ok"]:
+        rec["error"] = d.get("error") or (p.stderr or raw).strip()[:200] or "rc=%d" % p.returncode
+    return rec
+
+
+def ocr_region(frame_path: str, region, js_path: str):
+    """跑一次 ys-text（现成工具），返回 (text, ocr_ms, err)。"""
+    t0 = time.monotonic()
+    cmd = [YSTEXT, frame_path, "--region", " ".join(str(v) for v in region),
+           "--only", "lines", "--json-out", js_path]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return None, int((time.monotonic() - t0) * 1000), "%s: %s" % (type(exc).__name__, exc)
+    ms = int((time.monotonic() - t0) * 1000)
+    if p.returncode != 0:
+        return None, ms, (p.stderr or p.stdout or "").strip()[:200] or "rc=%d" % p.returncode
+    try:
+        with open(js_path, encoding="utf-8") as fh:
+            d = json.load(fh)
+        text = " ".join((l.get("text") or "").strip() for l in d.get("lines") or [])
+        return text.strip(), ms, None
+    except (OSError, ValueError) as exc:
+        return None, ms, "读不了 ys-text 回执：%s" % exc
+
+
+def press(code: int, hold_ms: int = 40) -> None:
+    """一次按键（ydotool；进槽后由 ys-gui-slot 的 shim 放行）。不取焦点、不抬窗。"""
+    env = ys_env.env()
+    subprocess.run(["ydotool", "key", "%d:1" % code], env=env,
+                   capture_output=True, text=True, timeout=10)
+    time.sleep(max(1, hold_ms) / 1000.0)
+    subprocess.run(["ydotool", "key", "%d:0" % code], env=env,
+                   capture_output=True, text=True, timeout=10)
+
+
+# ────────────────────────── 采样 / 摘要（纯逻辑） ──────────────────────────
+def stable_windows(srcs) -> int:
+    """src 连续不动的窗口数 = 最大同值游程中长度 ≥2 的段数（判据只有这一处）。"""
+    n, runs, i = 0, 0, 0
+    prev = object()
+    for s in srcs:
+        if s == prev:
+            runs += 1
+        else:
+            if runs:
+                n += 1
+            runs = 0
+            prev = s
+    if runs:
+        n += 1
+    return n
+
+
+def median(vals):
+    vals = sorted(v for v in vals if v is not None)
+    if not vals:
+        return None
+    m = len(vals) // 2
+    return vals[m] if len(vals) % 2 else int(round((vals[m - 1] + vals[m]) / 2.0))
+
+
+def summarize(samples, t_action_ms):
+    """从样本算摘要。样本 0 = 动作前基线；t_action_ms 是动作发生的样本时刻（毫秒）。"""
+    base = samples[0] if samples else {}
+    srcs = [s.get("src") for s in samples]
+    src_delay = None
+    for s in samples:
+        if s.get("src") is not None and s.get("src") != base.get("src"):
+            src_delay = max(0, s["t"] - t_action_ms)
+            break
+    text_delay = None
+    if base.get("text") is not None:
+        for s in samples:
+            if s.get("text") is not None and s.get("text") != base.get("text"):
+                text_delay = max(0, s["t"] - t_action_ms)
+                break
+    gaps = [samples[i]["t"] - samples[i - 1]["t"] for i in range(1, len(samples))]
+    return {
+        "src_change_delay": src_delay,
+        "text_change_delay": text_delay,
+        "max_age": max([s["age_ms"] for s in samples if s.get("age_ms") is not None],
+                       default=None),
+        "stable_windows": stable_windows(srcs),
+        "period_ms": median(gaps),
+        "ocr_ms": median([s.get("ocr_ms") for s in samples]),
+        "n_src_changes": sum(1 for i in range(1, len(samples))
+                             if srcs[i] is not None and srcs[i] != srcs[i - 1]),
+        "samples": len(samples),
+    }
+
+
+def render_table(samples, summary) -> str:
+    """人类可读表格：src 用「窗口号」代替长路径（同值同号，一眼看出什么时候变）。"""
+    win, ids, lines = 0, {}, []
+    lines.append("%3s %7s %5s %6s %7s %9s  %s"
+                 % ("#", "t_ms", "src#", "seq", "age_ms", "crc32", "text"))
+    for s in samples:
+        src = s.get("src")
+        if src not in ids:
+            ids[src] = win
+            win += 1
+        txt = s.get("text")
+        lines.append("%3d %7d %5d %6s %7s %9s  %s" % (
+            s["i"], s["t"], ids[src],
+            "-" if s.get("seq") is None else s["seq"],
+            "-" if s.get("age_ms") is None else s["age_ms"],
+            (s.get("crc32") or "-")[:8],
+            "" if txt is None else txt[:40]))
+    lines.append("")
+    def fmt(v):
+        return "null" if v is None else ("%dms" % v if isinstance(v, int) else str(v))
+    lines.append("摘要  src_change_delay=%s  text_change_delay=%s  max_age=%s  "
+                 "stable_windows=%d" % (
+                     fmt(summary["src_change_delay"]), fmt(summary["text_change_delay"]),
+                     fmt(summary["max_age"]), summary["stable_windows"]))
+    lines.append("      period_ms=%s  ocr_ms=%s  n_src_changes=%d  samples=%d" % (
+        fmt(summary["period_ms"]), fmt(summary["ocr_ms"]),
+        summary["n_src_changes"], summary["samples"]))
+    if summary["ocr_ms"] is not None and summary["period_ms"] is not None \
+            and summary["ocr_ms"] > summary["period_ms"]:
+        lines.append("      ⚠ 采样周期被 OCR 拖慢（ocr_ms > period_ms）：要量按键→像素延迟请去掉 --region")
+    return "\n".join(lines)
+
+
+# ────────────────────────────── 主流程 ──────────────────────────────
+def run(a) -> int:
+    as_json = a.json
+    # ── 安全闸门：动作类工具必须在槽内（它注入按键 + 读屏）
+    if os.environ.get("YS_SLOT_ACTIVE") != "1":
+        rc = die("拒绝执行：当前不在 ys-gui-slot 槽内（YS_SLOT_ACTIVE=%r）。\n%s"
+                 % (os.environ.get("YS_SLOT_ACTIVE"), SLOT_HINT), 2, as_json,
+                 gate="not-in-slot")
+        return rc
+
+    try:
+        region = parse_region(a.region)
+        keycode = None if (a.none or not a.key) else resolve_key(a.key)
+    except ValueError as exc:
+        return die(str(exc), 2, as_json)
+
+    ys_env.resolve()                       # 只在开头付一次环境解析（之后子进程复用缓存）
+    frames_dir = a.frames_dir
+    made_dir = False
+    if region is not None:
+        if not frames_dir:
+            # 默认放 ys-capture 的同一文件系统：`ys-capture --out` 走硬链（~1ms，不拷 11MB）
+            frames_dir = os.path.join(os.environ.get("YS_CAPTURE_DIR", "/dev/shm/ys-capture"),
+                                      ".ys-latency.%d" % os.getpid())
+        if not os.path.isdir(frames_dir):
+            os.makedirs(frames_dir, exist_ok=True)
+            made_dir = True
+
+    samples = []
+    ocr_errs = []
+    frame_path = os.path.join(frames_dir, "sample.bmp") if region is not None else None
+    js_path = "/tmp/ys-latency-ocr.json"
+
+    # 样本 0：动作之前的基线
+    t0 = time.monotonic()
+    rec = grab(as_json, frame_path)
+    if not rec["ok"]:
+        rc = die("抓帧失败（ys-capture latest rc=%s）：%s\n先确认 `tools/ys-editor/ys-capture status`"
+                 " 与守护是否在跑。" % (rec["rc"], rec["error"]), 3, as_json)
+        if made_dir:
+            shutil.rmtree(frames_dir, ignore_errors=True)
+        return rc
+    text, ocr_ms = (None, None)
+    if region is not None:
+        text, ocr_ms, err = ocr_region(frame_path, region, js_path)
+        if err:
+            ocr_errs.append(err)
+    samples.append({"i": 0, "t": 0, "src": rec["src"], "seq": rec["seq"],
+                    "age_ms": rec["age_ms"], "crc32": rec["crc32"],
+                    "text": text, "ocr_ms": ocr_ms})
+
+    # 动作
+    t_action = 0
+    if keycode is not None:
+        try:
+            press(keycode)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            rc = die("按键注入失败（ydotool key %d）：%s" % (keycode, exc), 4, as_json)
+            if made_dir:
+                shutil.rmtree(frames_dir, ignore_errors=True)
+            return rc
+        t_action = int((time.monotonic() - t0) * 1000)
+
+    # 后续样本：目标时刻 t_action + (i-1)*interval；OCR 拖慢时如实记录真实 t
+    for i in range(1, a.samples):
+        target = t_action / 1000.0 + (i - 1) * a.interval
+        wait = target - (time.monotonic() - t0)
+        if wait > 0:
+            time.sleep(wait)
+        rec = grab(as_json, frame_path)
+        text, ocr_ms = (None, None)
+        if region is not None and rec["ok"]:
+            text, ocr_ms, err = ocr_region(frame_path, region, js_path)
+            if err and err not in ocr_errs:
+                ocr_errs.append(err)
+        samples.append({"i": i, "t": int((time.monotonic() - t0) * 1000),
+                        "src": rec["src"], "seq": rec["seq"], "age_ms": rec["age_ms"],
+                        "crc32": rec["crc32"], "text": text, "ocr_ms": ocr_ms,
+                        **({"grab_error": rec["error"]} if not rec["ok"] else {})})
+
+    if made_dir:
+        shutil.rmtree(frames_dir, ignore_errors=True)
+
+    summary = summarize(samples, t_action)
+    receipt = {
+        "schema": "ys-latency/1",
+        "ok": any(s.get("src") for s in samples),
+        "gate": "slot",
+        "action": {"key": keycode, "key_name": a.key, "none": keycode is None,
+                   "t_ms": t_action},
+        "args": {"samples": a.samples, "interval": a.interval,
+                 "region": list(region) if region else None},
+        "samples": samples,
+        "summary": summary,
+        "ocr_errors": ocr_errs,
+    }
+    if as_json:
+        print(json.dumps(receipt, ensure_ascii=False))
+    else:
+        print(render_table(samples, summary))
+        if ocr_errs:
+            print("⚠ OCR 失败 %d 次：%s" % (len(ocr_errs), ocr_errs[0]), file=sys.stderr)
+    return 4 if ocr_errs and all(s.get("text") is None for s in samples) else 0
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="ys-latency",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="量「发一个动作 → 画面/文字过多久才变」（时延标定；必须在 ys-gui-slot 槽内）",
+        epilog=SLOT_HINT)
+    ap.add_argument("--key", default=None,
+                    help="动作键：evdev 数字码（31=S / 108=↓）或键名（s/w/up/down/esc…）。"
+                         "不给就只采样（等同 --none）")
+    ap.add_argument("--none", action="store_true",
+                    help="只采样不发动作（量画面自身变化的基线，也是离线自证路径）")
+    ap.add_argument("--samples", type=int, default=30, help="样本数（含样本 0 基线，默认 30）")
+    ap.add_argument("--interval", type=float, default=0.1, help="采样间隔秒（默认 0.1）")
+    ap.add_argument("--region", nargs="+", default=None,
+                    help="X Y W H（帧坐标）或 \"X,Y,W,H\"：给了就逐样本 OCR 该区域（用 ys-text）")
+    ap.add_argument("--json", action="store_true", help="机读回执（含逐样本与摘要）")
+    ap.add_argument("--frames-dir", default=None,
+                    help="OCR 用的临时帧目录（默认 ys-capture 同盘，走硬链；退出即清）")
+    a = ap.parse_args(argv)
+    if a.samples < 2:
+        return die("--samples 至少 2（样本 0 是动作前基线）", 2, a.json)
+    if a.interval <= 0:
+        return die("--interval 必须 > 0", 2, a.json)
+    if a.none and a.key:
+        return die("--none 与 --key 互斥（只采样就别给 --key）", 2, a.json)
+    return run(a)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
