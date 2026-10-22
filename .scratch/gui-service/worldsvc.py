@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -920,7 +921,24 @@ class WorldService:
             # ys-capture 内部：快路径只做保守拒绝，KWin 通道才是权威，结论过旧/不可用直接 refuse。
             try:
                 _bg = bool(self.allow_background)
-                raw = instruments.grab_frame(allow_background=_bg)
+                # 2026-10-22：守护的归属结论有 TTL（strict-sec 1.5s / fast 0.3s），刚抬完窗
+                # 立刻取帧会撞到**上一拍的 NOT_ATOP**；编码文件按帧轮换，取帧瞬间也可能被回收
+                # （COPY_FAILED）。两者都是"晚一拍就好"，所以有界重试（最多 2 次，总代价 ≤2s），
+                # 仍失败才 fail-closed —— 不对真遮挡睁眼。
+                _retry_codes = {"NOT_ATOP", "OCCLUDED", "COPY_FAILED"}
+                _last = None
+                for _i in range(3):
+                    try:
+                        raw = instruments.grab_frame(allow_background=_bg)
+                        _last = None
+                        break
+                    except instruments.InstrumentError as _e:
+                        _last = _e
+                        if _i >= 2 or _e.code not in _retry_codes:
+                            raise
+                        time.sleep(0.7 if _e.code != "COPY_FAILED" else 0.12)
+                if _last is not None:
+                    raise _last
             except instruments.InstrumentError as e:
                 _na = None
                 if e.code == "OTHER_DESKTOP":
@@ -963,11 +981,15 @@ class WorldService:
             return meta
 
         # auto：窗口在栈顶且归属 OK 才 live；否则**拒绝**（不偷偷用旧帧冒充新读数）
+        # 2026-10-22：`UNKNOWN` 是"这个通道判不了"，不是"不在栈顶"。本机 EWMH 只暴露 1 张桌面
+        # （`_NET_NUMBER_OF_DESKTOPS=1`）⇒ X11 快路径恒 UNKNOWN。此时交给**权威通道**
+        # （ys-capture 守护里的 KWin 校验）去判：判不了它自己会 exit 9 拒绝，不会放行。
         attr = instruments.attrib_fast()
-        if attr.get("verdict") != "OK":
+        verdict = attr.get("verdict")
+        if verdict not in ("OK", "UNKNOWN"):
             raise ServiceError(
                 "LIVE_NOT_ATOP",
-                f"窗口归属校验未通过（verdict={attr.get('verdict')}，rc={attr.get('rc')}）；"
+                f"窗口归属校验未通过（verdict={verdict}，rc={attr.get('rc')}）；"
                 "本服务绝不为了取数抬窗口 —— 请用 --frame 指定离线帧，或把窗口切到当前桌面/置顶",
                 status="precondition_fail", rc=5)
         return self._acquire_frame(None, "live")
@@ -1152,6 +1174,16 @@ class WorldService:
                 return self._act_intent(target, expect=exp, post=post, timeout_ms=timeout_ms,
                                         poll_ms=poll_ms, inject=inject, result=result, t0=t0)
             t_res = time.perf_counter()
+            # 动作前先把自己借屏的窗口撑开（2026-10-22：focus 只 hold 2s，模型一思考就被空闲交还，
+            # 随后 live 取帧报 LIVE_NOT_ATOP）。只要走 live 取帧就在这里补一次；
+            # 没有会话时 focus 立刻回 NO_SESSION，不抬窗、不阻塞，仍由原有 fail-closed 兜底。
+            if frame is None and not after_frame:
+                result["focus_raise"] = _focus_for_action()
+                if not result["focus_raise"].get("ok"):
+                    result["degraded"].append(_degraded(
+                        "FOCUS_NOT_RAISED",
+                        f"动作前借屏失败（{result['focus_raise'].get('reason') or result['focus_raise'].get('error')}）："
+                        "live 取帧可能被归属闸门拒；离线可改用 --frame"))
             ws = self.look(frame=frame)
             resolution = self._resolve_target(ws, target)
             result["resolve_ms"] = round((time.perf_counter() - t_res) * 1000, 1)
@@ -1230,8 +1262,19 @@ class WorldService:
                 if wait_s > 0:
                     time.sleep(min(wait_s, max(0.0, deadline - time.perf_counter())))
                 t_cap = time.perf_counter()
-                after, after_meta = self._capture_evidence(None, os.path.join(edir, "after.png"),
-                                                           after_frame=after_frame)
+                try:
+                    after, after_meta = self._capture_evidence(
+                        None, os.path.join(edir, "after.png"), after_frame=after_frame)
+                except ServiceError as _e:
+                    # 动作后窗口可能已被空闲交还给用户：live 取帧会被归属闸门拒。
+                    # 「动作之后世界变没变」属于**感知**，用后台帧判是契约允许的（layer 自报）。
+                    if _e.code != "LIVE_NOT_ATOP" or after_frame:
+                        raise
+                    after, after_meta = self._capture_evidence(
+                        None, os.path.join(edir, "after.png"), after_frame=after_frame, background=True)
+                    result["degraded"].append(_degraded(
+                        "EXPECT_BACKGROUND_FRAME",
+                        "窗口已交还用户，expect 改用后台帧（只能证明『看得见』，不证明『看得见』在栈顶）"))
                 cap_ms = (time.perf_counter() - t_cap) * 1000
                 ev = self.evaluate_expect(exp, before, after, profile=self.profile)
                 ev["capture_ms"] = round(cap_ms, 1)
@@ -1647,18 +1690,23 @@ class WorldService:
         os.makedirs(path, exist_ok=True)
         return path
 
-    def _capture_evidence(self, frame, out, *, after_frame=None):
+    def _capture_evidence(self, frame, out, *, after_frame=None, background=False):
         """动作与证据同源：live 走 instruments.grab_frame()（ys-capture/observe 的唯一入口）；
-        离线用给定帧（before=frame；after 必须显式给 after_frame，测试用）。"""
+        离线用给定帧（before=frame；after 必须显式给 after_frame，测试用）。
+
+        `background=True` 只给**期望轮询**用：窗口被交还用户后，live 取帧会被归属闸门拒绝，
+        而"动作之后世界变没变"属于感知，用后台帧判是契约允许的（layer=background 自报）。
+        """
         if after_frame:
             instruments.copy_frame(after_frame, out)
             return out, {"source": "frame", "path": os.path.abspath(after_frame)}
         if frame:
             instruments.copy_frame(frame, out)
             return out, {"source": "frame", "path": os.path.abspath(frame)}
-        meta = instruments.grab_frame()
+        meta = instruments.grab_frame(allow_background=background)
         instruments.copy_frame(meta["path"], out)
         return out, {"source": meta.get("source"), "attribution": meta.get("attribution"),
+                     "layer": "background" if background else "visible",
                      "capture_ms": meta.get("capture_ms"), "frame": meta.get("frame")}
 
     def _changed_region(self, before, after, *, px_thr=30):
@@ -2125,6 +2173,44 @@ def _apply_state_pack(ws, pack_path):
     except schema.SchemaError as e:  # 包产出的 state 不合 schema ⇒ 当场拒，不带病输出
         raise ServiceError("PACK_STATE_INVALID", f"状态包产出的 state 不合 schema：{e}", rc=2)
     return res
+
+
+def _focus_for_action(budget_s=None):
+    """动作前把自己借屏的窗口撑开（修 2026-10-22 实测的 LIVE_NOT_ATOP 竞态）。
+
+    现象：`ys-session focus` 抬窗后只 hold 2s 就按空闲交还；`act` 的 live 取帧要求"窗口已在栈顶"，
+    于是模型刚 focus 完、再敲 act 就撞 `LIVE_NOT_ATOP`——"看得见、点不动"。
+
+    做法：动作前调 `ys-session focus`，并用 `YS_SESSION_HOLD_S` 把 hold 撑到整个
+    capture→resolve→inject 期间（缺省 8s）。会话结束/不存在时 focus 返回 rc=3，
+    这里**不报错也不抬窗**，交给原有的 fail-closed 逻辑处理（绝不为了取数抢窗口）。
+    """
+    tool = os.path.join(instruments.YS_EDITOR, "ys-session")
+    if not os.path.isfile(tool):
+        return {"ok": False, "reason": "TOOL_MISSING", "path": tool}
+    hold = float(budget_s if budget_s is not None else os.environ.get("YS_ACT_HOLD_S", "8"))
+    env = dict(os.environ, YS_SESSION_HOLD_S=str(hold))
+    t0 = time.perf_counter()
+    try:
+        p = subprocess.run([sys.executable, tool, "focus"], capture_output=True, text=True,
+                           timeout=45, env=env)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "reason": "FOCUS_TIMEOUT", "hold_s": hold}
+    js = {}
+    for line in reversed((p.stdout or "").strip().splitlines()):
+        try:
+            js = json.loads(line)
+            break
+        except Exception:  # noqa: BLE001
+            continue
+    out = {"ok": bool(p.returncode == 0 and js.get("ok")),
+           "rc": p.returncode, "hold_s": hold,
+           "ms": round((time.perf_counter() - t0) * 1000, 1)}
+    out.update({k: js.get(k) for k in ("raised", "fast", "error", "ms", "hold_s")
+                if k in js})
+    if not out["ok"] and js.get("error") == "NO_SESSION":
+        out["note"] = "无活动会话：不抬窗、不注入（交给 fail-closed）"
+    return out
 
 
 def _exit_code_for(status):

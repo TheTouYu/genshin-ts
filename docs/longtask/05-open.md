@@ -22,7 +22,7 @@
 | 编号 | 问题 | 影响 | 下一步 |
 |---|---|---|---|
 | O-2026-10-22-9 | 状态判据硬编码在 `tools/ys-editor/ys-state`，无法按任务配置 | 加一个状态 = 改代码 = 为产品适配，违背通用性 | ✅ **已关闭 2026-10-22**：状态包 `state_pack.py` + `look --pack`，真机后台帧判出 START（详见"已关闭"） |
-| O-2026-10-22-10 | `act` 不自行借屏：`focus` hold 2s 后自动交还，`act` live 取帧报 `LIVE_NOT_ATOP` | 看见 ≠ 点得动；真机动作卡在第一步 | act 在 live 前自己 claim（或 focus --hold） |
+| O-2026-10-22-10 | `act` 不自行借屏：`focus` hold 2s 后自动交还，`act` live 取帧报 `LIVE_NOT_ATOP` | 看见 ≠ 点得动；真机动作卡在第一步 | ✅ **已关闭 2026-10-22**：act 动作前自动 focus（hold 8s）+ 抬窗后取帧有界重试；真机 dry-run 已解出目标 |
 | O-2026-10-22-11 | `wait` 无多帧稳定确认（单帧满足即 reached） | 过渡帧抖动 → 假到达 | 加 `require_stable: N` |
 | O-2026-10-22-12 | 后台帧与前台是否同步**未实测** | 后台观察若读到陈旧帧，判据全废 | 用户已定：**待会实测** |
 | O-2026-10-22-13 | 千星奇域大厅没有状态名（`GAME_ACTIVITY` 是活动一览页，不是大厅） | 三终态断言缺一 | 等用户给大厅特征 |
@@ -55,3 +55,4 @@
 | 编号 | 结论 | 证据 |
 |---|---|---|
 | O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 / 包求值 0.1ms / `state_vocab=UNKNOWN` |
+| O-2026-10-22-10 | act 借屏竞态已修：动作前 `ys-session focus`（hold 8s）+ 抬窗后按 TTL 有界重试取帧（NOT_ATOP/OCCLUDED/COPY_FAILED ≤2 次）；`ys-session focus` 快速路径改为**验真实栈顶**（闩锁说没交还也可能被别的窗口盖住） | 真机 dry-run：`focus_raise={ok:true,raised:true,ms:2907}` → `resolution={status:resolved,channel:ocr_frame,target:点击进入}`，以前同一命令在 0.2s 内 rc=5；离线 `selftest.py` 123/123；交还核对 firefox ACTIVE / ds=2 |

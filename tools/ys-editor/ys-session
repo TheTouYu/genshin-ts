@@ -352,6 +352,26 @@ def attr_desktops(classes=("yuanshen",)):
     return None, None
 
 
+def _atop_verified(timeout=25):
+    """KWin 权威栈顶判定（~1s）：`ys-atop --json --verify` 的 verdict 是唯一判据。
+
+    为什么不能只看会话闩锁：`released=false` 只表示"我们没主动交还"，
+    别的窗口随时可能盖上来（2026-10-22 实测 openless 以 idx=7 盖住 idx=6 的原神）。
+    """
+    try:
+        r = subprocess.run([sys.executable, os.path.join(HERE, "ys-atop"), "--json", "--verify"],
+                           capture_output=True, text=True, timeout=timeout)
+    except Exception:                                        # noqa: BLE001
+        return None
+    for line in reversed((r.stdout or "").strip().splitlines()):
+        try:
+            d = json.loads(line)
+        except Exception:                                    # noqa: BLE001
+            continue
+        return d
+    return None
+
+
 def cmd_focus(a):
     """动作前确保焦点在目标窗（层 2：空闲释放之后的重取）。
 
@@ -370,17 +390,27 @@ def cmd_focus(a):
     hold = float(os.environ.get("YS_SESSION_HOLD_S", "2"))  # 只护住注入窗口本身；空闲判据是 idle_ms(3s)
     target = cur.get("target") or {}
     if not cur.get("released"):
-        cur["last_action_ts"] = now
-        cur["holding_until"] = now + hold
+        # 快速路径也要验一次**真实栈顶**：闩锁只说明"我们没交还"，不说明没人盖上来。
+        at = _atop_verified()
+        if (at or {}).get("verdict") == "OK":
+            cur["last_action_ts"] = now
+            cur["holding_until"] = now + hold
+            save(cur)
+            print(json.dumps({"ok": True, "raised": False, "fast": True, "verified": True},
+                             ensure_ascii=False))
+            return 0
+        # 被盖住/判不了 ⇒ 落到下面的抬窗路径（不假装"没交还就等于在栈顶"）
+        cur["focus_note"] = {"fast_path_covered": True,
+                             "verdict": (at or {}).get("verdict"),
+                             "detail": str((at or {}).get("error") or "")[:120]}
         save(cur)
-        print(json.dumps({"ok": True, "raised": False, "fast": True}, ensure_ascii=False))
-        return 0
     t0 = time.time()
     st = lease(["kwin-state"])
     act = (st or {}).get("active") or {}
     tgt = str(target.get("internalId") or "")
     game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe")
-    if tgt and str(act.get("internalId") or "") != tgt:
+    covered = bool((cur.get("focus_note") or {}).get("fast_path_covered"))
+    if tgt and (covered or str(act.get("internalId") or "") != tgt):
         # 桌面差用**权威同行读数**（ds= 窗口桌面 / cur= 当前桌面），不用 kwin-state 的 desktop
         win_ds, cur_ds = attr_desktops((game_cls.split(".")[0].lower(),))
         if win_ds is not None and cur_ds is not None and win_ds != cur_ds:
@@ -389,13 +419,22 @@ def cmd_focus(a):
                            env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
             st = lease(["kwin-state"])
             act = (st or {}).get("active") or {}
-        if str(act.get("internalId") or "") != tgt:
+        if covered or str(act.get("internalId") or "") != tgt:
             rs = lease(["kwin-raise", "--id", tgt])
             if not (rs or {}).get("ok"):
                 print(json.dumps({"ok": False, "error": "RAISE_FAILED", "detail": rs,
                                   "next_action": "屏幕可能已被用户切走：停止注入并告知用户"},
                                  ensure_ascii=False))
                 return 4
+    # 抬完再验一次真实栈顶：盖在上面的可能是 keep-above 窗口（抬不动），那就必须 fail-closed，
+    # 不能因为"raise 调用返回 ok"就认为画面在栈顶。
+    at2 = _atop_verified()
+    if (at2 or {}).get("verdict") not in ("OK", None):
+        print(json.dumps({"ok": False, "error": "RAISE_FAILED", "verdict": (at2 or {}).get("verdict"),
+                          "detail": str((at2 or {}).get("error") or "")[:160],
+                          "next_action": "有窗口盖在游戏上（可能 keep-above）：请用户处理，或换离线帧"},
+                         ensure_ascii=False))
+        return 4
     # 2026-10-21 真机实测（测试 2）：`now` 取自**函数入口**，而抬窗（切桌面+activate+验证）
     # 要 2.9s ⇒ last_action_ts 被写成"三秒前"，动作还没注入警卫就判定空闲、把屏幕交还，
     # 结果 ESC 打进了一个正在被收回的窗口（回执 released=False 但实况已在 firefox）。

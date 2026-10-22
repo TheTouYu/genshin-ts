@@ -140,12 +140,14 @@ worldsvc machine --pack $P --goal '{"state_in":["GAME_WORLD","HALL","EDITOR"]}' 
 
 | 缺口 | 影响 | 编号 |
 |---|---|---|
-| `act` 不自行借屏（focus 2s 后交还 → `LIVE_NOT_ATOP`） | 真机"看得见点不动" | O-22-10 |
-| `wait` 无多帧稳定确认 | 过渡帧 → 假到达 | O-22-11 |
+| `wait` 无多帧稳定确认 / 无「转移过程」语义 | 过渡帧抖动 → 假到达 | O-22-11 |
 | 后台帧与前台是否同步未实测 | 后台观察可能读到旧帧 | O-22-12 |
 | 千星奇域大厅无状态名 | 三终态断言缺一 | O-22-13 |
 | `machine` 未实现 | 循环靠模型拼 | O-22-14 |
-| `wait` 只能判终点状态，无「转移过程」语义 | 加载期抖动 → 假到达 | O-22-11 |
+
+**已修（2026-10-22）**：`act` 现在**自己借屏**——动作前调 `ys-session focus`（hold 8s，`YS_ACT_HOLD_S` 可调），
+抬窗后对 `NOT_ATOP/OCCLUDED/COPY_FAILED` 做 ≤2 次有界重试（守护归属有 1.5s TTL，刚抬完就取会撞旧判）。
+真机实测：同一命令从"0.2s 内 rc=5"变成 `resolution.status=resolved`。
 
 ## 8. 交付前检查清单
 

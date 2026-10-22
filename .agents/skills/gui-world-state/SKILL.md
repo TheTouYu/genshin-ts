@@ -183,6 +183,10 @@ python3 .scratch/gui-service/worldsvc.py look --backend daemon-world \
 **判不准要看图 → `tools/ys-editor/ys-view --look … --frame … --out …`**：一条命令出整帧/标注图/2×2 切片/index.json，
 模型不用自己抓帧裁剪。
 
+**`worldsvc act` 自己借屏（2026-10-22）**：动作前自动跑 `ys-session focus`（hold 8s，`YS_ACT_HOLD_S` 可调），
+抬窗后对 `NOT_ATOP/OCCLUDED/COPY_FAILED` 做 ≤2 次有界重试（守护归属判定有 1.5s TTL，刚抬完立刻取会撞上一拍的旧结论）。
+⇒ 调用方**不用再手敲 focus**；但仍必须先有活动会话（`ys-session begin`），否则 `focus_raise.ok=false` + `degraded=FOCUS_NOT_RAISED`。
+
 **屏幕占用契约（2026-10-21 重设计：许可 / 占用 / 观测三件事解耦）**：这个桌面不是只有我们在用。
 
 > 旧模型把三者绑在**一个秒表**上，实测反作用：租期是稀缺资源 ⇒ 代理为省租期把整条流程
