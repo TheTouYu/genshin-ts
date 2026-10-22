@@ -161,7 +161,8 @@ python3 .scratch/ocr-precision/metrics.py --runs .scratch/ocr-precision/runs/gpu
    （`虚渊暗星` → `è™šæ¸Šæš—æ˜Ÿ`），短行可用 `cp1252→utf8` 修回；**长中文行是双层损坏、不可逆**
    （实测 1 条：`风仙亦是仙…`）。⇒ 中文绝对召回**未核验**，只有 ASCII/数字行可用。
    修复点：`.scratch/gui-grounding/paddle_vl_client.py` 的响应解码（不在本任务写作用域，登记）。
-2. **v5/v4 换模型对照没有速度/召回数字**（只验证了可加载+可推理）。需要一次 2 分钟窗口。
+2. **v5/v4 换模型对照已补（§4.1）**：v5_mobile / v4_mobile 有速度+三桶召回；**v5_server 未测速**——
+   一推理就 CUDA 原生崩溃（无 Python 异常），按 Lead 指示不做调参；若将来要试，先降 rec batch 或换大显存卡。
 3. **`no_cls` 本轮没重测**：今天早些时候测得 −118.6ms，但 f06 丢一个 107×112px、score 0.51 的低分框 `'入'`
    （6 帧里 5 帧 SAME、1 帧 DIFF）⇒ 精度门禁不过，维持"cls 开"。
 4. **`graph_optimization_level` 不可调**：`rapidocr/inference_engine/onnxruntime/main.py:82` 硬编码
