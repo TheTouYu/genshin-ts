@@ -104,6 +104,12 @@ def cmd_grant(a):
     said = (a.user_said or "").strip()
     cur = load()
     # 单次超大请求一律拒（"一次要 4 小时"= 没跟用户对齐）；续期请用 ≤MAX_GRANT_S 的 eta
+    # 2026-10-22（pi 独立任务实测，480s 被整条拒掉、agent 白掉一次调用）：略微超上限 = 估时不准，
+    # 截到上限并显式标 capped（仍受上限约束、不自授更多）；远超（>2×）保持硬拒 = 没跟用户对齐。
+    capped = False
+    n_requested = n
+    if MAX_GRANT_S < n <= 2 * MAX_GRANT_S:
+        n, capped = MAX_GRANT_S, True
     if n > MAX_GRANT_S:
         print(json.dumps({"ok": False, "error": "GRANT_TOO_LONG",
                           "detail": f"单次最多 {MAX_GRANT_S}s（你要 {n}s）；同一个 --task 内续期不打断用户"},
@@ -150,6 +156,7 @@ def cmd_grant(a):
     _save(rec)
     left = int(rec["expires"] - now)
     print(json.dumps({"ok": True, "task": task, "granted_s": left, "reason": rec["reason"],
+                      "requested_s": n_requested, "capped": capped,
                       "active_window_at_grant": rec["active_window"],
                       "hint": "授权按任务计；屏幕占用由空闲释放（层 2）控制，到期即失效"},
                      ensure_ascii=False))
@@ -165,6 +172,7 @@ def cmd_status(_a):
     if left <= 0:
         # 到期即统一交还一次，然后清凭据（自愈：没人来 revoke 也不会把屏幕占着）
         hb = _hand_back()
+        _tombstone("expired")
         try:
             os.unlink(PATH)
         except OSError:
@@ -176,6 +184,18 @@ def cmd_status(_a):
                       "active_window_now": _kwin_active()}, ensure_ascii=False))
     return 0
 
+
+
+def _tombstone(reason=""):
+    """2026-10-22：交还时留一份墓碑，让下一条命令能说「刚交还过、为什么」，
+    而不是一律报「你从没申请过」（pi 独立任务实测：会话 3s 空闲自动交还后，
+    agent 拿到的 NO_GRANT 与事实相反，误导它以为授权流程没走通）。"""
+    try:
+        with open(PATH + ".last", "w", encoding="utf-8") as fh:
+            json.dump({"released_at": time.time(), "reason": reason,
+                       "path": PATH}, fh, ensure_ascii=False)
+    except OSError:
+        pass
 
 def _hand_back():
     """把画面交还给默认屏（firefox）。实现只有一个：ys-hand-back（bash，含堆叠验证）。"""
@@ -203,8 +223,23 @@ def cmd_explain(a):
     now = time.time()
     act = _kwin_active()
     if rec is None:
-        code, reason = "NO_GRANT", "没有任何屏幕占用凭据（你没有向用户申请过）"
-        grant_state = None
+        # 有墓碑 ⇒ 只是"交还过了"，不是"从没申请过"——两者对模型是完全不同的指令。
+        _t = None
+        try:
+            with open(PATH + ".last", encoding="utf-8") as fh:
+                _t = json.load(fh)
+        except (OSError, ValueError):
+            _t = None
+        if _t and (now - float(_t.get("released_at") or 0)) < 1800:
+            code = "GRANT_RELEASED"
+            reason = (f"上一个屏幕会话已在 {int(now - float(_t['released_at']))}s 前交还"
+                      f"（release_reason={_t.get('reason') or 'unknown'}）；"
+                      "要再次操作需重新 ys-session begin")
+            grant_state = {"released_s_ago": int(now - float(_t["released_at"])),
+                           "release_reason": _t.get("reason")}
+        else:
+            code, reason = "NO_GRANT", "没有任何屏幕占用凭据（你没有向用户申请过）"
+            grant_state = None
     elif float(rec.get("expires", 0)) <= now:
         code = "GRANT_EXPIRED"
         reason = "凭据已过期（到期即失效；常驻守护会自动交还 firefox）"
@@ -243,6 +278,8 @@ def cmd_revoke(_a):
     # （旧实现无条件 _hand_back ⇒ 回归测试每调一次 revoke 就动一次窗口，用户听到操作音。）
     had = os.path.exists(PATH)
     _restore_res = _hand_back() if had else {"ok": True, "skipped": "no_grant"}
+    if had:
+        _tombstone("revoked")
     try:
         os.unlink(PATH)
         print(json.dumps({"ok": True, "revoked": PATH, "hand_back": _restore_res}, ensure_ascii=False))

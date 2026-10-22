@@ -724,12 +724,32 @@ class WorldService:
         # fast 只跳过 D2 检测 + D3 结构层；OCR 必须保留——2026-10-21 实测：同一帧 f06
         # （派蒙菜单）ocr=false 时 world 判 UNKNOWN，带 OCR 文本盒才判 GAME_PAIMON。
         # 省 OCR 会让 state 静默降级，属 AGI-BAR 禁止的"静默失能"，所以不做。
+        # 2026-10-22（pi 独立任务实测暴露）：感知不该因为"窗口在别的虚拟桌面"而失败——
+        # 取帧是读窗口自身 pixmap，与桌面归属无关（实测跨桌面 6–13ms）。只有"必须与用户所见一致"
+        # 的动作才需要当前桌面。所以 look 遇到 OTHER_DESKTOP **自动改读后台帧**，并如实标注降级，
+        # 不再要求调用方先知道要加 --allow-background（那等于把环境判断的负担推给 AI）。
         try:
             resp = instruments.get_world_daemon(path, profile=self.profile,
                                                 ocr=True, objects=True,
                                                 structure=not fast, cache=self.daemon_cache,
                                                 advice=advice,
                                                 allow_background=bool(self.allow_background))
+            self._auto_background = False
+        except instruments.InstrumentError as _exc_bg:
+            if (not self.allow_background) and "OTHER_DESKTOP" in str(_exc_bg.code):
+                try:
+                    resp = instruments.get_world_daemon(path, profile=self.profile,
+                                                        ocr=True, objects=True,
+                                                        structure=not fast, cache=self.daemon_cache,
+                                                        advice=advice, allow_background=True)
+                    self._auto_background = True
+                except instruments.InstrumentError:
+                    self._auto_background = False
+                    resp = None
+            else:
+                resp = None
+            if resp is None:
+                resp = (_ for _ in ()).throw(_exc_bg)
         except instruments.InstrumentError as exc:
             # 拒绝必须是**可判读的三件套**（观测值 + 多条可执行下一步 + 为什么），
             # 而不是一句人读的话。cli 与 daemon 两条后端共用同一个形状。
@@ -820,6 +840,16 @@ class WorldService:
                                       "h": resp["frame"].get("h")}),
             budget_ms=self.budget_ms)
         raw["attribution"] = resp.get("attribution")
+        if getattr(self, "_auto_background", False):
+            # 自动降级要可见：调用方必须知道"这帧是后台缓冲帧"，别把它当成可见交互层证据。
+            # 同时把 frame 元数据改对——否则回执会自相矛盾（auto_background=True 但 live=True）。
+            raw["auto_background"] = True
+            raw["background_reason"] = "WINDOW_ON_OTHER_DESKTOP"
+            _bg_patch = {"live": False, "background": True, "layer": "background"}
+            if isinstance(raw.get("frame"), dict):
+                raw["frame"].update(_bg_patch)
+            if isinstance(self._last_frame, dict):
+                self._last_frame.update(_bg_patch)
         # 对象来源标注（AGI 标准：两个后端 CV 源不同，必须让调用方看得见来源，而不是猜）
         raw["objects_source"] = objects_source
         raw["objects_n"] = {"containers": n_cont, "detections": len(dets),
@@ -934,11 +964,26 @@ class WorldService:
                         break
                     except instruments.InstrumentError as _e:
                         _last = _e
+                        # 2026-10-22：感知默认允许跨桌面（读窗口 pixmap 与桌面归属无关）。
+                        # 撞到 OTHER_DESKTOP 就自动改读后台帧，并如实标注，不让调用方去加 --allow-background。
+                        if _e.code == "OTHER_DESKTOP" and not _bg:
+                            _bg = True
+                            self._auto_background = True
+                            _last = None
+                            continue
                         if _i >= 2 or _e.code not in _retry_codes:
                             raise
                         time.sleep(0.12 if _e.code == "COPY_FAILED" else (0.9 if _e.code == "OTHER_DESKTOP" else 0.7))
                 if _last is not None:
                     raise _last
+                # ys-capture 现在默认允许跨桌面抓帧（不再报错），所以"抓到帧"不等于"用户看得见"。
+                # 用它的权威归属结论把层级标对：别的桌面 ⇒ 这是后台帧，不是可见交互层证据。
+                _attr = (raw.get("attribution") or {}) if isinstance(raw, dict) else {}
+                if str(_attr.get("strict") or "") == "OTHER_DESKTOP":
+                    self._auto_background = True
+                if getattr(self, "_auto_background", False) and isinstance(self._last_frame, dict):
+                    self._last_frame.update({"live": False, "background": True,
+                                             "layer": "background"})
             except instruments.InstrumentError as e:
                 _na = None
                 if e.code == "OTHER_DESKTOP":

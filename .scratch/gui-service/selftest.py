@@ -770,9 +770,21 @@ def main(argv=None):
     # 环境相关断言：窗口在栈顶时 live 通道可达（rc=0），此时不计 PASS/FAIL，只跳过。
     # 窗口身份是否正确是另一个问题（见 .scratch/gui-stack/issues/34-live-attribution.md）。
     if rc == 0:
-        print(f"[selftest] SKIP live 断言：窗口在栈顶，live 可达（{ms:.0f}ms）；窗口身份验证见 issues/34")
+        # 2026-10-22 契约变更：感知默认允许跨桌面（自动改读后台帧），所以 rc=0 不再等于
+        # "窗口在栈顶"，而是"能读到"。此时必须断言**降级被如实标出**——否则调用方会把
+        # 后台缓冲帧当成可见交互层证据（这正是 pi 独立任务里 agent 混淆的那种情况）。
+        try:
+            _d = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            _d = {}
+        if _d.get("auto_background"):
+            check("CLI/look --live 跨桌面 → auto_background=true 且 frame.live=false",
+                  (_d.get("frame") or {}).get("live") is False,
+                  f"frame={_d.get('frame')} reason={_d.get('background_reason')}")
+        else:
+            print(f"[selftest] SKIP live 断言：窗口在当前桌面（{ms:.0f}ms）")
     else:
-        check("CLI/look --live 不在栈顶 → rc=5（fail-closed，不抬窗）", rc == 5, f"rc={rc} {ms}ms")
+        check("CLI/look --live 不可用 → rc=5（fail-closed，不抬窗）", rc == 5, f"rc={rc} {ms}ms")
     rc, out, ms = maybe_n("CLI/", 3, cli, ["vocab"])
     check("CLI/vocab 打印单一源名词表", rc == 0 and "GAME_PAIMON" in out)
 

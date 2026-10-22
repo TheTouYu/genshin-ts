@@ -68,7 +68,7 @@ req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure"
 |---|---|---|
 | **`state`** | **dict `{name, confidence, ambiguous, evidence, channel}`** | 状态名在 **`state["name"]`**，⚠️ 不是 `state["state"]`（写错会让新代理整轮判 UNKNOWN） |
 | `state.evidence` | 每条判据的 value/passed | 判不出时看这里 |
-| **`objects`** | **list**（实测 58–88 项），每项 `{id,parent,bbox,kind,text,text_source,glyphs,badges}` | ⚠️ **不是** `objects["containers"]`；`kind ∈ row/button/tile/panel/chip` |
+| **`objects`** | **list**（实测 58–88 项），每项 `{id,parent,bbox,kind,text,text_source,glyphs,badges}`；⚠️ `text` 是 **list[str]**（panel 会把整块多行文字塞进同一个框，实测一条 panel 带 13 条），不是字符串——取值一律 `"\n".join(o["text"])`，直接当字符串用会 TypeError（2026-10-22 独立模型实测连崩 3 次） | ⚠️ **不是** `objects["containers"]`；`kind ∈ row/button/tile/panel/chip` |
 | **`bbox`** | `[x, y, w, h]` = **xywh**，物理像素（2560×1440） | 中心 = `(x+w/2, y+h/2)`。**自检**：按 xyxy 解释若得到**负高度**，就是 xywh。以 `capabilities.invariants` 为准，别凭单帧推断（2026-10-21 我写错过一次） |
 | **`free_text`** | **list[str]**（实测 33 条），**没有 bbox** | 要 bbox+text 的目标只能走 `objects[]`；`free_text` 只适合"有没有这段文字" |
 | `structure` | `{detector, detections[]}` | 检测框来源 |

@@ -538,9 +538,19 @@ def main():
             print(f"⚠️ ys-lease 归还失败（rc={rel.returncode}）：{(rel.stdout or rel.stderr).strip()[:300]}",
                   file=sys.stderr)
     # 「动没动」三态：None=没验（--no-verify 或抓帧失败）/ False=验了且没动 / True=动了。
-    # 阈值 0.001（0.1% 像素）——实测光标抖动约 0.08%，滚动最少也在 0.5% 量级。
-    moved_confirmed = None if diff is None else (diff > 0.001)
-    out = {"ok": bool(ok_inject and release_ok), "release_ok": release_ok,
+    # 2026-10-22（pi 独立任务实测）：moved_px 与 frame_diff 会打架——DXVK 的 FPS/GPU HUD 每秒跳动，
+    # 光看 frame_diff 会假阳（实测 moved_px=0 却 frame_diff=4%）。有 moved_px 就以它为准：
+    # |moved_px| < 3 ⇒ 没滚动（到底/焦点不在列表），并把"哪个通道判的"写进回执。
+    if moved is not None:
+        moved_confirmed = abs(moved) >= 3
+        moved_source = "moved_px"
+    else:
+        moved_confirmed = None if diff is None else (diff > 0.001)
+        moved_source = "frame_diff" if diff is not None else None
+    # ok 必须包含「真的动了」：注入成功但没滚动 ≠ 成功（否则调用方会把 noop 当成翻页完成）
+    out = {"ok": bool(ok_inject and release_ok and moved_confirmed is not False),
+           "injected": bool(ok_inject), "noop": (moved_confirmed is False),
+           "moved_source": moved_source, "release_ok": release_ok,
            "budget": _budget, "at": [x, y], "dir": a.dir, "clicks": clicks,
            "drag": a.drag or None, "lease": lease_ok, "hint": hint,
            "session_id": os.environ.get("YS_SESSION_ID") or None,
