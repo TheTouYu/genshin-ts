@@ -1123,6 +1123,10 @@ class WorldService:
         raw["schema"] = schema.SCHEMA_ID      # 旧缓存条目（/0）就地升级，避免半新半旧契约
         raw["frame_id"] = frame_id
         raw["frame"] = dict(frame_meta)
+        if getattr(self, "_auto_background", False):
+            # cli 后端同样要显式标出"这帧是跨桌面读的后台帧"，别让调用方只看 frame.live 去猜。
+            raw["auto_background"] = True
+            raw["background_reason"] = "WINDOW_ON_OTHER_DESKTOP"
         age_ms = schema.now_ms() - int(frame_meta["captured_at_ms"])
         raw["frame"]["age_ms"] = age_ms
         raw["frame"]["stale"] = age_ms > self.max_age_ms
