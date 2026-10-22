@@ -33,6 +33,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -161,6 +162,8 @@ def cmd_check(a):
     rows = load()
     used_gates, fails, unproven, inject_fail = [], 0, 0, 0
     inj_done, inj_seen = {}, set()          # 注入用例按命令去重（见下）
+    gate_ms, inject_ms = {}, {}             # 每项耗时（2026-10-22：优化前先量）
+    _t_start = time.time()
     for r in rows:
         if r['status'] != 'prevented':
             continue
@@ -183,11 +186,15 @@ def cmd_check(a):
             cmd = gates[one]['command'] if one in gates else ''
             if not cmd:
                 print('  [FAIL] %-16s gate=%s 未在 gates.tsv 登记' % (r['id'], one)); fails += 1; continue
+            _t0 = time.time()
             p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True, text=True)
+            _ms = int((time.time() - _t0) * 1000)
+            gate_ms[one] = gate_ms.get(one, 0) + _ms
             ok = p.returncode == 0
             fails += 0 if ok else 1
             tail = (p.stdout or p.stderr).strip().splitlines()
-            print('  [%s] %-16s %s' % ('PASS' if ok else 'FAIL', one, tail[-1][:80] if tail else ''))
+            print('  [%s] %-16s %6.1fs %s' % ('PASS' if ok else 'FAIL', one, _ms / 1000.0,
+                                              tail[-1][:70] if tail else ''))
         inj = r.get('inject', '')
         if a.get('fast', False):
             continue          # fast = 只验门禁可跑；注入用例（造故障）留全量
@@ -201,7 +208,9 @@ def cmd_check(a):
         if inj in inj_done:
             ok_inj, last_line = inj_done[inj]
         else:
+            _t0 = time.time()
             pi = subprocess.run(inj, shell=True, cwd=ROOT, capture_output=True, text=True)
+            inject_ms[inj] = int((time.time() - _t0) * 1000)
             ok_inj = pi.returncode == 0
             tail_i = (pi.stdout or pi.stderr).strip().splitlines()
             last_line = tail_i[-1][:70] if tail_i else ''
@@ -211,6 +220,15 @@ def cmd_check(a):
         inj_seen.add(inj)
         print('  [%s] %-16s inject %s%s' % ('PASS' if ok_inj else 'FAIL', r['id'],
                                             last_line, reused))
+    # 2026-10-22：把「每个门禁/注入用例花了多久」打出来——没有计时就没法"先打主导项"，
+    # 优化只能靠猜（本项目铁律：慢流程先拆环节计时）。
+    _all = dict(gate_ms)
+    for k, v in inject_ms.items():
+        _all['inject:' + k.split('/')[-1][:28]] = v
+    _top = sorted(_all.items(), key=lambda kv: -kv[1])[:10]
+    print('LEDGER-TIMING total=%.1fs top=%s' % (time.time() - _t_start,
+                                                ' | '.join('%s %.1fs' % (k, v / 1000.0)
+                                                           for k, v in _top)))
     print('LEDGER-RESULT gates=%d skipped=%d gate_fail=%d unproven=%d inject_fail=%d verdict=%s'
           % (len(used_gates), skipped, fails, unproven, inject_fail,
              'PASS' if (fails + unproven + inject_fail) == 0 else 'FAIL'))
