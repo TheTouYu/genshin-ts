@@ -10,6 +10,7 @@
 #   ys-wait --until "test -s /tmp/x.gia" --timeout 20          # 谓词返回 0 即成立
 #   ys-wait --settled [--samples 3] [--interval-ms 400] [--threshold 0.002] [--timeout 15]
 #   ys-wait --settled --frames a.png,b.png,c.png               # 离线：用已有帧序列复算判据
+#   ys-wait --files-min /tmp/vl-out 52 --timeout 300           # 等目录内文件数 ≥52（别用 sleep 等批处理）
 # 退出码: 0=成立  1=超时  2=用法错  3=取帧失败（仅 --settled）
 # 输出: 状态变换序列（去重）+ 耗时，便于事后判定「到底等了多久、看到了什么」
 #
@@ -35,6 +36,7 @@ if [ "$SETTLED" = "1" ]; then
   exec python3 "$HERE/ys_settled.py" "${ARGS[@]}"
 fi
 CMD=""
+F_DIR=""; F_N=""; F_PAT="*"
 EXPECT=""
 TIMEOUT=30
 POLL=0.3
@@ -46,10 +48,15 @@ while [ $# -gt 0 ]; do
     --timeout) TIMEOUT="$2"; shift 2 ;;
     --poll)    POLL="$2"; shift 2 ;;
     --label)   LABEL="$2"; shift 2 ;;
+    --files-min) F_DIR="$2"; F_N="$3"; shift 3 ;;
+    --files-glob) F_PAT="$2"; shift 2 ;;
     *) echo "ys-wait: 未知参数 $1" >&2; exit 2 ;;
   esac
 done
-if [ -z "$CMD" ]; then echo "ys-wait: 需要 --until '<命令>'" >&2; exit 2; fi
+if [ -n "${F_DIR:-}" ]; then
+  CMD="python3 \"$HERE/ys_files_min.py\" $(printf %q "$F_DIR") $F_N $(printf %q "$F_PAT")"
+fi
+if [ -z "$CMD" ]; then echo "ys-wait: 需要 --until '<命令>' 或 --files-min DIR N" >&2; exit 2; fi
 
 START=$(date +%s%3N)
 LAST=""
