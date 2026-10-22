@@ -45,7 +45,7 @@ systemctl --user stop dsh-embed.service dsh-decision.service
 
 | 套件 | 读数 | 说明 |
 |---|---|---|
-| `./tools/failure-ledger check --fast` | **69.9s**，gates=27 PASS | 日常用；`d1573547` |
+| `./tools/failure-ledger check --fast` | **62.1s**，gates=28，**gate_fail=0**，verdict=**PASS** | 2026-10-22 21:5x（新增 win-attrib；修 perception-contract 与 advice） |
 | `./tools/failure-ledger check`（全量） | 空闲 **550s** / 游戏在跑 **700s**，gates=40–41，unproven=0，fake_inject=0 | 改动后未复跑 |
 | `worldsvc-selftest` | **123/123**，31.1s→**24.5s** | 注入用例 23.7s→**1.66s** |
 | `ocr-channel.selftest` | **5/5 PASS**（含 A5 引擎透传） | `0856fb0e` |
