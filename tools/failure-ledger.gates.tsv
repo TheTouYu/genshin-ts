@@ -1,27 +1,26 @@
 gate	command	note	tier
+#
+# 2026-10-22 清理：本表**只登记 failure-ledger check 真会执行的 gate**。
+# 此前有 12 条登记了却从不执行（没有 prevented 账目引用它们）：
+#   afford concurrency focus-default gate2 gate5 gate6 gui-skills no-dead-window-id probe-matrix round-check salvage world-entry
+# 后果不是浪费时间是**烂了没人发现**：gui-skills 登记成 bash 跑一个 python 文件（rc=2）、
+# round-check 缺 ys-env 前置（rc=1），两条坏了很久都没人看见。
+# 它们并没有消失：ys-gates 有自己的 SUITES 清单，脚本本体也都在原位。
+# 将来谁要引用被删的名字，check 会直接报「未在 gates.tsv 登记」——这是有意的，别默默加回。
 gate1	./tools/ys-gates --only 1	判定回归（20 帧含 8 负样本，两通道 100%）	slow
-gate2	bash tools/ys-editor/tests/fake-success.selftest.sh	假成功 F1/F2/F3（+F4 交付后自动纳入）	slow
 perf	./tools/ys-perf	GUI 单次执行性能（7 条：冷/中位/阈值；覆盖 F-1-12 的 8×/22×/39× 慢通道退化）	slow
 daemon-resilience	bash tools/ys-editor/tests/daemon-resilience.selftest.sh	常驻服务抗客户端断开（socket 探活+SO_PEERCRED 对象判据；断不熄火/事后可服务/出声；覆盖 2026-10-18 间歇假红与 2026-10-19「探记录不探对象」假红）	fast
-gate5	./tools/ys-gates --only 5	单一源（判据副本 0）	slow
-gate6	./tools/ys-gates --only 6	操作目录（quote 逐字验真 / 状态↔台账一致）	slow
-probe-matrix	bash tools/ys-editor/tests/probe-matrix.selftest.sh	探针矩阵（24 帧 × 7 探针，覆盖单位错/假阳性）	slow
-concurrency	bash tools/ys-editor/tests/state-concurrency.selftest.sh	并发判定（4 路 × 8 帧，覆盖串帧事故路径）	slow
-round-check	bash -c '. tools/ys-editor/ys-env.sh >/dev/null 2>&1; ./tools/ys-editor/ys-round --check'	一轮编排的依赖/探针/零固定 sleep/预算	fast
 noswallow	bash -c '! grep -rl "ys-pointer-click.*2>/dev/null" tools/ys-editor/ys-* 2>/dev/null | grep -q .'	点击调用不许吞退出码（4 处事故的机械防线）	fast
-salvage	python3 scripts/skill-salvage.py	知识落地自检（真孤儿=0）	fast
 domain-selftest	bash tools/ys-editor/tests/domain-selftest.sh	执行域自检（29 项/66 断言，含三例违例注入）	fast
 identity-gate2	bash tools/ys-editor/tests/identity-freshness.selftest.sh	证据新鲜度（replay 无 sha/无时刻/sha 不符 ⇒ ERROR）	fast
 resolve	bash tools/ys-editor/tests/resolve-click.selftest.sh	动作时解析（同标签两布局/候选0/不唯一/回读不符）	slow
 screen	bash tools/ys-editor/tests/screen-digest.selftest.sh	屏幕摘要（4 帧/23 断言：邻接+遮挡+圆钮两路内部样式）	slow
 layer	bash tools/ys-editor/tests/layer-selftest.sh	层级/模态/scrim（5 帧 9 断言，含 2 负样本）	fast
-afford	bash tools/ys-editor/tests/afford-selftest.sh	可点性打分（8 帧 39 断言，含战斗画面负样本）	slow
 watch	bash tools/ys-editor/tests/watch-selftest.sh	ROI 变化事件（17 用例 63 断言，含 69.84%/「领取」复现）	slow
 act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断言：变化/无变化/rc透传/红点delta）	slow
 slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）	slow
 brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）	slow
 probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）	slow
-gui-skills	python3 .scratch/gui-skills/selftest/run-selftest	gui-skill 编排：四类假成功 + 自愈三招 + 窗口身份/滚动/按住 三个负样本	fast
 guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）	fast
 unitselftest	./tools/ys-editor/ys-state --selftest-units	单位域护栏（0..1 浮点归一、越界夹紧，治 F-2-08 静默错值）	fast
 subagent-verdict	./tools/subagent-verdict --latest --check	子代理自述复核四读数齐全自洽（治 F-20261019-34 信任自述）	fast
@@ -34,16 +33,13 @@ scroll-movement	python3 tools/ys-editor/tests/scroll-movement.selftest.py	滚动
 state-precedence	python3 tools/ys-editor/tests/state-precedence.selftest.py	面板态压过世界态（GAME_FRIENDS/GAME_CHARACTER + PRECEDENCE，并列仍 AMBIGUOUS）	fast
 capture-liveness	tools/ys-editor/ys-capture status | python3 -c "import sys,json; d=json.load(sys.stdin); s=d.get('state') or {}; sys.exit(0 if d.get('daemon_alive') and (s.get('seq') or 0)>0 and not (s.get('last_err') or '') else 1)"	抓帧守护必须活着且**在产帧**（进程在 ≠ 有帧）	fast
 world-settle	python3 tools/ys-editor/tests/world-settle.selftest.py	布局稳定判据（容差：数量+位移+文本相似度；治「逐字相等永远 false」）	fast
-focus-default	bash tools/ys-editor/tests/focus-default.selftest.sh	交还屏幕=切回默认屏（游戏在焦点时占用也归 firefox，且过堆叠验证；用户口径 2026-10-21）	slow
 screen-grant	bash tools/ys-editor/tests/screen-grant.selftest.sh	屏幕占用契约：没有用户批准的时长凭据时底层注入必须拒绝（用户令 2026-10-21）	fast
 skill-coverage	python3 tools/ys-editor/tests/skill-coverage.selftest.py	能力必须挂在技能上（capabilities 的每个 verb 能在 skills.entry 里 grep 到；用户令 2026-10-21）	fast
 no-xbell	bash tools/ys-editor/tests/no-xbell.sh	ImageMagick import 必须带 -silent（裸调用会敲 X11 铃 = 用户听到的提示音）	fast
 perf-bench	python3 .scratch/gui-service/bench_check.py --runs 3	GUI 感知层分组件性能门槛（缓存命中/稳态判态/冷路径/act 解析；超线=退化，bars 只 WARN）	slow
 grant-expiry	bash tools/ys-editor/tests/grant-expiry.selftest.sh	租期到期必须由常驻守护自己归还（不靠模型自觉；用户第 N 次强调）	fast
-no-dead-window-id	bash tools/ys-editor/tests/no-dead-window-id.selftest.sh	生产工具不许把已过期的窗 id 当默认/兜底值（游戏重启 id 必变）	fast
 cross-desktop	python3 tools/ys-editor/tests/cross-desktop.selftest.py	跨桌面/找不到窗口时失败必须自解释（reason+state+next_action）	fast
 advice	python3 tools/ys-editor/tests/advice.selftest.py	有序列表线性扫建议（回放 session_run13 的 10 屏；第 3 屏必须出 SCANNING_LINEARLY 且 estimate 可重算/净推进误差 ≤20%）	fast
-world-entry	python3 tools/ys-editor/tests/world-entry.selftest.py	感知层主入口不许崩（实跑 look --backend daemon-world，断言无 traceback 且失败自带下一步）	fast
 scrollbar	python3 tools/ys-editor/tests/scrollbar.selftest.py	滚动条/滑块检测：正样本 17 帧（含游戏内列表）+ 负样本 20 帧（含同 UI 去掉滚动条的合成负样本），召回≥80% 且假阳≤1 同轮判	fast
 capture-cli	bash tools/ys-editor/tests/capture-cli.selftest.sh	抓帧客户端契约（ys-capture latest）：18 例 = 编码往返 3 + fail-closed 闸门 12 + bmp/png 自动按需编码 + jpg 必须显式 + background 三态	fast
 session-claim	python3 tools/ys-editor/tests/session-claim.selftest.py	会话所有权登记（claim 复位 released 闩锁 / hold 生效 / 过期不复活 / status 暴露 orphan / 两条抬窗路径都接了 claim）	fast
