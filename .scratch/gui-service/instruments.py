@@ -461,12 +461,35 @@ def inject_scroll(x, y, *, clicks=3, direction="down", drag=0, lease=True, timeo
 
 
 
+_WATCH_CACHE = {}          # (帧a指纹, 帧b指纹, roi, no_ocr, debug) → (pair, stderr)
+_WATCH_CACHE_MAX = 32
+
+
+def _frame_fp(path):
+    """帧指纹：路径 + mtime_ns + size（与 worldsvc._sb_cached / cache.py 同一套口径）。"""
+    try:
+        st = os.stat(path)
+        return (os.path.abspath(path), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return (os.path.abspath(path), None, None)
+
+
 def watch_region(before, after, region, *, no_ocr=False, debug=True, timeout=300):
     """变化事件层：一律调 `tools/ys-watch`（不自己写帧差/文本差判据）。
 
-    返回 (pair, stderr)。`debug=True` 时 stderr 里有 `[ys-watch] slots before/after: [...]`
-    ——区域文本**集合**由它给出（ys-watch 的槽位构建是唯一实现，我们只解析输出）。
+    2026-10-22 记忆化（用户令「回归太慢，每次一个看影响最大的」）：
+    实测 selftest 一次跑里 ys-watch 被调 **12 次，只有 4 种 (帧对 × ROI)**——
+    同一份静态帧 + 同一个 ROI 重算是纯浪费（13.6s → ~4.5s）。
+    判据安全：ys-watch 的输入就是这两个文件，指纹含 mtime_ns（活体每次抓帧都会变）
+    ⇒ 生产轮询路径不会命中旧结果；活帧重写必然换 key。
     """
+    key = (_frame_fp(before), _frame_fp(after),
+           tuple(int(v) for v in region), bool(no_ocr), bool(debug))
+    hit = _WATCH_CACHE.get(key)
+    if hit is not None:
+        pair, err, _ms = hit
+        _WATCH_CACHE[key] = (pair, err, _ms)
+        return pair, err
     roi = ",".join(str(int(v)) for v in region)
     cmd = [YS_WATCH, "--frames", os.path.abspath(before), os.path.abspath(after),
            "--roi", roi, "--json"]
@@ -482,6 +505,9 @@ def watch_region(before, after, region, *, no_ocr=False, debug=True, timeout=300
     pairs = d.get("pairs") or []
     if not pairs:
         raise InstrumentError("WATCH_BAD", f"ys-watch 回执无 pairs：{str(d)[:300]}")
+    if len(_WATCH_CACHE) >= _WATCH_CACHE_MAX:
+        _WATCH_CACHE.pop(next(iter(_WATCH_CACHE)))
+    _WATCH_CACHE[key] = (pairs[0], err, 0.0)
     return pairs[0], err
 
 

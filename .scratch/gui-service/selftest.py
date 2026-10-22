@@ -52,9 +52,24 @@ RESULTS = []
 
 
 _LAST_T = [None]          # 上一个用例结束时刻，用来算"这一条花了多久"
+_ONLY = []                # `--only` 过滤（子串，逗号分隔）；空 = 全跑
+
+
+def _wanted(name):
+    """`--only` 语义：名字里**包含**任一片段才跑。空过滤 = 全跑。
+
+    为什么加它（2026-10-22 用户令「回归太慢，每次一个看影响最大的」）：
+    注入用例原先为了证明**一条**断言会变红，要重跑整份 123 条（20.5s）。
+    过滤后只跑受影响的那条（~1.5s），证明力一点不降——它本来就只需要那一条红。
+    """
+    return (not _ONLY) or any(k in name for k in _ONLY)
 
 
 def check(name, cond, detail=""):
+    if not _wanted(name):
+        RESULTS.append({"name": name, "ok": True, "skipped": True, "detail": "", "ms": 0.0})
+        print("SKIP " + name)
+        return True
     # 2026-10-22：给每条断言计时——不装表就只能看总时长，优化只能靠猜。
     # 读法：top 里那些"单条 >1s"的才是可攻点；几十条 0.1s 的加起来不构成大头。
     now = time.perf_counter()
@@ -103,8 +118,19 @@ def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--json-out", default=os.path.join(EVIDENCE, "selftest.json"))
+    ap.add_argument("--only", default="",
+                    help="只跑名字含这些子串的用例（逗号分隔），例如 --only '整帧 OCR 兜底'；空=全跑")
+    ap.add_argument("--list", action="store_true", help="只列出全部用例名（不执行）")
     a = ap.parse_args(argv)
     os.makedirs(EVIDENCE, exist_ok=True)
+    global _ONLY
+    _ONLY = [x.strip() for x in (a.only or "").split(",") if x.strip()]
+    if a.list:
+        import re as _re
+        src = open(os.path.abspath(__file__), encoding="utf-8").read()
+        for nm in _re.findall(r'check\(\s*"([^"]+)"', src):
+            print(nm)
+        return 0
     t_start = time.time()
 
     # ───────── schema ─────────
@@ -675,9 +701,11 @@ def main(argv=None):
     check("CLI/vocab 打印单一源名词表", rc == 0 and "GAME_PAIMON" in out)
 
     # ───────── 汇总 ─────────
-    n_pass = sum(1 for r in RESULTS if r["ok"])
-    n_fail = len(RESULTS) - n_pass
-    summary = {"passed": n_pass, "failed": n_fail, "total": len(RESULTS),
+    n_skip = sum(1 for r in RESULTS if r.get("skipped"))
+    n_pass = sum(1 for r in RESULTS if r["ok"] and not r.get("skipped"))
+    n_fail = len(RESULTS) - n_pass - n_skip
+    summary = {"passed": n_pass, "failed": n_fail, "skipped": n_skip,
+               "only": list(_ONLY), "total": len(RESULTS),
                "cold_look_ms": cold_ms, "cold_look_no_cache_ms": nc_ms,
                "cache_hit_ms": hit, "daemon_world": dw_note,
                "wall_s": round(time.time() - t_start, 1),
@@ -690,7 +718,8 @@ def main(argv=None):
     print("[selftest] TIMING wall=%ss slow_cases(>=300ms)=%s"
           % (summary["wall_s"],
              " | ".join("%s %.1fs" % (r["name"][:34], r["ms"] / 1000.0) for r in _slow) or "none"))
-    print(f"\n[selftest] {n_pass}/{len(RESULTS)} PASS, {n_fail} FAIL"
+    _sk = (f"，{n_skip} SKIP（--only={','.join(_ONLY)}）" if n_skip else "")
+    print(f"\n[selftest] {n_pass}/{len(RESULTS) - n_skip} PASS, {n_fail} FAIL{_sk}"
           f"（冷 look {cold_ms}ms / 禁缓存 {nc_ms}ms / 缓存命中 {max(hit)}ms）")
     print(f"[selftest] 证据 → {a.json_out}")
     return 0 if n_fail == 0 else 1
