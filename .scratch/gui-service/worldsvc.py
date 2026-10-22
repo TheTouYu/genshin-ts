@@ -981,6 +981,7 @@ class WorldService:
                 _attr = (raw.get("attribution") or {}) if isinstance(raw, dict) else {}
                 if str(_attr.get("strict") or "") == "OTHER_DESKTOP":
                     self._auto_background = True
+                    _bg = True          # 让下面的 meta 把 live/layer 标成后台帧
                 if getattr(self, "_auto_background", False) and isinstance(self._last_frame, dict):
                     self._last_frame.update({"live": False, "background": True,
                                              "layer": "background"})
