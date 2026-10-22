@@ -264,8 +264,14 @@ class XShmGrabber:
         self.view = np.ctypeslib.as_array(
             (ctypes.c_ubyte * self.size).from_address(self.addr)).reshape(self.h, self.w, 4)
 
-    def grab(self):
-        """返回 (rgb uint8 H×W×3, ms)；失败抛 GrabError（窗口没了/读回失败）。"""
+    def grab_raw(self):
+        """取一帧但不做 BGRX→RGB 拷贝：返回 (零拷贝视图 H×W×4, ms)。
+
+        为什么要这个入口（2026-10-23 实测成本链）：BGRX→RGB 的 11MB 拷贝 **16.7ms**、
+        crc32 **6.9ms**。10fps 下每帧都付拷贝就是 **~24% 一个核**，而绝大多数帧内容没变、
+        根本不需要 RGB。于是拆开：先对 raw 算 crc 判变化，**只有内容真变了**才 to_rgb()。
+        ⚠ 视图指向共享内存，**下一次 grab 就覆盖**；需要留像素的调用方必须自己 to_rgb()/copy。
+        """
         _XERR_LAST['code'] = 0
         t0 = time.perf_counter()
         ok = xext.XShmGetImage(self.dpy, int(self.win), self.img, 0, 0, 0xffffffff)
@@ -273,9 +279,16 @@ class XShmGrabber:
         ms = (time.perf_counter() - t0) * 1000.0
         if not ok or _XERR_LAST['code']:
             raise GrabError(f'XShmGetImage 失败 ok={ok} xerr={_XERR_LAST["code"]}')
-        # 零拷贝视图 + 一次 11MB 拷贝做 BGRX→RGB。SHM 缓冲下一次 grab 就被覆盖，必须立刻 copy。
-        rgb = self.np.ascontiguousarray(self.view[:, :, 2::-1])
-        return rgb, ms
+        return self.view, ms
+
+    def to_rgb(self):
+        """把最近一帧的零拷贝视图转成 RGB（11MB 拷贝，16.7ms）。"""
+        return self.np.ascontiguousarray(self.view[:, :, 2::-1])
+
+    def grab(self):
+        """返回 (rgb uint8 H×W×3, ms)；失败抛 GrabError（窗口没了/读回失败）。"""
+        _raw, ms = self.grab_raw()
+        return self.to_rgb(), ms
 
     def close(self):
         try:
@@ -1194,16 +1207,18 @@ class Daemon:
                           'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')}, ensure_ascii=False),
               flush=True)
 
-    def _adopt_frame(self, rgb):
+    def _adopt_frame(self, rgb=None, crc=None, make_rgb=None):
         """把一帧登记为「当前内容」：**内容 id / 内容时间只在内容真的变了时前进**。
 
         这是「帧停滞」的读数基础：`seq` 每抓一次 +1（通道活着），`content_seq` 只在内容变了
         +1（画面真的变了）。此前两者混为一谈 ⇒ 守护报 `age_ms=8ms`（看着很新鲜），
         而内容已经 2.2s 没变了，消费者只能靠"等 src 变化"自己猜。
 
+        `make_rgb` 只在"内容变了、真的需要像素"时才被调用（省掉每帧 16.7ms 的拷贝）。
         返回 (crc, changed, rgb_path)。
         """
-        crc = zlib.crc32(rgb) & 0xffffffff
+        if crc is None:
+            crc = zlib.crc32(rgb) & 0xffffffff
         crc8 = f'{crc:08x}'
         changed = crc != self.content_crc
         if changed:
@@ -1211,6 +1226,8 @@ class Daemon:
             self.content_seq += 1
             self.content_ts = time.time()
         if changed or not (self.last_rgb_path and os.path.exists(self.last_rgb_path)):
+            if rgb is None:
+                rgb = make_rgb()
             rgb_path = os.path.join(self.dir, f'f-{self.seq:09d}.rgb')
             write_rgb_atomic(rgb_path, rgb)   # 原子：读者不会看到半帧（2026-10-21）
             self.last_rgb_path = rgb_path
@@ -1280,6 +1297,7 @@ class Daemon:
                         else 'kwin-ss2'
                     if fallback and not invisible:
                         self._probe_resume()
+                    crc, make_rgb = None, None      # KWin 直接给 RGB，crc 从它算
                 else:
                     hit = None
                     with self.audit_hit_lock:
@@ -1287,8 +1305,15 @@ class Daemon:
                             hit, self.audit_hit = self.audit_hit, None
                     if hit is not None:
                         rgb, ms, src = hit['rgb'], hit['ms'], hit['src']
+                        crc, make_rgb = None, None
+                    elif hasattr(self.grabber, 'grab_raw'):
+                        # 便宜路径：先对 raw 算 crc 判变化，内容没变就不拷贝 11MB
+                        raw, ms = self.grabber.grab_raw()
+                        crc = zlib.crc32(raw) & 0xffffffff
+                        rgb, make_rgb, src = None, self.grabber.to_rgb, 'xshm-window'
                     else:
                         rgb, ms, src = self._grab_once()
+                        crc, make_rgb = None, None
                 self.capture_ms = ms
                 self.last_src = src
                 self.last_err = ''
@@ -1310,7 +1335,7 @@ class Daemon:
                 continue
             self.fail_backoff = 0.5
             self.seq += 1
-            crc, changed, rgb_path = self._adopt_frame(rgb)
+            crc, changed, rgb_path = self._adopt_frame(rgb, crc=crc, make_rgb=make_rgb)
             if self.frames_written % 2 == 0:
                 self._prune_rgb()
             self.write_state(rgb_path, crc)

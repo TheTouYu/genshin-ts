@@ -858,6 +858,8 @@ tools/ys-editor/ys-text /tmp/panel.png --region 1100 170 1420 1270 --json
 - **看得见才用 XShm，看不见走合成器**：`OCCLUDED / OTHER_DESKTOP / NOT_ATOP` 时直接用 KWin 通道。
 - **需求门（demand）**：合成器一帧 240–570ms，只在**有人读帧**（客户端 3s 内调过 `latest`）时才走它；
   没人读时回到 XShm（2–12ms）。实测：有人读时内容变化最大间隔 **0.37s**，没人读时仍 2.71s（不服务任何人）。
+- **空闲成本**（顺手优化）：原先每帧无条件做 BGRX→RGB 11MB 拷贝（16.7ms）+ crc32（6.9ms）
+  ⇒ 10fps 常驻 **27%** 一个核；改成先对 raw 算 crc、内容没变就不拷贝 ⇒ 空闲 **12%**、`loop_ms` 68→12ms。
 - **顺手修的第二个真 bug**：KWin 通道按 BGRA 反转，而本机 `format=18`（RGBA8888_Premultiplied）
   内存是 R,G,B ⇒ **R/B 互换**（daemon 帧均值 R83/G143/B164 vs KWin R165/G143/B83）。OCR 看不出、
   颜色判据全错，交叉通道稽核也会永远"不一致"。现按 `format` 选通道序。
