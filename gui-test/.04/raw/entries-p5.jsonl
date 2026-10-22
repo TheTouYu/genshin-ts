@@ -1,0 +1,27 @@
+{"idx": 1, "kind": "start", "title": "关于「盗宝团」", "settle_ms": 2200, "crop": "frames/p5-0001.jpg", "t_rel": 0.4}
+{"idx": 2, "kind": "key", "title": "关于海螺帮…", "settle_ms": 2200, "crop": "frames/p5-0002.jpg", "t_rel": 3.0}
+{"idx": 3, "kind": "key", "title": "关于《那夏快报》", "settle_ms": 2200, "crop": "frames/p5-0003.jpg", "t_rel": 5.7}
+{"idx": 4, "kind": "key", "title": "关于蒙德的回忆·", "settle_ms": 2200, "crop": "frames/p5-0004.jpg", "t_rel": 8.3}
+{"idx": 5, "kind": "key", "title": "关于骗局…", "settle_ms": 2200, "crop": "frames/p5-0005.jpg", "t_rel": 10.9}
+{"idx": 6, "kind": "key", "title": "关于伊涅芙的电源开关·", "settle_ms": 2200, "crop": "frames/p5-0006.jpg", "t_rel": 13.6}
+{"idx": 7, "kind": "key", "title": "关于爱诺的发明…", "settle_ms": 2200, "crop": "frames/p5-0007.jpg", "t_rel": 16.3}
+{"idx": 8, "kind": "key", "title": "关于夸人…", "settle_ms": 2200, "crop": "frames/p5-0008.jpg", "t_rel": 18.9}
+{"idx": 9, "kind": "key", "title": "关于嗅嗅鼹鼠·", "settle_ms": 2200, "crop": "frames/p5-0009.jpg", "t_rel": 21.5}
+{"idx": 10, "kind": "key", "title": "关于法尔伽的一百个事实·", "settle_ms": 2200, "crop": "frames/p5-0010.jpg", "t_rel": 24.2}
+{"idx": 11, "kind": "key", "title": "关于北大陆情报网·代号·", "settle_ms": 2200, "crop": "frames/p5-0011.jpg", "t_rel": 26.8}
+{"idx": 12, "kind": "key", "title": "关于北大陆情报网·事关英雄·", "settle_ms": 2200, "crop": "frames/p5-0012.jpg", "t_rel": 29.5}
+{"idx": 13, "kind": "key", "title": "关于奇妙科技…", "settle_ms": 2200, "crop": "frames/p5-0013.jpg", "t_rel": 32.2}
+{"idx": 14, "kind": "key", "title": "关于心聋症…", "settle_ms": 2200, "crop": "frames/p5-0014.jpg", "t_rel": 34.9}
+{"idx": 15, "kind": "key", "title": "关于「白沙皇」…", "settle_ms": 2200, "crop": "frames/p5-0015.jpg", "t_rel": 37.5}
+{"idx": 16, "kind": "key", "title": "关于憧憬妖精的小孩子·", "settle_ms": 2200, "crop": "frames/p5-0016.jpg", "t_rel": 40.2}
+{"idx": 17, "kind": "key", "title": "关于列车的动静…", "settle_ms": 2200, "crop": "frames/p5-0017.jpg", "t_rel": 42.8}
+{"idx": 18, "kind": "key", "title": "关于「掷弹兵」", "settle_ms": 2200, "crop": "frames/p5-0018.jpg", "t_rel": 45.5}
+{"idx": 19, "kind": "key", "title": "关于「幽灵列车」", "settle_ms": 2200, "crop": "frames/p5-0019.jpg", "t_rel": 48.1}
+{"idx": 20, "kind": "key", "title": "关于舞剧…", "settle_ms": 2200, "crop": "frames/p5-0020.jpg", "t_rel": 50.7}
+{"idx": 21, "kind": "key", "title": "关于具有迷惑性的生物", "settle_ms": 2200, "crop": "frames/p5-0021.jpg", "t_rel": 53.4}
+{"idx": 22, "kind": "key", "title": "关于臻冰造物与致富梦想·", "settle_ms": 2200, "crop": "frames/p5-0022.jpg", "t_rel": 56.1}
+{"idx": 23, "kind": "key", "title": "关于「呼啸社」", "settle_ms": 2200, "crop": "frames/p5-0023.jpg", "t_rel": 58.7}
+{"idx": 24, "kind": "key", "title": "关于免费报纸·", "settle_ms": 2200, "crop": "frames/p5-0024.jpg", "t_rel": 61.4}
+{"idx": 25, "kind": "key", "title": "关于「严冬计划」", "settle_ms": 2200, "crop": "frames/p5-0025.jpg", "t_rel": 64.0}
+{"idx": 26, "kind": "key", "title": "关于至冬的妖精·", "settle_ms": 2200, "crop": "frames/p5-0026.jpg", "t_rel": 66.6}
+{"summary": {"tag": "p5", "mode": "cont", "count": 26, "elapsed": 78.6, "per_entry_s": 3.02, "titles": ["关于「盗宝团」", "关于海螺帮…", "关于《那夏快报》", "关于蒙德的回忆·", "关于骗局…", "关于伊涅芙的电源开关·", "关于爱诺的发明…", "关于夸人…", "关于嗅嗅鼹鼠·", "关于法尔伽的一百个事实·", "关于北大陆情报网·代号·", "关于北大陆情报网·事关英雄·", "关于奇妙科技…", "关于心聋症…", "关于「白沙皇」…", "关于憧憬妖精的小孩子·", "关于列车的动静…", "关于「掷弹兵」", "关于「幽灵列车」", "关于舞剧…", "关于具有迷惑性的生物", "关于臻冰造物与致富梦想·", "关于「呼啸社」", "关于免费报纸·", "关于「严冬计划」", "关于至冬的妖精·"]}}

@@ -1,0 +1,6 @@
+{"idx": 1, "kind": "baseline", "title": "关于风车…", "crop": "frames/0001.jpg", "change_ms": 0, "settle_ms": 0, "t_rel": 4.3}
+{"idx": 2, "kind": "pilot", "title": "关于果酒湖…", "crop": "frames/0002.jpg", "change_ms": 903, "settle_ms": 976, "t_rel": 6.6}
+{"idx": 3, "kind": "pilot", "title": "关于禁书区的书…", "crop": "frames/0003.jpg", "change_ms": 27, "settle_ms": 100, "t_rel": 7.9}
+{"idx": 4, "kind": "key", "title": "关于歌德大酒店…", "crop": "frames/0004.jpg", "change_ms": 901, "settle_ms": 975, "t_rel": 9.7}
+{"idx": 5, "kind": "key", "title": "关于风的流向…", "crop": "frames/0005.jpg", "change_ms": 28, "settle_ms": 100, "t_rel": 11.1}
+{"summary": {"count": 5, "elapsed": 11.1, "noise": 0.005, "per_entry_s": 2.22, "titles": ["关于风车…", "关于果酒湖…", "关于禁书区的书…", "关于歌德大酒店…", "关于风的流向…"]}}
