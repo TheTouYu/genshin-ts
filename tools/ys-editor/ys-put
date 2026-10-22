@@ -11,13 +11,119 @@
 # 本工具的纪律：**只用外部仪器验证**——`xdotool getmouselocation` 读回真实指针，
 #   不匹配就继续步进；步进用尽仍不匹配 → **非零退出并说明**，绝不打印 OK。
 #
+# 坐标系（2026-10-23 实测 + Lead 裁决；回执键名 space=pointer）：
+#   · 本工具收**物理/指针坐标** = Xwayland 空间 = `xdotool getdisplaygeometry`（本机 2560×1440）；
+#     ys-find / ys-screen 的 bbox 与截图帧也在同一空间（本机帧坐标与指针坐标 1:1）。
+#   · KWin 逻辑几何 = 1707×960（`ys-wins` / `ys-kwin-geo` 报的**窗口几何**，×1.5）——
+#     它只用于窗口几何，**不要拿来当移动/点击坐标**（那样整体缩到 2/3，即历史事故「首点就错一行」）。
+#   · 越界防护：目标超出**实测**指针空间 ⇒ rc=2 + 明确空间提示，**不静默钳制**、不移动指针；
+#     拿不到读数（无 xdotool / 离线）⇒ 不判（fail-open 只限「没有读数」，不是「越界放行」）。
+#
 # 用法: ys-put <x> <y> [容差px=6] [最大轮次=40]
-# 退出码: 0 到位 / 4 未到位（附最后一处实际坐标）
+#       ys-put --check <x> <y>      # 只校验坐标空间/越界，**不移动指针**（离线可用，一行 JSON）
+#       ys-put --json <x> <y>       # 移动模式改打一行 JSON 回执（缺省人类可读行）
+# 退出码: 0 到位（--check 在界内/无读数）/ 4 未到位（附最后一处实际坐标）/
+#         2 坐标越界或用法错（含坐标空间提示；--check 同）
 set -u
-X="${1:?用法: ys-put <x> <y> [容差] [轮次]}"; Y="${2:?}"
-TOL="${3:-6}"; MAX="${4:-40}"
 export DISPLAY="${DISPLAY:-:1}"
 YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
+TAG="${YS_PUT_TAG:-ys-put}"
+
+CHECK=0; JSON=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check)   CHECK=1; shift ;;
+    --json)    JSON=1; shift ;;
+    -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
+    --*)       echo "[$TAG] 未知参数：$1" >&2; exit 2 ;;
+    *)         break ;;
+  esac
+done
+
+nnum() { case "$1" in ''|*[!0-9-]*|-*|*-) return 1 ;; esac; return 0; }
+
+# 指针空间（本工具收的空间）：env 覆盖 > xdotool 实测 > 空（= 没有读数）
+pointer_wh() {
+  if [ -n "${YS_POINTER_W:-}" ] && [ -n "${YS_POINTER_H:-}" ]; then
+    printf '%s %s\n' "$YS_POINTER_W" "$YS_POINTER_H"; return 0
+  fi
+  local g
+  g="$(xdotool getdisplaygeometry 2>/dev/null)" || return 1
+  case "$g" in ''|*[!0-9\ ]*) return 1 ;; esac
+  set -- $g; [ $# -ge 2 ] || return 1
+  printf '%s %s\n' "$1" "$2"
+}
+frame_wh() { printf '%s %s\n' "${YS_FRAME_W:-2560}" "${YS_FRAME_H:-1440}"; }
+
+# 越界判据（**全仓唯一实现**；ys-pointer-click 调 `ys-put --check` 复用这一份，不复制）
+# 输出 "verdict|pw|ph"，verdict ∈ in | out | unmeasured | bad
+coord_check() {
+  local x="$1" y="$2" pw ph g
+  nnum "$x" && nnum "$y" || { echo "bad||"; return 0; }
+  g="$(pointer_wh 2>/dev/null)" || { echo "unmeasured||"; return 0; }
+  set -- $g; pw="${1:-}"; ph="${2:-}"
+  case "${pw}${ph}" in ''|*[!0-9]*) echo "unmeasured||"; return 0 ;; esac
+  if [ "$x" -ge 0 ] && [ "$y" -ge 0 ] && [ "$x" -le "$((pw - 1))" ] && [ "$y" -le "$((ph - 1))" ]; then
+    echo "in|$pw|$ph"
+  else
+    echo "out|$pw|$ph"
+  fi
+}
+
+space_hint() {  # $1=x $2=y $3=pw $4=ph —— 越界时说清两个空间，别让调用方猜
+  local fw fh
+  read -r fw fh <<< "$(frame_wh)"
+  echo "[$TAG] 越界防护：目标 ($1,$2) 不在指针空间 ${3}×${4} 内（实测，不是猜的）" >&2
+  if [ "$3" -lt "$fw" ] || [ "$4" -lt "$fh" ]; then
+    echo "[$TAG] 你可能在传帧坐标（${fw}×${fh}），指针目标是逻辑坐标（${3}×${4}）——按 ${fw}/${3} 换算后再传" >&2
+  else
+    echo "[$TAG] 帧坐标同为 ${fw}×${fh}；KWin 逻辑几何 1707×960 只用于窗口几何，不要拿来当点击坐标" >&2
+  fi
+  echo "[$TAG] 本次没有执行任何指针动作（不静默钳制：越界就停）" >&2
+}
+
+emit_json() {  # $1=ok $2=x $3=y $4=verdict $5=size
+  local jx=null jy=null
+  nnum "$2" && jx="$2"; nnum "$3" && jy="$3"
+  printf '{"ok":%s,"space":"pointer","coords_space":"physical","coords_space_size":"%s","x":%s,"y":%s,"verdict":"%s"}\n' \
+    "$1" "$5" "$jx" "$jy" "$4"
+}
+
+# ── --check：只算不干（不移动、不点击；是「越界/空间」判据的唯一入口）
+if [ "$CHECK" = 1 ]; then
+  X="${1:?用法: ys-put --check <x> <y>}"; Y="${2:?用法: ys-put --check <x> <y>}"
+  IFS='|' read -r verdict pw ph <<< "$(coord_check "$X" "$Y")"
+  case "$verdict" in
+    in)
+      emit_json true "$X" "$Y" in "${pw}x${ph}"
+      echo "[$TAG] 空间=pointer(${pw}×${ph}) 坐标 ($X,$Y) 在界内（本模式不移动指针）" >&2
+      exit 0 ;;
+    unmeasured)
+      emit_json true "$X" "$Y" unmeasured unknown
+      echo "[$TAG] 没有指针空间读数（xdotool getdisplaygeometry 不可用）⇒ 不判越界（fail-open 只限没有读数）" >&2
+      exit 0 ;;
+    out)
+      emit_json false "$X" "$Y" out "${pw}x${ph}"
+      space_hint "$X" "$Y" "$pw" "$ph"
+      exit 2 ;;
+    *)
+      emit_json false "$X" "$Y" bad unknown
+      echo "[$TAG] 坐标必须是整数：x=«$X» y=«$Y»" >&2
+      exit 2 ;;
+  esac
+fi
+
+# ── 移动模式
+X="${1:?用法: ys-put <x> <y> [容差] [轮次]}"; Y="${2:?用法: ys-put <x> <y> [容差] [轮次]}"
+TOL="${3:-6}"; MAX="${4:-40}"
+IFS='|' read -r verdict pw ph <<< "$(coord_check "$X" "$Y")"
+case "$verdict" in
+  in) : ;;
+  unmeasured) echo "[$TAG] 没有指针空间读数 ⇒ 不判越界（闭环仍用 xdotool 回读）" >&2; pw=unknown; ph=unknown ;;
+  out) space_hint "$X" "$Y" "$pw" "$ph"; exit 2 ;;
+  *)   echo "[$TAG] 坐标必须是整数：x=«$X» y=«$Y»" >&2; exit 2 ;;
+esac
+SPACE="space=pointer coords_space=physical coords_space_size=${pw}x${ph}"
 
 loc() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x+0, y+0}'; }
 
@@ -25,16 +131,20 @@ read -r cx cy <<< "$(loc)"
 for i in $(seq 1 "$MAX"); do
   dx=$(( X - cx )); dy=$(( Y - cy ))
   if [ "${dx#-}" -le "$TOL" ] && [ "${dy#-}" -le "$TOL" ]; then
-    echo "[ys-put] 到位 ($cx,$cy) 目标 ($X,$Y) 第 ${i} 轮"
+    if [ "$JSON" = 1 ]; then
+      emit_json true "$X" "$Y" arrived "${pw}x${ph}"
+    else
+      echo "[ys-put] 到位 ($cx,$cy) 目标 ($X,$Y) 第 ${i} 轮 · $SPACE"
+    fi
     exit 0
   fi
   # 相对步进；比例 1.7 为大位移经验值，闭环会自动收敛（指针加速会吃掉线性假设，故要闭环）
   ux=$(awk -v d="$dx" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/1.7}')
   uy=$(awk -v d="$dy" 'BEGIN{printf "%d", (d<0?-0.5:0.5)+d/1.7}')
-  [ "$ux" = "0" ] && [ "$uy" = "0" ] && { echo "[ys-put] 步进过小（剩 $dx,$dy），中止" >&2; exit 4; }
+  [ "$ux" = "0" ] && [ "$uy" = "0" ] && { echo "[ys-put] 步进过小（剩 $dx,$dy），中止 · $SPACE" >&2; exit 4; }
   ydotool mousemove -x "$ux" -y "$uy" 2>/dev/null
   sleep 0.05
   read -r cx cy <<< "$(loc)"
 done
-echo "[ys-put] ✗ ${MAX} 轮未到位：目标 ($X,$Y) 实际 ($cx,$cy)" >&2
+echo "[ys-put] ✗ ${MAX} 轮未到位：目标 ($X,$Y) 实际 ($cx,$cy) · $SPACE" >&2
 exit 4

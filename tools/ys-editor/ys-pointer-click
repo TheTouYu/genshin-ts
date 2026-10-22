@@ -27,6 +27,7 @@
 #     --target <json>        目标描述 {"role":..,"name":..} 或 {"text":..}（与 --text 二选一）
 #     --anchor <名字>        身份锚（与 --text/--target 二选一），配 --offset dx,dy 表达行内相对几何
 #     --scope x,y,w,h        只在这个区域里找（消歧：区域先验）
+#     --text-exact           名字只认**严格全等**（传给 ys-find 的同一实现；缺省=全等→前缀→包含）
 #     --tol <px>             指针闭环容差，缺省 12（同旧用法的 [tolerance_px]）
 #     --ratio <r>            相对移动传递比，缺省 1.7
 #     --frame <png>          离线帧；**给出即隐含 --dry-run**（不抓屏、不注入、不进槽、不抢焦点）
@@ -40,9 +41,13 @@
 #     --assert-strict        要求「点前该区域没有这个名字」（状态变化型断言）
 #     --no-cache             不复用 OCR 结果缓存
 #
-# 退出码: 0=命中并已点击（或解析成功且断言通过）/ 2=用法或环境错（含 OCR 后端缺失）/
+# 退出码: 0=命中并已点击（或解析成功且断言通过）/ 2=用法或环境错（含 OCR 后端缺失、坐标越界）/
 #         4=目标解析失败（候选=0 或 候选不唯一 或 通道不一致）/ 5=步进过小·超过迭代上限·回读断言不符
 #         （旧用法语义与改动前一致：0/4/5；缺参数时仍是 bash 的 1）
+# 坐标系（2026-10-23 标注进回执）：本工具**收物理坐标**（Xwayland/xdotool 回读空间，本机 2560×1440）；
+#   KWin 逻辑几何是 1707×960（ys-wins/ys-kwin-geo 报的窗口几何，×1.5）。回执里 `space`="pointer"
+#   （本工具收坐标的空间）、`coords_space`=x/y **实际**所在空间（physical/frame）、`coords_space_size`=实测尺寸。
+# 越界防护：目标超出**实测**指针空间 ⇒ rc=2 + 明确空间提示，绝不静默钳制（拿不到读数就不瞎判）。
 # 输出流: stdout = 每次动作一行 JSON（断言行另起一行）+ 人类可读状态行；诊断一律 stderr，不吞。
 # 自测: bash tools/ys-editor/tests/resolve-click.selftest.sh   （全程离线、零注入）
 set -u
@@ -53,6 +58,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ORIG_ARGS=("$@")
 FIND="$HERE/../ys-find"
 T_CLICK0=$(date +%s%3N)
+TMPD="$(mktemp -d)"; trap 'rm -rf "$TMPD"' EXIT
 
 # 占用会话（ys-session）：会话内直接注入，不再自建 slot（省 kwin-state/resolve/raise）
 SESS_ACTIVE=$(python3 - <<'PY' 2>/dev/null
@@ -86,6 +92,30 @@ NEW=0
 for _a in "$@"; do case "$_a" in --*) NEW=1 ;; esac; done
 
 get() { xdotool getmouselocation --shell 2>/dev/null | awk -F= '/^X=/{x=$2} /^Y=/{y=$2} END{print x, y}'; }
+
+# ── 坐标系与越界防护（2026-10-23；Lead 裁决：回执键名 space="pointer"）
+# 判据的**唯一实现**在 `ys-put --check`（本工具不复制第二份，避免两处判据打架）：
+#   env YS_POINTER_W/H > `xdotool getdisplaygeometry`（实测）> 无读数则不判；
+#   越界 ⇒ rc=2 + 实测空间尺寸 + 空间提示，不钳制、不注入。
+# 空间事实：本工具收**物理/指针坐标**（Xwayland，本机 2560×1440；xdotool 回读同空间）；
+#   KWin 逻辑几何 1707×960（ys-wins/ys-kwin-geo 的窗口几何，×1.5）**不是**点击坐标——
+#   直接喂进来会整体缩到 2/3，即历史事故「首点就错一行」。
+PTR_SZ="unknown"
+check_bounds() {  # $1=x $2=y；rc=0 界内（并刷新 PTR_SZ）/ rc=2 越界或参数坏
+  local js rc
+  js="$(YS_PUT_TAG=ys-pointer-click "$YS_HOME/ys-put" --check --json "$1" "$2" 2>"$TMPD/bounds.err")"; rc=$?
+  case "$js" in
+    *coords_space_size*)
+      PTR_SZ="$(printf '%s' "$js" | python3 -c 'import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    d = {}
+print(d.get("coords_space_size") or "unknown")' 2>/dev/null)" ;;
+  esac
+  if [ "$rc" != 0 ]; then cat "$TMPD/bounds.err" >&2 2>/dev/null || true; return 2; fi
+  return 0
+}
 
 # click_loop <x> <y> <tol> <ratio> —— 闭环步进到 (x,y) 再点击。
 # **唯一实现**：旧坐标用法与按名字解析的用法共用它，绝不出现第二份点击逻辑。
@@ -125,6 +155,8 @@ click_loop() {
 # 旧用法：<x> <y> [tol] [ratio] —— 行为与改进前逐字节一致
 if [ "$NEW" = "0" ]; then
   X="${1:?用法: ys-pointer-click <x> <y> [tol] [ratio]}"; Y="$2"
+  # 越界防护在**任何注入之前**（含进槽/抬窗）：坐标错了就别去碰桌面
+  check_bounds "$X" "$Y" || exit $?
   # 自包装进硬通道（协议：computer-use「共享桌面默契」）——本工具会产生注入，必须在槽内运行。
   if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
     exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
@@ -138,7 +170,7 @@ fi
 TEXT=''; TARGET=''; FRAME=''; AFTER=''; ANAME=''
 SCOPE=''; ANCHOR=''; OFFSET=''; EROI=''; APAD=''
 TOL=''; RATIO=''
-DRY=0; LIVE=0; ANY=0; STRICT=0; NOCACHE=0
+DRY=0; LIVE=0; ANY=0; STRICT=0; NOCACHE=0; TEXACT=0
 POS=()
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -158,6 +190,7 @@ while [ $# -gt 0 ]; do
     --ratio)           RATIO="${2:?--ratio 需要数值}"; shift 2 ;;
     --dry-run)         DRY=1; shift ;;
     --live)            LIVE=1; shift ;;
+    --text-exact)      TEXACT=1; shift ;;
     --no-cache)        NOCACHE=1; shift ;;
     -h|--help)         awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
     --*)               echo "[ys-pointer-click] 未知参数：$1" >&2; exit 2 ;;
@@ -207,6 +240,7 @@ resolve() {
   [ -n "$ANCHOR" ] && fa+=(--anchor "$ANCHOR")
   [ -n "$OFFSET" ] && fa+=(--offset "$OFFSET")
   [ -n "$SCOPE" ]  && fa+=(--scope "$SCOPE")
+  [ "$TEXACT" = 1 ] && fa+=(--text-exact)
   [ "$NOCACHE" = 1 ] && fa+=(--no-cache)
   "$FIND" "${fa[@]}" 2>"$TMPD/err"
 }
@@ -244,22 +278,35 @@ take_result "$RES" || { echo "[ys-pointer-click] 解析结果不可解析：$RES
 
 case "$RX$RY" in *[!0-9]*) echo "[ys-pointer-click] 解析结果缺坐标：$RES" >&2; exit 2 ;; esac
 
+# 越界防护：**真要点击时**才判（--frame/--dry-run 解析出来的是帧坐标，本来就不该点）。
+# 拿不到指针空间读数 ⇒ 不判（fail-open 只限"没有读数"，不是"越界放行"）。
+if [ "$DRY" = 0 ]; then check_bounds "$RX" "$RY" || exit $?; fi
+
+# 回执里的空间字段（2026-10-23）：space=本工具收坐标的空间；coords_space=x/y 实际所在空间
+# PTR_SZ 由 check_bounds（= ys-put --check，唯一判据）顺带取回；dry-run 不点，故不需要它
+FRAME_SZ="${YS_FRAME_W:-2560}x${YS_FRAME_H:-1440}"
+SPACE_NOTE="KWin 逻辑几何 1707×960 只用于窗口几何，不要拿来当点击坐标"
+
 if [ "$DRY" = 1 ]; then
   printf '%s' "$RES" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
 d.update({"action": "click", "dry_run": True, "would_click": True,
+          "space": "pointer", "coords_space": "frame",
+          "coords_space_size": sys.argv[3], "space_note": sys.argv[4],
           "click": {"x": d.get("x"), "y": d.get("y")},
           "tolerance": int(sys.argv[1]), "ratio": float(sys.argv[2])})
-print(json.dumps(d, ensure_ascii=False))' "$TOL" "$RATIO"
+print(json.dumps(d, ensure_ascii=False))' "$TOL" "$RATIO" "$FRAME_SZ" "$SPACE_NOTE"
 else
   click_loop "$RX" "$RY" "$TOL" "$RATIO" || exit $?
   printf '%s' "$RES" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
 d.update({"action": "click", "dry_run": False, "clicked": True,
+          "space": "pointer", "coords_space": "physical",
+          "coords_space_size": sys.argv[1], "space_note": sys.argv[2],
           "click": {"x": d.get("x"), "y": d.get("y")}})
-print(json.dumps(d, ensure_ascii=False))'
+print(json.dumps(d, ensure_ascii=False))' "$PTR_SZ" "$SPACE_NOTE"
 fi
 
 # ── 断言：点击后回读**同一个目标位置**的文字（「动作后同一对象读回」）
@@ -285,6 +332,7 @@ fi
 # 断言实现：同一区域里能不能解析出期望名字
 assert_resolve() {  # $1=帧 $2=要核对的文本
   local -a fa=(--frame "$1" --resolve --text "$2")
+  [ "$TEXACT" = 1 ] && fa+=(--text-exact)
   [ -n "$ROI" ] && fa+=(--scope "$ROI" --evidence-roi "$ROI")
   "$FIND" "${fa[@]}" 2>"$TMPD/a.err"
 }
@@ -329,6 +377,7 @@ python3 -c '
 import json, sys
 d = json.load(open(sys.argv[1], encoding="utf-8"))
 d.update({"action": "assert", "ok": True, "expected": sys.argv[2], "roi": sys.argv[3],
-          "pre_existing": sys.argv[4] == "true", "after_frame": sys.argv[5]})
-print(json.dumps(d, ensure_ascii=False))' "$TMPD/a.json" "$ANAME" "${ROI:-whole-frame}" "$PRE" "$AFTER_FRAME"
+          "pre_existing": sys.argv[4] == "true", "after_frame": sys.argv[5],
+          "space": "pointer", "coords_space": "frame", "coords_space_size": sys.argv[6]})
+print(json.dumps(d, ensure_ascii=False))' "$TMPD/a.json" "$ANAME" "${ROI:-whole-frame}" "$PRE" "$AFTER_FRAME" "$FRAME_SZ"
 exit 0
