@@ -756,6 +756,39 @@ class Daemon:
     def grabber_alive(self):
         return self.grabber is not None
 
+    def _refresh_env(self):
+        """会话换 XAUTHORITY 后自愈（2026-10-22 事故：单元只写 DISPLAY=:1）。
+
+        XAUTHORITY 是 `/run/user/<uid>/xauth_XXXX`（每会话随机名）。守护若在会话切换前
+        启动，会把旧路径/空值带进进程环境，此后 `xd.Display()` 静默失败 →
+        `discover_window()` 返回 None → 日志连续刷「找不到窗口（class=…）」，
+        而 `xdotool search` 明明找得到 —— 用户视角就是「抓帧坏了」（实测持续 30 分钟）。
+        修法：连续多次找不到窗口时重跑 ys-env.sh 取权威环境，更新 os.environ 再试。
+        """
+        import subprocess as _sp
+        env_sh = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys-env.sh')
+        if not os.path.exists(env_sh):
+            return
+        try:
+            out = _sp.run(['bash', env_sh, '--print'], capture_output=True, text=True,
+                          timeout=8).stdout
+        except Exception:                                     # noqa: BLE001
+            return
+        for line in out.splitlines():
+            if line.startswith('DISPLAY=') and len(line) > len('DISPLAY='):
+                disp = line[len('DISPLAY='):].strip()
+                if disp:
+                    os.environ['DISPLAY'] = disp
+                    self.args.display = disp
+            elif line.startswith('XAUTHORITY=') and len(line) > len('XAUTHORITY='):
+                xa = line[len('XAUTHORITY='):].strip()
+                if xa:
+                    os.environ['XAUTHORITY'] = xa
+        print(json.dumps({'ok': True, 'role': 'serve', 'stage': 'env-refresh',
+                          'DISPLAY': os.environ.get('DISPLAY'),
+                          'XAUTHORITY': os.environ.get('XAUTHORITY')},
+                         ensure_ascii=False), flush=True)
+
     def ensure_grabber(self):
         if self.grabber is not None:
             return True
@@ -896,8 +929,18 @@ class Daemon:
                 break
             if not self.ensure_grabber():
                 self._log_fail('grabber')
+                # 连续 5 次找不到窗口 ⇒ 怀疑环境（XAUTHORITY 随会话变），自愈一次再试
+                self.env_fails = getattr(self, 'env_fails', 0) + 1
+                if self.env_fails >= 5:
+                    self.env_fails = 0
+                    self.grabber = None
+                    try:
+                        self._refresh_env()
+                    except Exception:                         # noqa: BLE001
+                        pass
                 self.stop.wait(1.0)
                 continue
+            self.env_fails = 0
             try:
                 rgb, ms, src = self._grab_once()
                 self.capture_ms = ms

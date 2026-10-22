@@ -57,7 +57,11 @@ def process_file(file_path, out_dir, model, poll_secs, optional_payload):
     res.raise_for_status()
     os.makedirs(out_dir, exist_ok=True)
     texts, pages = [], 0
-    for line in res.text.strip().split("\n"):
+    # 2026-10-22 修：requests 对无 charset 的 text/* 默认按 ISO-8859-1(latin-1) 解码，
+    # 会把 API 返回的 UTF-8 中文变成 "è™šæ¸Š…"（长行还会二次损坏不可逆）。
+    # 必须按字节取回再显式 utf-8 解码。
+    body = res.content.decode("utf-8", errors="replace")
+    for line in body.strip().split("\n"):
         if not line.strip():
             continue
         for rp in json.loads(line)["result"]["layoutParsingResults"]:
