@@ -330,6 +330,26 @@ ys-scroll --at <thumb中心物理x>,<thumb中心物理y> --seek-rows 91 --total-
 
 三环缺任一环，能力对"只读技能的新代理"就等于不存在。只做前两环是给自己看的，不是给接手者的。
 
+## 4.11 OCR 通道：**默认问常驻服务，别再起一次性进程**（2026-10-22）
+
+**判据先行**：`ys_ocr.py` 的回执现在带 `via` 字段——
+
+| `via` | 含义 | 典型耗时（同机同帧） |
+|---|---|---|
+| `daemon` | 走常驻 `ys-lookd cmd=ocr`（引擎热、**全机只有一个 CUDA context**） | 冷 ~0.5–3s / 同帧热 ~0.5s |
+| `local` | 本地建引擎（一次性进程，冷启动 + 可能再占 500MB+ 显存） | **~8–17s** |
+
+- 默认 `daemon`；服务不在/报错会自动回退 `local`（CLI 不会因此挂）。`YS_OCR_LOCAL=1` 强制本地（排障/对照实验用）。
+- `engine` 字段另给 `cuda|cpu|daemon`；`gpu_note` 说明为什么没走 GPU，`fallback` 说明推理期是否被降级。
+- **显存预检**：启动先看 `nvidia-smi` 余量，**< 900 MiB 直接 CPU**（`YS_OCR_MIN_FREE_MIB` 可调），不先建 context 再炸。
+  常态是「原神 + 常驻服务」占掉 6GB 里的大半；实测 daemon 长跑 10 小时自己会涨到 ~2.8GB。
+
+**什么时候必须看 `via`**：报「OCR 慢」或「门禁红」时。`via=local` 的十几秒是**冷启动**，不是回归
+（同一帧走 daemon 只要零点几秒）。把它当性能读数是量错对象。
+
+**门禁**：`python3 tools/ys-editor/tests/ocr-channel.selftest.py`（A1 服务优先 / A2 报错回退 / A3 显存不足直走 CPU / A4 无服务走本地），
+已登记 `ys-gates` 与账本 `F-20261022-72`，注入用例 `ledger-inject.sh ocr-channel-neg`。
+
 ## 5. 五条实测坑（都交过学费）
 
 1. **坐标会漂**：菜单刚打开时布局还在动（tile 网格 y 从 478/668/856/1046 漂到 452/572/760/950，≈94px）。

@@ -46,6 +46,54 @@ _GPU_STATE = None          # None=未探测 / True=GPU / False=CPU / str=失败�
 _FORCE_CPU = False         # 推理期 CUDA 炸过（见 _infer）⇒ 本进程此后只用 CPU
 _FALLBACK = None           # 回退原因（进回执，别让"降级"静默）
 
+# 常驻服务（ys-lookd）的 socket：**同一台机器只该有一个 CUDA context**。
+# 2026-10-22 实测：一次性进程冷启动要 11.7s/帧，daemon 热态 ~0.4s/帧（同机同帧差 20 倍），
+# 而且每个新进程都要再占 500MB+ 显存 —— 在「原神 + 常驻服务」常态下正好把 6GB 挤爆。
+# 所以默认**先问常驻服务**，拿不到才回退本地引擎（YS_OCR_LOCAL=1 可强制本地，排障用）。
+LOOKD_SOCK = os.environ.get('YS_LOOKD_SOCK', '/run/user/%d/ys-lookd.sock' % os.getuid())
+_MIN_FREE_MIB = int(os.environ.get('YS_OCR_MIN_FREE_MIB', '900'))
+
+
+def _free_vram_mib():
+    """GPU 剩余显存（MiB）；查不到返回 None（不猜、不阻止）。"""
+    try:
+        import subprocess
+        out = subprocess.run(['nvidia-smi', '--query-gpu=memory.free',
+                              '--format=csv,noheader,nounits'],
+                             capture_output=True, text=True, timeout=5)
+        vals = [int(x) for x in out.stdout.split() if x.strip().isdigit()]
+        return max(vals) if vals else None
+    except Exception:                                  # noqa: BLE001
+        return None
+
+
+def _daemon_ocr(image, timeout=None):
+    """向常驻服务要一次 OCR（单一 CUDA context）。任何失败返回 None ⇒ 调用方回退本地。"""
+    if os.environ.get('YS_OCR_LOCAL') == '1':
+        return None
+    import socket
+    if not os.path.exists(LOOKD_SOCK):
+        return None
+    timeout = float(os.environ.get('YS_OCR_DAEMON_TIMEOUT', '180')) if timeout is None else timeout
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(LOOKD_SOCK)
+        s.sendall((json.dumps({'cmd': 'ocr', 'frame': os.path.abspath(image)}) + '\n').encode())
+        buf = b''
+        while not buf.endswith(b'\n'):
+            chunk = s.recv(1 << 20)
+            if not chunk:
+                break
+            buf += chunk
+        s.close()
+        resp = json.loads(buf.decode('utf-8') or '{}')
+    except Exception:                                  # noqa: BLE001 —— 回退本地，别打死 CLI
+        return None
+    if resp.get('error') or not isinstance(resp.get('boxes'), list):
+        return None
+    return resp
+
 
 def _enable_gpu():
     """按上文①②③三步把 CUDA EP 弄成"真能用"。返回 (ok, 说明)。
@@ -59,6 +107,12 @@ def _enable_gpu():
         return False, (_GPU_STATE if isinstance(_GPU_STATE, str) else '')
     if os.environ.get('YS_OCR_CPU') == '1':
         _GPU_STATE = 'YS_OCR_CPU=1（显式走 CPU）'
+        return False, _GPU_STATE
+    # 显存预检（2026-10-22）：常态是"原神 + 常驻服务"已占掉大半 6GB。余量不足时
+    # **直接走 CPU**，不要先建 context 再炸一次（炸的那次要白付 ~5s 且可能拖慢游戏）。
+    _free = _free_vram_mib()
+    if _free is not None and _free < _MIN_FREE_MIB:
+        _GPU_STATE = '显存余量不足：free=%dMiB < %dMiB ⇒ 直接 CPU' % (_free, _MIN_FREE_MIB)
         return False, _GPU_STATE
     try:
         import ctypes
@@ -168,24 +222,43 @@ def _infer(img, verbose=False):
 
 
 def cmd_ocr(a):
+    """OCR 一帧：**优先常驻服务**（单一 CUDA context），拿不到才用本地引擎。
+
+    输出形状与字段保持不变（`boxes/n_total/ms/engine/gpu_note/fallback`），
+    新增 `via` 标明这次走的哪条通道——"通过"必须带条件，否则读的人分不清
+    热引擎还是冷启动（两者差 20 倍，见文件头注释）。
+    """
     t0 = time.time()
-    items = _infer(a.image, verbose=True)
-    ms = int((time.time() - t0) * 1000)
     wants = [w for w in (a.want or '').split(',') if w]
-    boxes = []
-    for box, txt, sc in items:
-        xs = [p[0] for p in box]
-        ys = [p[1] for p in box]
-        if wants and not any(w in txt for w in wants):
-            continue
-        boxes.append({'text': txt, 'cx': int(sum(xs) / len(xs)), 'cy': int(sum(ys) / len(ys)),
-                      'score': round(sc, 4),
-                      'box': [[int(p[0]), int(p[1])] for p in box]})
+    via = 'local'
+    gt_note = _GPU_STATE if isinstance(_GPU_STATE, str) else None
+    fb = _FALLBACK
+    engine = 'cuda' if _GPU_STATE is True else 'cpu'
+
+    resp = _daemon_ocr(a.image)
+    if resp is not None:
+        boxes = [dict(b) for b in resp['boxes'] if isinstance(b, dict)]
+        n_total = int(resp.get('n_total') or len(boxes))
+        via, engine, gt_note, fb = 'daemon', 'daemon', None, None
+    else:
+        items = _infer(a.image, verbose=True)
+        n_total = len(items)
+        boxes = []
+        for box, txt, sc in items:
+            xs = [p[0] for p in box]
+            ys = [p[1] for p in box]
+            boxes.append({'text': txt, 'cx': int(sum(xs) / len(xs)),
+                          'cy': int(sum(ys) / len(ys)), 'score': round(sc, 4),
+                          'box': [[int(p[0]), int(p[1])] for p in box]})
+        engine = 'cuda' if _GPU_STATE is True else 'cpu'
+        gt_note = _GPU_STATE if isinstance(_GPU_STATE, str) else None
+        fb = _FALLBACK
+    if wants:
+        boxes = [b for b in boxes if any(w in str(b.get('text') or '') for w in wants)]
+    ms = int((time.time() - t0) * 1000)
     out = {'channel': 'text', 'image': os.path.abspath(a.image), 'boxes': boxes, 'ms': ms,
-           'n_total': len(items),
-           'engine': 'cuda' if _GPU_STATE is True else 'cpu',
-           'gpu_note': _GPU_STATE if isinstance(_GPU_STATE, str) else None,
-           'fallback': _FALLBACK}
+           'n_total': n_total, 'engine': engine, 'via': via,
+           'gpu_note': gt_note, 'fallback': fb}
     print(json.dumps(out, ensure_ascii=False) if a.json else
           '\n'.join('%-8s (%d,%d) %.2f' % (b['text'], b['cx'], b['cy'], b['score']) for b in boxes))
     return 0

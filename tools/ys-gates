@@ -52,6 +52,10 @@ SUITES = [('identity-freshness', 'identity-freshness.selftest.sh', 180),
           ('world-settle', 'world-settle.selftest.py', 60),
           # 2026-10-21：有序列表线性扫的主动建议（advice[]）；回放 run13 的 10 屏
           ('advice', 'advice.selftest.py', 60),
+          # 2026-10-22：ys_ocr 通道判据——一次性进程每跑一次新建 CUDA context，
+          # 在「原神 + 常驻服务」常态下会把 6GB 挤爆（slider/brief 曾恒红）；
+          # 现在默认走 daemon、显存不足直走 CPU，且回执带 via。
+          ('ocr-channel', 'ocr-channel.selftest.py', 120),
           # 2026-10-21：滚动条/滑块检测（tools/ys-scrollbar）——「跳到列表某位置」的能力前提。
           # 正样本 17 帧 / 负样本 20 帧（含同 UI 去掉滚动条的合成负样本），召回与假阳同轮报。
           ('scrollbar', 'scrollbar.selftest.py', 300),

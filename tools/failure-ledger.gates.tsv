@@ -51,3 +51,4 @@ perception-contract	python3 tools/ys-editor/tests/perception-contract.selftest.p
 screen-gated	python3 tools/ys-editor/tests/screen-gated-scan.py	测试不许偷偷占屏：执行 ys-gui-slot/ys-act 的测试文件必须声明 YS_ALLOW_SCREEN_TEST=1（真屏，需授权）或 YS_SLOT_TEST=1（假槽）；静态扫描，注释/文档串/断言文本不算	fast
 worldsvc-selftest	python3 .scratch/gui-service/selftest.py	感知层服务三动词契约自测（123 例：look/act/wait/cache/CLI 退出码；含 act 整帧 OCR 兜底解析、expect 五类判据、fail-closed）	慢 ~33s，故 slow
 handback-noop	python3 tools/ys-editor/tests/handback-noop.selftest.py	交还/归还时目标已是活动窗必须零窗口操作（attempts==0、零 raise）：用 YS_KWIN_JS_FIXTURE 喂 KWin 权威状态，全离线不碰屏幕（覆盖 F-20261021-55「说完成了却还有提示音」）	fast
+ocr-channel	python3 tools/ys-editor/tests/ocr-channel.selftest.py	ys_ocr 通道选择（4 断言：有服务走 daemon 且文字来自服务 / 服务报错回退本地 / 显存余量不足直走 CPU 并说明原因 / 无 socket 走本地）	fast

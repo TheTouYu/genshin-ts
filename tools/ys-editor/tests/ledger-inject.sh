@@ -28,6 +28,18 @@ case "$mode" in
     fi
     echo "INJECT-PASS noswallow: 注入的吞码文件被 noswallow 抓到了"; exit 0
     ;;
+  # ocr-channel-neg：关掉「优先走常驻服务」（YS_OCR_LOCAL=1 是生产语义的逃生舱）
+  #   ⇒ A1（服务在就必须走 daemon）必须变红；A2/A3/A4 仍绿（负样本不许连坐）
+  ocr-channel-neg)
+    if YS_OCR_LOCAL=1 python3 tools/ys-editor/tests/ocr-channel.selftest.py >/tmp/.ocr-ch-neg.$$ 2>&1; then
+      echo "INJECT-FAIL ocr-channel-neg: 关掉 daemon 优先后门禁仍绿（门禁空转）"; rm -f /tmp/.ocr-ch-neg.$$; exit 1
+    fi
+    if ! grep -q 'A1 ' /tmp/.ocr-ch-neg.$$; then
+      echo "INJECT-FAIL ocr-channel-neg: 变红但不是 A1 那条（判据串了）"; rm -f /tmp/.ocr-ch-neg.$$; exit 1
+    fi
+    rm -f /tmp/.ocr-ch-neg.$$
+    echo "INJECT-PASS ocr-channel-neg: 关掉 daemon 优先后 A1 报红（A2/A3/A4 仍绿）"; exit 0
+    ;;
   # capture-cli-neg：关掉"bmp/png 自动按需编码"逃生舱 ⇒ 客户端契约必须变红
   #   （F-20261021-68 的 prevented 证据：证明 capture-cli 门禁不是空转）
   capture-cli-neg)
