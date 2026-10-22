@@ -237,15 +237,18 @@ def cmd_check(a):
             continue
         _env_skipped_row = 0
         for one in _gl:
+            # ⚠️ 顺序要紧：环境跳过必须**先于** used_gates 去重判断。
+            # 反例（实测 F-20261021-52）：F-50 与 F-52 共用 screen-grant；F-50 判环境缺失后
+            # 已把它记进 used_gates ⇒ F-52 在这里被 `continue` 掉，_env_skipped_row 仍为 0，
+            # 于是它的注入用例照跑，输出 `SCREEN-GRANT-RESULT pass=5 fail=3` —— 拿"没环境的红"
+            # 冒充"抓到了"。
+            if one in env_skipped_gates:
+                skipped += 1; _env_skipped_row += 1
+                continue
             if one in used_gates:
                 continue
             if one in gates_all and one not in gates:
                 skipped += 1
-                continue
-            # 同一 gate 被多条账目共享时，前一行已判过环境 ⇒ 本行也据此跳过 inject，
-            # 否则会拿"没环境的红"冒充"抓到了"（实测 F-20261021-52 就是这样假红的）。
-            if one in env_skipped_gates:
-                skipped += 1; _env_skipped_row += 1
                 continue
             used_gates.append(one)
             cmd = gates[one]['command'] if one in gates else ''
