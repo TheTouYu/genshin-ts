@@ -8,9 +8,32 @@
 # 用法:
 #   ys-wait --until "ys-fast state" --expect EDITOR --timeout 40 [--poll 0.3] [--label reload]
 #   ys-wait --until "test -s /tmp/x.gia" --timeout 20          # 谓词返回 0 即成立
-# 退出码: 0=成立  1=超时  2=用法错
+#   ys-wait --settled [--samples 3] [--interval-ms 400] [--threshold 0.002] [--timeout 15]
+#   ys-wait --settled --frames a.png,b.png,c.png               # 离线：用已有帧序列复算判据
+# 退出码: 0=成立  1=超时  2=用法错  3=取帧失败（仅 --settled）
 # 输出: 状态变换序列（去重）+ 耗时，便于事后判定「到底等了多久、看到了什么」
+#
+# --settled：**连续 N 帧帧差 < 阈值**才算稳定（"画面不动了"，替代 sleep）。
+#   帧差判据复用 `ys-ops` 的 diff_ratio（全分辨率、|diff|>8/255 计数），实现体是
+#   `tools/ys-editor/ys_settled.py`；取帧只走 `ys-capture latest`（常驻服务最新帧，
+#   **零打扰：不抬窗、不抢焦点**）。daemon 不在 ⇒ rc=3 并说明，不偷偷抬窗。
 set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SETTLED=0
+ARGS=()
+for a in "$@"; do [ "$a" = "--settled" ] && SETTLED=1; done
+if [ "$SETTLED" = "1" ]; then
+  # --settled 走 ys_settled.py（它认识 --samples/--interval-ms/--threshold/--timeout/
+  # --label/--frames/--frame-cmd/--out/--verbose）；--poll 换算成 --interval-ms。
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --settled) shift ;;
+      --poll)    ARGS+=(--interval-ms "$(python3 -c "print(int(float('$2')*1000))")"); shift 2 ;;
+      *)         ARGS+=("$1"); shift ;;
+    esac
+  done
+  exec python3 "$HERE/ys_settled.py" "${ARGS[@]}"
+fi
 CMD=""
 EXPECT=""
 TIMEOUT=30

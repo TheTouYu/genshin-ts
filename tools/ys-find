@@ -508,6 +508,16 @@ def main(argv=None):
                    or result['channels'][k].get('raw')))]
     errs = [k for k, v in result['channels'].items() if v.get('error')]
 
+    # 没有判据时说清「这只是候选清单」，别让 `结论: unknown` 被读成"没找到"
+    # （2026-10-22 独立模型实测：它看到 unknown 就以为工具没找到目标）。
+    n_cand = len(tb) + len(im)
+    if not a.expect:
+        result['expect_given'] = False
+        result['verdict_note'] = ('未给判据，仅列 %d 个匹配（如需结论请加 --expect X,Y）' % n_cand)
+    else:
+        result['expect_given'] = True
+        result['verdict_note'] = '按 --expect %s 对账' % a.expect
+
     if not a.json:
         print('══ ys-find ══')
         for k, v in result['channels'].items():
@@ -525,7 +535,9 @@ def main(argv=None):
                 print('   [错误] %s' % v['error'][:200])
         for n in result['notes']:
             print('   · %s' % n)
-        print('结论: %s' % result['verdict'])
+        print('结论: %s' % (result['verdict_note'] if not a.expect else result['verdict']))
+        if a.expect:
+            print('判据: --expect %s（容差 %dpx）' % (a.expect, a.tol))
     else:
         print(json.dumps(result, ensure_ascii=False, indent=1))
 

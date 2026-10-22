@@ -9,7 +9,12 @@
 - GIA 解码/结构：`decode-gia.ts`、`analyze-composite-gia.ts`、`parse-gia-graphs.ts`、`inventory-gia-units.ts`。
 - GIL 节点图/追踪/信号/变量：`parse-gil-node-graph.ts`、`explain-gil-node-graph.ts`、`trace-gil-exec-flow.ts`、`trace-gil-dataflow.ts`、`list-gil-node-graphs.ts`、`compare-gil-node-graph.ts`、`wire-inspect.ts`、`decode-gil-raw.ts`、`scan-gil-signals.ts`、`inspect-gil-custom-variables.ts`。
 - 差分/布局：`diff-gil-files.ts`、`dump-layout.ts`、`topology.ts`。
-- 屏幕/可点性（GUI 感知层，离线只读帧）：`ys-screen`（文本/控件/分区/邻接/遮挡/**容器层 containers[]**——面板/卡片/格子/按钮，含 skin/text/glyphs/badges/clipped；`--containers` 轻量输出）、`ys-layer`（层级/模态/scrim/关闭控件）、`ys-afford`（可点性打分：红点>一小一大>颜色对比>圆环>邻近文字）、`ys-watch`（ROI 变化事件：文字/颜色/数值/时间）、`ys-editor/ys-view`（看图包：整帧+标注+2×2 切片+index.json，一条命令，供判不准时模型自己看）。
+- 屏幕/可点性（GUI 感知层，离线只读帧）：`ys-screen`（文本/控件/分区/邻接/遮挡/**容器层 containers[]**——面板/卡片/格子/按钮，含 skin/text/**text_boxes（带 bbox，与顶层 text[] 同形状；schema v2）**/glyphs/badges/clipped；`--containers` 轻量输出）、`ys-layer`（层级/模态/scrim/关闭控件）、`ys-afford`（可点性打分：红点>一小一大>颜色对比>圆环>邻近文字）、`ys-watch`（ROI 变化事件：文字/颜色/数值/时间）、`ys-editor/ys-view`（看图包：整帧+标注+2×2 切片+index.json，一条命令，供判不准时模型自己看）。
+- **帧→文本 / 帧→稳定判据**（GUI 文本采集层，2026-10-22 新增；离线只读帧或读常驻帧）：
+  - `ys-editor/ys-text FRAME [--region X Y W H] [--text] [--refine]` — **行框→逐行精读→段落重建**一条命令出结构化 JSON（`{lines[{text,bbox,score}], paragraphs[{text,lines[i]}], source{...}}`；bbox=xyxy 帧坐标）。结构来自 `ys_ocr.py ocr --json`，段落规则=满宽+行尾硬终止标点 / 短行 / 补裁间隙条（详见工具 docstring）；`--refine` 才走 PaddleOCR-VL，联网失败自动降级 `refined:false`。
+  - `ys-editor/ys-peek` — 取一帧真值图，**默认零打扰**（`ys-capture latest` daemon 帧，不抬窗不抢焦点），回执 `path=daemon`；抬窗回退必须显式 `--allow-raise`（否则 rc=4 说明原因，不偷偷动窗口）。
+  - `ys-editor/ys-wait --settled [--samples N --interval-ms M --threshold R]` — 「画面不动了」判据（连续 N 帧帧差<阈值；帧差复用 `ys-ops` 的 `diff_ratio`，实现体 `ys_settled.py`），替代 `sleep`；daemon 不在 rc=3 不偷偷抬窗。`--frames a.png,b.png` 可离线复算。
+  - `ys-find` 无 `--expect` 时只列候选并明说「未给判据，仅列 N 个匹配（如需结论请加 --expect）」，不再输出 `结论: unknown`。
 - PKC：`pkc.py`、`evaluate_pkc_retrieval.py`、`validate_pkc_bundle.py`（知识树操作，不是游戏分析工具）。
 
 ## 修改前

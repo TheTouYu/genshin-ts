@@ -20,7 +20,12 @@
   tools/ys-screen 帧.png --scale 0.5         # OCR 前先缩图（快 ~30%，小字召回略降）
   tools/ys-screen 帧.png --containers        # 只输出容器结构（轻量，跳过遮挡/控件/分区）
 
-输出字段（schema=ys-screen/1，稳定供下游复用）:
+输出字段（schema=ys-screen/2，稳定供下游复用）:
+  ⚠ v2（2026-10-22）只**新增**字段，不改旧字段形状：containers[].text_boxes 是新增通道。
+    为什么：containers[].text 是 `list[str]`（**无 bbox**），而顶层 text[] 每条都带 bbox ⇒
+    同一个键名 `text` 两种形状，实测有模型据此得出"全帧 text 没有 bbox"的错误结论。
+    新代码请用 containers[].text_boxes[]（与顶层 text[] **逐字段同形状**：id/text/cx/cy/bbox/
+    w/h/score/kind）；containers[].text 保留为遗留字符串列表，只为不打断既有消费者。
   text[]      {id,text,cx,cy,bbox,w,h,score,kind}      kind=title|content|action|data|hud|other
   controls[]  {id,bbox,cx,cy,w,h,shape,confidence,label?,evidence{fills,aspect,mean_rgb,area}}
               shape ∈ circle|rect|line|unknown
@@ -28,8 +33,9 @@
   adjacency[] {text,text_id,target,target_id,target_kind,label,dir,gap_px,dx,dy,confidence}
               dir ∈ right|left|below|above|overlap；gap_px = 两框**边缘**间距（不是中心距）
   occlusion[] {bbox,confidence,label,why,evidence{...}}  半透明叠加层/被覆盖区，带数值依据
-  containers[] {id,parent,bbox,kind,skin{lab,fill,rect},text[],glyphs[],badges[],
+  containers[] {id,parent,bbox,kind,skin{lab,fill,rect},text[],text_boxes[],glyphs[],badges[],
                 affordance{clickable,evidence[]},clipped{edges,cut_by,px},confidence,evidence{}}
+              text[] = 遗留字符串列表（无 bbox）；text_boxes[] = 与顶层 text[] 同形状（**带 bbox**）
               kind ∈ tile|card|row|button|panel|chip|unknown（**只描述形状角色，不猜语义**）
               parent = 几何包含关系（不是"猜出来的面板"）；clipped.px 在屏边情形恒 0（帧外不可测）
               affordance.clickable **目前恒 unknown**——工具还没有 hover/按下态证据，不假装
@@ -1661,7 +1667,8 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
         badges = _find_badges(arr, scale)
         pad = int(round(CONTAINER_BADGE_PAD_FULL * scale))
         # 叶子归属：文本（必须归属）、图形（归属不到就记 free_glyphs）、角标（归属不到就丢）
-        kids = {c['id']: {'text': [], 'glyphs': [], 'badges': []} for c in kept}
+        kids = {c['id']: {'text': [], 'text_boxes': [], 'glyphs': [], 'badges': []}
+                for c in kept}
         free_text = []
         for t in text_boxes:
             bb = t['bbox']
@@ -1670,6 +1677,7 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
                 free_text.append(t['text'])
             else:
                 kids[owner['id']]['text'].append(t['text'])
+                kids[owner['id']]['text_boxes'].append(t)   # 同一对象引用 ⇒ 与顶层 text[] 同形状
         free_glyphs = []
         for gl in glyphs:
             bb = gl['bbox']
@@ -1722,6 +1730,7 @@ def find_containers(arr, scale, W0, H0, text_boxes, debug=False):
                 'id': c['id'], 'parent': parents[c['id']], 'bbox': bb, 'kind': kind,
                 'skin': c['skin'],
                 'text': k['text'],
+                'text_boxes': k['text_boxes'],
                 'glyphs': k['glyphs'],
                 'badges': k['badges'],
                 'affordance': {'clickable': 'unknown', 'evidence': aff_ev},
@@ -2306,8 +2315,10 @@ def containers_cached(frame, arr, scale, W0, H0, text_boxes, use_cache=True, deb
             with open(path, encoding='utf-8') as f:
                 c = json.load(f)
             if (isinstance(c.get('containers'), list) and 'glyph_icons' in c
-                    and 'uncertainty' in c and 'uncertainty_meta' in c):
+                    and 'uncertainty' in c and 'uncertainty_meta' in c
+                    and all('text_boxes' in x for x in c['containers'])):
                 # 旧缓存没有这个键 ⇒ 视为 miss（否则新通道在缓存命中时静默消失，实测过）
+                # 2026-10-22：containers[].text_boxes 同理——v1 缓存一律 miss 重算。
                 c['timing'] = {'container_ms': int((time.time() - t0) * 1000), 'cached': True}
                 return c
         except (OSError, ValueError):
@@ -2907,7 +2918,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
                 runs.append(int((time.time() - t1) * 1000))
         steady = int(statistics.median(runs[1:])) if repeat > 1 else runs[0]
         return {
-            'schema': 'ys-screen/1',
+            'schema': 'ys-screen/2',
             'layer': 'containers',
             'frame': frame_info,
             'containers': cont['containers'], 'free_text': cont['free_text'],
@@ -2947,7 +2958,7 @@ def analyze(frame, use_ocr=True, use_cache=True, scale=1.0, debug=False, structu
                           hud_boxes=[o['bbox'] for o in occ])
     t_end = time.time()
     res = {
-        'schema': 'ys-screen/1',
+        'schema': 'ys-screen/2',
         'frame': frame_info,
         'title': title,
         'text': text, 'controls': ctrls, 'regions': regs, 'structure': struct,

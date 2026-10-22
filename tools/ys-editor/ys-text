@@ -1,0 +1,506 @@
+#!/usr/bin/env python3
+"""ys-text — 帧 → 结构化文本（行框 → 逐行精读 → 段落重建），一条命令出 JSON。
+
+为什么存在（2026-10-22 实测缺口）：
+  独立模型在 `gui-test/.01` 采集原神角色故事页文本时，拿 18 帧截图后**没有单点入口**把
+  「行框 → 逐行精读 → 段落重建」做出来 —— 它自己写了 stitch.py（失败）→ stitch2.py（成功）。
+  它的原话：希望 `ys-text <帧> --region x,y,w,h --lines` 一步出结构化 JSON。
+  ⇒ 本工具就是那条入口：结构（行框/文本）来自 `ys_ocr.py ocr --json`，字符精读可选
+  PaddleOCR-VL（逐行裁条），段落规则见下。
+
+用法
+  ys-text FRAME [--region X Y W H | --region X,Y,W,H] [--json-out FILE]
+          [--only lines|paragraphs|both] [--text] [--min-score 0.3]
+          [--short-ratio 0.85] [--gap-factor 1.55] [--no-row-merge]
+          [--no-gap-refill] [--gap-refill-max 2] [--no-cache] [--timeout 120]
+          [--refine [--refine-max 40] [--refine-poll 1.0] [--refine-keep DIR]]
+
+  位置参数 FRAME：png/bmp/jpg 帧文件（**不抓屏**，只读已有帧）。
+  --region X Y W H：x,y,w,h（**帧坐标**，不是 x0,y0,x1,y1）。给了就自己裁（PIL），
+    行框 bbox 仍按帧坐标输出（已加回偏移）。`ys_ocr.py --region` 只对 daemon 生效、
+    本地路径会忽略它 —— 所以这里**不用它的 --region**，裁图是两边都可靠的通道。
+  --only lines：只要行；--only paragraphs：只要段落。--text：直接打印段落纯文本（读故事用）。
+  --rows/--no-row-merge：同一视觉行被 OCR 拆成多个框（实测："深渊教团腐化了风神的眷属" +
+    "蒙德「四风守护」中" 在同一 y 带，中间 32px 空隙）→ 按 y 重叠 ≥60% 合并、按 x 排序拼接。
+  --no-gap-refill：关掉「行距异常 > gap-factor × 中位行距 ⇒ 补裁间隙条再 OCR」这一条。
+  --refine：字符精读（PaddleOCR-VL 云端，逐行裁条）。**联网失败/未装依赖自动降级**成
+    仅本地 OCR，回执 `refined:false` + `refine_note`。默认关闭（零网络、可复算）。
+
+段落规则（判据写死，便于事后复算）
+  1. 列宽 colw = 行宽 p90；满宽 = 行宽 ≥ short-ratio(0.85) × colw。
+  2. **满宽 + 行尾硬终止标点（。？！）⇒ 段末**；短行（< short-ratio × colw）⇒ 段末。
+  3. 行距异常（下一行 top − 本行 bot > gap-factor(1.55) × 中位行距）⇒ **补裁间隙条**再 OCR
+     （不直接切段：OCR 框之间空白实测抖 1~8px，1.55× 会误切）。
+  4. 屏边读数（UID/CV/日期/ms 读数）永远独立成段。
+  5. 两条实测修正（回执可复算，不是悄悄放宽）：满宽行尾的 `…`/`—` 是句中停顿（下一行还接着写）
+     不算硬终止；1~2 字的短行是换行残条（实测 RapidOCR 把 "心。" 拆成独立一行）⇒ 续段不切。
+     要严格按 1~3 切：`--min-para-chars 1`（残条也会被切段）。
+
+输出 JSON（schema=ys-text/1）
+  {
+    "schema": "ys-text/1",
+    "frame": {"path": abs, "w": W, "h": H},
+    "lines": [{"text": str, "bbox": [x0,y0,x1,y1], "score": float, "refill"?: true}],
+    "paragraphs": [{"text": str, "lines": [i, ...]}],
+    "source": {"region": [x,y,w,h] | null, "engine": "rapidocr/cuda/daemon",
+               "ms": int, "ocr_ms": int, "refine_ms": int,
+               "refined": bool, "refine_note": str,
+               "colw": int, "median_gap": int, "gap_refills": int,
+               "lines": n, "paragraphs": n, "row_merge": bool}
+  }
+  bbox 口径 = **xyxy**（与 ys-screen 的 text[]/containers[] 一致），帧坐标。
+
+退出码：0 OK / 2 用法错 / 3 帧读不了 / 4 OCR 失败 / 5 精读请求了但降级
+"""
+import argparse
+import json
+import re
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, HERE)
+import ys_env  # noqa: E402
+
+OCR = os.path.join(HERE, 'ys_ocr.py')
+VL_CLIENT = os.path.expanduser('~/.agents/skills/paddle-vl-ocr/scripts/paddle_vl_client.py')
+HARD_TERM = '。？！"」』）)'       # 满宽行尾出现它 ⇒ 句子真的结束
+SOFT_TERM = '…—－-'               # 省略号/破折号：满宽行尾时是**句中停顿**（实测故事页
+                                  # "…倒映出的那个人影…" 下一行还接着写），只算软终止
+DEFAULT_MIN_SCORE = 0.3
+DEFAULT_SHORT_RATIO = 0.85
+DEFAULT_GAP_FACTOR = 1.55
+ROW_OVERLAP = 0.60          # 同一行判据：两框 y 重叠 / 较小框高 ≥ 0.60
+ROW_JOIN_GAP_EM = 1.2       # 同行两段的 x 空隙 > 1.2 行高 ⇒ 拼接时补一个空格
+GAP_MIN = 18                # 间隙条最小高度（px）——太薄裁出来只会是噪点
+GAP_MAX = 120               # 超过 120px 的"间隙"是版面留白（面板分隔），不补裁
+# 屏边读数（UID/版本号/CV 名单）：永远独立成段——实测它会被上一段的正文吸进去
+# （"…去寻找曾经目睹的神灵UID:110170759"），那是正文采集者最不想要的一种污染。
+META_RE = re.compile(r'^(UID|CV)\s*[:：]|^\d{4}/\d{1,2}/\d{1,2}\b|^\d+\.\d+\s*(ms|s|%)\s*$')
+
+
+def die(msg, code=2):
+    sys.stderr.write('ys-text: %s\n' % msg)
+    raise SystemExit(code)
+
+
+def run_ocr(img, no_cache=False, timeout=120):
+    """调 ys_ocr.py ocr --json（daemon 优先，失败自动回退本地）。返回 (dict, ms)。"""
+    cmd = [sys.executable, OCR, 'ocr', '--json', img]
+    if no_cache:
+        cmd.append('--no-cache')
+    t0 = time.time()
+    try:
+        r = subprocess.run(cmd, env=ys_env.env(), capture_output=True, text=True,
+                           timeout=timeout)
+    except subprocess.TimeoutExpired:
+        die('OCR 超时（%ds）' % timeout, 4)
+    if r.returncode != 0 or not (r.stdout or '').strip():
+        die('OCR 失败 rc=%s：%s' % (r.returncode, (r.stderr or r.stdout or '')[-400:]), 4)
+    try:
+        d = json.loads(r.stdout)
+    except ValueError:
+        die('OCR 输出不是 JSON：%s' % r.stdout[:300], 4)
+    return d, int((time.time() - t0) * 1000)
+
+
+def boxes_to_lines(boxes, min_score):
+    """ys_ocr boxes（四点多边形 + 文本）→ 行 {text,bbox,score}（y 排序，不合并）。"""
+    out = []
+    for b in boxes or []:
+        if float(b.get('score') or 0) < min_score:
+            continue
+        txt = (b.get('text') or '').strip()
+        if not txt:
+            continue
+        xs = [p[0] for p in b['box']]
+        ys = [p[1] for p in b['box']]
+        out.append({'text': txt, 'bbox': [int(min(xs)), int(min(ys)),
+                                          int(max(xs)), int(max(ys))],
+                    'score': round(float(b['score']), 4)})
+    out.sort(key=lambda l: (l['bbox'][1], l['bbox'][0]))
+    return out
+
+
+def merge_rows(lines):
+    """同一视觉行被 OCR 拆成多框 ⇒ 合并（y 重叠 ≥60%），按 x 拼接文本。"""
+    rows = []
+    for it in lines:
+        y0, y1 = it['bbox'][1], it['bbox'][3]
+        h = max(1, y1 - y0)
+        best = None
+        for r in rows:
+            ry0, ry1 = r['y0'], r['y1']
+            ov = min(ry1, y1) - max(ry0, y0)
+            rh = max(1, ry1 - ry0)
+            if ov > 0 and ov / float(min(h, rh)) >= ROW_OVERLAP:
+                best = r
+                break
+        if best is None:
+            rows.append({'y0': y0, 'y1': y1, 'parts': [it]})
+        else:
+            best['parts'].append(it)
+            best['y0'] = min(best['y0'], y0)
+            best['y1'] = max(best['y1'], y1)
+    out = []
+    for r in rows:
+        parts = sorted(r['parts'], key=lambda p: p['bbox'][0])
+        h = max(1, r['y1'] - r['y0'])
+        txt = parts[0]['text']
+        for prev, cur in zip(parts, parts[1:]):
+            gap = cur['bbox'][0] - prev['bbox'][2]
+            txt += (' ' if gap > ROW_JOIN_GAP_EM * h else '') + cur['text']
+        row = {'text': txt,
+               'bbox': [min(p['bbox'][0] for p in parts), r['y0'],
+                        max(p['bbox'][2] for p in parts), r['y1']],
+               'score': round(min(p['score'] for p in parts), 4)}
+        if any(p.get('refill') for p in parts):
+            row['refill'] = True                      # 补裁捞回来的行，别在合并时丢标记
+            row['ink'] = max(p.get('ink') or 0 for p in parts)
+        out.append(row)
+    out.sort(key=lambda l: (l['bbox'][1], l['bbox'][0]))
+    return out
+
+
+def col_width(lines):
+    """列宽 = 行宽 p90（p90 比 max 稳：一条长标题/超出行不该把 85% 判据整体抬高）。"""
+    ws = sorted(l['bbox'][2] - l['bbox'][0] for l in lines)
+    if not ws:
+        return 0
+    return ws[min(len(ws) - 1, int(round(0.9 * (len(ws) - 1))))]
+
+
+def median_gap(lines, hi=80):
+    gs = sorted(b['bbox'][1] - a['bbox'][3] for a, b in zip(lines, lines[1:])
+                if 0 <= b['bbox'][1] - a['bbox'][3] <= hi)
+    if not gs:
+        return 0
+    return gs[len(gs) // 2]
+
+
+def ends_soft(txt):
+    """行尾是不是**软**终止（…/破折号）：句子没写完，下一行继续。"""
+    t = txt.rstrip()
+    return bool(t) and t[-1] in SOFT_TERM
+
+
+def ends_hard(txt):
+    """行尾是不是**硬**终止（。？！）：软终止（…—）满宽时不算句末。"""
+    t = txt.rstrip()
+    return bool(t) and t[-1] in HARD_TERM
+
+
+def refill_gaps(img_path, lines, factor, max_strips, no_cache, timeout):
+    """行距异常处补裁间隙条：把两条之间的空白带 OCR 一遍，捞回被拆掉/漏掉的行。
+
+    实测动机：故事页正文行距均匀，遇到 >1.55× 中位行距的地方要么是段落留白，要么是
+    OCR 漏了一行；补裁一次就能区分（有字 ⇒ 漏了，无字 ⇒ 只是留白）。
+    """
+    if max_strips <= 0 or not img_path:
+        return [], 0
+    from PIL import Image
+    mg = median_gap(lines)
+    if mg <= 0:
+        return [], 0
+    cand = []
+    for a, b in zip(lines, lines[1:]):
+        g = b['bbox'][1] - a['bbox'][3]
+        if GAP_MIN <= g <= GAP_MAX and g > factor * mg:
+            cand.append((g, a, b))
+    if not cand:
+        return [], 0
+    cand.sort(key=lambda x: -x[0])
+    cand = cand[:max_strips]
+    im = Image.open(img_path)
+    found = []
+    for g, a, b in cand:
+        x0 = max(0, min(a['bbox'][0], b['bbox'][0]) - 12)
+        x1 = im.size[0]
+        y0 = max(0, a['bbox'][3] + 1)
+        y1 = min(im.size[1], b['bbox'][1] - 1)
+        if y1 - y0 < GAP_MIN:
+            continue
+        tmp = os.path.join(tempfile.mkdtemp(prefix='ys-text-gap-'), 'gap.png')
+        strip = im.crop((x0, y0, x1, y1))
+        strip.save(tmp)
+        # 空白条不该送 OCR（实测会把噪点读成 "心。" 这类碎片）：先自己量一下墨迹占比
+        import numpy as np
+        g = np.asarray(strip.convert('L'), dtype=np.int16)
+        ink = float((np.abs(g - int(np.median(g))) > 30).mean())
+        if ink < 0.015:
+            shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
+            continue
+        try:
+            d, _ = run_ocr(tmp, no_cache=no_cache, timeout=timeout)
+        except SystemExit:
+            shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
+            continue
+        for l in boxes_to_lines(d.get('boxes'), 0.6):
+            if len(l['text']) < 2:      # 2 字残条也是真内容（实测 "心。"），1 字多半是噪点
+                continue
+            if l['bbox'][0] + x0 < min(a['bbox'][0], b['bbox'][0]) - 24:
+                continue                # 落在正文列之外 ⇒ 不是这段的正文（装饰/立绘文字）
+            if any(l['text'] in o['text'] or o['text'] in l['text'] for o in lines):
+                continue
+            # 间隙条的 OCR 结果坐标系是**条**，必须加回条的左上角才是裁图坐标
+            l['bbox'] = [l['bbox'][0] + x0, l['bbox'][1] + y0,
+                         l['bbox'][2] + x0, l['bbox'][3] + y0]
+            l['refill'] = True
+            l['ink'] = round(ink, 4)
+            found.append(l)
+        shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
+    found.sort(key=lambda l: (l['bbox'][1], l['bbox'][0]))
+    return found, len(cand)
+
+
+def net_ok(host='paddleocr.aistudio-app.com', port=443, timeout=3.0):
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def clean_markdown(md):
+    """过滤 PaddleOCR-VL 的 markdown 噪声：<img ...>、![...](...)、##/### 前缀、表格线。"""
+    out = []
+    for raw in (md or '').splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        if s.startswith('<img') or s.startswith('![') or s.startswith('<table'):
+            continue
+        if set(s) <= set('-|: '):
+            continue
+        s = s.lstrip('#').strip()
+        if not s:
+            continue
+        out.append(s)
+    return ''.join(out)
+
+
+def refine_lines(img_path, lines, max_lines, poll, keep_dir, timeout):
+    """逐行裁条 → PaddleOCR-VL 精读。返回 (refined_map, note, ms)。失败=降级，不抛。"""
+    if not os.path.exists(VL_CLIENT):
+        return {}, 'skip:no_client(%s)' % VL_CLIENT, 0
+    if not net_ok():
+        return {}, 'skip:offline', 0
+    from PIL import Image
+    im = Image.open(img_path)
+    t0 = time.time()
+    outdir = keep_dir or tempfile.mkdtemp(prefix='ys-text-vl-')
+    os.makedirs(outdir, exist_ok=True)
+    strips, idxs = [], []
+    for i, l in enumerate(lines[:max_lines]):
+        x0 = max(0, l['bbox'][0] - 4)
+        y0 = max(0, l['bbox'][1] - 4)
+        x1 = min(im.size[0], l['bbox'][2] + 4)
+        y1 = min(im.size[1], l['bbox'][3] + 4)
+        if x1 - x0 < 8 or y1 - y0 < 8:
+            continue
+        p = os.path.join(outdir, 'line-%03d.png' % i)
+        im.crop((x0, y0, x1, y1)).save(p)
+        strips.append(p)
+        idxs.append(i)
+    if not strips:
+        return {}, 'skip:no_strip', int((time.time() - t0) * 1000)
+    cmd = [sys.executable, VL_CLIENT] + strips + ['-o', outdir, '--poll', str(poll)]
+    try:
+        r = subprocess.run(cmd, env=ys_env.env(), capture_output=True, text=True,
+                           timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        return {}, 'degraded:client_error(%s)' % type(e).__name__, int((time.time() - t0) * 1000)
+    got = {}
+    for i, p in zip(idxs, strips):
+        d = os.path.join(outdir, os.path.splitext(os.path.basename(p))[0])
+        if not os.path.isdir(d):
+            continue
+        chunks = []
+        for name in sorted(os.listdir(d)):
+            if name.startswith('doc_') and name.endswith('.md'):
+                with open(os.path.join(d, name), encoding='utf-8') as f:
+                    chunks.append(clean_markdown(f.read()))
+        txt = ''.join(chunks).strip()
+        if not txt:
+            continue
+        # 精读结果要**不短于本地读数的一半**才采信（云侧偶尔只回一行/回成标题）
+        if len(txt) * 2 < len(lines[i]['text']):
+            continue
+        got[i] = txt
+    ms = int((time.time() - t0) * 1000)
+    note = 'ok:%d/%d' % (len(got), len(strips)) if got else 'degraded:empty(%s)' % (
+        (r.stderr or r.stdout or '')[-160:].replace('\n', ' '))
+    if not keep_dir:
+        shutil.rmtree(outdir, ignore_errors=True)
+    return got, note, ms
+
+
+def assemble(lines, colw, mg, short_ratio, gap_factor, min_para_chars=3):
+    """按段落规则切段，返回 [{text, lines:[i...]}]。
+
+    规范的两条：**满宽 + 行尾硬终止标点 ⇒ 段末**；**短行（< short_ratio × 列宽）⇒ 段末**。
+    两条实测修正（都写在回执 source 里可复算，不是悄悄放宽）：
+      · 满宽行尾的 `…`/`—` 是**句中停顿**（故事页实测 "…倒映出的那个人影…" 下一行继续）⇒ 不算硬终止；
+      · 只有 1~2 个字的短行是**换行残条**（实测 RapidOCR 会把 "心。" 拆成独立一行）⇒ 续段不切；
+      · 行距异常（> gap_factor × 中位行距）**不直接切段**，它只触发「补裁间隙条」——
+        规范里这条是补裁判据，而 OCR 框之间的空白本来就抖（实测 1~8px，1.55× 会误切）。
+    """
+    paras = []
+    cur = []
+    tiny_ok = lambda t: len(t.strip()) < min_para_chars   # noqa: E731
+    for i, l in enumerate(lines):
+        if META_RE.match(l['text'].strip()) and cur:
+            paras.append({'text': ''.join(lines[j]['text'] for j in cur), 'lines': list(cur)})
+            cur = []
+        cur.append(i)
+        if META_RE.match(l['text'].strip()) and not (i + 1 >= len(lines)):
+            paras.append({'text': l['text'], 'lines': [i]})
+            cur = []
+            continue
+        w = l['bbox'][2] - l['bbox'][0]
+        full = colw and w >= short_ratio * colw
+        end = (bool(full) and ends_hard(l['text'])) or (
+            not full and not tiny_ok(l['text']) and not ends_soft(l['text']))
+        if i + 1 >= len(lines) or end:
+            paras.append({'text': ''.join(lines[j]['text'] for j in cur), 'lines': list(cur)})
+            cur = []
+    if cur:
+        paras.append({'text': ''.join(lines[j]['text'] for j in cur), 'lines': list(cur)})
+    return paras
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(add_help=True, prog='ys-text')
+    ap.add_argument('frame')
+    ap.add_argument('--region', nargs='+', default=None,
+                    help='X Y W H（帧坐标）或 "X,Y,W,H"')
+    ap.add_argument('--json-out', default=None)
+    ap.add_argument('--only', choices=['lines', 'paragraphs', 'both'], default='both')
+    ap.add_argument('--text', action='store_true', help='打印段落纯文本')
+    ap.add_argument('--lines', action='store_true', help='--only lines 的简写')
+    ap.add_argument('--min-score', type=float, default=DEFAULT_MIN_SCORE)
+    ap.add_argument('--short-ratio', type=float, default=DEFAULT_SHORT_RATIO)
+    ap.add_argument('--gap-factor', type=float, default=DEFAULT_GAP_FACTOR)
+    ap.add_argument('--min-para-chars', type=int, default=3,
+                    help='短于该字数的行当换行残条（续段）；1 = 严格按规范切')
+    ap.add_argument('--no-row-merge', action='store_true')
+    ap.add_argument('--no-gap-refill', action='store_true')
+    ap.add_argument('--gap-refill-max', type=int, default=2)
+    ap.add_argument('--no-cache', action='store_true')
+    ap.add_argument('--timeout', type=int, default=120)
+    ap.add_argument('--refine', action='store_true')
+    ap.add_argument('--refine-max', type=int, default=40)
+    ap.add_argument('--refine-poll', type=float, default=1.0)
+    ap.add_argument('--refine-keep', default=None)
+    a = ap.parse_args(argv)
+
+    t0 = time.time()
+    if not os.path.exists(a.frame):
+        die('帧不存在：%s' % a.frame, 3)
+    try:
+        from PIL import Image
+        im = Image.open(a.frame)
+        im.load()
+    except Exception as e:  # noqa: BLE001
+        die('帧读不了：%s（%s）' % (a.frame, e), 3)
+
+    region = None
+    work = a.frame
+    tmpdir = None
+    if a.region:
+        parts = a.region
+        if len(parts) == 1:
+            parts = parts[0].replace(',', ' ').split()
+        if len(parts) != 4:
+            die('--region 需要 4 个数（X Y W H）：%r' % (a.region,))
+        try:
+            x, y, w, h = [int(float(v)) for v in parts]
+        except ValueError:
+            die('--region 不是数字：%r' % (a.region,))
+        region = [x, y, w, h]
+        W, H = im.size
+        if x < 0 or y < 0 or w <= 0 or h <= 0 or x + w > W or y + h > H:
+            die('--region 越界：%r（帧 %dx%d）' % (region, W, H))
+        tmpdir = tempfile.mkdtemp(prefix='ys-text-')
+        work = os.path.join(tmpdir, 'region.png')
+        im.crop((x, y, x + w, y + h)).save(work)
+    size = im.size
+
+    d, ocr_ms = run_ocr(work, no_cache=a.no_cache, timeout=a.timeout)
+    lines = boxes_to_lines(d.get('boxes'), a.min_score)
+    if not a.no_row_merge:
+        lines = merge_rows(lines)
+
+    gap_refills = 0
+    if lines and not a.no_gap_refill:
+        extra, n_cand = refill_gaps(work, lines, a.gap_factor, a.gap_refill_max,
+                                    a.no_cache, a.timeout)
+        gap_refills = len(extra)
+        if extra:
+            lines = merge_rows(sorted(lines + extra,
+                                      key=lambda l: (l['bbox'][1], l['bbox'][0])))
+
+    # 裁图坐标 → 帧坐标
+    ox, oy = (region[0], region[1]) if region else (0, 0)
+    if ox or oy:
+        for l in lines:
+            l['bbox'] = [l['bbox'][0] + ox, l['bbox'][1] + oy,
+                         l['bbox'][2] + ox, l['bbox'][3] + oy]
+
+    refined, refine_note, refine_ms = False, 'off(--refine 未给)', 0
+    if a.refine and lines:
+        got, refine_note, refine_ms = refine_lines(work, lines, a.refine_max,
+                                                   a.refine_poll, a.refine_keep, a.timeout)
+        for i, txt in got.items():
+            lines[i]['text_ocr'] = lines[i]['text']
+            lines[i]['text'] = txt
+        refined = bool(got)
+
+    colw = col_width(lines)
+    mg = median_gap(lines)
+    paras = assemble(lines, colw, mg, a.short_ratio, a.gap_factor,
+                     max(1, a.min_para_chars))
+
+    out = {
+        'schema': 'ys-text/1',
+        'frame': {'path': os.path.abspath(a.frame), 'w': size[0], 'h': size[1]},
+        'lines': lines,
+        'paragraphs': paras,
+        'source': {
+            'region': region, 'engine': '%s/%s' % (d.get('engine'), d.get('via')),
+            'ms': int((time.time() - t0) * 1000), 'ocr_ms': ocr_ms,
+            'refine_ms': refine_ms, 'refined': refined, 'refine_note': refine_note,
+            'colw': colw, 'median_gap': mg, 'gap_refills': gap_refills,
+            'lines': len(lines), 'paragraphs': len(paras),
+            'row_merge': not a.no_row_merge,
+        },
+    }
+    if a.only == 'lines':
+        out.pop('paragraphs')
+    elif a.only == 'paragraphs':
+        out.pop('lines')
+    if tmpdir:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+    if a.text:
+        for p in paras:
+            print(p['text'])
+        return 0
+    txt = json.dumps(out, ensure_ascii=False)
+    if a.json_out:
+        with open(a.json_out, 'w', encoding='utf-8') as f:
+            f.write(txt + '\n')
+    print(txt)
+    if a.refine and not refined:
+        return 5
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

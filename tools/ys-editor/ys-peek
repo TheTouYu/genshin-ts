@@ -1,30 +1,100 @@
 #!/bin/bash
-# ys-peek — 把目标窗口**真正抬到最上层**再抓一张真值图，然后自动还原焦点
+# ys-peek — 取一帧真值图，**默认零打扰**：先向常驻抓帧服务要最新帧（不抬窗、不抢焦点）。
 #
-# 为什么要有它（2026-10-17 两次实测踩坑）：
-#   ① `import -silent -window <id>` 在窗口被**遮挡**时返回陈旧 backing store（实测两张抓图 sha 完全相同，
-#      而画面其实已变）；`spectacle` 全屏抓虽是真值，但**试玩全屏下会 core dump**。
-#   ② `ys-gui-slot` 只做 `workspace.activeWindow = t`（**改焦点不改堆叠**）⇒ 窗口仍被压住，
-#      于是「点完抓图看结果」的判断会全部失真（本轮为此在菜单/ESC 上反复误判）。
-#   ⇒ 唯一可靠组合：**ys-kwin-raise 真抬升（带 stackingOrder 回读）→ 窗口内 import → 还原焦点**。
+# 为什么改成这样（2026-10-22 独立模型实测卡点）：
+#   它按旧用法调 `ys-peek`，第一刀就被 `ys-gui-slot` 的凭据闸门挡住（rc=6 NO_GRANT），
+#   被迫自己试出 `ys-capture latest` 才拿到帧。**只读路径不该要屏幕凭据、不该动窗口。**
+#   现在：`ys-capture latest`（守护帧，零打扰）是唯一默认通道；
+#   要抬窗必须**显式** `--allow-raise`（历史理由仍在：窗口被遮挡时 `import -window`
+#   会返回陈旧 backing store，实测两张抓图 sha 相同而画面已变）。
 #
-# 用法: ys-peek [输出.png] [窗口id] [标题子串]
-#   缺省 /tmp/ys-peek.png · 0x01400001 · 原神
-# 产物: <输出.png>（原尺寸）+ <输出>-s.png（1500 宽缩略，供视觉判读）
+# 用法:
+#   ys-peek [输出.png] [窗口id] [标题子串] [--allow-raise] [--json]
+#   ys-peek --out /tmp/x.png --allow-raise        # 显式允许抬窗回退
+#   缺省输出 /tmp/ys-peek.png · 窗口/标题只用于抬窗回退路径
+# 产物: <输出>（原尺寸）+ <输出>-s.png（1500 宽缩略，供视觉判读）
+# 回执: `[ys-peek] path=daemon|raise ...`（daemon 路径带 frame seq/age/crc）
+# 退出码: 0 OK / 3 抓图失败 / 4 只读通道拿不到帧且未允许抬窗 / 2 用法错
 set -u
-OUT="${1:-/tmp/ys-peek.png}"
-WIN="${2:-${YS_WIN:?YS_WIN 未解析，见 ys-env.sh}}"
-TITLE="${3:-原神}"
+OUT="/tmp/ys-peek.png"
+WIN=""
+TITLE="原神"
+ALLOW_RAISE=0
+JSON=0
+POS=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out)        OUT="$2"; shift 2 ;;
+    --window)     WIN="$2"; shift 2 ;;
+    --title)      TITLE="$2"; shift 2 ;;
+    --allow-raise) ALLOW_RAISE=1; shift ;;
+    --json)       JSON=1; shift ;;
+    -h|--help)    sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)           echo "ys-peek: 未知参数 $1" >&2; exit 2 ;;
+    *)            POS=$((POS+1))
+                  [ "$POS" = 1 ] && OUT="$1"
+                  [ "$POS" = 2 ] && WIN="$1"
+                  [ "$POS" = 3 ] && TITLE="$1"
+                  shift ;;
+  esac
+done
 HERE="$(cd "$(dirname "$0")" && pwd)"
 export DISPLAY="${DISPLAY:-:1}"
-YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys-env.sh" ] && . "$YS_HOME/ys-env.sh"
+[ -f "$HERE/ys-env.sh" ] && . "$HERE/ys-env.sh" >/dev/null 2>&1
+mkdir -p "$(dirname "$OUT")" 2>/dev/null
 
+thumb() {  # $1 = 原图；失败不致命
+  local small="${1%.png}-s.png"
+  magick "$1" -resize 1500x "$small" 2>/dev/null || convert "$1" -resize 1500x "$small" 2>/dev/null
+  echo "$small"
+}
+
+emit() {  # $1=path $2=extra-json ; 统一回执出口
+  local small; small=$(thumb "$OUT")
+  if [ "$JSON" = "1" ]; then
+    printf '{"ok":true,"path":"%s","out":"%s","small":"%s","size":"%s",%s}\n' \
+      "$1" "$OUT" "$small" "$(identify -format '%wx%h' "$OUT" 2>/dev/null)" "$2"
+  else
+    echo "[ys-peek] path=$1 $OUT $(identify -format '%wx%h' "$OUT" 2>/dev/null) $2 → $small"
+  fi
+}
+
+# ① 只读通道：常驻服务的最新帧（零打扰）。rc=12 = 守护是 window 模式且帧是后台帧，
+#    这种情况加 --allow-background 只**读目标窗口自己的缓冲**（不抬窗、不动焦点）。
+if [ -x "$HERE/ys-capture" ]; then
+  ERR=$(mktemp)
+  CAP=$("$HERE/ys-capture" latest --out "$OUT" --format png 2>"$ERR")
+  rc=$?
+  BG=0
+  if [ $rc -eq 12 ]; then
+    CAP=$("$HERE/ys-capture" latest --out "$OUT" --format png --allow-background 2>"$ERR")
+    rc=$?
+    BG=1
+  fi
+  if [ $rc -eq 0 ] && [ -s "$OUT" ]; then
+    FR=$(printf '%s' "$CAP" | sed -n 's/.*"frame":{\([^}]*\)}.*/\1/p')
+    rm -f "$ERR"
+    emit daemon "\"background\":$BG,\"frame\":{${FR}}"
+    exit 0
+  fi
+  CAPERR=$(tail -1 "$ERR" 2>/dev/null)
+  rm -f "$ERR"
+else
+  rc=127
+  CAPERR="ys-capture 不存在"
+fi
+
+if [ "$ALLOW_RAISE" != "1" ]; then
+  echo "[ys-peek] 只读通道拿不到帧（ys-capture latest rc=$rc ${CAPERR:-}）" >&2
+  echo "[ys-peek] 只读场景不抬窗/不抢焦点；确需抬窗抓图请显式 --allow-raise" >&2
+  exit 4
+fi
+
+# ② 显式允许的抬窗回退：真抬升（带 stackingOrder 回读）→ 窗口内 import → 还原焦点
+[ -z "$WIN" ] && WIN="${YS_WIN:?YS_WIN 未解析，见 ys-env.sh}"
 RAISE=$("$HERE/ys-kwin-raise" "$TITLE" 2>&1 | tail -1)
-echo "[ys-peek] raise: $RAISE"
-
+echo "[ys-peek] raise: $RAISE" >&2
 "$HERE/ys-gui-slot" "$WIN" 60 bash -c "sleep 0.9; import -silent -window '$WIN' '$OUT'" >/dev/null 2>&1
 rc=$?
 if [ ! -s "$OUT" ]; then echo "[ys-peek] 抓图失败（rc=$rc）" >&2; exit 3; fi
-SMALL="${OUT%.png}-s.png"
-magick "$OUT" -resize 1500x "$SMALL" 2>/dev/null || convert "$OUT" -resize 1500x "$SMALL" 2>/dev/null
-echo "[ys-peek] $OUT $(identify -format '%wx%h' "$OUT" 2>/dev/null) → $SMALL"
+emit raise "\"raise\":\"$(printf '%s' "$RAISE" | sed 's/"/\\"/g')\""
