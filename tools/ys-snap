@@ -31,6 +31,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "ys-editor"))
 import ys_env  # noqa: E402
+import ys_win  # noqa: E402
 
 CAP_MODULE = os.path.join(HERE, "ys-editor", "ys_capture.py")
 INBOX_DEFAULT = ".scratch/gui-corpus/inbox"
@@ -247,40 +248,17 @@ class Snap:
         return s
 
     def _resolve_x11_id(self, win):
-        """从 class 反查 X11 窗口 id（按面积取最大）。
+        """从 class 反查 X11 窗口 id（唯一实现：ys_win.resolve_class，判据=面积最大）。
 
         为什么需要：`list_windows_kwin()` 走 ys-wins，**不带 id**（它的输出没有这一列），
         于是 XShm 快路径每次都 KeyError 落到 KWin 慢路径——这正是"说好快路径却 4.8s"的第三层原因。
-        判据与 ys-win-id 一致：同一 class 常有主窗 + 1×1 幽灵窗 + 窄面板，取面积最大的那个。
         """
         if win.get("id"):
             return win["id"]
-        key = (win.get("class") or "").split()[0].lower()
-        if key.endswith(".exe"):
-            key = key[:-4]
-        if not key:
-            return None
-        try:
-            ids = subprocess.run(["xdotool", "search", "--class", key],
-                                 capture_output=True, text=True, timeout=10).stdout.split()
-        except Exception:  # noqa: BLE001
-            return None
-        best, best_area = None, 0
-        for i in ids:
-            try:
-                g = subprocess.run(["xdotool", "getwindowgeometry", i],
-                                   capture_output=True, text=True, timeout=5).stdout
-                m = re.search(r"Geometry:\s*(\d+)x(\d+)", g)
-                if not m:
-                    continue
-                area = int(m.group(1)) * int(m.group(2))
-                if area > best_area:
-                    best, best_area = "0x%x" % int(i), area
-            except Exception:  # noqa: BLE001
-                continue
+        best = ys_win.resolve_class(win.get("class") or "")
         if best:
             win["id"] = best          # 回填，落盘记录里就能看到真正抓到的是哪个窗口
-        return best
+        return best or None
 
     def _grab_union(self, win):
         """把同一 class 的**多个 X 窗口按屏幕位置拼成一张整图**。

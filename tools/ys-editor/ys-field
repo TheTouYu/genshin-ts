@@ -20,26 +20,20 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_win  # noqa: E402
 REPO = os.path.dirname(os.path.dirname(HERE))
 _WIN = None
 
 
 def win():
-    """当前编辑器窗口 id。窗口 id 每次重开游戏都会变（0x1800001 → 0x1200001 实测），
-    统一向 ys-win-id 要；解析不到才回退旧值并打一行警告（回退值很可能已失效）。"""
+    """当前窗口 id（唯一实现 ys_win.resolve；解析不到返回空并提示，不回退过期 id）。"""
     global _WIN
     if _WIN is None:
-        _WIN = os.environ.get("YS_OPS_WIN") or ""
+        _WIN = os.environ.get("YS_OPS_WIN") or ys_win.resolve(prefer_sandbox=True)
         if not _WIN:
-            try:
-                r = subprocess.run([os.path.join(HERE, "ys-win-id")],
-                                   capture_output=True, text=True, timeout=20)
-                _WIN = (r.stdout or "").strip()
-            except Exception:
-                _WIN = ""
-        if not _WIN:
-            _WIN = "0x1800001"
-            print("[warn] 解析不到编辑器窗口，回退 0x1800001（可能已失效）", file=sys.stderr)
+            print("[warn] 解析不到窗口 id（先 source tools/ys-editor/ys-env.sh 或打开千星）",
+                  file=sys.stderr)
     return _WIN
 WS = os.path.join(REPO, ".scratch/gui-service/worldsvc.py")
 OPS = os.path.join(HERE, "ys-ops")

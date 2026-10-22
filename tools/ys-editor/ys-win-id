@@ -1,10 +1,13 @@
 #!/bin/bash
 # ys-win-id —— 打印当前千星编辑器窗口 id（16 进制），2026-10-20 建
 #
-# 为什么必须有它：**窗口 id 每次重开游戏都会变**（实测 0x1800001 → 0x1200001），
+# 为什么必须有它：**窗口 id 每次重开游戏/换会话都会变**（实测 0x1800001 → 0x1200001），
 # 而类名搜索会同时命中主窗 + 两个 1×1 幽灵窗（Default IME 等）。
-# 2026-10-20 审计又发现：本脚本自己写的 XAUTHORITY 是**一次会话的随机文件名**
-# （xauth_oypYEi），重启后失效 ⇒ 必须走 ys-env.sh 的环境发现，别再写死。
+# 2026-10-20 审计又发现：本脚本自己写的 XAUTHORITY 是**一次会话的随机文件名**，
+# 重启后失效 ⇒ 必须走 ys-env.sh 的环境发现，别再写死。
+# 2026-10-22 第三轮：**解析实现归口到 ys_win.py**（唯一实现）。本脚本只做两件事：
+#   ① source ys-env.sh 拿到 WIN_SANDBOX/XAUTHORITY；② exec 唯一实现。
+#   这样 CLI 契约（十六进制 / --dec / 失败 rc=3）不变，而解析口径只剩一处。
 #
 # 取窗口的优先级：ys-env.sh 解析出的 WIN_SANDBOX（按标题「千星沙箱」）→ 按类名面积最大。
 # 用法：ys-win-id            → 0x1200001
@@ -12,20 +15,4 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$HERE/ys-env.sh" ]; then . "$HERE/ys-env.sh" >/dev/null 2>&1 || true; fi
-export DISPLAY="${DISPLAY:-:1}"
-best=""
-if [ -n "${WIN_SANDBOX:-}" ] && xdotool getwindowgeometry "$WIN_SANDBOX" >/dev/null 2>&1; then
-  best="$WIN_SANDBOX"
-fi
-if [ -z "$best" ]; then
-  bestarea=0
-  for w in $(xdotool search --class yuanshen 2>/dev/null); do
-    geom=$(xdotool getwindowgeometry "$w" 2>/dev/null | grep Geometry | awk '{print $2}')
-    wh=${geom#*x}; wi=${geom%x*}
-    [ -z "$wi" ] && continue
-    area=$((wi * wh))
-    if [ "$area" -gt "$bestarea" ]; then bestarea=$area; best="$w"; fi
-  done
-fi
-[ -z "$best" ] && { echo "no sandbox window" >&2; exit 3; }
-if [ "${1:-}" = "--dec" ]; then echo "$best"; else printf '0x%x\n' "$best"; fi
+exec python3 "$HERE/ys_win.py" "$@"

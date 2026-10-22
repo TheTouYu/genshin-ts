@@ -10,39 +10,16 @@
 import sys, os, subprocess
 import numpy as np
 
-def _resolve_win(default=""):                      # 默认不再写死 id：解析失败返回空，由调用方 fail-closed
-    """按类名解析游戏窗口 id，**取面积最大的那个**。
+def _resolve_win(default=""):
+    """按类名解析游戏窗口 id，**取面积最大的那个**（唯一实现：ys_win.py）。
 
     两个实测坑（2026-10-19 重启后）：
       ① 窗口 id 会变（0x01400001 → 0x1800001），硬编码必然失效；
       ② `xdotool search --class yuanshen` 返回 3 个 id：原神主窗 2561×1440 + `Default IME`(1×1)
          + 一个 1×1 隐藏窗。取最后一个 ⇒ 抓到 1×1 ⇒ 空图 ⇒ 卡死。
     """
-    best, best_area = None, -1
-    for cls in ("yuanshen", "yuanshen.exe"):
-        try:
-            r = subprocess.run(["xdotool", "search", "--class", cls],
-                               capture_output=True, text=True, timeout=3)
-            ids = [x for x in (r.stdout or "").split() if x.strip()]
-        except Exception:                                # noqa: BLE001
-            continue
-        for wid in ids:
-            try:
-                g = subprocess.run(["xdotool", "getwindowgeometry", "--shell", wid],
-                                   capture_output=True, text=True, timeout=2).stdout
-                w = h = 0
-                for ln in g.splitlines():
-                    if ln.startswith("WIDTH="):
-                        w = int(ln.split("=")[1])
-                    elif ln.startswith("HEIGHT="):
-                        h = int(ln.split("=")[1])
-                if w * h > best_area:
-                    best, best_area = wid, w * h
-            except Exception:                            # noqa: BLE001
-                continue
-        if best:
-            return hex(int(best))
-    return default
+    import ys_win
+    return ys_win.resolve(prefer_sandbox=False) or default
 
 
 WIN = os.environ.get("YS_WIN") or _resolve_win()

@@ -23,8 +23,10 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_win  # noqa: E402
 REPO = os.path.dirname(os.path.dirname(HERE))
-WIN = os.environ.get("YS_OPS_WIN", "0x1800001")
+WIN = os.environ.get("YS_OPS_WIN") or ys_win.resolve(prefer_sandbox=True)   # 唯一入口
 LEDGER = os.path.join(REPO, ".scratch/gui-stack/rows-classified.tsv")
 PANEL_RIGHT = 1900
 NAV_X = 750

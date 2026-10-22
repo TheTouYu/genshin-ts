@@ -8,7 +8,7 @@ After=graphical-session.target
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-Environment=YS_LOOKD_SOCK=/run/user/1000/ys-lookd.sock
+Environment=YS_LOOKD_SOCK=/run/user/%U/ys-lookd.sock
 ExecStart=/bin/bash -c '. /home/h/genshin-ts/tools/ys-editor/ys-env.sh >/dev/null 2>&1; exec /usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_lookd.py'
 Restart=on-failure
 RestartSec=3

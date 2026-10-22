@@ -79,7 +79,7 @@ lease_hold_active() {
 }
 
 plan_mode() {   # $1 = 窗口 id（可省略；沿用 tests/ 里既有的默认 0x1600001）
-  local win_raw="${1:-${YS_WIN_TEST:-0x1600001}}" win_dec win_hex
+  local win_raw="${1:-${YS_WIN_TEST:-}}" win_dec win_hex
   case "$win_raw" in
     0x*|0X*) win_hex="$win_raw"; win_dec=$(printf '%d' "$win_raw" 2>/dev/null || echo 0) ;;
     ''|*[!0-9]*) win_dec=0; win_hex="" ;;          # 非法 id：不猜，按「解析不到目标」处理
@@ -199,7 +199,7 @@ print(json.dumps({'ok': False, 'error': 'TARGET_UNRESOLVED',
                   'why': '看当前 KWin 真实窗口表（id 随游戏重启而变）'},
                  {'step': 2, 'tool': 'tools/ys-editor/ys-capture', 'args': ['status'],
                   'why': '确认抓帧守护认到的窗口 id'}],
- 'hint': '用 caption/class 解析窗口，别硬编码 0x1600001。'}, ensure_ascii=False))
+ 'hint': '用 caption/class 解析窗口，别硬编码窗口 id。'}, ensure_ascii=False))
 " >&2 || true
   exit 3
 fi

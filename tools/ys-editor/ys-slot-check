@@ -405,7 +405,7 @@ def _clipboard_verdicts(cmd, ctx):
              % (ctx["domain"], ctx["disp"]),
              "① 先 `. tools/ys-editor/ys-env.sh` 补 DISPLAY/XAUTHORITY；"
              "② 要粘进游戏窗必须进槽："
-             "`./tools/ys-editor/ys-gui-slot 0x01400001 15 bash -c '( printf 文本 | xclip "
+             "`./tools/ys-editor/ys-gui-slot <win> 15 bash -c '( printf 文本 | xclip "
              "-selection clipboard >/dev/null 2>&1 & ); xdotool key ctrl+v'`")]
 
 

@@ -403,9 +403,9 @@ def strict_attrib(display, win_hex, want_class=DEFAULT_CLASS, timeout=25):
     here = os.path.dirname(os.path.abspath(__file__))
     env = {**os.environ, 'DISPLAY': display, 'YS_WIN': win_hex,
            'YS_WIN_CLASS': want_class,
-           'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/1000'),
+           'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/%d' % os.getuid()),
            'DBUS_SESSION_BUS_ADDRESS': os.environ.get(
-               'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus')}
+               'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/%d/bus' % os.getuid())}
     try:
         p = subprocess.run([os.path.join(here, 'ys-atop'), '--json', '--verify'],
                            capture_output=True, text=True, timeout=timeout, env=env)
@@ -447,9 +447,9 @@ for (var i = 0; i < ord.length; i++) {{
   }}
 }}
 """
-    env = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/1000'),
+    env = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/%d' % os.getuid()),
            'DBUS_SESSION_BUS_ADDRESS': os.environ.get(
-               'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus')}
+               'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/%d/bus' % os.getuid())}
     try:
         with open(js_path, 'w') as f:
             f.write(js)
@@ -716,41 +716,18 @@ class Daemon:
 
     # ---- 窗口发现（--win auto 或 id 失效时按 WM_CLASS 找）
     def discover_window(self):
-        """按 WM_CLASS 找目标窗，**取面积最大的那个**。
+        """按 WM_CLASS 找目标窗，**取面积最大的那个**（唯一实现：ys_win.resolve_class）。
 
         2026-10-21 修（F-20261021-CAPTURE-WIN）：原实现**返回第一个命中的 id**，
         实测拿到 0x1600003（同 class 的子窗口），对它 XShmGetImage 直接 `xerr=8`(BadMatch)
-        ⇒ 守护进程活着但一帧写不出、state.tsv 永不更新，外部只看得到 DAEMON_DOWN。
-        与 `ys_look._resolve_win` 是同一个坑（文档里写着「取最后一个 ⇒ 抓到 1×1」），
-        两边口径统一为「面积最大」。
+        ⇒ 守护进程活着但一帧写不出。判据统一为「面积最大」，且只保留 ys_win 一份实现
+        （此前这里用 Xlib 遍历、ys_look/ys-win-id 用 xdotool，三份口径各自维护）。
         """
         if self.win and self.win.lower() != 'auto':
             return self.win
-        best, best_area = None, -1
-        try:
-            from Xlib import display as xd, X
-            d = xd.Display(self.args.display)
-            want = self.want_class.lower()
-            stack = [d.screen().root]
-            while stack:
-                w = stack.pop()
-                try:
-                    cls = w.get_full_property(d.intern_atom('WM_CLASS'), X.AnyPropertyType)
-                    val = ''
-                    if cls is not None:
-                        v = cls.value
-                        val = (v.decode('latin-1', 'ignore') if isinstance(v, (bytes, bytearray))
-                               else str(v))
-                    if want in val.lower().replace('\x00', ' '):
-                        g = w.get_geometry()
-                        area = int(g.width) * int(g.height)
-                        if area > best_area:
-                            best, best_area = hex(int(w.id)), area
-                    stack.extend(w.query_tree().children)
-                except Exception:                             # noqa: BLE001
-                    continue
-        except Exception:                                     # noqa: BLE001
-            pass
+        import ys_win
+        best = ys_win.resolve_class(getattr(self, 'want_class', '') or '')
+        self.win = best or None
         return best
 
     def grabber_alive(self):
