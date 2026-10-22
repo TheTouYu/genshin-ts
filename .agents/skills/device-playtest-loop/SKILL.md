@@ -771,3 +771,7 @@ tools/ys-editor/ys-text /tmp/panel.png --region 1100 170 1420 1270 --json
 - `ys-gui-slot` 会 `export YS_SLOT_ACTIVE=1`，子工具（`ys-scroll`/`ys-pointer-click`/`ys-key`）自动继承，**不需要在脚本里手动开槽**。
 - 窗口 id 只有一处实现：`ys_win.resolve()`（python）/ `"$(ys-win-id)"`（bash）。**不要写死任何 `0x…`**，解析不到就失败退出。
 - `ys-screen --json` 里 **顶层 `text[]` 每条带 bbox**；`containers[].text` 是另一种形状（容器内的文本归属）。要坐标就取顶层 `text[]` 或 `ys-find`。
+
+## 纯文本模型（2026-10-23 实测）
+独立模型/子代理**看不了图**：`read *.png` 只回 "Current model does not support images"。
+看屏幕走 `ys-screen`（结构+坐标，字段 `{id,text,cx,cy,bbox,w,h,score,kind}`）或 `ys-text`（行文本+段落）。

@@ -62,6 +62,22 @@ python3 .scratch/gui-service/worldsvc.py cache --clear      # 帧级缓存
 req = {"cmd": "world", "ocr": True, "objects": True, "cache": False, "structure": True}
 ```
 
+## 1.5 纯文本模型看不了图（2026-10-23 实测，独立模型第一件事就撞上）
+**本机跑的独立模型/子代理是纯文本的**：`read` 一张 png 的返回是
+`[Current model does not support images. The image will be omitted]` —— 它看不到任何像素。
+所以"看屏幕"只有两条路：**`ys-screen`（结构+坐标）** 与 **`ys-text`（行文本+段落）**，
+永远不要 `read` 图片当眼睛（白费一次调用，且会误导后续判断）。
+
+### 字段名（照抄，别猜；`ys-screen --json` 的 `text[]` 是这套）
+```text
+text[]     {id, text, cx, cy, bbox:[x0,y0,x1,y1], w, h, score, kind}
+           ※ 没有 x / y；中心用 cx / cy，左上角从 bbox 取。kind=title|content|action|data|hud|other
+controls[] {bbox, cx, cy, w, h, shape, confidence, label, evidence}
+containers[]{role, bbox, text:[str], text_boxes:[{text,bbox,...}], skin, glyphs, badges, clipped}
+free_text  [str]（无归属文字）；title = {text,cx,cy,bbox,region,why}
+```
+（2026-10-23 实测：独立模型按 `t['x']` 写解析器 ⇒ `KeyError: 'x'`，随后花了 2 次调用自省 schema。）
+
 ## 2. 回执怎么读
 
 | 字段 | 真实形状（2026-10-21 干净房间核验实测） | 纪律 |
