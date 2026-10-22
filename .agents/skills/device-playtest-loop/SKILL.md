@@ -717,3 +717,47 @@ tools/ys-editor/ys-sample list
 - **交还目标是用户真实的前台窗**（在 kitty 里发起就回 kitty）。只有它像瞬时窗（空类名 / `tk`、`xmessage`、`plasmashell` / 最小化 / <300×200 / 无标题且非终端）才回退 firefox。旧实现无条件"优先 firefox"，会把人从他自己的终端踢到浏览器。
 - **环境解析只能有一个入口**：bash 用 `. tools/ys-editor/ys-env.sh`，python 用 `ys_env.env()`。`DISPLAY` 空串与 `XAUTHORITY` 缺失都会让注入**静默失败**——回执只写 `injected:false` 是最坑的形态；失败必须把 stderr 原因打出来。
 - **判"动没动"要先量环境噪声**：本机原神画面**无动作两帧也差 1.1%–6.5%**（FPS HUD/粒子/加载）。`ys-scroll` 现在先抓一张安静基线，判据是"during 比基线高 ≥0.8 个百分点"，并输出三态 `moved / moved_then_bounced / no_move`；**回弹列表**（条目少、松手弹回）只能判成 `moved_then_bounced`，别当"不能滚"。
+
+## 采集类任务配方（2026-10-22 按一次真实 pi 任务的卡点重写）
+
+一个独立模型在同仓做「原神角色故事页文本采集」，45 次工具调用里有 4 次在 grep 源码、2 次自写重建脚本、1 次用错滚动通道。照这个配方走可省掉那些绕路。
+
+**第 1 步 只读看界面（不抬窗、不申请）**
+```bash
+. tools/ys-editor/ys-env.sh
+tools/ys-editor/ys-capture latest --out /tmp/f.png --format png   # 常驻帧，零打扰
+tools/ys-screen /tmp/f.png --json > /tmp/s.json                   # 结构+文本+控件+容器
+```
+先看 `screen.containers`（哪些面板/列表/按钮）与 `text[]`（每条带 bbox），再决定要动哪些——**别一上来就抬窗**。
+
+**第 2 步 拿坐标**：`tools/ys-find --frame /tmp/f.png --text 角色故事1`。一次问一个标签，别用循环把整页标签问一遍（每次都会重跑 OCR）。
+
+**第 3 步 申请 + 单槽执行**
+```bash
+tools/ys-editor/ys-screen-grant grant --task <id> --eta 300 --reason '<做什么>' --user-said '<用户原话>'
+tools/ys-editor/ys-gui-slot <win> 300 bash /tmp/collect.sh        # 槽内 YS_SLOT_ACTIVE 自动传导给子工具
+tools/ys-editor/ys-screen-grant revoke                            # 交还到**授权时记录的用户窗**
+```
+
+**第 4 步 槽内三件套（这三条是那次任务的真实卡点）**
+
+| 要做的事 | 用它 | **不要**用 | 为什么 |
+|---|---|---|---|
+| 滚动列表 | `ys-scroll --dir down --amount N` | 裸 `xdotool click 4/5` | 裸滚**没有位移判据**；实测被"文本入场动画"骗过 3 轮，帧差显示变了、文本逐字相同 |
+| 等界面稳定 | `ys-wait --settled` | `sleep 1.3` / `sleep 0.55` | 固定 sleep 既可能早（抓到动画中段帧）也可能晚（白等） |
+| 抓帧 | `ys-capture latest` | `ys-peek`（会抬窗）/ `spectacle` | 后者要凭据且扰民；前者是 daemon 常驻帧 |
+
+滚动三态读数：`moved` / `moved_then_bounced`（回弹列表）/ `no_move`；`moved_px < 3` 就是没滚动，**别拿帧差当判据**。
+
+**第 5 步 离线结构化**
+```bash
+tools/ys-editor/ys-text /tmp/panel.png --region 1100 170 1420 1270 --json
+```
+它把「行框 → 逐行精读 → 段落重建」一次做完。**不要自己写 stitch 脚本**：那次任务里模型手搓了两版（第一版字符流错切失败），而这本来就是工具该提供的单点能力。
+
+## 注入与窗口速查（省掉 grep 源码）
+
+- 槽内滚轮 = `xdotool click 4/5`；指针 = `ydotool mousemove`（相对）+ `ydotool click 0x40/0x80`。**裸调 `ydotool` 会被 `tools/ys-editor/shims/` 拦下**，必须经 `ys-gui-slot` / `ys-act`。
+- `ys-gui-slot` 会 `export YS_SLOT_ACTIVE=1`，子工具（`ys-scroll`/`ys-pointer-click`/`ys-key`）自动继承，**不需要在脚本里手动开槽**。
+- 窗口 id 只有一处实现：`ys_win.resolve()`（python）/ `"$(ys-win-id)"`（bash）。**不要写死任何 `0x…`**，解析不到就失败退出。
+- `ys-screen --json` 里 **顶层 `text[]` 每条带 bbox**；`containers[].text` 是另一种形状（容器内的文本归属）。要坐标就取顶层 `text[]` 或 `ys-find`。
