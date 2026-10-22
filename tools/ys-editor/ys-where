@@ -21,7 +21,7 @@ YS_HOME="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"; [ -f "$YS_HOME/ys
 TPL="$HERE/templates/mymap-title.png"
 SHOT=/tmp/ys-where.png
 
-"$HERE/ys-peek" "$SHOT" >/dev/null 2>&1
+"$HERE/ys-peek" "$SHOT" --allow-raise >/dev/null 2>&1   # 2026-10-23：ys-peek 已默认零打扰；本工具需要在 daemon 不在时也能抓图，显式抬窗
 LINE=$(timeout 60 python3 "$HERE/ys_look.py" find "$TPL" 0 0 2560 1440 2>/dev/null | tail -1)
 X=$(echo "$LINE" | awk '{print $1}')
 SC=$(echo "$LINE" | awk '{print $3}')
