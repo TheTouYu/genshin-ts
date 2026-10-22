@@ -791,6 +791,14 @@ tools/ys-editor/ys-text /tmp/panel.png --region 1100 170 1420 1270 --json
   这段时间里 `src`/`crc` 不变、`age_ms` 却只有 8–83ms ⇒ **`age_ms` 小不等于内容新**，
   旧口径「小 age ⇒ 内容真的没变」只对**看得见**的窗口成立。现在守护会自动切合成器通道（回执 `channel` 可见）。
 ⇒ 等待一律用 `--min-content-id` 或轮询 `content.id`；**别再拿 `src` 路径当"有没有新帧"的判据**。
+
+**两条补充判据（2026-10-23 实测，别只盯 `content.id`）**
+- **写帧心跳**：`content.id` 不动有两种含义——内容真的静止（正常，`content.static_ms` 会涨），
+  或 **daemon 没在出帧**。实测出现过一段 `frame.seq` 恒 119、`frames_written` 恒 67（fps=10 ⇒ 期望 100ms/帧）、
+  `age_ms` 8→112 线性涨的窗口 ⇒ 那段时间"帧很新"是假象。
+  判据：**`frame.seq` 较上次前进 ∨ `frames_written` 有增量 ∨ `age_ms ≤ 1.5×帧周期`**（10fps ⇒ 150ms）。
+- **`status.seq` ≠ `latest.frame.seq`**：前者读 `state.json`、后者读 `state.tsv`，同一时刻实测差 **3–9 帧（约 0.9s）**。
+  判"守护在出新帧"只认 `latest.frame.seq` 或 `frames_written`，**别用 `status.seq`**。
 ⚠ 历史误判：「面板两段式动画（+0.24s 淡出 / +2.06s 落定）⇒ 每条固定等 2.2s」——那 2.2s 是
 **通道滞后税**，不是动画（`.03` 的 3.6s 等待、`.04` 的 2.2s 固定等待都是这条的代价）。
 **采集循环（门控式，实测 0.37–0.68s/条，含标题 OCR）**：
