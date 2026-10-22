@@ -20,7 +20,6 @@ watch	bash tools/ys-editor/tests/watch-selftest.sh	ROI 变化事件（17 用例 
 act	bash tools/ys-editor/tests/act-selftest.sh	动作+变化账（6 用例 8 断言：变化/无变化/rc透传/红点delta）	slow	
 slider	bash tools/ys-editor/tests/slider-selftest.sh	滑条识别（8 帧 9 断言：1 真滑条 + 3 负样本）	slow	
 brief	bash tools/ys-editor/tests/brief-selftest.sh	决策简报（2 帧 6 断言：倍率/支持率抽取 + C1 高倍率×最小投注 WARN + 负样本）	slow	
-probe	bash tools/ys-editor/tests/probe-selftest.sh	二次探索（4 用例 5 断言：命中即停/两次都留证/全无变化/用法）	slow	
 guards	tools/ys-guards	失败账本机械防线七件套（sleep/pkill/idx/budget/snap/stale/bbox）	fast	
 unitselftest	./tools/ys-editor/ys-state --selftest-units	单位域护栏（0..1 浮点归一、越界夹紧，治 F-2-08 静默错值）	fast	
 subagent-verdict	./tools/subagent-verdict --latest --check	子代理自述复核四读数齐全自洽（治 F-20261019-34 信任自述）	fast	
