@@ -24,7 +24,9 @@
     "蒙德「四风守护」中" 在同一 y 带，中间 32px 空隙）→ 按 y 重叠 ≥60% 合并、按 x 排序拼接。
   --no-gap-refill：关掉「行距异常 > gap-factor × 中位行距 ⇒ 补裁间隙条再 OCR」这一条。
   --refine：字符精读（PaddleOCR-VL 云端，逐行裁条）。**联网失败/未装依赖自动降级**成
-    仅本地 OCR，回执 `refined:false` + `refine_note`。默认关闭（零网络、可复算）。
+    仅本地 OCR，回执 `refined:false` + `refine_note`（`skip:offline` / `degraded:...`）。
+    默认关闭（零网络、可复算）。**成本实测：单条裁条 ~22s**（云端排队+轮询）⇒ `--refine-max`
+    是硬上限（缺省 40），全帧精读宜放后台或只对小区间用；`--refine-keep DIR` 可留存裁条与 doc_N.md。
 
 段落规则（判据写死，便于事后复算）
   1. 列宽 colw = 行宽 p90；满宽 = 行宽 ≥ short-ratio(0.85) × colw。
@@ -446,13 +448,8 @@ def main(argv):
             lines = merge_rows(sorted(lines + extra,
                                       key=lambda l: (l['bbox'][1], l['bbox'][0])))
 
-    # 裁图坐标 → 帧坐标
-    ox, oy = (region[0], region[1]) if region else (0, 0)
-    if ox or oy:
-        for l in lines:
-            l['bbox'] = [l['bbox'][0] + ox, l['bbox'][1] + oy,
-                         l['bbox'][2] + ox, l['bbox'][3] + oy]
-
+    # 精读必须在**加回帧偏移之前**做：refine_lines 裁的是裁图（work），坐标口径是裁图坐标。
+    # （2026-10-22 实测 bug：先加偏移后精读 ⇒ --region 下每条裁条都越界，回执只显 skip:no_strip）
     refined, refine_note, refine_ms = False, 'off(--refine 未给)', 0
     if a.refine and lines:
         got, refine_note, refine_ms = refine_lines(work, lines, a.refine_max,
@@ -461,6 +458,13 @@ def main(argv):
             lines[i]['text_ocr'] = lines[i]['text']
             lines[i]['text'] = txt
         refined = bool(got)
+
+    # 裁图坐标 → 帧坐标
+    ox, oy = (region[0], region[1]) if region else (0, 0)
+    if ox or oy:
+        for l in lines:
+            l['bbox'] = [l['bbox'][0] + ox, l['bbox'][1] + oy,
+                         l['bbox'][2] + ox, l['bbox'][3] + oy]
 
     colw = col_width(lines)
     mg = median_gap(lines)
