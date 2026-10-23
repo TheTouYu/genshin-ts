@@ -11,8 +11,11 @@ import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
+  mountScriptInPayload,
+  parseScriptMounts,
   parseScriptRegistry,
   registerScriptInPayload,
+  unmountScriptInPayload,
   updateScriptInPayload,
   SCRIPT_PATH_PREFIX,
   type ScriptRegistryEntry
@@ -29,6 +32,8 @@ type Args = {
   source?: string
   sourceFile?: string
   guid?: number
+  host?: number
+  script?: number
   output?: string
   write?: boolean
   format?: string
@@ -36,10 +41,13 @@ type Args = {
 }
 
 const USAGE = [
-  'usage: gsts assets:scripts <list|register|update> [options]',
+  'usage: gsts assets:scripts <list|register|update|mounts|mount|unmount> [options]',
   '  list     列出地图的脚本登记表（f50）与外部文件状态',
   '  register 登记一条 lua 脚本（f50 条目 + external_lua_file 提取 + Temp 同步）',
   '  update   更新已登记脚本的源码（f5 替换 + external_lua_file 同步 + Temp 同步）',
+  '  mounts   列出脚本挂载（host 控件 guid/name ↔ script guid）',
+  '  mount    把已登记脚本挂到 host 控件的挂载槽（f74，11B 挂载条目）',
+  '  unmount  从 host 控件解挂指定脚本',
   '',
   '  --gil <file>        显式指定 .gil（缺省用 --map-id / 项目配置 inject.mapId 定位）',
   '  --map-id <id>       地图槽 ID（如 1073741829）',
@@ -48,6 +56,8 @@ const USAGE = [
   '  --source <code>     脚本源码（与 --source-file 二选一）',
   '  --source-file <f>   从文件读源码',
   '  --guid <id>         显式登记 guid（缺省自动分配）；update 按 guid 定位',
+  '  --host <guid>       mount/unmount 的宿主控件 guid（f9 树节点）',
+  '  --script <guid>     mount/unmount 的脚本 guid（须已在 f50 登记）',
   '  --output <file>     只写候选文件，不覆盖源',
   '  --write             备份后写回源 .gil 并同步 Temp',
   '  --format <format>   text 或 json (list/register/update 摘要)'
@@ -84,6 +94,12 @@ function parseArgs(argv: readonly string[]): Args {
         break
       case '--guid':
         args.guid = Number(next())
+        break
+      case '--host':
+        args.host = Number(next())
+        break
+      case '--script':
+        args.script = Number(next())
         break
       case '--output':
         args.output = next()
@@ -182,7 +198,8 @@ async function execute(argv: readonly string[], projectConfig?: GstsConfig): Pro
   const log = (message: string): void => {
     if (!jsonMode) console.log(message)
   }
-  if (args.command !== 'list' && args.command !== 'register' && args.command !== 'update') {
+  const knownCommands = ['list', 'register', 'update', 'mounts', 'mount', 'unmount'] as const
+  if (!knownCommands.includes(args.command as (typeof knownCommands)[number])) {
     console.log(USAGE.join('\n'))
     if (!args.command) return
     throw new Error(`[error] unknown command: ${args.command}`)
@@ -190,6 +207,99 @@ async function execute(argv: readonly string[], projectConfig?: GstsConfig): Pro
   const gilPath = resolveGilPath(args, projectConfig)
   const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
   const payload = sourceBytes.slice(20, sourceBytes.length - 4)
+
+  if (args.command === 'mounts') {
+    const mounts = parseScriptMounts(payload)
+    const registry = parseScriptRegistry(payload)
+    const nameOf = new Map(registry.map((entry) => [entry.guid, entry.name]))
+    const summary = {
+      schemaVersion: 1,
+      kind: 'gsts.assets-scripts-mounts',
+      gilPath,
+      count: mounts.length,
+      mounts: mounts.map((mount) => ({
+        hostGuid: mount.hostGuid,
+        hostName: mount.hostName,
+        scriptGuid: mount.scriptGuid,
+        scriptName: nameOf.get(mount.scriptGuid) ?? null
+      }))
+    }
+    log(`gil=${gilPath}`)
+    log(`mounts=${mounts.length}`)
+    for (const mount of mounts) {
+      log(
+        `  host=${mount.hostGuid}${mount.hostName === null ? '' : ` (${mount.hostName})`}` +
+          ` script=${mount.scriptGuid}${nameOf.has(mount.scriptGuid) ? ` (${nameOf.get(mount.scriptGuid)})` : ''}`
+      )
+    }
+    if (jsonMode) process.stdout.write(stableJson(summary))
+    return
+  }
+
+  if (args.command === 'mount' || args.command === 'unmount') {
+    if (args.host === undefined) throw new Error(`[error] ${args.command} requires --host <guid>`)
+    if (args.script === undefined) throw new Error(`[error] ${args.command} requires --script <guid>`)
+    const result =
+      args.command === 'mount'
+        ? mountScriptInPayload(payload, { hostGuid: args.host, scriptGuid: args.script })
+        : unmountScriptInPayload(payload, { hostGuid: args.host, scriptGuid: args.script })
+    const candidate = buildFile(result.payload, {
+      schema: readUint32BE(sourceBytes, 4),
+      headTag: readUint32BE(sourceBytes, 8),
+      fileType: readUint32BE(sourceBytes, 12),
+      tailTag: readUint32BE(sourceBytes, sourceBytes.length - 4)
+    })
+    const summary: Record<string, unknown> = {
+      schemaVersion: 1,
+      kind: `gsts.assets-scripts-${args.command}`,
+      gilPath,
+      hostGuid: args.host,
+      scriptGuid: args.script,
+      sourceSha256: sha256(sourceBytes),
+      candidateSha256: sha256(candidate),
+      candidateBytes: candidate.length
+    }
+    log(`gil=${gilPath}`)
+    log(`host=${args.host} script=${args.script} ${args.command}ed`)
+    log(`candidateBytes=${candidate.length} (source=${sourceBytes.length})`)
+    if (args.output) {
+      const absolute = path.resolve(args.output)
+      fs.mkdirSync(path.dirname(absolute), { recursive: true })
+      fs.writeFileSync(absolute, candidate)
+      summary.output = absolute
+      log(`output=${absolute}`)
+    } else if (args.write) {
+      const currentHash = sha256(new Uint8Array(fs.readFileSync(gilPath)))
+      if (currentHash !== summary.sourceSha256) {
+        throw new Error(
+          `[error] source changed during operation: expected ${summary.sourceSha256}, got ${currentHash}`
+        )
+      }
+      const backup = backupPath(gilPath)
+      fs.copyFileSync(gilPath, backup)
+      fs.writeFileSync(gilPath, candidate)
+      summary.backup = backup
+      summary.writePerformed = true
+      log(`backup=${backup}`)
+      log(`writePerformed=true gil`)
+      const mapId = args.mapId ?? projectConfig?.inject?.mapId
+      if (mapId !== undefined) {
+        const tempPath = syncGilToTemp(saveLevelDirOf(gilPath), `${mapId}.gil`)
+        if (tempPath) {
+          summary.tempSync = tempPath
+          log(`temp-sync=${tempPath}`)
+        }
+      } else {
+        log('temp-sync=skipped (no --map-id)')
+      }
+      log('editorOrGameValidation=not-performed; 编辑器需重开地图才会读到盘外写入')
+    } else {
+      summary.previewOnly = true
+      log('preview only; use --write to apply after backup, or --output for a candidate')
+    }
+    if (jsonMode) process.stdout.write(stableJson(summary))
+    return
+  }
 
   if (args.command === 'list') {
     const entries = parseScriptRegistry(payload)
