@@ -3,7 +3,7 @@
 // 记录级 dump：<gil> <root字段号> <记录id> [--hex] [--out <file>]
 // 用法例：npx tsx dump-record.ts <map.gil> 4 1082130433
 import { readFileSync, writeFileSync } from 'node:fs'
-import { parseWireMessage } from '../../src/cli/static_assembly/wire.js'
+import { parseWireMessage } from '../../../../src/cli/static_assembly/wire.js'
 
 const payloadOf = (p: string) => new Uint8Array(readFileSync(p).slice(20, -4))
 function container(body: Uint8Array, fieldNo: number): Uint8Array | undefined {
