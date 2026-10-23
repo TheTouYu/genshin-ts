@@ -1,0 +1,71 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "05 旋转与硬降落格（含落下后上色）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey36Down"
+    },
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey36Up"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.25,
+      "kind": "log",
+      "contains": "rotate Z",
+      "source": "client"
+    },
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "lock Z cells=176,186,185,195",
+      "source": "client"
+    },
+    {
+      "at": 0.5,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "SCORE 0  LINES 0  LV 1  FILLED 4"
+    },
+    {
+      "at": 0.5,
+      "kind": "control",
+      "name": "cell195",
+      "field": "imageColor",
+      "equals": -1028006
+    },
+    {
+      "at": 0.5,
+      "kind": "control",
+      "name": "cell176",
+      "field": "imageColor",
+      "equals": -1028006
+    },
+    {
+      "at": 0.5,
+      "kind": "control",
+      "name": "cell1",
+      "field": "imageColor",
+      "equals": -15065818
+    }
+  ]
+}

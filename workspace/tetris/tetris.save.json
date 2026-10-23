@@ -1,0 +1,998 @@
+{
+  "format": "qxqy-simulator-save",
+  "version": 4,
+  "meta": {
+    "name": "未命名存档"
+  },
+  "activeAssetType": "server-control-template",
+  "serverLogic": {
+    "version": 1,
+    "rules": []
+  },
+  "controlGuidChanges": [],
+  "scriptSync": null,
+  "assets": {
+    "server": {
+      "version": 26,
+      "layoutSchemaVersion": 2,
+      "meta": {
+        "name": "未命名界面",
+        "assetType": "server-control-template",
+        "sourceFormat": "authoring",
+        "sourceFile": ""
+      },
+      "canvasId": "pc-16-9",
+      "selectedId": "n8",
+      "root": {
+        "id": "sc1",
+        "kind": "server-container",
+        "name": "客户端控件容器",
+        "guid": 1073741850,
+        "giaRelatedGuids": [],
+        "active": true,
+        "visible": true,
+        "canControllerFocus": false,
+        "syncAllDevices": true,
+        "giaRaw": {
+          "genericField501": 0,
+          "footerField505": 0
+        },
+        "transformByPlatform": {
+          "KEYBOARD": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "TOUCHSCREEN": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "CONTROLLER_CONSOLE": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "CONTROLLER_MOBILE": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          }
+        },
+        "children": [
+          {
+            "id": "n1",
+            "kind": "container",
+            "name": "容器节点",
+            "guid": 1073741851,
+            "giaRelatedGuids": [],
+            "active": true,
+            "visible": true,
+            "canControllerFocus": false,
+            "syncAllDevices": true,
+            "giaRaw": {
+              "genericField501": 0,
+              "footerField505": 0
+            },
+            "transformByPlatform": {
+              "KEYBOARD": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0,
+                  "y": 0
+                },
+                "anchorMax": {
+                  "x": 1,
+                  "y": 1
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 0,
+                  "y": 0
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "TOUCHSCREEN": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0,
+                  "y": 0
+                },
+                "anchorMax": {
+                  "x": 1,
+                  "y": 1
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 0,
+                  "y": 0
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "CONTROLLER_CONSOLE": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0,
+                  "y": 0
+                },
+                "anchorMax": {
+                  "x": 1,
+                  "y": 1
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 0,
+                  "y": 0
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "CONTROLLER_MOBILE": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0,
+                  "y": 0
+                },
+                "anchorMax": {
+                  "x": 1,
+                  "y": 1
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 0,
+                  "y": 0
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              }
+            },
+            "children": [
+              {
+                "id": "n7",
+                "kind": "textbox",
+                "name": "hud",
+                "guid": 1073741852,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 0
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -140
+                    },
+                    "size": {
+                      "x": 760,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -112
+                    },
+                    "size": {
+                      "x": 760,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -140
+                    },
+                    "size": {
+                      "x": 760,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -112
+                    },
+                    "size": {
+                      "x": 760,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 24,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4294967295,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Left",
+                "verticalAlignment": "Top",
+                "text": "TETRIS"
+              },
+              {
+                "id": "n8",
+                "kind": "textbox",
+                "name": "hudNext",
+                "guid": 1073741853,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 0
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -500,
+                      "y": -210
+                    },
+                    "size": {
+                      "x": 220,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -400,
+                      "y": -168
+                    },
+                    "size": {
+                      "x": 220,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -500,
+                      "y": -210
+                    },
+                    "size": {
+                      "x": 220,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -400,
+                      "y": -168
+                    },
+                    "size": {
+                      "x": 220,
+                      "y": 40
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4294967295,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Left",
+                "verticalAlignment": "Top",
+                "text": "NEXT -"
+              }
+            ],
+            "scriptMappingIds": [],
+            "isolateNavigation": false,
+            "disableKeyEventPassthrough": false,
+            "disableCursorEventPassthrough": false,
+            "showCursor": false
+          }
+        ],
+        "scriptMappingIds": []
+      }
+    },
+    "client": {
+      "layoutSchemaVersion": 2,
+      "version": 4,
+      "meta": {
+        "name": "Lua实例化面板",
+        "assetType": "client-control-template",
+        "sourceFormat": "authoring",
+        "sourceFile": "",
+        "gameVersion": "7.1.0",
+        "giaOwnerUid": 114514,
+        "giaFileId": 1073741829,
+        "giaFileName": "客户端控件模板列表.gia",
+        "giaNextAssetIndex": 8,
+        "giaAssetIndexSchemaVersion": 1
+      },
+      "canvasId": "pc-16-9",
+      "selectedId": "sc1",
+      "root": {
+        "id": "sc1",
+        "kind": "server-container",
+        "name": "客户端控件模板",
+        "guid": 0,
+        "giaRelatedGuids": [],
+        "active": true,
+        "visible": true,
+        "canControllerFocus": false,
+        "syncAllDevices": true,
+        "giaRaw": {
+          "genericField501": 0,
+          "footerField505": 0
+        },
+        "transformByPlatform": {
+          "KEYBOARD": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "TOUCHSCREEN": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "CONTROLLER_CONSOLE": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          },
+          "CONTROLLER_MOBILE": {
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "anchorMin": {
+              "x": 0,
+              "y": 0
+            },
+            "anchorMax": {
+              "x": 1,
+              "y": 1
+            },
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 0,
+              "y": 0
+            },
+            "pivot": {
+              "x": 0.5,
+              "y": 0.5
+            }
+          }
+        },
+        "children": [
+          {
+            "id": "n6",
+            "kind": "image",
+            "name": "cell",
+            "guid": 1073742105,
+            "giaRelatedGuids": [],
+            "active": true,
+            "visible": true,
+            "canControllerFocus": false,
+            "syncAllDevices": true,
+            "giaRaw": {
+              "genericField501": 0,
+              "footerField505": 0,
+              "imageSlotType": 0,
+              "imageField502": 1,
+              "imageField504": 1,
+              "imageField505": 1,
+              "imageField507": 2,
+              "imageFillType": 1
+            },
+            "transformByPlatform": {
+              "KEYBOARD": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "anchorMax": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 80,
+                  "y": 80
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "TOUCHSCREEN": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "anchorMax": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 80,
+                  "y": 80
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "CONTROLLER_CONSOLE": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "anchorMax": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 80,
+                  "y": 80
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              },
+              "CONTROLLER_MOBILE": {
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "anchorMin": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "anchorMax": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "x": 80,
+                  "y": 80
+                },
+                "pivot": {
+                  "x": 0.5,
+                  "y": 0.5
+                }
+              }
+            },
+            "children": [],
+            "scriptMappingIds": [],
+            "imageSource": "StaticReference",
+            "imageType": null,
+            "imageId": 100001,
+            "imageColor": 4294967295,
+            "enableMask": false,
+            "enableSoftEdge": false,
+            "softEdgeMode": "Percentage",
+            "softEdgeWidthX": 8,
+            "softEdgeWidthY": 8,
+            "horizontalSoftRange": 85,
+            "verticalSoftRange": 85,
+            "enableFill": false,
+            "fillType": "Horizontal",
+            "fillHorizontalType": "Left",
+            "fillVerticalType": "Bottom",
+            "fillRadial90Type": "BottomLeft",
+            "fillRadialType": "Bottom",
+            "fillAmount": 1,
+            "reverseMaskArea": false,
+            "giaInfoIndex": 7,
+            "giaInfoIndexSource": "authoring"
+          }
+        ],
+        "scriptMappingIds": []
+      }
+    },
+    "scripts": [
+      {
+        "id": "1073742106",
+        "guid": 1073742106,
+        "path": "lua/main.lua",
+        "source": "--[[==========================================================================\nTetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染）\n----------------------------------------------------------------------------\n架构：\n  * 本脚本挂在服务端控件 n1（服务端容器）上 —— 客户端模板树零脚本铁律，脚本不进模板。\n  * 棋盘 10x20 = 200 格：OnStart 用 game.InstantiateClientUIControl(模板 guid, root)\n    实例化 200 个 image 实例并按格位摆放；之后只改 imageColor 上色。\n  * HUD / NEXT 用服务端 textbox 直接写 text（服务端直写文本已验证可用）。\n  * 逻辑固定步长：OnUpdate(dt) 只累加，逻辑在 STEP=1/60 的 tick 内跑。\n\n键位（官方具名键，见模拟器 studio/play/key-bindings.js）：\n  ArrowLeft  -> KeyboardCraftspersonKey38   左移\n  ArrowRight -> KeyboardCraftspersonKey39   右移\n  ArrowUp    -> KeyboardCraftspersonKey36   顺时针旋转\n  ArrowDown  -> KeyboardCraftspersonKey37   软降\n  Space      -> KeyboardJumpKey             硬降\n  R          -> KeyboardCharacterSkill3Key  重开\n  T          -> KeyboardCharacterSkill4Key  调试：填满最底两行（仅用例用）\n==========================================================================]]\n\nlocal COLS, ROWS    = 10, 20\nlocal CELL, GAP     = 26, 2\nlocal PITCH         = CELL + GAP\nlocal T_CELL        = 1073742105   -- 客户端模板「cell」根子节点 guid（build.mjs 分配）\nlocal STEP          = 1 / 60\nlocal GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）\nlocal BOARD_CX, BOARD_CY = 0, 0    -- 棋盘中心（画布坐标，原点=画布中心，y 向上）\n\nlocal function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end\nlocal COL_EMPTY  = C(255, 26, 29, 38)\nlocal COL_CYAN   = C(255, 60, 220, 240)\nlocal COL_YELLOW = C(255, 245, 210, 60)\nlocal COL_PURPLE = C(255, 170, 80, 240)\nlocal COL_GREEN  = C(255, 90, 220, 110)\nlocal COL_RED    = C(255, 240, 80, 90)\nlocal COL_BLUE   = C(255, 70, 130, 240)\nlocal COL_ORANGE = C(255, 245, 160, 60)\n\n-- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}\nlocal SHAPES = {\n  I = { n = 4, color = COL_CYAN,   cells = {{2,1},{2,2},{2,3},{2,4}} },\n  O = { n = 2, color = COL_YELLOW, cells = {{1,1},{1,2},{2,1},{2,2}} },\n  T = { n = 3, color = COL_PURPLE, cells = {{1,2},{2,1},{2,2},{2,3}} },\n  S = { n = 3, color = COL_GREEN,  cells = {{1,2},{1,3},{2,1},{2,2}} },\n  Z = { n = 3, color = COL_RED,    cells = {{1,1},{1,2},{2,2},{2,3}} },\n  J = { n = 3, color = COL_BLUE,   cells = {{1,1},{2,1},{2,2},{2,3}} },\n  L = { n = 3, color = COL_ORANGE, cells = {{1,3},{2,1},{2,2},{2,3}} },\n}\nlocal BAG = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }\n\n-- 确定性随机（LCG）：用例可复现，不依赖 os / math.random\nlocal seed = 20261023\nlocal function rand(n)\n  seed = (seed * 1103515245 + 12345) % 2147483648\n  return (seed // 65536) % n + 1\nend\n\n-- 前向声明（局部化，避免污染全局表）\nlocal root, cells, hud, hudNext\nlocal board, piece, nextName\nlocal score, lines, level\nlocal gameOver, tickCount, acc\nlocal collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines\n\nlocal function cellIndex(r, c) return (r - 1) * COLS + c end\n\nlocal function paint(r, c, color)\n  local ctl = cells[cellIndex(r, c)]\n  if ctl then ctl.imageColor = color end\nend\n\nrenderAll = function()\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      local v = board[r][c]\n      if v == 0 then paint(r, c, COL_EMPTY) else paint(r, c, v) end\n    end\n  end\nend\n\nrenderHud = function()\n  local oc = 0\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      if board[r][c] ~= 0 then oc = oc + 1 end\n    end\n  end\n  if hud then\n    hud.text = 'SCORE ' .. score .. '  LINES ' .. lines .. '  LV ' .. level\n      .. '  FILLED ' .. oc\n  end\n  if hudNext then\n    hudNext.text = 'NEXT ' .. (gameOver and '-' or (nextName or '-'))\n  end\nend\n\nrenderPiece = function()\n  renderAll()\n  if gameOver or not piece then return end\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      paint(br, bc, piece.color)\n    end\n  end\nend\n\ncollides = function(cs, px, py)\n  for i = 1, #cs do\n    local br = py + cs[i][1] - 1\n    local bc = px + cs[i][2] - 1\n    if bc < 1 or bc > COLS or br > ROWS then return true end\n    if br >= 1 and board[br][bc] ~= 0 then return true end\n  end\n  return false\nend\n\nspawn = function()\n  local name = nextName or 'T'\n  nextName = BAG[rand(#BAG)]\n  local s = SHAPES[name]\n  piece = {\n    name = name, n = s.n, color = s.color,\n    cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },\n              { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },\n    x = (COLS - s.n) // 2 + 1,\n    y = 1,\n  }\n  print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)\n  if collides(piece.cells, piece.x, piece.y) then\n    gameOver = true\n    print('gameover score=' .. score)\n  end\n  renderPiece()\n  renderHud()\nend\n\nclearLines = function()\n  local cleared = 0\n  local r = ROWS\n  while r >= 1 do\n    local full = true\n    for c = 1, COLS do\n      if board[r][c] == 0 then full = false end\n    end\n    if full then\n      table.remove(board, r)\n      local row = {}\n      for c = 1, COLS do row[c] = 0 end\n      table.insert(board, 1, row)\n      cleared = cleared + 1\n      -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次\n    else\n      r = r - 1\n    end\n  end\n  if cleared > 0 then\n    local pts = { 100, 300, 500, 800 }   -- 1/2/3/4 行\n    score = score + pts[cleared] * level\n    lines = lines + cleared\n    level = lines // 10 + 1\n    print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)\n  end\nend\n\ndoLock = function()\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      board[br][bc] = piece.color\n    end\n  end\n  local landed = {}\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end\n  end\n  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))\n  clearLines()\n  if not gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块\n  renderHud()\nend\n\nlocal function stepDown()\n  if gameOver or not piece then return end\n  if not collides(piece.cells, piece.x, piece.y + 1) then\n    piece.y = piece.y + 1\n    renderPiece()\n    print('fall y=' .. piece.y)\n  else\n    doLock()\n  end\nend\n\nlocal function rotate()\n  if gameOver or not piece then return end\n  local n = piece.n\n  local nc = {}\n  for i = 1, 4 do\n    nc[i] = { piece.cells[i][2], n + 1 - piece.cells[i][1] }   -- 顺时针 90°\n  end\n  if not collides(nc, piece.x, piece.y) then\n    piece.cells = nc\n    print('rotate ' .. piece.name)\n    renderPiece()\n  end\nend\n\nlocal function newGame()\n  board = {}\n  for r = 1, ROWS do\n    local row = {}\n    for c = 1, COLS do row[c] = 0 end\n    board[r] = row\n  end\n  score, lines, level = 0, 0, 1\n  gameOver, tickCount, acc = false, 0, 0\n  nextName = BAG[rand(#BAG)]\n  spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块\n  renderHud()\n  print('newgame')\nend\n\n--------------------------------------------------------------------------------\n-- 生命周期\n--------------------------------------------------------------------------------\n\nfunction OnStart()\n  root = script.object\n  if not root then error('tetris: script.object is nil') end\n  root.showCursor = true\n  script:EnableUpdate(true)      -- 默认 false：不显式打开就不会派发 OnUpdate\n\n  local W, H = game.GetUICanvasSize()\n  print('canvas ' .. tostring(W) .. 'x' .. tostring(H))\n\n  cells = {}\n  for i = 1, COLS * ROWS do\n    local c = game.InstantiateClientUIControl(T_CELL, root)\n    if not c then error('tetris: InstantiateClientUIControl failed at ' .. i) end\n    local col = (i - 1) % COLS\n    local row = (i - 1) // COLS\n    c.name = 'cell' .. i\n    c:SetSizeDelta(CELL, CELL)\n    c:SetAnchoredPosition(BOARD_CX + (col - 4.5) * PITCH,\n                          BOARD_CY + (9.5 - row) * PITCH)\n    c.imageColor = COL_EMPTY\n    cells[i] = c\n  end\n  print('cellCount=' .. #cells)\n\n  hud = root:GetChild('hud')\n  hudNext = root:GetChild('hudNext')\n\n  root:AddKeyEventListener('KeyboardCraftspersonKey38Down', function()   -- ←\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x - 1, piece.y) then\n      piece.x = piece.x - 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey39Down', function()   -- →\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x + 1, piece.y) then\n      piece.x = piece.x + 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey36Down', function()   -- ↑\n    rotate()\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey37Down', function()   -- ↓\n    stepDown()\n  end)\n  root:AddKeyEventListener('KeyboardJumpKeyDown', function()             -- Space\n    if gameOver or not piece then return end\n    local dropped = 0\n    while not collides(piece.cells, piece.x, piece.y + 1) do\n      piece.y = piece.y + 1\n      dropped = dropped + 1\n    end\n    print('harddrop rows=' .. dropped .. ' y=' .. piece.y)\n    doLock()\n  end)\n  root:AddKeyEventListener('KeyboardCharacterSkill3KeyDown', function()  -- R 重开\n    newGame()\n  end)\n  -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时\n  -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。\n  root:AddKeyEventListener('KeyboardCharacterSkill4KeyDown', function()\n    for rr = ROWS - 1, ROWS do\n      for c = 1, COLS do board[rr][c] = COL_BLUE end\n    end\n    print('debug-fill')\n    renderAll()\n    renderHud()\n  end)\n\n  newGame()\nend\n\nfunction OnUpdate(dt)\n  local d = tonumber(dt) or 0\n  if d <= 0 then return end\n  acc = acc + d\n  local guard = 0\n  while acc >= STEP and guard < 8 do\n    acc = acc - STEP\n    guard = guard + 1\n    tickCount = tickCount + 1\n    if not gameOver and tickCount % GRAVITY_TICKS == 0 then\n      stepDown()\n    end\n  end\nend\n\nfunction OnDestroy() end\n",
+        "controlId": "n1",
+        "controlAsset": "server-control-template"
+      }
+    ]
+  }
+}

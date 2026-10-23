@@ -1,0 +1,57 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "04 消行后分数增加（真实锁定链路）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.3,
+      "kind": "log",
+      "contains": "debug-fill",
+      "source": "client"
+    },
+    {
+      "at": 0.35,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "SCORE 0  LINES 0  LV 1  FILLED 20"
+    },
+    {
+      "at": 0.6,
+      "kind": "log",
+      "contains": "clear n=2 score=300",
+      "source": "client"
+    },
+    {
+      "at": 0.6,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "SCORE 300  LINES 2  LV 1  FILLED 4"
+    }
+  ]
+}

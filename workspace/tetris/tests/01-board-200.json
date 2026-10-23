@@ -1,0 +1,110 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "01 开局棋盘 200 格在场（含布局与上色）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [],
+  "asserts": [
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "cellCount=200",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "tree",
+      "name": "cell1",
+      "exists": true
+    },
+    {
+      "at": 0.2,
+      "kind": "tree",
+      "name": "cell100",
+      "exists": true
+    },
+    {
+      "at": 0.2,
+      "kind": "tree",
+      "name": "cell200",
+      "exists": true
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell1",
+      "field": "visible",
+      "equals": true
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell1",
+      "field": "kind",
+      "equals": "image"
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell1",
+      "field": "sizeDeltaX",
+      "equals": 26
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "SCORE 0  LINES 0  LV 1  FILLED 0"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "newgame",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell1",
+      "field": "anchoredPositionX",
+      "equals": -126
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell1",
+      "field": "anchoredPositionY",
+      "equals": 266
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell11",
+      "field": "anchoredPositionY",
+      "equals": 238
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell200",
+      "field": "anchoredPositionX",
+      "equals": 126
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell200",
+      "field": "imageColor",
+      "equals": -15065818
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "cell4",
+      "field": "imageColor",
+      "equals": -1028006
+    }
+  ]
+}

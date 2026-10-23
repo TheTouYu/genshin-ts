@@ -1,0 +1,21 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "03 左右移动改变列",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
+    { "t": 0.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
+    { "t": 0.4, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
+    { "t": 0.4, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" }
+  ],
+  "asserts": [
+    { "at": 0.25, "kind": "log", "contains": "move x=3", "source": "client" },
+    { "at": 0.35, "kind": "log", "contains": "move x=2", "source": "client" },
+    { "at": 0.45, "kind": "log", "contains": "move x=3", "source": "client" },
+    { "at": 0.3, "kind": "log", "contains": "piece=", "source": "client" }
+  ]
+}
