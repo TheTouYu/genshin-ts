@@ -17,12 +17,33 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import shutil
 from datetime import datetime
 from pathlib import Path
 
-SAVE_ROOT = Path('/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal')
 REPO = Path(__file__).resolve().parents[4]
+
+
+def save_root() -> Path:
+    """BeyondLocal 根目录：优先 GSTS_LOCALLOW_DIR（与 gsts CLI 同一口径），
+    其次 wine 前缀，最后 WSL 路径。2026-10-23 修：原先硬编码 WSL 路径，本机直接报
+    `no .gil found`。"""
+    tail = Path('miHoYo') / '原神' / 'BeyondLocal'
+    cands = []
+    env = os.environ.get('GSTS_LOCALLOW_DIR')
+    if env:
+        cands.append(Path(env) / tail)
+    cands.append(Path.home() / '.local/share/anime-game-launcher/prefix/drive_c/users'
+                 / os.environ.get('USER', 'h') / 'AppData/LocalLow' / tail)
+    cands.append(Path('/mnt/c/Users/touyu/AppData/LocalLow') / tail)
+    for c in cands:
+        if c.is_dir():
+            return c
+    raise SystemExit('BeyondLocal 未找到，试过: ' + ' | '.join(str(c) for c in cands))
+
+
+SAVE_ROOT = save_root()
 
 
 def auto_probe() -> str:
@@ -32,7 +53,8 @@ def auto_probe() -> str:
 def find_current_map() -> Path:
     candidates = []
     for save_dir in SAVE_ROOT.glob('*/Beyond_Local_Save_Level'):
-        for f in save_dir.glob('*.gil'):
+        # 两种布局：<id>.gil 平铺，或 <id>/<id>.gil 子目录式（2026-10-23 修：glob 漏子目录）
+        for f in save_dir.rglob('*.gil'):
             if f.name.endswith(('.bak', '.candidate', '.tmp')):
                 continue
             candidates.append(f)
