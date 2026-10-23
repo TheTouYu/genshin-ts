@@ -76,6 +76,7 @@ cd /home/h/genshin-ts/workspace/hmlt-qixia
 node qxqy/runner.mjs          # 离线回归（17 用例，~9s，不依赖 4173）
 python3 qxqy/build.py         # Lua 源码 → save.json（改完 Lua 先构建）
 node art/gen-scenes.mjs       # 素材定义 → *.scene.gia
+node qxqy/export-baseline.mjs # 模拟器默认工程零改动导出（对齐基线：两包进真机导入目录）
 ```
 
 ## 七、已钉死的领域事实（省得重查）

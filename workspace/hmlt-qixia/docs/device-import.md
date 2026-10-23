@@ -23,7 +23,28 @@ ls "$P/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_E
 
 目录层级：`…/BeyondLocal/Beyond_Local_Export/`——**直接在 BeyondLocal 下，不在 UID 子目录**（`~/.ys` 是游戏安装目录，里面没有 `BeyondLocal`；同事目录还有 `110170759/`、`Beyond_Local_Save_Runtime/` 等）。
 
-**卫生约定（2026-10-23 定）**：这个目录是"一个待导入文件"的投递口，不是仓库。旧产物（13 个素材 `*.scene.gia` + 2 个 `input-probe` 探针包）已整批移到 `~/.cache/hmlt-export-backup-2026-10-23/`（可逆、未删除）；素材随时可用 `node art/gen-scenes.mjs` 重生成，需要时再取回。
+**卫生约定（2026-10-23 定）**：这个目录是"一个待导入文件"的投递口，不是仓库。旧产物（13 个素材 `*.scene.gia` + 2 个 `input-probe` 探针包）已整批移到 `~/.cache/hmlt-export-backup-2026-10-23/`（可逆、未删除）；素材随时可用 `node art/gen-scenes.mjs` 重生成，需要时再取回。**对比期例外**：基线包（见下节）可以和我们的包同时在场，导入完就清掉。
+
+## 基线包（对齐"标准形态"用，2026-10-23 加）
+
+模拟器**默认工程的原样导出**（零改动、不含我们任何 Lua/模板），用来在真机里对照"正常导入长什么样"：
+
+| 文件 | 大小 | 内容 |
+| --- | --- | --- |
+| `baseline-模拟器原始导出-整合包.gia` | 12,954 B | 只 UI：服务端「客户端控件容器」+ 11 类控件样例（文本框/光标检测区域/模板引用/网格视窗/预设按钮/文本视窗/按键提示/图片/界面动效/全屏动效）；客户端 1 个模板「Lua实例化面板」（模板标题/模板图标/确认按钮/按钮文字） |
+| `baseline-模拟器原始导出-Lua-整合包.gia` | 13,153 B | 同上 + 一条 `baseline/main.lua`（挂客户端模板根 `n1`），用来验证"脚本映射随包走"这一条 |
+
+重生成命令（与模拟器顶栏"导出资产包"同一个函数 `exportData('gia-combined')`）：
+
+```bash
+node qxqy/export-baseline.mjs
+```
+
+两个包同时归档在 `device-package/baseline/`。
+
+**读这两个包时注意两件事**：
+- 模拟器自带校验器 `validateGiaCompatibility` 对**它自己的默认导出**也报 21 条 error（槽位顺序、`Info.related`）——那套口径是按 `.gil` 写的，**不是缺陷**，以真机导入结果为准。
+- 结构差别（我们 vs 基线）：客户端模板 **5 个单控件模板**（img/tx/btn/panel/cursor）vs 基线 **1 个多控件模板**；两边脚本都只有 1 条。
 
 ## 导入步骤（真机编辑器）
 
