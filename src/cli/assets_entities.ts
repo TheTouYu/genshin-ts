@@ -14,6 +14,7 @@ import {
   exportEntities,
   removeEntityComponents,
   setTabBarOptions,
+  deleteEntities,
   type EntityImport
 } from './gil_entities.js'
 import { isOfficialResourceId } from './official_prefabs.js'
@@ -34,7 +35,7 @@ import {
 } from './static_assembly/wire.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'export' | 'import' | 'patch' | 'apply-candidate'
+type Command = 'export' | 'import' | 'patch' | 'apply-candidate' | 'delete'
 type Format = 'text' | 'json'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 type Vector3 = readonly [number, number, number]
@@ -142,7 +143,15 @@ function parseArgs(argv: readonly string[]) {
   const removeComponents: number[] = []
   let tabOptions: string[] | undefined
   let index = 0
-  if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch' || argv[0] === 'apply-candidate') {
+  const deleteIds: number[] = []
+  const removeAuxIds: number[] = []
+  if (
+    argv[0] === 'import' ||
+    argv[0] === 'export' ||
+    argv[0] === 'patch' ||
+    argv[0] === 'apply-candidate' ||
+    argv[0] === 'delete'
+  ) {
     command = argv[0]
     index++
   }
@@ -180,7 +189,10 @@ function parseArgs(argv: readonly string[]) {
       tabOptions = options
     }
     else if (arg === '--help' || arg === '-h') usage(0)
-    else if (command === 'patch' && entityId === undefined) {
+    else if (arg === '--remove-aux') removeAuxIds.push(nonNegativeId(value(argv, index++), '--remove-aux'))
+    else if (command === 'delete' && !arg.startsWith('--')) {
+      deleteIds.push(nonNegativeId(arg, 'entity-id'))
+    } else if (command === 'patch' && entityId === undefined) {
       entityId = nonNegativeId(arg, 'entity-id')
     } else usage()
   }
@@ -210,6 +222,8 @@ function parseArgs(argv: readonly string[]) {
         '[error] --candidate/--expect-source-hash/--definitions-gil require their subcommands (apply-candidate/import)'
       )
   }
+  if (command === 'delete' && !deleteIds.length && !removeAuxIds.length)
+    throw new Error('[error] delete requires at least one entity id (or --remove-aux <id>)')
   if (command === 'patch') {
     if (entityId === undefined) throw new Error('[error] patch requires <entity-id>')
     if (auxId !== undefined) {
@@ -257,6 +271,8 @@ function parseArgs(argv: readonly string[]) {
     auxId,
     attachAuxId,
     detachAuxId,
+    deleteIds,
+    removeAuxIds,
     removeComponents,
     tabOptions
   }
@@ -550,6 +566,48 @@ async function runImport(
   if (jsonMode) process.stdout.write(prettyStableJson(summary))
 }
 
+async function runDelete(
+  args: ReturnType<typeof parseArgs>,
+  projectConfig: GstsConfig | undefined
+): Promise<void> {
+  const source = resolveGilPath(projectConfig, args)
+  if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
+    throw new Error(`[error] gil not found: ${source.path}`)
+  const { bytes, hash: sourceHash } = readSource(source.path, args.expectedSourceHash)
+  const result = deleteEntities(bytes, args.deleteIds, args.removeAuxIds)
+  const json = args.format === 'json'
+  const log = (line: string) => (json ? console.error(line) : console.log(line))
+  const summary: Record<string, unknown> = {
+    schemaVersion: 1,
+    kind: 'entities-delete',
+    sourceSha256: sourceHash,
+    candidateSha256: sha256(result.bytes),
+    removed: result.removed,
+    missing: result.missing,
+    removedAux: result.removedAux,
+    removedRegistrations: result.removedRegistrations
+  }
+  log(
+    `removed=${result.removed.join(',') || '-'} missing=${result.missing.join(',') || '-'} ` +
+      `aux=${result.removedAux.join(',') || '-'} registrations=${result.removedRegistrations}`
+  )
+  log(`candidateSha256=${sha256(result.bytes)}`)
+  if (args.outputPath) {
+    summary.candidate = writeNew(args.outputPath, result.bytes)
+    log(`candidate=${String(summary.candidate)}`)
+  } else if (args.write) {
+    summary.backup = writeBack(source.path, result.bytes, sourceHash)
+    summary.writePerformed = true
+    log(`backup=${String(summary.backup)}`)
+    log('writePerformed=true')
+    syncEditorTemp(source.path, args.mapId, log)
+  } else {
+    summary.previewOnly = true
+    log('preview only; use --write to apply after backup, or --output for a candidate')
+  }
+  if (json) process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
+}
+
 async function runPatch(
   args: ReturnType<typeof parseArgs>,
   projectConfig: GstsConfig | undefined
@@ -661,6 +719,7 @@ export async function runAssetsEntities(
   }
   if (args.command === 'import') return runImport(args, projectConfig)
   if (args.command === 'apply-candidate') return runApplyCandidate(args, projectConfig)
+  if (args.command === 'delete') return runDelete(args, projectConfig)
   if (args.command === 'patch') return runPatch(args, projectConfig)
   return runExport(args, projectConfig)
 }

@@ -1030,3 +1030,114 @@ export function removeEntityComponents(
     removed: result.removed
   }
 }
+
+/**
+ * 删除场景实体（连同它的装饰物 aux 与 root6 登记）——2026-10-24 加。
+ *
+ * 编辑器删实体时做的三件事，这里等价实现：
+ *   ① root5 去掉该实体记录；
+ *   ② root27 去掉**只属于它**的装饰物 aux（id 取自实体自己槽 40 的 f501 列表）；
+ *   ③ root6 各分组去掉 `(type, 该实体 id)` 登记条目。
+ * 只删实体层：造物定义（root4）/ 页面实例（root8）不受影响（仍可再摆）。
+ */
+export function deleteEntities(
+  bytes: Uint8Array,
+  ids: readonly number[],
+  extraAuxIds: readonly number[] = []
+): {
+  bytes: Uint8Array
+  removed: number[]
+  missing: number[]
+  removedAux: number[]
+  removedRegistrations: number
+} {
+  const top = parse(bytes.slice(20, -4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const target = new Set(ids)
+  const root5 = top.find((f) => f.number === 5 && f.wire === 2)
+  if (!root5) throw new Error('[error] root 5 section not found')
+  const section = parse(root5.value as Uint8Array) ?? []
+  const removed: number[] = []
+  const auxIds = new Set<number>()
+  const kept: WireField[] = []
+  for (const field of section) {
+    if (field.number === 1 && field.wire === 2) {
+      const record = field.value as Uint8Array
+      const id = recordId(record)
+      if (id !== undefined && target.has(id)) {
+        removed.push(id)
+        for (const aux of readEntityAuxIds(record)) auxIds.add(aux)
+        continue
+      }
+    }
+    kept.push(field)
+  }
+  for (const aux of extraAuxIds) auxIds.add(aux)
+  const missing = [...target].filter((id) => !removed.includes(id))
+  root5.value = emit(kept)
+
+  const removedAux: number[] = []
+  const root27 = top.find((f) => f.number === 27 && f.wire === 2)
+  if (root27 && auxIds.size) {
+    const fields = parse(root27.value as Uint8Array) ?? []
+    // root27 有两个 section：f1 = 主 aux（host=定义/元件），f2 = 克隆 aux（host=实例/实体）。
+    // 实体自己的装饰物落在 f2 段，必须两段都扫（2026-10-24 实测，只扫 f1 会留孤儿）。
+    const keptAux = fields.filter((f) => {
+      if ((f.number !== 1 && f.number !== 2) || f.wire !== 2) return true
+      const id = recordId(f.value as Uint8Array)
+      if (id !== undefined && auxIds.has(id)) {
+        removedAux.push(id)
+        return false
+      }
+      return true
+    })
+    root27.value = emit(keptAux)
+  }
+
+  let removedRegistrations = 0
+  const root6 = top.find((f) => f.number === 6 && f.wire === 2)
+  if (root6) {
+    const records6 = parse(root6.value as Uint8Array) ?? []
+    for (const record of records6) {
+      if (record.number !== 1 || record.wire !== 2) continue
+      const recordFields = parse(record.value as Uint8Array)
+      if (!recordFields) continue
+      let changed = false
+      for (const group of recordFields) {
+        if (group.number !== 3 || group.wire !== 2) continue
+        const groupFields = parse(group.value as Uint8Array)
+        if (!groupFields) continue
+        const next = groupFields.filter((entry) => {
+          if (entry.number !== 5 || entry.wire !== 2) return true
+          const entryFields = parse(entry.value as Uint8Array)
+          const targetId = entryFields?.find((f) => f.number === 2 && f.wire === 0)?.value
+          if (typeof targetId === 'number' && target.has(targetId)) {
+            removedRegistrations += 1
+            return false
+          }
+          return true
+        })
+        if (next.length !== groupFields.length) {
+          group.value = emit(next)
+          changed = true
+        }
+      }
+      if (changed) record.value = emit(recordFields)
+    }
+    root6.value = emit(records6)
+  }
+
+  const rebuilt = emit(top)
+  return {
+    bytes: buildFile(rebuilt, {
+      schema: readUint32BE(bytes, 4),
+      headTag: readUint32BE(bytes, 8),
+      fileType: readUint32BE(bytes, 12),
+      tailTag: readUint32BE(bytes, bytes.length - 4)
+    }),
+    removed,
+    missing,
+    removedAux,
+    removedRegistrations
+  }
+}
