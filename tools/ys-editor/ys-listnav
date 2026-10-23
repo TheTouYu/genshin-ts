@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+"""ys-listnav — 列表导航：**观测 → 动作 → 再观测 → 对齐 → 纠正**，每步落证据。
+
+为什么另起一个（与 ys-list/ys-window 的关系）：
+- `ys-list` = 结构化**读取**器（frame → 行 + name/label），不动作；
+- 本工具 = 列表**导航**器：先把行分类（可选项/分组标题/半截行），再动作，再用读回的真值改正。
+
+设计要点（针对"线性模型 y=y0+k·pitch + 无自纠正"的脆弱性，2026-10-23 用户点破）：
+1. 主键是**内容身份**（标题归一化），不是行号；行号只在当前观测窗口内有效。
+2. 每行先分类：`selectable` 卡片项 / `header` 分组标题（**不可点，不参与位移**）/ `partial` 被裁切半截行。
+   header 判据（可复算）：文本左缩进比可选项中位更小（≥9px）。实测本机教程页：项 x0≈183–188、header x0=161。
+3. **纠正闭环**：动作后读回真值（右侧详情标题 / 标题序列位移），与预测比对；不符则**重新观测再动作**，
+   并记账 `corrections[]`（第几次、读到什么、行位置是否变了=列表自滚）。超 `--max-tries` 即 fail-closed。
+4. 纠正只允许 **A 类**（同一动作的可预测偏差，如滚轮 k 格实走 k′ 行）。
+   **B 类**（未解释的位移/结构变化，例如"点一下行就动了"）必须 fail-closed：落证据、记 anomaly、停下。
+5. 每个 attempt 落一张**小图证据**（列表列 + 详情标题条拼一起），人和模型都能直接看。
+
+用法（必须在 ys-gui-slot 槽内，会注入点击/滚轮）:
+    ys-listnav observe --region "150 250 470 1120" --detail-region "1450 830 700 110"
+    ys-listnav click   --text 星辉棱晶 …
+    ys-listnav demo    --titles "A,B,C" --header 当前区域相关 --scroll-clicks 3 --out /tmp/ys-listnav
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, '../..'))
+sys.path.insert(0, HERE)
+import ys_env                                              # noqa: E402
+
+CAP = os.path.join(HERE, 'ys-capture')
+YSTEXT = os.path.join(HERE, 'ys-text')
+PCLICK = os.path.join(HERE, 'ys-pointer-click')
+NOISE = re.compile(r'^[\sA-Za-z]{1,2}')
+
+
+def env():
+    return ys_env.env(YS_SLOT_ACTIVE='1')
+
+
+def frame_path(tag='cur'):
+    d = os.environ.get('YS_LIST_TMP', '/tmp/ys-listnav-frames')
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, f'f-{tag}-{int(time.time() * 1000) % 100000}.bmp')
+
+
+def grab(tag='cur'):
+    """抓帧到**唯一文件名**（防并发覆写 ⇒ 读端 'image truncated'，2026-10-23 踩过）。"""
+    p = frame_path(tag)
+    r = subprocess.run([CAP, 'latest', '--out', p, '--format', 'bmp'], capture_output=True,
+                       text=True, env=env())
+    if r.returncode != 0:
+        raise RuntimeError(f'抓帧失败 rc={r.returncode} {(r.stdout or r.stderr).strip()[:160]}')
+    d = json.loads(r.stdout)
+    return p, (d.get('content') or {}).get('id'), d
+
+
+def ocr_lines(img, region):
+    js = img + '.json'
+    subprocess.run([YSTEXT, img, '--region', ' '.join(map(str, region)), '--only', 'lines',
+                    '--json-out', js], capture_output=True, env=env())
+    try:
+        return json.load(open(js)).get('lines', [])
+    except Exception:
+        return []
+
+
+def norm(s):
+    s = NOISE.sub('', s or '')
+    return re.sub(r'[^0-9A-Za-z\u4e00-\u9fff]', '', s).lower()
+
+
+def observe(region, detail_region, tag='obs'):
+    img, cid, meta = grab(tag)
+    lines = [l for l in ocr_lines(img, region) if 18 <= l['bbox'][3] - l['bbox'][1] <= 80]
+    lines.sort(key=lambda l: l['bbox'][1])
+    xs = sorted(l['bbox'][0] for l in lines)
+    med_x = xs[len(xs) // 2] if xs else 0
+    y0r, y1r = region[1], region[1] + region[3]
+    items = []
+    for l in lines:
+        x0, y0, x1, y1 = l['bbox']
+        kind = 'selectable'
+        if x0 < med_x - 9:
+            kind = 'header'
+        if y1 >= y1r - 6 or y0 <= y0r + 6:
+            kind = 'partial'
+        items.append({'text': l['text'], 'bbox': [x0, y0, x1, y1],
+                      'cx': (x0 + x1) // 2, 'cy': (y0 + y1) // 2, 'kind': kind,
+                      'score': round(l.get('score', 0), 3)})
+    detail = ''
+    if detail_region:
+        dl = ocr_lines(img, detail_region)
+        if dl:
+            dl.sort(key=lambda l: -(l['bbox'][2] - l['bbox'][0]))
+            detail = dl[0]['text']
+    return {'img': img, 'content_id': cid, 'items': items, 'detail': detail,
+            'pitch': (items[1]['cy'] - items[0]['cy']) if len(items) > 1 else None,
+            'seq': meta.get('frame', {}).get('seq')}
+
+
+def find_item(obs, text):
+    want = norm(text)
+    cands = [i for i in obs['items'] if i['kind'] == 'selectable']
+    for i in cands:
+        if norm(i['text']) == want:
+            return i, 'exact'
+    for i in cands:
+        if norm(i['text']).startswith(want[:8]) or want.startswith(norm(i['text'])[:8]):
+            return i, 'prefix'
+    return None, None
+
+
+def click_at(x, y):
+    r = subprocess.run([PCLICK, str(x), str(y)], capture_output=True, text=True, env=env())
+    return r.returncode, (r.stdout or r.stderr).strip()[:200]
+
+
+def wait_change(prev_id, timeout=1.5):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        _, cid, _ = grab('chk')
+        if cid is not None and prev_id is not None and cid != prev_id:
+            time.sleep(0.25)
+            return True, cid, time.time() - t0
+        time.sleep(0.05)
+    return False, prev_id, time.time() - t0
+
+
+def save_evidence(img, region, detail_region, out, stem):
+    try:
+        from PIL import Image
+    except Exception:
+        return None
+    im = Image.open(img).convert('RGB')
+    a = im.crop((region[0], region[1], region[0] + region[2], region[1] + region[3]))
+    parts = [a]
+    if detail_region:
+        b = im.crop((detail_region[0], detail_region[1],
+                     detail_region[0] + detail_region[2], detail_region[1] + detail_region[3]))
+        parts.append(b.resize((a.width, max(1, int(b.height * a.width / b.width)))))
+    h = sum(p.height for p in parts) + 6 * (len(parts) - 1)
+    canvas = Image.new('RGB', (a.width, h), (20, 20, 24))
+    y = 0
+    for p in parts:
+        canvas.paste(p, (0, y))
+        y += p.height + 6
+    os.makedirs(out, exist_ok=True)
+    path = os.path.join(out, stem + '.png')
+    canvas.save(path)
+    return path
+
+
+def click_one(a, obs, target):
+    step = {'target': target, 'attempts': [], 'ok': False, 'corrections': []}
+    for attempt in range(1, a.max_tries + 1):
+        item, kind = find_item(obs, target)
+        if not item:
+            step['err'] = '目标不在当前观测窗口'
+            break
+        prev_id = obs['content_id']
+        rc, msg = click_at(item['cx'], item['cy'])
+        changed, cid, waited = wait_change(prev_id)
+        obs2 = observe(a.region, a.detail_region, tag=f'{norm(target)[:6]}-{attempt}')
+        got = obs2['detail']
+        hit = bool(got) and (norm(got) == norm(target) or norm(target).startswith(norm(got)[:8]))
+        ev = save_evidence(obs2['img'], a.region, a.detail_region, a.out,
+                           f'{norm(target)[:8] or "x"}-try{attempt}') if a.out else None
+        step['attempts'].append({'try': attempt, 'item': item['text'], 'match': kind,
+                                 'click_rc': rc, 'bbox': item['bbox'], 'changed': changed,
+                                 'waited_s': round(waited, 2), 'detail_read': got, 'hit': hit,
+                                 'ev': ev})
+        if hit:
+            step['ok'] = True
+            obs.update(obs2)
+            break
+        moved = None
+        for i in obs2['items']:
+            if norm(i['text']) == norm(item['text']):
+                moved = i['bbox'][1] - item['bbox'][1]
+                break
+        step['corrections'].append({'try': attempt, 'detail_read': got, 'item_y_delta': moved,
+                                    'reason': 'detail_mismatch'})
+        # A 类（可纠正）：同一目标下一次重试即可，前提是窗口几何稳定。
+        # B 类（不可纠正，fail-closed）：**行在点击过程中动了** ⇒ 先别重试，落证据停下。
+        #   2026-10-23 用户裁定：不许用"点击会自滚"这种未解释的现象给位移兜底。
+        if moved is not None and abs(moved) > 2:
+            step['anomaly'] = f'row_moved_during_click:{moved:+d}px'
+            step['fail_closed'] = True
+            break
+        obs = obs2
+        time.sleep(0.2)
+    return step
+
+
+def cmd_observe(a):
+    obs = observe(a.region, a.detail_region)
+    if a.json:
+        print(json.dumps(obs, ensure_ascii=False, indent=1))
+    else:
+        print(f"# observe content_id={obs['content_id']} pitch={obs['pitch']} detail={obs['detail']!r}")
+        for i in obs['items']:
+            print(f"  [{i['kind']:<10}] y={i['bbox'][1]:>4} x0={i['bbox'][0]:>4} "
+                  f"cy={i['cy']:>4} {i['text'][:30]}")
+    return 0
+
+
+def cmd_click(a):
+    obs = observe(a.region, a.detail_region)
+    step = click_one(a, obs, a.text)
+    if a.json:
+        print(json.dumps(step, ensure_ascii=False, indent=1))
+    else:
+        d = step['attempts'][-1]['detail_read'] if step['attempts'] else None
+        print(f"# click {a.text!r} ok={step['ok']} attempts={len(step['attempts'])} "
+              f"corrections={len(step['corrections'])} detail={d!r}")
+    return 0 if step['ok'] else 1
+
+
+def cmd_demo(a):
+    t0 = time.time()
+    os.makedirs(a.out, exist_ok=True)
+    log = open(os.path.join(a.out, 'log.jsonl'), 'w')
+    obs = observe(a.region, a.detail_region, tag='start')
+    n_c = sum(1 for i in obs['items'] if i['kind'] == 'selectable')
+    n_h = sum(1 for i in obs['items'] if i['kind'] == 'header')
+    n_p = sum(1 for i in obs['items'] if i['kind'] == 'partial')
+    print(f"# observe 可选项={n_c} header={n_h} partial={n_p} pitch={obs['pitch']} "
+          f"detail={obs['detail']!r} content_id={obs['content_id']}")
+    for i in obs['items']:
+        print(f"  [{i['kind']:<10}] y={i['bbox'][1]:>4} x0={i['bbox'][0]:>4} {i['text'][:26]}")
+    log.write(json.dumps({'event': 'observe', 'obs': {k: v for k, v in obs.items() if k != 'img'}},
+                         ensure_ascii=False) + '\n')
+
+    steps = []
+    for t in a.titles:
+        st = click_one(a, obs, t)
+        steps.append(st)
+        log.write(json.dumps({'event': 'click', 'step': st}, ensure_ascii=False) + '\n')
+        d = st['attempts'][-1]['detail_read'] if st['attempts'] else '-'
+        print(f"[click] {t[:22]:<24} ok={st['ok']} tries={len(st['attempts'])} "
+              f"corr={len(st['corrections'])} detail={d[:18]!r}")
+
+    if a.header:
+        st = click_one(a, obs, a.header)
+        steps.append(st)
+        log.write(json.dumps({'event': 'click_header', 'step': st}, ensure_ascii=False) + '\n')
+        d = st['attempts'][-1]['detail_read'] if st['attempts'] else '-'
+        print(f"[header] {a.header[:20]:<22} 期望不响应 → ok={st['ok']} "
+              f"(应 False) detail={d[:18]!r}")
+
+    if a.scroll_clicks:
+        prev = obs['content_id']
+        subprocess.run(['xdotool', 'mousemove', '--sync', str(a.at[0]), str(a.at[1])],
+                       capture_output=True, env=env())
+        subprocess.run(['xdotool', 'click', '--repeat', str(a.scroll_clicks), '--delay', '35', '5'],
+                       capture_output=True, env=env())
+        ch, cid, w = wait_change(prev)
+        obs = observe(a.region, a.detail_region, tag='scrolled')
+        log.write(json.dumps({'event': 'scroll', 'clicks': a.scroll_clicks, 'changed': ch,
+                              'obs': {k: v for k, v in obs.items() if k != 'img'}},
+                             ensure_ascii=False) + '\n')
+        print(f"[scroll] {a.scroll_clicks} 格 changed={ch} ；之后点第一项（行位置已变⇒考验纠正）")
+        first = next((i for i in obs['items'] if i['kind'] == 'selectable'), None)
+        if first:
+            st = click_one(a, obs, first['text'])
+            steps.append(st)
+            log.write(json.dumps({'event': 'click_after_scroll', 'step': st},
+                                 ensure_ascii=False) + '\n')
+            d = st['attempts'][-1]['detail_read'] if st['attempts'] else '-'
+            print(f"[click] {first['text'][:22]:<24} ok={st['ok']} tries={len(st['attempts'])} "
+                  f"corr={len(st['corrections'])} detail={d[:18]!r}")
+
+    ok = sum(1 for s in steps if s['ok'])
+    corr = sum(len(s['corrections']) for s in steps)
+    summary = {'steps': len(steps), 'ok': ok,
+               'attempts_total': sum(len(s['attempts']) for s in steps),
+               'corrections': corr, 'elapsed_s': round(time.time() - t0, 1), 'out': a.out}
+    log.write(json.dumps({'event': 'summary', 'summary': summary}, ensure_ascii=False) + '\n')
+    log.close()
+    print(f"# SUMMARY steps={summary['steps']} ok={ok} attempts={summary['attempts_total']} "
+          f"corrections={corr} elapsed={summary['elapsed_s']}s out={a.out}")
+    return 0 if ok == len(steps) else 1
+
+
+def main():
+    ap = argparse.ArgumentParser(description='列表导航：观测/点击/自纠正（每步落证据图）')
+    ap.add_argument('cmd', choices=['observe', 'click', 'demo'])
+    ap.add_argument('--region', default='150 250 470 1120', help='列表区 x y w h（帧坐标）')
+    ap.add_argument('--detail-region', default='1450 830 700 110', help='右侧详情标题条')
+    ap.add_argument('--text', default='')
+    ap.add_argument('--titles', default='')
+    ap.add_argument('--header', default='')
+    ap.add_argument('--scroll-clicks', type=int, default=0)
+    ap.add_argument('--at', default='300,700')
+    ap.add_argument('--max-tries', type=int, default=3)
+    ap.add_argument('--out', default='/tmp/ys-listnav')
+    ap.add_argument('--json', action='store_true')
+    a = ap.parse_args()
+
+    a.region = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.region) if t)[:4]
+    a.detail_region = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.detail_region) if t)[:4]
+    a.at = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.at) if t)[:2]
+    a.titles = [t.strip() for t in a.titles.split(',') if t.strip()]
+
+    if not os.environ.get('YS_SLOT_ACTIVE'):
+        print('[ys-listnav] 拒绝执行：必须在 ys-gui-slot 槽内（会注入点击/滚轮）。', file=sys.stderr)
+        return 2
+    return {'observe': cmd_observe, 'click': cmd_click, 'demo': cmd_demo}[a.cmd](a)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

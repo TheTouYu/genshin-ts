@@ -1207,6 +1207,41 @@ class Daemon:
                           'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')}, ensure_ascii=False),
               flush=True)
 
+    def _canon(self, rgb):
+        """把帧尺寸强制到配置尺寸（``--width``/``--height``）：**头与缓冲必须同源**。
+
+        2026-10-23 实测：同一台机、同一个窗口出现两种帧宽——
+        ``kwin-ss2`` 通道给 **2561×1440**（KWin 逻辑宽 1707 × scale 1.5 = 2560.5 → 取整 2561），
+        ``xshm-window`` 通道给 **2560×1440**。20 次采样里 9 次是 2561 宽，而
+        PIL / ``ys-text`` / ``ys-scrollbar`` 对 2561 宽帧一律报
+        ``image file is truncated (6244 bytes not processed)`` ⇒ 下游随机读不到行，
+        表现为「行消失 / 行抖动 / 列表自己滚了」这类**统计假象**。
+        1px 插值不可见，但尺寸不一致会让所有读者随机失败，所以在这里统一，并留日志。
+        """
+        W, H = int(self.args.width), int(self.args.height)
+        try:
+            h, w = int(rgb.shape[0]), int(rgb.shape[1])
+        except Exception:                                     # noqa: BLE001
+            return rgb
+        if (w, h) == (W, H):
+            return rgb
+        import numpy as np
+        from PIL import Image
+        out = np.ascontiguousarray(
+            np.asarray(Image.fromarray(np.ascontiguousarray(rgb)).resize((W, H), Image.BILINEAR),
+                       dtype=np.uint8))
+        if out.shape[:2] != (H, W):                            # 规范化后必须与头一致
+            raise RuntimeError(f'canon 失败：{out.shape[:2]} != {(H, W)}')
+        self.normalized = getattr(self, 'normalized', 0) + 1
+        self.last_norm = f'{w}x{h}->{W}x{H}'
+        if self.normalized <= 2 or self.normalized % 100 == 0:
+            print(json.dumps({'ok': True, 'role': 'serve', 'stage': 'canon',
+                              'from': f'{w}x{h}', 'to': f'{W}x{H}',
+                              'count': self.normalized,
+                              'ts': time.strftime('%Y-%m-%dT%H:%M:%S%z')}, ensure_ascii=False),
+                  flush=True)
+        return out
+
     def _adopt_frame(self, rgb=None, crc=None, make_rgb=None):
         """把一帧登记为「当前内容」：**内容 id / 内容时间只在内容真的变了时前进**。
 
@@ -1217,6 +1252,11 @@ class Daemon:
         `make_rgb` 只在"内容变了、真的需要像素"时才被调用（省掉每帧 16.7ms 的拷贝）。
         返回 (crc, changed, rgb_path)。
         """
+        if rgb is not None:
+            _rgb2 = self._canon(rgb)
+            if _rgb2 is not rgb:
+                rgb = _rgb2
+                crc = None                 # 尺寸被规范化 ⇒ crc 必须按新像素重算
         if crc is None:
             crc = zlib.crc32(rgb) & 0xffffffff
         crc8 = f'{crc:08x}'
