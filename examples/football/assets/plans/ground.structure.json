@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "resourceId": 10009001,
+      "position": [0, -0.51, 0],
+      "rotation": [0, 0, 0],
+      "scale": [50, 1, 50],
+      "color": {
+        "enabled": true,
+        "rgb": 7304560,
+        "opacity": 100,
+        "overlay": "overwrite"
+      }
+    }
+  ]
+}
