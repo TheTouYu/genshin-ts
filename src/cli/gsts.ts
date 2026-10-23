@@ -48,6 +48,7 @@ import { runAssetsSkillConfig } from './assets_skill_config.js'
 import { runAssetsUnitStatus } from './assets_unit_status.js'
 import { runAssetsGlobalTimers } from './assets_global_timers.js'
 import { runClientSim } from './client_sim.js'
+import { runSimImport } from './sim_import.js'
 import { runAssetsStructs } from './assets_structs.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runVariablesVerify } from './variables_verify.js'
@@ -1930,6 +1931,21 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsScripts(args, projectConfig)
+    })
+
+  program
+    .command('sim:import')
+    .description('analyze landing a simulator-exported GIA package onto a map .gil (read-only coverage report)')
+    .option('--gia <file>', 'simulator export (gia-combined)')
+    .option('--gil <file>', 'target map GIL')
+    .option('--format <format>', 'text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('sim:import')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const code = await runSimImport(args, { log: console.log, err: console.error })
+      if (code !== 0) process.exitCode = code
     })
 
   program
