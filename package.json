@@ -112,6 +112,7 @@
     "quicktest": "npm run build && node ./bin/gsts.mjs -c gsts.test.config.ts --noinject",
     "test:eslint": "tsx tests/eslint/node-graph-rules.test.ts",
     "health:composite": "tsx scripts/composite-health-check.ts --scan dist/tests",
+    "test:creations": "npm run build && tsx tests/gil_creations_config_test.ts",
     "test:injector": "tsx tests/injector/client-graph-injection.test.ts && tsx tests/injector/signal-injection-boundary.test.ts && tsx tests/injector/composite-reinjection.test.ts",
     "test:image-editor": "tsx tests/image-editor/import-export.test.ts && tsx tests/image-editor/gia-image-mode.test.ts",
     "test:stage-bootstrap": "npm run build && tsx scripts/assert-stage-event-prelude.ts",

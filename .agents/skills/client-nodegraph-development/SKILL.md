@@ -237,6 +237,14 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 【用户编辑器配置（一次性）】
 5. 元件库→复杂造物→遗迹守卫→放置；造物技能管理→引用技能（记序号，对应 executeSkill 参数）
    +设 CD；自主逻辑参数→新增模板_1 初始生效（对应 switch 第三参）；特化配置绑定决策图
+   - **2026-10-23 起「引用技能 + 设 CD + 绑决策图」三件可走 CLI**
+     （`gsts assets:creations skill add|bind`、`decision bind`，wire 见技能
+     `genshin-ts-asset-operations`「造物配置面」节；回归 `tests/gil_creations_config_test.ts`）：
+     `skill add --target <实体id> --skill-config <cfg> --cd 0 --ignore-public-cd` =
+     CD 0 s + 忽略公共冷却（≈小体型 15 次/秒 的基本配置）；
+     `decision bind --target <实体id> --graph <20007图id>`。
+   - 仍必须用户在编辑器做的：造物**摆放**与「自主逻辑参数」模板（槽 82；不填 = 造物不巡逻，
+     决策图切状态仍可用）。
 【运行时链（全自动）】
 6. 造物 AI 持续执行决策图→切状态→状态图 executeSkill→技能施放→20008 图跑→信号回服务器
 ```

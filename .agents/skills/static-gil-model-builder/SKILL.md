@@ -53,6 +53,7 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 | 新建复杂静态 prefab/元件 | `assets:static-assemblies` | 创建 root 4/8/27 闭包，走 plan → candidate → inspect/export → 写回门 |
 | 已有复杂 prefab/entity，只改位置、颜色或装饰物 Transform | `assets:entities patch` 或记录级 patch | 不创建新闭包；按实际 closure/export 找记录，同步三侧 aux |
 | 已有 definition，新建一个场景实体 | `assets:entities import` | 只复用已有 definition；确认 root 5/root 6 登记 |
+| **不建元件、直接摆官方预定义元件** | `assets:entities import`（`definitionId` 填官方资源号） | 用户 2026-10-23 口径：**改实体不影响元件**；一次性摆放不必先造自定义元件，自定义元件只为「复用」与「运行时动态创建」存在 |
 | 动态/静态元件与页面模型（不拼装） | `assets:prefabs create [--static]` | 动态 = root4 定义；静态 = root8 页面模型（非定义） |
 | 元件类型切换（动态↔静态） | `assets:prefabs convert --id <id> --static\|--dynamic` | 定义/模型/实体联动；定义-only 也支持 |
 | 挂装饰物（实体/定义/模型） | `assets:aux attach --host <id> --resource <装饰物ID>` | root27 aux + 宿主 f501；f502 宿主引用必须替换 |

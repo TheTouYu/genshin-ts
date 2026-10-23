@@ -8,8 +8,11 @@ import {
   createCreation,
   loadCreationTemplate,
   nextCreationIds,
+  readCreationConfig,
   readCreationTemplate,
+  updateCreationConfig,
   writeCreationTemplate,
+  type CreationConfigUpdate,
   type CreationTemplate
 } from './gil_creations.js'
 import { prettyStableJson } from './static_assembly/json.js'
@@ -20,6 +23,12 @@ import { prettyStableJson } from './static_assembly/json.js'
  *   gsts assets:creations create [--name <名>] [--id <defId>] [--instance-id <instId>]
  *                                [--template <file>] [--gil <map>] [--output <f>|--write]
  *   gsts assets:creations export-template [--def <id>|--base <resID>] [--out <file>] [--gil <map>]
+ *   gsts assets:creations inspect --target <id> [--layer def|instance|entity] [--gil <map>]
+ *   gsts assets:creations skill add --target <id> [--name 技能_N] [--skill-config <cfgId>]
+ *                                   [--cd 0] [--ignore-public-cd]
+ *   gsts assets:creations skill bind --target <id> --index <n> --skill-config <cfgId>
+ *                                    [--cd 0] [--ignore-public-cd]
+ *   gsts assets:creations decision bind --target <id> --graph <graphId>
  *
  * 路线=字节透传克隆（见 gil_creations.ts 头注）：CLI 组件白名单不含造物特化槽，
  * 任何字段级重建都会丢槽，所以模板必须来自编辑器产出的干净造物。
@@ -29,7 +38,7 @@ function usage(code = 1): never {
   const text = [
     '复杂造物（造物元件）创建/模板导出（字节透传克隆路线）',
     '',
-    'Usage: gsts assets:creations <create|export-template> [options]',
+    'Usage: gsts assets:creations <create|export-template|inspect|skill|decision> [options]',
     '',
     'create（缺省子命令）：',
     '  --name <名>           造物名字（缺省沿用模板名）',
@@ -46,6 +55,22 @@ function usage(code = 1): never {
     '  --def <id> | --base <resId>    从地图里取哪个造物作模板（默认按 --base 找）',
     '  --out <file>                   模板输出路径（默认 resources/creations/creation-<base>.json）',
     '  --gil <file> | --map-id <id>',
+    '',
+    'inspect（只读）：读造物配置态（决策图 / 技能条目 / CD / 公共冷却）',
+    '  --target <id>                  造物记录 id（实体 / 页面实例 / 定义）',
+    '  --layer def|instance|entity    显式指定层（缺省按 entity→instance→def 顺序找）',
+    '',
+    'skill add（新增一个技能条目；实测 +44 B，编辑器默认名 技能_<n>）：',
+    '  --target <id> --name <名> --skill-config <cfgId> --cd 0 --ignore-public-cd',
+    '',
+    'skill bind（把某条技能绑定到技能配置；实测绑定位 = 条目 f2.f2）：',
+    '  --target <id> --index <n> --skill-config <cfgId> [--cd 0] [--ignore-public-cd]',
+    '    注意：绑定的旗标是 --skill-config（--config 是全局配置文件选项，会冲突）',
+    '',
+    'decision bind（绑定 20007 决策图；实测 +6 B，写 f79.f1.f2）：',
+    '  --target <id> --graph <graphId>',
+    '',
+    '公共：--gil <file> | --map-id <id>；--output <file> 出候选；--write 备份后写回并同步 Temp；--format json',
     ''
   ].join('\n')
   if (code === 0) {
@@ -57,7 +82,14 @@ function usage(code = 1): never {
 }
 
 type Args = {
-  command: 'create' | 'export-template'
+  command: 'create' | 'export-template' | 'inspect' | 'skill-add' | 'skill-bind' | 'decision-bind'
+  targetId?: number
+  layer?: 'def' | 'instance' | 'entity'
+  index?: number
+  configId?: number
+  graphId?: number
+  cdSeconds?: number
+  ignorePublicCd: boolean
   name?: string
   defId?: number
   instanceId?: number
@@ -83,6 +115,13 @@ function parseArgs(argv: readonly string[]): Args {
   let gilPath: string | undefined
   let mapId: number | undefined
   let outputPath: string | undefined
+  let targetId: number | undefined
+  let layer: 'def' | 'instance' | 'entity' | undefined
+  let index: number | undefined
+  let configId: number | undefined
+  let graphId: number | undefined
+  let cdSeconds: number | undefined
+  let ignorePublicCd = false
   let write = false
   let format: Args['format'] = 'text'
   for (let i = 0; i < argv.length; i += 1) {
@@ -93,10 +132,34 @@ function parseArgs(argv: readonly string[]): Args {
       i += 1
       return v
     }
-    if (a === 'create' || a === 'export-template') {
+    if (a === 'create' || a === 'export-template' || a === 'inspect') {
       command = a
       commandSet = true
-    } else if (a === '--name') name = next()
+    } else if (a === 'skill') {
+      const sub = argv[i + 1]
+      if (sub === 'add' || sub === 'bind') {
+        command = sub === 'add' ? 'skill-add' : 'skill-bind'
+        commandSet = true
+        i += 1
+      } else usage()
+    } else if (a === 'decision') {
+      const sub = argv[i + 1]
+      if (sub === 'bind') {
+        command = 'decision-bind'
+        commandSet = true
+        i += 1
+      } else usage()
+    } else if (a === '--target') targetId = Number(next())
+    else if (a === '--layer') {
+      const v = next()
+      if (v !== 'def' && v !== 'instance' && v !== 'entity') throw new Error(`[error] unknown layer: ${v}`)
+      layer = v
+    } else if (a === '--index') index = Number(next())
+    else if (a === '--skill-config' || a === '--cfg') configId = Number(next())
+    else if (a === '--graph') graphId = Number(next())
+    else if (a === '--cd') cdSeconds = Number(next())
+    else if (a === '--ignore-public-cd') ignorePublicCd = true
+    else if (a === '--name') name = next()
     else if (a === '--id') defId = Number(next())
     else if (a === '--instance-id') instanceId = Number(next())
     else if (a === '--base') base = Number(next())
@@ -123,7 +186,36 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] export-template requires a valid --def <id>')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, name, defId, instanceId, base, templatePath, outPath, gilPath, mapId, outputPath, write, format }
+  if (command === 'inspect' || command === 'skill-add' || command === 'skill-bind' || command === 'decision-bind') {
+    if (targetId === undefined) throw new Error('[error] --target <造物记录 id> is required')
+  }
+  if (command === 'skill-bind' && (index === undefined || configId === undefined)) {
+    throw new Error('[error] skill bind requires --index <n> and --skill-config <cfgId>')
+  }
+  if (command === 'decision-bind' && graphId === undefined) {
+    throw new Error('[error] decision bind requires --graph <graphId>')
+  }
+  return {
+    command,
+    targetId,
+    layer,
+    index,
+    configId,
+    graphId,
+    cdSeconds,
+    ignorePublicCd,
+    name,
+    defId,
+    instanceId,
+    base,
+    templatePath,
+    outPath,
+    gilPath,
+    mapId,
+    outputPath,
+    write,
+    format
+  }
 }
 
 function resolveGilPath(args: Args, cfg: GstsConfig | undefined): string {
@@ -150,6 +242,87 @@ async function execute(argv: readonly string[], cfg: GstsConfig | undefined): Pr
   const sourceHash = sha256(src)
   const json = args.format === 'json'
   const log = (s: string) => (json ? console.error(s) : console.log(s))
+
+  if (args.command === 'inspect') {
+    const view = readCreationConfig(src, { targetId: args.targetId!, layer: args.layer })
+    log(
+      `record=${view.recordId} layer=${view.layer} name=${view.name} base=${view.base} ` +
+        `decision=${view.decisionGraphId ?? '-'}(mark ${view.decisionTypeMark ?? '-'}) ` +
+        `skills=${view.skills.length} publicCd=${view.publicCooldown ?? '-'}`
+    )
+    for (const skill of view.skills) {
+      log(
+        `  #${skill.index} ${skill.name} config=${skill.configId ?? '-'} ` +
+          `cd=[${skill.cd.join(',')}] ignorePublicCd=${skill.ignorePublicCd}`
+      )
+    }
+    if (json) {
+      process.stdout.write(
+        prettyStableJson({ schemaVersion: 1, kind: 'creations-inspect', sourceSha256: sourceHash, ...view })
+      )
+    }
+    return
+  }
+
+  if (args.command === 'skill-add' || args.command === 'skill-bind' || args.command === 'decision-bind') {
+    const update: CreationConfigUpdate =
+      args.command === 'decision-bind'
+        ? { kind: 'bind-decision', graphId: args.graphId! }
+        : args.command === 'skill-add'
+          ? {
+              kind: 'add-skill',
+              name: args.name,
+              configId: args.configId,
+              cdSeconds: args.cdSeconds,
+              ignorePublicCd: args.ignorePublicCd
+            }
+          : {
+              kind: 'bind-skill',
+              index: args.index!,
+              configId: args.configId!,
+              cdSeconds: args.cdSeconds,
+              ignorePublicCd: args.ignorePublicCd
+            }
+    const result = updateCreationConfig(src, { targetId: args.targetId!, layer: args.layer, update })
+    const summary: Record<string, unknown> = {
+      schemaVersion: 1,
+      kind: `creations-${args.command}`,
+      sourceSha256: sourceHash,
+      candidateSha256: sha256(result.bytes),
+      recordId: result.recordId,
+      layer: result.layer,
+      detail: result.detail
+    }
+    log(`record=${result.recordId} layer=${result.layer} ${result.detail}`)
+    log(`candidateSha256=${sha256(result.bytes)}`)
+    if (args.outputPath) {
+      const abs = path.resolve(args.outputPath)
+      fs.writeFileSync(abs, result.bytes)
+      summary.candidate = abs
+      log(`candidate=${abs}`)
+    } else if (args.write) {
+      const backupDir = path.join(saveLevelDirOf(gilPath), '.gsts', 'backups')
+      fs.mkdirSync(backupDir, { recursive: true })
+      const bak = path.join(
+        backupDir,
+        `${path.basename(gilPath)}.${new Date().toISOString().replace(/[:.]/g, '-')}.bak`
+      )
+      fs.copyFileSync(gilPath, bak)
+      fs.writeFileSync(gilPath, result.bytes)
+      const tempPath = syncGilToTemp(saveLevelDirOf(gilPath), path.basename(gilPath))
+      summary.backup = bak
+      summary.writePerformed = true
+      if (tempPath) summary.temp = tempPath
+      log(`backup=${bak}`)
+      log('writePerformed=true')
+      log(tempPath ? `temp=${tempPath}` : 'temp=null (Temp 目录不存在，未同步)')
+    } else {
+      summary.previewOnly = true
+      log('preview only; use --write to apply after backup, or --output for a candidate')
+    }
+    if (json) process.stdout.write(prettyStableJson(summary))
+    return
+  }
 
   if (args.command === 'export-template') {
     const template = readCreationTemplate(src, { defId: args.defId, base: args.base })

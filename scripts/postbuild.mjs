@@ -84,3 +84,14 @@ if (fs.existsSync(serverGlobalsSrc)) {
   fs.copyFileSync(serverGlobalsSrc, serverGlobalsDest)
   console.log('[ok] copied', serverGlobalsSrc, '->', serverGlobalsDest)
 }
+
+// CLI 侧 protobuf schema（2026-10-23 补）：src/cli/client_ui/proto.ts 用
+// `path.dirname(import.meta.url)` 定位 `gia_proto.proto`，dist 里没有这份资产时
+// 任何 import 到 client_ui/proto 的 CLI 命令都会 ENOENT 崩掉（assets:creations 实测）。
+const srcCliProto = path.join(repoRoot, 'src', 'cli', 'client_ui', 'gia_proto.proto')
+const distCliProto = path.join(repoRoot, 'dist', 'src', 'cli', 'client_ui', 'gia_proto.proto')
+if (fs.existsSync(srcCliProto)) {
+  fs.mkdirSync(path.dirname(distCliProto), { recursive: true })
+  fs.copyFileSync(srcCliProto, distCliProto)
+  console.log(`[ok] copied ${srcCliProto} -> ${distCliProto}`)
+}
