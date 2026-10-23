@@ -48,6 +48,7 @@
 | O-2026-10-22-14 | `machine` 驱动循环做不做、做单步还是链式 | 先单步 + 包内 `transitions` 表达链式 |
 | O-2026-10-22-15 | 状态包放哪 | 通用包 `tools/`、任务包 `.scratch/gui-profiles/<task>/`（两级继承） |
 | O-2026-10-23-4 | 2D 产线与 GUI C 任务的关系 | ①本阶段只做 2D 线、GUI 挂起（当前默认）②两线并行 ③2D 打通后再回 GUI |
+| O-2026-10-23-6 | 「把控件模板挂到布局上」缺 CLI：`assets:ui create-from-template --target <模板> --on layout` 在 `ui/DESIGN.md:77`/`ui/mappings.md:52`/`ui/design-trace.md` 标 ✅，但 `src/cli/assets_ui.ts`/`ui/src/cli.ts` grep 0 命中；内核 `instantiateToLibrary`（`ui/src/templateize.ts:954`）只覆盖库实例 | ①用户 1 分钟差分（编辑器里把库里控件组拖进默认布局→保存）出 wire 后接 CLI ②直接复用内核把父引用改成布局 | 现状：`create --type <kind> --on layout:<ID>` 已可新建控件到布局（hl 上 dry-run 通过）；`hl` 地图有 43 条 root9 记录在「未归属」，默认布局 1073741825 只有 9 条官方预制 |
 
 ## D. 已否决 / 已证伪（**别再走**）
 
