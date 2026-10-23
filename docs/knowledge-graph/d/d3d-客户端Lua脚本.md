@@ -97,3 +97,40 @@
 
 - 本篇 HR-01~HR-23 的证据等级是**第三方真机回传**（模拟器工程的可信度高于普通社区视频、低于官方文档原文）——引用时注明「经 miliastra-beyond-simulator 契约表」，不要写成「官方文档规定」。
 - 模拟器契约表本身在持续更新（其文内日期 2026-08-29~09-28），引用时以 `/home/h/miliastra-beyond-simulator/client/lua-runtime/docs/observed-contract.md` 最新版为准。
+
+## 十、真机脚本资产链路（登记表 / 外部文件 / 挂载，2026-10-14~23 真机定谳 + CLI 落地）
+
+> 证据分级：**真机差分**（编辑器产出 .gil 逐字节对比，D257/D260/D268）+ **CLI 结构层往返**（挂载→解挂回到原 SHA）；编辑器侧读写行为已由用户真机操作确认（导入/挂载/保存可用），**CLI 盘外写入的编辑器接受性未逐项验证**（同类玩法已验：地图与文本框写入被编辑器接受，D257/D255）。
+
+### 10.1 登记表 f50（脚本清单）
+
+- 顶层唯一 `f50`(wire2) → **单层 f50 包装** → 容器 `{f1: 条目(可重复), f2: 1}`；条目 = `{f1: guid varint, f2: name, f3: file_path, f5: source}`。
+- 编辑器导入 GIA 时三改写：guid 重编号（GIA 内 1073742105 → 槽内 1073741825）、`file_path` 自动补 `default_import_file/` 前缀、**源码全文内联**保存。
+- **重复导入去重铁律**：guid+1、name 加数字尾（main→main2）、path 加 `_1`（main.lua→main_1.lua）；导入同时把源码提取到 `<槽目录>/external_lua_file/<file_path>`（UTF-8 BOM + 全文）——外部文件提取=导入自动行为。
+- 编辑器会删除 `maps:create` 骨架里的 init 标记 `f34`；不要依赖它长期存在。
+
+### 10.2 挂载（脚本 → 宿主控件）
+
+- **宿主身份**：f9 树 record（`f9.f502`）的直接字段 `f501`(varint)=节点 guid；name 取组件链内 `f12` wrapper `{f501: string}`。
+- **挂载槽**：宿主 record 的 data 组件链中的 `f74`(wire2)：
+  - 空槽 = f74 空载荷（字段 3B）；有条目 = 载荷为若干 11B 条目串接；
+  - 真图另见 `a81f01`（f501 varint=1）+ 条目的 17B 形态：**前缀字段原样保留，条目追加其后**；
+  - 挂载条目 = `b21f 08 0a06 08 <5B script guid varint>`（11B）＝ `f502{f1{f1:guid}}`；
+  - 可重复挂载（容器模板挂 main+main2 = 22B 两连）。
+- **宿主范围**：挂载槽出现在**容器类节点**（真图 host 名：容器节点 / 探针层）；普通控件（如文本框）无槽 → 官方工作流本来就是「脚本挂容器」，CLI 对无槽宿主 fail-closed 报错。
+- **D268 曾记「三处」（树节点槽 / f503-f505 内嵌 / 顶层 root74 镜像）**：2026-10-23 现行真图（46336B）只存在树节点槽（f505 组件链内 f74），顶层无 root74；CLI 写回严格镜像编辑器本文件形态（树节点槽），往返 sha 全等。
+
+### 10.3 CLI（`gsts assets:scripts`，src/cli/assets_scripts.ts + gil_scripts.ts）
+
+```bash
+export GSTS_LOCALLOW_DIR=<prefix>/drive_c/users/<u>/AppData/LocalLow   # 本机必需
+gsts assets:scripts list    --map-id 1073741829          # f50 登记表 + 外部文件状态
+gsts assets:scripts register --map-id 1073741829 --name main --path lua-sync-test/main.lua --source-file main.lua
+gsts assets:scripts update  --map-id 1073741829 --name main --source-file main.lua
+gsts assets:scripts mounts  --map-id 1073741829          # host guid/name ↔ script guid/name
+gsts assets:scripts mount   --map-id 1073741829 --host 1073741847 --script 1073741825 [--write|--output f]
+gsts assets:scripts unmount --map-id 1073741829 --host 1073741847 --script 1073741825 [--write|--output f]
+```
+
+- 写回纪律：SHA 锁定 → `.gsts/backups/` 备份 → 写回 → `syncGilToTemp` 同步 Temp；**编辑器需重开地图**才读到盘外写入。
+- 结构层验收（2026-10-23，真图 1073741829）：`mounts` 解出 5 条（host 名正确解码）；容器节点 1073741847 追加 main_1 → +11B 且 mounts=6；随即 `unmount` 回到原文件 **sha256 逐字节全等**（`3da76637a608c436…`）。
