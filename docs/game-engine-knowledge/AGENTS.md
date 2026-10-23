@@ -261,6 +261,10 @@ GIL 整体结构与语义树
   [魔方性能优化](retrospective-2026-08-20-rubik-perf-optimization.md)、
   [足球场地弧线](retrospective-2026-08-21-football-field-arcs.md)、
   [朝向表约定](retrospective-2026-08-21-orientation-table-convention.md)
+- **造物 wire 学习 → CLI 化 → 端到端闭环**：[造物 wire 与 CLI 复盘](retrospective-2026-10-24-creation-wire-and-cli.md)
+  （10 错谱系：锚点/同步/能力断言/缩放口径/两处静默无操作/postbuild 缺 proto/注入 nodeGraphId/字符串计数/距离节流/意图误解；
+   三系统性根因：**把「这轮没见」当「引擎没有」**／**用户口径缺席时自己造解释**／读数粒度和判据不匹配；
+   产出：造物配置三件 CLI + `assets:entities delete` + 字节相等回归 6 断言 + 造物技能链四段端到端实证）
 - **过程与协作纪律**：[抢桌面事故——协议未读/止损缺失/在场无判据](retrospective-2026-10-17-desktop-grab-incident.md)
   （8 错谱系；**失败波**：唯一技术收获不应以用户时间为代价。三根因：把协议当背景知识不当现场契约／无止损判据／所有桌面规则隐含"我独占桌面"）
 - **记忆工程（压缩/恢复）**：[压缩丢细节事故与双侧修复](retrospective-2026-10-17-compression-loss-and-recovery.md)

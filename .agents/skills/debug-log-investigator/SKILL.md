@@ -5,6 +5,13 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 # 调试日志查询与破译（debug-log-investigator）
 
+
+### 数打印的**对数**，不数字符串出现次数（2026-10-24 实证）
+
+同一句 `printString("creation-skill-fired")` 的字符串在同一份 `.gia` 里会同时出现在**载荷**和
+**索引/节点表**中——2026-10-24 实测：`grep -c` 得 **40**，而真实施放只有 **10** 次（4× 重复）。
+**判据**：数事件用 `gia_log.py <log> text` 输出的**成对行**（如 `creation-skill-fired` / `v1` 各 10 行），
+`grep` 只能用来判断「有没有出现过」。频率 = 对数 / 会话秒数（`f3` 范围），不能拿字符串计数当分母。
 ## 定位
 
 目标：从游戏落盘的 `Beyond_Debug_Log/*.gia` 调试日志中，**完整还原节点图执行过程**——
