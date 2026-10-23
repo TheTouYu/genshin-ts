@@ -17,10 +17,10 @@ const graph = g.server({ id: 1073741825, variables: { booted: false, done: false
       f.printString('CP-TIMEOUT')
       const ps = f.getListOfPlayerEntitiesOnTheField()
       if (f.getListLength(ps) > 0n) {
-        f.setPlayerSettlementSuccessStatus(f.getCorrespondingValueFromList(ps, 0n), SettlementStatus.Failure)
+        f.setPlayerSettlementSuccessStatus(f.getCorrespondingValueFromList(ps, 0n), SettlementStatus.Defeat)
       }
       f.settleStage()
-    }, LIMIT_MS)
+    }, Number(LIMIT_MS))
   })
   .on('whenTabIsSelected', (e: any, f: any) => {
     const loc = f.getEntityLocationAndRotation(e.selectorEntity).location
@@ -32,7 +32,6 @@ const graph = g.server({ id: 1073741825, variables: { booted: false, done: false
     if (f.lessThan(d1, 16.0) && f.get('cp') == 0n && !f.get('done')) {
       f.set('cp', 1n)
       f.printString('CP-1')
-      if (1 == 3) { f.printString('CP-ALL') }
     }
     const dx2 = f.subtraction(loc.x, 20.0)
     const dz2 = f.subtraction(loc.z, 0.0)
@@ -40,7 +39,6 @@ const graph = g.server({ id: 1073741825, variables: { booted: false, done: false
     if (f.lessThan(d2, 16.0) && f.get('cp') == 1n && !f.get('done')) {
       f.set('cp', 2n)
       f.printString('CP-2')
-      if (2 == 3) { f.printString('CP-ALL') }
     }
     const dx3 = f.subtraction(loc.x, 30.0)
     const dz3 = f.subtraction(loc.z, 0.0)
@@ -48,7 +46,7 @@ const graph = g.server({ id: 1073741825, variables: { booted: false, done: false
     if (f.lessThan(d3, 16.0) && f.get('cp') == 2n && !f.get('done')) {
       f.set('cp', 3n)
       f.printString('CP-3')
-      if (3 == 3) { f.printString('CP-ALL') }
+      if (f.get('cp') == 3n) { f.printString('CP-ALL') }
     }
     if (f.get('cp') == 3n && !f.get('done')) {
       f.set('done', true)
