@@ -4,7 +4,8 @@ import { createStudio } from '/home/h/miliastra-beyond-simulator/studio/index.js
 const studio = createStudio()
 studio.importData('json', Buffer.from(JSON.stringify(JSON.parse(
   (await import('node:fs')).readFileSync('workspace/input-probe/input-probe.save.json', 'utf8')))).toString('base64'), 'input-probe.save.json')
-const EXP = '/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Export'
+// 真导出目录直接在 BeyondLocal 下，不带 UID 层（带 UID=编辑器对话框永远看不到文件；D271 事故）
+const EXP = '/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
 for (const format of ['gia-combined', 'scripts-gia']) {
   const r = studio.exportData(format)
   const files = r.files || [r]
