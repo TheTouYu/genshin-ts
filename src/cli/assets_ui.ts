@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 
 import { mapIdFromGil } from '../../ui/src/anchor.js'
 import {
+  createClientContainerCandidate,
   createLayoutCandidate,
   createUiCandidate,
   defaultCreateSurface,
@@ -66,7 +67,14 @@ type Format = 'text' | 'json'
 type Vector2 = readonly [number, number]
 
 /** create --type 可接受 token（legacy + 票05 L2 语义 kind + 布局创建） */
-type CreateCliType = UiCreateType | 'image' | 'input-box' | 'message-queue' | 'tab' | 'layout'
+type CreateCliType =
+  | UiCreateType
+  | 'image'
+  | 'input-box'
+  | 'message-queue'
+  | 'tab'
+  | 'layout'
+  | 'client-container'
 /** L2 语义 create 路由 kind（donor 支持矩阵见 ui/src/create.ts）；其余走 legacy 旧契约 */
 const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
   'custom-button',
@@ -74,7 +82,8 @@ const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
   'image',
   'input-box',
   'message-queue',
-  'layout'
+  'layout',
+  'client-container'
 ])
 
 function usage(exitCode = 1): never {
@@ -94,6 +103,8 @@ function usage(exitCode = 1): never {
     '                     --on layout:<ID|名称>|container:<容器ID>|悬浮页:<页ID|名>:<容器ID>',
     '                     [--id <new-id>] [--name <n>] [--position <x,y>] [--size <w,h>] [--output <file>]',
     '  create layout:    gsts assets:ui create --type layout [--name <布局名>] [--id <起始ID>] [--output <file>]',
+    '  create container: gsts assets:ui create --type client-container --on layout:<ID|名称> [--id <容器ID>] [--name <名>]',
+    '                     # 两件套：容器组(f502=23)+容器节点(f502=86)；布局 f503 尾部追加；donor=2026-10-23 hl 差分',
     '                     # 新建布局=克隆默认布局官方预置全集（轮1/2）；名字重名自动 _1/_2',
     '                     # donor 支持矩阵=真实编辑器样本：按钮 轮4/26；输入框 轮19/64；文本框/图片 轮64；队列 轮51(仅布局)',
     '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
@@ -288,11 +299,12 @@ function parseArgs(argv: readonly string[]) {
         raw !== 'input-box' &&
         raw !== 'message-queue' &&
         raw !== 'tab' &&
-        raw !== 'layout'
+        raw !== 'layout' &&
+        raw !== 'client-container'
       ) {
         throw new Error(
           '[error] --type must be textbox, interactive-button, custom-button, image, ' +
-            'floating-page, input-box, message-queue, tab or layout'
+            'floating-page, input-box, message-queue, tab, layout or client-container'
         )
       }
       createType = raw
@@ -344,7 +356,8 @@ function parseArgs(argv: readonly string[]) {
     createType === 'message-queue' ||
     createType === 'tab' ||
     createType === 'floating-page' ||
-    createType === 'layout'
+    createType === 'layout' ||
+    createType === 'client-container'
   const semanticViaOn =
     onRaw !== undefined && (createType === 'textbox' || createType === 'image')
   if (command === 'create' && newId === undefined && !(semanticAutoId || semanticViaOn)) {
@@ -847,7 +860,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       createKind === 'message-queue' ||
       createKind === 'tab' ||
       createKind === 'floating-page' ||
-      createKind === 'layout'
+      createKind === 'layout' ||
+      createKind === 'client-container'
     const semanticOn =
       createKind !== undefined &&
       (createKind === 'textbox' || createKind === 'image' || createKind === 'tab') &&
@@ -971,6 +985,63 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         }
         log10('editorOrGameValidation=not-performed')
         if (jsonMode) process.stdout.write(prettyStableJson(summary10))
+        return
+      }
+
+      // 空客户端控件容器（两件套：容器组 f502=23 + 容器节点 f502=86）——2026-10-23 hl 差分
+      if (createKind === 'client-container') {
+        const parsedCC = parseRoot9(sourceBytes)
+        const surfaceCC =
+          args.on !== undefined ? resolveSurfaceTarget(parsedCC, args.on) : defaultCreateSurface()
+        if (surfaceCC.kind !== 'layout') {
+          throw new Error('[error] client-container 只支持 --on layout:<ID|名称>（容器本体挂在布局上）')
+        }
+        const resultCC = createClientContainerCandidate(sourceBytes, {
+          surface: { kind: 'layout', layoutId: surfaceCC.layoutId },
+          ...(args.newId !== undefined ? { id: args.newId } : {}),
+          ...(args.name !== undefined ? { name: args.name } : {})
+        })
+        const summaryCC: Record<string, unknown> = {
+          schemaVersion: 1,
+          kind: 'ui-create-client-container-candidate',
+          sourceSha256: sourceHash,
+          surface: resultCC.surface,
+          parentId: resultCC.parentId,
+          containerId: resultCC.containerId,
+          childId: resultCC.childId,
+          donorSource: resultCC.donorSource,
+          donorSelfId: resultCC.donorSelfId,
+          donorChildId: resultCC.donorChildId
+        }
+        const logCC = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+        logCC('kind=client-container')
+        logCC(`surface=${JSON.stringify(resultCC.surface)}`)
+        logCC(`parentId=${resultCC.parentId}`)
+        logCC(`containerId=${resultCC.containerId}`)
+        logCC(`childId=${resultCC.childId}`)
+        logCC(`donor=${resultCC.donorSource} (${resultCC.donorSelfId}+${resultCC.donorChildId})`)
+        summaryCC.candidateSha256 = sha256(resultCC.bytes)
+        logCC(`candidateSha256=${summaryCC.candidateSha256}`)
+        if (args.outputPath) {
+          summaryCC.candidate = writeNew(args.outputPath, resultCC.bytes)
+          logCC(`candidate=${summaryCC.candidate}`)
+        } else if (args.write) {
+          if (!args.yes) {
+            summaryCC.writeRequiresUserConfirm = true
+            logCC('writeRequiresUserConfirm=true (未执行：--write 须附 --yes)')
+          } else {
+            const mapId = projectConfig?.inject?.mapId
+            summaryCC.backup = writeBack(gilPath, resultCC.bytes, sourceHash, mapId)
+            summaryCC.writePerformed = true
+            logCC(`backup=${summaryCC.backup}`)
+            logCC('writePerformed=true')
+          }
+        } else {
+          summaryCC.previewOnly = true
+          logCC('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
+        }
+        logCC('editorOrGameValidation=not-performed')
+        if (jsonMode) process.stdout.write(prettyStableJson(summaryCC))
         return
       }
 

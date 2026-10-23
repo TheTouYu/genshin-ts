@@ -33,6 +33,10 @@ import {
   setUiControlTransform
 } from '../../src/cli/gil_ui.js'
 import { CREATE_DONORS, createDonor } from './create-donors.js'
+import {
+  CLIENT_CONTAINER_CHILD_DONOR,
+  CLIENT_CONTAINER_GROUP_DONOR
+} from './create-donors-client-container.js'
 import type { UiCreateDonor, UiCreateDonorKind } from './create-donors.js'
 import {
   DEFAULT_LAYOUT_ID,
@@ -48,10 +52,10 @@ import { UI_KIND_REGISTRY } from './types.js'
 import type { UiRecordMeta } from './types.js'
 import type { ParsedRoot9 } from './record.js'
 
-export type CreateControlKind = Extract<
-  UiCreateDonorKind,
-  'custom-button' | 'textbox' | 'image' | 'input-box' | 'message-queue'
->
+export type CreateControlKind =
+  | Extract<UiCreateDonorKind, 'custom-button' | 'textbox' | 'image' | 'input-box' | 'message-queue'>
+  /** 空客户端控件容器（两件套：容器组 f502=23 + 容器节点 f502=86）——2026-10-23 hl 差分 donor */
+  | 'client-container'
 
 export type CreateSurface =
   | { kind: 'layout'; layoutId: number }
@@ -100,6 +104,13 @@ export function placementKeyOf(surface: CreateSurface): 'layout' | 'container' {
 
 /** placement 校验（DESIGN 1.2 / 用户权威：普通控件三面通用；tab 仅容器面…） */
 export function assertPlacement(kind: CreateControlKind, surface: CreateSurface): void {
+  // client-container 是容器类（非 UI_KIND_REGISTRY 的控件族），只允许布局面，由专用装配函数校验
+  if (kind === 'client-container') {
+    if (surface.kind !== 'layout') {
+      throw new Error('[error] 客户端控件容器仅可放置于布局（客户端控件只能活在容器画布或模板里）')
+    }
+    return
+  }
   const spec = UI_KIND_REGISTRY[kind]
   const placement = placementKeyOf(surface)
   if (!spec.placement.includes(placement)) {
@@ -592,3 +603,106 @@ function applyLayoutInsert(
 }
 
 export { DEFAULT_LAYOUT_ID }
+
+/** 插入单条记录（不追加父成员；父子关系已在记录字节内）。与 applySectionChanges 同一保真重建口径。 */
+function insertRecordOnly(bytes: Uint8Array, record: Uint8Array, afterRecordId?: number): Uint8Array {
+  const top = parseWireMessage(bytes.subarray(20, bytes.length - 4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 section missing')
+  const section = parseWireMessage(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 9 section')
+  let at = section.length
+  if (afterRecordId !== undefined) {
+    const index = section.findIndex((f) => ownIdOf(f) === afterRecordId)
+    if (index >= 0) at = index + 1
+  }
+  section.splice(at, 0, { number: 502, wire: 2, value: record })
+  root9.value = emitWireMessage(section)
+  return buildFile(emitWireMessage(top), {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
+}
+
+export interface CreateClientContainerOptions {
+  /** 只支持布局面（官方约束：客户端控件只能活在容器画布或模板里；容器本体挂布局） */
+  surface: { kind: 'layout'; layoutId: number }
+  /** 容器组 ID（缺省=避让分配） */
+  id?: number
+  /** 容器组名称（缺省沿用 donor 的「客户端控件容器」） */
+  name?: string
+}
+
+export interface CreateClientContainerResult {
+  bytes: Uint8Array
+  surface: { kind: 'layout'; layoutId: number }
+  /** 布局 ID（= 容器组 f504 父引用） */
+  parentId: number
+  containerId: number
+  childId: number
+  donorSource: string
+  donorSelfId: number
+  donorChildId: number
+}
+
+/**
+ * 生成「空客户端控件容器」候选（两件套）。
+ * 依据（ui-controls.md「布局挂载」节，2026-10-23 hl 差分 CONFIRMED）：
+ *   一次编辑器操作 = 容器组记录（f502=23 isGroup，f504=布局，children 指子）+ 容器节点子控件（f502=86）
+ *   + 布局 f503 成员列表尾部追加容器组 ID。
+ * 只读：返回整文件候选字节，不写盘。
+ */
+export function createClientContainerCandidate(
+  bytes: Uint8Array,
+  options: CreateClientContainerOptions
+): CreateClientContainerResult {
+  const parsed = parseRoot9(bytes)
+  const layoutId = options.surface.layoutId
+  if (options.surface.kind !== 'layout') throw new Error('[error] 客户端控件容器只支持布局面')
+  const layout = parsed.recordsById.get(layoutId)
+  if (!layout || layout.kind !== 'layout') throw new Error(`[error] ${layoutId} 不是布局记录`)
+  if (!hasMemberList(parsed, layoutId)) throw new Error(`[error] 布局 ${layoutId} 缺少 f503 成员列表`)
+
+  const containerId = allocateControlId(parsed, options.id)
+  const used = collectUsedControlIds(parsed)
+  used.add(containerId)
+  let childId = containerId + 1
+  while (used.has(childId)) childId += 1
+
+  const groupDonor = CLIENT_CONTAINER_GROUP_DONOR
+  const childDonor = CLIENT_CONTAINER_CHILD_DONOR
+  const groupMap: Record<number, number> = {
+    [groupDonor.selfId]: containerId,
+    [groupDonor.childId]: childId,
+    [groupDonor.parentId]: layoutId
+  }
+  let groupRecord: Uint8Array = remapUiRecordVarints(
+    Buffer.from(groupDonor.hex, 'hex'),
+    groupMap
+  )
+  if (options.name !== undefined) groupRecord = setUiControlName(groupRecord, options.name)
+  const childRecord: Uint8Array = remapUiRecordVarints(
+    Buffer.from(childDonor.hex, 'hex'),
+    { [childDonor.selfId]: childId }
+  )
+
+  const withGroup = applySectionChanges(bytes, {
+    record: groupRecord,
+    recordId: containerId,
+    parentId: layoutId
+  })
+  const withChild = insertRecordOnly(withGroup, childRecord, containerId)
+  return {
+    bytes: withChild,
+    surface: options.surface,
+    parentId: layoutId,
+    containerId,
+    childId,
+    donorSource: groupDonor.sourceSnapshot,
+    donorSelfId: groupDonor.selfId,
+    donorChildId: groupDonor.childId
+  }
+}
