@@ -121,7 +121,7 @@ def cmd_begin(a):
             # 层 2（2026-10-21）：空闲释放 —— 代理思考时屏幕已在用户手上。
             # last_action_ts 由 `focus` 每次动作刷新；guard 超过 idle_ms 就交还。
             "last_action_ts": now, "holding_until": 0.0, "released": False,
-            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "10000")),  # 2026-10-22 用户令：3s→10s
+            "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "3000")),   # 2026-10-23 用户令：任务完成 3s 就交还（10s 太空等）
             "reacquires": 0, "actions": 0}
     if a.dry_run:
         save(sess)
@@ -326,7 +326,7 @@ def cmd_claim(a):
                 "win": None, "prev_active": prev, "target": None, "task": "auto",
                 "last_action_ts": now, "holding_until": now + max(0.0, hold),
                 "released": False,
-                "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "10000")),
+                "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "3000")),
                 "reacquires": 1, "actions": 0,
                 "claim": {"at": now, "by": a.reason or "raise", "hold_s": hold,
                           "was_released": False, "auto_created": True}}
