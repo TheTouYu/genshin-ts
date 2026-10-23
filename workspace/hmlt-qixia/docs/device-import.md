@@ -13,8 +13,17 @@
 | `hmlt-qixia.save.json` | 模拟器完整存档（模拟器侧复现用） |
 | `main.lua`（2036 行） | 纯 Lua 源码（人工核对/复制粘贴用） |
 
-已同步放至真机导入目录（编辑器导入对话框默认打开的位置）：
-`…/BeyondLocal/Beyond_Local_Export/`（直接在 BeyondLocal 下，不在 UID 子目录）
+已放至真机导入目录（编辑器导入对话框默认打开的位置），**全目录只留这一个文件**：
+
+```bash
+P=/home/h/.local/share/anime-game-launcher/prefix
+ls "$P/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/"
+# → hmlt-qixia-整合包.gia（93,202 B，sha256 544949f1…）
+```
+
+目录层级：`…/BeyondLocal/Beyond_Local_Export/`——**直接在 BeyondLocal 下，不在 UID 子目录**（`~/.ys` 是游戏安装目录，里面没有 `BeyondLocal`；同事目录还有 `110170759/`、`Beyond_Local_Save_Runtime/` 等）。
+
+**卫生约定（2026-10-23 定）**：这个目录是"一个待导入文件"的投递口，不是仓库。旧产物（13 个素材 `*.scene.gia` + 2 个 `input-probe` 探针包）已整批移到 `~/.cache/hmlt-export-backup-2026-10-23/`（可逆、未删除）；素材随时可用 `node art/gen-scenes.mjs` 重生成，需要时再取回。
 
 ## 导入步骤（真机编辑器）
 
@@ -73,7 +82,9 @@
 2. 特性进度/图鉴为**跨局 META**（同一局内保持），跨会话不保留（需关卡变量，未做）
 3. 游戏内「导出 GIA」按钮在 Wine 下会崩溃——别用，导出都在模拟器侧完成
 
-## 素材包（已预放同目录，13 个 `*.scene.gia`）
+## 素材包（13 个 `*.scene.gia`；2026-10-23 已移出导入目录，需要时从备份或重生成）
+
+备份：`~/.cache/hmlt-export-backup-2026-10-23/`；重生成：`node art/gen-scenes.mjs`（源=`art/*.scene.json`）。
 
 **图片编辑器**（不是资产导入入口）里逐个导入。每个 GIA=一个图元合成素材（六种基础图形+配色+层叠）：
 

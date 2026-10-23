@@ -62,7 +62,7 @@ GPU                1591/6144 MiB
 2. 文字按 y 行硬合并 → **跨栏混串**（一行 bbox 宽 2336px）。
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
 4. `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回主线前必须刷新）。
-5. 真机导入目录里**没有整合包 GIA**（只有 13 个素材 GIA）→ P1 第一步就是复制。
+5. 真机导入目录已就位：只剩 `hmlt-qixia-整合包.gia`（93,202 B，2026-10-23 17:20 清理；15 个旧产物在 `~/.cache/hmlt-export-backup-2026-10-23/`）。
 
 ## 六、最近三笔提交（滚动保留）
 
