@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# ys-own — 注入前的**所有权断言**（fail-closed）：焦点/桌面是我的，才允许注入。
+#
+# 存在理由（2026-10-23 事故，用户当场看到输入框里被我打了 60+ 个 'd'）：
+# `ys-gui-slot` 只管"开头拿焦点"，但 `ys-focus-guard` 的空闲交还（idle 10s）会在**槽内**
+# 把焦点还给 firefox（实测守卫日志 12:50:43 / 12:51:32 / 12:52:50 / 13:13:56 四次 hand_back
+# 都落在我的 100 步走位期间）。此后每一次 `ydotool key 32`（D）都**打进了 firefox 的输入框**，
+# 而我读的帧来自不可见的游戏窗（旧帧）——两个症状同一个根因：**没有"每次注入前重新确认归属"**。
+#
+# 判据（三条全过才算 owner，任何一条取不到读数也判"不是"）：
+#   ① 目标窗（默认 yuanshen.exe）在当前窗口表里带 ACTIVE；
+#   ② 该窗的 `ds` 含 `cur`（KWin 会 unmaps 别的桌面上的窗口 ⇒ 注入全部丢失）；
+#   ③ （可选 --require-visible）ys-capture status 的 visible==1，即抓帧通道看到的是可见窗。
+#
+# 用法（注入类工具在**每次**注入前调；返回非零就别注入）：
+#   ys-own                       # 人读：一句话 + 三条读数
+#   ys-own --json                # 机读
+#   ys-own --require-visible     # 额外要求帧可见（闭环保真帧时用）
+#   ys-own --attrib-file F       # 夹具：用文件替代 ys-wins --attrib（自测/注入用例）
+# 退出码：0=是我  4=不是我（附具体哪条不过）  2=用法
+set -u
+HERE="$(dirname "$(readlink -f "$0")")"
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+
+WANT_CLASS="${YS_OWN_CLASS:-yuanshen.exe}"
+ATTRIB_FILE=""; JSON=0; REQUIRE_VISIBLE=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --json) JSON=1 ;;
+    --require-visible) REQUIRE_VISIBLE=1 ;;
+    --attrib-file) ATTRIB_FILE="${2:-}"; shift ;;
+    --class) WANT_CLASS="${2:-}"; shift ;;
+    -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
+    *) echo "[ys-own] 未知参数：$1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+if [ -n "$ATTRIB_FILE" ]; then
+  [ -r "$ATTRIB_FILE" ] || { echo "[ys-own] 读不到夹具：$ATTRIB_FILE" >&2; exit 2; }
+  ATTRIB=$(cat "$ATTRIB_FILE")
+else
+  ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null) || { echo "[ys-own] ys-wins --attrib 失败" >&2; exit 4; }
+fi
+
+VIS=""
+if [ "$REQUIRE_VISIBLE" = "1" ]; then
+  VIS=$("$HERE/ys-capture" status 2>/dev/null | python3 -c "
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: print(''); raise SystemExit
+w=d.get('window') or {}
+print(w.get('visible',''))" 2>/dev/null)
+fi
+
+python3 - "$ATTRIB" "$WANT_CLASS" "$VIS" "$REQUIRE_VISIBLE" "$JSON" <<'PY'
+import json, re, sys
+attrib, want, vis, require_vis, as_json = sys.argv[1:6]
+rows = []
+for line in attrib.splitlines():
+    line = line.strip()
+    if not line.startswith('['):
+        continue
+    parts = [p.strip() for p in line.split('|')]
+    if len(parts) < 3:
+        continue
+    m = re.match(r'\[(\d+)\]\s*(.*)', parts[0])
+    if not m:
+        continue
+    rec = {'idx': int(m.group(1)), 'caption': m.group(2), 'class': parts[1],
+           'ds': '', 'cur': -1, 'active': False}
+    for f in parts[2:]:
+        if f == 'ACTIVE':
+            rec['active'] = True
+        elif f.startswith('ds='):
+            rec['ds'] = f[3:].strip()
+        elif f.startswith('cur='):
+            try: rec['cur'] = int(f[4:].strip())
+            except ValueError: rec['cur'] = -1
+        elif f.startswith('act='):
+            # 兜底：act=1 与 ACTIVE 是同一事实的两种写法（这台机两者一致）
+            rec['active'] = rec['active'] or (f[4:].strip() == '1')
+    rows.append(rec)
+tgt = [r for r in rows if want in (r['class'] or '')]
+reasons, ok = [], False
+if not tgt:
+    reasons.append(f'找不到窗口 class~{want}')
+else:
+    w = tgt[-1]
+    ds = [d.strip() for d in str(w['ds']).replace(',', ' ').split()]
+    in_cur = (str(w['cur']) in ds) or (w['ds'] in ('', '-1', '4294967295'))
+    if not w['active']:
+        reasons.append(f"焦点不在目标窗（active={w['active']}, 该窗 idx={w['idx']}）")
+    if not in_cur:
+        reasons.append(f"窗口在桌面 {w['ds']}，当前桌面 {w['cur']}（KWin 会 unmaps ⇒ 注入全丢）")
+    if require_vis == '1' and vis not in ('1', 'True', 'true'):
+        reasons.append(f'抓帧通道 visible={vis or "?"}（看不见 ⇒ 帧可能滞后）')
+    ok = not reasons
+out = {'ok': ok, 'class': want, 'window': (tgt[-1] if tgt else None),
+       'visible': vis, 'reasons': reasons,
+       'hint': '不是你的窗口就不要注入：先 ys-gui-slot 拿焦点，或 ys-follow-win 切桌面。'}
+if as_json == '1':
+    print(json.dumps(out, ensure_ascii=False))
+else:
+    w = out.get('window') or {}
+    print(f"[ys-own] {'OK 是我' if ok else 'REFUSE 不是我的'} "
+          f"win=idx({w.get('idx')}) active={w.get('active')} ds={w.get('ds')} cur={w.get('cur')}"
+          + (f" visible={vis}" if require_vis == '1' else ''))
+    for r in reasons:
+        print(f"  ✗ {r}")
+sys.exit(0 if ok else 4)
+PY

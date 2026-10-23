@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""ys-doc — 用「OCR 框位置 + 已收录的列表日志」做**像素级滚动定位与自动纠正**。
+
+## 为什么这样做（2026-10-23 用户点破）
+「我们每一帧都能拿到 OCR 里每个框的位置，为什么不发挥它？就算滚多了/滚少了/用户手动滑了，
+用这些信息 + 已收录的列表信息就能自动纠正。」——对，这**不是难题**，是一个已经可测的小问题：
+
+    Δscroll = median( y_before[i] − y_after[j] )  对同一身份 i=j 的所有可见行取中位数
+
+实测（本机教程页，两帧之间）：Δ = −168.0px，8/10 行匹配，**Δ 标准差 0.17px**；
+另两组相邻帧 Δ = 0.0（σ 0.14 / 0.23px）。⇒ 滑动量可以测到**亚像素**，不需要"行对齐"。
+
+## 三个概念分开（别再混）
+- **身份（id）**= 归一化标题（去标点/空白/省略号，casefold）。行号只在当前视窗内有效。
+- **文档（doc）**= 有序 id 列表 + 每个 id 的 `kind`（selectable / header / disabled）+ 节距 pitch。
+  来源可以是日志（`.04` 的 198 条、`.03` 的清单）或现场学（`learn`）。
+- **位移（Δ）**= 上面那个中位数。它是**像素**，不是行。
+
+## 子命令
+    ys-doc delta  --a frameA.bmp --b frameB.bmp        # 离线：两帧之间的 Δ + 匹配数 + σ
+    ys-doc learn  --frames 'DIR/*.bmp' [--out doc.json] # 离线：从一批帧累积文档模型
+    ys-doc goto   --to-title '标题' [--at X,Y] …        # 真机（需槽）：滚到目标并点击，带残差纠正
+
+## 失效即停（fail-closed）
+匹配对 < 3、Δ 标准差 > 2px、或同一 id 在同一帧内出现两次（重复标题未解决）⇒ 判"定位不可信"，
+返回非零并打印读数，绝不拿它继续算。
+"""
+import argparse
+import glob
+import json
+import os
+import re
+import statistics as st
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, '../..'))
+sys.path.insert(0, HERE)
+import ys_env                                              # noqa: E402
+
+CAP = os.path.join(HERE, 'ys-capture')
+YSTEXT = os.path.join(HERE, 'ys-text')
+PCLICK = os.path.join(HERE, 'ys-pointer-click')
+NOISE = re.compile(r'^[\sA-Za-z]{1,2}')
+DEFAULT_REGION = (150, 250, 470, 1120)
+MIN_MATCH = 3
+MAX_SIGMA = 2.0
+
+
+def env():
+    return ys_env.env(YS_SLOT_ACTIVE='1')
+
+
+def norm(s):
+    s = NOISE.sub('', s or '')
+    return re.sub(r'[^0-9A-Za-z\u4e00-\u9fff]', '', s).lower()
+
+
+def ocr_rows(img, region):
+    js = img + '.json'
+    r = subprocess.run([YSTEXT, img, '--region', ' '.join(map(str, region)), '--only', 'lines',
+                        '--no-row-merge', '--json-out', js], capture_output=True, text=True, env=env())
+    if r.returncode != 0:                                  # 失败即炸，不许静默空
+        raise RuntimeError(f'ys-text rc={r.returncode} {img}: {(r.stderr or "")[:160]}')
+    rows = []
+    y0r, y1r = region[1], region[1] + region[3]
+    for l in json.load(open(js)).get('lines', []):
+        x0, y0, x1, y1 = l['bbox']
+        if not (18 <= y1 - y0 <= 80):
+            continue
+        rows.append({'id': norm(l['text'])[:10], 'text': l['text'], 'bbox': [x0, y0, x1, y1],
+                     'cy': (y0 + y1) / 2.0, 'x0': x0,
+                     'partial': (y0 <= y0r + 6 or y1 >= y1r - 6)})
+    rows.sort(key=lambda r: r['cy'])
+    return rows
+
+
+def classify(rows):
+    """header = 左缩进比可选项中位更小（≥9px）。partial 保留但**不参与 Δ 估计**。"""
+    if not rows:
+        return rows
+    xs = sorted(r['x0'] for r in rows)
+    med = xs[len(xs) // 2]
+    for r in rows:
+        r['kind'] = 'header' if r['x0'] < med - 9 else 'selectable'
+    return rows
+
+
+def delta(a_rows, b_rows):
+    """Δ = median(y_before − y_after)，只取**唯一身份**且两帧都不 partial 的行。"""
+    da, db = {}, {}
+    for r in a_rows:
+        if not r['partial'] and r['kind'] == 'selectable':
+            da.setdefault(r['id'], []).append(r['cy'])
+    for r in b_rows:
+        if not r['partial'] and r['kind'] == 'selectable':
+            db.setdefault(r['id'], []).append(r['cy'])
+    pairs = [(v[0], db[k][0]) for k, v in da.items() if k in db and len(v) == 1 and len(db[k]) == 1]
+    if not pairs:
+        return {'ok': False, 'reason': 'no_match', 'matched': 0}
+    diffs = [ya - yb for ya, yb in pairs]
+    med = st.median(diffs)
+    sigma = st.pstdev(diffs) if len(diffs) > 1 else 0.0
+    ok = len(pairs) >= MIN_MATCH and sigma <= MAX_SIGMA
+    return {'ok': ok, 'delta_px': round(med, 2), 'matched': len(pairs),
+            'visible': max(len(da), len(db)), 'sigma_px': round(sigma, 2),
+            'reason': '' if ok else ('few_match' if len(pairs) < MIN_MATCH else 'noisy')}
+
+
+def pitch_of(rows):
+    ys = [r['cy'] for r in rows if r['kind'] == 'selectable']
+    d = sorted(b - a for a, b in zip(ys, ys[1:]) if 40 <= b - a <= 200)
+    return d[len(d) // 2] if d else None
+
+
+def cmd_delta(a):
+    ra = classify(ocr_rows(a.a, a.region))
+    rb = classify(ocr_rows(a.b, a.region))
+    out = {'a': a.a, 'b': a.b, 'pitch_a': pitch_of(ra), 'pitch_b': pitch_of(rb),
+           'rows_a': len(ra), 'rows_b': len(rb)}
+    out.update(delta(ra, rb))
+    print(json.dumps(out, ensure_ascii=False, indent=1))
+    return 0 if out.get('ok') else 1
+
+
+def cmd_learn(a):
+    files = sorted(glob.glob(a.frames))
+    if not files:
+        print(f'[ys-doc] 没有匹配到帧：{a.frames}', file=sys.stderr)
+        return 2
+    doc, pitches, seen = [], [], set()
+    prev_rows = None
+    for f in files:
+        rows = classify(ocr_rows(f, a.region))
+        if not rows:
+            continue
+        p = pitch_of(rows)
+        if p:
+            pitches.append(p)
+        if prev_rows:
+            d = delta(prev_rows, rows)
+            if d.get('ok'):
+                # 位移可信才用来判定"方向"，否则只做并集
+                pass
+        for r in rows:
+            if r['id'] and r['id'] not in seen:
+                seen.add(r['id'])
+                doc.append({'id': r['id'], 'text': r['text'], 'kind': r['kind']})
+        prev_rows = rows
+    out = {'frames': len(files), 'items': len(doc), 'pitch_px': round(st.median(pitches), 1) if pitches else None,
+           'headers': sum(1 for d in doc if d['kind'] == 'header'), 'doc': doc}
+    if a.out:
+        json.dump(out, open(a.out, 'w'), ensure_ascii=False, indent=1)
+        print(f'[ys-doc] 写入 {a.out}：items={out["items"]} headers={out["headers"]} '
+              f'pitch={out["pitch_px"]}')
+    else:
+        print(json.dumps(out, ensure_ascii=False, indent=1)[:2000])
+    return 0
+
+
+def cmd_goto(a):
+    """滚到目标项（滚轮/拖条都行）→ 按身份点击 → 读详情断言。残差按 Δ 像素纠正。"""
+    if not os.environ.get('YS_SLOT_ACTIVE'):
+        print('[ys-doc] goto 必须在 ys-gui-slot 槽内（会注入滚轮/点击）', file=sys.stderr)
+        return 2
+    log = []
+    target = norm(a.to_title)[:10]
+    for it in range(a.max_tries):
+        img, cid, _ = _grab('goto')
+        rows = classify(ocr_rows(img, a.region))
+        hit = next((r for r in rows if r['id'].startswith(target[:8])), None)
+        if hit:
+            rc, msg = _click(hit['bbox'])
+            d = _detail(a)
+            ok = norm(d).startswith(target[:8])
+            log.append({'try': it + 1, 'phase': 'click', 'found': hit['text'], 'detail': d,
+                        'ok': ok, 'rc': rc})
+            print(json.dumps(log[-1], ensure_ascii=False))
+            if ok:
+                json.dump(log, open(os.path.join(a.out, f'goto-{target}.json'), 'w'),
+                          ensure_ascii=False, indent=1)
+                return 0
+            continue
+        # 目标不在视野：按一屏推进（像素级：屏高 − 1.5 行）
+        p = pitch_of(rows) or 108
+        px = int(a.region[3] - 1.5 * p)
+        before = rows
+        _wheel(a.at, a.clicks, a.delay)
+        img2, _, _ = _grab('after')
+        after = classify(ocr_rows(img2, a.region))
+        d = delta(before, after)
+        log.append({'try': it + 1, 'phase': 'scroll', 'intended_px': px, 'measured': d})
+        print(json.dumps(log[-1], ensure_ascii=False))
+        if not d.get('ok'):
+            print('[ys-doc] 位移不可信 ⇒ fail-closed', file=sys.stderr)
+            return 1
+    print(f'[ys-doc] {a.max_tries} 次未到达 {a.to_title!r}', file=sys.stderr)
+    return 1
+
+
+def _grab(tag):
+    p = f'/tmp/ys-doc-{tag}-{int(os.times().elapsed * 1000) % 100000}.bmp'
+    r = subprocess.run([CAP, 'latest', '--out', p, '--format', 'bmp'], capture_output=True,
+                       text=True, env=env())
+    if r.returncode != 0:
+        raise RuntimeError(f'抓帧失败 rc={r.returncode}')
+    d = json.loads(r.stdout)
+    return p, (d.get('content') or {}).get('id'), d
+
+
+def assert_owner():
+    """注入前断言归属（见 ys-listnav.assert_owner 的同一事故说明）。"""
+    own = os.path.join(HERE, 'ys-own')
+    r = subprocess.run([own, '--require-visible'], capture_output=True, text=True, env=env())
+    if r.returncode != 0:
+        raise RuntimeError('不是我的窗口，拒绝注入：' + (r.stdout or r.stderr).strip()[:200])
+
+
+def _click(bbox):
+    assert_owner()
+    x, y = (bbox[0] + bbox[2]) // 2, (bbox[1] + bbox[3]) // 2
+    r = subprocess.run([PCLICK, str(x), str(y)], capture_output=True, text=True, env=env())
+    import time
+    time.sleep(0.7)
+    return r.returncode, (r.stdout or r.stderr).strip()[:120]
+
+
+def detail_title(img, region):
+    """详情面板的**标题**（不是描述）。
+
+    实测布局（教程页，帧坐标）：标题 y≈854–902（字高 48，居中），描述 y≈930+（字高 37，几乎满宽）。
+    此前用「最宽的一行」当标题 ⇒ 拿到的是描述，而**描述在同类条目间高度重复**
+    （"元素反应：…" 一族的描述文本相同）⇒ 读回值成对重复，被误判成"导航重复/按键丢失"。
+    判据：标题带 = 区域内上沿 90px 以内；同带多行（换行标题）按 y 再按 x 拼。
+    """
+    rows = [r for r in ocr_rows(img, region) if r['bbox'][1] <= region[1] + 90]
+    if not rows:
+        return ''
+    rows.sort(key=lambda r: (round(r['bbox'][1] / 20), r['bbox'][0]))
+    return ' '.join(r['text'] for r in rows)
+
+
+def _detail(a):
+    img, _, _ = _grab('detail')
+    return detail_title(img, a.detail_region)
+
+
+def _wheel(at, n, delay):
+    assert_owner()
+    subprocess.run(['xdotool', 'mousemove', '--sync', str(at[0]), str(at[1])],
+                   capture_output=True, env=env())
+    subprocess.run(['xdotool', 'click', '--repeat', str(n), '--delay', str(delay), '5'],
+                   capture_output=True, env=env())
+
+
+def main():
+    ap = argparse.ArgumentParser(description='OCR 框位置 → 像素级滚动定位与自动纠正')
+    ap.add_argument('cmd', choices=['delta', 'learn', 'goto'])
+    ap.add_argument('--a', default=''); ap.add_argument('--b', default='')
+    ap.add_argument('--frames', default='')
+    ap.add_argument('--to-title', default='')
+    ap.add_argument('--region', default=' '.join(map(str, DEFAULT_REGION)))
+    ap.add_argument('--detail-region', default='1450 830 700 110')
+    ap.add_argument('--at', default='300,700')
+    ap.add_argument('--clicks', type=int, default=4)
+    ap.add_argument('--delay', type=int, default=35)
+    ap.add_argument('--max-tries', type=int, default=8)
+    ap.add_argument('--out', default='/tmp/ys-doc')
+    a = ap.parse_args()
+    a.region = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.region) if t)[:4]
+    a.detail_region = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.detail_region) if t)[:4]
+    a.at = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.at) if t)[:2]
+    if a.out.endswith('.json'):
+        os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    else:
+        os.makedirs(a.out, exist_ok=True)
+    return {'delta': cmd_delta, 'learn': cmd_learn, 'goto': cmd_goto}[a.cmd](a)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

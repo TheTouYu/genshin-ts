@@ -233,6 +233,8 @@ restore() {
   # hold-done 后空闲计时从**槽结束时刻**起算：idle_ms 内下一槽 claim 刷新（不闪切），
   # 超过即由警卫交还用户。归还不再依赖凭据过期那条 290s 粗路径。
   if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
+    # 先解 busy（允许空闲层计时），再 hold-done（登记归还意图）
+    "$YS_HOME/ys-session" busy 0 >/dev/null 2>&1 || true
     "$YS_HOME/ys-session" hold-done --reason slot-end >/dev/null 2>&1 || true
   fi
   # 2026-10-21（用户批准的设计改）：**一次授权 = 一段租期**。
@@ -292,6 +294,13 @@ if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
   "$YS_HOME/ys-session" claim --hold-seconds "$MAX" --reason gui-slot --prev-json "$PREV_JSON" >/dev/null 2>&1 || true
 fi
 echo "[ys-gui-slot] 已取得 $WIN_HEX（$TARGET_DESC）焦点｜时限 ${MAX}s"
+# 2026-10-23（用户看到输入框里被我打了 60+ 个 'd'）：**槽内必须一直标 busy**。
+# 否则 ys-focus-guard 的 idle(10s) 交还层会在槽中途把焦点还给 firefox：
+# 之后每一次 ydotool 键都打进 firefox（实测 12:50:43/12:51:32/12:52:50/13:13:56 四次 hand_back
+# 都落在我 100 步走位期间），而帧则来自不可见的游戏窗 ⇒ "打到别的窗口 + 旧帧"同一根因。
+if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
+  "$YS_HOME/ys-session" busy "$MAX" >/dev/null 2>&1 || true
+fi
 
 # ── 3) 执行（硬时限）→ 显式归还（失败 9）─────────────────────────────────────
 timeout --signal=TERM "$MAX" "$@"; CMD_RC=$?

@@ -116,7 +116,22 @@ def find_item(obs, text):
     return None, None
 
 
+OWN = os.path.join(HERE, 'ys-own')
+
+
+def assert_owner():
+    """注入前**必须**确认焦点/桌面/可见性都还是我的（fail-closed）。
+
+    2026-10-23 事故：守卫空闲交还（idle 10s）在槽中途把焦点还给 firefox，我的 ydotool 键
+    打进用户输入框（60+ 个 d），帧则来自不可见的游戏窗。此后**任何**注入前都要过这一关。
+    """
+    r = subprocess.run([OWN, '--require-visible'], capture_output=True, text=True, env=env())
+    if r.returncode != 0:
+        raise RuntimeError('不是我的窗口，拒绝注入：' + (r.stdout or r.stderr).strip()[:200])
+
+
 def click_at(x, y):
+    assert_owner()
     r = subprocess.run([PCLICK, str(x), str(y)], capture_output=True, text=True, env=env())
     return r.returncode, (r.stdout or r.stderr).strip()[:200]
 
