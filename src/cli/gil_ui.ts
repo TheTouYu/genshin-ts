@@ -679,7 +679,14 @@ export function deleteUiControl(
       if (listField) {
         const ids = parsePackedVarints(listField.value as Uint8Array)
         if (ids.includes(id)) {
-          listField.value = encodePackedVarints(ids.filter((x) => x !== id))
+          const rest = ids.filter((x) => x !== id)
+          if (rest.length === 0) {
+            // 空列表不留残字段（否则 create→delete 往返多出 3B；客户端容器节点空 children 即此形态）
+            const at = recFields!.indexOf(listField)
+            if (at >= 0) recFields!.splice(at, 1)
+          } else {
+            listField.value = encodePackedVarints(rest)
+          }
           value = emitWireMessage(recFields!)
           changed.push(`host-members:${rid}`)
         }
@@ -886,7 +893,14 @@ export function deleteFloatingPageFamily(
       if (listField) {
         const ids = parsePackedVarints(listField.value as Uint8Array)
         if (ids.includes(id)) {
-          listField.value = encodePackedVarints(ids.filter((x) => x !== id))
+          const rest = ids.filter((x) => x !== id)
+          if (rest.length === 0) {
+            // 空列表不留残字段（否则 create→delete 往返多出 3B；客户端容器节点空 children 即此形态）
+            const at = recFields!.indexOf(listField)
+            if (at >= 0) recFields!.splice(at, 1)
+          } else {
+            listField.value = encodePackedVarints(rest)
+          }
           value = emitWireMessage(recFields!)
           changed.push(`host-members:${rid}`)
         }

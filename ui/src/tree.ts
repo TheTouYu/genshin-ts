@@ -278,6 +278,8 @@ export function buildSemanticView(
     if (
       node.kind === 'layout' ||
       node.kind === 'container' ||
+      node.kind === 'client-container' ||
+      node.kind === 'client-container-node' ||
       effectiveKind(meta, parentKind) === 'asset-group'
     ) {
       const members = extractMemberIds(meta.fields)

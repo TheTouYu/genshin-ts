@@ -22,6 +22,19 @@ export type UiKind =
   | 'message-queue'
   | 'tab'
   | 'close-button'
+  | 'client-container'
+  | 'client-container-node'
+  | 'client-textbox'
+  | 'client-cursor-area'
+  | 'client-reference'
+  | 'client-grid'
+  | 'client-button'
+  | 'client-textwindow'
+  | 'client-keyhint'
+  | 'client-image'
+  | 'client-animation'
+  | 'client-fullscreen-animation'
+  | 'client-control'
   | 'template'
   | 'instance'
   | 'official'
@@ -99,6 +112,24 @@ export const UI_KIND_REGISTRY: Record<UiKind, UiKindSpec> = {
     defaultGeometry: { size: [500, 100] }
   },
   'close-button': { kind: 'close-button', label: '交互页关闭按钮', placement: [] },
+  // 客户端控件（UI 控件模板/容器内；判别=compTypes 84–99 + 23/86，见 client-kinds.ts）
+  'client-container': { kind: 'client-container', label: '客户端控件容器', placement: ['layout'] },
+  'client-container-node': { kind: 'client-container-node', label: '容器节点', placement: ['container'] },
+  'client-textbox': { kind: 'client-textbox', label: '文本框', placement: ['container'] },
+  'client-cursor-area': { kind: 'client-cursor-area', label: '光标检测区域', placement: ['container'] },
+  'client-reference': { kind: 'client-reference', label: '模板引用控件', placement: ['container'] },
+  'client-grid': { kind: 'client-grid', label: '网格视窗', placement: ['container'] },
+  'client-button': { kind: 'client-button', label: '预设按钮', placement: ['container'] },
+  'client-textwindow': { kind: 'client-textwindow', label: '文本视窗', placement: ['container'] },
+  'client-keyhint': { kind: 'client-keyhint', label: '按键提示', placement: ['container'] },
+  'client-image': { kind: 'client-image', label: '图片', placement: ['container'] },
+  'client-animation': { kind: 'client-animation', label: '界面动效', placement: ['container'] },
+  'client-fullscreen-animation': {
+    kind: 'client-fullscreen-animation',
+    label: '全屏界面动效',
+    placement: ['container']
+  },
+  'client-control': { kind: 'client-control', label: '客户端控件', placement: ['container'] },
   template: { kind: 'template', label: '控件模板', placement: [] },
   instance: { kind: 'instance', label: '实例', placement: [] },
   official: { kind: 'official', label: '官方预制', placement: [] },

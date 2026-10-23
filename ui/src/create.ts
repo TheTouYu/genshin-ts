@@ -37,6 +37,7 @@ import {
   CLIENT_CONTAINER_CHILD_DONOR,
   CLIENT_CONTAINER_GROUP_DONOR
 } from './create-donors-client-container.js'
+import { CLIENT_CONTROL_DONORS } from './create-donors-client-controls.js'
 import type { UiCreateDonor, UiCreateDonorKind } from './create-donors.js'
 import {
   DEFAULT_LAYOUT_ID,
@@ -704,5 +705,151 @@ export function createClientContainerCandidate(
     donorSource: groupDonor.sourceSnapshot,
     donorSelfId: groupDonor.selfId,
     donorChildId: groupDonor.childId
+  }
+}
+
+/** 客户端控件 kind 集合（create 支持面；判别见 client-kinds.ts） */
+export const CLIENT_CONTROL_KINDS = [
+  'client-textbox',
+  'client-cursor-area',
+  'client-reference',
+  'client-grid',
+  'client-button',
+  'client-textwindow',
+  'client-keyhint',
+  'client-image',
+  'client-animation',
+  'client-fullscreen-animation'
+] as const
+
+export type ClientControlKind = (typeof CLIENT_CONTROL_KINDS)[number]
+
+/**
+ * 把子控件挂到父记录的 children 列表（客户端树，形态两分）：
+ * - 容器节点：children = **顶层 f503 packed varints**（hl 1880 实测：b9..c2 连续 ID）
+ * - 容器组：children = f505 块内 f503{f73{f501=<child>}}（hl 1891 实测）
+ * 列表缺失时（空容器节点）在 f501/f502 之后插入顶层 f503 packed 字段。
+ */
+function appendClientChild(bytes: Uint8Array, parentId: number, childId: number): Uint8Array {
+  const top = parseWireMessage(bytes.subarray(20, bytes.length - 4))
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const root9 = top.find((f) => f.number === 9 && f.wire === 2)
+  if (!root9) throw new Error('[error] root9 section missing')
+  const section = parseWireMessage(root9.value as Uint8Array)
+  if (!section) throw new Error('[error] invalid root 9 section')
+  const index = section.findIndex((f) => ownIdOf(f) === parentId)
+  if (index < 0) throw new Error(`[error] 父记录不存在: ${parentId}`)
+  const parentFields = parseWireMessage(section[index].value as Uint8Array)
+  if (!parentFields) throw new Error(`[error] 父记录解析失败: ${parentId}`)
+
+  const asPackedList = (value: Uint8Array): number[] | undefined => {
+    try {
+      const ids = packedVarints(value)
+      return ids.length > 0 && ids.every((id) => id >= 1073741824) ? ids : undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  // 1) 顶层 f503 packed（容器节点）
+  const packed = parentFields.find((f) => f.number === 503 && f.wire === 2)
+  const packedIds = packed ? asPackedList(packed.value as Uint8Array) : undefined
+  if (packed && packedIds) {
+    if (packedIds.includes(childId)) throw new Error(`[error] 父记录已含子 ${childId}`)
+    packedIds.push(childId)
+    packed.value = encodePackedVarints(packedIds)
+  } else {
+    // 2) f505 块内 f503{f73{f501}}（容器组）
+    let appended = false
+    for (const field of parentFields) {
+      if (field.number !== 505 || field.wire !== 2) continue
+      const block = parseWireMessage(field.value as Uint8Array)
+      const list = block?.find((f) => f.number === 503 && f.wire === 2)
+      if (!block || !list) continue
+      const listFields = parseWireMessage(list.value as Uint8Array)
+      if (!listFields || !listFields.some((f) => f.number === 73 && f.wire === 2)) continue
+      listFields.push({
+        number: 73,
+        wire: 2,
+        value: emitWireMessage([{ number: 501, wire: 0, value: childId }])
+      })
+      list.value = emitWireMessage(listFields)
+      field.value = emitWireMessage(block)
+      appended = true
+      break
+    }
+    if (!appended) {
+      // 3) 空父记录：插入顶层 f503 packed（位置 = f502 之后，与 hl 1880 字段次序一致）
+      const insertAt = Math.max(1, parentFields.findIndex((f) => f.number === 502) + 1)
+      parentFields.splice(insertAt, 0, {
+        number: 503,
+        wire: 2,
+        value: encodePackedVarints([childId])
+      })
+    }
+  }
+  section[index].value = emitWireMessage(parentFields)
+  root9.value = emitWireMessage(section)
+  return buildFile(emitWireMessage(top), {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  })
+}
+
+export interface CreateClientControlOptions {
+  kind: ClientControlKind
+  /** 目标容器（容器节点；容器组另走 create --type client-container） */
+  surface: { kind: 'container'; containerId: number }
+  id?: number
+  name?: string
+}
+
+export interface CreateClientControlResult {
+  bytes: Uint8Array
+  kind: ClientControlKind
+  surface: { kind: 'container'; containerId: number }
+  parentId: number
+  newId: number
+  donorSource: string
+  donorSelfId: number
+  donorParentId: number
+}
+
+/**
+ * 生成客户端控件候选（单控件，挂到指定容器节点）。
+ * 依据（ui-controls.md + hl 差分）：控件记录 f504=父容器节点；父容器节点顶层 f503 packed 追加子 ID。
+ * 只读：返回整文件候选字节，不写盘。
+ */
+export function createClientControlCandidate(
+  bytes: Uint8Array,
+  options: CreateClientControlOptions
+): CreateClientControlResult {
+  const donor = CLIENT_CONTROL_DONORS.find((item) => item.kind === options.kind)
+  if (!donor) throw new Error(`[error] 无客户端控件 donor: ${options.kind}`)
+  const parsed = parseRoot9(bytes)
+  const parentId = options.surface.containerId
+  const parent = parsed.recordsById.get(parentId)
+  if (!parent) throw new Error(`[error] 容器不存在: ${parentId}`)
+  if (parent.kind !== 'client-container-node' && parent.kind !== 'client-container') {
+    throw new Error(`[error] ${parentId} 不是客户端容器（kind=${parent.kind}）`)
+  }
+  const newId = allocateControlId(parsed, options.id)
+  const map: Record<number, number> = { [donor.selfId]: newId }
+  if (donor.parentId !== parentId) map[donor.parentId] = parentId
+  let record: Uint8Array = remapUiRecordVarints(Buffer.from(donor.hex, 'hex'), map)
+  if (options.name !== undefined) record = setUiControlName(record, options.name)
+  const withRecord = insertRecordOnly(bytes, record)
+  const withChild = appendClientChild(withRecord, parentId, newId)
+  return {
+    bytes: withChild,
+    kind: options.kind,
+    surface: options.surface,
+    parentId,
+    newId,
+    donorSource: '1073741834.hl-v1-empty-container.gil',
+    donorSelfId: donor.selfId,
+    donorParentId: donor.parentId
   }
 }

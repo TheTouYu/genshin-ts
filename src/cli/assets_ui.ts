@@ -5,9 +5,13 @@ import { pathToFileURL } from 'node:url'
 
 import { mapIdFromGil } from '../../ui/src/anchor.js'
 import {
+  CLIENT_CONTROL_KINDS,
   createClientContainerCandidate,
+  createClientControlCandidate,
+  type ClientControlKind,
   createLayoutCandidate,
   createUiCandidate,
+  type CreateControlKind,
   defaultCreateSurface,
   resolveSurfaceTarget
 } from '../../ui/src/create.js'
@@ -75,6 +79,16 @@ type CreateCliType =
   | 'tab'
   | 'layout'
   | 'client-container'
+  | 'client-textbox'
+  | 'client-cursor-area'
+  | 'client-reference'
+  | 'client-grid'
+  | 'client-button'
+  | 'client-textwindow'
+  | 'client-keyhint'
+  | 'client-image'
+  | 'client-animation'
+  | 'client-fullscreen-animation'
 /** L2 语义 create 路由 kind（donor 支持矩阵见 ui/src/create.ts）；其余走 legacy 旧契约 */
 const SEMANTIC_CREATE_KINDS = new Set<CreateCliType>([
   'custom-button',
@@ -300,14 +314,15 @@ function parseArgs(argv: readonly string[]) {
         raw !== 'message-queue' &&
         raw !== 'tab' &&
         raw !== 'layout' &&
-        raw !== 'client-container'
+        raw !== 'client-container' &&
+        !raw.startsWith('client-')
       ) {
         throw new Error(
           '[error] --type must be textbox, interactive-button, custom-button, image, ' +
-            'floating-page, input-box, message-queue, tab, layout or client-container'
+            'floating-page, input-box, message-queue, tab, layout, client-container or client-<控件类型>'
         )
       }
-      createType = raw
+      createType = raw as CreateCliType
     } else if (arg === '--asset') assetId = nonNegativeId(value(argv, index++), '--asset')
     else if (arg === '--color') color = value(argv, index++)
     else if (arg === '--layout') layoutId = nonNegativeId(value(argv, index++), '--layout')
@@ -357,7 +372,8 @@ function parseArgs(argv: readonly string[]) {
     createType === 'tab' ||
     createType === 'floating-page' ||
     createType === 'layout' ||
-    createType === 'client-container'
+    createType === 'client-container' ||
+    createType !== undefined && createType.startsWith('client-')
   const semanticViaOn =
     onRaw !== undefined && (createType === 'textbox' || createType === 'image')
   if (command === 'create' && newId === undefined && !(semanticAutoId || semanticViaOn)) {
@@ -861,7 +877,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       createKind === 'tab' ||
       createKind === 'floating-page' ||
       createKind === 'layout' ||
-      createKind === 'client-container'
+      createKind === 'client-container' ||
+      (createKind !== undefined && createKind.startsWith('client-'))
     const semanticOn =
       createKind !== undefined &&
       (createKind === 'textbox' || createKind === 'image' || createKind === 'tab') &&
@@ -988,6 +1005,67 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         return
       }
 
+      // 客户端控件（单控件挂容器节点）：--type client-<kind> --on container:<容器节点ID>
+      if (createKind !== undefined && createKind.startsWith('client-') && createKind !== 'client-container') {
+        const parsedCC = parseRoot9(sourceBytes)
+        if (args.on === undefined) {
+          throw new Error('[error] 客户端控件须用 --on container:<容器节点ID> 指定父容器')
+        }
+        const parts = args.on.split(':').map((x) => x.trim())
+        if (parts[0] !== 'container' || parts.length < 2) {
+          throw new Error('[error] 客户端控件只支持 --on container:<容器节点ID>')
+        }
+        const parentId = Number(parts[1])
+        const parent = parsedCC.recordsById.get(parentId)
+        if (!parent) throw new Error(`[error] 容器不存在: ${parentId}`)
+        if (parent.kind !== 'client-container-node' && parent.kind !== 'client-container') {
+          throw new Error(`[error] ${parentId} 不是客户端容器（kind=${parent.kind}）；可用 list --tree 查看`)
+        }
+        const resultCC = createClientControlCandidate(sourceBytes, {
+          kind: createKind as ClientControlKind,
+          surface: { kind: 'container', containerId: parentId },
+          ...(args.newId !== undefined ? { id: args.newId } : {}),
+          ...(args.name !== undefined ? { name: args.name } : {})
+        })
+        const summaryCC: Record<string, unknown> = {
+          schemaVersion: 1,
+          kind: 'ui-create-client-control-candidate',
+          sourceSha256: sourceHash,
+          kindOf: resultCC.kind,
+          parentId: resultCC.parentId,
+          newId: resultCC.newId,
+          donorSource: resultCC.donorSource,
+          donorSelfId: resultCC.donorSelfId
+        }
+        const logCC = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+        logCC(`kind=${resultCC.kind}`)
+        logCC(`parentId=${resultCC.parentId}`)
+        logCC(`newId=${resultCC.newId}`)
+        logCC(`donor=${resultCC.donorSource} (${resultCC.donorSelfId}->${resultCC.newId})`)
+        summaryCC.candidateSha256 = sha256(resultCC.bytes)
+        logCC(`candidateSha256=${summaryCC.candidateSha256}`)
+        if (args.outputPath) {
+          summaryCC.candidate = writeNew(args.outputPath, resultCC.bytes)
+          logCC(`candidate=${summaryCC.candidate}`)
+        } else if (args.write) {
+          if (!args.yes) {
+            summaryCC.writeRequiresUserConfirm = true
+            logCC('writeRequiresUserConfirm=true (未执行：--write 须附 --yes)')
+          } else {
+            summaryCC.backup = writeBack(gilPath, resultCC.bytes, sourceHash, projectConfig?.inject?.mapId)
+            summaryCC.writePerformed = true
+            logCC(`backup=${summaryCC.backup}`)
+            logCC('writePerformed=true')
+          }
+        } else {
+          summaryCC.previewOnly = true
+          logCC('preview only; 使用 --output <file> 落盘候选（本轮只读，不写游戏文件）')
+        }
+        logCC('editorOrGameValidation=not-performed')
+        if (jsonMode) process.stdout.write(prettyStableJson(summaryCC))
+        return
+      }
+
       // 空客户端控件容器（两件套：容器组 f502=23 + 容器节点 f502=86）——2026-10-23 hl 差分
       if (createKind === 'client-container') {
         const parsedCC = parseRoot9(sourceBytes)
@@ -1063,7 +1141,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         )
       }
       const result = createUiCandidate(sourceBytes, {
-        kind: createKind,
+        kind: createKind as CreateControlKind,
         surface,
         ...(args.newId !== undefined ? { id: args.newId } : {}),
         ...(args.name !== undefined ? { name: args.name } : {}),

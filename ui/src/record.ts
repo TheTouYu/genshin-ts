@@ -8,6 +8,7 @@
  */
 
 import { listButtonStates, listPageVariables } from '../../src/cli/gil_ui.js'
+import { clientKindOf } from './client-kinds.js'
 import {
   collectWireTexts,
   collectWireVarints,
@@ -161,6 +162,8 @@ export function kindOfRecord(
   scanVarints?: number[]
 ): UiKind {
   if (familyTypes.includes(7)) return 'layout'
+  const clientKind = clientKindOf(compTypes)
+  if (clientKind !== undefined) return clientKind
   if (compTypes.includes(44)) return 'floating-page'
   if (name.includes('交互页关闭按钮') || name.includes('关闭按钮')) return 'close-button'
   if (compTypes.includes(50) && compTypes.includes(52) && compTypes.includes(54)) {
@@ -508,8 +511,30 @@ export function extractContainerRefs(fields: readonly WireField[]): number[] {
 
 /** 记录自己的 f503 成员列表（layout / 容器 / 素材组） */
 export function extractMemberIds(fields: readonly WireField[]): number[] {
+  const ids: number[] = []
   const f503 = fields.find((x) => x.number === 503 && x.wire === 2)
-  return f503 ? packedVarints(f503.value as Uint8Array) : []
+  if (f503) {
+    try {
+      ids.push(...packedVarints(f503.value as Uint8Array))
+    } catch {
+      // 非 packed 形态：忽略（fail-closed，不猜）
+    }
+  }
+  // 客户端控件容器组：children 在 f505 块的 f503{f73{f501=<child>}}（hl 1891 实测，2026-10-23）
+  for (const field of fields) {
+    if (field.number !== 505 || field.wire !== 2) continue
+    const block = parseWireMessage(field.value as Uint8Array)
+    const list = block?.find((f) => f.number === 503 && f.wire === 2)
+    if (!list) continue
+    const entries = parseWireMessage(list.value as Uint8Array)
+    for (const entry of entries ?? []) {
+      if (entry.number !== 73 || entry.wire !== 2) continue
+      const inner = parseWireMessage(entry.value as Uint8Array)
+      const id = inner ? firstVarint(inner, 501) : undefined
+      if (id !== undefined) ids.push(id)
+    }
+  }
+  return ids
 }
 
 export function parseRoot9(bytes: Uint8Array): ParsedRoot9 {
