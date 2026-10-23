@@ -1739,6 +1739,13 @@ def cmd_selftest(args):
          ['--allow-background'], True),
         # ── 帧停滞（2026-10-23）：内容身份闸门 + v1 向后兼容
         # 消费者可以带「我至少要 content_id >= N」来原子地"等画面推进"，不用自己比对文件路径。
+        # 帧停滞最后一层：看不见 + 仍在快通道 ⇒ 必须拒（不交付可能滞后的像素）
+        ('invisible_xshm_denied', {'visible': '0', 'strict': 'OTHER_DESKTOP',
+                                   'src': 'xshm-window'}, 15, False, [], True),
+        ('invisible_xshm_allow_bg', {'visible': '0', 'strict': 'OTHER_DESKTOP',
+                                     'src': 'xshm-window'}, 0, True,
+         ['--allow-background'], True),
+        ('visible_xshm_ok', {'visible': '1', 'src': 'xshm-window'}, 0, True, [], True),
         ('content_id_ok', {'content_seq': 5}, 0, True, ['--min-content-id', '5'], True),
         ('content_id_denied', {'content_seq': 5}, 13, False, ['--min-content-id', '9'], True),
         ('v1_compat', {'ver': 'v1'}, 0, True, [], True),

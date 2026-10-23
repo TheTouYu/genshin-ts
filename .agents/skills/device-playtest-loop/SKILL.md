@@ -896,6 +896,10 @@ ys-capture status | jq .state.audit                    # stale_events / verdict 
 ```
 
 - **等"画面推进"用 `content.id`，不要比 `src` 路径**：内容不变时 `src` 本来就保持不变（这是设计，不是故障）。
+- **错画面比慢更贵，所以最后一层是 fail-closed**：窗口看不见（`visible=0`）却仍由 XShm 快通道供图
+  ⇒ `latest` 直接 **rc=15 CHANNEL_UNAVAILABLE**（不交付像素，点名原因；重试一次通常已切到合成器通道）。
+  确认要后台帧就带 `--allow-background`（它同时跳过"等切通道"）。
+  代价：看不见 + 闲了一会儿之后的第一张要 0.4–1.2s（切通道）；之后每张 33–50ms，内容最多旧 0.36s。
 - **别再为等待加固定 sleep**：门控（`content.id` 变化 + `age_ms` 新鲜）才是不多不少的那一档。
 - `channel` 字段告诉你这帧来自哪条通道：`xshm-window`（快）/ `kwin-ss2`（慢但真）；
   `demand_wait_ms` 是"冷启动首调等通道切换"花了多久（正常 0，冷路径 ≤1.5s）。

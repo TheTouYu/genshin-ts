@@ -20,6 +20,8 @@
 #   11 COPY_FAILED
 #   12 BACKGROUND_NOT_ALLOWED（守护是 window 模式/帧是后台帧，但调用方没带 --allow-background）
 #   13 CONTENT_NOT_ADVANCED（--min-content-id N：画面内容还没推进到 N；帧是新的、内容没变）
+#   15 CHANNEL_UNAVAILABLE（窗口看不见 + 快通道还没被替换成合成器通道 ⇒ 画面可能滞后，
+#                          拒绝交付"可能错的像素"；后台帧请显式 --allow-background）
 #   唯一例外：显式 `--allow-background`（只供离线分析目标窗口自身缓冲，**不得用于动作**）。
 #
 # 用法：
@@ -129,7 +131,9 @@ cmd_latest() {
   #    0.3–2.23s。已点单，这里**等守护把通道切到合成器**（kwin-ss2）再交付像素，
   #    最多 YS_CAPTURE_DEMAND_WAIT_MS（默认 1500ms）；看得见/已切换则零等待。
   local demand_wait_ms=0
-  if [ "${ver:-v1}" = "v2" ] && [ "${visible:-1}" != "1" ] && [ "${fsrc:-}" = "xshm-window" ]; then
+  # 调用方显式要后台帧（--allow-background）时不切通道、不等待：它已经接受"看不见"的语义
+  if [ "${ver:-v1}" = "v2" ] && [ "${visible:-1}" != "1" ] && [ "${fsrc:-}" = "xshm-window" ] \
+     && [ "$ALLOW_BG" != "1" ]; then
     local dw="${YS_CAPTURE_DEMAND_WAIT_MS:-1500}" dl t_dw0
     t_dw0=$(date +%s%N); dl=$(( t_dw0 + dw * 1000000 ))
     while [ "$(date +%s%N)" -lt "$dl" ]; do
@@ -138,6 +142,14 @@ cmd_latest() {
       [ "${fsrc:-}" != "xshm-window" ] && break
     done
     demand_wait_ms=$(( ($(date +%s%N) - t_dw0) / 1000000 ))
+  fi
+  # ── 闸门①.5（帧停滞最后一层）：窗口看不见、却仍由 XShm 快通道供图 ⇒ 画面可能滞后
+  #    0.3–2.7s（实测）。「拿到错画面」的代价远高于多等一次，所以这里 **fail-closed**：
+  #    不交付像素并点名原因；重试一次通常就已经切到合成器通道了。
+  if [ "${ver:-v1}" = "v2" ] && [ "${visible:-1}" != "1" ] && [ "${fsrc:-}" = "xshm-window" ] \
+     && [ "$ALLOW_BG" != "1" ]; then
+    deny 15 CHANNEL_UNAVAILABLE \
+      "窗口看不见（visible=${visible:-?}，KWin 判定 ${strict:-?}）且快通道尚未切到合成器通道：画面可能滞后 0.3–2.7s，拒绝交付。重试一次；持续出现说明 KWin 通道不可用（或确认要后台帧就带 --allow-background）"
   fi
   local now age_ms
   now=$(date +%s%N)
