@@ -114,6 +114,35 @@ def pitch_of(rows):
     return d[len(d) // 2] if d else None
 
 
+def cmd_ocr(a):
+    """快路径 OCR：裁 region → ys_ocr daemon RPC（实测 61ms）→ bbox 回填为帧坐标。"""
+    img = a.img
+    box = a.region
+    tmp = '/tmp/ys-doc-ocr.png'
+    from PIL import Image
+    im = Image.open(img).convert('RGB')
+    im.crop((box[0], box[1], box[0] + box[2], box[1] + box[3])).save(tmp)
+    r = subprocess.run([sys.executable, os.path.join(HERE, 'ys_ocr.py'), 'ocr', tmp, '--json'],
+                       capture_output=True, text=True, env=env())
+    if r.returncode != 0:
+        print(json.dumps({'ok': False, 'err': (r.stderr or r.stdout)[:200]}, ensure_ascii=False))
+        return 1
+    d = json.loads(r.stdout)
+    lines = []
+    for l in d.get('boxes') or d.get('lines') or []:
+        b = l.get('bbox')
+        if not b:                                   # ys_ocr schema：box=四点
+            pts = l.get('box') or [[0, 0]]
+            xs = [q[0] for q in pts]; ys = [q[1] for q in pts]
+            b = [min(xs), min(ys), max(xs), max(ys)]
+        lines.append({'text': l.get('text', ''),
+                      'bbox': [b[0] + box[0], b[1] + box[1], b[2] + box[0], b[3] + box[1]]})
+    out = {'ok': True, 'lines': lines, 'text': ' '.join(l['text'] for l in lines).strip(),
+           'via': d.get('via', 'daemon'), 'ms': d.get('ms')}
+    print(json.dumps(out, ensure_ascii=False) if a.json else out['text'])
+    return 0
+
+
 def cmd_delta(a):
     ra = classify(ocr_rows(a.a, a.region))
     rb = classify(ocr_rows(a.b, a.region))
@@ -256,7 +285,9 @@ def _wheel(at, n, delay):
 
 def main():
     ap = argparse.ArgumentParser(description='OCR 框位置 → 像素级滚动定位与自动纠正')
-    ap.add_argument('cmd', choices=['delta', 'learn', 'goto'])
+    ap.add_argument('cmd', choices=['delta', 'learn', 'goto', 'ocr'])
+    ap.add_argument('--img', default='/tmp/ys-doc-ocr.bmp')
+    ap.add_argument('--json', action='store_true', help='机器可读回执')
     ap.add_argument('--a', default=''); ap.add_argument('--b', default='')
     ap.add_argument('--frames', default='')
     ap.add_argument('--to-title', default='')
@@ -275,7 +306,7 @@ def main():
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     else:
         os.makedirs(a.out, exist_ok=True)
-    return {'delta': cmd_delta, 'learn': cmd_learn, 'goto': cmd_goto}[a.cmd](a)
+    return {'delta': cmd_delta, 'learn': cmd_learn, 'goto': cmd_goto, 'ocr': cmd_ocr}[a.cmd](a)
 
 
 if __name__ == '__main__':

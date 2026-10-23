@@ -23,13 +23,15 @@ HERE="$(dirname "$(readlink -f "$0")")"
 . "$HERE/ys-env.sh" >/dev/null 2>&1 || true
 
 WANT_CLASS="${YS_OWN_CLASS:-yuanshen.exe}"
-ATTRIB_FILE=""; JSON=0; REQUIRE_VISIBLE=0
+ATTRIB_FILE=""; JSON=0; REQUIRE_VISIBLE=0; MAX_AGE="${YS_OWN_ATTRIB_MAX_AGE:-5}"; NO_CACHE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --json) JSON=1 ;;
     --require-visible) REQUIRE_VISIBLE=1 ;;
     --attrib-file) ATTRIB_FILE="${2:-}"; shift ;;
     --class) WANT_CLASS="${2:-}"; shift ;;
+    --max-age) MAX_AGE="${2:-5}"; shift ;;
+    --no-cache) NO_CACHE=1 ;;
     -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
     *) echo "[ys-own] 未知参数：$1" >&2; exit 2 ;;
   esac
@@ -40,7 +42,17 @@ if [ -n "$ATTRIB_FILE" ]; then
   [ -r "$ATTRIB_FILE" ] || { echo "[ys-own] 读不到夹具：$ATTRIB_FILE" >&2; exit 2; }
   ATTRIB=$(cat "$ATTRIB_FILE")
 else
-  ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null) || { echo "[ys-own] ys-wins --attrib 失败" >&2; exit 4; }
+  # 2026-10-23：attrib 走 KWin 脚本，实测 **1004ms/次** —— 每步注入都付一次就把 6 步/s 的预算吃光。
+  # 缓存 MAX_AGE 秒（缺省 5s）；焦点/桌面变化由 ys-session 记账，出错会立刻被下一条判据抓到。
+  CACHE="${TMPDIR:-/tmp}/.ys-own-attrib"
+  if [ "$NO_CACHE" != "1" ] && [ -s "$CACHE" ]; then
+    AGE=$(( $(date +%s) - $(stat -c %Y "$CACHE" 2>/dev/null || echo 0) ))
+    if [ "$AGE" -le "$MAX_AGE" ]; then ATTRIB=$(cat "$CACHE"); fi
+  fi
+  if [ -z "${ATTRIB:-}" ]; then
+    ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null) || { echo "[ys-own] ys-wins --attrib 失败" >&2; exit 4; }
+    printf '%s' "$ATTRIB" > "$CACHE" 2>/dev/null || true
+  fi
 fi
 
 # 可见性只能从**一帧回执**拿到（status 里没有 visible 字段，2026-10-23 实测）。
