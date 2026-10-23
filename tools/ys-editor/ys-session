@@ -260,6 +260,29 @@ def cmd_begin(a):
     return 0
 
 
+GAME_CLASSES = ("yuanshen", "genshin", "原神")
+
+
+def _prev_window_or_none(raw):
+    """解析 --prev-json 传来的交还目标；游戏类/空值/坏 JSON 归一为 None（交还时回退 firefox）。
+
+    为什么游戏类要归一：槽在 ALREADY_FOCUSED 场景下捕获的 prev 就是游戏窗本身，
+    拿它当交还目标 = 交还 noop（F-20261021-49：占用时目标已在焦点也必须切回默认屏）。
+    """
+    if not raw:
+        return None
+    try:
+        d = json.loads(raw)
+    except Exception:                                        # noqa: BLE001
+        return None
+    if not isinstance(d, dict):
+        return None
+    cls = str(d.get("class") or "").lower()
+    if any(k in cls for k in GAME_CLASSES):
+        return None
+    return d
+
+
 def cmd_claim(a):
     """认领屏幕所有权（任何抬窗路径都必须调它）。
 
@@ -272,16 +295,47 @@ def cmd_claim(a):
     于是警卫重新接管，空闲超时后照常交还用户。
     `--hold-seconds` 用于"我接下来 N 秒要独占"（ys-gui-slot 用槽位时限），
     期间警卫不插手。
+
+    2026-10-23 事故（.03/.04 语音页采集 2h15m 全程零自动归还）：
+    槽式流程**从不 begin 会话**，本函数对"无活动会话"的 no-op 让空闲交还层
+    （D478/D486 设计）从未武装 —— 归还只剩凭据过期（290s 粒度）一条粗路径，
+    模型连续 grant 时屏幕被游戏钉死 58 分钟（02:26→03:25 零交还）。
+    修法：带 `--prev-json`（槽启动时的真实前台窗）的 claim 自动建立轻量
+    **auto-session** ⇒ 警卫空闲交还对槽式流程生效：槽结束 hold-done 后空闲
+    idle_ms 即还，紧邻下一槽 claim 刷新、不闪切。
     """
     cur = load()
     now = time.time()
-    if (not cur or cur.get("state") != "active" or cur.get("dry_run")
-            or float(cur.get("expires") or 0) <= now):
-        # 没有活动会话也能安全调用：手工抬窗（如调试）不该因此报错
-        print(json.dumps({"ok": True, "claimed": False, "reason": "NO_ACTIVE_SESSION"},
-                         ensure_ascii=False))
-        return 0
     hold = float(a.hold_seconds) if a.hold_seconds else float(os.environ.get("YS_SESSION_HOLD_S", "2"))
+    active = bool(cur and cur.get("state") == "active" and not cur.get("dry_run")
+                  and float(cur.get("expires") or 0) > now)
+    if not active:
+        if getattr(a, "prev_json", None) is None:
+            # 没带交还目标的调用方维持旧行为（安全 no-op：手工抬窗不该报错，也不猜目标）
+            print(json.dumps({"ok": True, "claimed": False, "reason": "NO_ACTIVE_SESSION"},
+                             ensure_ascii=False))
+            return 0
+        prev = _prev_window_or_none(a.prev_json)
+        sess = {"schema": "ys.session/2", "session_id": "s-" + uuid.uuid4().hex[:10],
+                "created": now, "auto": True,
+                # expires 只是保洁员兜底（过期 ⇒ 警卫 SESSION_EXPIRED 交还一次），
+                # 不承担"占用多久"的语义 —— 那是 holding_until / idle_ms 的事。
+                "expires": now + max(hold, 300.0) + 120,
+                "reason": a.reason or "auto(gui-slot)", "user_said": "",
+                "dry_run": False, "state": "active",
+                "win": None, "prev_active": prev, "target": None, "task": "auto",
+                "last_action_ts": now, "holding_until": now + max(0.0, hold),
+                "released": False,
+                "idle_ms": int(os.environ.get("YS_SESSION_IDLE_MS", "10000")),
+                "reacquires": 1, "actions": 0,
+                "claim": {"at": now, "by": a.reason or "raise", "hold_s": hold,
+                          "was_released": False, "auto_created": True}}
+        save(sess)
+        print(json.dumps({"ok": True, "claimed": True, "auto_created": True,
+                          "session_id": sess["session_id"],
+                          "prev_active": prev, "holding_until": sess["holding_until"],
+                          "idle_ms": sess["idle_ms"]}, ensure_ascii=False))
+        return 0
     was_released = bool(cur.get("released"))
     cur["released"] = False
     cur["last_action_ts"] = now
@@ -292,6 +346,30 @@ def cmd_claim(a):
     print(json.dumps({"ok": True, "claimed": True, "session_id": cur.get("session_id"),
                       "was_released": was_released, "holding_until": cur["holding_until"],
                       "reacquires": cur["reacquires"]}, ensure_ascii=False))
+    return 0
+
+
+def cmd_hold_done(a):
+    """槽/动作结束：立即解除 hold，把归还责任交还空闲层（idle_ms 后交还用户）。
+
+    2026-10-23 事故：claim 把 holding_until 设成**整个槽时限**，槽提前结束时
+    holding 仍占着 ⇒ 警卫被 hold 挡到时限尽头，归还只剩凭据过期一条粗路径。
+    槽的 trap 必须显式 hold-done：holding_until=0 且 last_action_ts=now ⇒
+    空闲从**槽结束时刻**起算。紧邻的下一槽会重新 claim（刷新 ts/holding）
+    ⇒ 不闪切；超过 idle_ms 没有下一槽 ⇒ 警卫交还用户（模型无感）。
+    """
+    cur = load()
+    if not cur or cur.get("state") != "active" or cur.get("dry_run"):
+        print(json.dumps({"ok": True, "hold_done": False, "reason": "NO_ACTIVE_SESSION"},
+                         ensure_ascii=False))
+        return 0
+    now = time.time()
+    cur["holding_until"] = 0.0
+    cur["last_action_ts"] = now
+    cur["hold_done"] = {"at": now, "by": a.reason or "slot-end"}
+    save(cur)
+    print(json.dumps({"ok": True, "hold_done": True, "idle_ms": cur.get("idle_ms"),
+                      "idle_counts_from": round(now, 1)}, ensure_ascii=False))
     return 0
 
 
@@ -544,8 +622,14 @@ def main(argv=None):
     c = sub.add_parser("claim", help="认领屏幕所有权（抬窗路径必调：复位 released 闩锁，交给警卫托管）")
     c.add_argument("--hold-seconds", type=float, default=0.0,
                    help="接下来独占 N 秒（期间警卫不插手）；缺省读 YS_SESSION_HOLD_S 或 2s")
+    c.add_argument("--prev-json", default=None,
+                   help="交还目标（槽启动时的真实前台窗 JSON）；无活动会话时带它 ⇒ 自动建立 auto-session，"
+                        "警卫空闲交还从此对槽式流程生效（2026-10-23 零归还事故的修法）")
     c.add_argument("--reason", default="raise")
     c.set_defaults(fn=cmd_claim)
+    hd = sub.add_parser("hold-done", help="槽/动作结束解除 hold（空闲计时从现在起算，idle_ms 后警卫交还）")
+    hd.add_argument("--reason", default="slot-end")
+    hd.set_defaults(fn=cmd_hold_done)
     bz = sub.add_parser("busy", help="标记交互进行中（busy <秒>；0=清除），空闲交还期间跳过切屏")
     bz.add_argument("seconds", type=int)
     bz.set_defaults(fn=cmd_busy)

@@ -126,6 +126,140 @@ def main():
     ok = ('"claim"' in src_fw and "claim --hold-seconds" in src_gs)
     check("T7 follow-win / ys-gui-slot 抬窗后都登记所有权", ok)
 
+    # ── 2026-10-23 .03/.04 采集零归还事故回归（槽式流程的空闲交还层） ──────────
+    # 事故：采集任务从不 begin 会话，claim 对无会话 no-op ⇒ 警卫空闲交还层从未武装，
+    # 归还只剩凭据过期（290s 粒度）一条粗路径，屏幕被游戏钉死 58 分钟。
+    KITTY = json.dumps({"caption": "π - gui-test", "class": "kitty",
+                        "internalId": "{11111111-2222-3333-4444-555555555555}"}, ensure_ascii=False)
+    GAMEWIN = json.dumps({"caption": "原神", "class": "yuanshen.exe",
+                          "internalId": "{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}"}, ensure_ascii=False)
+
+    # T8 无会话 + --prev-json(用户窗) ⇒ 自动建立 auto-session（空闲交还层被武装）
+    if os.path.exists(path):
+        os.unlink(path)
+    t0 = time.time()
+    r = run(["claim", "--hold-seconds", "260", "--reason", "gui-slot",
+             "--prev-json", KITTY], env)
+    j = json.loads(r.stdout)
+    s8 = read_sess(path) if os.path.exists(path) else {}
+    ok = (j.get("auto_created") is True and s8.get("state") == "active"
+          and (s8.get("prev_active") or {}).get("class") == "kitty"
+          and s8.get("holding_until", 0) - t0 >= 258
+          and float(s8.get("expires") or 0) > time.time() + 300
+          and s8.get("idle_ms") == 10000)
+    check("T8 无会话+prev ⇒ auto-session（state=active/prev=kitty/hold≈260s）", ok,
+          f"auto={j.get('auto_created')} prev={(s8.get('prev_active') or {}).get('class')}")
+
+    # T9 prev 是游戏类 ⇒ 归一为 None（ALREADY_FOCUSED 场景，交还回退 firefox）
+    if os.path.exists(path):
+        os.unlink(path)          # 必须从"无会话"起测 auto-create 路径（T8 留下的会话是 active）
+    r = run(["claim", "--prev-json", GAMEWIN], env)
+    s9 = read_sess(path) if os.path.exists(path) else {}
+    ok = json.loads(r.stdout).get("auto_created") is True and s9.get("prev_active") is None
+    check("T9 prev=游戏窗 ⇒ prev_active=None（交还回退 firefox）", ok)
+
+    # T10 prev 空串 ⇒ 仍建 auto-session（prev=None）
+    if os.path.exists(path):
+        os.unlink(path)
+    r = run(["claim", "--prev-json", ""], env)
+    s10 = read_sess(path) if os.path.exists(path) else {}
+    ok = (json.loads(r.stdout).get("auto_created") is True
+          and s10.get("prev_active") is None and s10.get("state") == "active")
+    check("T10 prev 空串 ⇒ auto-session 且 prev=None", ok)
+
+    # T11 hold-done：解除 hold、空闲从槽结束时刻起算
+    write_sess(path, released=False, holding_until=time.time() + 250,
+               last_action_ts=time.time() - 250)
+    t11 = time.time()
+    r = run(["hold-done", "--reason", "slot-end"], env)
+    s11 = read_sess(path)
+    ok = (json.loads(r.stdout).get("hold_done") is True
+          and s11.get("holding_until") == 0
+          and float(s11.get("last_action_ts") or 0) >= t11)
+    check("T11 hold-done ⇒ holding=0 且 last_action_ts=现在", ok,
+          f"holding={s11.get('holding_until')}")
+
+    # T12 hold-done 无会话安全 no-op
+    if os.path.exists(path):
+        os.unlink(path)
+    r = run(["hold-done"], env)
+    ok = r.returncode == 0 and json.loads(r.stdout).get("hold_done") is False
+    check("T12 hold-done 无会话安全返回", ok)
+
+    # T13 事故链主判据：auto-session + 槽结束(hold-done) + 空闲超阈值 + 画面在游戏
+    #      ⇒ 警卫交还，且 --prev-json 带会话记录的用户窗（不再恒走 firefox 回退）
+    hb = os.path.join(tmp, "fake-handback.sh")
+    with open(hb, "w", encoding="utf-8") as f:
+        f.write('#!/bin/bash\necho "$@" >> %s\necho \'{"ok": true}\'\n'
+                % os.path.join(tmp, "handback-args.txt"))
+    os.chmod(hb, 0o755)
+    fake_lease = os.path.join(tmp, "fake-lease.sh")
+    with open(fake_lease, "w", encoding="utf-8") as f:
+        f.write('#!/bin/bash\ncase "$1" in kwin-state) echo \'{"ok": true, '
+                '"active": {"class": "yuanshen.exe", "caption": "原神"}}\' ;; '
+                'esac\n')
+    os.chmod(fake_lease, 0o755)
+    if os.path.exists(path):
+        os.unlink(path)
+    run(["claim", "--hold-seconds", "5", "--prev-json", KITTY], env)
+    s = read_sess(path)
+    s["last_action_ts"] = time.time() - 11          # 槽结束 11s 前就 hold-done 过
+    s["holding_until"] = 0.0
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(s, f)
+    genv = dict(os.environ, YS_SESSION_PATH=path, YS_HAND_BACK_BIN=hb,
+                YS_LEASE_BIN=fake_lease,
+                YS_FOCUS_GUARD_LOG=os.path.join(tmp, "guard.log"))
+    # guard 模块在 import 时读环境变量（SESSION/LEASE_BIN/HAND_BACK_BIN），
+    # fixture 必须**先写回 os.environ** 再加载模块——只放进 dict 会让 guard 读到
+    # 真实 ~/.ys/session.json（实测：真会话 ended → 早退 rc=0，测试假红）。
+    for _k in ("YS_SESSION_PATH", "YS_HAND_BACK_BIN", "YS_LEASE_BIN", "YS_FOCUS_GUARD_LOG"):
+        os.environ[_k] = genv[_k]
+    import importlib.util
+    import importlib.machinery
+    loader = importlib.machinery.SourceFileLoader(
+        "ys_focus_guard_selftest", os.path.join(YS, "ys-focus-guard"))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    guard = importlib.util.module_from_spec(spec)
+    loader.exec_module(guard)
+    rc13 = guard.enforce_session_idle()
+    args_file = os.path.join(tmp, "handback-args.txt")
+    got_args = open(args_file, encoding="utf-8").read().strip() if os.path.exists(args_file) else ""
+    s13 = read_sess(path)
+    ok = (rc13 == 1 and "--prev-json" in got_args and "kitty" in got_args
+          and s13.get("released") is True and s13.get("release_reason") == "idle")
+    check("T13 警卫空闲交还 auto-session（带 --prev-json 用户窗）", ok,
+          f"rc={rc13} args={got_args[:80]!r}")
+
+    # T14 prev=None 的 auto-session ⇒ 交还不带 --prev-json（ys-hand-back 回退 firefox）
+    if os.path.exists(args_file):
+        os.unlink(args_file)
+    if os.path.exists(path):
+        os.unlink(path)
+    run(["claim", "--prev-json", ""], env)          # ALREADY_FOCUSED 形态
+    s = read_sess(path)
+    s["last_action_ts"] = time.time() - 11
+    s["holding_until"] = 0.0
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(s, f)
+    rc14 = guard.enforce_session_idle()
+    got14 = open(args_file, encoding="utf-8").read().strip() if os.path.exists(args_file) else ""
+    ok = rc14 == 1 and "--prev-json" not in got14
+    check("T14 prev=None ⇒ 交还不带 --prev-json（firefox 回退）", ok)
+
+    # T15 holding 未到期 ⇒ 警卫不插手（槽运行中不被打断）
+    if os.path.exists(args_file):
+        os.unlink(args_file)
+    write_sess(path, released=False, holding_until=time.time() + 30,
+               last_action_ts=time.time() - 60)
+    rc15 = guard.enforce_session_idle()
+    ok = rc15 == 0 and not os.path.exists(args_file)
+    check("T15 holding 未到期 ⇒ 警卫不插手", ok, f"rc={rc15}")
+
+    # T16 槽工具接线：restore() 先 hold-done、claim 带 --prev-json（静态断言，同 T7 形态）
+    ok = ("hold-done" in src_gs and "ys-session\" claim --hold-seconds \"$MAX\" --reason gui-slot --prev-json" in src_gs)
+    check("T16 ys-gui-slot restore() 先 hold-done 且 claim 带 --prev-json", ok)
+
     npass = sum(1 for _n, ok, _i in rows if ok)
     total = len(rows)
     verdict = "PASS" if npass == total else "FAIL"

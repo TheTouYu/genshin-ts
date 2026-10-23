@@ -187,9 +187,18 @@ def _write_json(p, d):
         return False
 
 
-def _hand_back_once(why):
+def _hand_back_once(why, prev_json=None):
+    """交还屏幕（唯一入口 ys-hand-back）。
+
+    prev_json：会话记录的**用户真实前台窗**（D525 交还目标制度化）。给了就传下去，
+    目标窗消失时 ys-hand-back 内部仍回退 firefox；不给（None）= 老行为，回退 firefox。
+    2026-10-23 之前空闲交还不传 prev ⇒ 用户在 kitty 发起也一律被还到 firefox。
+    """
+    _hb_args = [HAND_BACK_BIN]
+    if prev_json:
+        _hb_args += ["--prev-json", prev_json]
     try:
-        p = subprocess.run([HAND_BACK_BIN], capture_output=True, text=True, timeout=45)
+        p = subprocess.run(_hb_args, capture_output=True, text=True, timeout=45)
         log("%s hand_back rc=%d out=%s" % (why, p.returncode, (p.stdout or p.stderr or "").strip()[:140]))
         return p.returncode == 0
     except Exception as e:                               # noqa: BLE001
@@ -238,6 +247,14 @@ def _orphan_probe(s):
     _write_json(SESSION, s2)
 
 
+def _sess_prev_json(s):
+    """会话记录的交还目标 → --prev-json 参数值；没有记录返回 None（ys-hand-back 回退 firefox）。"""
+    prev = (s or {}).get("prev_active")
+    if not prev or not isinstance(prev, dict):
+        return None
+    return json.dumps(prev, ensure_ascii=False)
+
+
 def enforce_session_idle(verbose=False):
     """会话空闲 ⇒ 把屏幕交还用户（层 2，2026-10-21 用户令）。
 
@@ -258,7 +275,7 @@ def enforce_session_idle(verbose=False):
     if float(s.get("expires") or 0) <= now:
         if s.get("released"):
             return 0
-        _hand_back_once("SESSION_EXPIRED")
+        _hand_back_once("SESSION_EXPIRED", _sess_prev_json(s))
         s.update({"released": True, "released_at": now, "release_reason": "expired"})
         _write_json(SESSION, s)
         return 1
@@ -292,7 +309,7 @@ def enforce_session_idle(verbose=False):
                    "release_reason": "idle(not-ours:%s)" % (act.get("class") or "")})
         _write_json(SESSION, s2)
         return 0
-    ok = _hand_back_once("SESSION_IDLE")
+    ok = _hand_back_once("SESSION_IDLE", _sess_prev_json(s2))
     s2.update({"released": True, "released_at": now, "release_ok": ok,
                "release_reason": "idle" if ok else "idle(handback-failed)"})
     _write_json(SESSION, s2)

@@ -228,13 +228,21 @@ START=$(date +%s); CMD_RC=0; RESTORE_RC=0; RESTORED=0
 restore() {
   [ "$RESTORED" = "1" ] && return
   RESTORED=1
+  # 2026-10-23（.03/.04 采集零归还事故）：槽结束第一件事 = 解除 hold。
+  # claim 把 holding_until 设成整个槽时限；不清掉 ⇒ 警卫被 hold 挡到时限尽头。
+  # hold-done 后空闲计时从**槽结束时刻**起算：idle_ms 内下一槽 claim 刷新（不闪切），
+  # 超过即由警卫交还用户。归还不再依赖凭据过期那条 290s 粗路径。
+  if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
+    "$YS_HOME/ys-session" hold-done --reason slot-end >/dev/null 2>&1 || true
+  fi
   # 2026-10-21（用户批准的设计改）：**一次授权 = 一段租期**。
   # 旧设计每次动作后都归还 ⇒ 下一次 look --live 必然 NOT_ATOP（账本 F-20261021-53），
-  # 多步任务每步都要重新申请。租期内不归还，只在凭据到期/revoke 时统一归还一次。
+  # 多步任务每步都要重新申请。租期内不**主动**归还——但归还责任已交给空闲层：
+  # 上面的 hold-done + claim 登记的 auto-session 保证空闲 idle_ms 后警卫必还。
   # 判据走 lease_hold_active（唯一源；`--plan` 判的是同一个函数，注入用例改它 ⇒ T13 必红）。
   if lease_hold_active; then
     _left=$(printf '%s' "$GRANT_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
-    echo "[ys-gui-slot] 租期内不归还（凭据剩 ${_left}s）——到期或 revoke 时统一交还"
+    echo "[ys-gui-slot] 租期内不主动归还（凭据剩 ${_left}s）——空闲 10s 后由 ys-focus-guard 交还（auto-session 已登记）"
     return
   fi
   if [ "$ALREADY_FOCUSED" = "1" ]; then
@@ -278,8 +286,10 @@ if [ "$ALREADY_FOCUSED" != "1" ]; then
 fi
 # 2026-10-21：占用窗口后登记所有权，免得会话闩锁让警卫永远不管这块屏幕。
 # hold = 槽位时限：这段时间里警卫不插手，槽位结束后按空闲规则交还。
+# 2026-10-23：--prev-json 让"无活动会话"的 claim 自动建立 auto-session（交还目标=槽启动时
+# 的真实前台窗）——空闲交还层从此对槽式流程生效（.03/.04 零归还事故的根因正是这层没武装）。
 if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
-  "$YS_HOME/ys-session" claim --hold-seconds "$MAX" --reason gui-slot >/dev/null 2>&1 || true
+  "$YS_HOME/ys-session" claim --hold-seconds "$MAX" --reason gui-slot --prev-json "$PREV_JSON" >/dev/null 2>&1 || true
 fi
 echo "[ys-gui-slot] 已取得 $WIN_HEX（$TARGET_DESC）焦点｜时限 ${MAX}s"
 

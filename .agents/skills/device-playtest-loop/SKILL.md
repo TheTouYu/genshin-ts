@@ -140,6 +140,20 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 - **报"屏幕已还"之前必须先取一次 KWin 权威读数**——`xdotool getactivewindow` 在 KWin/Wayland 下
   返回 1×1 幽灵窗（`0x200000`），拿它当"焦点还在游戏"会得出完全相反的结论（D428）。
 
+### 归还的三层机制（2026-10-23 修复后口径，F-20261023-04）
+
+「谁负责把屏幕还给用户」按层分工，**凭据（许可）≠ 占用**：
+- **空闲层（主力，10s 粒度）**：槽取得焦点 ⇒ `ys-session claim --prev-json <槽启动时真实前台窗>`
+  自动建立 **auto-session**（无需 begin）；槽结束 ⇒ `hold-done`（holding=0、空闲从**槽结束时刻**起算）；
+  空闲 `idle_ms`（10s）且画面还在游戏 ⇒ guard `SESSION_IDLE` 交还到 prev 记录的用户窗（prev 缺失/游戏类 ⇒ firefox 回退）。
+  紧邻下一槽（<10s）claim 刷新 ⇒ 不闪切（实测：双槽间隔 4s，中途 0 交还、末槽后恰好 1 次）。
+- **许可层（兜底，290s 粒度）**：凭据过期 ⇒ guard `GRANT_EXPIRED` 交还并删凭据。**不要依赖它做日常归还**——
+  模型连续 grant 时凭据不断，屏幕会被钉死（.03/.04 事故实测 58 分钟零归还）。
+- **槽自身 trap**：凭据**已失效**时的立即归还路径（`lease_hold_active`=false ⇒ restore + rc=9 失败硬报）。
+真机读数：单槽结束 → **10.03s** 后 SESSION_IDLE 还 firefox（`hold_done.at→released_at` 精确可复算）。
+⚠ guard 是常驻 python 进程：**改 `ys-focus-guard` 源码后必须 `systemctl --user restart ys-focus-guard`** 才加载新代码。
+回归：`python3 tools/ys-editor/tests/session-claim.selftest.py`（T8–T16）。
+
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：
