@@ -5,7 +5,8 @@
 
 ## 长期任务入口（新会话先读这一份）
 
-当前长期任务（三个游戏 ← GUI AGI 先行）的分层档案：**`docs/longtask/INDEX.md`**（L0，3 分钟读完）。
+当前长期任务的分层档案：**`docs/longtask/INDEX.md`**（L0，3 分钟读完）。
+**活动分支以 INDEX §二 为准**（2026-10-23 起＝模拟器 2D 线：`dossiers/simulator-2d.md`；总目标仍是三个游戏 ← GUI AGI 先行）。
 它指向宪章/心法/现状/决策日志/缺口五份 L1/L2 文件；每轮收尾更新 `03-state.md`。
 维护流程见技能 `longtask-dossier`（含体检脚本）。
 
