@@ -43,14 +43,16 @@ else
   ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null) || { echo "[ys-own] ys-wins --attrib 失败" >&2; exit 4; }
 fi
 
+# 可见性只能从**一帧回执**拿到（status 里没有 visible 字段，2026-10-23 实测）。
+# 代价 ~0.5s（会真抓一帧）⇒ 只适合"低频/开槽时"用；每步注入用 ①② 两条即可，
+# 另外让调用方从**自己已经抓到的那帧**里读 visible（零成本）。
 VIS=""
 if [ "$REQUIRE_VISIBLE" = "1" ]; then
-  VIS=$("$HERE/ys-capture" status 2>/dev/null | python3 -c "
+  VIS=$("$HERE/ys-capture" latest 2>/dev/null | python3 -c "
 import json,sys
 try: d=json.load(sys.stdin)
-except Exception: print(''); raise SystemExit
-w=d.get('window') or {}
-print(w.get('visible',''))" 2>/dev/null)
+except Exception: print('?'); raise SystemExit
+print(d.get('visible','?'))" 2>/dev/null)
 fi
 
 python3 - "$ATTRIB" "$WANT_CLASS" "$VIS" "$REQUIRE_VISIBLE" "$JSON" <<'PY'
@@ -68,7 +70,7 @@ for line in attrib.splitlines():
     if not m:
         continue
     rec = {'idx': int(m.group(1)), 'caption': m.group(2), 'class': parts[1],
-           'ds': '', 'cur': -1, 'active': False}
+           'geom': parts[2] if len(parts) > 2 else '', 'ds': '', 'cur': -1, 'active': False}
     for f in parts[2:]:
         if f == 'ACTIVE':
             rec['active'] = True
@@ -81,8 +83,13 @@ for line in attrib.splitlines():
             # 兜底：act=1 与 ACTIVE 是同一事实的两种写法（这台机两者一致）
             rec['active'] = rec['active'] or (f[4:].strip() == '1')
     rows.append(rec)
+def area(rec):
+    m = re.search(r'(\d+)x(\d+)', rec.get('geom') or '')
+    return int(m.group(1)) * int(m.group(2)) if m else 0
 tgt = [r for r in rows if want in (r['class'] or '')]
-reasons, ok = [], False
+# 同 class 常有多个窗（1x1 幽灵窗/助手窗）——按面积取最大，ACTIVE 的优先（D428 的教训）
+tgt.sort(key=lambda r: (r['active'], area(r)))
+reasons, warnings, ok = [], [], False
 if not tgt:
     reasons.append(f'找不到窗口 class~{want}')
 else:
@@ -93,11 +100,13 @@ else:
         reasons.append(f"焦点不在目标窗（active={w['active']}, 该窗 idx={w['idx']}）")
     if not in_cur:
         reasons.append(f"窗口在桌面 {w['ds']}，当前桌面 {w['cur']}（KWin 会 unmaps ⇒ 注入全丢）")
+    # visible 只作提示：它反映的是**守护自己认的那个窗**，与"焦点是不是我"是两个问题。
+    # 每步注入用 ①② 即可；帧新鲜度另有 age_ms / 捕帧端的 OTHER_DESKTOP fail-closed 兜底。
     if require_vis == '1' and vis not in ('1', 'True', 'true'):
-        reasons.append(f'抓帧通道 visible={vis or "?"}（看不见 ⇒ 帧可能滞后）')
+        warnings.append(f'抓帧通道 visible={vis or "?"}（帧可能滞后；不阻止注入，但别用这帧下结论）')
     ok = not reasons
 out = {'ok': ok, 'class': want, 'window': (tgt[-1] if tgt else None),
-       'visible': vis, 'reasons': reasons,
+       'visible': vis, 'reasons': reasons, 'warnings': warnings,
        'hint': '不是你的窗口就不要注入：先 ys-gui-slot 拿焦点，或 ys-follow-win 切桌面。'}
 if as_json == '1':
     print(json.dumps(out, ensure_ascii=False))
@@ -108,5 +117,7 @@ else:
           + (f" visible={vis}" if require_vis == '1' else ''))
     for r in reasons:
         print(f"  ✗ {r}")
+    for w in warnings:
+        print(f"  ! {w}")
 sys.exit(0 if ok else 4)
 PY

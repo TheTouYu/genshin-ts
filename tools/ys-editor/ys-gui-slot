@@ -232,6 +232,7 @@ restore() {
   # claim 把 holding_until 设成整个槽时限；不清掉 ⇒ 警卫被 hold 挡到时限尽头。
   # hold-done 后空闲计时从**槽结束时刻**起算：idle_ms 内下一槽 claim 刷新（不闪切），
   # 超过即由警卫交还用户。归还不再依赖凭据过期那条 290s 粗路径。
+  { printf '%s SLOT_END win=%s pid=%s\n' "$(date '+%F %T')" "$WIN_HEX" "$$"; } >> "$HOME/.ys/slot.log" 2>/dev/null || true
   if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
     # 先解 busy（允许空闲层计时），再 hold-done（登记归还意图）
     "$YS_HOME/ys-session" busy 0 >/dev/null 2>&1 || true
@@ -301,6 +302,10 @@ echo "[ys-gui-slot] 已取得 $WIN_HEX（$TARGET_DESC）焦点｜时限 ${MAX}s"
 if [ "${YS_SLOT_TEST:-0}" != "1" ] && [ -x "$YS_HOME/ys-session" ]; then
   "$YS_HOME/ys-session" busy "$MAX" >/dev/null 2>&1 || true
 fi
+# 时间戳闭环（2026-10-23）：把槽的起止写进 ~/.ys/slot.log，用来**事后对账**
+# "守卫到底有没有在槽内把焦点抢走"——此前只能靠猜时段，无法证明。
+{ printf '%s SLOT_START win=%s max=%ss pid=%s\n' "$(date '+%F %T')" "$WIN_HEX" "$MAX" "$$";
+  printf '%s\n' "$(date +%s)" > "$HOME/.ys/slot-start"; } >> "$HOME/.ys/slot.log" 2>/dev/null || true
 
 # ── 3) 执行（硬时限）→ 显式归还（失败 9）─────────────────────────────────────
 timeout --signal=TERM "$MAX" "$@"; CMD_RC=$?
