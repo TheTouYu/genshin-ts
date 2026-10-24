@@ -2,7 +2,7 @@
 
 > 状态：当前推荐（**2026-10-23 用户重新启用为本阶段活动分支**；此前 10-16 起被 GUI 线挤停）
 > 来源：用户 2026-10-23 本会话首条原话 + 仓库落盘物（`workspace/hmlt-qixia/**`）+ 2026-10-23 17:1x 实测读数
-> 最近校验：2026-10-23
+> 最近校验：**2026-10-24**（模拟器升至 2.2.1 / `cd96d02`，spawn 隔离故游戏侧无需更新；17/17 复跑通过；4173 已重启）
 > 读法：动手前读 §一（定位）、§三（现状读数）、§五（下一步）；细节按 §六 指针跳，别通读
 
 ---
@@ -23,17 +23,18 @@
 | 角色 | 路径 | 说明 |
 |---|---|---|
 | 游戏工程（源+存档+测试+素材定义+真机包） | `/home/h/genshin-ts/workspace/hmlt-qixia/` | 在 genshin-ts 仓里，git 可追；**改这里** |
-| 模拟器（引擎/编辑器/web） | `/home/h/miliastra-beyond-simulator`（fork） | 上游 `1475505/miliastra-beyond-simulator`；我们的 fork 远端 `TheTouYu/…`；包版本 **2.1.1**；HEAD `bd20a61`（2026-10-18 上游合流） |
+| 模拟器（引擎/编辑器/web） | `/home/h/miliastra-beyond-simulator`（fork） | 上游 `1475505/miliastra-beyond-simulator`；我们的 fork 远端 `TheTouYu/…`；包版本 **2.2.1 / web 0.5.1**；HEAD `cd96d02`（2026-10-23 上游合流至 0a1790f，含我们已合并的 PR #21） |
 | 真机导入目录 | `~/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/` | 编辑器导入对话框默认打开处；**13 个 `*.scene.gia` 现存于该目录** |
 
-- 模拟器 web 服务：`127.0.0.1:4173`（pid 830，2026-10-23 17:0x 已连续运行 20h+），但它的工作区是 `/home/h/qxqy-workspace`（里面是 counter-demo），**不是**本游戏；本游戏的回归走离线 `createStudio`。
+- 模拟器 web 服务：`127.0.0.1:4173`（2026-10-24 11:48 重启，pid 621774），工作区 `/home/h/qxqy-workspace`（里面是 counter-demo），**不是**本游戏；本游戏的回归走离线 `createStudio`。服务直接跑 `working-tree` 的 `web/server.js`，**代码改动后必须重启才生效**（改了源码不重启 = 仍在跑旧代码）。
+- **本线的模拟器调用是 spawn 隔离的，升级自动跟随**：`gsts client:sim` 与 `qxqy/runner.mjs` 都每次 `spawn studio/cli.mjs` 读磁盘当前代码，不 import 模拟器模块。实测 2026-10-24：模拟器从 2.1.1 升到 2.2.1 后，`runner.mjs` 仍 **17/17 PASS**、`client:sim get` EXIT=0，无需任何“更新”动作。判据=`git log <旧HEAD>..<新HEAD> -- studio/cli.mjs` 为空（job 协议未变）。
 - 我们的能力接口（已存在，不是待建）：`gsts client:sim`（`src/cli/client_sim.ts`，headless 桥）· MCP `qxqy_studio_*` · GIA 资产导入/脚本直更 `gsts assets:scripts`；路线选择与分工见技能 `simulator-2d-route`。
 
-## 三、现状读数（2026-10-23 17:1x 实测，过期即失效）
+## 三、现状读数（2026-10-24 11:5x 复核；游戏侧读数与 10-23 一致，模拟器侧已升级）
 
 | 项 | 读数 | 来源 |
 |---|---|---|
-| 模拟器回归 | **17/17 PASS，9.0s**（`node qxqy/runner.mjs`，退出码 0） | 本轮实测 |
+| 模拟器回归 | **17/17 PASS，9.0s**（`node qxqy/runner.mjs`，退出码 0；在模拟器 **2.2.1** 上复跑仍 17/17） | 本轮实测 |
 | Lua 实现 | `lua/main.lua` **88,262 B / 2036 行**（10-14 00:39） | `ls -l` |
 | 存档 | `hmlt-qixia.save.json` **112,499 B**（10-14 00:40） | `ls -l` |
 | 真机交付包 | `device-package/hmlt-qixia-整合包.gia` **93,202 B** + `…-脚本.gia` 88,393 B（10-16 19:32） | `ls -l` |
