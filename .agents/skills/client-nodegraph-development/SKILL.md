@@ -264,6 +264,11 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 - 已验证形态（2026-08-31，1915）：编译产物与编辑器原生节点**逐结构一致**
   （switch=200128/4011，入口 200126/4000+f11 块）——详见 verify/zaowu-client/ 源码与
   ~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md。
+
+- **造物客户端图的执行权威 = 单客户端（2026-10-24 双人实测）**：两个玩家同图时，造物 20008 图只在
+  **一个**客户端执行（服务端同 tick 收不到第二张票，`kit-dup`=0），且**跑在谁身上不由主机决定**
+  （实测那轮跑在客机，主机日志里 20008 零记录）。⇒ 服务端按 tick 单调去重即可，**不需要**客户端身份
+  来做仲裁；但"谁在跑"不可控，若玩法需要按玩家区分来源，得另设计（20008 无 `getCurrentCharacter`）。
 - **`executeSkill` 的参数是「技能序号」= 造物技能管理条目的 `f1`（2026-10-24 实证）**：多技能时每条序号必须唯一，
   否则 `executeSkill(2)` 找不到 2 号 → **静默不施放**（20008 零记录，容易误判成决策图/节流/绑定问题）。
   编码与回归见 `genshin-ts-asset-operations`「造物配置面」+ `tests/gil_creations_skill_entry_test.ts`。

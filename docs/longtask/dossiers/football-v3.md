@@ -71,3 +71,14 @@ CLI `gsts assets:creations inspect / skill add·bind / decision bind` + `assets:
 - 复盘：`../../game-engine-knowledge/retrospective-2026-10-24-creation-wire-and-cli.md`（10 错谱系 + 3 系统性根因）
 - 造物线档案：[`creation-skill-line.md`](creation-skill-line.md)
 - 技能：`dsl-nodegraph-development`、`gil-node-graph-reading`、`genshin-ts-asset-operations`、`device-playtest-loop`、`verify-injection`
+
+### D5 结算权威（2026-10-24 双人实测闭合）
+
+- **结论：单客户端权威**。两人同图 32s：服务端 `kitListen` 收 **508~790** 条票、**`kit-dup` = 0**
+  （同 tick 重复票 0 条）⇒ **只有一个客户端在执行造物图**，不存在"每客户端各跑一份"。
+- **哪个客户端跑不由主机决定**：主机日志里 `kitLoop`(20008) **0 条**，而服务端票持续到 t=32s
+  ⇒ 这轮是**伙伴的客户端**在跑。⇒ 身份/仲裁**不需要**（服务端按 tick 单调去重已足够）；
+  但「谁在跑」不可控，观测与掉线接管仍需要能分辨来源（低优先级）。
+- 稳态速率 **~12.5 票/秒**（单机 14.8/s）；开局 2 秒有 **119 票**（≈60/s）的突发，原因待查
+  （怀疑：状态图多次 executeSkill / 施放实例重建）。
+- 设计票 26 §106 的 V1 问题据此关闭（证据：日志 `2026-10-24_17-11-36_3343_110170759.gia`，1,109,058 B）。
