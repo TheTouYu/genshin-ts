@@ -357,7 +357,11 @@ function applySectionChanges(
   ids.push(ops.recordId)
   members.value = encodePackedVarints(ids)
   ownerField.value = emitWireMessage(owner)
-  let at = section.length
+  // root9 形态恒为 `501(顶层索引) | 502×N(记录) | 503(varint 尾标)`。
+  // 缺省插入点 = 503 尾标之前；直接 push 到末尾会让新记录排在 503 之后，
+  // 编辑器判「存档已损坏」（2026-10-24 实测，形态同 D558 事故）。
+  const tailAt = section.findIndex((f) => f.number === 503 && f.wire === 0)
+  let at = tailAt >= 0 ? tailAt : section.length
   if (ops.insertAfterId !== undefined) {
     const anchorIndex = section.findIndex((f) => ownIdOf(f) === ops.insertAfterId)
     if (anchorIndex < 0) {
@@ -613,7 +617,10 @@ function insertRecordOnly(bytes: Uint8Array, record: Uint8Array, afterRecordId?:
   if (!root9) throw new Error('[error] root9 section missing')
   const section = parseWireMessage(root9.value as Uint8Array)
   if (!section) throw new Error('[error] invalid root 9 section')
-  let at = section.length
+  // root9 恒为 `501(索引) | 502×N(记录) | 503(varint 尾标)`：新记录必须插在 503 之前，
+  // 否则编辑器判「存档已损坏」（2026-10-24 实测，形态同 D558）
+  const tailAt = section.findIndex((f) => f.number === 503 && f.wire === 0)
+  let at = tailAt >= 0 ? tailAt : section.length
   if (afterRecordId !== undefined) {
     const index = section.findIndex((f) => ownIdOf(f) === afterRecordId)
     if (index >= 0) at = index + 1

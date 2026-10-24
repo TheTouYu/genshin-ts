@@ -27,6 +27,8 @@ export type UiUpdateOptions = UiTransform & {
 
 export type UiCloneOptions = UiUpdateOptions & {
   id: number
+  /** 父容器记录 id（客户端控件挂到容器节点时用；缺省=默认布局） */
+  parentId?: number
 }
 
 const TEXT = new TextEncoder()
@@ -394,18 +396,27 @@ export function remapUiRecordVarints(
   return out
 }
 
-function appendLayoutControlId(top: readonly WireField[], controlId: number): void {
+function appendParentControlId(
+  top: readonly WireField[],
+  controlId: number,
+  parentId?: number
+): void {
   const root9 = top.find((field) => field.number === 9 && field.wire === 2)
   if (!root9) throw new Error('[error] root 9 not found')
   const section = parseMessageFields(root9.value as Uint8Array)
   if (!section) throw new Error('[error] invalid root 9 section')
-  const index = section.findIndex(
-    (field) =>
-      field.number === 502 &&
-      field.wire === 2 &&
-      Buffer.from(field.value as Uint8Array).includes(Buffer.from('默认布局', 'utf8'))
-  )
-  if (index < 0) throw new Error('[error] default layout record not found')
+  const index = parentId === undefined
+    ? section.findIndex(
+        (field) =>
+          field.number === 502 &&
+          field.wire === 2 &&
+          Buffer.from(field.value as Uint8Array).includes(Buffer.from('默认布局', 'utf8'))
+      )
+    : section.findIndex(
+        (field) =>
+          field.number === 502 && field.wire === 2 && recordIdOf(field.value as Uint8Array) === parentId
+      )
+  if (index < 0) throw new Error('[error] parent (container) UI record not found: ' + String(parentId ?? '默认布局'))
   const layoutField = section[index]
   const layoutFields = parseMessageFields(layoutField.value as Uint8Array)
   if (!layoutFields) throw new Error('[error] invalid layout record')
@@ -476,6 +487,13 @@ export function cloneUiControl(
   if (!source) throw new Error(`[error] source UI control not found: ${sourceId}`)
   let record = source.value as Uint8Array
   record = setUiControlId(record, options.id)
+  if (options.parentId !== undefined) {
+    const rf = parseMessageFields(record)
+    if (!rf) throw new Error('[error] invalid UI control record')
+    record = emitWireMessage(
+      rf.map((f) => (f.number === 504 && f.wire === 0 ? { ...f, value: options.parentId! } : f))
+    )
+  }
   if (options.name !== undefined) record = setUiName(record, options.name)
   if (options.content !== undefined) record = setUiContent(record, options.content)
   if (options.position !== undefined || options.size !== undefined) {
@@ -483,9 +501,13 @@ export function cloneUiControl(
   }
   const root9 = top.find((f) => f.number === 9 && f.wire === 2)!
   const section = parseMessageFields(root9.value as Uint8Array)!
-  section.push({ number: 502, wire: 2, value: record })
+  // root9 形态必须保持 `501(索引) | 502×N(记录) | 503(varint 尾标)`；
+  // 直接 push 会把新记录排到 503 之后 → 编辑器判「存档已损坏」（2026-10-24 实测，同 D558 事故形态）
+  const tailAt = section.findIndex((f) => f.number === 503 && f.wire === 0)
+  const insertAt = tailAt >= 0 ? tailAt : section.length
+  section.splice(insertAt, 0, { number: 502, wire: 2, value: record })
   root9.value = emitWireMessage(section)
-  appendLayoutControlId(top, options.id)
+  appendParentControlId(top, options.id, options.parentId)
   return {
     bytes: buildFile(emitWireMessage(top), {
       schema: readUint32BE(bytes, 4),
@@ -982,6 +1004,13 @@ export function cloneTemplate(
   if (!source) throw new Error(`[error] source template not found: ${sourceId}`)
   let record = source.value as Uint8Array
   record = setUiControlId(record, options.id)
+  if (options.parentId !== undefined) {
+    const rf = parseMessageFields(record)
+    if (!rf) throw new Error('[error] invalid UI control record')
+    record = emitWireMessage(
+      rf.map((f) => (f.number === 504 && f.wire === 0 ? { ...f, value: options.parentId! } : f))
+    )
+  }
   if (options.name !== undefined) record = setUiName(record, options.name)
   if (options.content !== undefined) record = setUiContent(record, options.content)
   if (options.position !== undefined || options.size !== undefined) {
@@ -1066,9 +1095,10 @@ export function createUiControl(
   }
   const root9Field = top.find((f) => f.number === 9 && f.wire === 2)!
   const section = parseMessageFields(root9Field.value as Uint8Array)!
-  section.push({ number: 502, wire: 2, value: record })
+  const tailAt2 = section.findIndex((f) => f.number === 503 && f.wire === 0)
+  section.splice(tailAt2 >= 0 ? tailAt2 : section.length, 0, { number: 502, wire: 2, value: record })
   root9Field.value = emitWireMessage(section)
-  appendLayoutControlId(top, options.id)
+  appendParentControlId(top, options.id, undefined)
   return {
     bytes: buildFile(emitWireMessage(top), {
       schema: readUint32BE(bytes, 4),

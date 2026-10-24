@@ -1335,11 +1335,21 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
     const donorBytes = args.donorGilPath
       ? new Uint8Array(fs.readFileSync(path.resolve(args.donorGilPath)))
       : undefined
+    // --on container:<容器节点ID>：克隆到指定父容器下（缺省=跟 donor 一样在布局下）
+    let cloneParent: number | undefined
+    if (args.on !== undefined) {
+      const parts = args.on.split(':').map((x) => x.trim())
+      if (parts[0] !== 'container' || parts.length < 2) {
+        throw new Error('[error] clone --on 只支持 container:<容器节点ID>')
+      }
+      cloneParent = Number(parts[1])
+    }
     const result = cloneUiControl(
       sourceBytes,
       args.targetId!,
       {
         id: args.newId!,
+        ...(cloneParent !== undefined ? { parentId: cloneParent } : {}),
         ...(args.name !== undefined ? { name: args.name } : {}),
         ...(args.content !== undefined ? { content: args.content } : {}),
         ...(args.position !== undefined ? { position: args.position } : {}),

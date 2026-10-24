@@ -119,6 +119,39 @@ local BUTTONS = {
 local BTN_W, BTN_H = 150, 56
 local hits = {}
 
+-- 文字样式：真机 GIL 里新建的控件没有样式（CLI 只建骨架），全部由 Lua 运行时设置。
+-- 框高判据：h >= fontSize*1.45 + 4（见 docs/README §10.2），尺寸在 layout() 里给。
+local C_TEXT, C_GOLD2, C_ACCENT2, C_DANGER, C_BTN =
+  C(255, 232, 236, 244), C(255, 255, 194, 76), C(255, 76, 194, 255),
+  C(255, 255, 77, 77), C(179, 26, 29, 38)
+local UI_STYLE = {
+  title     = { font = 64, color = C_GOLD2,   align = 'Middle' },
+  hud       = { font = 20, color = C_TEXT,    align = 'Middle' },
+  hudNext   = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  best      = { font = 20, color = C_TEXT,    align = 'Middle' },
+  hint      = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  keyA      = { font = 22, color = C_TEXT,    align = 'Middle' },
+  keyB      = { font = 22, color = C_TEXT,    align = 'Middle' },
+  keyC      = { font = 22, color = C_TEXT,    align = 'Middle' },
+  topBanner = { font = 34, color = C_GOLD2,   align = 'Middle' },
+  botBanner = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  btnA = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+  btnB = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+  btnC = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+  btnD = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+  btnE = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+  btnF = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
+}
+local function applyStyle(name, ctl)
+  local st = UI_STYLE[name]
+  if not ctl or not st then return end
+  if st.font then ctl.fontSize = st.font end
+  if st.color then ctl.fontColor = st.color end
+  if st.bg then ctl.bgColor = st.bg end
+  if st.align then ctl.horizontalAlignment = st.align end
+  if st.valign then ctl.verticalAlignment = st.valign end
+end
+
 -- 按候选 guid 探测模板：needCursor=true 要求该控件具备光标事件方法（cursor/button）
 local function probeTemplate(candidates, needCursor)
   for _, g in ipairs(candidates) do
@@ -387,6 +420,11 @@ local function layout(W, H)
   for _, b in ipairs(BUTTONS) do
     place(find(b.name), b.x, b.y, BTN_W, BTN_H)
   end
+  applyStyle('title', title) applyStyle('hud', hud) applyStyle('hudNext', hudNext)
+  applyStyle('best', best) applyStyle('hint', hint)
+  applyStyle('keyA', keyA) applyStyle('keyB', keyB) applyStyle('keyC', keyC)
+  applyStyle('topBanner', topBanner) applyStyle('botBanner', botBanner)
+  for _, b in ipairs(BUTTONS) do applyStyle(b.name, find(b.name)) end
   place(topBanner, 0, bannerY, W - 180, 56)          -- 34 号
   place(botBanner, 0, -(bannerY + 2), W - 180, 44)   -- 22 号，与棋盘底留 11px
 end
@@ -579,10 +617,20 @@ function OnStart()
     renderHud()
   end))
 
-  -- 手机按钮热区（cursor 实例）：叠在按钮标签之上，接收点击
-  local firstHit, hitGuid = probeTemplate(TPL_GUIDS.hit, true)
-  if firstHit then
-    print('hit guid=' .. hitGuid)
+  -- 手机按钮热区：优先用布局里已存在的光标检测区（gsts assets:ui create 建档，无需导入）；
+  -- 取不到时退化为客户端 cursor 模板实例（老路线）。
+  local function hitOf(name)
+    local c = find(name .. 'hit')
+    if c then return c end
+    return nil
+  end
+  local anyHit = hitOf(BUTTONS[1].name)
+  local firstHit, hitGuid
+  if not anyHit then
+    firstHit, hitGuid = probeTemplate(TPL_GUIDS.hit, true)
+  end
+  if anyHit or firstHit then
+    if hitGuid then print('hit guid=' .. hitGuid) else print('hit source=layout') end
     local cursorDown = (type(Enum) == 'table' and Enum.CursorEventType
       and Enum.CursorEventType.CursorDown) or nil
     local actions = {
@@ -607,13 +655,18 @@ function OnStart()
       end,
     }
     for i, b in ipairs(BUTTONS) do
-      local h = firstHit
-      firstHit = nil
-      if not h then h = game.InstantiateClientUIControl(hitGuid, root) end
+      local h = hitOf(b.name)
+      if not h then
+        h = firstHit
+        firstHit = nil
+        if not h then h = game.InstantiateClientUIControl(hitGuid, root) end
+      end
       if h then
         h.name = b.name .. 'hit'
-        h:SetSizeDelta(BTN_W, BTN_H)
-        h:SetAnchoredPosition(b.x, b.y)
+        if h.name ~= b.name .. 'hit' then
+          h:SetSizeDelta(BTN_W, BTN_H)
+          h:SetAnchoredPosition(b.x, b.y)
+        end
         local act = actions[b.name]
         local okReg = pcall(function() h:AddCursorEventListener(cursorDown, function()
           startIfWaiting()
