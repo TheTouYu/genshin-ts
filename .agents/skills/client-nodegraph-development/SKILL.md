@@ -264,6 +264,9 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 - 已验证形态（2026-08-31，1915）：编译产物与编辑器原生节点**逐结构一致**
   （switch=200128/4011，入口 200126/4000+f11 块）——详见 verify/zaowu-client/ 源码与
   ~/genshin-ts-evidence/zaowu-creation-skill/notes/manifest.md。
+- **`executeSkill` 的参数是「技能序号」= 造物技能管理条目的 `f1`（2026-10-24 实证）**：多技能时每条序号必须唯一，
+  否则 `executeSkill(2)` 找不到 2 号 → **静默不施放**（20008 零记录，容易误判成决策图/节流/绑定问题）。
+  编码与回归见 `genshin-ts-asset-operations`「造物配置面」+ `tests/gil_creations_skill_entry_test.ts`。
 - **频率上限=三重冷却**：技能 CD 区间清零后仍被「公共冷却时间」（实体槽 81 外层 f2，
   默认 1.0s）钉在 ~1 次/秒；提频须同时调小公共冷却。
 - 20007 决策图：CLI 已支持（2026-09-02 接入，commit 1da3fae：自动节点与 20009 同族

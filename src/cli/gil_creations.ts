@@ -557,8 +557,36 @@ function buildSkillParams(opts: { cdSeconds?: number; ignorePublicCd?: boolean }
   }
   out.push({ number: 6, wire: 0, value: 1 })
   out.push({ number: 7, wire: 0, value: 1 })
-  if (opts.ignorePublicCd) out.push({ number: 8, wire: 0, value: 1 })
   return out
+}
+
+/** 造物技能条目编码（2026-10-24 差分闭合；供 CLI 与回归共用）。
+ *  规则：{1=序号, 2={1:1,2=configId}, 3={6:1,7:1(,8:1)}, 12=名字}；
+ *  序号每条唯一（全写 1 会让 executeSkill(2) 静默不施放）；f8 只出现在**首条**。 */
+export function buildSkillEntry(opts: {
+  index: number
+  configId?: number
+  name: string
+  cdSeconds?: number
+  ignorePublicCd?: boolean
+}): Uint8Array {
+  const fields: WireField[] = []
+  fields.push({
+    number: 2,
+    wire: 2,
+    value: emit(
+      opts.configId !== undefined
+        ? [{ number: 1, wire: 0, value: 1 }, { number: 2, wire: 0, value: opts.configId }]
+        : [{ number: 1, wire: 0, value: 1 }]
+    )
+  })
+  const params = buildSkillParams({ cdSeconds: opts.cdSeconds })
+  // f8（忽略公共冷却）只出现在**首条**技能上（编辑器多技能形态实测）；非首条写它会被编辑器归一化掉
+  if (opts.ignorePublicCd && opts.index === 1) params.push({ number: 8, wire: 0, value: 1 })
+  fields.push({ number: 3, wire: 2, value: emit(params) })
+  fields.push({ number: 12, wire: 2, value: new TextEncoder().encode(opts.name) })
+  fields.unshift({ number: 1, wire: 0, value: opts.index })
+  return emit(fields)
 }
 
 /** 造物配置更新（技能条目增/绑、决策图绑定），返回新文件字节。 */
@@ -619,23 +647,26 @@ export function updateCreationConfig(
     if (!managerFields) throw new Error('[error] malformed skill manager body')
     const indices = managerFields.map((f, i) => ({ f, i })).filter((x) => x.f.number === 1 && x.f.wire === 2)
     if (update.kind === 'add-skill') {
-      const name = update.name ?? `技能_${indices.length + 1}`
-      const entryFields: WireField[] = []
-      if (update.configId !== undefined) {
-        entryFields.push({ number: 2, wire: 2, value: emit([{ number: 1, wire: 0, value: 1 }, { number: 2, wire: 0, value: update.configId }]) })
-      } else {
-        entryFields.push({ number: 2, wire: 2, value: emit([{ number: 1, wire: 0, value: 1 }]) })
-      }
-      entryFields.push({
-        number: 3,
-        wire: 2,
-        value: emit(buildSkillParams({ cdSeconds: update.cdSeconds, ignorePublicCd: update.ignorePublicCd }))
+      // 单一源：条目编码统一走 buildSkillEntry（序号=max+1、f8 仅首条、名字 f12）
+      const maxIndex = indices.reduce((acc, x) => {
+        const inner = parse(x.f.value as Uint8Array)
+        const f1 = inner?.find((fld) => fld.number === 1 && fld.wire === 0)
+        const v = typeof f1?.value === 'number' ? f1.value : 0
+        return Math.max(acc, v)
+      }, 0)
+      const index = maxIndex + 1
+      const name = update.name ?? `技能_${index}`
+      const entry = buildSkillEntry({
+        index,
+        configId: update.configId,
+        name,
+        cdSeconds: update.cdSeconds,
+        ignorePublicCd: update.ignorePublicCd
       })
-      entryFields.push({ number: 12, wire: 2, value: new TextEncoder().encode(name) })
-      entryFields.unshift({ number: 1, wire: 0, value: 1 })
-      const insertAt = indices.length ? indices[indices.length - 1].i + 1 : 0
-      managerFields.splice(insertAt, 0, { number: 1, wire: 2, value: emit(entryFields) })
-      detail = `skill#${indices.length + 1} name=${name}` + (update.configId !== undefined ? ` config=${update.configId}` : ' (unbound)')
+      // 编辑器把新技能条目插在**列表头部**（2026-10-24 差分：POST 顺序 = [技能_2, 技能_1]）
+      const insertAt = indices.length ? indices[0].i : 0
+      managerFields.splice(insertAt, 0, { number: 1, wire: 2, value: entry })
+      detail = `skill#${index} name=${name}` + (update.configId !== undefined ? ` config=${update.configId}` : ' (unbound)')
     } else {
       const target = indices[update.index - 1]
       if (!target) throw new Error(`[error] 技能序号 ${update.index} 不存在（当前 ${indices.length} 条）`)
