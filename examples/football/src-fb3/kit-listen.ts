@@ -29,6 +29,23 @@ const graph = g
         const carrier = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
         f.setCustomVariable(owner, 'kit_carrier', carrier, false)
         f.setCustomVariable(owner, 'kit_has_carrier', 1n, false)
+        // ——— D5 探针（2026-10-24，判「每个客户端各跑一份」还是「单客户端权威」）———
+        // 服务端按 tick 单调去重：同一 tick 再来一条 = 另一个客户端也在算（重复票）
+        const votes = f.addition(f.getCustomVariable(owner, 'kit_votes').asType('int'), 1n)
+        f.setCustomVariable(owner, 'kit_votes', votes, false)
+        const lastTick = f.getCustomVariable(owner, 'kit_last_tick').asType('int')
+        f.doubleBranch(
+          f.equal(tick, lastTick),
+          () => {
+            const dup = f.addition(f.getCustomVariable(owner, 'kit_dup').asType('int'), 1n)
+            f.setCustomVariable(owner, 'kit_dup', dup, false)
+            // 每次重复票打一行（计数在日志里数行=重复票数；运行时变量退出即回落，靠日志判读）
+            print('kit-dup')
+          },
+          () => {
+            f.setCustomVariable(owner, 'kit_last_tick', tick, false)
+          }
+        )
         // 只打前 3 拍（15Hz 下别刷日志）；判定「整链通」看这 3 条即可
         f.doubleBranch(
           f.lessThanOrEqualTo(tick, 3n),
