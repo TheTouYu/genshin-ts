@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import type { SignalParamType } from '../runtime/core.js'
-import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
   PARAM_TYPE_CODES,
   registerSignalInGil,
@@ -308,6 +308,8 @@ async function runRegister(
       const backup = backupPath(sourcePath)
       fs.copyFileSync(sourcePath, backup)
       console.log(`backup=${backup}`)
+      const temp = syncGilToTemp(saveLevelDirOf(sourcePath), path.basename(sourcePath))
+      if (temp) console.log(`temp=${temp}`)
       fs.writeFileSync(resultPath, result.bytes)
       validateReadBack(resultPath, 'written')
       // Keep the generated signal source in sync with the map, mirroring the

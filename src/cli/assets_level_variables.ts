@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 
 import type { GstsConfig } from '../compiler/gsts_config.js'
 import type { GstsInjectConfig } from '../compiler/gsts_config.js'
-import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
+import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
   createLevelVariable,
   createLevelVariableTyped,
@@ -173,6 +173,7 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
   const backup = backupPath(gilPath)
   fs.copyFileSync(gilPath, backup)
   fs.writeFileSync(gilPath, candidate)
+  { const t = syncGilToTemp(saveLevelDirOf(gilPath), path.basename(gilPath)); if (t) console.log(`temp=${t}`) }
   return backup
 }
 
