@@ -92,3 +92,12 @@ CLI `gsts assets:creations inspect / skill add·bind / decision bind` + `assets:
   （两人靠近/走远对速率无影响；987−978=9 条 ≈0.9% 边界丢票）。
 - **「开局 2 秒 119 票」未复现**：上一轮是旧注入（kitLoop 无载体分支）+ 首次双人；本轮 68s 全程无突发
   ⇒ 判定为**会话启动期的一次性批量刷新**，非稳态机制，不影响物理 dt（下一步按 tick 差算 dt 也能免疫）。
+
+### R3 可行性调研（2026-10-24，动手前）
+
+调研文档：`examples/football/R3-FEASIBILITY.md`（七个玩法的算法 + 风险表 + 三个探针 + 四阶段路线）。
+结论：**能承担**（判定全是几何，白名单足够）；最大未知不是算法而是 **15Hz 隧穿**（25m/s 每拍 1.67m）
+与 **单客户端权威健壮性**。⇒ 先做 E1（点判据 vs 线段判据命中率）、E2（运动器插值观感）、
+E3（地形对球位置的影响）三个探针，再写物理内核。
+已核实的硬约束：`creation_skill` 无 `getPlayerMovementInput`（意图只能位置差分）、无 `squareRootFunction`
+（用 `_3dVectorModuloOperation` 代替）、拍频上限 15Hz 由 AI 客户端决定。
