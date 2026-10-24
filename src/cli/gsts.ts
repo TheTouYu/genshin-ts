@@ -46,6 +46,7 @@ import { runAssetsMounts } from './gil_graph_mounts.js'
 import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSkillConfig } from './assets_skill_config.js'
 import { runAssetsUnitStatus } from './assets_unit_status.js'
+import { runAssetsSkillVariables } from './assets_skill_variables.js'
 import { runAssetsGlobalTimers } from './assets_global_timers.js'
 import { runClientSim } from './client_sim.js'
 import { runSimImport } from './sim_import.js'
@@ -2142,6 +2143,22 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsUnitStatus(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:skill-variables')
+    .description('list/create skill variables (技能变量, root15 type=30)')
+    .option('--config <file>', 'project config (for --map-id resolution)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:skill-variables')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      await runAssetsSkillVariables(args)
     })
 
   program

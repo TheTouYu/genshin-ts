@@ -1,6 +1,6 @@
 ---
 name: genshin-ts-asset-operations
-description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）和信号（assets:signals inspect/register/update/repair）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“技能配置/技能资产/创建技能”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。**写回/引用前的同类资产盘点同样走本技能**（`references/scripts/audit-map-assets.ts`，**从仓库根全路径调用**：技能变量配置 ID 段在位/空闲判定、单位状态是否已存在及其参数是否已配置）——凡涉及"技能变量 ID/单位状态 ID/状态配置/要不要请用户新建资产"的判断，先盘点再动手。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
+description: 在 Genshin-TS 中操作真实地图 .gil 的“资源”类资产：设置变量（assets:custom-variables / assets:level-variables，含全部类型与 dict）、挂载节点图（assets:node-graphs create + assets:mounts attach/list/detach + GIA 注入链路）、屏幕 UI 控件（assets:ui list/clone/create/update/template）信号（assets:signals inspect/register/update/repair）和**技能变量**（assets:skill-variables create/list，root15 type=30）。当用户提到“设置/写/改变量”“关卡变量”“实体变量”“dict 变量”“挂载节点图/把图挂到实体/图挂载/节点图挂载”“技能配置/技能资产/创建技能”“屏幕控件/UI 空间/UI 按钮/文本框”“信号注册”“assets:xxx 写回”或任何需要修改 .gil 里非静态模型的资源数据时，必须使用本技能，即使没有点名“技能”。**写回/引用前的同类资产盘点同样走本技能**（`references/scripts/audit-map-assets.ts`，**从仓库根全路径调用**：技能变量配置 ID 段在位/空闲判定、单位状态是否已存在及其参数是否已配置）——凡涉及"技能变量 ID/单位状态 ID/状态配置/要不要请用户新建资产"的判断，先盘点再动手。它给出安全写回流程（快照备份→候选验证→回读→写回→报告备份路径）与各资源的 CLI 速查，让模型像做外科手术一样安全改真实地图资源。与 static-gil-model-builder（静态视觉模型/元件/装饰物）、gil-node-graph-editing（节点图内部读-改-写）、verify-injection（GIA 注入）、editor-incremental-gia-investigator（未知 wire 规则的编辑器差分）分工明确，不要混用。
 compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets:custom-variables / assets:level-variables / assets:mounts / assets:node-graphs / assets:ui / assets:signals), a user-verifiable real map .gil or fixture.
 ---
 
@@ -48,6 +48,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
 | 信号注册/更新/修复/检查 | `assets:signals inspect\|register\|update\|repair` |
 | 技能配置创建/列出（36/6/28 模板×普通/瞬发+绑定） | `assets:skill-config create\|list`（详见 reference 速查；28 模板固定模型遗迹守卫 10005001、root20 联动；28+普通 仅 list） |
+| 技能变量（客户端自持存储，root15 type=30） | `gsts assets:skill-variables list --gil <map.gil>` / `... create --id <id> --name <name> [--write]`（2026-10-24 差分闭合；段起点 1207959553 按创建顺延） |
 | **写回/引用前：盘点地图既有同类资产**（技能变量段真实边界、单位状态是否已存在及其参数态） | `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>`（只读；2026-09-04 票 20 E0 沉淀） |
 
 命令细节与 dict 编码见 [references/asset-cli-reference.md](references/asset-cli-reference.md)。

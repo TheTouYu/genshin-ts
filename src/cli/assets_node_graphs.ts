@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, syncGilToTemp, saveLevelDirOf } from './gil_paths.js'
 import { sha256Bytes } from './static_assembly/json.js'
 import {
   emitWireMessage,
@@ -909,7 +909,7 @@ export async function runAssetsNodeGraphs(
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, newFile)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }
@@ -1148,7 +1148,7 @@ function runDefClean(bytes: Uint8Array, gil: string, args: Args): void {
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }
@@ -1278,7 +1278,7 @@ function runDelete(bytes: Uint8Array, gil: string, args: Args): void {
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }
@@ -1755,7 +1755,7 @@ function runLayout(bytes: Uint8Array, gil: string, args: Args): void {
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }
@@ -1814,7 +1814,7 @@ function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, result)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }

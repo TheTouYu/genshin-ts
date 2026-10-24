@@ -25,7 +25,7 @@ import { pathToFileURL } from 'node:url'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
-import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resolveGilTarget, syncGilToTemp, saveLevelDirOf } from './gil_paths.js'
 import { sha256Bytes } from './static_assembly/json.js'
 import {
   emitWireMessage,
@@ -515,7 +515,7 @@ export async function runAssetsUnitStatus(
     fs.copyFileSync(gil, backup)
     fs.writeFileSync(gil, newFile)
     try {
-      syncGilToTemp(path.dirname(gil), path.basename(gil))
+      syncGilToTemp(saveLevelDirOf(gil), path.basename(gil))
     } catch {
       // best-effort temp sync
     }
