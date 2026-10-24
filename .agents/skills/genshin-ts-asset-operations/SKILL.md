@@ -17,6 +17,17 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 这些命令修改 `.gil` 资产结构，**不等于** NodeGraph 注入、runtime createPrefab、编辑器导入或游戏行为。写回成功后必须把“写回成功”“编辑器可见”“游戏行为验证”分开报告，绝不互相冒充。
 
+
+## 整文件重建红线（2026-10-24 事故，必读）
+
+**任何"改 payload 再写回整文件"的命令，必须用 `src/injector/binary.ts` 的 `buildFile(payload, header)`**
+（它写 hdr[0:4]=总长−4、hdr[16:20]=payload 长度）。自己 `Buffer.alloc(len+24)` + 复制旧前 20 字节 =
+**头部长度字段停留在旧值** ⇒ 编辑器/游戏报「存档已损坏」，而 payload 里每条记录字节完全正确。
+
+- 自检一条命令：`python3 tools/gil-header-check.py <file.gil>`（好文件应 0 问题；门禁 `gil-header-selftest` 已登记）
+- 症状识别：用户报「存档损坏/地图损坏」时，先跑它，再怀疑 wire——**结构对 ≠ 文件对**
+- 规则出处：`docs/game-engine-knowledge/gil-structure-semantics.md`「GIL 根与 GIA Root 的边界」（2026-08-05 闭合，2026-10-24 复发）
+
 ## 任务边界（先分流，再动手）
 
 | 用户真正要的东西 | 入口 |

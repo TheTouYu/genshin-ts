@@ -63,3 +63,4 @@ frame-size	python3 tools/ys-editor/tests/frame-size.selftest.py	抓帧尺寸一�
 own-guard	bash tools/ys-editor/tests/own-guard.selftest.sh	注入前所有权断言：目标窗非 ACTIVE / 跨虚拟桌面 / 找不到窗 ⇒ 必须 REFUSE(4)；ACTIVE 且 ds 含 cur ⇒ 允许(0)；ds=-1 视为可达。治 2026-10-23「守卫中途把焦点还给 firefox ⇒ 我的 ydotool 键打进用户输入框（60+ 个 d）+ 帧来自不可见窗」	fast	
 gil-guard-selftest	python3 tools/gil-guard.py --selftest	整图 .gil 写回不变量自测：好样本 0 问题 / 「501 写成全量记录」与「children 悬空引用」必须被抓到（治 2026-10-24 两次「存档已损坏」：把 root9.501 森林根集当记录清单重写 + f503 小序号被误删 + 漏 Temp 同步）	fast	
 client-kit-selftest	bash scripts/check-client-kit.sh	客户端计算抽离库编译自证：dist CLI 下 --noinject 编译 examples/client-kit，断言 IR 只含 1 图(1082130499)、关键节点计数达标(自持读写/邮箱/分支)、无信号依赖、GIA 产出。治 2026-10-24 抽离「只写不接」+ dev 模式 src/dist 双副本导致 IR 恒空的假绿	fast	
+gil-header-selftest	python3 tools/gil-header-check.py --selftest	GIL 头部长度不变量：好样本 PASS / 「payload 变长但 header 未更新」必须被抓到（治 2026-10-24 技能变量 CLI 两次把地图写成「存档已损坏」：root15 记录逐字节正确，但自造文件重建只复制前 20B，hdr[0:4]/hdr[16:20] 停在旧值）	fast	

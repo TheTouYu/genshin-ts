@@ -24,6 +24,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
+import { buildFile, readUint32BE } from '../injector/binary.js'
 import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
@@ -207,14 +208,20 @@ function parseArgs(argv: string[]): Args {
   return { sub, gil, id, name, write, outputPath, json }
 }
 
-function buildFile(source: Uint8Array, payload: Uint8Array): Uint8Array {
-  const head = source.slice(0, 20)
-  const tail = source.slice(source.length - 4)
-  const out = new Uint8Array(head.length + payload.length + tail.length)
-  out.set(head, 0)
-  out.set(payload, head.length)
-  out.set(tail, head.length + payload.length)
-  return out
+/**
+ * 用**共享** buildFile 重建整文件——头部有 5 个 32 位字段，其中
+ * word0 = payload.length + 20、word16 = payload.length 都是**长度派生**的。
+ * 2026-10-24 事故：本命令曾用「复制前 20 字节」的自造实现，payload 变长后头部长度字段没更新
+ * ⇒ 编辑器读到的 payload 长度与实际不符，直接判「存档已损坏」（root15 记录字节本身是对的）。
+ */
+export function buildGilFile(source: Uint8Array, payload: Uint8Array): Uint8Array {
+  const header = {
+    schema: readUint32BE(source, 4),
+    headTag: readUint32BE(source, 8),
+    fileType: readUint32BE(source, 12),
+    tailTag: readUint32BE(source, source.length - 4)
+  }
+  return new Uint8Array(buildFile(payload, header))
 }
 
 export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
@@ -243,7 +250,7 @@ export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
   if (!check.some((v) => v.id === args.id)) {
     throw new Error('[error] 回读失败：create 后 root15 里找不到该技能变量')
   }
-  const newFile = buildFile(sourceBytes, next)
+  const newFile = buildGilFile(sourceBytes, next)
 
   if (args.write) {
     const now = new Uint8Array(fs.readFileSync(gil))

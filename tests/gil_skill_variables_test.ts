@@ -13,6 +13,7 @@ import assert from 'node:assert/strict'
 import {
   SKILL_VARIABLE_TYPE_CODE,
   appendSkillVariable,
+  buildGilFile,
   encodeSkillVariableRecord,
   listSkillVariables
 } from '../src/cli/assets_skill_variables.js'
@@ -83,6 +84,30 @@ check('名字为空串也能编码（name 段 0 长度）', () => {
     { number: 15, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: record }]) }
   ])
   assert.equal(listSkillVariables(payload)[0].name, '')
+})
+
+check('buildGilFile 头部长度字段必须跟随 payload（2026-10-24 损坏事故）', () => {
+  const payload = new Uint8Array(100)
+  const source = new Uint8Array(24)
+  source[4] = 0
+  source[5] = 0
+  source[6] = 0
+  source[7] = 1
+  source[8] = 0x03
+  source[9] = 0x26
+  source[12] = 0
+  source[13] = 0
+  source[14] = 0
+  source[15] = 2
+  source[20] = 0x00
+  source[21] = 0x00
+  source[22] = 0x06
+  source[23] = 0x79
+  const file = buildGilFile(source, payload)
+  const view = new DataView(file.buffer, file.byteOffset, file.byteLength)
+  assert.equal(view.getUint32(16, false), payload.length, 'word16 必须是 payload 长度')
+  assert.equal(view.getUint32(0, false), payload.length + 20, 'word0 必须是 payload+20')
+  assert.equal(file.length, payload.length + 24)
 })
 
 console.log(`\nskill-variable 回归：${passed} 项通过${process.exitCode ? '（有失败）' : ''}`)
