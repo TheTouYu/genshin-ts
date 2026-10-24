@@ -49,13 +49,13 @@ unstick() {
   # 2026-10-24 修：原来只改**高度** ±1px —— 编辑器主窗带 _NET_WM_STATE_MAXIMIZED_VERT，
   # KWin 把高度立刻弹回（实测 10 次采样恒 1371，日志 saw_plus1=0）⇒ **新尺寸的 ConfigureNotify
   # 从没到过客户端** ⇒ 解卡无效（用户实测「执行了还是假死」）。
-  # 改为改**宽度**（不受 maximized_vert 约束，实测 50–120ms 内生效，saw=1）。
+  # 改为改**宽度**（不受 maximized_vert 约束，实测 50–120ms 内生效，saw=1）；默认只挪 1px（减闪烁）。
   # 注意两个实测坑：
   #   · 宽度变更后 KWin 会把 x 顺带左移 ≤6px，**且只发生一次**（连按 3 次 x 稳定不动）；
   #   · 用 `xdotool windowmove` 还原 x 是**相对**语义（实测 764→1528 翻倍），绝不能用；
   #     必须用 `wmctrl -e`（绝对，但对 x 有 2× 映射，实测 384→768）。因此这里**不还原 x**，
   #     只在日志里记下漂移量（一次性、≤6px，用户无感）。
-  local dw=3 saw=0 x1
+  local dw=${UNSTICK_DW:-1} saw=0 x1
   YS_ALLOW_RAW=1 xdotool windowsize "$win" $((w+dw)) "$h" 2>/dev/null
   for i in $(seq 1 12); do
     [ "$(geom "$win" | cut -d' ' -f3)" = "$((w+dw))" ] && { saw=1; break; }
