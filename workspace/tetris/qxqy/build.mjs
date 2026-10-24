@@ -27,6 +27,35 @@ export function buildStudio() {
   patch({ op: 'addTemplate', kind: 'cursor', name: 'hit' })
   patch({ op: 'remove', id: 'n1' }) // 默认模板面板，删掉只留 cell/hit
 
+  // 结算层模板（2026-10-24 第三轮）：一个容器 + 6 个子 textbox。
+  // 运行时用 game.InstantiateClientUIControl(settleGuid, root) 整棵实例化 ⇒ 这棵实例
+  // 天然高于 200 个棋盘格实例，结算面板才能盖在棋盘上（服务端 textbox 永远在下面）。
+  // 子控件名用 settle 前缀；真机对应的是地图里已有的「控件模板:客户端控件容器_1」
+  // （子控件名是 title/hud/best/hint/botBanner），因此 Lua 侧按【候选名列表】取控件。
+  patch({ op: 'addTemplate', kind: 'container', name: 'settle' })
+  const settleTpl = s.get().selectedId
+  const addSettleText = (name, box) => {
+    patch({ op: 'add', parentId: settleTpl, kind: 'textbox', name })
+    const id = s.get().selectedId
+    for (const [key, value] of Object.entries(box)) patch({ op: 'set', id, key, value })
+  }
+  const C_WHITE = '#FFE8ECF4'
+  const C_RED = '#FFFF4D4D'
+  const C_DIM = '#B3D6E8F6'
+  // 框高判据 h >= fontSize*1.45+4：44→68、30→48、24→39、22→36、28→45（下面都留了余量）
+  addSettleText('settleTitle', { posX: 0, posY: 150, width: 760, height: 80, fontSize: 44,
+    text: '游戏结束', fontColor: C_RED, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+  addSettleText('settleScore', { posX: 0, posY: 78, width: 760, height: 52, fontSize: 30,
+    text: '本局 0 分', fontColor: '#FFFFC24C', horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+  addSettleText('settleBest', { posX: 0, posY: 26, width: 760, height: 44, fontSize: 24,
+    text: '最高 0', fontColor: C_WHITE, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+  addSettleText('settleInfo', { posX: 0, posY: -22, width: 760, height: 40, fontSize: 22,
+    text: '', fontColor: C_DIM, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+  addSettleText('settleExtra', { posX: 0, posY: -62, width: 760, height: 40, fontSize: 22,
+    text: '', fontColor: C_DIM, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+  addSettleText('settleOpts', { posX: 0, posY: -112, width: 760, height: 48, fontSize: 28,
+    text: '[R] 再来一局　　[Q] 结算明细', fontColor: C_WHITE, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
+
   // 2) 服务端资产：清掉默认橱窗，只留容器 n1（脚本宿主 + 所有 UI 控件的父节点）
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
   for (const id of ['n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11']) {
@@ -105,13 +134,15 @@ export function buildStudio() {
   const templates = s.get().root.children || []
   const cellGuid = templates.find((t) => t.name === 'cell')?.guid
   const hitGuid = templates.find((t) => t.name === 'hit')?.guid
-  if (!cellGuid || !hitGuid) {
-    throw new Error('客户端模板缺少 cell/hit：' + JSON.stringify(templates.map((t) => t.name)))
+  const settleGuid = templates.find((t) => t.name === 'settle')?.guid
+  if (!cellGuid || !hitGuid || !settleGuid) {
+    throw new Error('客户端模板缺少 cell/hit/settle：' + JSON.stringify(templates.map((t) => t.name)))
   }
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
   const lua = readFileSync(join(root, 'lua/main.lua'), 'utf8')
     .replaceAll('__GUID_CELL__', String(cellGuid))
     .replaceAll('__GUID_HIT__', String(hitGuid))
+    .replaceAll('__GUID_SETTLE__', String(settleGuid))
   patch({
     op: 'addScript',
     path: 'lua/main.lua',
@@ -132,7 +163,7 @@ export function buildStudio() {
   if (cellGuid !== T_CELL) {
     throw new Error(`模板 guid 与 build.mjs 的 T_CELL 不一致：${cellGuid} !== ${T_CELL}`)
   }
-  return { studio: s, controls, templates: templates.length, cellGuid, hitGuid }
+  return { studio: s, controls, templates: templates.length, cellGuid, hitGuid, settleGuid }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -163,7 +194,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   console.log('save bytes      :', Buffer.byteLength(saveJson))
   console.log('gia bytes       :', bytes.length)
-  console.log('gia templates   :', templateCount, 'cell=' + built.cellGuid, 'hit=' + built.hitGuid)
+  console.log('gia templates   :', templateCount, 'cell=' + built.cellGuid, 'hit=' + built.hitGuid,
+    'settle=' + built.settleGuid)
   console.log('gia scripts     :', scriptCount, (back.scripts || []).map((x) => x.path))
   console.log('gia server nodes:', serverControls)
   console.log('gia combined    :', back.metadata?.combined)

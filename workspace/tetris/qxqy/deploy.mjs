@@ -66,7 +66,7 @@ function calibrate() {
 if (flag('--calibrate')) calibrate()
 
 // 重建（与 build.mjs 共用同一套 patch 序列，保证存档/GIA/Lua 三份产物同源）
-const { studio, cellGuid, hitGuid } = buildStudio()
+const { studio, cellGuid, hitGuid, settleGuid } = buildStudio()
 const save = studio.exportData('save')
 writeFileSync(join(root, 'tetris.save.json'), Buffer.from(save.data, 'base64').toString('utf8'))
 mkdirSync(join(root, 'device-package'), { recursive: true })
@@ -76,6 +76,7 @@ writeFileSync(join(root, 'device-package/tetris-整合包.gia'), gia)
 const injectedLua = readFileSync(luaSource, 'utf8')
   .replaceAll('__GUID_CELL__', String(cellGuid))
   .replaceAll('__GUID_HIT__', String(hitGuid))
+  .replaceAll('__GUID_SETTLE__', String(settleGuid))
 
 // 网页试玩工作区：模拟器存档扫描 policy.symlinks=false（studio/host/workspace.js:170）
 // ⇒ 软链不会被列出，必须实体复制；每次 rebuild 后自动同步一次

@@ -31,8 +31,11 @@ function shot(name) {
   return snap
 }
 
-// 入场态抓 8s：AI 自演这时已经落了十几块（能一眼看出"它在自己玩"），标题也已长到 40 号满格
-step(240)
+// 入场自演：步进到「棋盘上至少堆了 4 行」（最多 40s）——这样一帧就看得见 AI 真的在玩，
+// 而不是刚消完行的一次空盘。种子固定，所以这帧可复现。
+const filledCells = () => (s.playGet({ view: true }).scene.nodes || [])
+  .filter((n) => n.kind === 'image' && String(n.name).startsWith('cell') && n.imageColor !== -15065818).length
+for (let i = 0; i < 80 && filledCells() < 42; i++) step(15)
 shot('preview-guide.png')          // 入场自演中：上横幅「俄罗斯方块」+ 下横幅「按任意键开始」+ AI 正在堆
 key('KeyboardMoveLeftKeyDown'); key('KeyboardMoveLeftKeyUp')
 step(20)
@@ -43,13 +46,21 @@ key('KeyboardCharacterSkill4KeyDown'); key('KeyboardCharacterSkill4KeyUp')  // T
 key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')                        // 硬降触发真实消行
 step(10)
 shot('preview-clear.png')          // 首次消行后的提示态
-// gameover：连续硬降堆到顶（不消行）
-for (let i = 0; i < 40; i++) {
+// gameover：连续硬降堆到顶（不消行）。**逐次检测**，命中那一帧 settleT 才 = 0，
+// 中途帧的 settleT 才准（否则攒到 3 帧才判，动画早已跑完）。
+const isOver = () => (s.playGet({ view: true }).scene.nodes || []).some((n) => n.text === '游戏结束')
+let over = false
+for (let i = 0; i < 80 && !over; i++) {
   key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')
-  step(3)
+  over = isOver()
+  if (!over) step(3)
 }
-step(12)
-shot('preview-gameover.png')       // 结算页：顶部「游戏结束」+ 底部成绩/两个选项 + 棋盘压暗
+step(6)                            // settleT ≈ 0.20s：遮罩淡入中、标题还在上面
+shot('preview-settle-anim-1.png')
+step(9)                            // settleT ≈ 0.50s：遮罩满、标题已落位、选项正在滑入
+shot('preview-settle-anim-2.png')
+step(15)                           // settleT ≈ 1.00s：四段动画（0.9s）结束的稳定帧
+shot('preview-gameover.png')
 key('KeyboardCharacterSkill2KeyDown'); key('KeyboardCharacterSkill2KeyUp')   // Q 结算明细
 step(2)
 shot('preview-gameover-detail.png')
