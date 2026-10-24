@@ -229,6 +229,7 @@ When you recover context, ALWAYS produce this shape:
 
 ```text
 当前目标：<one line>
+**本会话所在线**：<线 id，读 docs/longtask/LINES.md §二；没指定就问，不猜>
 上一轮完成：<what actually happened>
 关键细节：
   - 精确 ID/值：...
@@ -239,6 +240,9 @@ When you recover context, ALWAYS produce this shape:
 用户未满足诉求（逐字引用，标注已满足/未满足）：
   - "<用户原话>" → 状态 + 已走的指针 + 结论落盘位置
 ```
+
+> 多线并行时（2026-10-24 起）：恢复的第一件事是**认出本会话属于哪条线**——`docs/longtask/LINES.md` §二 是唯一权威；
+> 只读本线 dossier，别把别线的断点当成本线进度（那是"只拿到一个任务"的镜像错误：拿到了别人的任务）。
 
 If you created a handoff file, use the same detail categories and commit it. Do not write “大概”, “好像是”, “可能”; if a detail is missing, mark it `UNKNOWN` and search again before proceeding.
 
