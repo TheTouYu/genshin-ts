@@ -265,6 +265,12 @@ GIL 整体结构与语义树
   （10 错谱系：锚点/同步/能力断言/缩放口径/两处静默无操作/postbuild 缺 proto/注入 nodeGraphId/字符串计数/距离节流/意图误解；
    三系统性根因：**把「这轮没见」当「引擎没有」**／**用户口径缺席时自己造解释**／读数粒度和判据不匹配；
    产出：造物配置三件 CLI + `assets:entities delete` + 字节相等回归 6 断言 + 造物技能链四段端到端实证）
+- **模拟器 demo → 真机落地**：[从模拟器到真机落地](retrospective-2026-10-24-sim-to-gil-pipeline.md)
+  （8 错谱系：`root9.501` 森林根集被当记录清单/`f503` 小序号被误删/漏 Temp 同步/客户端控件类型未识别/
+   缺实例化样本/真机 Lua 无护栏静默中断/`AddKeyEventListener` 要枚举/WASD 未监听 + HUD 硬编码；
+   三系统性根因：**用我方解析器全绿冒充目标宿主验证**／**按形状而非字段语义改写结构**／**脚本宿主差异无一页对照表**；
+   产出：`tools/gil-guard.py` + gate `gil-guard-selftest` + 两条技能新节（`simulator-2d-route` 真机差异 /
+   `genshin-ts-asset-operations` 整图写回安全门））
 - **过程与协作纪律**：[抢桌面事故——协议未读/止损缺失/在场无判据](retrospective-2026-10-17-desktop-grab-incident.md)
   （8 错谱系；**失败波**：唯一技术收获不应以用户时间为代价。三根因：把协议当背景知识不当现场契约／无止损判据／所有桌面规则隐含"我独占桌面"）
 - **记忆工程（压缩/恢复）**：[压缩丢细节事故与双侧修复](retrospective-2026-10-17-compression-loss-and-recovery.md)

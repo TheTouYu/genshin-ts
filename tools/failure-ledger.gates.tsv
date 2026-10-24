@@ -61,3 +61,4 @@ find-textmatch	python3 tools/ys-editor/tests/find-textmatch.selftest.py	ys-find 
 preflight-desktop	bash tools/ys-editor/tests/inject/preflight-desktop-neg.sh	DESKTOP_HIDDEN 判据双向：夹具 ds≠cur ⇒ FAIL 点名、ds==cur ⇒ OK、无游戏 ⇒ SKIP，且破坏比较逻辑时注入用例必须报红（含隐藏漏报与同桌面误报两个方向）。治「窗口在别的虚拟桌面被 unmaps，输入全丢而 preflight 仍 PASS」	fast	
 frame-size	python3 tools/ys-editor/tests/frame-size.selftest.py	抓帧尺寸一致性：N 连抓的 frame.{w,h} 恒等、文件头声明的宽高 == frame 读数、大小 == 54+w*h*3、PIL 可读；守护不在 ⇒ BLOCKED。治 2026-10-23「kwin-ss2 给 2561 宽帧 ⇒ 下游 PIL/ys-text 报 truncated ⇒ 行消失/抖动被统计成列表自行滚动」	fast	
 own-guard	bash tools/ys-editor/tests/own-guard.selftest.sh	注入前所有权断言：目标窗非 ACTIVE / 跨虚拟桌面 / 找不到窗 ⇒ 必须 REFUSE(4)；ACTIVE 且 ds 含 cur ⇒ 允许(0)；ds=-1 视为可达。治 2026-10-23「守卫中途把焦点还给 firefox ⇒ 我的 ydotool 键打进用户输入框（60+ 个 d）+ 帧来自不可见窗」	fast	
+gil-guard-selftest	python3 tools/gil-guard.py --selftest	整图 .gil 写回不变量自测：好样本 0 问题 / 「501 写成全量记录」与「children 悬空引用」必须被抓到（治 2026-10-24 两次「存档已损坏」：把 root9.501 森林根集当记录清单重写 + f503 小序号被误删 + 漏 Temp 同步）	fast	

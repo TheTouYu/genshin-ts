@@ -75,6 +75,20 @@ description: 千星模拟器「2D 界面 + Lua」生产线——把 UI 控件与
 
 > 上游插件技能是**参考与借鉴对象**（引用→借鉴→超越）；我方生态（GIL 直写 + 真机自动化 + 日志取证）比它宽，遇到需要时在**我方 fork**里改进并 PR。
 
+## 真机差异（2026-10-24 实证，模拟器绿 ≠ 真机绿）
+
+导入真机后，模拟器上全绿的用例可能**一条都不成立**。已实证的差异面：
+
+| 面 | 模拟器 | 真机 | 对策 |
+|---|---|---|---|
+| 键位注册 | `AddKeyEventListener('KeyboardXxxDown', fn)` 收字符串 | **只收 `Enum.KeyEventType.Xxx` 枚举值**，字符串抛 `KeyEventType expected, got string` | 先枚举、失败回落字符串，且**每个注册都 pcall** |
+| 模板索引 | `InstantiateClientUIControl` 用 GIA 内 guid（如 1073742105） | 编辑器导入后**重编号**（如 1073741849） | 导入后按 `assets:ui list` 读实际 guid 回写 Lua 常量，并校验一致 |
+| 异常 | 宿主报错可见 | **Lua 无护栏：一句抛错整段 OnStart 中断**，无报错浮层 | 生命周期内每段 pcall + 关键阶段 `print`（print 会落 Debug_Log 的 `'lua'` 字段） |
+| 布局 | 固定画布 | 分辨率/比例不同，硬编码坐标会半出屏 | 一律按 `game.GetUICanvasSize()` 算，别写死 |
+| 断言 | playRun 可断言控件字段（含 `imageColor`，有符号 int32） | 无该通道 | 真机只能靠 `print` + 试玩截图 |
+
+**排查第一步**（真机"有画面但不动"）：`python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <最新.gia> records | grep "'lua'"` —— 先确认 OnStart 走没走完（最后那句 print 在不在），再看具体报错。
+
 ## 变更记录
 
 | 日期 | 变更 |

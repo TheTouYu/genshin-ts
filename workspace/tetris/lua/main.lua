@@ -21,7 +21,7 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
 local COLS, ROWS    = 10, 20
 local CELL, GAP     = 26, 2
 local PITCH         = CELL + GAP
-local T_CELL        = 1073742105   -- 客户端模板「cell」根子节点 guid（build.mjs 分配）
+local T_CELL        = 1073741849   -- 客户端模板「cell」根子节点 guid（导入 hl 地图后的实际值；换图须按 assets:ui list 校准）
 local STEP          = 1 / 60
 local GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）
 local BOARD_CX, BOARD_CY = 0, 0    -- 棋盘中心（画布坐标，原点=画布中心，y 向上）
@@ -254,8 +254,39 @@ function OnStart()
 
   hud = root:GetChild('hud')
   hudNext = root:GetChild('hudNext')
+  -- HUD 放在棋盘左侧留白处（原来的固定坐标让文字半出屏，2026-10-24 截图实证）
+  local boardLeft = -(COLS / 2) * PITCH
+  if hud then
+    hud:SetSizeDelta(360, 36)
+    hud:SetAnchoredPosition(boardLeft - 210, 120)
+  end
+  if hudNext then
+    hudNext:SetSizeDelta(360, 36)
+    hudNext:SetAnchoredPosition(boardLeft - 210, 60)
+  end
 
-  root:AddKeyEventListener('KeyboardCraftspersonKey38Down', function()   -- ←
+  -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
+  -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
+  -- 2026-10-24 日志实证）；模拟器接受字符串。两种都试：先枚举，失败回落字符串。
+  local enumKeys = (type(Enum) == 'table' and Enum.KeyEventType) or nil
+  local function listen(name, fn)
+    local ok, err, how
+    if enumKeys and enumKeys[name] ~= nil then
+      ok, err = pcall(function() root:AddKeyEventListener(enumKeys[name], fn) end)
+      how = 'enum'
+    end
+    if not ok then
+      ok, err = pcall(function() root:AddKeyEventListener(name, fn) end)
+      how = 'string'
+    end
+    if ok then
+      print('listen ok ' .. name .. ' via ' .. how)
+    else
+      print('listen fail ' .. name .. ' :: ' .. tostring(err))
+    end
+  end
+
+  listen('KeyboardCraftspersonKey38Down', function()   -- ←
     if gameOver or not piece then return end
     if not collides(piece.cells, piece.x - 1, piece.y) then
       piece.x = piece.x - 1
@@ -263,7 +294,7 @@ function OnStart()
       print('move x=' .. piece.x)
     end
   end)
-  root:AddKeyEventListener('KeyboardCraftspersonKey39Down', function()   -- →
+  listen('KeyboardCraftspersonKey39Down', function()   -- →
     if gameOver or not piece then return end
     if not collides(piece.cells, piece.x + 1, piece.y) then
       piece.x = piece.x + 1
@@ -271,13 +302,13 @@ function OnStart()
       print('move x=' .. piece.x)
     end
   end)
-  root:AddKeyEventListener('KeyboardCraftspersonKey36Down', function()   -- ↑
+  listen('KeyboardCraftspersonKey36Down', function()   -- ↑
     rotate()
   end)
-  root:AddKeyEventListener('KeyboardCraftspersonKey37Down', function()   -- ↓
+  listen('KeyboardCraftspersonKey37Down', function()   -- ↓
     stepDown()
   end)
-  root:AddKeyEventListener('KeyboardJumpKeyDown', function()             -- Space
+  listen('KeyboardJumpKeyDown', function()             -- Space
     if gameOver or not piece then return end
     local dropped = 0
     while not collides(piece.cells, piece.x, piece.y + 1) do
@@ -287,12 +318,35 @@ function OnStart()
     print('harddrop rows=' .. dropped .. ' y=' .. piece.y)
     doLock()
   end)
-  root:AddKeyEventListener('KeyboardCharacterSkill3KeyDown', function()  -- R 重开
+  -- WASD（真机常用；具名键 MoveLeft/Right/Forward/Backward）
+  listen('KeyboardMoveLeftKeyDown', function()          -- A
+    if gameOver or not piece then return end
+    if not collides(piece.cells, piece.x - 1, piece.y) then
+      piece.x = piece.x - 1
+      renderPiece()
+      print('move x=' .. piece.x)
+    end
+  end)
+  listen('KeyboardMoveRightKeyDown', function()         -- D
+    if gameOver or not piece then return end
+    if not collides(piece.cells, piece.x + 1, piece.y) then
+      piece.x = piece.x + 1
+      renderPiece()
+      print('move x=' .. piece.x)
+    end
+  end)
+  listen('KeyboardMoveForwardKeyDown', function()       -- W（旋转）
+    rotate()
+  end)
+  listen('KeyboardMoveBackwardKeyDown', function()      -- S（软降）
+    stepDown()
+  end)
+  listen('KeyboardCharacterSkill3KeyDown', function()  -- R 重开
     newGame()
   end)
   -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
-  root:AddKeyEventListener('KeyboardCharacterSkill4KeyDown', function()
+  listen('KeyboardCharacterSkill4KeyDown', function()
     for rr = ROWS - 1, ROWS do
       for c = 1, COLS do board[rr][c] = COL_BLUE end
     end
@@ -301,8 +355,11 @@ function OnStart()
     renderHud()
   end)
 
-  newGame()
+  -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑
+  local okNew, errNew = pcall(newGame)
+  if not okNew then print('newGame error :: ' .. tostring(errNew)) end
 end
+
 
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
