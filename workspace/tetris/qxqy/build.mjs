@@ -42,23 +42,23 @@ export function buildStudio() {
     for (const [key, value] of Object.entries(box)) patch({ op: 'set', id, key, value })
     return id
   }
-  const C_FONT = '#FFE8ECF4'   // 主文
-  const C_ACCENT = '#FF4CC2FF' // 强调（操作提示）
+  const C_FONT = '#FFD6E8F6'   // 主文
+  const C_ACCENT = '#FF76D6FF' // 强调（操作提示）
   const C_GOLD = '#FFFFC24C'   // 得分/标题
   addTextbox('hud', {
-    posX: -410, posY: 125, width: 460, height: 40, fontSize: 20, text: 'TETRIS',
+    posX: -410, posY: 125, width: 460, height: 40, fontSize: 20, text: '得分 0　消行 0　等级 1　已填 0',
     horizontalAlignment: 'Middle',
   })
   addTextbox('hudNext', {
-    posX: 410, posY: 230, width: 200, height: 40, fontSize: 22, text: 'NEXT',
+    posX: 410, posY: 230, width: 200, height: 40, fontSize: 22, text: '下一个',
     fontColor: C_ACCENT, horizontalAlignment: 'Middle',
   })
   addTextbox('title', {
-    posX: -410, posY: 210, width: 420, height: 100, fontSize: 64, text: 'TETRIS',
+    posX: -410, posY: 210, width: 420, height: 100, fontSize: 64, text: '',
     fontColor: C_GOLD, horizontalAlignment: 'Middle',
   })
   addTextbox('best', {
-    posX: -410, posY: 80, width: 420, height: 36, fontSize: 20, text: 'BEST 0',
+    posX: -410, posY: 80, width: 420, height: 36, fontSize: 20, text: '最高 0',
     fontColor: C_FONT, horizontalAlignment: 'Middle',
   })
   addTextbox('hint', {
@@ -74,7 +74,7 @@ export function buildStudio() {
     fontColor: C_FONT, horizontalAlignment: 'Middle',
   })
   addTextbox('keyC', {
-    posX: 410, posY: -120, width: 420, height: 38, fontSize: 22, text: 'R 重开　　H 键位表',
+    posX: 410, posY: -120, width: 420, height: 38, fontSize: 22, text: 'R 重开',
     fontColor: C_FONT, horizontalAlignment: 'Middle',
   })
   // 手机按钮标签：textbox + bgColor 当底，点击热区由客户端 cursor 实例覆盖在上面

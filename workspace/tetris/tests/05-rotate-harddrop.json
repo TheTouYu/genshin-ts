@@ -44,7 +44,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "SCORE 0  LINES 0  LV 1  FILLED 4"
+      "equals": "得分 0　消行 0　等级 1　已填 4"
     },
     {
       "at": 0.5,

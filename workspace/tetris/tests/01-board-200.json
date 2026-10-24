@@ -56,7 +56,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "SCORE 0  LINES 0  LV 1  FILLED 0"
+      "equals": "得分 0　消行 0　等级 1　已填 0"
     },
     {
       "at": 0.2,

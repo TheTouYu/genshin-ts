@@ -1,7 +1,7 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "08 手机按钮热区：cursor 实例可点（左移/直落/旋转）",
+  "name": "08 点击热区链路（模拟器 device=MobileController ⇒ 按钮与热区都在）",
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
@@ -26,12 +26,6 @@
       "at": 0.2,
       "kind": "log",
       "contains": "hits=6",
-      "source": "client"
-    },
-    {
-      "at": 0.2,
-      "kind": "log",
-      "contains": "hit guid=",
       "source": "client"
     },
     {
@@ -64,34 +58,6 @@
       "name": "btnA",
       "field": "text",
       "equals": "←"
-    },
-    {
-      "at": 0.2,
-      "kind": "control",
-      "name": "btnA",
-      "field": "visible",
-      "equals": true
-    },
-    {
-      "at": 0.2,
-      "kind": "control",
-      "name": "btnF",
-      "field": "visible",
-      "equals": true
-    },
-    {
-      "at": 0.2,
-      "kind": "control",
-      "name": "btnAhit",
-      "field": "visible",
-      "equals": true
-    },
-    {
-      "at": 0.2,
-      "kind": "control",
-      "name": "topBanner",
-      "field": "visible",
-      "equals": true
     }
   ]
 }

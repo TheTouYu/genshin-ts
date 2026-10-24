@@ -31,8 +31,9 @@ function shot(name) {
   return snap
 }
 
-step(3)
-shot('preview-guide.png')          // 入场态：上横幅 TETRIS + 下横幅键位 + 按任意键开始
+// 入场态抓 8s：AI 自演这时已经落了十几块（能一眼看出"它在自己玩"），标题也已长到 40 号满格
+step(240)
+shot('preview-guide.png')          // 入场自演中：上横幅「俄罗斯方块」+ 下横幅「按任意键开始」+ AI 正在堆
 key('KeyboardMoveLeftKeyDown'); key('KeyboardMoveLeftKeyUp')
 step(20)
 shot('preview-play.png')           // 游戏中：重力已跑，横幅已清
@@ -42,4 +43,14 @@ key('KeyboardCharacterSkill4KeyDown'); key('KeyboardCharacterSkill4KeyUp')  // T
 key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')                        // 硬降触发真实消行
 step(10)
 shot('preview-clear.png')          // 首次消行后的提示态
+// gameover：连续硬降堆到顶（不消行）
+for (let i = 0; i < 40; i++) {
+  key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')
+  step(3)
+}
+step(12)
+shot('preview-gameover.png')       // 结算页：顶部「游戏结束」+ 底部成绩/两个选项 + 棋盘压暗
+key('KeyboardCharacterSkill2KeyDown'); key('KeyboardCharacterSkill2KeyUp')   // Q 结算明细
+step(2)
+shot('preview-gameover-detail.png')
 s.playStop()

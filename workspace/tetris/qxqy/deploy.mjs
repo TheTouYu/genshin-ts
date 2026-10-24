@@ -77,7 +77,17 @@ const injectedLua = readFileSync(luaSource, 'utf8')
   .replaceAll('__GUID_CELL__', String(cellGuid))
   .replaceAll('__GUID_HIT__', String(hitGuid))
 
+// 网页试玩工作区：模拟器存档扫描 policy.symlinks=false（studio/host/workspace.js:170）
+// ⇒ 软链不会被列出，必须实体复制；每次 rebuild 后自动同步一次
 let deployed = []
+{
+  const ws = process.env.QXQY_WORKSPACE || join(process.env.HOME || '', 'qxqy-workspace')
+  if (existsSync(ws)) {
+    const target = join(ws, 'tetris.save.json')
+    copyFileSync(join(root, 'tetris.save.json'), target)
+    deployed.push(`存档 → ${target}`)
+  }
+}
 if (existsSync(exportDir)) {
   const target = join(exportDir, 'tetris-整合包.gia')
   copyFileSync(join(root, 'device-package/tetris-整合包.gia'), target)

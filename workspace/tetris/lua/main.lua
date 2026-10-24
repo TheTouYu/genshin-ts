@@ -41,7 +41,7 @@ local PITCH         = CELL + GAP
 -- 真机首次导入 hit 后若仍点不动，跑 `node qxqy/deploy.mjs --calibrate` 自动把新 guid 写进这里。
 local TPL_GUIDS = {
   cell = { __GUID_CELL__, 1073741849, 1073741854 },
-  hit  = { __GUID_HIT__, 1073741865, 1073741866, 1073741867 },
+  hit  = { __GUID_HIT__, 1073741884, 1073741865, 1073741866 },
 }
 local STEP          = 1 / 60
 local GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）
@@ -83,6 +83,12 @@ local board, piece, nextName
 local score, lines, level, bestScore
 local gameOver, tickCount, acc
 local guideStage, bannerTimer, taughtLock, taughtClear
+local flashT, introT, overlay
+local introFont, introPulse
+local autoDriving = false   -- true = 本次落子由入场 AI 驱动（抑制教学提示与高频日志）
+local AI                    -- 入场自演状态机（定义见「AI 自演」段）
+local pieceCount = 0        -- 本局已落方块数（结算明细用）
+local settleOpen = false    -- 结算明细是否展开（Q 切换）
 local RIGHT_CX = 410
 local showGameOver, updateBest
 local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
@@ -143,19 +149,19 @@ local hits = {}
 -- 文字样式：真机 GIL 里新建的控件没有样式（CLI 只建骨架），全部由 Lua 运行时设置。
 -- 框高判据：h >= fontSize*1.45 + 4（见 docs/README §10.2），尺寸在 layout() 里给。
 local C_TEXT, C_GOLD2, C_ACCENT2, C_DANGER, C_BTN =
-  C(255, 232, 236, 244), C(255, 255, 194, 76), C(255, 76, 194, 255),
+  C(255, 214, 232, 246), C(255, 255, 194, 76), C(255, 118, 214, 255),
   C(255, 255, 77, 77), C(179, 26, 29, 38)
 local UI_STYLE = {
   title     = { font = 64, color = C_GOLD2,   align = 'Middle' },
-  hud       = { font = 20, color = C_TEXT,    align = 'Middle' },
+  hud       = { font = 20, color = C_ACCENT2, align = 'Middle' },
   hudNext   = { font = 22, color = C_ACCENT2, align = 'Middle' },
-  best      = { font = 20, color = C_TEXT,    align = 'Middle' },
-  hint      = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  best      = { font = 20, color = C_GOLD2,   align = 'Middle' },
+  hint      = { font = 22, color = C_ACCENT2, align = 'Middle', valign = 'Middle' },
   keyA      = { font = 22, color = C_TEXT,    align = 'Middle' },
   keyB      = { font = 22, color = C_TEXT,    align = 'Middle' },
   keyC      = { font = 22, color = C_TEXT,    align = 'Middle' },
-  topBanner = { font = 34, color = C_GOLD2,   align = 'Middle' },
-  botBanner = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  topBanner = { font = 34, color = C_GOLD2,   align = 'Middle', valign = 'Middle' },
+  botBanner = { font = 22, color = C_ACCENT2, align = 'Middle', valign = 'Middle' },
   btnA = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
   btnB = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
   btnC = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
@@ -187,11 +193,25 @@ local function probeTemplate(candidates, needCursor)
   return nil, nil
 end
 
+-- 结算压暗：已落方块降到 45% 亮度。
+-- 必须做在 renderAll 里而不是只做一次——renderPiece/renderAll 每次重绘都会用 board 原色覆盖，
+-- 旧实现只在 showGameOver 里压暗一次，紧接着 spawn()→renderPiece()→renderAll() 就复原了（实测）。
+local function dimColor(v)
+  local a = v // 16777216
+  local rr = (v // 65536) % 256
+  local gg = (v // 256) % 256
+  local bb = v % 256
+  return C(a, rr * 45 // 100, gg * 45 // 100, bb * 45 // 100)
+end
+
 renderAll = function()
+  local dim = gameOver
   for r = 1, ROWS do
     for c = 1, COLS do
       local v = board[r][c]
-      if v == 0 then paint(r, c, COL_EMPTY) else paint(r, c, v) end
+      if v == 0 then paint(r, c, COL_EMPTY)
+      elseif dim then paint(r, c, dimColor(v))
+      else paint(r, c, v) end
     end
   end
 end
@@ -216,10 +236,10 @@ renderHud = function()
       if board[r][c] ~= 0 then oc = oc + 1 end
     end
   end
-  setText(hud, 'SCORE ' .. score .. '  LINES ' .. lines .. '  LV ' .. level
-    .. '  FILLED ' .. oc)
-  setText(hudNext, 'NEXT')
-  setText(best, 'BEST ' .. bestScore)
+  setText(hud, '得分 ' .. score .. '　消行 ' .. lines .. '　等级 ' .. level
+    .. '　已填 ' .. oc)
+  setText(hudNext, '下一个')
+  setText(best, '最高 ' .. bestScore)
   renderNext()
 end
 
@@ -256,7 +276,9 @@ spawn = function()
     x = (COLS - s.n) // 2 + 1,
     y = 1,
   }
-  print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
+  if not autoDriving then
+    print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
+  end
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
     print('gameover score=' .. score)
@@ -287,16 +309,28 @@ clearLines = function()
     end
   end
   if cleared > 0 then
+    -- 视觉反馈：整盘已落方块闪白 0.12s（每行都触发，不只是首次）
+    for r2 = 1, ROWS do
+      for c2 = 1, COLS do
+        if board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
+      end
+    end
+    flashT = 0.12
     local pts = { 100, 300, 500, 800 }   -- 1/2/3/4 行
     score = score + pts[cleared] * level
     lines = lines + cleared
     level = lines // 10 + 1
-    print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)
+    if autoDriving then
+      print('demo clear n=' .. cleared .. ' lines=' .. lines)   -- 自演也在消行（心跳级日志）
+    else
+      print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)
+    end
     -- 首次消行：由简入深——把"分值表"这项进阶信息押到玩家已经会消行之后
-    if not taughtClear then
+    -- （入场 AI 自演期间的消行不算，否则玩家真正上手时这条引导已经被吃掉）
+    if not taughtClear and not autoDriving then
       taughtClear = true
       setText(hint, '一次消 4 行 +800')
-      setText(botBanner, '空格 直落到底　　H 键位表')
+      setText(botBanner, '空格 直落到底')
       bannerTimer = 4.0
       print('guide clear-tip')
     end
@@ -317,10 +351,13 @@ doLock = function()
     local bc = piece.x + piece.cells[i][2] - 1
     if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end
   end
-  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
+  pieceCount = pieceCount + 1
+  if not autoDriving then
+    print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
+  end
   clearLines()
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
-  if not taughtLock then
+  if not taughtLock and not autoDriving then
     taughtLock = true
     bannerTimer = 2.5
     print('guide lock-tip')
@@ -340,13 +377,17 @@ local function stepDown()
   end
 end
 
+-- 顺时针 90°：(r,c) → (c, n+1-r)，盒内 1-based（n = 包围盒边长）。
+-- rotate() 与入场 AI 共用同一份转法，避免两处不一致。
+local function rotateCells(cells, n)
+  local out = {}
+  for i = 1, 4 do out[i] = { cells[i][2], n + 1 - cells[i][1] } end
+  return out
+end
+
 local function rotate()
   if gameOver or not piece then return end
-  local n = piece.n
-  local nc = {}
-  for i = 1, 4 do
-    nc[i] = { piece.cells[i][2], n + 1 - piece.cells[i][1] }   -- 顺时针 90°
-  end
+  local nc = rotateCells(piece.cells, piece.n)
   if not collides(nc, piece.x, piece.y) then
     piece.cells = nc
     print('rotate ' .. piece.name)
@@ -362,11 +403,12 @@ local function newGame()
     board[r] = row
   end
   score, lines, level = 0, 0, 1
+  pieceCount = 0
   gameOver, tickCount, acc = false, 0, 0
   nextName = BAG[rand(#BAG)]
   spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
-  print('newgame')
+  if not autoDriving then print('newgame') end
 end
 
 --------------------------------------------------------------------------------
@@ -384,6 +426,10 @@ local function startIfWaiting()
   guideStage = 1
   setText(topBanner, '')
   setText(botBanner, '')
+  for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+  trySet(topBanner, 'fontSize', 34)
+  trySet(botBanner, 'fontSize', 22)
+  if overlay then tryCall(overlay, 'SetVisible', false) end
   setText(hint, '堆满一行即消除')
   print('guide stage=1')
 end
@@ -401,16 +447,252 @@ local function toggleKeymap()
   end
 end
 
+-- 结算页：棋盘暗场 + 顶部大字 + 底部「成绩 + 两个选项」。
+-- 位置全部在棋盘之外（顶部/底部横幅）：运行时 InstantiateClientUIControl 造的格子层级高于
+-- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
 showGameOver = function()
-  setText(topBanner, 'GAME OVER')
-  if topBanner then topBanner.fontColor = C(255, 255, 77, 77) end
-  setText(botBanner, '得分 ' .. score .. '　　本局最高 ' .. bestScore .. '　　按 R 重开')
+  -- 暗场交给 renderAll（它按 gameOver 把已落方块压到 45%）：只在这里画一次的旧实现会被
+  -- 紧接着的 spawn()→renderPiece()→renderAll() 复原，实测整盘依旧全亮。
+  renderAll()
+  bannerTimer = 0
+  settleOpen = false
+  -- 顶部大字：40 号 → 框高必须 >= 40*1.45+4 = 62（layout 给 64），否则整行静默不画
+  -- 为什么不是更大：棋盘顶框在屏幕 y=59，上方净空只有 59px，40 号居中后墨迹 16..56 恰好不压框
+  trySet(topBanner, 'fontSize', 40)
+  trySet(topBanner, 'fontColor', C(255, 255, 96, 96))
+  setText(topBanner, '游戏结束')
+  -- 底部一行：成绩 + 两个选项；26 号 → 需 >= 41.7（layout 给 48）
+  trySet(botBanner, 'fontSize', 26)
+  trySet(botBanner, 'fontColor', C(255, 214, 232, 246))
+  setText(botBanner, '本局 ' .. score .. ' 分　消行 ' .. lines .. ' 行'
+    .. '　　[R] 再来一局　　[Q] 结算明细')
   setText(hint, '')
-  print('guide gameover')
+  print('guide gameover score=' .. score .. ' lines=' .. lines)
 end
 
 updateBest = function()
   if score > bestScore then bestScore = score end
+end
+
+--------------------------------------------------------------------------------
+-- 入场「AI 自演」：guideStage == 0 时脚本自己玩，玩家一按键（startIfWaiting）立即交还控制。
+-- 节奏：思考 0.6s（首块）/ 0.22s（后续）→ 每 0.06s 转一次、每 0.05s 横移一格
+--       （逐格走，不是一帧瞬移）→ 停顿 0.10s → 硬降。一块约 0.6~1.0s。
+-- 选位：枚举 4 个朝向 × 每个合法列，模拟落地后打分（消行奖励 − 总高 − 空洞 − 崎岖），
+--       所以它既不会自杀，也不是纯随机乱走。
+-- 保命：堆到 12 行就清盘重开（demoLoopReset），演示循环永远走不到 gameOver。
+--------------------------------------------------------------------------------
+
+local AI_THINK_FIRST, AI_THINK, AI_ROT, AI_MOVE, AI_DROP = 0.60, 0.22, 0.06, 0.05, 0.10
+local AI_RESET_ROWS = 12     -- 堆到 12 行就清盘重开（任务书给的阈值；20 行上限里留 8 行余量，永远到不了 gameOver）
+
+-- 堆叠高度：最高一列已填的行数（0 = 空盘）
+local function stackHeight()
+  for r = 1, ROWS do
+    for c = 1, COLS do
+      if board[r][c] ~= 0 then return ROWS - r + 1 end
+    end
+  end
+  return 0
+end
+
+-- 评估「cells 放到 x 列、自然落地」之后的局面，返回分（越大越好）；放不进返回 nil
+-- 目标是"看起来像人在玩"：趴低、铺平、不留洞，有机会就补行消掉。
+-- 六项（权重都是可调的经验值，用探针实测过：见 docs/README §10.3）：
+--   agg（总高）−、holes（空洞，越深越贵）−、bump（相邻列高度差）−、landing（落地高度）−、
+--   消掉的整行 +、本块参与消行的格数 +（让 AI 主动去补"只差一格"的行）
+local W_AGG, W_HOLE, W_BUMP, W_LANDING, W_LINE, W_ERODE = 0.85, 6.0, 0.65, 0.45, 20, 12
+
+local function evalBoard(cells, x)
+  if collides(cells, x, 1) then return nil end
+  local y = 1
+  while y < ROWS and not collides(cells, x, y + 1) do y = y + 1 end
+  local occ, lowest = {}, 0
+  for i = 1, 4 do
+    local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
+    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
+      occ[(br - 1) * COLS + bc] = true
+    end
+    if br > lowest then lowest = br end
+  end
+  local solid = function(r, c)
+    if r < 1 or r > ROWS or c < 1 or c > COLS then return false end
+    return occ[(r - 1) * COLS + c] == true or board[r][c] ~= 0
+  end
+  local heights, agg, holes = {}, 0, 0
+  for c = 1, COLS do
+    local h = 0
+    for r = ROWS, 1, -1 do
+      if solid(r, c) then
+        h = ROWS - r + 1
+        break
+      end
+    end
+    heights[c] = h
+    agg = agg + h
+    local seen = false
+    for r = 1, ROWS do
+      if solid(r, c) then
+        seen = true
+      elseif seen then
+        holes = holes + 1 + (ROWS - r) * 0.08   -- 越深的洞越致命
+      end
+    end
+  end
+  local bump = 0
+  for c = 1, COLS - 1 do bump = bump + math.abs(heights[c] - heights[c + 1]) end
+  local complete = 0
+  for r = 1, ROWS do
+    local full = true
+    for c = 1, COLS do
+      if not solid(r, c) then
+        full = false
+        break
+      end
+    end
+    if full then complete = complete + 1 end
+  end
+  local erode = 0
+  for i = 1, 4 do
+    local br = y + cells[i][1] - 1
+    if br >= 1 and br <= ROWS then
+      local full = true
+      for c = 1, COLS do
+        if not solid(br, c) then
+          full = false
+          break
+        end
+      end
+      if full then erode = erode + 1 end
+    end
+  end
+  local after = agg - complete * COLS           -- 消行之后的总高
+  if after < 0 then after = 0 end
+  return complete * W_LINE + erode * W_ERODE
+    - after * W_AGG - holes * W_HOLE - bump * W_BUMP - (ROWS - lowest + 1) * W_LANDING
+end
+
+-- 选位：4 朝向 × 合法列取最高分；同分取离当前列更近、再更靠左（结果稳定，不会来回抖）
+local function aiChoose()
+  if not piece or gameOver then return nil end
+  local n, maxX = piece.n, COLS - piece.n + 1
+  local cells = piece.cells
+  local best, bestX, bestRot = nil, piece.x, 1
+  for rot = 1, 4 do
+    if rot > 1 then cells = rotateCells(cells, n) end
+    for x = 1, maxX do
+      local sc = evalBoard(cells, x)
+      if sc then
+        local better = best == nil or sc > best + 1e-9
+        if best and not better and math.abs(sc - best) <= 1e-9 then
+          local d1, d0 = math.abs(x - piece.x), math.abs(bestX - piece.x)
+          better = d1 < d0 or (d1 == d0 and x < bestX)
+        end
+        if better then
+          best, bestX, bestRot = sc, x, rot
+        end
+      end
+    end
+  end
+  if best == nil then return nil end
+  return { rot = bestRot - 1, x = bestX }
+end
+
+-- 清盘重开（演示循环用）：不弹结算页，横幅与入场动画复位
+local function demoLoopReset()
+  autoDriving = true
+  newGame()
+  autoDriving = false
+  introT, introFont, introPulse = 0, 26, 22
+  setText(hint, '键盘操作')
+  setText(topBanner, '俄罗斯方块')
+  setText(botBanner, '按任意键开始')
+  trySet(topBanner, 'fontColor', C_GOLD2)
+  trySet(topBanner, 'fontSize', 26)
+  trySet(botBanner, 'fontColor', C_ACCENT2)
+  trySet(botBanner, 'fontSize', 22)
+  AI.phase, AI.t, AI.plan, AI.piece, AI.first = 'think', 0, nil, nil, false
+end
+
+-- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
+local function aiDrop()
+  local guard = 0
+  while guard < ROWS + 4 and not collides(piece.cells, piece.x, piece.y + 1) do
+    piece.y = piece.y + 1
+    guard = guard + 1
+  end
+  autoDriving = true
+  local ok, err = pcall(doLock)
+  autoDriving = false
+  if not ok then
+    print('demo lock error :: ' .. tostring(err))
+    return
+  end
+  AI.count = AI.count + 1
+  if AI.count % 10 == 0 then print('demo auto n=' .. AI.count) end   -- 心跳，不刷屏
+  local h = stackHeight()
+  if gameOver or h >= AI_RESET_ROWS then
+    print('demo reset stack=' .. h)
+    demoLoopReset()
+  end
+end
+
+AI = { phase = 'think', t = 0, plan = nil, piece = nil, count = 0, first = true }
+
+-- 每个 OnUpdate 调一次：think（思考）→ act（旋转 / 横移一格 / 硬降，每个动作隔一个间隔）
+autoTick = function(dt)
+  if guideStage ~= 0 then return end      -- 玩家已接管，或正在看键位表：不再自动操作
+  if gameOver then
+    demoLoopReset()                       -- 兜底：真走到结算就清盘继续演
+    return
+  end
+  if not piece or not board then return end
+  AI.t = AI.t + dt
+  if AI.phase == 'think' then
+    local wait = AI_THINK
+    if AI.first then wait = AI_THINK_FIRST end
+    if AI.t < wait then return end
+    AI.t = 0
+    AI.first = false
+    AI.piece = piece
+    AI.plan = aiChoose() or { rot = 0, x = piece.x }
+    AI.phase = 'act'
+    return
+  end
+  if not AI.plan or AI.piece ~= piece then
+    AI.phase, AI.t, AI.plan, AI.piece = 'think', 0, nil, nil
+    return
+  end
+  if AI.plan.rot > 0 then
+    if AI.t < AI_ROT then return end
+    AI.t = 0
+    AI.plan.rot = AI.plan.rot - 1
+    local nc = rotateCells(piece.cells, piece.n)
+    if not collides(nc, piece.x, piece.y) then
+      piece.cells = nc
+      renderPiece()
+    else
+      AI.plan.rot = 0                     -- 转不动就别卡死，按当前朝向继续
+    end
+    return
+  end
+  if piece.x ~= AI.plan.x then
+    if AI.t < AI_MOVE then return end
+    AI.t = 0
+    local dir = 1
+    if AI.plan.x < piece.x then dir = -1 end
+    if not collides(piece.cells, piece.x + dir, piece.y) then
+      piece.x = piece.x + dir
+      renderPiece()
+    else
+      AI.plan.x = piece.x                 -- 被挡住就停在当前列，直接落
+    end
+    return
+  end
+  if AI.t < AI_DROP then return end
+  AI.t = 0
+  aiDrop()
+  AI.phase, AI.plan, AI.piece = 'think', nil, nil
 end
 
 --------------------------------------------------------------------------------
@@ -422,7 +704,6 @@ local function layout(W, H)
   local panelW = 420
   local leftCX, rightCX = -(halfW - panelW / 2 - 20), halfW - panelW / 2 - 20
   RIGHT_CX = rightCX
-  local bannerY = halfH - 30   -- 56 高、上边缘贴 2px
   local function place(ctl, x, y, w, h)
     if not ctl then return end
     tryCall(ctl, 'SetSizeDelta', w, h)
@@ -430,24 +711,37 @@ local function layout(W, H)
   end
   -- 框高硬判据（渲染器实测）：h >= fontSize*1.45 + 4 才画这一行，否则整行静默不画。
   -- 64 号 -> >=96.8（h=96 曾整块消失）、34 -> >=53.3、26 -> >=41.7、22 -> >=35.9。
-  place(title, leftCX, halfH - 150, panelW, 100)      -- 64 号
-  place(hud, leftCX, halfH - 235, panelW + 40, 40)   -- 20 号：22 号时尾部一个字被裁，实测
-  place(best, leftCX, halfH - 280, panelW, 36)       -- 20 号
-  place(hint, leftCX, -60, panelW, 150)              -- 22 号
+  -- 左栏：标题/统计/最高/提示 作为一个整组垂直居中（贴顶贴底会显得散）
+  place(title, leftCX, 130, panelW, 100)             -- 64 号
+  place(hud, leftCX, 40, panelW + 40, 40)            -- 20 号：22 号时尾部一个字被裁，实测
+  place(best, leftCX, -10, panelW, 36)               -- 20 号
+  place(hint, leftCX, -95, panelW, 150)              -- 22 号
   place(hudNext, rightCX, halfH - 150, 200, 40)      -- 22 号
   place(keyA, rightCX, -40, panelW, 38)              -- 22 号
   place(keyB, rightCX, -80, panelW, 38)              -- 22 号
   place(keyC, rightCX, -120, panelW, 38)             -- 22 号
   for _, b in ipairs(BUTTONS) do
-    place(find(b.name), b.x, b.y, BTN_W, BTN_H)
+    local ctl = find(b.name)
+    if ctl then
+      if isMobile then
+        place(ctl, b.x, b.y, BTN_W, BTN_H)
+        tryCall(ctl, 'SetVisible', true)
+      else
+        tryCall(ctl, 'SetVisible', false)   -- PC 端不展示移动按钮
+      end
+    end
   end
   applyStyle('title', title) applyStyle('hud', hud) applyStyle('hudNext', hudNext)
   applyStyle('best', best) applyStyle('hint', hint)
   applyStyle('keyA', keyA) applyStyle('keyB', keyB) applyStyle('keyC', keyC)
   applyStyle('topBanner', topBanner) applyStyle('botBanner', botBanner)
   for _, b in ipairs(BUTTONS) do applyStyle(b.name, find(b.name)) end
-  place(topBanner, 0, bannerY, W - 180, 56)          -- 34 号
-  place(botBanner, 0, -(bannerY + 2), W - 180, 44)   -- 22 号，与棋盘底留 11px
+  -- 横幅框高按判据算「同时装得下的最大字号」：入场标题会长到 40、结算大字 40（都需 62）
+  -- ⇒ topBanner 给 64；旧实现 56 高，标题长过 35 号就整行静默消失（实测）。
+  -- 纵向位置：框 64 居中在屏幕上 4..68 那条带子里（棋盘顶框在 59，40 号墨迹 16..56 不压框）
+  place(topBanner, 0, halfH - 36, W - 180, 64)
+  -- 底行：结算 26 号（需 41.7）、入场呼吸 22~23 号 ⇒ 给 48
+  place(botBanner, 0, -(halfH - 28), W - 180, 48)
 end
 
 --------------------------------------------------------------------------------
@@ -462,6 +756,18 @@ function OnStart()
 
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
+
+  -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
+  local isMobile = true
+  do
+    local okDev, dev = pcall(function() return game.GetDevice() end)
+    if okDev and type(Enum) == 'table' and Enum.Device then
+      isMobile = (dev == Enum.Device.Mobile or dev == Enum.Device.MobileController)
+      print('device=' .. tostring(dev) .. ' mobile=' .. tostring(isMobile))
+    else
+      print('device=unknown（按移动端处理，按钮可见）')
+    end
+  end
 
   -- 模板 guid 探测（双宿主）：先 cell（image，无光标事件）再 hit（cursor，有光标事件）
   local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
@@ -512,6 +818,10 @@ function OnStart()
     frames[i] = fr
   end
 
+  -- 结算不用中间遮罩：运行时实例的层级高于服务端文字，遮罩会把结算文字盖掉（实测）
+  -- 改为「棋盘暗场 + 顶部/底部大字」，文字始终在棋盘之外，不会被遮挡
+  overlay = nil
+
   -- NEXT 预览四格（同一模板，缩到 18px）
   preview = {}
   for i = 1, 4 do
@@ -533,8 +843,11 @@ function OnStart()
 
   -- 引导初始态：等玩家按第一个键（重力暂停，画面静止好读）
   guideStage, bannerTimer, taughtLock, taughtClear = 0, 0, false, false
+  flashT, introT, introFont, introPulse = 0, 0, 24, 22   -- introFont/Pulse = 上次写进控件的值（变了才写）
   bestScore = 0
-  setText(title, 'TETRIS')
+  setText(title, '')
+  for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', false) end
+  tryCall(title, 'SetVisible', false)
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
   setText(botBanner, '按任意键开始')
@@ -623,6 +936,23 @@ function OnStart()
     newGame()
     setText(topBanner, '')
     setText(botBanner, '')
+    if overlay then tryCall(overlay, 'SetVisible', false) end
+    -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
+    local okRelayout, errRelayout = pcall(layout, W, H)
+    if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
+  end)
+  -- Q：结算明细（结算态才有意义）。明细走左栏 hint（棋盘外，不会被实例格子盖住）
+  listen('KeyboardCharacterSkill2KeyDown', function()
+    startIfWaiting()
+    if not gameOver then return end
+    settleOpen = not settleOpen
+    if settleOpen then
+      setText(hint, '本局落块 ' .. pieceCount .. '　消行 ' .. lines .. '　最高 ' .. bestScore)
+      print('settle detail on')
+    else
+      setText(hint, '')
+      print('settle detail off')
+    end
   end)
   listen('KeyboardCharacterSkill1KeyDown', function()       -- H 键位表
     startIfWaiting()
@@ -703,6 +1033,17 @@ function OnStart()
     print('hits=0 click disabled（真机导入后跑 node qxqy/deploy.mjs --calibrate）')
   end
 
+  -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
+  local mapped = { [36] = true, [37] = true, [38] = true, [39] = true }
+  local anyKeyStart = function()
+    if guideStage == 0 then startIfWaiting() end
+  end
+  for i = 1, 43 do
+    if not mapped[i] then
+      listen('KeyboardCraftspersonKey' .. i .. 'Down', anyKeyStart)
+    end
+  end
+
   -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）
   local okNew, errNew = pcall(newGame)
   if not okNew then print('newGame error :: ' .. tostring(errNew)) end
@@ -712,13 +1053,33 @@ end
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
-  if bannerTimer > 0 then
+  if bannerTimer > 0 and not gameOver then
     bannerTimer = bannerTimer - d
     if bannerTimer <= 0 then
       bannerTimer = 0
       setText(botBanner, '')
       setText(hint, '')
     end
+  end
+  if flashT > 0 then
+    flashT = flashT - d
+    if flashT <= 0 then flashT = 0 renderAll() end
+  end
+  if guideStage == 0 then
+    -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
+    introT = introT + d
+    local size = math.min(40, 26 + math.floor(introT * 12))
+    if size ~= introFont then
+      introFont = size
+      trySet(topBanner, 'fontSize', size)
+    end
+    local pulse = 22 + math.floor(2 * (0.5 + 0.5 * math.sin(introT * 5)))
+    if pulse ~= introPulse then
+      introPulse = pulse
+      trySet(botBanner, 'fontSize', pulse)
+    end
+    autoTick(d)   -- AI 自演：选位→旋转→逐格横移→硬降→消行→下一块，玩家按键即交还控制
+    return
   end
   if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
   acc = acc + d

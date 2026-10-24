@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | 服务端控件 | **12**（2026-10-24 满幅布局后） | `sc1` 容器 → `n1` container（脚本宿主）→ 10 个 textbox：`hud` `hudNext` `title` `best` `hint` `keyA` `keyB` `keyC` `topBanner` `botBanner` |
 | 客户端模板 | **1** | image 模板 `cell`（authoring guid **1073742105**；真机导入后实测重编号为 **1073741849**）—— 208 个实例共用它 |
-| 脚本 | **1** | `lua/main.lua`（580 行 / 21210 B），脚本 guid 1073742106 |
+| 脚本 | **1** | `lua/main.lua`（**1097 行 / 43263 B**，2026-10-24 第二轮：AI 自演 + 结算页），脚本 guid 1073742105→真机 `main_2` 1073741827 |
 | 脚本挂载 | — | 挂在**服务端** `n1`（`controlAsset: server-control-template`）；客户端模板树内零脚本 |
 | 运行时控件 | **208** | `game.InstantiateClientUIControl(模板 guid, root)` ×208：`cell1`…`cell200` + `next1`…`next4`（NEXT 预览）+ `frame1`…`frame4`（棋盘外框） |
 | 存档 | 87073 B | `tetris.save.json`（`format: qxqy-simulator-save`, version 4） |
@@ -76,7 +76,7 @@ node qxqy/check-gia.mjs
 - 修改游戏逻辑后 **先改 `lua/main.lua`，再 `node qxqy/build.mjs`**（存档里的脚本源码是构建时内联进去的，
   只改 `.lua` 不会让旧存档变）。
 
-## 6. 用例（`tests/`，6 条 / 34 断言）
+## 6. 用例（`tests/`，8 条 / 53 断言）
 
 | 用例 | 覆盖 | 关键断言 |
 | --- | --- | --- |
@@ -151,8 +151,11 @@ workspace/tetris/
 | 左栏 | 中心 x=-410，宽 420~460 | `title` TETRIS(64) / `hud` 统计(20) / `best` 最高分(20) / `hint` 引导语(22) |
 | 棋盘 | 居中，10×20，PITCH 30（CELL 28 + 缝 2）= 300×600 | 200 格 + 4 条外框（青色 2px） |
 | 右栏 | 中心 x=+410，宽 420 | `hudNext` NEXT(22) + 4 格预览 / `keyA` `keyB` `keyC` 键位卡(22) /（P2 手机按钮位预留） |
-| 上横幅 | y=+330，高 56，宽 W-180 | 入场「俄罗斯方块」(34) / 失败「GAME OVER」(红) |
-| 下横幅 | y=-332，高 44，宽 W-180 | 入场「按任意键开始」(22) / 阶段性提示 |
+| 上横幅 | y=+324（=halfH-36），高 **64**，宽 W-180 | 入场「俄罗斯方块」(26→40 渐大) / 结算「游戏结束」(**40**，红) |
+| 下横幅 | y=-332，高 **48**，宽 W-180 | 入场「按任意键开始」(22~23 呼吸) / 阶段性提示 / 结算「本局 X 分　消行 Y 行　[R] 再来一局　[Q] 结算明细」(26) |
+
+> 两个横幅 2026-10-24 第二轮改过：上横幅 56→**64**（40 号入场标题需 62）、下横幅 44→**48**（结算 26 号需 41.7），
+> 且 `verticalAlignment` 显式写死 `Middle`（authoring 默认是 `Top`，顶格画会贴着画布上沿被切）。
 
 ### 10.2 两条硬判据（血泪，改 UI 必看）
 
@@ -171,17 +174,18 @@ workspace/tetris/
 
 | stage | 进入条件 | 重力 | 屏幕 |
 | --- | --- | --- | --- |
-| 0 等开始 | `OnStart` | **暂停** | 上横幅「俄罗斯方块」、下横幅「按任意键开始」、左栏 hint「键盘操作」 |
+| 0 等开始 | `OnStart` | 玩家方块**暂停**，但**脚本自己在玩**（AI 自演，见 §10.7） | 上横幅「俄罗斯方块」（26→40 渐大）、下横幅「按任意键开始」（呼吸）、左栏 hint「键盘操作」 |
 | 1 游戏中 | 玩家按下第一个操作键 | 跑 | 横幅清空；左栏常驻「堆满一行即消除」；首次锁定 2.5s 提示；首次消行「一次消 4 行 +800」3~4s |
 | 2 键位表 | 按 `H` | 暂停 | 下横幅显示完整键位，左栏「H 继续游戏」 |
-| 失败 | 顶出 | 停 | 上横幅「GAME OVER」（红）、下横幅「得分 X　本局最高 Y　按 R 重开」 |
+| 失败 | 顶出 | 停 | 棋盘压暗到 45%、上横幅「游戏结束」(40 红)、下横幅「本局 X 分　消行 Y 行　[R] 再来一局　[Q] 结算明细」；`Q` 在左栏展开结算明细（落块数/消行/最高） |
 
 入场态的键**既开始游戏也执行该动作**（不吞键）：玩家按 ← 会立刻开始并左移一格，用例与手感一致。
 
 ### 10.5 预览图（真实渲染，不是示意图）
 
 ```bash
-node qxqy/shot.mjs            # 出 docs/preview-guide.png / preview-play.png / preview-clear.png
+node qxqy/shot.mjs   # 出 docs/preview-guide.png（入场自演 8s 一帧）/ preview-play.png /
+                     #    preview-clear.png / preview-gameover.png / preview-gameover-detail.png（Q 明细）
 ```
 
 链路：`createStudio(存档)` → `playStart({canvasId:'mobile-16-9'})` → `playKey`/`playStep` 步进 →
@@ -217,3 +221,23 @@ npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
 # ② 10 个服务端控件名是否都在（GetChild 按名字取，名字变了就不显示）
 # ③ 真机日志里应有：canvas WxH / tpl guid=… / cellCount=200 / listen ok … / guide stage=1
 ```
+
+### 10.9 入场「AI 自演」（2026-10-24 第二轮）
+
+`guideStage == 0` 时脚本自己玩，**玩家按任意键立刻交还控制**（`startIfWaiting` 把 stage 置 1，`autoTick` 首行即 return）。
+
+- **节奏**：思考 0.6s（首块）/ 0.22s（后续）→ 旋转 0.06s/次 → 横移 **0.05s 一格**（逐格，不是瞬移）→ 停顿 0.10s → 硬降。
+  实测 **1.6~1.8 块/s**，每块 0.55~0.62s，落在「0.3~0.6s 一块」的设计区间内。
+- **选位**：枚举 4 朝向 × 每个合法列，模拟落地后打分（权重在 `evalBoard` 顶部的 `W_*` 常量）：
+  `+20×消行 +12×本块消掉的格数 −0.85×总高 −6×空洞(越深越贵) −0.65×崎岖 −0.45×落地高度`，同分取更近列。
+- **保命**：堆到 **12 行**（`AI_RESET_ROWS`）就 `demoLoopReset()` 清盘重开并复位入场动画，**永远走不到 gameOver**。
+- **静音**：自演期间的 `piece=` / `lock` / `fall` / `move` / 教学提示全部被 `autoDriving` 挡掉，只留
+  `demo auto n=`（每 10 块）、`demo clear n=`（每次消行）、`demo reset stack=`（每次清盘）三类心跳日志。
+- **实测（离线 180s 连续跑）**：落块 ~300 块、消行 25 次、清盘 12 次、最高列高 15、gameOver 0 次；
+  `runner.mjs` 8/8 与 `shot.mjs` 五张图不受影响。
+- **踩过的坑**：`local prev = c > 1 and solid(...) or true` 在 Lua 里当 `solid()` 返回 **false** 时会退化成 `true`
+  （`x and y or z` 的经典陷阱），把「行过渡」这一项算成常数，AI 就去角落盖塔了 —— 必须写成显式 `if`。
+
+**怎么复现结算页**：网页试玩（`http://127.0.0.1:4173`，工作区存档 `~/qxqy-workspace/tetris.save.json` 由 `deploy.mjs` 同步，改完刷新页面重新打开该存档）
+→ 按任意键接管入场自演 → 连按空格（硬降）不消行地往上堆，堆到顶即出结算页；真机同流程（键盘 空格 = JumpKey/硬降，或手机按钮「直落」）。
+离线复现：`node qxqy/shot.mjs` 会自己堆到顶并出 `docs/preview-gameover.png`。

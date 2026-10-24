@@ -126,14 +126,14 @@
       "kind": "control",
       "name": "botBanner",
       "field": "text",
-      "equals": "空格 直落到底　　H 键位表"
+      "equals": "空格 直落到底"
     },
     {
       "at": 1.2,
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "SCORE 300  LINES 2  LV 1  FILLED 4"
+      "equals": "得分 300　消行 2　等级 1　已填 4"
     }
   ]
 }
