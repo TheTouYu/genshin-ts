@@ -360,6 +360,17 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 
 固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。摘要脚本只挑选标量键和小型计数，禁止把 `before/after/rootFields` 整对象重新打印出来。
 
+**最后一步（钻到叶子）**：root 级脚本只报「root5 里 `f1=<id>` 这条记录 ±N 字节」，位置落在哪一层要靠字段级深差分。用 Skill 自带脚本，不要现写内联解析：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/gil-record-fielddiff.py \
+  <before.gil> <after.gil> <root号> <记录id>
+# → CHANGED f6[3].f16.f1: ('varint', 1) -> ('varint', 2)
+# → == N leaf change(s)；N=0 表示记录逐字节未变（可用来验证「改回去」是否完全还原）
+```
+
+输出给出 `path → (kind, value)` 的叶子差（varint/fixed32/utf8/bytes 各自标注），足以直接定位 wire 字段。2026-10-24 阵营实验即用它把 1 字节变化锁到 `f6{f1=6}.f16.f1`。
+
 同一保存中出现的**未声明额外变化**（如 root 注册表、信号、引用块），不能直接归因给用户声明操作：先记录；随后用“删除/回退该操作”的对照轮验证——若回退后这些变化不动，则它们与声明操作生命周期无关（exp14→17 实测：新增镜头时出现的 root35/root11/组件引用块在删除镜头后全部不回退，属一次性编辑器注册）。未经验证的归因写 `INSUFFICIENT`。
 
 定点解码优先复用 `scripts/` 下已有资产。静态元件材质/装饰物调查使用
