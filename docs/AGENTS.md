@@ -19,6 +19,7 @@
 | 路径 | 内容 | 入口 |
 | --- | --- | --- |
 | `docs/architecture/` | 编译器、注入器、DSL、GIL 资产、Composite 当前实现 | `documentation-map.md` |
+| `docs/longtask/` | **长期任务的并行线档案**（多线看板/宪章/心法/共享现状/决策/缺口/分线子档） | `longtask/INDEX.md` → `longtask/LINES.md`；体检 `longtask_check.py`（已接 doc_health） |
 | `docs/game-engine-knowledge/` | 真实 GIA/GIL 增量逆向与引擎语义 Authority | `gil-structure-semantics.md`、`variables.md` |
 | `docs/composite-ir/` | Composite/Stage 3 逆向与重构材料；`handover/` 仅历史 | `composite-ir/AGENTS.md` |
 | `docs/adr/` | 已确认的架构决策，改动需记录 why | 按日期编号 |
