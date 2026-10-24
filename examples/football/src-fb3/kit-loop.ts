@@ -23,6 +23,8 @@ import { KitSignal } from './signals.js'
 // 自持组（技能变量）：1207959557..568。本图只用 1 号位当拍号。
 const SLOT_TICK = 1207959557n
 const SLOT_PROBE = 1207959558n
+// 隐藏层高度（世界 y）：草地表面 y≈0、草层厚 2.5m ⇒ -3 落在草下、玩家跳跃也顶不出来
+const HIDDEN_Y = -3.0
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
   // ① 拍号：跨施放保持的 int（客户端自持，绝不依赖图内局部变量）
@@ -46,19 +48,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const carrierVar = f.getCustomVariable(selfE, 'kit_carrier').asType('entity')
   // 守卫用 int 标志位（entity 与 int 不可直接比较，guid→int 转换不被支持）
   const hasCarrier = f.greaterThan(f.getCustomVariable(selfE, 'kit_has_carrier').asType('int'), 0n)
-  const down = f.create3dVector(0, 3, 0)
+  // Y **固定**（2026-10-24 用户实测 bug：跟随玩家 y ⇒ 玩家一跳把造物顶出草地，露出来）。
+  // 只跟 X/Z，Y 恒等于隐藏层高度 HIDDEN_Y；split3dVector 取分量（creation_skill 白名单有）。
   f.doubleBranch(
     hasCarrier,
     () => {
-      // 要"贴着玩家但不被看见"：往草地下面压（草地厚 2.5m，用户口径：造物藏在草皮下的空模型上）
-      f.complexCreationTeleport(f._3dVectorSubtraction(f.getEntityLocation(carrierVar), down), f.create3dVector(0, 0, 0))
+      const p = f.split3dVector(f.getEntityLocation(carrierVar))
+      f.complexCreationTeleport(f.create3dVector(p.xComponent, HIDDEN_Y, p.zComponent), f.create3dVector(0, 0, 0))
     },
     () => {
       // 服务端还没写载体（开局第一帧）：退回 players[0]，口径与服务端一致
-      f.complexCreationTeleport(
-        f._3dVectorSubtraction(f.getEntityLocation(fallbackCarrier), down),
-        f.create3dVector(0, 0, 0)
-      )
+      const p = f.split3dVector(f.getEntityLocation(fallbackCarrier))
+      f.complexCreationTeleport(f.create3dVector(p.xComponent, HIDDEN_Y, p.zComponent), f.create3dVector(0, 0, 0))
     }
   )
 
