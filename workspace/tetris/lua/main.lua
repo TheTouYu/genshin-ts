@@ -94,6 +94,27 @@ local function paint(r, c, color)
   if ctl then ctl.imageColor = color end
 end
 
+-- 保护式写入：真机上某些字段/方法会抛错（模拟器接受），一处抛错会中断整段 OnStart
+-- ⇒ 首次试玩全部按键无响应的根因（2026-10-24，日志停在 cellCount=200）。
+local FAILED = {}
+local function noteFail(tag, err)
+  if FAILED[tag] then return end
+  FAILED[tag] = true
+  print('ui fail ' .. tag .. ' :: ' .. tostring(err))
+end
+local function trySet(ctl, key, value)
+  if not ctl then return false end
+  local ok, err = pcall(function() ctl[key] = value end)
+  if not ok then noteFail(tostring(key), err) return false end
+  return true
+end
+local function tryCall(ctl, method, a, b)
+  if not ctl then return false end
+  local ok, err = pcall(function() ctl[method](ctl, a, b) end)
+  if not ok then noteFail(tostring(method), err) return false end
+  return true
+end
+
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
 local function find(name)
   if not root then return nil end
@@ -103,7 +124,7 @@ local function find(name)
 end
 
 local function setText(ctl, value)
-  if ctl then ctl.text = value end
+  if ctl then trySet(ctl, 'text', value) end
 end
 
 -- 手机按钮：标签是服务端 textbox（bgColor 当底），点击热区是客户端 cursor 实例（透明，叠在上面）
@@ -145,11 +166,11 @@ local UI_STYLE = {
 local function applyStyle(name, ctl)
   local st = UI_STYLE[name]
   if not ctl or not st then return end
-  if st.font then ctl.fontSize = st.font end
-  if st.color then ctl.fontColor = st.color end
-  if st.bg then ctl.bgColor = st.bg end
-  if st.align then ctl.horizontalAlignment = st.align end
-  if st.valign then ctl.verticalAlignment = st.valign end
+  if st.font then trySet(ctl, 'fontSize', st.font) end
+  if st.color then trySet(ctl, 'fontColor', st.color) end
+  if st.bg then trySet(ctl, 'bgColor', st.bg) end
+  if st.align then trySet(ctl, 'horizontalAlignment', st.align) end
+  if st.valign then trySet(ctl, 'verticalAlignment', st.valign) end
 end
 
 -- 按候选 guid 探测模板：needCursor=true 要求该控件具备光标事件方法（cursor/button）
@@ -404,8 +425,8 @@ local function layout(W, H)
   local bannerY = halfH - 30   -- 56 高、上边缘贴 2px
   local function place(ctl, x, y, w, h)
     if not ctl then return end
-    ctl:SetSizeDelta(w, h)
-    ctl:SetAnchoredPosition(x, y)
+    tryCall(ctl, 'SetSizeDelta', w, h)
+    tryCall(ctl, 'SetAnchoredPosition', x, y)
   end
   -- 框高硬判据（渲染器实测）：h >= fontSize*1.45 + 4 才画这一行，否则整行静默不画。
   -- 64 号 -> >=96.8（h=96 曾整块消失）、34 -> >=53.3、26 -> >=41.7、22 -> >=35.9。
@@ -507,7 +528,8 @@ function OnStart()
   title, hud, hudNext, best = find('title'), find('hud'), find('hudNext'), find('best')
   hint, keyA, keyB, keyC = find('hint'), find('keyA'), find('keyB'), find('keyC')
   topBanner, botBanner = find('topBanner'), find('botBanner')
-  layout(W, H)
+  local okLayout, errLayout = pcall(layout, W, H)
+  if not okLayout then print('layout error :: ' .. tostring(errLayout)) end
 
   -- 引导初始态：等玩家按第一个键（重力暂停，画面静止好读）
   guideStage, bannerTimer, taughtLock, taughtClear = 0, 0, false, false
