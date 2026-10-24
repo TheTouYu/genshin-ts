@@ -188,7 +188,27 @@ node qxqy/shot.mjs            # 出 docs/preview-guide.png / preview-play.png / 
 `playGet({view:true})` 取 `scene` → `renderScenePng` 落 PNG。
 ⚠️ 不要用 `playRun(frames)`：它内部会 `playStart()` **重开会话**，注入的按键全部丢失（实测踩到）。
 
-### 10.6 真机导入后要核对的三件事
+### 10.6 手机按钮（客户端 cursor 热区）
+
+| 项 | 做法 |
+| --- | --- |
+| 标签 | 6 个服务端 textbox（`btnA`…`btnF`，150×56，`bgColor` 当按钮底） |
+| 点击 | 客户端模板 `hit`（kind **cursor**）实例叠在标签之上，`AddCursorEventListener(Enum.CursorEventType.CursorDown, fn)` |
+| 为什么不用 textbox 接点击 | `AddCursorEventListener` 只存在于 **cursor / button** 两类控件（`client/lua-runtime/src/scene.js:64-71`），image/textbox 都没有 |
+| 布局 | 左列 ← → ↓（x=-410，y=-185/-250/-315），右列 旋转 直落 重开（x=+410）——最下一行留 18px 离底边，-332 时整块贴边被裁（实测） |
+| 降级 | hit 模板 guid 探测失败时打印 `hits=0 click disabled`，键盘照常可玩 |
+
+### 10.7 一键部署
+
+```bash
+node qxqy/deploy.mjs               # 重建 + 复制 GIA 到 Beyond_Local_Export + 写地图 external_lua_file
+node qxqy/deploy.mjs --calibrate    # 先读真机 GIL 里 cell/hit 的实际 guid 写进 TPL_GUIDS，再重建部署
+```
+
+`build.mjs` 会把本工程的模板 guid 注入 Lua（`__GUID_CELL__` / `__GUID_HIT__`），所以模拟器恒命中；
+真机导入后编辑器重编号的值由 `--calibrate` 补进候选表首位。
+
+### 10.8 真机导入后要核对的三件事
 
 ```bash
 # ① 模板 guid 是否又变了（变了就加到 main.lua 的 TEMPLATE_GUIDS 首位）

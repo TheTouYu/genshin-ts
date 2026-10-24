@@ -1,0 +1,69 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "08 手机按钮热区：cursor 实例可点（左移/直落/旋转）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "btnAhit"
+    },
+    {
+      "t": 0.6,
+      "kind": "click",
+      "name": "btnDhit"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "btnEhit"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "hits=6",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "hit guid=",
+      "source": "client"
+    },
+    {
+      "at": 0.35,
+      "kind": "log",
+      "contains": "guide stage=1",
+      "source": "client"
+    },
+    {
+      "at": 0.35,
+      "kind": "log",
+      "contains": "move x=3",
+      "source": "client"
+    },
+    {
+      "at": 0.7,
+      "kind": "log",
+      "contains": "rotate",
+      "source": "client"
+    },
+    {
+      "at": 1.0,
+      "kind": "log",
+      "contains": "touchdrop y=",
+      "source": "client"
+    },
+    {
+      "at": 1.0,
+      "kind": "control",
+      "name": "btnA",
+      "field": "text",
+      "equals": "←"
+    }
+  ]
+}

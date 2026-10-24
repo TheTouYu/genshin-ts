@@ -35,8 +35,14 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
 local COLS, ROWS    = 10, 20
 local CELL, GAP     = 28, 2
 local PITCH         = CELL + GAP
--- 模板 guid 双宿主候选：真机导入后重编号 / 模拟器 authoring 原值。按序探测，第一个可用的胜出。
-local TEMPLATE_GUIDS = { 1073741849, 1073742105 }
+-- 模板 guid 候选表：`__GUID_*__` 由 qxqy/build.mjs 注入本工程的实际值（模拟器恒命中）；
+-- 真机导入后编辑器会重新编号，所以把真机已知值也列进来。探测按「能力」判类型，不靠名字：
+--   cell = image（无光标事件方法） / hit = cursor（有 AddCursorEventListener）。
+-- 真机首次导入 hit 后若仍点不动，跑 `node qxqy/deploy.mjs --calibrate` 自动把新 guid 写进这里。
+local TPL_GUIDS = {
+  cell = { __GUID_CELL__, 1073741849, 1073741854 },
+  hit  = { __GUID_HIT__, 1073741865, 1073741866, 1073741867 },
+}
 local STEP          = 1 / 60
 local GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）
 
@@ -98,6 +104,33 @@ end
 
 local function setText(ctl, value)
   if ctl then ctl.text = value end
+end
+
+-- 手机按钮：标签是服务端 textbox（bgColor 当底），点击热区是客户端 cursor 实例（透明，叠在上面）
+local BUTTONS = {
+  -- 三行按钮：最下一行留 18px 离画布底边（-332 时整块贴边被裁，实测）
+  { name = 'btnA', label = '←',    x = -410, y = -185 },
+  { name = 'btnB', label = '→',    x = -410, y = -250 },
+  { name = 'btnC', label = '↓',    x = -410, y = -315 },
+  { name = 'btnD', label = '旋转', x =  410, y = -185 },
+  { name = 'btnE', label = '直落', x =  410, y = -250 },
+  { name = 'btnF', label = '重开', x =  410, y = -315 },
+}
+local BTN_W, BTN_H = 150, 56
+local hits = {}
+
+-- 按候选 guid 探测模板：needCursor=true 要求该控件具备光标事件方法（cursor/button）
+local function probeTemplate(candidates, needCursor)
+  for _, g in ipairs(candidates) do
+    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
+    if ok and ctl then
+      local okFn, fn = pcall(function() return ctl.AddCursorEventListener end)
+      local isCursor = okFn and type(fn) == 'function'
+      if isCursor == needCursor then return ctl, g end
+      pcall(function() game.DestroyClientUIControl(ctl) end)
+    end
+  end
+  return nil, nil
 end
 
 renderAll = function()
@@ -351,6 +384,9 @@ local function layout(W, H)
   place(keyA, rightCX, -40, panelW, 38)              -- 22 号
   place(keyB, rightCX, -80, panelW, 38)              -- 22 号
   place(keyC, rightCX, -120, panelW, 38)             -- 22 号
+  for _, b in ipairs(BUTTONS) do
+    place(find(b.name), b.x, b.y, BTN_W, BTN_H)
+  end
   place(topBanner, 0, bannerY, W - 180, 56)          -- 34 号
   place(botBanner, 0, -(bannerY + 2), W - 180, 44)   -- 22 号，与棋盘底留 11px
 end
@@ -368,15 +404,11 @@ function OnStart()
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
 
-  -- 模板 guid 探测（双宿主）：模拟器认 authoring 原值，真机认导入后重编号值
-  local tplGuid
-  local firstCell
-  for _, g in ipairs(TEMPLATE_GUIDS) do
-    firstCell = game.InstantiateClientUIControl(g, root)
-    if firstCell then tplGuid = g break end
-  end
+  -- 模板 guid 探测（双宿主）：先 cell（image，无光标事件）再 hit（cursor，有光标事件）
+  local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
   if not firstCell then
-    error('tetris: 模板 guid 都不可用，候选=' .. #TEMPLATE_GUIDS .. '（导入后请用 assets:ui list --flat 校准）')
+    error('tetris: cell 模板 guid 都不可用，候选=' .. #TPL_GUIDS.cell
+      .. '（导入后跑 node qxqy/deploy.mjs --calibrate）')
   end
   print('tpl guid=' .. tplGuid)
 
@@ -546,6 +578,55 @@ function OnStart()
     renderAll()
     renderHud()
   end))
+
+  -- 手机按钮热区（cursor 实例）：叠在按钮标签之上，接收点击
+  local firstHit, hitGuid = probeTemplate(TPL_GUIDS.hit, true)
+  if firstHit then
+    print('hit guid=' .. hitGuid)
+    local cursorDown = (type(Enum) == 'table' and Enum.CursorEventType
+      and Enum.CursorEventType.CursorDown) or nil
+    local actions = {
+      btnA = function() if guideStage ~= 2 and not gameOver and piece
+        and not collides(piece.cells, piece.x - 1, piece.y) then
+        piece.x = piece.x - 1 renderPiece() print('move x=' .. piece.x) end end,
+      btnB = function() if guideStage ~= 2 and not gameOver and piece
+        and not collides(piece.cells, piece.x + 1, piece.y) then
+        piece.x = piece.x + 1 renderPiece() print('move x=' .. piece.x) end end,
+      btnC = function() if guideStage ~= 2 then stepDown() end end,
+      btnD = function() if guideStage ~= 2 then rotate() end end,
+      btnE = function()
+        if guideStage == 2 or gameOver or not piece then return end
+        while not collides(piece.cells, piece.x, piece.y + 1) do piece.y = piece.y + 1 end
+        print('touchdrop y=' .. piece.y)
+        doLock()
+      end,
+      btnF = function()
+        if guideStage == 2 then guideStage = 1 setText(hint, '') end
+        newGame()
+        setText(topBanner, '') setText(botBanner, '')
+      end,
+    }
+    for i, b in ipairs(BUTTONS) do
+      local h = firstHit
+      firstHit = nil
+      if not h then h = game.InstantiateClientUIControl(hitGuid, root) end
+      if h then
+        h.name = b.name .. 'hit'
+        h:SetSizeDelta(BTN_W, BTN_H)
+        h:SetAnchoredPosition(b.x, b.y)
+        local act = actions[b.name]
+        local okReg = pcall(function() h:AddCursorEventListener(cursorDown, function()
+          startIfWaiting()
+          if act then act() end
+        end) end)
+        if not okReg then print('hit listen fail ' .. b.name) end
+        hits[i] = h
+      end
+    end
+    print('hits=' .. #hits)
+  else
+    print('hits=0 click disabled（真机导入后跑 node qxqy/deploy.mjs --calibrate）')
+  end
 
   -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）
   local okNew, errNew = pcall(newGame)

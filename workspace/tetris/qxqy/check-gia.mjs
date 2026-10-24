@@ -31,16 +31,17 @@ const serverNodes = (() => {
   if (back.project?.root) walk(back.project.root)
   return n
 })()
-check('importGia 解出客户端模板 = 1（cell）', templateCount === 1, `${templateCount}`)
+check('importGia 解出客户端模板 = 2（cell + hit）', templateCount === 2, `${templateCount}`)
 check('importGia 解出脚本映射 = 1', scriptCount === 1, (back.scripts || []).map((s) => s.path).join(','))
-check('importGia 解出服务端控件 = 12（根 + 容器 + 10 个文本）', serverNodes === 12, `${serverNodes}`)
+check('importGia 解出服务端控件 = 18（根 + 容器 + 10 个文本 + 6 个按钮标签）', serverNodes === 18, `${serverNodes}`)
 check('GIA 是整合包（服务端 + 客户端同文件）', back.metadata?.combined === true, String(back.metadata?.combined))
 
 const luaInGia = (back.scripts || [])[0]?.source || ''
 check('GIA 内联 Lua 源码非空', luaInGia.length > 2000, `${luaInGia.length} B`)
 check('Lua 源码含 OnUpdate 固定步长', luaInGia.includes('GRAVITY_TICKS') && luaInGia.includes('EnableUpdate(true)'))
-check('Lua 源码含模板 guid 双宿主探测', luaInGia.includes('TEMPLATE_GUIDS'))
+check('Lua 源码含模板 guid 候选表（且占位符已被注入）', luaInGia.includes('TPL_GUIDS') && !luaInGia.includes('__GUID_CELL__'))
 check('Lua 源码含引导状态机', luaInGia.includes('guide stage='))
+check('Lua 源码含手机按钮热区', luaInGia.includes('AddCursorEventListener') && luaInGia.includes('hits='))
 
 // 2) 存档能被 importData 重新加载
 const raw = readFileSync(savePath)

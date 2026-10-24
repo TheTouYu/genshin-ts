@@ -22,7 +22,10 @@ export function buildStudio() {
   //    需要"覆盖棋盘"的引导层改成上下横幅（服务端 textbox，按 name 寻址，跨宿主稳定）。
   patch({ op: 'newAsset', assetType: 'client-control-template' })
   patch({ op: 'addTemplate', kind: 'image', name: 'cell' })
-  patch({ op: 'remove', id: 'n1' }) // 默认模板面板，删掉只留 cell
+  // 手机可点：cursor 区（透明热区）—— 只有 cursor/button 两类控件有 AddCursorEventListener
+  // （studio/client/lua-runtime/src/scene.js:64-71 KIND_METHODS），image 没有。
+  patch({ op: 'addTemplate', kind: 'cursor', name: 'hit' })
+  patch({ op: 'remove', id: 'n1' }) // 默认模板面板，删掉只留 cell/hit
 
   // 2) 服务端资产：清掉默认橱窗，只留容器 n1（脚本宿主 + 所有 UI 控件的父节点）
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
@@ -74,6 +77,19 @@ export function buildStudio() {
     posX: 410, posY: -120, width: 420, height: 38, fontSize: 22, text: 'R 重开　　H 键位表',
     fontColor: C_FONT, horizontalAlignment: 'Middle',
   })
+  // 手机按钮标签：textbox + bgColor 当底，点击热区由客户端 cursor 实例覆盖在上面
+  const BTN_BG = '#B31A1D26'
+  const buttons = [
+    ['btnA', '←', -410, -185], ['btnB', '→', -410, -250], ['btnC', '↓', -410, -315],
+    ['btnD', '旋转', 410, -185], ['btnE', '直落', 410, -250], ['btnF', '重开', 410, -315],
+  ]
+  for (const [name, label, x, y] of buttons) {
+    addTextbox(name, {
+      posX: x, posY: y, width: 150, height: 56, fontSize: 22, text: label,
+      fontColor: C_FONT, bgColor: BTN_BG, horizontalAlignment: 'Middle',
+      verticalAlignment: 'Middle',
+    })
+  }
   addTextbox('topBanner', {
     posX: 0, posY: 330, width: 1100, height: 56, fontSize: 34, text: '',
     fontColor: C_GOLD, horizontalAlignment: 'Middle',
@@ -84,7 +100,18 @@ export function buildStudio() {
   })
 
   // 4) 脚本挂服务端容器 n1（客户端模板树零脚本）
+  // 把本工程实际模板 guid 注入 Lua：模拟器端恒命中，真机端靠候选表 + qxqy/deploy.mjs --calibrate 补
+  patch({ op: 'selectAsset', assetType: 'client-control-template' })
+  const templates = s.get().root.children || []
+  const cellGuid = templates.find((t) => t.name === 'cell')?.guid
+  const hitGuid = templates.find((t) => t.name === 'hit')?.guid
+  if (!cellGuid || !hitGuid) {
+    throw new Error('客户端模板缺少 cell/hit：' + JSON.stringify(templates.map((t) => t.name)))
+  }
+  patch({ op: 'selectAsset', assetType: 'server-control-template' })
   const lua = readFileSync(join(root, 'lua/main.lua'), 'utf8')
+    .replaceAll('__GUID_CELL__', String(cellGuid))
+    .replaceAll('__GUID_HIT__', String(hitGuid))
   patch({
     op: 'addScript',
     path: 'lua/main.lua',
@@ -102,15 +129,10 @@ export function buildStudio() {
     walk(serverRoot)
     return n
   })()
-  // 模板 guid 在客户端资产视图里读（get() 只暴露当前资产）
-  patch({ op: 'selectAsset', assetType: 'client-control-template' })
-  const templates = s.get().root.children || []
-  const templateGuid = templates[0]?.guid
-  patch({ op: 'selectAsset', assetType: 'server-control-template' })
-  if (templateGuid !== T_CELL) {
-    throw new Error(`模板 guid 与 main.lua 的 T_CELL 不一致：${templateGuid} !== ${T_CELL}`)
+  if (cellGuid !== T_CELL) {
+    throw new Error(`模板 guid 与 build.mjs 的 T_CELL 不一致：${cellGuid} !== ${T_CELL}`)
   }
-  return { studio: s, controls, templates: templates.length }
+  return { studio: s, controls, templates: templates.length, cellGuid, hitGuid }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -141,7 +163,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   console.log('save bytes      :', Buffer.byteLength(saveJson))
   console.log('gia bytes       :', bytes.length)
-  console.log('gia templates   :', templateCount)
+  console.log('gia templates   :', templateCount, 'cell=' + built.cellGuid, 'hit=' + built.hitGuid)
   console.log('gia scripts     :', scriptCount, (back.scripts || []).map((x) => x.path))
   console.log('gia server nodes:', serverControls)
   console.log('gia combined    :', back.metadata?.combined)
