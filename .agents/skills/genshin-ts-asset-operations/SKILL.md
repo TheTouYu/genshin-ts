@@ -59,7 +59,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
 | 信号注册/更新/修复/检查 | `assets:signals inspect\|register\|update\|repair` |
 | 技能配置创建/列出（36/6/28 模板×普通/瞬发+绑定） | `assets:skill-config create\|list`（详见 reference 速查；28 模板固定模型遗迹守卫 10005001、root20 联动；28+普通 仅 list） |
-| 技能变量（root15 type=30） | `gsts assets:skill-variables list --gil <map.gil>`（只读可用）/ `create --id --name --output <候选>`。**⛔ `--write` 未闭合**：2026-10-24 写回 1073741827 被编辑器判「存档已损坏」（root15 字节与编辑器一致，缺地图层簿记如 root21 计数），已回滚；闭合前只在实验图验证 |
+| 技能变量（root15 type=30） | `gsts assets:skill-variables list --gil <map.gil>` / `create --id <id> --name <名> [--output <候选> | --write]`（段起点 1207959553 顺延；2026-10-24 编辑器验收通过，root6/root21/root46 都不用写） |
 | **写回/引用前：盘点地图既有同类资产**（技能变量段真实边界、单位状态是否已存在及其参数态） | `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>`（只读；2026-09-04 票 20 E0 沉淀） |
 
 命令细节与 dict 编码见 [references/asset-cli-reference.md](references/asset-cli-reference.md)。

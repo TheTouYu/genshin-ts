@@ -31,7 +31,7 @@
 | O-2026-10-24-3 | `[football]` | `assets:entities import` 遇到 **def/页面实例同号跨段**会把别人的装饰物克隆给新实体（无守卫） | ⬜ | 可选：加不阻断警告（检出 id 同时在 root4/root8） |
 | O-2026-10-24-4 | `[football]` | `assets:entities delete` **没有字节级回归** | ⬜ | 照抄 `tests/gil_creations_config_test.ts` 加删除用例（无孤儿 aux / 登记清干净） |
 | O-2026-10-24-5 | `[football]` | 槽 82（自主逻辑参数）**填入后语义未闭合** | ⬜ | 用户口径：不填=不巡逻；要巡逻再做一轮编辑器差分 |
-| O-2026-10-24-9 | `[football]` | 技能变量 CLI 写回：**原因已定位**——不是 wire，是整文件重建时 header 两个长度字段未更新（坏文件 `hdr[16:20]=365163` vs 实际 `365209`）。已改用 `injector/binary.buildFile` + 新增检查器 `tools/gil-header-check.py`（门禁 `gil-header-selftest`）；**待验证**：编辑器打开 CLI 写入的图 | ⬜ | 在实验图 1073741837 上写 1 条 → 用户打开确认 → 通过后解封 `--write` 并重试 1827 |
+| O-2026-10-24-9 | `[football]` | ✅ **已关闭（2026-10-24 14:03 用户验收）** 技能变量 CLI 写回：**原因已定位**——不是 wire，是整文件重建时 header 两个长度字段未更新（坏文件 `hdr[16:20]=365163` vs 实际 `365209`）。已改用 `injector/binary.buildFile` + 新增检查器 `tools/gil-header-check.py`（门禁 `gil-header-selftest`）；**已验收**：实验图 1073741837 写入 `kit_exp` 后编辑器打开正常、游玩正常（用户原话「存档正常了，kit_exp也写进去了，游玩也正常」） | ✅ | 已完成；`--write` 已解封（仍带内联头部不变量断言） |
 
 ## B. 已知缺陷 / 技术债
 

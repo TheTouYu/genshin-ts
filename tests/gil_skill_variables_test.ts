@@ -13,6 +13,7 @@ import assert from 'node:assert/strict'
 import {
   SKILL_VARIABLE_TYPE_CODE,
   appendSkillVariable,
+  assertHeaderInvariants,
   buildGilFile,
   encodeSkillVariableRecord,
   listSkillVariables
@@ -108,6 +109,23 @@ check('buildGilFile 头部长度字段必须跟随 payload（2026-10-24 损坏�
   assert.equal(view.getUint32(16, false), payload.length, 'word16 必须是 payload 长度')
   assert.equal(view.getUint32(0, false), payload.length + 20, 'word0 必须是 payload+20')
   assert.equal(file.length, payload.length + 24)
+})
+
+check('assertHeaderInvariants 必须拦住「payload 变长但头部没更新」', () => {
+  const payload = new Uint8Array(20)
+  const source = new Uint8Array(24)
+  source[8] = 0x03
+  source[9] = 0x26
+  source[20] = 0x00
+  source[21] = 0x00
+  source[22] = 0x06
+  source[23] = 0x79
+  const good = buildGilFile(source, payload)
+  assertHeaderInvariants(good) // 不应抛
+  const stale = new Uint8Array(good)
+  const view = new DataView(stale.buffer, stale.byteOffset, stale.byteLength)
+  view.setUint32(16, 5, false) // 伪造：头部长度停在旧值
+  assert.throws(() => assertHeaderInvariants(stale), /hdr\[16:20\]/)
 })
 
 console.log(`\nskill-variable 回归：${passed} 项通过${process.exitCode ? '（有失败）' : ''}`)

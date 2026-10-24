@@ -10,11 +10,11 @@
 //   **root6 无登记**（同轮唯一 folder 变化是一条无关 400:1082130443 被编辑器回收）；
 //   root21 是编辑器侧计数（23 → [23,6401]），与资产必要性无关，本命令不写。
 //
-// 🔴 2026-10-24 事故（必读）：本命令的 --write 曾把地图 1073741827 写成**编辑器拒收**的形态
-//   （报「存档已损坏」，已回滚到编辑器自存 sha 4945c21d…）。**root15 记录字节与编辑器逐字节一致，
-//   仍被拒** ⇒ 缺的是地图层簿记（root21 计数 23→[23,6401] 未写 / 可能还有其它联动），
-//   属**未闭合项**。因此 --write 现在必须显式 `--unsafe-write` 才放行，默认只出候选。
-//   闭合路径：再取一组差分（同图建第 2 个技能变量、删 1 个）+ 在**独立实验图**上验「编辑器能打开」。
+// ✅ 2026-10-24 事故已闭合：写回曾被判「存档已损坏」，真因=整文件重建时 **header 两个长度字段**
+//   （hdr[0:4]=size-4、hdr[16:20]=payload 长度）停在旧值——root15 记录字节本来就是对的。
+//   修复=改用共享 injector/binary.buildFile；验收=实验图 1073741837 写入后编辑器打开正常 + 游玩正常
+//   （用户 2026-10-24 14:03 确认），root46/root21/root6 均无需写（后续差分实测只 root15 变）。
+//   防线：tools/gil-header-check.py（门禁 gil-header-selftest）+ 本命令写回前的内联不变量断言。
 //
 // 用法：
 //   gsts assets:skill-variables list  --gil <map.gil> [--json]
@@ -153,7 +153,7 @@ function usage(exitCode = 1): never {
     '  --id <id>         技能变量配置 ID（段起点 1207959553，按创建顺延）',
     '  --name <string>   变量名（默认「技能变量」；写入 f4.kind=1.f11.f1 UTF-8）',
     '  --output <file>   候选输出（不覆盖）',
-    '  --write           ⚠️ 必配 --unsafe-write 才生效（见文件头事故说明）',
+    '  --write           备份后写回源 GIL（并同步 Temp）',
     '  --json            list：机器可读',
     '  -h, --help        显示帮助'
   ].join('\n')
@@ -167,7 +167,6 @@ function parseArgs(argv: string[]): Args {
   let gil = ''
   let write = false
   let json = false
-  let allowUnsafeWrite = false
   let id: number | undefined
   let name: string | undefined
   let outputPath: string | undefined
@@ -188,7 +187,6 @@ function parseArgs(argv: string[]): Args {
     else if (arg === '--name') name = next()
     else if (arg === '--output') outputPath = next()
     else if (arg === '--write') write = true
-    else if (arg === '--unsafe-write') allowUnsafeWrite = true
     else if (arg === '--json') json = true
     else usage()
   }
@@ -198,13 +196,6 @@ function parseArgs(argv: string[]): Args {
   }
   if (!gil) throw new Error('[error] 需要 --gil，或 --config + --map-id')
   if (sub === 'create' && (!id || !Number.isSafeInteger(id))) throw new Error('[error] create 需要 --id')
-  if (write && !allowUnsafeWrite) {
-    throw new Error(
-      '[error] --write 已封锁：2026-10-24 本命令写回 1073741827 被编辑器判「存档已损坏」' +
-        '（root15 字节与编辑器一致，缺地图层簿记，属未闭合项）。' +
-        '先用 --output 出候选；确要写回请加 --unsafe-write，并在**非现役图**上验证编辑器能打开。'
-    )
-  }
   return { sub, gil, id, name, write, outputPath, json }
 }
 
@@ -222,6 +213,22 @@ export function buildGilFile(source: Uint8Array, payload: Uint8Array): Uint8Arra
     tailTag: readUint32BE(source, source.length - 4)
   }
   return new Uint8Array(buildFile(payload, header))
+}
+
+/** 头部两条长度不变量（2026-10-24 事故：这两条没跟上 = 编辑器判存档损坏） */
+export function assertHeaderInvariants(file: Uint8Array): void {
+  const view = new DataView(file.buffer, file.byteOffset, file.byteLength)
+  const total = file.byteLength
+  const w0 = view.getUint32(0, false)
+  const w16 = view.getUint32(16, false)
+  const tail = view.getUint32(total - 4, false)
+  if (w0 !== total - 4) {
+    throw new Error(`[error] 头部 hdr[0:4]=${w0} ≠ size-4=${total - 4}（拒绝写出）`)
+  }
+  if (w16 !== total - 24) {
+    throw new Error(`[error] 头部 hdr[16:20]=${w16} ≠ size-24=${total - 24}（拒绝写出）`)
+  }
+  if (tail !== 0x0679) throw new Error(`[error] trailer=0x${tail.toString(16)} ≠ 0x0679`)
 }
 
 export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
@@ -251,6 +258,7 @@ export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
     throw new Error('[error] 回读失败：create 后 root15 里找不到该技能变量')
   }
   const newFile = buildGilFile(sourceBytes, next)
+  assertHeaderInvariants(newFile)
 
   if (args.write) {
     const now = new Uint8Array(fs.readFileSync(gil))

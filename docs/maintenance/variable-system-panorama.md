@@ -79,10 +79,12 @@
 - **段起点 1207959553，按创建顺延**（段内是否存在按地图而异：1908 实测 50 个、1914 实测 100 个）。
 - CLI：`gsts assets:skill-variables create --id <id> --name <name> --write`（备份→回读→**Temp 同步**）/
   `list`（解析 root15 里 f2=30 的记录）。回归 `tests/gil_skill_variables_test.ts` 用编辑器字节断言编码。
-- ✅ **地图层原因已定位（2026-10-24 事故 → 已修复）**：不是 wire，是**文件头长度字段没更新**：按上面的记录写回 1073741827 后，编辑器报「存档已损坏」，
+- ✅ **已闭合（2026-10-24 14:03 编辑器验收：打开正常 + 游玩正常）** 地图层原因：：不是 wire，是**文件头长度字段没更新**：按上面的记录写回 1073741827 后，编辑器报「存档已损坏」，
   已回滚到编辑器自存 `4945c21d…`(365,187B)。**root15 记录字节与编辑器逐字节一致仍被拒**，真因=自造的文件重建只复制了前 20 字节，
   `hdr[16:20]`/`hdr[0:4]` 两个长度字段停在旧值（实测差 −46B）→ 已改用 `injector/binary.buildFile`；
-  防线 `tools/gil-header-check.py`。root21/root6 已由后续差分排除（只变 root15 与保存历史的 root46）。**闭合前只允许 `--output` 候选**；
+  防线 `tools/gil-header-check.py`（门禁 `gil-header-selftest`）+ 写回前内联断言。
+  **root21 / root6 / root46 均无需写**：写入 kit_exp 的图未碰它们，编辑器照样打开正常——root46 只是
+  最近 5 次保存的滚动历史（值随保存滚动、与内容无关），不是校验字段。**闭合前只允许 `--output` 候选**；
   `--write` 需 `--unsafe-write` 且只在非现役图验证。待补两组差分：同图建**第 2 个**技能变量、**删 1 个**。
   取证副本：`.scratch/editor-incremental-evidence/2026-10-24-skillvars-1827/broken/`。
 - 证据（record 层）：`.scratch/editor-incremental-evidence/2026-10-24-skillvars-1827/`
