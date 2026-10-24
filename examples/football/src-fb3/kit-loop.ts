@@ -34,7 +34,17 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   chanWriteF(f, SLOT_PROBE, f.dataTypeConversion(probe, 'float'))
   const back = f.dataTypeConversion(chanReadF(f, SLOT_PROBE), 'int')
 
-  // ③ 回传一拍：pos/vel/spin 先填 0 向量（物理接入后改成真实状态）
+  // ③ 跟随载体（2026-10-24 用户要求：造物自动贴到玩家附近，否则距离节流把 15Hz 压到 0.1/s）
+  //    多人（≤8 角色）：v1 取「场上玩家列表的第 0 位」——与服务端同一口径、各客户端一致；
+  //    换策略（最近/持球者/轮换）时只改这一处：把 carrier 换成服务端登记在实体变量上的玩家。
+  //    瞬移是客户端节点（complexCreationTeleport 只作用于本图所属造物），服务端无对应节点。
+  const players = f.getListOfPlayerEntitiesOnTheField()
+  const carrierPlayer = f.getCorrespondingValueFromList(0n, players)
+  // 玩家实体本身就有位置（v5 实测口径：fb-phys2.ts:236-237 直接 getEntityLocation(owner)）
+  const carrierLoc = f.getEntityLocation(carrierPlayer)
+  f.complexCreationTeleport(carrierLoc, f.create3dVector(0, 0, 0))
+
+  // ④ 回传一拍：pos/vel/spin 先填 0 向量（物理接入后改成真实状态）
   const zero = f.create3dVector(0, 0, 0)
   chanSendState6(f, KitSignal.kit_state, 'P', tick, zero, zero, zero, back)
 })
