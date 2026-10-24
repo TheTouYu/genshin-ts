@@ -1,0 +1,95 @@
+# 档案：足球 v3「造物 + 客户端技能链」线（L3）
+
+> 状态：当前实现（**本块已闭环收尾**；恢复工作时从"§五 断点"接）
+> 来源：地图 1073741827 相邻快照差分（v0→v10）+ 试玩日志 + CLI 回归
+> 最近校验：2026-10-24
+> 读法：要动造物/技能/装饰物/删除类资产时读本档；wire 细节查
+> `../../game-engine-knowledge/gil-static-scene-semantics.md`（造物各节 ①–⑫）
+
+---
+
+## 一、这块任务是什么
+
+在足球 v3 地图（`1073741827`）上，把**复杂造物（造物元件）**从零学通并可编程落地：
+① 摆放/缩放/装饰物/同步 的 wire；② 造物技能管理（引用技能、CD、忽略公共冷却）；
+③ 决策图/状态图/技能图三段客户端链 + 服务端监听；④ 把这些规则做成 CLI 并能写回真实地图。
+
+**判据**（本轮定）：规则=与编辑器产物**逐字节相等**；链路=试玩日志里四段签名齐全且用户确认闭环。
+
+---
+
+## 二、已闭环（读数 + 证据，2026-10-24 00:2x）
+
+| 项 | 读数 |
+|---|---|
+| 地图终态 | `1073741827.gil` SHA **`f5149a15…`**（Save_Level / Temp 双址一致），25 实体 |
+| 场上造物 | **1 个**：水史莱姆 `1082130442` @ `(-78, -4.5, 2.5)`（站在草地地基顶面、西边缘） |
+| 造物配置 | 决策图 `1082130435`(20007) + 技能条目绑配置 `1191182337` + CD 0 s + 忽略公共冷却 |
+| 四张图 | `1082130433`(20009) / `1082130434`(20008) / `1082130435`(20007) / `1073741825`(20000 新建) |
+| 信号 | `zaowu_probe`（send `1610612741` / monitor `1610612742` / server `1610612743`） |
+| 挂载 | 服务端图 `1073741825` → 关卡实体 `1094713345` |
+| 行为层证据 | 日志 `2026-10-24_00-18-05_3324_110170759.gia`：`zaowu-listener-armed`×1 + `creation-skill-fired`/`v1` **各 10 行（成对）** |
+| 频率 | **≈0.8 次/秒**（10 次 / 12 秒）——**距离节流**，非配置错误 |
+
+---
+
+## 三、可复用能力（CLI）
+
+```bash
+gsts assets:creations inspect --target <id> [--layer def|instance|entity]
+gsts assets:creations skill add  --target <实体id> --name 技能_N --skill-config <cfgId> --cd 0 --ignore-public-cd
+gsts assets:creations skill bind --target <实体id> --index <n> --skill-config <cfgId> [--cd 0] [--ignore-public-cd]
+gsts assets:creations decision bind --target <实体id> --graph <20007图id>
+gsts assets:entities delete <id…> [--remove-aux <auxId>]      # 连带 root27 双段 aux + root6 登记
+```
+- 绑定的旗标是 **`--skill-config`**（`--config` 是全局配置，会冲突）。
+- 回归：`npm run test:creations`（= `npx tsx tests/gil_creations_config_test.ts`，6 断言，判据=与编辑器字节相等）。
+- 造物技能链源码模板：`examples/football/src-zaowu/`（四图 + signals + 配置）。
+
+---
+
+## 四、已闭合的 wire 规则（摘要；细节见权威文档 ①–⑫）
+
+| 规则 | 一句话 |
+|---|---|
+| 缩放 | `f*[code=1].f11.f3` = **基板基准 × 缩放调整率**；改定义**不**下发实体，要**手动同步** |
+| 装饰物 | root27 aux（`f2`=引擎资源号、`f4[40].f50.f502`=宿主）+ 宿主层 `f[40].f50.f501` 引用；**同步=一主（定义层）+ 每层克隆（`f12.f1` 指主）** |
+| 技能条目 | 槽 81 → `f80.f1`（管理器体）里插 `f1{f1=1 f2{f1=1,f2=配置ID} f3{…CD…} f12="技能_N"}`；新增 +44 B，并自带一条 988 B「遗迹守卫」占位（root20，复制即可） |
+| CD/忽略 | CD 0 s = `f3` 四个 f32 整组省略；忽略公共冷却 = `f3.f8=1`（合计 Δ−12 B） |
+| 决策图 | 槽 80 → `f79.f1.f2` = 决策图 ID（`f501=20007` 类型标记不变，+6 B） |
+| 位置 | 稀疏 f32，零轴省略；实体锚点=**底部中心** |
+
+---
+
+## 五、断点与下一步（恢复入口）
+
+1. **近距测频**：把史莱姆挪到玩家活动范围（或玩家走过去）再跑一次，验证 15~16/s。
+2. **真实行为**：现在决策图只切状态、状态图只 `executeSkill(1)`、技能图只发信号。
+   要做追玩家/攻击，需要动三张图内容（DSL 在 `examples/football/src-zaowu/`）。
+3. **同号跨段守卫**：`assets:entities import` 的 aux 克隆按「宿主 id == definitionId」匹配，
+   遇到 def 与页面实例同号会误克隆（本例 1082130434 双身份）。可选：加不阻断的警告。
+4. **`assets:entities delete` 无字节级回归**（只有实测）；creations 那套已有 6 断言可照抄。
+5. **槽 82（自主逻辑参数）** 语义未闭合：不填=不巡逻（用户口径），填了会怎样没样本。
+
+---
+
+## 六、已否决 / 踩过的坑（别再走）
+
+- ❌ 给造物另造一个平台：用户要的是"站在既有草地地基（覆盖全场的空模型）上"。
+- ❌ 编译配置里写死 `inject.nodeGraphId`：会把所有 `.gia` 注到同一张图 → 报类型不一致；按 `.gia` 内 ID 路由即可。
+- ❌ 用字符串出现次数当事件数：同一句 print 在索引表重复出现（40 串 = 10 次事件），数**成对行**。
+- ❌ 把"这轮没观测到"当"引擎没有该能力"（造物装饰物事件，被用户推翻）。
+- ❌ 看 `--help` 判断子命令：`assets:*` 是叶子命令，动作表在源码 `usage()` 里。
+
+---
+
+## 七、出处
+
+- 权威文档：`docs/game-engine-knowledge/gil-static-scene-semantics.md`（造物 ①–⑫ 节）
+- 复盘：`docs/game-engine-knowledge/retrospective-2026-10-24-creation-wire-and-cli.md`
+- 差分实验：`.scratch/editor-incremental-evidence/2026-10-23-creation-behavior/`（快照 v0–v10 + manifest）
+- 试玩日志：`BeyondLocal/110170759/Beyond_Debug_Log/2026-10-24_00-18-05_3324_110170759.gia`
+- 关键提交：`be317e86`（缩放/同步）、`ee500217`（装饰物纠错）、`1aafb537`（同步克隆）、`5690b0cb`（空技能）、
+  `97816e7b`（绑定+CD）、`752f8d83`（决策图）、`1c8f7bbf`（配置 CLI+回归）、`7a75926e`（delete CLI）、
+  `7a711cbb`（端到端实证）、`487b4d28`（import 挂装饰物机制纠错）
+- 日记：D556（wire 四轮）、D562（端到端 + CLI + 坑）
