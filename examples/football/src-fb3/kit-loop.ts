@@ -38,13 +38,29 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   //    多人（≤8 角色）：v1 取「场上玩家列表的第 0 位」——与服务端同一口径、各客户端一致；
   //    换策略（最近/持球者/轮换）时只改这一处：把 carrier 换成服务端登记在实体变量上的玩家。
   //    瞬移是客户端节点（complexCreationTeleport 只作用于本图所属造物），服务端无对应节点。
+  // 载体来自**服务端**登记的实体变量 kit_carrier（多人时唯一权威；见 kit-follow.ts）
+  // 目标点只由这个全局值决定 ⇒ 8 个客户端算出的目标相同 ⇒ 瞬移幂等、不会互相拉扯
+  const selfE = f.getSelfEntity()
   const players = f.getListOfPlayerEntitiesOnTheField()
-  const carrierPlayer = f.getCorrespondingValueFromList(0n, players)
-  // 玩家实体本身就有位置（v5 实测口径：fb-phys2.ts:236-237 直接 getEntityLocation(owner)）
-  const carrierLoc = f.getEntityLocation(carrierPlayer)
-  // 要"贴着玩家但不被看见"：往草地下面压（草地厚 2.5m，用户口径：造物藏在草皮下的空模型上）
-  const hiddenLoc = f._3dVectorSubtraction(carrierLoc, f.create3dVector(0, 3, 0))
-  f.complexCreationTeleport(hiddenLoc, f.create3dVector(0, 0, 0))
+  const fallbackCarrier = f.getCorrespondingValueFromList(0n, players)
+  const carrierVar = f.getCustomVariable(selfE, 'kit_carrier').asType('entity')
+  // 守卫用 int 标志位（entity 与 int 不可直接比较，guid→int 转换不被支持）
+  const hasCarrier = f.greaterThan(f.getCustomVariable(selfE, 'kit_has_carrier').asType('int'), 0n)
+  const down = f.create3dVector(0, 3, 0)
+  f.doubleBranch(
+    hasCarrier,
+    () => {
+      // 要"贴着玩家但不被看见"：往草地下面压（草地厚 2.5m，用户口径：造物藏在草皮下的空模型上）
+      f.complexCreationTeleport(f._3dVectorSubtraction(f.getEntityLocation(carrierVar), down), f.create3dVector(0, 0, 0))
+    },
+    () => {
+      // 服务端还没写载体（开局第一帧）：退回 players[0]，口径与服务端一致
+      f.complexCreationTeleport(
+        f._3dVectorSubtraction(f.getEntityLocation(fallbackCarrier), down),
+        f.create3dVector(0, 0, 0)
+      )
+    }
+  )
 
   // ④ 回传一拍：pos/vel/spin 先填 0 向量（物理接入后改成真实状态）
   const zero = f.create3dVector(0, 0, 0)
