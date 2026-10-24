@@ -79,7 +79,7 @@
 
 | 编号 | 结论 | 证据 |
 |---|---|---|
-| O-2026-10-24-6 | **多线并行改造落地**：新增 `LINES.md`（线表/进门协议/共享资源仲裁/收尾规则），`INDEX.md` §二 删除"单一活动分支"，`03-state.md` 改为共享面 + 标线 id 的分节，`05-open.md` 每条标线，足球线建 `dossiers/football-v3.md`，技能 `longtask-dossier` 与体检器同步支持多线 | 提交（见 `04-timeline.md` 10-24 行）；`longtask_check.py --dir docs/longtask` = PASS |
+| O-2026-10-24-6 | **多线并行改造落地**：新增 `LINES.md`（线表/进门协议/共享资源仲裁/收尾规则），`INDEX.md` §二 删除"单一活动分支"，`03-state.md` 改为共享面 + 标线 id 的分节，`05-open.md` 每条标线，足球线建 `dossiers/football-v3.md`，技能 `longtask-dossier` 与体检器同步支持多线 | 提交 `9ed58de3`/`e259b0cd`；`longtask_check.py --dir docs/longtask` = PASS，`--selftest` = PASS（6 类注入各被抓到）；**已接主链**：`scripts/doc_health.py` 在暂存区含 `docs/longtask/` 时自动跑该体检（pre-commit 拦得住），实测注入"状态词表破坏"→ doc_health FAIL + rc=1 |
 | O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 |
 | O-2026-10-22-10 | act 借屏竞态已修：动作前 `ys-session focus`（hold 8s）+ 抬窗后按 TTL 有界重试（≤2 次）；`ys-session focus` 快速路径验真实栈顶 | 真机 dry-run `focus_raise={ok:true,raised:true,ms:2907}`；离线 `selftest.py` 123/123 |
 | OCR-1（定位结论） | **全帧 OCR 地板 = 529ms（游戏退出）/ 929ms（游戏在跑）**，不是回归 | `docs/maintenance/ocr-perf-2026-10-22.md`；commit `0856fb0e`/`92f88c14`/`265fabdc` |

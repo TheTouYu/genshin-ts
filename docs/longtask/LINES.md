@@ -66,5 +66,6 @@
 
 - 全局目标与判据：[`INDEX.md`](INDEX.md) → [`01-charter.md`](01-charter.md)｜纪律：[`02-xinfa.md`](02-xinfa.md)
 - 共享读数：[`03-state.md`](03-state.md)｜决策链：[`04-timeline.md`](04-timeline.md)｜缺口（每条标线）：[`05-open.md`](05-open.md)
-- 体检：`python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask`（校验本文件行字段、入口可达、单线口径回归）
+- 体检：`python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask`（校验本文件行字段、入口可达、单线口径回归；`--selftest` 自证抓得到）
+  —— **已接 pre-commit**：`scripts/doc_health.py` 在暂存区含 `docs/longtask/` 时自动跑它
 - 技能：`longtask-dossier`（档案流程）、`context-loss-recovery`（丢上下文后捞细节）

@@ -237,20 +237,52 @@ def discover_full() -> list[str]:
     return sorted(rels)
 
 
+LONGTASK_DIR = "docs/longtask"
+LONGTASK_CHECK = ".agents/skills/longtask-dossier/scripts/longtask_check.py"
+
+
+def check_longtask() -> list[str]:
+    """多线档案体检（2026-10-24 接入：新判定器必须进主链，否则等于没建）。
+
+    只在「全量模式」或「暂存区含 docs/longtask/」时跑；判定器自身带 --selftest。
+    """
+    script = REPO_ROOT / LONGTASK_CHECK
+    if not script.exists():
+        return [f"多线档案体检器缺失：{LONGTASK_CHECK}"]
+    proc = subprocess.run(
+        [sys.executable, str(script), "--dir", str(REPO_ROOT / LONGTASK_DIR)],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+    )
+    if proc.returncode == 0:
+        return []
+    lines = [ln.strip() for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()]
+    # 去掉「体检目录：…」与最终 RESULT 行，只留具体 FAIL 项
+    lines = [ln for ln in lines if not ln.startswith("体检目录") and not ln.startswith("RESULT:")]
+    return lines or [f"longtask_check 退出码 {proc.returncode}"]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staged", action="store_true", help="只检查 git 暂存区文件（pre-commit）")
     args = parser.parse_args()
 
+    raw_staged: list[str] = []
     if args.staged:
-        files = sorted(staged_files())
-        # 只保留本脚本范围内文件
-        files = [f for f in files if in_scope_md(f) or in_scope_src(f) or f in ("AGENTS.md", "CLAUDE.md")]
-        if not files:
+        raw_staged = sorted(staged_files())
+        files = [
+            f
+            for f in raw_staged
+            if in_scope_md(f) or in_scope_src(f) or f in ("AGENTS.md", "CLAUDE.md")
+        ]
+        run_longtask = any(f.startswith(LONGTASK_DIR + "/") for f in raw_staged)
+        if not files and not run_longtask:
             print("doc_health: no in-scope staged files; PASS")
             return 0
     else:
         files = discover_full()
+        run_longtask = True
 
     total = 0
     for rel in files:
@@ -262,6 +294,16 @@ def main() -> int:
                 print(f"      - {p}")
         else:
             print(f"PASS  {rel}")
+
+    if run_longtask:
+        lt = check_longtask()
+        if lt:
+            total += len(lt)
+            print(f"FAIL  {LONGTASK_DIR}（多线档案：线表/状态头/缺口标线）")
+            for p in lt:
+                print(f"      - {p}")
+        else:
+            print(f"PASS  {LONGTASK_DIR}（多线档案）")
 
     print(f"\n{total} problem(s) found.")
     return 1 if total else 0

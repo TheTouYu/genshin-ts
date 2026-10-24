@@ -108,6 +108,9 @@ python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/lon
 
 输出 `PASS` / 逐条 `FAIL`，退出码 0/1，可直接进门禁。**改判定器必须跑 `--selftest`**：基线 PASS + 每类注入被抓到，否则等于没判。
 
+**已接主链（2026-10-24）**：`scripts/doc_health.py` 在「全量模式」或「暂存区含 `docs/longtask/`」时会自动跑本体检，
+所以改档案的提交过不了 pre-commit 就等于线表/线 id/状态词表/恢复入口有问题——不用靠记得手跑。
+
 追踪任务进展的四种读法：
 - **快照（多线）**：`LINES.md` §二 —— 哪几条线、各自断点、谁在推。
 - **快照（全局）**：`INDEX.md` §二。
