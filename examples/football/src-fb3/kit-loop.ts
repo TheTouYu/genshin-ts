@@ -42,7 +42,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const carrierPlayer = f.getCorrespondingValueFromList(0n, players)
   // 玩家实体本身就有位置（v5 实测口径：fb-phys2.ts:236-237 直接 getEntityLocation(owner)）
   const carrierLoc = f.getEntityLocation(carrierPlayer)
-  f.complexCreationTeleport(carrierLoc, f.create3dVector(0, 0, 0))
+  // 要"贴着玩家但不被看见"：往草地下面压（草地厚 2.5m，用户口径：造物藏在草皮下的空模型上）
+  const hiddenLoc = f._3dVectorSubtraction(carrierLoc, f.create3dVector(0, 3, 0))
+  f.complexCreationTeleport(hiddenLoc, f.create3dVector(0, 0, 0))
 
   // ④ 回传一拍：pos/vel/spin 先填 0 向量（物理接入后改成真实状态）
   const zero = f.create3dVector(0, 0, 0)
