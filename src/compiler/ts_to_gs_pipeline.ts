@@ -1,13 +1,17 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import fg from 'fast-glob'
 import ts from 'typescript'
 
 import { existsDir, existsFile, loadGstsConfig } from './config_loader.js'
+import { defaultGenshinTsPaths, mergeGenshinTsPaths, type TsPaths } from './genshin_ts_paths.js'
 import type { GstsConfig } from './gsts_config.js'
 import { hasNodeGraphEntryCall, transformToGs } from './ts_to_gs_transform/index.js'
 import { isServerOnCall } from './ts_to_gs_transform/matcher.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function toPosixPath(p: string): string {
   return p.replace(/\\/g, '/')
@@ -183,9 +187,15 @@ function rewriteRelativeModuleSpecifiers(
 
 function loadTsConfig(cwd: string): { options: ts.CompilerOptions; extraRoots: string[] } {
   const configPath = path.resolve(cwd, 'tsconfig.json')
+  const fallbackPaths = defaultGenshinTsPaths(__dirname)
   if (!existsFile(configPath)) {
     return {
-      options: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
+      options: {
+        target: ts.ScriptTarget.ESNext,
+        module: ts.ModuleKind.ESNext,
+        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        ...(Object.keys(fallbackPaths).length > 0 ? { paths: fallbackPaths } : {})
+      },
       extraRoots: []
     }
   }
@@ -201,8 +211,13 @@ function loadTsConfig(cwd: string): { options: ts.CompilerOptions; extraRoots: s
       .join('\n')
     throw new Error(`[error] tsconfig invalid: ${msg}`)
   }
+  // 项目 tsconfig 存在但没声明 `genshin-ts/*` 别名（常见于只有 include/outDir 的轻量项目）：
+  // 补上指向本 CLI 包的类型别名，避免 `genshin-ts/*` 导入在类型层退化成 any（issues/27）。
+  const mergedPaths = mergeGenshinTsPaths(parsed.options.paths as TsPaths | undefined, fallbackPaths)
+  const options: ts.CompilerOptions =
+    mergedPaths === undefined ? parsed.options : { ...parsed.options, paths: mergedPaths }
   const extraRoots = parsed.fileNames.filter((f) => f.endsWith('.d.ts'))
-  return { options: parsed.options, extraRoots }
+  return { options, extraRoots }
 }
 
 export type TsToGsCompileParams = {

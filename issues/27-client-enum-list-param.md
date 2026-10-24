@@ -63,6 +63,63 @@ Error: Generic parameter not matched: {"type":"enum","value":"ray_filter_type_sc
 - 现有 `getRayFilterTypeList` / `getEntityTypeList` 助手内部用 `assertClientFixedSlotArray` + `parseValue(t,'enum')`，
   也就是它们**绕过了** `enum_list` 的校验但产出的列表不被节点参数接受。
 
+## 3.5 已定位：根因是**类型解析失败**（2026-10-24 18:1x，本会话）
+
+最小复现 `.scratch/enum-list-repro/`（20008 图 id 1082130499，调用带 `f.getRayFilterTypeList([RayFilterType.Scene])`）。
+
+- 打点 `src/compiler/ts_to_gs_transform/expr.ts` 的「client 枚举数组保持字面量」分支（`GSTS_DEBUG_ENUM_LITERAL=1`）：
+  **无 tsconfig 时** `checker.typeToString(RayFilterType.Scene)` = **`any`**、`flags=1` ⇒ `getEnumTypeInfo().isEnum=false`
+  ⇒ 落到 `makeFCall('assemblyList', [...])` ⇒ `assemblyList`（`src/definitions/client_nodes.ts:19866` 起）
+  的 `matchTypes(['float','int','bool','config_id','entity','faction','guid','prefab_id','str','vec3'])` 不含 enum ⇒ 报错。
+- **补一份带 `paths: {"genshin-ts/*": ["../../src/*"]}` 的 tsconfig.json 后同一条命令 exit 0**，
+  打点变成 `RayFilterType|flags=524288|isEnum=true`，`probe.gia` 正常产出（id=1082130499）。
+- 机制：`src/compiler/ts_to_gs_pipeline.ts` 的 `loadTsConfig(cfgDir)` **只读 `<cfgDir>/tsconfig.json`，不存在就用
+  `{target,module}` 裸兜底（无 paths/baseUrl，也不向上查找）**。`examples/football` 与 `.scratch` 项目都没有
+  tsconfig.json ⇒ 所有 `genshin-ts/*` 导入在类型层是 any ⇒ 依赖类型的 client 变换全部降级。
+  工单第 2 节四种写法之所以"同样失败"，是因为它们都在同一个 any 环境里：字面量永远被包成 `assemblyList`。
+
+⇒ 修复方向（待用户差分确认 wire 后再定稿）：
+① `loadTsConfig` 兜底应注入 `paths` 指向 CLI 自身包根（`dist/src/*`），或在 tsconfig 缺 `paths` 时补 genshin-ts 映射；
+② `assemblyList` 增加 enum 支持（`assemblyList([e1,e2], 'enum')` → `list('enum')`），让类型丢失时 wire 仍正确；
+③ 若无 tsconfig 且无法注入，至少给出明确诊断（本工单 §4-B）。
+
+## 3.6 修复与验证（2026-10-24 19:0x，本会话）
+
+**根因修复（方向 ①）**：`src/compiler/ts_to_gs_pipeline.ts` 的 `loadTsConfig` 现在始终保证
+`genshin-ts` / `genshin-ts/*` 能解析到**运行中这份 CLI 包**的类型：
+
+- 新模块 `src/compiler/genshin_ts_paths.ts`：`resolveGenshinTsPackageRoot` 从 `__dirname` 向上找
+  `name: "genshin-ts"` 的 package.json，生成 `paths`（`src/*` 优先，其次 `types/gsts/index.d.ts` 与 `dist/src/*`，
+  全是绝对路径，不需要 baseUrl）。
+- **没有 tsconfig.json**：兜底 options 从裸 `{target,module}` 升级为
+  `{target, module, moduleResolution: Bundler, paths}`。
+- **有 tsconfig 但没声明 `genshin-ts*` 别名**：`mergeGenshinTsPaths` 只补缺失的键，用户显式映射优先。
+
+**诊断改进（方向 ③，§4-B 保底）**：`src/definitions/nodes.ts` 的 `parseValue` `enum_list` 分支不再落进
+`无效的值类型: enum_list`，改为 `err_enumListElementMismatch`（zh/en 两语言）：
+
+```
+参数类型不匹配：这个参数期望枚举列表（enum_list，元素只能是枚举值，例如 [RayFilterType.Scene]；
+也可用 f.getRayFilterTypeList(...) / f.getEntityTypeList(...) 构造），实际收到 float_list
+```
+
+**验收读数**（全部真实命令，退出码 0）：
+
+| 项 | 命令 | 结果 |
+| --- | --- | --- |
+| 正例（**无 tsconfig.json**） | `npx tsx tests/client_raycast_args_test.ts` | `CLIENT-RAYCAST-ARGS-RESULT pass=2 fail=0 verdict=PASS`；IR `args[5]`/`args[6]` 为 conn（非空）、`.gia` 产出 |
+| 负例 `[123]` | 同上 | 非零退出，文案含 `enum_list` + `枚举列表`，**不含** `Generic parameter not matched` |
+| 客户端套件 | `npm run test:client-transform` | `rc=0`（含 `smoke-enum-match` 11 节点 IOC 全过） |
+| 真实项目回归 | `examples/football` 无 tsconfig，`gsts.kit3.config.ts --noinject` | `rc=0`，17 个 `[ok]`，无 error |
+
+新增回归：`tests/client_raycast_args_test.ts` + `package.json` 的 `test:client-raycast`。
+
+**仍未闭合（编辑器 wire 层）**：我们生成的形态与编辑器**同构**（同一对构造节点
+`getEntityTypeList` gid 200050 / `getRayFilterTypeList` gid 200110，cid 均为 1031；pin0 数量 + pin1..10 枚举槽），
+编辑器差分（地图 1073741838）实测：两个 enum_list 参数**必须靠构造节点连线提供**（参数面板不能直接勾值），
+连线形态 `{id: <构造节点>, kind: 4, index: 0}`，且**被连线的参数引脚仍保留空 `ArrayBase` 字面量**。
+待确认：枚举数值映射（本轮用户选的槽值为 2606 / 实体类型 1402，而三方表里 `ray_filter_type_scene` = 2602）。
+
 ## 4. 期望行为（二选一，任一可验收）
 
 - **A（首选）**：给 `enum_list` 参数一条可用构造路径。建议两个方向：

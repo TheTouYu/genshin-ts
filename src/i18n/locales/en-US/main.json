@@ -83,5 +83,6 @@
   "err_mergeDuplicateVarsByName": "[error] duplicate variables by name after merge ({{count}}).\\n{{lines}}\\n{{truncated}}{{hint}}",
   "err_mergeTruncated": "... (truncated)\\n",
   "err_mergeDuplicateVarsHint": "[hint] rename variables",
-  "cmdAssetsLibraryInject": "Inject assets/images/*.css assets into the .gil material library"
+  "cmdAssetsLibraryInject": "Inject assets/images/*.css assets into the .gil material library",
+  "err_enumListElementMismatch": "Argument type mismatch: this parameter expects an enum list (enum_list; elements must be enum values such as [RayFilterType.Scene], or build one with f.getRayFilterTypeList(...) / f.getEntityTypeList(...)), but received {{actual}}"
 }

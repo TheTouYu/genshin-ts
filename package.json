@@ -119,6 +119,7 @@
     "test:stage-bootstrap": "npm run build && tsx scripts/assert-stage-event-prelude.ts",
     "test:client-transform": "npm run build && tsx scripts/client-nodegraph/assert-client-ts-transform.ts && tsx scripts/client-nodegraph/smoke-minimal-client-gia.ts && tsx scripts/client-nodegraph/smoke-generic-specialization.ts && tsx scripts/client-nodegraph/smoke-dict-reflect-nodes.ts && tsx scripts/client-nodegraph/smoke-local-variables.ts && tsx scripts/client-nodegraph/smoke-inline-id-values.ts && tsx scripts/client-nodegraph/smoke-ordered-start-pins.ts && tsx scripts/client-nodegraph/smoke-client-exec-bindings.ts && tsx scripts/client-nodegraph/smoke-enum-match.ts",
     "test:client-generics": "npm run build && tsx scripts/client-nodegraph/smoke-generic-specialization.ts",
+    "test:client-raycast": "npm run build && tsx tests/client_raycast_args_test.ts",
     "test:client-static": "npm run build && tsx scripts/client-nodegraph/smoke-client-static-metadata.ts",
     "test:client:definitions": "tsx ./scripts/check-client-definitions-consistency.ts",
     "prebuild": "node scripts/check-ambient-globals.mjs",

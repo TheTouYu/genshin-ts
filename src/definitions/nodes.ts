@@ -186,6 +186,27 @@ export interface LocalVariable<T> {
   set(value: T): void
 }
 
+/**
+ * 错误文案用的值摘要（枚举/列表不进 JSON.stringify 的坑：枚举实例会变成 "{}"）。
+ * 2026-10-24（issues/27）：`[123]` 这类误用原先只报「无效的值类型: enum_list」，
+ * 不知道收到了什么、期望什么；现在把收到的形态一起打出来。
+ */
+function describeValueForError(v: any): unknown {
+  if (v instanceof enumeration) {
+    const key = (v as { key?: unknown }).key
+    return { enum: typeof key === 'string' ? key : String(key ?? '') }
+  }
+  if (z.instanceof(list).safeParse(v).success) {
+    const concreteType = (v as list).getConcreteType()
+    const items = (v as unknown as { getItems?: () => unknown[] | null }).getItems?.()
+    return Array.isArray(items) ? `${concreteType}_list(${items.length} 项)` : `${concreteType}_list`
+  }
+  if (Array.isArray(v)) return v.slice(0, 4)
+  if (typeof v === 'bigint') return v.toString()
+  if (v === null || typeof v !== 'object') return v
+  return Object.prototype.toString.call(v)
+}
+
 export function parseValue(v: any, type: 'bool'): bool
 export function parseValue(v: any, type: 'int'): int
 export function parseValue(v: any, type: 'float'): float
@@ -463,13 +484,29 @@ export function parseValue(v: any, type: ValueType) {
       break
     }
     case 'enum_list': {
-      if (z.instanceof(list).safeParse(v).success && (v as list).getConcreteType() === 'enum') {
-        return v as list<'enum'>
+      if (z.instanceof(list).safeParse(v).success) {
+        const concreteType = (v as list).getConcreteType()
+        if (concreteType === 'enum') return v as list<'enum'>
+        throw new Error(
+          t('err_enumListElementMismatch', {
+            actual: `${concreteType}_list`
+          })
+        )
       }
       if (Array.isArray(v)) {
         return new listLiteral(
           'enum',
-          v.map((item) => parseValue(item, 'enumeration') as enumeration)
+          v.map((item, index) => {
+            try {
+              return parseValue(item, 'enumeration') as enumeration
+            } catch {
+              throw new Error(
+                t('err_enumListElementMismatch', {
+                  actual: `[${index}] = ${JSON.stringify(describeValueForError(item))}（元素不是枚举值）`
+                })
+              )
+            }
+          })
         )
       }
       break
