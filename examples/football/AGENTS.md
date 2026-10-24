@@ -1,13 +1,15 @@
 # football 目录规则（探索本目录时自动注入）
 
-> doc-type: R · status: active · updated: 2026-10-12
+> doc-type: R · status: active · updated: 2026-10-24
 > **v3 现役地图（2026-10-12 起）：1073741827「真实足球v3」**（票 25 A 批已落场地；旧图
 > 1825「真实足球」=票 24 照抄终版退役备件；复测前先确认进对图——2026-08-31 曾因进错图白测一轮）。
 > **当前主线（2026-10-12）**：票 25 v3 从零重构（减法路线，交接文档=`REBUILD-HANDOFF.md`，
 > 看板=`.scratch/football-v2/BOARD.md`）；源码保留 `src-fb/` 只重装配不重写。
 > 旧 v5 四图（825/826/828/829）与 `ARCHITECTURE-V5.md` 已退役为历史，**只读勿动**；
 > v4 隔离区 `src/*.v4.ts` 保留纪律参照。
-> 进度入口：BOARD（唯一入口）→ `PROGRESS.md`（历史轮次）；设计权威：`R2-DESIGN.md`。
+> 进度入口：BOARD（本线唯一看板）→ `PROGRESS.md`（历史轮次）；设计权威：`R2-DESIGN.md`。
+> **并行线定位（2026-10-24 起）**：本目录 = 线 `football`（线表/谁在推：`docs/longtask/LINES.md` §二；
+> 本线现状与断点：`docs/longtask/dossiers/football-v3.md`）。另有 `sim-2d`、`gui-agi` 两条线并行，别混进度。
 
 ## 〇、换机环境（Arch+wine，票 24 §A 开放项 2026-10-12 落地）
 

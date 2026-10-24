@@ -7,8 +7,8 @@
 
 本文档按任务说明应该阅读哪里。它不是所有文档的完整目录，而是当前可信入口地图。
 
-> **长期任务（跨多个会话）先读这里**：[`longtask/INDEX.md`](longtask/INDEX.md) —— 分层档案入口（L0 → 宪章/心法/现状/决策日志/缺口）。
-> 新会话接手、上下文压缩后恢复、收尾更新现状，都走这套；维护流程见技能 `longtask-dossier`。
+> **长期任务（跨多个会话）先读这里**：[`longtask/INDEX.md`](longtask/INDEX.md)（L0 分层档案入口）→ [`longtask/LINES.md`](longtask/LINES.md)（L0.5 **并行线看板**：有哪几条线、各自断点、谁在推、共享资源仲裁）。
+> 任务**多线并行**（`football` / `sim-2d` / `gui-agi`），会话推哪条线由用户指定；收尾只改本线。维护流程见技能 `longtask-dossier`。
 
 ## 先读什么
 

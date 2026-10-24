@@ -1,9 +1,9 @@
 # 档案：三个游戏主线（L3）
 
-> 状态：历史记录 + 现状（**主线暂停中**；恢复前先刷新看板）
+> 状态：历史记录 + 现状（**这是"伞目标"，不是一条线**；三游戏之① 已独立成线 `football` → [`football-v3.md`](football-v3.md)，另两个游戏未开线）
 > 来源：`docs/maintenance/three-games-mission.md`（任务书）、`.scratch/three-games/BOARD.md`（看板）
-> 最近校验：2026-10-22
-> 读法：真要做游戏了再读；平时只需知道"它为什么暂停"
+> 最近校验：2026-10-24（改为伞目标定位，指向 `football` 线档案）
+> 读法：想知道"三个游戏整体到哪了"读本文件；真要做某个游戏，读那条线的档案（`football-v3.md`）
 
 ---
 
@@ -35,6 +35,8 @@
 
 ## 五、指针
 
+- **线表（哪几条线在跑、谁在推）**：[`../LINES.md`](../LINES.md)
+- **三游戏之① 足球线档案（现状读数与断点在这里）**：[`football-v3.md`](football-v3.md)
 - 任务书：`docs/maintenance/three-games-mission.md`
 - 看板：`.scratch/three-games/BOARD.md`（顶部有现状横幅）
 - 环境变量与地图：`.scratch/three-games/env.sh`（`GSTS_LOCALLOW_DIR` 等）

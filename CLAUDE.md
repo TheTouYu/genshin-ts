@@ -5,10 +5,11 @@
 
 ## 长期任务入口（新会话先读这一份）
 
-当前长期任务的分层档案：**`docs/longtask/INDEX.md`**（L0，3 分钟读完）。
-**活动分支以 INDEX §二 为准**（2026-10-23 起＝模拟器 2D 线：`dossiers/simulator-2d.md`；总目标仍是三个游戏 ← GUI AGI 先行）。
-它指向宪章/心法/现状/决策日志/缺口五份 L1/L2 文件；每轮收尾更新 `03-state.md`。
-维护流程见技能 `longtask-dossier`（含体检脚本）。
+当前长期任务的分层档案：**`docs/longtask/INDEX.md`**（L0，3 分钟读完）→ **`docs/longtask/LINES.md`**（L0.5，**并行线看板**）。
+**任务是多条线并行**（2026-10-24 用户定）：`football` / `sim-2d` / `gui-agi` 各有判据与断点，**没有"单一活动分支"**；
+本次会话推哪条线**由用户首句指定**（没点明就问），线表与断点以 `LINES.md` §二 为准。
+收尾规矩：只改本线在 `LINES.md` 的那一行 + 本线 dossier（`football-v3.md` / `simulator-2d.md` / `gui-agi.md`）+ `03-state.md` 标了本线 id 的分节。
+维护流程见技能 `longtask-dossier`（含体检脚本 `longtask_check.py`，已校验多线字段）。
 
 ## 常用命令
 

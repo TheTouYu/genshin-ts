@@ -1,25 +1,23 @@
-# 现状：读数、在跑、断点（L1 · 每轮收尾必改）
+# 共享现状：机器、常驻服务、门禁（L1 · 每轮收尾必改）
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-10-24 11:2x
-> 读法：接手先读本文件 §一 → 需要细节看 `dossiers/simulator-2d.md`（当前活动分支）
+> 最近校验：2026-10-24 11:5x（多线改造：本文件只放**共享面** + 标了线 id 的分节；分线断点见 `LINES.md`）
+> 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
 
-## 一、当前阶段与断点
+## 一、分线读数的归属（本文件不声明"唯一在跑的线"，见 [`LINES.md`](LINES.md) §二）
 
-| 项 | 值 | 时间 |
+| 线 id | 断点与现状读数在哪 | 本文件里属于它的分节 |
 |---|---|---|
-| **当前活动分支** | **模拟器 2D 线：虹猫蓝兔送真机（P1→P6）** | 2026-10-23 17:1x |
-| 本分支断点 | **P1 等用户**：把 `device-package/hmlt-qixia-整合包.gia` 复制进 `Beyond_Local_Export/` → 编辑器资产导入 → 放 UI 空间 → 试玩；同时回传 5 个客户端模板真实 guid | 2026-10-23 |
-| 本分支读数 | 离线回归 **17/17 PASS，9.0s**（`node qxqy/runner.mjs`，退出码 0）；素材 13/13 已制；整合包 **未**在导入目录 | 2026-10-23 17:1x |
-| **造物线（2026-10-24 收尾）** | 闭环：地图 `1073741827` SHA `f5149a15…`（双址）；25 实体；水史莱姆 `1082130442` @(-78,-4.5,2.5)；四图 `1082130433/34/35`+`1073741825`；信号 `zaowu_probe`；日志四段全通、实测 ≈0.8/s（距离节流） | 2026-10-24 00:2x |
-| GUI 线 | **C 任务暂不推进**（O-2026-10-22-1），等下个切换点；性能读数见 §二（本轮未复测） | 2026-10-23 |
-| 主线（三个 3D 游戏） | 暂停；0/3 交付；看板停在 2026-10-17 04:00（已加现状横幅） | 2026-10-23 |
-| git HEAD | `b48d9aae`（工作树有大量 `.scratch/gui-perf/…` 未提交改动，与本分支无关，别误提交） | 2026-10-23 17:1x |
+| `football` | [`dossiers/football-v3.md`](dossiers/football-v3.md) §三/§五 | §三 标 `[football]` 的行 |
+| `sim-2d` | [`dossiers/simulator-2d.md`](dossiers/simulator-2d.md) §三/§五 | §三 标 `[sim-2d]` 的行 |
+| `gui-agi` | [`dossiers/gui-agi.md`](dossiers/gui-agi.md) + `.scratch/gui-stack/STATE.md` | §二 全部、§三 标 `[gui-agi]` 的行、§五 |
 
-## 二、性能读数（GUI 线，2026-10-22 测得；本分支不更新）
+> 规矩：本文件新增分线读数**必须带线 id**；收尾只改自己那条线的分节（`LINES.md` §四）。
+
+## 二、性能读数（`[gui-agi]` 线；2026-10-22 测得，该线不推进时不更新）
 
 | 指标 | 空闲 / 游戏退出 | 原神在跑 | 备注 |
 |---|---|---|---|
@@ -33,45 +31,47 @@
 | OCR 冷启动 | 引擎预热 6048ms；首次 rpc 22147ms | — | 一次性代价，靠常驻规避 |
 | `ys-lookd` 显存 | 旧进程 2588 MiB / 新进程 1492–1836 MiB | — | det 全帧输入 694 MiB 是主导项 |
 
-## 三、门禁与回归（GUI 线；本分支暂不跑全量）
+## 三、门禁与回归（按线分组；动手那条线只跑自己这几行）
 
-| 套件 | 读数 | 时间 |
-|---|---|---|
-| `./tools/failure-ledger check --fast` | 62.1s，gates=28，gate_fail=0，PASS | 2026-10-22 21:5x |
-| `./tools/failure-ledger check`（全量） | 空闲 550s / 游戏在跑 700s | 改动后未复跑 |
-| `worldsvc-selftest` | **123/123**，24.5s（注入用例 1.66s） | 2026-10-22 |
-| `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
-| `node qxqy/runner.mjs`（本分支） | **17/17 PASS，9.0s** | 2026-10-23 17:1x |
+| 线 | 套件 | 读数 | 时间 |
+|---|---|---|---|
+| `[gui-agi]` | `./tools/failure-ledger check --fast` | 62.1s，gates=28，gate_fail=0，PASS | 2026-10-22 21:5x |
+| `[gui-agi]` | `./tools/failure-ledger check`（全量） | 空闲 550s / 游戏在跑 700s | 改动后未复跑 |
+| `[gui-agi]` | `worldsvc-selftest` | **123/123**，24.5s（注入用例 1.66s） | 2026-10-22 |
+| `[gui-agi]` | `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
+| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`） | **17/17 PASS，9.0s**（模拟器 2.2.1 上复跑仍 17/17） | 2026-10-24 11:4x |
+| `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
+| `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
 
-## 四、机器与常驻服务（只读实测，2026-10-23 17:1x）
+## 四、机器与常驻服务（只读实测，2026-10-24 11:5x）
 
 ```
-YuanShen.exe        pid 2903303，已运行 4h36m（用户的游戏实例，非我们启动）
+原神           在跑：bwrap 包装 pid 2903042 → 子进程 2903045 命令行含 YuanShen.exe
+               ⚠ 别用 pgrep -f YuanShen.exe 直判：会先命中 bwrap 包装进程（D238 同型坑）
+               bwrap 内 tmpfs 与外部文件系统隔离 ⇒ 外部按 /proc 看不到游戏日志落点，日志走 /home/h/.ys
 dsh-embed / dsh-decision   inactive（原神在跑 → game-mode 正常暂停，非故障）
 dsh-game-mode.timer        active (waiting)
-dsh-sentinel.service       failed（10-23 00:00 status=1；手动 `--dry` rc=0 无输出 → 失败点未定位）
-ys_lookd / ys_capture      未运行（GUI 线挂起，未常驻）
-GPU                1591/6144 MiB
-模拟器 web          127.0.0.1:4173 pid 830（工作区 /home/h/qxqy-workspace = counter-demo，不是本游戏）
+dsh-sentinel.service       failed（10-23 00:00 status=1；手动 `--dry` rc=0 无输出 → 失败点未定位，见 05-open O-2026-10-23-5）
+模拟器 web 127.0.0.1:4173   LISTEN，pid 621774（属于 `sim-2d` 线；工作区 /home/h/qxqy-workspace 是 counter-demo，不是本游戏）
+GPU                        1897 / 6144 MiB
+git                        HEAD 1f43f0e1（`sim-2d` 线刚落的复盘提交）；与 origin/feat/composite-and-project-knowledge 差 2 ahead / 0 behind
+工作树                     `.scratch/gui-perf/selftest/*` 一批 M（与本轮无关，别误提交）
 ```
 
-> 2026-10-22 的实验暂停态**已不适用**：原神重新在跑，AI 服务由 game-mode 按游戏态自动暂停。
-
-## 五、未修缺陷（会立刻撞上的）
+## 五、未修缺陷（会立刻撞上的；全属 `[gui-agi]` 线，除标注外）
 
 1. `free_text` 字段名与语义不符（实为"无归属文字"）。
 2. 文字按 y 行硬合并 → **跨栏混串**（一行 bbox 宽 2336px）。
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
-4. `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回主线前必须刷新）。
-5. 真机导入目录已就位：只剩 `hmlt-qixia-整合包.gia`（93,202 B，2026-10-23 17:20 清理；15 个旧产物在 `~/.cache/hmlt-export-backup-2026-10-23/`）。
+4. `[global]` `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回三游戏伞目标前必须刷新）。
+5. `[sim-2d]` 真机导入目录现为 4 个文件（`hmlt-qixia-整合包.gia` 93,202 B + 2 个 baseline + `tetris-整合包.gia`）——导入时**别选错**。
 
-## 六、最近三笔提交（滚动保留）
+## 六、最近提交（滚动保留；跨线都记，标线 id）
 
-| commit | 内容 |
-|---|---|
-| `2e3c04bc` | 4 个 GUI 自测接进门禁（gates=35） |
-| `32f56195` | ys-peek 不再吞抬窗槽的退出码（guards 实测点名） |
-| `c13fe509` | handback-target 门禁：交还目标必须有记录优先 |
-| `6ccfc337`/`46f8ca41`/`bb061df5` | 窗口 id 收口 ys_win.py + no-dead-window-id 真门禁 |
-| `4b64c332`/`0c39447e`/`2b0b27e7` | env-single-source 转严格（无豁免）+ 29 个绕过者迁移 |
-| `9842a6e2` | ys-text（行框→段落重建）+ ys-peek 零打扰 + screen schema v2 |
+| commit | 线 | 内容 |
+|---|---|---|
+| `1f43f0e1` | sim-2d | 复盘：模拟器 demo→真机落地（8 错谱系/3 根因）+ gil-guard 检查器与门禁 + 两条技能新节 |
+| `2bb8dbf1` | sim-2d | 档案：模拟器升 2.2.1，补「spawn 隔离故游戏侧无需更新」与 4173 重启 |
+| `6743bc1f` | football | 档案补主线锚：手感基线=地图「足球_2」；造物子档加「上级目标与层级」 |
+| `bb8ac6be` | football | 新增造物/技能链子档案并收尾（三件套同步） |
+| `487b4d28` | football | 纠错：import 不给造物自动挂装饰物——机制是同号跨段克隆 aux |
