@@ -1,0 +1,139 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "07 引导三拍：入场横幅 → 开始清横幅 → 首锁提示 → 首消提示",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 0.9,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 0.9,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 1.1,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.1,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "topBanner",
+      "field": "text",
+      "equals": "俄罗斯方块"
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "hint",
+      "field": "text",
+      "equals": "键盘操作"
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "text",
+      "equals": "按任意键开始"
+    },
+    {
+      "at": 0.2,
+      "kind": "control",
+      "name": "keyA",
+      "field": "text",
+      "equals": "← → 移动　　↑ 旋转"
+    },
+    {
+      "at": 0.35,
+      "kind": "log",
+      "contains": "guide stage=1",
+      "source": "client"
+    },
+    {
+      "at": 0.35,
+      "kind": "control",
+      "name": "topBanner",
+      "field": "text",
+      "equals": ""
+    },
+    {
+      "at": 0.35,
+      "kind": "control",
+      "name": "hint",
+      "field": "text",
+      "equals": "堆满一行即消除"
+    },
+    {
+      "at": 0.7,
+      "kind": "log",
+      "contains": "guide lock-tip",
+      "source": "client"
+    },
+    {
+      "at": 0.7,
+      "kind": "control",
+      "name": "hint",
+      "field": "text",
+      "equals": "堆满一行即消除"
+    },
+    {
+      "at": 1.2,
+      "kind": "log",
+      "contains": "guide clear-tip",
+      "source": "client"
+    },
+    {
+      "at": 1.2,
+      "kind": "control",
+      "name": "hint",
+      "field": "text",
+      "equals": "一次消 4 行 +800"
+    },
+    {
+      "at": 1.2,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "text",
+      "equals": "空格 直落到底　　H 键位表"
+    },
+    {
+      "at": 1.2,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "SCORE 300  LINES 2  LV 1  FILLED 4"
+    }
+  ]
+}

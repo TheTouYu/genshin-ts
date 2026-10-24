@@ -9,13 +9,13 @@
 
 | 项 | 数量 | 明细 |
 | --- | --- | --- |
-| 服务端控件 | **4** | `sc1` 客户端控件容器（guid 1073741850）→ `n1` container（1073741851）→ `n7` textbox `hud`（1073741852）、`n8` textbox `hudNext`（1073741853） |
-| 客户端模板 | **1** | `n6` image 模板 `cell`（guid **1073742105**）—— 200 个格子共用这一个模板 |
-| 脚本 | **1** | `lua/main.lua`（322 行 / 10558 B），脚本 guid 1073742106 |
+| 服务端控件 | **12**（2026-10-24 满幅布局后） | `sc1` 容器 → `n1` container（脚本宿主）→ 10 个 textbox：`hud` `hudNext` `title` `best` `hint` `keyA` `keyB` `keyC` `topBanner` `botBanner` |
+| 客户端模板 | **1** | image 模板 `cell`（authoring guid **1073742105**；真机导入后实测重编号为 **1073741849**）—— 208 个实例共用它 |
+| 脚本 | **1** | `lua/main.lua`（580 行 / 21210 B），脚本 guid 1073742106 |
 | 脚本挂载 | — | 挂在**服务端** `n1`（`controlAsset: server-control-template`）；客户端模板树内零脚本 |
-| 运行时控件 | **200** | `game.InstantiateClientUIControl(1073742105, root)` ×200，命名 `cell1`…`cell200` |
-| 存档 | 36952 B | `tetris.save.json`（`format: qxqy-simulator-save`, version 4） |
-| GIA 整合包 | 14279 B | `device-package/tetris-整合包.gia`（服务端 UIControlGroup + 客户端 UIControlTemplate + 脚本映射同文件） |
+| 运行时控件 | **208** | `game.InstantiateClientUIControl(模板 guid, root)` ×208：`cell1`…`cell200` + `next1`…`next4`（NEXT 预览）+ `frame1`…`frame4`（棋盘外框） |
+| 存档 | 87073 B | `tetris.save.json`（`format: qxqy-simulator-save`, version 4） |
+| GIA 整合包 | 31408 B | `device-package/tetris-整合包.gia`（服务端 UIControlGroup + 客户端 UIControlTemplate + 脚本映射同文件） |
 
 **路线**：服务端控件直接渲染 —— Lua 脚本挂在服务端容器上，渲染靠「实例化客户端模板 + 改
 `imageColor`」，没有走「客户端脚本」路线（客户端模板树零脚本铁律，模板内挂脚本会被拒绝）。
@@ -137,4 +137,63 @@ workspace/tetris/
 ├── qxqy/check-gia.mjs                 GIA / 存档自查
 ├── tests/*.json                       6 条用例
 └── docs/README.md                     本文件
+```
+
+
+---
+
+## 10. 2026-10-24 满幅布局 + 三拍引导（当前实现）
+
+### 10.1 布局（1280×720 基准，全部由 Lua 按 `GetUICanvasSize()` 计算）
+
+| 区 | 位置 | 内容 |
+| --- | --- | --- |
+| 左栏 | 中心 x=-410，宽 420~460 | `title` TETRIS(64) / `hud` 统计(20) / `best` 最高分(20) / `hint` 引导语(22) |
+| 棋盘 | 居中，10×20，PITCH 30（CELL 28 + 缝 2）= 300×600 | 200 格 + 4 条外框（青色 2px） |
+| 右栏 | 中心 x=+410，宽 420 | `hudNext` NEXT(22) + 4 格预览 / `keyA` `keyB` `keyC` 键位卡(22) /（P2 手机按钮位预留） |
+| 上横幅 | y=+330，高 56，宽 W-180 | 入场「俄罗斯方块」(34) / 失败「GAME OVER」(红) |
+| 下横幅 | y=-332，高 44，宽 W-180 | 入场「按任意键开始」(22) / 阶段性提示 |
+
+### 10.2 两条硬判据（血泪，改 UI 必看）
+
+1. **textbox 框高必须 ≥ `fontSize × 1.45 + 4`**，否则**整行静默不画**（无报错、无日志）。
+   实测：64 号配 96 高（需 96.8）→ 整块消失；26 号配 40 高（需 41.7）→ 消失。
+   倍率来源 `studio/play/text-layout.js`：`lineHeight = 1.2×size` + `blockInset = 0.25×size + 4`。
+2. **文本框宽度不足时尾部字符被裁**（`SCORE … FILLED 0` 的 `0` 曾显示成 `U`）。22 号放不下那条统计行，改 20 号 + 460 宽。
+
+### 10.3 模板 guid 双宿主探测
+
+模拟器用 authoring guid（1073742105），真机导入后编辑器重编号（实测 1073741849）。
+`main.lua` 里 `TEMPLATE_GUIDS = { 1073741849, 1073742105 }` 逐个试 `InstantiateClientUIControl`，第一个成功的胜出 ——
+**同一次构建在两边都能跑**，不需要为宿主改常量。真机若再次重编号，把它加到候选表首位即可。
+
+### 10.4 引导状态机（时机精准 / 由简入深 / 可回溯）
+
+| stage | 进入条件 | 重力 | 屏幕 |
+| --- | --- | --- | --- |
+| 0 等开始 | `OnStart` | **暂停** | 上横幅「俄罗斯方块」、下横幅「按任意键开始」、左栏 hint「键盘操作」 |
+| 1 游戏中 | 玩家按下第一个操作键 | 跑 | 横幅清空；左栏常驻「堆满一行即消除」；首次锁定 2.5s 提示；首次消行「一次消 4 行 +800」3~4s |
+| 2 键位表 | 按 `H` | 暂停 | 下横幅显示完整键位，左栏「H 继续游戏」 |
+| 失败 | 顶出 | 停 | 上横幅「GAME OVER」（红）、下横幅「得分 X　本局最高 Y　按 R 重开」 |
+
+入场态的键**既开始游戏也执行该动作**（不吞键）：玩家按 ← 会立刻开始并左移一格，用例与手感一致。
+
+### 10.5 预览图（真实渲染，不是示意图）
+
+```bash
+node qxqy/shot.mjs            # 出 docs/preview-guide.png / preview-play.png / preview-clear.png
+```
+
+链路：`createStudio(存档)` → `playStart({canvasId:'mobile-16-9'})` → `playKey`/`playStep` 步进 →
+`playGet({view:true})` 取 `scene` → `renderScenePng` 落 PNG。
+⚠️ 不要用 `playRun(frames)`：它内部会 `playStart()` **重开会话**，注入的按键全部丢失（实测踩到）。
+
+### 10.6 真机导入后要核对的三件事
+
+```bash
+# ① 模板 guid 是否又变了（变了就加到 main.lua 的 TEMPLATE_GUIDS 首位）
+export GSTS_LOCALLOW_DIR=$HOME/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
+npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
+# ② 10 个服务端控件名是否都在（GetChild 按名字取，名字变了就不显示）
+# ③ 真机日志里应有：canvas WxH / tpl guid=… / cellCount=200 / listen ok … / guide stage=1
 ```

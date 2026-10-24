@@ -49,7 +49,7 @@
       "kind": "control",
       "name": "cell1",
       "field": "sizeDeltaX",
-      "equals": 26
+      "equals": 28
     },
     {
       "at": 0.2,
@@ -69,28 +69,28 @@
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionX",
-      "equals": -126
+      "equals": -135
     },
     {
       "at": 0.2,
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionY",
-      "equals": 266
+      "equals": 285
     },
     {
       "at": 0.2,
       "kind": "control",
       "name": "cell11",
       "field": "anchoredPositionY",
-      "equals": 238
+      "equals": 255
     },
     {
       "at": 0.2,
       "kind": "control",
       "name": "cell200",
       "field": "anchoredPositionX",
-      "equals": 126
+      "equals": 135
     },
     {
       "at": 0.2,

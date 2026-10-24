@@ -16,29 +16,71 @@ export function buildStudio() {
   const rev = () => s.get().version
   const patch = (op) => s.patch({ ...op, expectedRevision: rev() })
 
-  // 1) 客户端资产：只留一个 image 模板（每格 1 控件，200 实例共用它）
+  // 1) 客户端资产：只有 cell 一个模板。
+  //    只留一个模板是有意的：模板 guid 在模拟器（authoring）与真机（导入后重编号）不同
+  //    （实测 1073742105 vs 1073741849），每多一个模板就多一处导入后校准。
+  //    需要"覆盖棋盘"的引导层改成上下横幅（服务端 textbox，按 name 寻址，跨宿主稳定）。
   patch({ op: 'newAsset', assetType: 'client-control-template' })
   patch({ op: 'addTemplate', kind: 'image', name: 'cell' })
   patch({ op: 'remove', id: 'n1' }) // 默认模板面板，删掉只留 cell
 
-  // 2) 服务端资产：清掉默认橱窗，只留容器 n1（脚本宿主 + HUD 父节点）
+  // 2) 服务端资产：清掉默认橱窗，只留容器 n1（脚本宿主 + 所有 UI 控件的父节点）
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
   for (const id of ['n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11']) {
     patch({ op: 'remove', id })
   }
 
-  // 3) HUD 两个服务端 textbox（add 的 id 由工程自动分配，取 selectedId）
+  // 3) 服务端控件：左栏（logo/统计/最高分/提示）+ 右栏（NEXT/键位卡）+ 上下横幅
+  //    位置只是 authoring 初值，运行时全部由 Lua 的 SetAnchoredPosition/SetSizeDelta 覆盖
+  //    （满幅布局按 GetUICanvasSize 算，换设备不用重新导入）。
   const addTextbox = (name, box) => {
     patch({ op: 'add', parentId: 'n1', kind: 'textbox', name })
     const id = s.get().selectedId
     for (const [key, value] of Object.entries(box)) patch({ op: 'set', id, key, value })
     return id
   }
+  const C_FONT = '#FFE8ECF4'   // 主文
+  const C_ACCENT = '#FF4CC2FF' // 强调（操作提示）
+  const C_GOLD = '#FFFFC24C'   // 得分/标题
   addTextbox('hud', {
-    posX: 0, posY: 310, width: 760, height: 40, fontSize: 24, text: 'TETRIS',
+    posX: -410, posY: 125, width: 460, height: 40, fontSize: 20, text: 'TETRIS',
+    horizontalAlignment: 'Middle',
   })
   addTextbox('hudNext', {
-    posX: 300, posY: 240, width: 220, height: 40, fontSize: 22, text: 'NEXT -',
+    posX: 410, posY: 230, width: 200, height: 40, fontSize: 22, text: 'NEXT',
+    fontColor: C_ACCENT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('title', {
+    posX: -410, posY: 210, width: 420, height: 100, fontSize: 64, text: 'TETRIS',
+    fontColor: C_GOLD, horizontalAlignment: 'Middle',
+  })
+  addTextbox('best', {
+    posX: -410, posY: 80, width: 420, height: 36, fontSize: 20, text: 'BEST 0',
+    fontColor: C_FONT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('hint', {
+    posX: -410, posY: -60, width: 420, height: 150, fontSize: 22, text: '',
+    fontColor: C_ACCENT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('keyA', {
+    posX: 410, posY: -40, width: 420, height: 38, fontSize: 22, text: '← → 移动　　↑ 旋转',
+    fontColor: C_FONT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('keyB', {
+    posX: 410, posY: -80, width: 420, height: 38, fontSize: 22, text: '↓ 落下　　空格 直落',
+    fontColor: C_FONT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('keyC', {
+    posX: 410, posY: -120, width: 420, height: 38, fontSize: 22, text: 'R 重开　　H 键位表',
+    fontColor: C_FONT, horizontalAlignment: 'Middle',
+  })
+  addTextbox('topBanner', {
+    posX: 0, posY: 330, width: 1100, height: 56, fontSize: 34, text: '',
+    fontColor: C_GOLD, horizontalAlignment: 'Middle',
+  })
+  addTextbox('botBanner', {
+    posX: 0, posY: -332, width: 1100, height: 44, fontSize: 22, text: '',
+    fontColor: C_ACCENT, horizontalAlignment: 'Middle',
   })
 
   // 4) 脚本挂服务端容器 n1（客户端模板树零脚本）

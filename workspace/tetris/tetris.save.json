@@ -13,7 +13,7 @@
   "scriptSync": null,
   "assets": {
     "server": {
-      "version": 26,
+      "version": 101,
       "layoutSchemaVersion": 2,
       "meta": {
         "name": "未命名界面",
@@ -22,7 +22,7 @@
         "sourceFile": ""
       },
       "canvasId": "pc-16-9",
-      "selectedId": "n8",
+      "selectedId": "n16",
       "root": {
         "id": "sc1",
         "kind": "server-container",
@@ -328,7 +328,7 @@
                   "footerField505": 0,
                   "textField501": 20,
                   "textField503": 12,
-                  "textAlign": 0
+                  "textAlign": 1
                 },
                 "transformByPlatform": {
                   "KEYBOARD": {
@@ -351,11 +351,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -800,
-                      "y": -140
+                      "x": -1210,
+                      "y": -325
                     },
                     "size": {
-                      "x": 760,
+                      "x": 460,
                       "y": 40
                     },
                     "pivot": {
@@ -383,11 +383,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -640,
-                      "y": -112
+                      "x": -968,
+                      "y": -260
                     },
                     "size": {
-                      "x": 760,
+                      "x": 460,
                       "y": 40
                     },
                     "pivot": {
@@ -415,11 +415,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -800,
-                      "y": -140
+                      "x": -1210,
+                      "y": -325
                     },
                     "size": {
-                      "x": 760,
+                      "x": 460,
                       "y": 40
                     },
                     "pivot": {
@@ -447,11 +447,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -640,
-                      "y": -112
+                      "x": -968,
+                      "y": -260
                     },
                     "size": {
-                      "x": 760,
+                      "x": 460,
                       "y": 40
                     },
                     "pivot": {
@@ -462,14 +462,14 @@
                 },
                 "children": [],
                 "scriptMappingIds": [],
-                "fontSize": 24,
+                "fontSize": 20,
                 "adaptiveFontSize": false,
                 "minimumFontSize": 20,
                 "fontColor": 4294967295,
                 "bgColor": 16777215,
                 "enableOutline": true,
                 "outlineColor": 858993459,
-                "horizontalAlignment": "Left",
+                "horizontalAlignment": "Middle",
                 "verticalAlignment": "Top",
                 "text": "TETRIS"
               },
@@ -488,7 +488,7 @@
                   "footerField505": 0,
                   "textField501": 20,
                   "textField503": 12,
-                  "textAlign": 0
+                  "textAlign": 1
                 },
                 "transformByPlatform": {
                   "KEYBOARD": {
@@ -511,11 +511,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -500,
-                      "y": -210
+                      "x": -390,
+                      "y": -220
                     },
                     "size": {
-                      "x": 220,
+                      "x": 200,
                       "y": 40
                     },
                     "pivot": {
@@ -543,11 +543,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -400,
-                      "y": -168
+                      "x": -312,
+                      "y": -176
                     },
                     "size": {
-                      "x": 220,
+                      "x": 200,
                       "y": 40
                     },
                     "pivot": {
@@ -575,11 +575,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -500,
-                      "y": -210
+                      "x": -390.00000000000006,
+                      "y": -220.00000000000003
                     },
                     "size": {
-                      "x": 220,
+                      "x": 200,
                       "y": 40
                     },
                     "pivot": {
@@ -607,11 +607,11 @@
                       "y": 0.5
                     },
                     "offset": {
-                      "x": -400,
-                      "y": -168
+                      "x": -312,
+                      "y": -176
                     },
                     "size": {
-                      "x": 220,
+                      "x": 200,
                       "y": 40
                     },
                     "pivot": {
@@ -625,13 +625,1293 @@
                 "fontSize": 22,
                 "adaptiveFontSize": false,
                 "minimumFontSize": 20,
-                "fontColor": 4294967295,
+                "fontColor": 4283220735,
                 "bgColor": 16777215,
                 "enableOutline": true,
                 "outlineColor": 858993459,
-                "horizontalAlignment": "Left",
+                "horizontalAlignment": "Middle",
                 "verticalAlignment": "Top",
-                "text": "NEXT -"
+                "text": "NEXT"
+              },
+              {
+                "id": "n9",
+                "kind": "textbox",
+                "name": "title",
+                "guid": 1073741854,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -240
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 100
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -192
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 100
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -240
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 100
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -192
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 100
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 64,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4294951500,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": "TETRIS"
+              },
+              {
+                "id": "n10",
+                "kind": "textbox",
+                "name": "best",
+                "guid": 1073741855,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -370
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 36
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -296
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 36
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -370
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 36
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -296
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 36
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 20,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4293455092,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": "BEST 0"
+              },
+              {
+                "id": "n11",
+                "kind": "textbox",
+                "name": "hint",
+                "guid": 1073741856,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -510
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 150
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -408
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 150
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -1210,
+                      "y": -510
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 150
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -968,
+                      "y": -408
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 150
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4283220735,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": ""
+              },
+              {
+                "id": "n12",
+                "kind": "textbox",
+                "name": "keyA",
+                "guid": 1073741857,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -490
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -392
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -490
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -392
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4293455092,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": "← → 移动　　↑ 旋转"
+              },
+              {
+                "id": "n13",
+                "kind": "textbox",
+                "name": "keyB",
+                "guid": 1073741858,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -530
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -424
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -530
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -424
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4293455092,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": "↓ 落下　　空格 直落"
+              },
+              {
+                "id": "n14",
+                "kind": "textbox",
+                "name": "keyC",
+                "guid": 1073741859,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -570
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -456
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -390,
+                      "y": -570
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -312,
+                      "y": -456
+                    },
+                    "size": {
+                      "x": 420,
+                      "y": 38
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4293455092,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": "R 重开　　H 键位表"
+              },
+              {
+                "id": "n15",
+                "kind": "textbox",
+                "name": "topBanner",
+                "guid": 1073741860,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -120
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 56
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -96
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 56
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -120
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 56
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -96
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 56
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 34,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4294951500,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": ""
+              },
+              {
+                "id": "n16",
+                "kind": "textbox",
+                "name": "botBanner",
+                "guid": 1073741861,
+                "giaRelatedGuids": [],
+                "active": true,
+                "visible": true,
+                "canControllerFocus": false,
+                "syncAllDevices": true,
+                "giaRaw": {
+                  "genericField501": 0,
+                  "footerField505": 0,
+                  "textField501": 20,
+                  "textField503": 12,
+                  "textAlign": 1
+                },
+                "transformByPlatform": {
+                  "KEYBOARD": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -782
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 44
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "TOUCHSCREEN": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -625.5999999999999
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 44
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_CONSOLE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -800,
+                      "y": -782
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 44
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  },
+                  "CONTROLLER_MOBILE": {
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "anchorMin": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "anchorMax": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "offset": {
+                      "x": -640,
+                      "y": -625.5999999999999
+                    },
+                    "size": {
+                      "x": 1100,
+                      "y": 44
+                    },
+                    "pivot": {
+                      "x": 0.5,
+                      "y": 0.5
+                    }
+                  }
+                },
+                "children": [],
+                "scriptMappingIds": [],
+                "fontSize": 22,
+                "adaptiveFontSize": false,
+                "minimumFontSize": 20,
+                "fontColor": 4283220735,
+                "bgColor": 16777215,
+                "enableOutline": true,
+                "outlineColor": 858993459,
+                "horizontalAlignment": "Middle",
+                "verticalAlignment": "Top",
+                "text": ""
               }
             ],
             "scriptMappingIds": [],
@@ -989,7 +2269,7 @@
         "id": "1073742106",
         "guid": 1073742106,
         "path": "lua/main.lua",
-        "source": "--[[==========================================================================\nTetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染）\n----------------------------------------------------------------------------\n架构：\n  * 本脚本挂在服务端控件 n1（服务端容器）上 —— 客户端模板树零脚本铁律，脚本不进模板。\n  * 棋盘 10x20 = 200 格：OnStart 用 game.InstantiateClientUIControl(模板 guid, root)\n    实例化 200 个 image 实例并按格位摆放；之后只改 imageColor 上色。\n  * HUD / NEXT 用服务端 textbox 直接写 text（服务端直写文本已验证可用）。\n  * 逻辑固定步长：OnUpdate(dt) 只累加，逻辑在 STEP=1/60 的 tick 内跑。\n\n键位（官方具名键，见模拟器 studio/play/key-bindings.js）：\n  ArrowLeft  -> KeyboardCraftspersonKey38   左移\n  ArrowRight -> KeyboardCraftspersonKey39   右移\n  ArrowUp    -> KeyboardCraftspersonKey36   顺时针旋转\n  ArrowDown  -> KeyboardCraftspersonKey37   软降\n  Space      -> KeyboardJumpKey             硬降\n  R          -> KeyboardCharacterSkill3Key  重开\n  T          -> KeyboardCharacterSkill4Key  调试：填满最底两行（仅用例用）\n==========================================================================]]\n\nlocal COLS, ROWS    = 10, 20\nlocal CELL, GAP     = 26, 2\nlocal PITCH         = CELL + GAP\nlocal T_CELL        = 1073742105   -- 客户端模板「cell」根子节点 guid（build.mjs 分配）\nlocal STEP          = 1 / 60\nlocal GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）\nlocal BOARD_CX, BOARD_CY = 0, 0    -- 棋盘中心（画布坐标，原点=画布中心，y 向上）\n\nlocal function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end\nlocal COL_EMPTY  = C(255, 26, 29, 38)\nlocal COL_CYAN   = C(255, 60, 220, 240)\nlocal COL_YELLOW = C(255, 245, 210, 60)\nlocal COL_PURPLE = C(255, 170, 80, 240)\nlocal COL_GREEN  = C(255, 90, 220, 110)\nlocal COL_RED    = C(255, 240, 80, 90)\nlocal COL_BLUE   = C(255, 70, 130, 240)\nlocal COL_ORANGE = C(255, 245, 160, 60)\n\n-- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}\nlocal SHAPES = {\n  I = { n = 4, color = COL_CYAN,   cells = {{2,1},{2,2},{2,3},{2,4}} },\n  O = { n = 2, color = COL_YELLOW, cells = {{1,1},{1,2},{2,1},{2,2}} },\n  T = { n = 3, color = COL_PURPLE, cells = {{1,2},{2,1},{2,2},{2,3}} },\n  S = { n = 3, color = COL_GREEN,  cells = {{1,2},{1,3},{2,1},{2,2}} },\n  Z = { n = 3, color = COL_RED,    cells = {{1,1},{1,2},{2,2},{2,3}} },\n  J = { n = 3, color = COL_BLUE,   cells = {{1,1},{2,1},{2,2},{2,3}} },\n  L = { n = 3, color = COL_ORANGE, cells = {{1,3},{2,1},{2,2},{2,3}} },\n}\nlocal BAG = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }\n\n-- 确定性随机（LCG）：用例可复现，不依赖 os / math.random\nlocal seed = 20261023\nlocal function rand(n)\n  seed = (seed * 1103515245 + 12345) % 2147483648\n  return (seed // 65536) % n + 1\nend\n\n-- 前向声明（局部化，避免污染全局表）\nlocal root, cells, hud, hudNext\nlocal board, piece, nextName\nlocal score, lines, level\nlocal gameOver, tickCount, acc\nlocal collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines\n\nlocal function cellIndex(r, c) return (r - 1) * COLS + c end\n\nlocal function paint(r, c, color)\n  local ctl = cells[cellIndex(r, c)]\n  if ctl then ctl.imageColor = color end\nend\n\nrenderAll = function()\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      local v = board[r][c]\n      if v == 0 then paint(r, c, COL_EMPTY) else paint(r, c, v) end\n    end\n  end\nend\n\nrenderHud = function()\n  local oc = 0\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      if board[r][c] ~= 0 then oc = oc + 1 end\n    end\n  end\n  if hud then\n    hud.text = 'SCORE ' .. score .. '  LINES ' .. lines .. '  LV ' .. level\n      .. '  FILLED ' .. oc\n  end\n  if hudNext then\n    hudNext.text = 'NEXT ' .. (gameOver and '-' or (nextName or '-'))\n  end\nend\n\nrenderPiece = function()\n  renderAll()\n  if gameOver or not piece then return end\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      paint(br, bc, piece.color)\n    end\n  end\nend\n\ncollides = function(cs, px, py)\n  for i = 1, #cs do\n    local br = py + cs[i][1] - 1\n    local bc = px + cs[i][2] - 1\n    if bc < 1 or bc > COLS or br > ROWS then return true end\n    if br >= 1 and board[br][bc] ~= 0 then return true end\n  end\n  return false\nend\n\nspawn = function()\n  local name = nextName or 'T'\n  nextName = BAG[rand(#BAG)]\n  local s = SHAPES[name]\n  piece = {\n    name = name, n = s.n, color = s.color,\n    cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },\n              { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },\n    x = (COLS - s.n) // 2 + 1,\n    y = 1,\n  }\n  print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)\n  if collides(piece.cells, piece.x, piece.y) then\n    gameOver = true\n    print('gameover score=' .. score)\n  end\n  renderPiece()\n  renderHud()\nend\n\nclearLines = function()\n  local cleared = 0\n  local r = ROWS\n  while r >= 1 do\n    local full = true\n    for c = 1, COLS do\n      if board[r][c] == 0 then full = false end\n    end\n    if full then\n      table.remove(board, r)\n      local row = {}\n      for c = 1, COLS do row[c] = 0 end\n      table.insert(board, 1, row)\n      cleared = cleared + 1\n      -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次\n    else\n      r = r - 1\n    end\n  end\n  if cleared > 0 then\n    local pts = { 100, 300, 500, 800 }   -- 1/2/3/4 行\n    score = score + pts[cleared] * level\n    lines = lines + cleared\n    level = lines // 10 + 1\n    print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)\n  end\nend\n\ndoLock = function()\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      board[br][bc] = piece.color\n    end\n  end\n  local landed = {}\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end\n  end\n  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))\n  clearLines()\n  if not gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块\n  renderHud()\nend\n\nlocal function stepDown()\n  if gameOver or not piece then return end\n  if not collides(piece.cells, piece.x, piece.y + 1) then\n    piece.y = piece.y + 1\n    renderPiece()\n    print('fall y=' .. piece.y)\n  else\n    doLock()\n  end\nend\n\nlocal function rotate()\n  if gameOver or not piece then return end\n  local n = piece.n\n  local nc = {}\n  for i = 1, 4 do\n    nc[i] = { piece.cells[i][2], n + 1 - piece.cells[i][1] }   -- 顺时针 90°\n  end\n  if not collides(nc, piece.x, piece.y) then\n    piece.cells = nc\n    print('rotate ' .. piece.name)\n    renderPiece()\n  end\nend\n\nlocal function newGame()\n  board = {}\n  for r = 1, ROWS do\n    local row = {}\n    for c = 1, COLS do row[c] = 0 end\n    board[r] = row\n  end\n  score, lines, level = 0, 0, 1\n  gameOver, tickCount, acc = false, 0, 0\n  nextName = BAG[rand(#BAG)]\n  spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块\n  renderHud()\n  print('newgame')\nend\n\n--------------------------------------------------------------------------------\n-- 生命周期\n--------------------------------------------------------------------------------\n\nfunction OnStart()\n  root = script.object\n  if not root then error('tetris: script.object is nil') end\n  root.showCursor = true\n  script:EnableUpdate(true)      -- 默认 false：不显式打开就不会派发 OnUpdate\n\n  local W, H = game.GetUICanvasSize()\n  print('canvas ' .. tostring(W) .. 'x' .. tostring(H))\n\n  cells = {}\n  for i = 1, COLS * ROWS do\n    local c = game.InstantiateClientUIControl(T_CELL, root)\n    if not c then error('tetris: InstantiateClientUIControl failed at ' .. i) end\n    local col = (i - 1) % COLS\n    local row = (i - 1) // COLS\n    c.name = 'cell' .. i\n    c:SetSizeDelta(CELL, CELL)\n    c:SetAnchoredPosition(BOARD_CX + (col - 4.5) * PITCH,\n                          BOARD_CY + (9.5 - row) * PITCH)\n    c.imageColor = COL_EMPTY\n    cells[i] = c\n  end\n  print('cellCount=' .. #cells)\n\n  hud = root:GetChild('hud')\n  hudNext = root:GetChild('hudNext')\n\n  root:AddKeyEventListener('KeyboardCraftspersonKey38Down', function()   -- ←\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x - 1, piece.y) then\n      piece.x = piece.x - 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey39Down', function()   -- →\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x + 1, piece.y) then\n      piece.x = piece.x + 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey36Down', function()   -- ↑\n    rotate()\n  end)\n  root:AddKeyEventListener('KeyboardCraftspersonKey37Down', function()   -- ↓\n    stepDown()\n  end)\n  root:AddKeyEventListener('KeyboardJumpKeyDown', function()             -- Space\n    if gameOver or not piece then return end\n    local dropped = 0\n    while not collides(piece.cells, piece.x, piece.y + 1) do\n      piece.y = piece.y + 1\n      dropped = dropped + 1\n    end\n    print('harddrop rows=' .. dropped .. ' y=' .. piece.y)\n    doLock()\n  end)\n  root:AddKeyEventListener('KeyboardCharacterSkill3KeyDown', function()  -- R 重开\n    newGame()\n  end)\n  -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时\n  -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。\n  root:AddKeyEventListener('KeyboardCharacterSkill4KeyDown', function()\n    for rr = ROWS - 1, ROWS do\n      for c = 1, COLS do board[rr][c] = COL_BLUE end\n    end\n    print('debug-fill')\n    renderAll()\n    renderHud()\n  end)\n\n  newGame()\nend\n\nfunction OnUpdate(dt)\n  local d = tonumber(dt) or 0\n  if d <= 0 then return end\n  acc = acc + d\n  local guard = 0\n  while acc >= STEP and guard < 8 do\n    acc = acc - STEP\n    guard = guard + 1\n    tickCount = tickCount + 1\n    if not gameOver and tickCount % GRAVITY_TICKS == 0 then\n      stepDown()\n    end\n  end\nend\n\nfunction OnDestroy() end\n",
+        "source": "--[[==========================================================================\nTetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染）\n----------------------------------------------------------------------------\n架构：\n  * 本脚本挂在服务端控件 n1（服务端容器）上 —— 客户端模板树零脚本铁律，脚本不进模板。\n  * 棋盘 10x20 = 200 格：OnStart 用 game.InstantiateClientUIControl(模板 guid, root)\n    实例化 200 个 image 实例并按格位摆放；之后只改 imageColor 上色。\n  * 所有文字（logo/统计/键位卡/提示/上下横幅）都是**服务端 textbox**，按 name 寻址：\n    GetChild 不受\"模板 guid 重编号\"影响，是跨宿主最稳的一条寻址路。\n  * 模板块指引：客户端模板只有一个 cell。模板 guid 在模拟器（authoring）与真机\n    （导入后编辑器重编号）不同（实测 1073742105 vs 1073741849），多一个模板就多一处\n    导入后校准 —— 所以\"覆盖棋盘的引导层\"改成上下横幅（不遮棋盘，也更简洁）。\n  * 逻辑固定步长：OnUpdate(dt) 只累加，逻辑在 STEP=1/60 的 tick 内跑。\n\n满幅布局（按 GetUICanvasSize 计算，换设备不用重新导入）：\n  | 左栏 420 | 棋盘 300 | 右栏 420 |     上横幅（46 高）/ 下横幅（46 高）\n\n键位（官方具名键，模拟器与真机均已实测可用）：\n  ArrowLeft/A   -> KeyboardCraftspersonKey38Down / KeyboardMoveLeftKeyDown   左移\n  ArrowRight/D  -> KeyboardCraftspersonKey39Down / KeyboardMoveRightKeyDown  右移\n  ArrowUp/W     -> KeyboardCraftspersonKey36Down / KeyboardMoveForwardKeyDown 顺时针旋转\n  ArrowDown/S   -> KeyboardCraftspersonKey37Down / KeyboardMoveBackwardKeyDown 软降\n  Space         -> KeyboardJumpKey            硬降\n  R             -> KeyboardCharacterSkill3Key 重开\n  H             -> KeyboardCharacterSkill1Key 键位表（暂停开关；真机若不认则无害，右栏常驻键位卡兜底）\n  T             -> KeyboardCharacterSkill4Key 调试：填满最底两行（仅用例用）\n\n引导（时机精准 / 由简入深 / 可回溯）：\n  stage 0 等开始：重力暂停，上横幅 TETRIS，下横幅键位 + \"按任意键开始\"\n  stage 1 游戏中：首次锁定提示\"堆满一行即消除\"，首次消行提示分值表\n  stage 2 键位表：按 H 暂停并显示完整键位，再按 H 继续\n  失败：上横幅 GAME OVER（红），下横幅 得分 / 本局最高 / 按 R 重开\n=========================================================================]]\n\nlocal COLS, ROWS    = 10, 20\nlocal CELL, GAP     = 28, 2\nlocal PITCH         = CELL + GAP\n-- 模板 guid 双宿主候选：真机导入后重编号 / 模拟器 authoring 原值。按序探测，第一个可用的胜出。\nlocal TEMPLATE_GUIDS = { 1073741849, 1073742105 }\nlocal STEP          = 1 / 60\nlocal GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）\n\nlocal function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end\nlocal COL_EMPTY  = C(255, 26, 29, 38)\nlocal COL_CYAN   = C(255, 60, 220, 240)\nlocal COL_YELLOW = C(255, 245, 210, 60)\nlocal COL_PURPLE = C(255, 170, 80, 240)\nlocal COL_GREEN  = C(255, 90, 220, 110)\nlocal COL_RED    = C(255, 240, 80, 90)\nlocal COL_BLUE   = C(255, 70, 130, 240)\nlocal COL_ORANGE = C(255, 245, 160, 60)\nlocal COL_BG     = C(255, 18, 20, 27)\n\n-- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}\nlocal SHAPES = {\n  I = { n = 4, color = COL_CYAN,   cells = {{2,1},{2,2},{2,3},{2,4}} },\n  O = { n = 2, color = COL_YELLOW, cells = {{1,1},{1,2},{2,1},{2,2}} },\n  T = { n = 3, color = COL_PURPLE, cells = {{1,2},{2,1},{2,2},{2,3}} },\n  S = { n = 3, color = COL_GREEN,  cells = {{1,2},{1,3},{2,1},{2,2}} },\n  Z = { n = 3, color = COL_RED,    cells = {{1,1},{1,2},{2,2},{2,3}} },\n  J = { n = 3, color = COL_BLUE,   cells = {{1,1},{2,1},{2,2},{2,3}} },\n  L = { n = 3, color = COL_ORANGE, cells = {{1,3},{2,1},{2,2},{2,3}} },\n}\nlocal BAG = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }\n\n-- 确定性随机（LCG）：用例可复现，不依赖 os / math.random\nlocal seed = 20261023\nlocal function rand(n)\n  seed = (seed * 1103515245 + 12345) % 2147483648\n  return (seed // 65536) % n + 1\nend\n\n-- 前向声明（局部化，避免污染全局表）\nlocal root, cells, preview, frames\nlocal title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner\nlocal board, piece, nextName\nlocal score, lines, level, bestScore\nlocal gameOver, tickCount, acc\nlocal guideStage, bannerTimer, taughtLock, taughtClear\nlocal RIGHT_CX = 410\nlocal showGameOver, updateBest\nlocal collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines\n\nlocal function cellIndex(r, c) return (r - 1) * COLS + c end\n\nlocal function paint(r, c, color)\n  local ctl = cells[cellIndex(r, c)]\n  if ctl then ctl.imageColor = color end\nend\n\n-- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）\nlocal function find(name)\n  if not root then return nil end\n  local ok, ctl = pcall(function() return root:GetChild(name) end)\n  if ok then return ctl end\n  return nil\nend\n\nlocal function setText(ctl, value)\n  if ctl then ctl.text = value end\nend\n\nrenderAll = function()\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      local v = board[r][c]\n      if v == 0 then paint(r, c, COL_EMPTY) else paint(r, c, v) end\n    end\n  end\nend\n\nlocal function renderNext()\n  if not preview then return end\n  for i = 1, 4 do preview[i].imageColor = COL_BG end\n  if gameOver or not nextName then return end\n  local s = SHAPES[nextName]\n  for i = 1, 4 do\n    local ctl = preview[i]\n    local r, c = s.cells[i][1], s.cells[i][2]\n    ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)\n    ctl.imageColor = s.color\n  end\nend\n\nrenderHud = function()\n  local oc = 0\n  for r = 1, ROWS do\n    for c = 1, COLS do\n      if board[r][c] ~= 0 then oc = oc + 1 end\n    end\n  end\n  setText(hud, 'SCORE ' .. score .. '  LINES ' .. lines .. '  LV ' .. level\n    .. '  FILLED ' .. oc)\n  setText(hudNext, 'NEXT')\n  setText(best, 'BEST ' .. bestScore)\n  renderNext()\nend\n\nrenderPiece = function()\n  renderAll()\n  if gameOver or not piece then return end\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      paint(br, bc, piece.color)\n    end\n  end\nend\n\ncollides = function(cs, px, py)\n  for i = 1, #cs do\n    local br = py + cs[i][1] - 1\n    local bc = px + cs[i][2] - 1\n    if bc < 1 or bc > COLS or br > ROWS then return true end\n    if br >= 1 and board[br][bc] ~= 0 then return true end\n  end\n  return false\nend\n\nspawn = function()\n  local name = nextName or 'T'\n  nextName = BAG[rand(#BAG)]\n  local s = SHAPES[name]\n  piece = {\n    name = name, n = s.n, color = s.color,\n    cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },\n              { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },\n    x = (COLS - s.n) // 2 + 1,\n    y = 1,\n  }\n  print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)\n  if collides(piece.cells, piece.x, piece.y) then\n    gameOver = true\n    print('gameover score=' .. score)\n    updateBest()\n    showGameOver()\n  end\n  renderPiece()\n  renderHud()\nend\n\nclearLines = function()\n  local cleared = 0\n  local r = ROWS\n  while r >= 1 do\n    local full = true\n    for c = 1, COLS do\n      if board[r][c] == 0 then full = false end\n    end\n    if full then\n      table.remove(board, r)\n      local row = {}\n      for c = 1, COLS do row[c] = 0 end\n      table.insert(board, 1, row)\n      cleared = cleared + 1\n      -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次\n    else\n      r = r - 1\n    end\n  end\n  if cleared > 0 then\n    local pts = { 100, 300, 500, 800 }   -- 1/2/3/4 行\n    score = score + pts[cleared] * level\n    lines = lines + cleared\n    level = lines // 10 + 1\n    print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)\n    -- 首次消行：由简入深——把\"分值表\"这项进阶信息押到玩家已经会消行之后\n    if not taughtClear then\n      taughtClear = true\n      setText(hint, '一次消 4 行 +800')\n      setText(botBanner, '空格 直落到底　　H 键位表')\n      bannerTimer = 4.0\n      print('guide clear-tip')\n    end\n  end\nend\n\ndoLock = function()\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then\n      board[br][bc] = piece.color\n    end\n  end\n  local landed = {}\n  for i = 1, 4 do\n    local br = piece.y + piece.cells[i][1] - 1\n    local bc = piece.x + piece.cells[i][2] - 1\n    if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end\n  end\n  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))\n  clearLines()\n  -- 首次锁定：只教\"堆满一行即消除\"这一条，不叠加其它信息\n  if not taughtLock then\n    taughtLock = true\n    bannerTimer = 2.5\n    print('guide lock-tip')\n  end\n  if not gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块\n  renderHud()\nend\n\nlocal function stepDown()\n  if gameOver or not piece then return end\n  if not collides(piece.cells, piece.x, piece.y + 1) then\n    piece.y = piece.y + 1\n    renderPiece()\n    print('fall y=' .. piece.y)\n  else\n    doLock()\n  end\nend\n\nlocal function rotate()\n  if gameOver or not piece then return end\n  local n = piece.n\n  local nc = {}\n  for i = 1, 4 do\n    nc[i] = { piece.cells[i][2], n + 1 - piece.cells[i][1] }   -- 顺时针 90°\n  end\n  if not collides(nc, piece.x, piece.y) then\n    piece.cells = nc\n    print('rotate ' .. piece.name)\n    renderPiece()\n  end\nend\n\nlocal function newGame()\n  board = {}\n  for r = 1, ROWS do\n    local row = {}\n    for c = 1, COLS do row[c] = 0 end\n    board[r] = row\n  end\n  score, lines, level = 0, 0, 1\n  gameOver, tickCount, acc = false, 0, 0\n  nextName = BAG[rand(#BAG)]\n  spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块\n  renderHud()\n  print('newgame')\nend\n\n--------------------------------------------------------------------------------\n-- 引导状态机：0=等开始（重力暂停） 1=游戏中 2=键位表（暂停）\n--------------------------------------------------------------------------------\n\nlocal function showKeymap()\n  -- 单行，走 1100px 宽的横幅（textbox 是否支持 \\n 换行未验证，不赌）\n  setText(botBanner, '← → 移动　　↑ 旋转　　↓ 落下　　空格 直落　　R 重开')\n  setText(hint, 'H 继续游戏')\nend\n\nlocal function startIfWaiting()\n  if guideStage ~= 0 then return end\n  guideStage = 1\n  setText(topBanner, '')\n  setText(botBanner, '')\n  setText(hint, '堆满一行即消除')\n  print('guide stage=1')\nend\n\nlocal function toggleKeymap()\n  if guideStage == 2 then\n    guideStage = 1\n    setText(hint, '')\n    setText(botBanner, '')\n    print('guide stage=1 resume')\n  else\n    guideStage = 2\n    showKeymap()\n    print('guide stage=2 keymap')\n  end\nend\n\nshowGameOver = function()\n  setText(topBanner, 'GAME OVER')\n  if topBanner then topBanner.fontColor = C(255, 255, 77, 77) end\n  setText(botBanner, '得分 ' .. score .. '　　本局最高 ' .. bestScore .. '　　按 R 重开')\n  setText(hint, '')\n  print('guide gameover')\nend\n\nupdateBest = function()\n  if score > bestScore then bestScore = score end\nend\n\n--------------------------------------------------------------------------------\n-- 布局：按画布尺寸算三栏 + 上下横幅（换设备不用重新导入）\n--------------------------------------------------------------------------------\n\nlocal function layout(W, H)\n  local halfW, halfH = W / 2, H / 2\n  local panelW = 420\n  local leftCX, rightCX = -(halfW - panelW / 2 - 20), halfW - panelW / 2 - 20\n  RIGHT_CX = rightCX\n  local bannerY = halfH - 30   -- 56 高、上边缘贴 2px\n  local function place(ctl, x, y, w, h)\n    if not ctl then return end\n    ctl:SetSizeDelta(w, h)\n    ctl:SetAnchoredPosition(x, y)\n  end\n  -- 框高硬判据（渲染器实测）：h >= fontSize*1.45 + 4 才画这一行，否则整行静默不画。\n  -- 64 号 -> >=96.8（h=96 曾整块消失）、34 -> >=53.3、26 -> >=41.7、22 -> >=35.9。\n  place(title, leftCX, halfH - 150, panelW, 100)      -- 64 号\n  place(hud, leftCX, halfH - 235, panelW + 40, 40)   -- 20 号：22 号时尾部一个字被裁，实测\n  place(best, leftCX, halfH - 280, panelW, 36)       -- 20 号\n  place(hint, leftCX, -60, panelW, 150)              -- 22 号\n  place(hudNext, rightCX, halfH - 150, 200, 40)      -- 22 号\n  place(keyA, rightCX, -40, panelW, 38)              -- 22 号\n  place(keyB, rightCX, -80, panelW, 38)              -- 22 号\n  place(keyC, rightCX, -120, panelW, 38)             -- 22 号\n  place(topBanner, 0, bannerY, W - 180, 56)          -- 34 号\n  place(botBanner, 0, -(bannerY + 2), W - 180, 44)   -- 22 号，与棋盘底留 11px\nend\n\n--------------------------------------------------------------------------------\n-- 生命周期\n--------------------------------------------------------------------------------\n\nfunction OnStart()\n  root = script.object\n  if not root then error('tetris: script.object is nil') end\n  root.showCursor = true\n  script:EnableUpdate(true)      -- 默认 false：不显式打开就不会派发 OnUpdate\n\n  local W, H = game.GetUICanvasSize()\n  print('canvas ' .. tostring(W) .. 'x' .. tostring(H))\n\n  -- 模板 guid 探测（双宿主）：模拟器认 authoring 原值，真机认导入后重编号值\n  local tplGuid\n  local firstCell\n  for _, g in ipairs(TEMPLATE_GUIDS) do\n    firstCell = game.InstantiateClientUIControl(g, root)\n    if firstCell then tplGuid = g break end\n  end\n  if not firstCell then\n    error('tetris: 模板 guid 都不可用，候选=' .. #TEMPLATE_GUIDS .. '（导入后请用 assets:ui list --flat 校准）')\n  end\n  print('tpl guid=' .. tplGuid)\n\n  cells = {}\n  for i = 1, COLS * ROWS do\n    local c = firstCell\n    firstCell = nil\n    if not c then c = game.InstantiateClientUIControl(tplGuid, root) end\n    if not c then error('tetris: InstantiateClientUIControl failed at ' .. i) end\n    local col = (i - 1) % COLS\n    local row = (i - 1) // COLS\n    c.name = 'cell' .. i\n    c:SetSizeDelta(CELL, CELL)\n    c:SetAnchoredPosition((col - 4.5) * PITCH, (9.5 - row) * PITCH)\n    c.imageColor = COL_EMPTY\n    cells[i] = c\n  end\n  print('cellCount=' .. #cells)\n\n  -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界\n  local FRAME_COL = C(255, 76, 194, 255)\n  local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149\n  frames = {}\n  -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）\n  local frameX = boardEdgeW + 1                      -- 150\n  local frameY = 9.5 * PITCH + CELL / 2 + 1          -- 300\n  local specs = {\n    { -frameX, 0, 2, 2 * frameY + 2 },               -- 左\n    { frameX, 0, 2, 2 * frameY + 2 },                -- 右\n    { 0, frameY, 2 * frameX + 2, 2 },                -- 上\n    { 0, -frameY, 2 * frameX + 2, 2 },               -- 下\n  }\n  for i = 1, #specs do\n    local fr = game.InstantiateClientUIControl(tplGuid, root)\n    if fr then\n      local sp = specs[i]\n      fr.name = 'frame' .. i\n      fr:SetSizeDelta(sp[3], sp[4])\n      fr:SetAnchoredPosition(sp[1], sp[2])\n      fr.imageColor = FRAME_COL\n    end\n    frames[i] = fr\n  end\n\n  -- NEXT 预览四格（同一模板，缩到 18px）\n  preview = {}\n  for i = 1, 4 do\n    local c = game.InstantiateClientUIControl(tplGuid, root)\n    if c then\n      c.name = 'next' .. i\n      c:SetSizeDelta(18, 18)\n      c:SetAnchoredPosition(400, 175)\n      c.imageColor = COL_BG\n    end\n    preview[i] = c\n  end\n\n  title, hud, hudNext, best = find('title'), find('hud'), find('hudNext'), find('best')\n  hint, keyA, keyB, keyC = find('hint'), find('keyA'), find('keyB'), find('keyC')\n  topBanner, botBanner = find('topBanner'), find('botBanner')\n  layout(W, H)\n\n  -- 引导初始态：等玩家按第一个键（重力暂停，画面静止好读）\n  guideStage, bannerTimer, taughtLock, taughtClear = 0, 0, false, false\n  bestScore = 0\n  setText(title, 'TETRIS')\n  setText(hint, '键盘操作')\n  setText(topBanner, '俄罗斯方块')\n  setText(botBanner, '按任意键开始')\n\n  -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）\n  -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，\n  -- 2026-10-24 日志实证）；模拟器接受字符串。两种都试：先枚举，失败回落字符串。\n  local enumKeys = (type(Enum) == 'table' and Enum.KeyEventType) or nil\n  local function listen(name, fn)\n    local ok, err, how\n    if enumKeys and enumKeys[name] ~= nil then\n      ok, err = pcall(function() root:AddKeyEventListener(enumKeys[name], fn) end)\n      how = 'enum'\n    end\n    if not ok then\n      ok, err = pcall(function() root:AddKeyEventListener(name, fn) end)\n      how = 'string'\n    end\n    if ok then\n      print('listen ok ' .. name .. ' via ' .. how)\n    else\n      print('listen fail ' .. name .. ' :: ' .. tostring(err))\n    end\n  end\n\n  -- 每个动作前先 startIfWaiting()：入场态按的第一个键既开始游戏也执行该动作\n  -- （不吞键，用例与手感一致）；stage 2 键位表期间除 H/R 外全部忽略。\n  local function act(fn)\n    return function()\n      startIfWaiting()\n      if guideStage == 2 then return end\n      fn()\n    end\n  end\n\n  listen('KeyboardCraftspersonKey38Down', act(function()   -- ←\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x - 1, piece.y) then\n      piece.x = piece.x - 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end))\n  listen('KeyboardCraftspersonKey39Down', act(function()   -- →\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x + 1, piece.y) then\n      piece.x = piece.x + 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end))\n  listen('KeyboardCraftspersonKey36Down', act(rotate))     -- ↑\n  listen('KeyboardCraftspersonKey37Down', act(stepDown))   -- ↓\n  listen('KeyboardJumpKeyDown', act(function()             -- Space\n    if gameOver or not piece then return end\n    local dropped = 0\n    while not collides(piece.cells, piece.x, piece.y + 1) do\n      piece.y = piece.y + 1\n      dropped = dropped + 1\n    end\n    print('harddrop rows=' .. dropped .. ' y=' .. piece.y)\n    doLock()\n  end))\n  -- WASD（真机常用；具名键 MoveLeft/Right/Forward/Backward）\n  listen('KeyboardMoveLeftKeyDown', act(function()          -- A\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x - 1, piece.y) then\n      piece.x = piece.x - 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end))\n  listen('KeyboardMoveRightKeyDown', act(function()         -- D\n    if gameOver or not piece then return end\n    if not collides(piece.cells, piece.x + 1, piece.y) then\n      piece.x = piece.x + 1\n      renderPiece()\n      print('move x=' .. piece.x)\n    end\n  end))\n  listen('KeyboardMoveForwardKeyDown', act(rotate))         -- W\n  listen('KeyboardMoveBackwardKeyDown', act(stepDown))      -- S\n  listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）\n    startIfWaiting()\n    if guideStage == 2 then guideStage = 1 setText(hint, '') end\n    newGame()\n    setText(topBanner, '')\n    setText(botBanner, '')\n  end)\n  listen('KeyboardCharacterSkill1KeyDown', function()       -- H 键位表\n    startIfWaiting()\n    toggleKeymap()\n  end)\n  -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时\n  -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。\n  listen('KeyboardCharacterSkill4KeyDown', act(function()\n    for rr = ROWS - 1, ROWS do\n      for c = 1, COLS do board[rr][c] = COL_BLUE end\n    end\n    print('debug-fill')\n    renderAll()\n    renderHud()\n  end))\n\n  -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）\n  local okNew, errNew = pcall(newGame)\n  if not okNew then print('newGame error :: ' .. tostring(errNew)) end\nend\n\n\nfunction OnUpdate(dt)\n  local d = tonumber(dt) or 0\n  if d <= 0 then return end\n  if bannerTimer > 0 then\n    bannerTimer = bannerTimer - d\n    if bannerTimer <= 0 then\n      bannerTimer = 0\n      setText(botBanner, '')\n      setText(hint, '')\n    end\n  end\n  if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力\n  acc = acc + d\n  local guard = 0\n  while acc >= STEP and guard < 8 do\n    acc = acc - STEP\n    guard = guard + 1\n    tickCount = tickCount + 1\n    if not gameOver and tickCount % GRAVITY_TICKS == 0 then\n      stepDown()   -- 判负在 spawn -> showGameOver 里收口\n    end\n  end\nend\n\nfunction OnDestroy() end\n",
         "controlId": "n1",
         "controlAsset": "server-control-template"
       }

@@ -1,10 +1,21 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "02 方块下落一帧（固定步长重力）",
+  "name": "02 方块下落一帧（固定步长重力；含入场开始按键）",
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
-  "events": [],
+  "events": [
+    {
+      "t": 0.02,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 0.02,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    }
+  ],
   "asserts": [
     {
       "at": 0.55,

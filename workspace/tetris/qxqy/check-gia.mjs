@@ -31,14 +31,16 @@ const serverNodes = (() => {
   if (back.project?.root) walk(back.project.root)
   return n
 })()
-check('importGia 解出客户端模板 = 1', templateCount === 1, `${templateCount}`)
+check('importGia 解出客户端模板 = 1（cell）', templateCount === 1, `${templateCount}`)
 check('importGia 解出脚本映射 = 1', scriptCount === 1, (back.scripts || []).map((s) => s.path).join(','))
-check('importGia 解出服务端控件 = 4（根 + 容器 + 2 个 HUD 文本）', serverNodes === 4, `${serverNodes}`)
+check('importGia 解出服务端控件 = 12（根 + 容器 + 10 个文本）', serverNodes === 12, `${serverNodes}`)
 check('GIA 是整合包（服务端 + 客户端同文件）', back.metadata?.combined === true, String(back.metadata?.combined))
 
 const luaInGia = (back.scripts || [])[0]?.source || ''
 check('GIA 内联 Lua 源码非空', luaInGia.length > 2000, `${luaInGia.length} B`)
 check('Lua 源码含 OnUpdate 固定步长', luaInGia.includes('GRAVITY_TICKS') && luaInGia.includes('EnableUpdate(true)'))
+check('Lua 源码含模板 guid 双宿主探测', luaInGia.includes('TEMPLATE_GUIDS'))
+check('Lua 源码含引导状态机', luaInGia.includes('guide stage='))
 
 // 2) 存档能被 importData 重新加载
 const raw = readFileSync(savePath)
