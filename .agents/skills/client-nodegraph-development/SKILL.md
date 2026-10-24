@@ -334,6 +334,7 @@ client_node_metadata.ts（服务端名字表撞号不可信）；客户端多分
 | `verify/d2-client/` | 角色技能路径标准模板（d2-skill/d2-client-skill/signals） |
 | `verify/zaowu-client/` | 造物技能路径标准模板（20007/20008/20009 三图+监听图+signals，1915 首验通过） |
 | `verify/zt-lane/` | 计算通道同步机制标准模板（门控图/dispatcher/邮箱生产者，3064/3067 两轮验证） |
+| **`examples/client-kit/`** | **从足球 v5 抽离的客户端计算库**（通道原语/邮箱协议/服务端落库 + 编译自证图 + 12 条硬约束 + 移植 runbook）。新任务先 import 它，门禁 `scripts/check-client-kit.sh`；⚠️ 客户端图必须用 **dist CLI** 编译（`node dist/src/cli/gsts.js`），用 `npx tsx src/cli` 会踩 src/dist 双副本 ⇒ IR 恒空 |
 | `retrospective-2026-08-31-compute-lane-sync.md` | 五D 机制的完整错误谱系与实测数字（game-engine-knowledge/） |
 | `verify-injection/references/verified-cases.md` D2 节 | 教训①~⑦ 案例库 |
 | `docs/game-engine-knowledge/graph-mounting.md` | 特殊实体（玩家/角色 def 1090519041）挂载 |

@@ -12,6 +12,7 @@
 | cage-football/ | 笼式足球实验 | 活跃（实验） | CONTEXT.md、DESIGN.md |
 | rubik-2x2/ | 2×2 魔方（game-from-scratch 参照样板） | 静默（08-23 后） | README.md、PROGRESS.md |
 | lights-out/ | 灯阵关灯玩法 | 静默 | DESIGN.md、PROGRESS.md |
+| client-kit/ | **共享客户端计算库**（通道原语/邮箱协议/服务端落库/编译自证；无场景语义） | 活跃（2026-10-24 抽离） | README.md；门禁 `scripts/check-client-kit.sh` |
 | cube-replica-c4/ | C4 元件复刻实验 | 单轮实验 | PLAN.md |
 | composite-replica/ | 复合复现实验 | 实验 | README.md |
 | ui-interact-test/ | UI 交互测试 | 实验 | 无文档，看 src |
@@ -21,6 +22,8 @@
 规则：
 
 - demo 之间不共享代码；跨 demo 复用先确认目标 demo 的节点预算与资产 ID 段。
+- **例外：`client-kit/` 是共享库不是 demo**——它只放与场景无关的通道/协议原语；
+  图声明（`g.creationSkill(...)`）与数学内核必须留在场景文件里（库里的图声明不会被 Stage 1 展开）。
 - 各 demo 的地图/图/元件 ID 以各自 AGENTS.md / PROGRESS.md 为准，禁止跨 demo 推测。
 - 静默 demo 优先只读——作参照样板时不要顺手改动。
 - 状态列按提交活动人工维护（最近核对 2026-09-02）；引用前可用 `git log -1 -- <目录>` 复核。
