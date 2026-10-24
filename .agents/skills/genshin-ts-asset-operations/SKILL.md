@@ -58,6 +58,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 | 地图还没有目标图，注入找不到图 | `assets:node-graphs create`（空图占位） |
 | 屏幕控件/UI 空间 | `assets:ui list\|clone\|create\|update\|template` |
 | 信号注册/更新/修复/检查 | `assets:signals inspect\|register\|update\|repair` |
+| 阵营（关卡阵营表 / 实体或页面实例的阵营值） | `assets:factions list\|get\|set`（wire 见 [factions.md](../../../docs/game-engine-knowledge/factions.md)） |
 | 技能配置创建/列出（36/6/28 模板×普通/瞬发+绑定） | `assets:skill-config create\|list`（详见 reference 速查；28 模板固定模型遗迹守卫 10005001、root20 联动；28+普通 仅 list） |
 | 技能变量（root15 type=30） | `gsts assets:skill-variables list --gil <map.gil>` / `create --id <id> --name <名> [--output <候选> | --write]`（段起点 1207959553 顺延；2026-10-24 编辑器验收通过，root6/root21/root46 都不用写） |
 | **写回/引用前：盘点地图既有同类资产**（技能变量段真实边界、单位状态是否已存在及其参数态） | `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>`（只读；2026-09-04 票 20 E0 沉淀） |
@@ -307,6 +308,30 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 > `gsts <族> --help` **只打印选项、不列子动作**。查某族动作全集要读 `src/cli/*.ts` 的 `usage()` 字符串
 > （例外：`assets:node-graphs` / `assets:skill-config` 把动作表写进了 usage）。
 
+### H. 阵营（`assets:factions`，2026-10-24 差分闭合 + CLI 落地）
+
+官方语义（`docs/ui-tutorial/official-guide-concepts.md` §阵营 1637–1700）：阵营在**关卡设置 → 阵营页签**定义
+（名称 / 默认阵营对象 / 包含的玩家 / 包含的实体）；实体「基础信息」里的阵营字段决定归属；
+**值为 0 = 默认**，按该实体类型的默认阵营对象分配；阵营关系**单向**敌对/友善；节点图有修改/查询/事件三件。
+
+```bash
+gsts assets:factions list --gil <map> [--format json]      # 阵营表 + 全局分布（只读）
+gsts assets:factions get  --target <记录id> [--layer entity|instance] --gil <map>
+gsts assets:factions set  --target <记录id> --faction <0|id|名称> [--layer ...] \
+                          [--output <候选>|--write]
+```
+
+- **分层**：`entity` = root5 场景实体（游戏读的那份）；`instance` = root8 元件页面实例（**在元件定义页里改的阵营落这里**）；
+  `root4` 定义本体**没有**阵营槽（命令 fail closed 并提示）。
+- **wire**：`f6{f1=6}.f16{f1=<id>}`；默认 = `f16` 空 message（`08 06 82 01 00`，5 B）；有值 7 B。
+  **`f6` 是基础信息区块，不是组件槽**（组件槽是 `f7`，每条带 `f2=1`；其码 6 = 特效播放）。
+- **坑**：场景实体 `f5` 是能力槽镜像（技能/决策图），别当基础信息；改定义级阵营**不会**回落覆盖已有实体
+  （实体写「默认」就是空 message，运行期由引擎按类型默认解析）。
+- 写回带**回读自检**（候选字节重读必须等于目标，否则报错），`--write` 自动备份 + 同步 Temp；
+  文件级自检：`python3 tools/gil-header-check.py <候选>` + `python3 tools/gil-guard.py <候选>`。
+- 回归：`npx tsx tests/gil_factions_test.ts`（`npm run test:factions`）——判据是**与编辑器产物逐字节相等**
+  （四种槽形态 + 1→2→1 可逆 + 阵营表三条 + 本机有快照时 v0→v4 整记录对照 4/4）。
+
 ## 已闭合 / 未覆盖（fail closed，不猜字节）
 
 已闭合（有真实样本/回读支撑）：
@@ -322,6 +347,9 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   `{18,2700,定义}`、`{3,200,实体}`；**定义独有 `f9`/`f10`/`501` 不得进实体**（CLI 曾误搬 f9，
   2026-10-13 修 `entityFromDefinition`）；ID 段 1082130433 起；创建走**字节透传克隆**
   （`assets:creations create|export-template`，模板必须来自编辑器产物）。
+- **阵营（2026-10-24 差分闭合，`assets:factions`）**：赋值槽 `f6{f1=6}.f16{f1=id}`（0=空 message=默认）、
+  关卡阵营表 `root11.f2`（名字/图标/包含的玩家已验证；`f11` 默认阵营对象、`f13` 敌对列表为**强推断**，
+  需改一次阵营关系/默认对象做差分才能定论）。
 - **造物配置面（2026-10-23 差分闭合，`assets:creations inspect|skill|decision`）**——四层各有自己的槽，
   读/写一律按「层 + 槽代码」定位（def 记录槽在 `f6`，页面实例/实体在 `f5`）：
   | 槽代码 | 语义 | wire |

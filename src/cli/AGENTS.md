@@ -26,6 +26,7 @@
 | `maps` | 地图创建/打开/同步 Temp | `maps.ts`、`gil_paths.ts` |
 | `maps:create` / `maps:init` / `maps:resync` / `maps:rename` | 建图 / 补引擎骨架 root 3-49（首次保存门槛）/ 同步编辑器 Temp + gip 注册 / 改名 | `maps.ts` |
 | `assets:creations` | 字节透传克隆创建复杂造物（create/export-template）+ **造物配置读写（inspect / skill add·bind / decision bind）** | `assets_creations.ts`、`gil_creations.ts` |
+| `assets:factions` | 阵营 list/get/set（root11 阵营表 + root5 实体 / root8 页面实例的 `f6` 阵营槽；0=默认写空 message） | `assets_factions.ts`、`gil_factions.ts` |
 | `assets:aux` | 给实体/元件/模型宿主挂装饰物（root 27 aux） | `assets_aux.ts` |
 | `assets:structs` | 地图级结构体 list/inspect/create/update（root6 注册 + root10 f6 定义，23 成员类型） | `assets_structs.ts` |
 | `assets:library-inject` | 把 assets/images/*.css 资产注入 .gil 素材库 | `assets_library_inject.ts` |

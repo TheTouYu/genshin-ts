@@ -39,6 +39,7 @@ import { runAssetsScripts } from './assets_scripts.js'
 import { runAssetsLevelVariables } from './assets_level_variables.js'
 import { runAssetsPrefabs } from './assets_prefabs.js'
 import { runAssetsCreations } from './assets_creations.js'
+import { runAssetsFactions } from './assets_factions.js'
 import { runAssetsAux } from './assets_aux.js'
 import { runAssetsGadgets } from './assets_gadgets.js'
 import { runAssetsResources } from './assets_resources.js'
@@ -2019,6 +2020,27 @@ async function main() {
         ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
         : undefined
       await runAssetsCreations(args, projectConfig)
+    })
+
+  program
+    .command('assets:factions')
+    .description('read/write level factions (阵营): list table, get/set an entity or page-instance faction')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup (syncs Temp)')
+    .option('--format <format>', 'output format: text or json')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:factions')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      const projectConfig = projectConfigPath
+        ? await loadGstsConfig(projectConfigPath, { profile: 'project' })
+        : undefined
+      await runAssetsFactions(args, projectConfig)
     })
 
   program

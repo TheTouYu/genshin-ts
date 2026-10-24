@@ -263,6 +263,15 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/gil-quick-diff
   --capture-dir <实验目录>/raw --snap <语义名-vN> [--record <配置ID>] [--effect-list]
 ```
 
+**先查规则是否已闭合再开差分**（省用户配合成本）：已闭合的 wire 直接走生产 CLI，别再让用户重做实验。
+已知闭合入口一览：阵营 / 组件槽 / 变量 → `genshin-ts-asset-operations`（阵营含
+`gsts assets:factions list|get|set`，wire 见 `docs/game-engine-knowledge/factions.md`）；造物配置 →
+`assets:creations`；结构体 → `assets:structs`；图内部逻辑 → `gil-node-graph-reading/editing`。
+
+**排到图容器（root10）时先做语义对账**：字节 diff 报 ±N 字节不等于逻辑变了——用
+`npm run gil:parse-node-graph -- <gil> --graph <名字>` 比对节点数/引脚/连线，语义视图一致即**编辑器重序列化噪音**
+（2026-10-24 实测：四张 `_GSTS_kit*` 图 ±759 B 而语义零差异）。
+
 自动完成：hash 门禁（两文件相同 → exit 2，先向用户确认保存）→ 不覆盖捕获新快照+sha256 →
 root 差分 + 子记录级 delta（每条一行紧凑解码）→ 焦点深解码（`--record` 定位 root15/16 资产
 记录、`--effect-list` 对比状态效果列表），尾部直接输出下轮 `LOCKED_BEFORE/LOCKED_HASH` 两行。
