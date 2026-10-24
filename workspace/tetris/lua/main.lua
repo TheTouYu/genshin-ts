@@ -42,10 +42,16 @@ local PITCH         = CELL + GAP
 local TPL_GUIDS = {
   cell = { __GUID_CELL__, 1073741849, 1073741854 },
   hit  = { __GUID_HIT__, 1073741884, 1073741865, 1073741866 },
-  -- 结算层容器模板。**真机 guid 排第一**：真机地图里已有「控件模板:客户端控件容器_1」(1073741865)，
-  -- 而 __GUID_SETTLE__ 是模拟器 authoring 值；模拟器对不存在的 guid 返回 nil（不报错），
-  -- 所以这个顺序在两个宿主上都命中正确的那个。（反过来真机可能撞到同号别的模板）
-  settle = { 1073741865, __GUID_SETTLE__ },
+  -- 结算层**容器模板**候选：真机地图里的两个容器组 + 它们的容器节点 + 模拟器模板。
+  -- 2026-10-24 真机日志实证：容器组 1073741865 在真机 `InstantiateClientUIControl` 返回 nil
+  -- ⇒ 容器整棵实例化在真机不支持（要么容器不在可实例化表里，要么引擎只认叶子控件），
+  -- 所以下面还有一组 settleText（单控件模板）退路，并把每条候选的探测结果打进日志。
+  settle = { 1073741865, 1073741921, 1073741845, 1073741859, __GUID_SETTLE__ },
+  -- 结算层**单控件（textbox）模板**候选：模拟器 stext + 真机模板区里的 textbox 记录（逐个试）
+  -- 1073742200 = 2026-10-24 用 `gsts assets:ui template clone 1073741935 --id 1073742200 --top-level`
+  -- 新建的**顶层 textbox 模板**（真机容器模板实例化不了，这个才是真机能用的那条）
+  settleText = { 1073742200, 1073741935, 1073741923, 1073741937, 1073741934,
+                 1073741933, 1073741922, __GUID_STEXT__ },
 }
 local STEP          = 1 / 60
 local GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）
@@ -91,7 +97,8 @@ local flashT, introT, overlay
 local introFont, introPulse
 local autoDriving = false   -- true = 本次落子由入场 AI 驱动（抑制教学提示与高频日志）
 local elapsed = 0           -- 本局用时（结算明细用）
-local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行时整棵实例化，层级高于棋盘格）
+local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行时实例化，层级高于棋盘格）
+local settleReady = false   -- 结算层真的可用了（容器整棵 或 单控件文字都行；两者都拿不到才回退布局横幅）
 local settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts
 local settleOn, settleT, settleDone = false, 0, false
 local settleFade = -1       -- 遮罩/面板淡入进度（0..1，只在变化够大时写 UI）
@@ -246,37 +253,109 @@ settleHideAll = function()
   end
 end
 
-local function buildSettleLayer()
-  settleLayer = instInto(TPL_GUIDS.settle, root, nil)
-  if not settleLayer then
-    print('settle layer=none  (模板探测失败 ⇒ 退化为布局横幅结算)')
-    return
+-- 每个结算槽位在"容器模板"里的候选子控件名（模拟器的 settle 模板 / 真机的 客户端控件容器_1 两套命名）
+local SETTLE_KEY_NAMES = {
+  title = { 'settleTitle', 'title' },
+  score = { 'settleScore', 'hud' },
+  best  = { 'settleBest', 'best' },
+  info  = { 'settleInfo', 'hint' },
+  extra = { 'settleExtra', 'keyA' },
+  opts  = { 'settleOpts', 'botBanner' },
+}
+
+-- ① 容器整棵实例化：逐条候选打印结果（真机 2026-10-24 实证容器组返回 nil，所以这里是排查主入口）
+local function probeSettleContainer()
+  for _, g in ipairs(TPL_GUIDS.settle) do
+    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
+    if ok and ctl then
+      local okc, kids = pcall(function() return ctl:GetChildren() end)
+      local n = (okc and type(kids) == 'table') and #kids or -1
+      local hasTitle = findIn(ctl, SETTLE_KEY_NAMES.title) ~= nil
+      local hasOpts = findIn(ctl, SETTLE_KEY_NAMES.opts) ~= nil
+      print('settle try tpl=' .. g .. ' -> ok kids=' .. n
+        .. ' title=' .. tostring(hasTitle) .. ' opts=' .. tostring(hasOpts))
+      if hasTitle and hasOpts then return ctl end
+      pcall(function() game.DestroyClientUIControl(ctl) end)   -- 不命中别留垃圾
+    else
+      print('settle try tpl=' .. g .. ' -> nil')
+    end
   end
-  -- 遮罩 + 面板：用已有的 cell image 模板实例化，父 = 这一层的实例 ⇒ 层级高于棋盘格。
-  -- 顺序很关键：运行时实例化会追加到子节点末尾 = **画在更上面**（实测：先造的两个 image
-  -- 把整块文字盖暗了），所以造完必须 SetAsFirstSibling 把它们挪到最底下。
-  settleScrim = instInto(TPL_GUIDS.cell, settleLayer, nil)
-  settleCard = instInto(TPL_GUIDS.cell, settleLayer, nil)
-  settleBorder = instInto(TPL_GUIDS.cell, settleLayer, nil)   -- 面板描边（强调色，比面板大 8px）
-  tryCall(settleCard, 'SetAsFirstSibling')
-  tryCall(settleBorder, 'SetAsFirstSibling')
-  tryCall(settleScrim, 'SetAsFirstSibling')   -- 后调这个 ⇒ 顺序是 scrim → border → card → 文字
-  settleTitle = findIn(settleLayer, { 'settleTitle', 'title' })
-  settleScore = findIn(settleLayer, { 'settleScore', 'hud' })
-  settleBest = findIn(settleLayer, { 'settleBest', 'best' })
-  settleInfo = findIn(settleLayer, { 'settleInfo', 'hint' })
-  settleExtra = findIn(settleLayer, { 'settleExtra', 'keyA' })
-  settleOpts = findIn(settleLayer, { 'settleOpts', 'botBanner' })
-  -- 真机上如果 guid 撞上了别的模板（实例化成功但子控件取不到），必须当失败处理：
-  -- 退化成布局横幅结算，而不是留一个"空层"让玩家什么都看不到。
+  return nil
+end
+
+-- ② 单控件（textbox）模板：只探 guid（探针实例用完就销毁——否则它先造出来会被后造的遮罩盖住）
+local function probeSettleTextbox()
+  for _, g in ipairs(TPL_GUIDS.settleText) do
+    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
+    if ok and ctl then
+      local okc, kids = pcall(function() return ctl:GetChildren() end)
+      print('settle try text tpl=' .. g .. ' -> ok kids='
+        .. ((okc and type(kids) == 'table') and #kids or -1))
+      pcall(function() game.DestroyClientUIControl(ctl) end)
+      return g
+    end
+    print('settle try text tpl=' .. g .. ' -> nil')
+  end
+  return nil
+end
+
+local function buildSettleLayer()
+  local container = probeSettleContainer()
+  if container then
+    settleLayer = container
+    settleTitle = findIn(container, SETTLE_KEY_NAMES.title)
+    settleScore = findIn(container, SETTLE_KEY_NAMES.score)
+    settleBest = findIn(container, SETTLE_KEY_NAMES.best)
+    settleInfo = findIn(container, SETTLE_KEY_NAMES.info)
+    settleExtra = findIn(container, SETTLE_KEY_NAMES.extra)
+    settleOpts = findIn(container, SETTLE_KEY_NAMES.opts)
+    -- 遮罩 + 面板 + 描边：cell image 模板，父 = 这一层 ⇒ 同在实例层，压得住棋盘。
+    -- 运行时实例化是"追加到子节点末尾 = 画得更上面"，所以造完要 SetAsFirstSibling 挪到最底。
+    settleScrim = instInto(TPL_GUIDS.cell, container, nil)
+    settleCard = instInto(TPL_GUIDS.cell, container, nil)
+    settleBorder = instInto(TPL_GUIDS.cell, container, nil)
+    tryCall(settleCard, 'SetAsFirstSibling')
+    tryCall(settleBorder, 'SetAsFirstSibling')
+    tryCall(settleScrim, 'SetAsFirstSibling')
+  else
+    -- ③ 退路：真机容器模板不可实例化 ⇒ 用**单个 textbox 模板**实例化 6 次当结算文字。
+    -- 顺序要紧：先造 3 张 image（遮罩/描边/面板，在下面），再造文字（在上面）。
+    local guid = probeSettleTextbox()
+    if guid then
+      -- 先 image（遮罩/描边/面板，画在下面），再文字（画在上面）
+      settleScrim = instInto(TPL_GUIDS.cell, root, nil)
+      settleBorder = instInto(TPL_GUIDS.cell, root, nil)
+      settleCard = instInto(TPL_GUIDS.cell, root, nil)
+      local function again()
+        local ok, c = pcall(function() return game.InstantiateClientUIControl(guid, root) end)
+        if ok and c then return c end
+        return nil
+      end
+      settleTitle = again()
+      settleScore = again()
+      settleBest = again()
+      settleInfo = again()
+      settleExtra = again()
+      settleOpts = again()
+      print('settle layer via=textbox guid=' .. tostring(guid)
+        .. ' texts=' .. (settleTitle and 1 or 0) + (settleScore and 1 or 0) + (settleBest and 1 or 0)
+        + (settleInfo and 1 or 0) + (settleExtra and 1 or 0) + (settleOpts and 1 or 0))
+    end
+  end
   if not (settleTitle and settleOpts) then
-    print('settle layer=none  (子控件取不到 ⇒ 退化为布局横幅结算)')
-    pcall(function() game.DestroyClientUIControl(settleLayer) end)
+    -- 全部候选都不可实例化 ⇒ 清掉半成品，让 showGameOver 走布局横幅
+    for _, ctl in ipairs({ settleLayer, settleScrim, settleCard, settleBorder, settleTitle,
+                           settleScore, settleBest, settleInfo, settleExtra, settleOpts }) do
+      if ctl then pcall(function() game.DestroyClientUIControl(ctl) end) end
+    end
     settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
     settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
+    settleReady = false
+    print('settle layer=none  (所有候选模板都不可实例化 ⇒ 退化为布局横幅结算)')
     return
   end
-  local okKids, kids = pcall(function() return settleLayer:GetChildren() end)
+  settleReady = true
+  local okKids, kids = pcall(function() return (settleLayer or root):GetChildren() end)
   print('settle layer ok children=' .. ((okKids and type(kids) == 'table') and #kids or 0)
     .. ' title=' .. (settleTitle and 'y' or 'n') .. ' score=' .. (settleScore and 'y' or 'n')
     .. ' best=' .. (settleBest and 'y' or 'n') .. ' info=' .. (settleInfo and 'y' or 'n')
@@ -324,7 +403,7 @@ local function settleTick(d)
     if settleCard then trySet(settleCard, 'imageColor', C(math.floor(232 * r1), 20, 24, 34)) end
     if settleBorder then trySet(settleBorder, 'imageColor', C(math.floor(90 * r1), 76, 194, 255)) end
     settleSetColors(math.floor(255 * r1))
-    if not settleLayer then
+    if not settleReady then
       -- 兜底（没有结算层）：压暗棋盘本身
       dimRatio = 0.45 * r1
       dimApplied = r1
@@ -626,7 +705,7 @@ showGameOver = function()
   bannerTimer = 0
   settleOpen = false
   print('guide gameover score=' .. score .. ' lines=' .. lines)
-  if settleLayer then
+  if settleReady then
     -- 结算层：先把文字写好，位置由 settleTick 从屏幕外滑入（0→0.9s 四段动画）
     setText(settleTitle, '游戏结束')
     setText(settleScore, '本局 ' .. score .. ' 分')
@@ -1210,7 +1289,7 @@ local function layout(W, H)
 
   -- 结算层几何（层建不出来时整段跳过）。框高仍按 h >= fontSize*1.45+4：
   -- 标题 44（脉冲到 48 ⇒ 需 73.6）⇒ 给 80；30→52；24→44；22→40；28→48。
-  if settleLayer then
+  if settleReady then
     local cw = W - 240
     if cw > 780 then cw = 780 end
     local ch = 400
@@ -1440,7 +1519,7 @@ function OnStart()
     local detail = '等级 ' .. level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
       .. '　消行率 ' .. rate .. '%'
     if settleOpen then
-      if settleLayer then
+      if settleReady then
         setText(settleExtra, detail)
         tryCall(settleExtra, 'SetVisible', true)
       else
@@ -1448,7 +1527,7 @@ function OnStart()
       end
       print('settle detail on')
     else
-      if settleLayer then
+      if settleReady then
         setText(settleExtra, '')
         tryCall(settleExtra, 'SetVisible', false)
       else

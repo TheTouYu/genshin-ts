@@ -56,6 +56,17 @@ export function buildStudio() {
   addSettleText('settleOpts', { posX: 0, posY: -112, width: 760, height: 48, fontSize: 28,
     text: '[R] 再来一局　　[Q] 结算明细', fontColor: C_WHITE, horizontalAlignment: 'Middle', verticalAlignment: 'Middle' })
 
+  // 单控件模板（第四轮补）：真机上**容器模板不可实例化**（`InstantiateClientUIControl(容器组 guid)` 返回 nil），
+  // 所以再准备一个"独立的 textbox 模板"，Lua 里实例化 6 次当结算文字（真机就靠这条）。
+  patch({ op: 'addTemplate', kind: 'textbox', name: 'stext' })
+  {
+    const id = s.get().selectedId
+    for (const [key, value] of Object.entries({
+      posX: 0, posY: 0, width: 760, height: 48, fontSize: 24, text: '',
+      fontColor: C_WHITE, horizontalAlignment: 'Middle', verticalAlignment: 'Middle',
+    })) patch({ op: 'set', id, key, value })
+  }
+
   // 2) 服务端资产：清掉默认橱窗，只留容器 n1（脚本宿主 + 所有 UI 控件的父节点）
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
   for (const id of ['n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11']) {
@@ -135,14 +146,16 @@ export function buildStudio() {
   const cellGuid = templates.find((t) => t.name === 'cell')?.guid
   const hitGuid = templates.find((t) => t.name === 'hit')?.guid
   const settleGuid = templates.find((t) => t.name === 'settle')?.guid
-  if (!cellGuid || !hitGuid || !settleGuid) {
-    throw new Error('客户端模板缺少 cell/hit/settle：' + JSON.stringify(templates.map((t) => t.name)))
+  const stextGuid = templates.find((t) => t.name === 'stext')?.guid
+  if (!cellGuid || !hitGuid || !settleGuid || !stextGuid) {
+    throw new Error('客户端模板缺少 cell/hit/settle/stext：' + JSON.stringify(templates.map((t) => t.name)))
   }
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
   const lua = readFileSync(join(root, 'lua/main.lua'), 'utf8')
     .replaceAll('__GUID_CELL__', String(cellGuid))
     .replaceAll('__GUID_HIT__', String(hitGuid))
     .replaceAll('__GUID_SETTLE__', String(settleGuid))
+    .replaceAll('__GUID_STEXT__', String(stextGuid))
   patch({
     op: 'addScript',
     path: 'lua/main.lua',
@@ -163,7 +176,7 @@ export function buildStudio() {
   if (cellGuid !== T_CELL) {
     throw new Error(`模板 guid 与 build.mjs 的 T_CELL 不一致：${cellGuid} !== ${T_CELL}`)
   }
-  return { studio: s, controls, templates: templates.length, cellGuid, hitGuid, settleGuid }
+  return { studio: s, controls, templates: templates.length, cellGuid, hitGuid, settleGuid, stextGuid }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -195,7 +208,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('save bytes      :', Buffer.byteLength(saveJson))
   console.log('gia bytes       :', bytes.length)
   console.log('gia templates   :', templateCount, 'cell=' + built.cellGuid, 'hit=' + built.hitGuid,
-    'settle=' + built.settleGuid)
+    'settle=' + built.settleGuid, 'stext=' + built.stextGuid)
   console.log('gia scripts     :', scriptCount, (back.scripts || []).map((x) => x.path))
   console.log('gia server nodes:', serverControls)
   console.log('gia combined    :', back.metadata?.combined)

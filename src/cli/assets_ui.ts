@@ -125,7 +125,8 @@ function usage(exitCode = 1): never {
     '  update: gsts assets:ui update <control-id> [--name|--text|--content|--position|--size|--color|--font-size|--align|--asset <素材ID>]',
     '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
-    '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>]',
+    '  template clone: gsts assets:ui template clone <source-id> --id <new-id> [--name <name>] [--top-level]',
+    '                  # --top-level：删掉 f504 建成模板根（顶层模板记录没有 f504，见 cell/容器组实测）',
     '  template create: gsts assets:ui template create --id <模板ID> --asset <素材索引ID> [--name <n>] [--position <x,y>] [--size <w,h>]',
     '  variables list: gsts assets:ui variables list [--gil <file>] [--page <悬浮交互页ID>] [--format json]',
     '  states: gsts assets:ui states --id <自定义按钮ID> [--gil <file>] [--format json]',
@@ -224,6 +225,7 @@ function parseArgs(argv: readonly string[]) {
   let templateSub: TemplateSub = 'list'
   let gilPath: string | undefined
   let donorGilPath: string | undefined
+  let topLevel = false      // template clone --top-level：建成顶层模板（删掉 f504）
   let outputPath: string | undefined
   let write = false
   let format: Format = 'text'
@@ -279,6 +281,7 @@ function parseArgs(argv: readonly string[]) {
     if (arg === '--gil') gilPath = value(argv, index++)
     else if (arg === '--donor-gil') donorGilPath = value(argv, index++)
     else if (arg === '--output') outputPath = value(argv, index++)
+    else if (arg === '--top-level') topLevel = true
     else if (arg === '--write') write = true
     else if (arg === '--format') {
       const raw = value(argv, index++)
@@ -423,6 +426,7 @@ function parseArgs(argv: readonly string[]) {
     templateSub,
     gilPath,
     donorGilPath,
+    topLevel,
     outputPath,
     write,
     format,
@@ -799,6 +803,7 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         args.targetId!,
         {
           id: args.newId!,
+          ...(args.topLevel ? { parentId: 0 } : {}),   // --top-level ⇒ 删 f504，当成模板根
           ...(args.name !== undefined ? { name: args.name } : {})
         },
         donorBytes

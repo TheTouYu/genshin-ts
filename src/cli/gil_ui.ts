@@ -1007,9 +1007,14 @@ export function cloneTemplate(
   if (options.parentId !== undefined) {
     const rf = parseMessageFields(record)
     if (!rf) throw new Error('[error] invalid UI control record')
-    record = emitWireMessage(
-      rf.map((f) => (f.number === 504 && f.wire === 0 ? { ...f, value: options.parentId! } : f))
-    )
+    // parentId === 0 ⇒ 建成**顶层模板**（实测：cell / 客户端控件容器_1 / 容器节点 这些顶层模板记录
+    // 根本没有 f504；f504 语义是"我挂在哪个容器节点下" ⇒ 顶层必须删掉该字段，不能写 0）
+    record =
+      options.parentId === 0
+        ? emitWireMessage(rf.filter((f) => !(f.number === 504 && f.wire === 0)))
+        : emitWireMessage(
+            rf.map((f) => (f.number === 504 && f.wire === 0 ? { ...f, value: options.parentId! } : f))
+          )
   }
   if (options.name !== undefined) record = setUiName(record, options.name)
   if (options.content !== undefined) record = setUiContent(record, options.content)
@@ -1018,7 +1023,10 @@ export function cloneTemplate(
   }
   const root9 = top.find((f) => f.number === 9 && f.wire === 2)!
   const section = parseMessageFields(root9.value as Uint8Array)!
-  section.push({ number: 502, wire: 2, value: record })
+  // root9 恒为 `501(索引) | 502×N(记录) | 503(varint 尾标)`：新记录必须插在 503 之前，
+  // 否则 guard 报「末字段应为 (503,varint)，实际 (502,bytes)」、编辑器判存档已损坏（2026-10-23/24 两次事故）
+  const tailAt = section.findIndex((f) => f.number === 503 && f.wire === 0)
+  section.splice(tailAt >= 0 ? tailAt : section.length, 0, { number: 502, wire: 2, value: record })
   root9.value = emitWireMessage(section)
   // prepend to field501 packed template list
   const f501 = section.find((field) => field.number === 501 && field.wire === 2)
