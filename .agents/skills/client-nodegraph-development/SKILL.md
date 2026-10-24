@@ -136,7 +136,7 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
    **cast 帧全对但技能静默不释放、客户端图零执行、addCharacterSkill 返回空**。
    排查判据见第五节决策树③。
 
-## 三、客户端图 DSL 与编译注入差异（八条实证）
+## 三、客户端图 DSL 与编译注入差异（九条实证）
 
 1. **单文件 entry 编译失败**：`entries:['./src/xxx.ts']` 只编客户端图会报
    `gsts.fCharacterSkill is only available in client_character_skill_* ctxType` ——
@@ -174,6 +174,14 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
      支持元件修改传导引用实例（含 f2={f1=defRef} 普通摆放实例形态）；
    - 读空排查三连问（用户 2026-09-04 指引）：①变量声明成功了吗（--list 核对**声明层级**）→ ②客户端
      拿到的实体对吗（帧 IN0:Entity 与服务端同读对照）→ ③实体上值真的在吗（编辑器变量面板查看）。
+
+10. **编译客户端图必须用构建后的 dist CLI（2026-10-24 实测，最坑的一条）**：用
+    `npx tsx src/cli/gsts.ts` 时，入口 `.gs.ts` 里 `import 'genshin-ts/runtime/core'` 被 tsconfig.tsx
+    解析到 **dist**，而 runner 自己的 graph registry 在 **src** ⇒ 双副本，`buildAllGraphRegistriesIRDocuments()`
+    拿到空数组：**IR 恒为 `[]`、`GIA 0 个、退出码 0**（假绿，日志只少几行 `[ok]`）。
+    正确写法：`npm run build` 之后 `node dist/src/cli/gsts.js --config <cfg> --noinject`。
+    判据：日志有 `[ok] <name>.json`（体积 >1KB）且 `GIA 全部生成完成（N 个）` 且 N≥1。
+    自证样板：`examples/client-kit/`（门禁 `scripts/check-client-kit.sh`）。
 
 ## 四、客户端↔服务端通信手段矩阵
 

@@ -820,6 +820,23 @@ const ap = motionToPoint(e, target=get(tmpPos))
 **没有注释的复合节点无法复用**。写复合节点时，注释要写清：用途 / 依赖（挂载哪、需要哪些变量）/
 负载 / 注意事项。这是「可复用资源包」与「一次性代码」的分水岭。
 
+## 共享库 / 模块化写法坑（2026-10-24 抽离 client-kit 时实测，全部静默失败）
+
+把 DSL 逻辑抽成**库文件**（被场景 import 的 .ts）时会撞四条与"库体不被 Stage 1 改写"相关的坑：
+
+1. **库体内 `g.*` 图注册不会被展开**：`g.creationSkill/g.server` 写在库函数里 ⇒ 图不注册、编译 exit 0、
+   产物 0 图。**图声明（`.on('start', ...)`）必须写在被编译入口文件的顶层**，库里只放 handler 帮手。
+2. **库体内 `f.localVariable('int').value` 拿到的是 pin 句柄**，不是值：IR 阶段报
+   `Generic parameter not matched: {"kind":"pin",...}, <undefined>`。需要"读一次多处消费"时，
+   把 `const l = f.localVariable('int'); l.set(x)` 写在**场景 handler 体**里，再把 `l.value` 传进库。
+3. **入口文件里写 `arr[i]` 取普通 JS 数组元素会被改写为"取 IR 列表第 i 项"** ⇒ 编译期拿到 `undefined`
+   （再喂给 `f.equal` 就报 `Generic parameter not matched: <undefined>, "1n"`）。载荷/配置表**按名字**
+   暴露（`mail.t1..t8`），不要按下标。
+4. **复合 `build` 内的 exec 链必须显式串联**：`f.connect(prev, 0, next, 0)` + `f.outflow('done', last, 0)` +
+   `return {}`。只有 handler 的分支体内才是"registerExecNode 后自动串联"；复合里不 connect ⇒ 只执行第一个节点。
+5. **客户端算子名**：比较是 `lessThanOrEqualTo` / `greaterThanOrEqualTo`（**没有** `lessThanOrEqual`）；
+   调用不存在的方法会在 Stage 2 抛 `TypeError: f2.x is not a function`，报错点指向场景文件而不是这里。
+
 ## 参考
 
 - 引擎运行时行为（运动器轴语义/公式/层成员）：`docs/game-engine-knowledge/motion-devices.md`

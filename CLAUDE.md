@@ -16,6 +16,7 @@
 ```bash
 npm run build                        # tsc 编译（prebuild：ambient 守卫 → 清空 dist.tmp 并从 dist 播种；
                                      #   成功后 dist.tmp→dist。增量缓存见「类型与运行时单副本」节，改一个文件约 7~8 秒）
+node dist/src/cli/gsts.js --config <cfg> --noinject   # 客户端图编译必须用 dist CLI（npx tsx src/cli ⇒ IR 恒 []、假绿）
 npm run build:clean                  # 精确构建（先删 dist + 增量缓存再全量，约 66 秒；发布/交付用）
 npm test                             # 构建 + 生成测试用例 + 完整 GIA 测试配置（--noinject）
 npm run quicktest                    # 构建后直接执行已有测试（快速验证）
@@ -122,7 +123,6 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
 - tsc 类型检查统一走 **src 单副本**；tsx 运行时统一走 **dist 单副本**（src/dist 双副本会导致 branded 类型不兼容）。
 - 新增 tsx spawn / CLI 入口必须给 runner 注入 `TSX_TSCONFIG_PATH=tsconfig.tsx.json`，路径用 `resolveTsxConfigPath(__dirname)`，不要写死相对层级。
 - 改 tsconfig/类型配置后验证解析方向：`node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`——输出 `src/...`=类型检查侧；`dist/...`=运行时侧。
-- 手动 `node --import tsx` 跑 .gs.ts 会走 src（与 dist CLI 分裂），仅调试/类型检查时用。
 - 完整根因（888 错、`kCtxStack` 分裂、`Cannot resolve tsconfig`）见 `docs/maintenance/retrospective-2026-08-30-build-gate-and-dual-copy.md`。
 
 ## 修改约束
