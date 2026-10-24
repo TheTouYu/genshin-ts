@@ -184,9 +184,15 @@ workspace/tetris/
 ### 10.5 预览图（真实渲染，不是示意图）
 
 ```bash
-node qxqy/shot.mjs   # 出 docs/preview-guide.png（入场自演 8s 一帧）/ preview-play.png /
-                     #    preview-clear.png / preview-gameover.png / preview-gameover-detail.png（Q 明细）
+node qxqy/shot.mjs   # 出 docs/preview-guide.png（入场自演"堆到 4 行"那一帧，不是固定秒数）/
+                     #    preview-play.png / preview-clear.png /
+                     #    preview-settle-anim-1.png（结算动画 settleT≈0.2s）/
+                     #    preview-settle-anim-2.png（settleT≈0.5s）/
+                     #    preview-gameover.png（settleT≈1.0s 稳定帧）/ preview-gameover-detail.png（Q 明细）
 ```
+
+结算那三张是**逐帧检测"游戏结束出现的那一帧"**再按固定步数抓的（`isOver()` 每落一块查一次），
+所以中途帧的 `settleT` 是准的；如果改成"隔 3 帧采样"，动画早已跑完，抓出来的三张会一模一样。
 
 链路：`createStudio(存档)` → `playStart({canvasId:'mobile-16-9'})` → `playKey`/`playStep` 步进 →
 `playGet({view:true})` 取 `scene` → `renderScenePng` 落 PNG。
