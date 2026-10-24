@@ -673,20 +673,20 @@ end
 
 --------------------------------------------------------------------------------
 -- 入场「AI 自演」：guideStage == 0 时脚本自己玩，玩家一按键（startIfWaiting）立即交还控制。
--- 节奏按「人手速 + 思考停顿」设计（2026-10-24 第三轮，用户反馈「1.8 块/s 是机器在刷」）：
---   单块 1.5~2.9s，其中 思考 0.35~0.9s 完全不动 → 旋转 0.15~0.2s/次 → 横移 0.12~0.18s/格
---   → 落底前停顿 0.15~0.3s（"确认位置"）→ 硬降；10~15% 概率加一次犹豫
---   （到位后停 0.2s、回退一格、再移回来）。
--- 选位用 El-Tetris 四项权重（公开的经典权重，公认打得好，比第一版的粗糙打分强）：
---   score = -0.510066*总高 + 0.760666*消行 - 0.35663*空洞 - 0.184483*崎岖
--- 保命：最优方案落点高度 > AI_RESET_ROWS 时先找"能消行"的方案；仍无解就清盘重开。
-local AI_THINK_MIN, AI_THINK_MAX = 0.35, 0.90     -- 思考停顿（完全不动）
-local AI_MOVE_MIN, AI_MOVE_MAX = 0.12, 0.18       -- 横移一格
-local AI_ROT_MIN, AI_ROT_MAX = 0.15, 0.20         -- 旋转一次
-local AI_SETTLE_MIN, AI_SETTLE_MAX = 0.15, 0.30   -- 落底前"确认位置"停顿
-local AI_HESITATE_P = 12                          -- 犹豫概率（%）
-local AI_PIECE_MIN, AI_PIECE_MAX = 1.5, 2.9       -- 单块总时长上下限（太快的块让 AI 多想一会儿）
-local AI_RESET_ROWS = 12                          -- 堆到这么高就清盘重开（任务书阈值）
+-- 第四轮（用户反馈「看着窒息」）：
+--  ① 选位像人：贴墙奖励（tie-breaker 量级）+ 禁止在中间挖 1 宽深井（竖 I 不许塞中间）；
+--  ② 执行像人：观察 → 分段横移（1~2 格一停）→ 途中偶尔小落 → 到位犹豫 / 再看一眼 →
+--     最后 50% 软降逐格落 / 50% 硬降，全程打 `demo pace` / `demo act` 日志。
+local AI_OBSERVE_MIN, AI_OBSERVE_MAX = 0.25, 0.70   -- 算完之后先看清局面（完全不动）
+local AI_MOVE_MIN, AI_MOVE_MAX = 0.08, 0.25         -- 两次横移之间
+local AI_ROT_MIN, AI_ROT_MAX = 0.15, 0.25           -- 旋转本身
+local AI_ROTGAP_MIN, AI_ROTGAP_MAX = 0.10, 0.20     -- 两次旋转之间
+local AI_HOVER_MIN, AI_HOVER_MAX = 0.20, 0.40       -- 落定前"再看一眼"
+local AI_SOFT_MIN, AI_SOFT_MAX = 0.06, 0.12         -- 软降一格
+local AI_PIECE_MIN = 1.5                            -- 单块总时长下限（上限 3.5 由 planTiming 的预算 + 3.4s 兜底守住）
+local AI_RESET_ROWS = 12                            -- 堆到这么高就清盘重开
+local W_WALL, W_WELL = 0.06, 0.9                    -- 贴墙奖励 / 深井惩罚系数
+local WELL_DEPTH = 3                                -- 1 列宽凹槽多深才算"深井"
 
 -- 自演专用小随机：独立 LCG，不动方块袋那条序列 ⇒ 用例/出图仍可复现
 local aiSeed = 20261024
@@ -695,6 +695,7 @@ local function aiRand(n)
   return (aiSeed // 65536) % n + 1
 end
 local function aiRange(lo, hi) return lo + (hi - lo) * (aiRand(1000) / 1000) end
+local function aiFmt(x) return string.format('%.2f', x) end
 
 -- 堆叠高度：最高一列已填的行数（0 = 空盘）
 local function stackHeight()
@@ -706,11 +707,10 @@ local function stackHeight()
   return 0
 end
 
--- 评估「cells 放到 x 列、自然落地」之后：返回 分数 / 落点高度（消行后最高列）/ 消行数；放不进返回 nil
--- 四项（El-Tetris / Lee 2013 的公开权重，原样使用）：
---   aggregateHeight（总高）/ completedLines（消行）/ holes（被盖住的空格）/ bumpiness（相邻列高差之和）
--- 特征在「消掉满行之后」的盘面上算：消一行同时拿到 +0.76 分和总高下降的收益。
--- 实测 300s 自演：消行/落块 = 21.7%、最高列高 10、平均每块 1.62s。
+-- 评估「cells 放到 x 列、自然落地」之后：返回 分数 / 落点高度 / 消行数；放不进返回 nil
+-- 四项（El-Tetris / Lee 2013 公开权重，原样）+ 两项"像人"的小修正：
+--   -0.06 × 离最近墙的列距（贴边偏好，只做同分/近似分的 tie-breaker）
+--   -0.9  × 深度，对每个 1 列宽、深度 >= 3 的中间凹槽（不许为了塞竖 I 在中间挖井）
 local W_AGG, W_LINE, W_HOLE, W_BUMP = -0.510066, 0.760666, -0.35663, -0.184483
 local function evalBoard(cells, x)
   if collides(cells, x, 1) then return nil end
@@ -727,8 +727,7 @@ local function evalBoard(cells, x)
     if r < 1 or r > ROWS or c < 1 or c > COLS then return false end
     return occ[(r - 1) * COLS + c] == true or board[r][c] ~= 0
   end
-  -- 先认满行（消掉），再用「消行后的棋盘」算高度/洞/崎岖：
-  -- 这样"消一行"同时拿到 +0.76 的奖励和「总高下降」的收益，AI 才会主动去补行。
+  -- 先认满行（消掉），再用「消行后的棋盘」算高度/洞/崎岖
   local keep = {}
   local complete = 0
   for r = 1, ROWS do
@@ -740,7 +739,7 @@ local function evalBoard(cells, x)
       end
     end
     if full then
-      complete = complete + 1          -- 满行不留
+      complete = complete + 1
     else
       keep[#keep + 1] = r
     end
@@ -767,32 +766,47 @@ local function evalBoard(cells, x)
       if solidFinal(r, c) then
         seen = true
       elseif seen then
-        holes = holes + 1              -- 洞：被方块盖住的空格
+        holes = holes + 1
       end
     end
   end
-  -- 崎岖度 = 相邻列高度差的绝对值之和（El-Tetris 原式，墙不计入）。
-  -- 实测对比（300s 自演）：把墙也算进去反而让消行率从 21.7% 掉到 8.4% —— 别自作聪明加墙项。
   local bump = 0
   for c = 1, COLS - 1 do
     local d = heights[c] - heights[c + 1]
     if d < 0 then d = -d end
     bump = bump + d
   end
+  -- 深井：只数"被两边夹住"的 1 列宽凹槽（墙边的空列不算井——竖 I 贴墙是允许且鼓励的）
+  local wells = 0
+  for c = 2, COLS - 1 do
+    local nb = heights[c - 1]
+    if heights[c + 1] < nb then nb = heights[c + 1] end
+    local d = nb - heights[c]
+    if d >= WELL_DEPTH then wells = wells + W_WELL * d end
+  end
+  -- 贴墙奖励：离最近墙的列距越小越好
+  local wmax = 1
+  for i = 1, 4 do
+    if cells[i][2] > wmax then wmax = cells[i][2] end
+  end
+  local wallDist = x - 1
+  local rightDist = COLS - (x + wmax - 1)
+  if rightDist < wallDist then wallDist = rightDist end
   local top = 0
   for c = 1, COLS do
     if heights[c] > top then top = heights[c] end
   end
-  return W_AGG * agg + W_LINE * complete + W_HOLE * holes + W_BUMP * bump, top, complete
+  return W_AGG * agg + W_LINE * complete + W_HOLE * holes + W_BUMP * bump
+    - W_WALL * wallDist - wells, top, complete
 end
 
--- 选位：4 朝向 × 每个合法列，取最高分；同分取离当前列更近、再更靠左（不来回抖）
+-- 选位：4 朝向 × 每个合法列，三层优先级（能消行且不超高 > 不超高 > 清盘）；
+-- 同分先取离墙更近的列（像人贴着边放），再取离当前列更近的，最后取更靠左的。
 local function aiChoose()
   if not piece then return nil end
   local cands = {}
   local cells = piece.cells
-  -- 旋转盒边长必须用 piece.n（O=2 / T/S/Z/J/L=3 / I=4），不能用 #cells（恒等于 4）：
-  -- 用错边长会枚举出根本不存在的形状（实测：5/7 种方块的朝向全算错 ⇒ 落点乱、消行率 1%）。
+  -- 旋转盒边长必须用 piece.n（O=2 / T,S,Z,J,L=3 / I=4），不能用 #cells（恒等于 4）
   local boxN = piece.n or 4
   for rot = 1, 4 do
     local wmax = 1
@@ -802,7 +816,14 @@ local function aiChoose()
     for x = 1, COLS - wmax + 1 do
       local sc, h, complete = evalBoard(cells, x)
       if sc then
-        cands[#cands + 1] = { rot = rot, x = x, score = sc, h = h, clear = complete }
+        local leftDist = x - 1
+        local rightDist = COLS - (x + wmax - 1)
+        local wallDist = leftDist
+        if rightDist < wallDist then wallDist = rightDist end
+        cands[#cands + 1] = {
+          rot = rot, x = x, score = sc, h = h, clear = complete,
+          wall = wallDist, from = math.abs(x - piece.x),
+        }
       end
     end
     cells = rotateCells(cells, boxN)
@@ -812,18 +833,12 @@ local function aiChoose()
     if not b then return true end
     if a.score > b.score + 1e-9 then return true end
     if a.score < b.score - 1e-9 then return false end
-    local da = math.abs(a.x - piece.x)
-    local db = math.abs(b.x - piece.x)
-    if da ~= db then return da < db end
-    return a.x < b.x
+    if a.wall ~= b.wall then return a.wall < b.wall end     -- 同分贴墙
+    if a.from ~= b.from then return a.from < b.from end     -- 再比离当前列
+    return a.x < b.x                                        -- 再比靠左
   end
-  -- 优先级按任务书「优先消行 > 不留洞 > 表面平整 > 不要堆太高」落成三层：
-  -- ① 能消行且不超高的方案里挑最高分（消行是最高优先级，不靠权重碰运气）
-  -- ② 退一步：不超高的方案里挑最高分
-  -- ③ 都不行 ⇒ 清盘（防止把棋盘堆到 gameOver）
-  local clearBest, safeBest, anyBest
+  local clearBest, safeBest
   for _, c in ipairs(cands) do
-    if better(c, anyBest) then anyBest = c end
     if c.h <= AI_RESET_ROWS then
       if better(c, safeBest) then safeBest = c end
       if c.clear > 0 and better(c, clearBest) then clearBest = c end
@@ -831,36 +846,74 @@ local function aiChoose()
   end
   local best = clearBest or safeBest
   if not best then return { reset = true } end
-  return { rot = best.rot - 1, x = best.x }    -- rot 是相对当前朝向的旋转次数
-end
-
--- 这一块的动作队列（每个动作自带时长 ⇒ 各阶段独立计时，不是一帧跳完）
-local function buildQueue(plan, hes)
-  local q = {}
-  if not plan or plan.reset then return q end
-  for _ = 1, plan.rot do q[#q + 1] = { kind = 'rot', dur = aiRange(AI_ROT_MIN, AI_ROT_MAX) } end
-  local dx = plan.x - piece.x
-  local dir = 1
-  if dx < 0 then dir = -1 end
-  for _ = 1, math.abs(dx) do
-    q[#q + 1] = { kind = 'move', dir = dir, dur = aiRange(AI_MOVE_MIN, AI_MOVE_MAX) }
+  -- 竖 I 特别容易"立在中间"显得假 ⇒ 贴墙候选只要不比最优差 1.2 分就改放墙边
+  -- （左右都能放时先比平不平，一样平则取左墙——用户口径"优先最左"）
+  if piece.name == 'I' then
+    local wallBest
+    for _, c in ipairs(cands) do
+      if c.h <= AI_RESET_ROWS and (c.x == 1 or c.x == COLS - 1) and c.score >= best.score - 1.2 then
+        if not wallBest then
+          wallBest = c
+        elseif c.score > wallBest.score + 1e-9 then
+          wallBest = c
+        elseif math.abs(c.score - wallBest.score) <= 1e-9 then
+          local a = math.min(c.x, COLS - c.x)
+          local b = math.min(wallBest.x, COLS - wallBest.x)
+          if a < b then wallBest = c end
+        end
+      end
+    end
+    if wallBest then best = wallBest end
   end
-  return q
+  -- 落点行（软降要按格数摊时间）
+  local landingY = 1
+  local probe = cells
+  cells = piece.cells
+  for _ = 1, best.rot - 1 do cells = rotateCells(cells, boxN) end
+  probe = cells
+  landingY = 1
+  while landingY < ROWS and not collides(probe, best.x, landingY + 1) do landingY = landingY + 1 end
+  return { rot = best.rot - 1, x = best.x, landingY = landingY }
 end
 
--- 规划节奏：返回（思考时长, 落底前停顿时长）。太快的块让 AI 多"看"一会儿，
--- 太慢的组合（长距离 + 多旋转 + 犹豫）压缩思考，保证单块落在 1.5~2.9s。
-local function planTiming(queue, hes)
-  local sum, settle = 0, aiRange(AI_SETTLE_MIN, AI_SETTLE_MAX)
-  for _, a in ipairs(queue) do sum = sum + a.dur end
-  if hes then settle = settle + 0.2 + 0.15 + AI_MOVE_MIN end
-  local think = aiRange(AI_THINK_MIN, AI_THINK_MAX)
-  local total = think + sum + settle
-  if total < AI_PIECE_MIN then think = think + (AI_PIECE_MIN - total) end
-  local maxThink = AI_PIECE_MAX - sum - settle
-  if maxThink < AI_THINK_MIN then maxThink = AI_THINK_MIN end
-  if think > maxThink then think = maxThink end
-  return think, settle
+-- 把方案编成"人手动作序列"（每步自带时长；随机化都在这里定下来，执行只按序列走）
+-- 观察 0.25~0.7s（在 thinking 阶段已停）→ 旋转（0.15~0.25 + 间隔 0.1~0.2）→
+-- 横移每次 1~2 格（间隔 0.08~0.25）→ 途中 35% 小落 1~2 格 → 到位 20% 回退一格再回来 →
+-- 40% 再看一眼 0.2~0.4s
+local function buildQueue(plan)
+  local q = {}
+  local totalCells = math.abs(plan.x - piece.x)
+  local dir = 1
+  if plan.x < piece.x then dir = -1 end
+  for _ = 1, plan.rot do
+    q[#q + 1] = { kind = 'rot', wait = aiRange(AI_ROT_MIN, AI_ROT_MAX) + aiRange(AI_ROTGAP_MIN, AI_ROTGAP_MAX) }
+  end
+  local remaining, moved, softRows = totalCells, 0, 0
+  local softAt = nil
+  if totalCells >= 3 and aiRand(100) <= 35 then softAt = aiRand(totalCells - 1) end
+  while remaining > 0 do
+    local step = aiRand(2)                       -- 1 或 2 格
+    if step > remaining then step = remaining end
+    local gap = aiRange(AI_MOVE_MIN, AI_MOVE_MAX)
+    q[#q + 1] = { kind = 'move', cells = step, dir = dir, wait = gap, gap = gap }
+    moved = moved + step
+    remaining = remaining - step
+    if softAt and softRows == 0 and moved >= softAt then
+      softRows = aiRand(2)                       -- 小落 1~2 格（"看看落点再决定"）
+      local per = aiRange(0.07, 0.12)
+      q[#q + 1] = { kind = 'soft', rows = softRows, per = per, left = softRows, wait = softRows * per }
+    end
+  end
+  if aiRand(100) <= 20 and totalCells > 0 then    -- 到位后犹豫：回退一格再移回来
+    q[#q + 1] = { kind = 'move', cells = 1, dir = -dir, wait = aiRange(0.10, 0.20) }
+    q[#q + 1] = { kind = 'move', cells = 1, dir = dir, wait = aiRange(0.08, 0.16) }
+  end
+  local hover = 0
+  if aiRand(100) <= 40 then                       -- 落定前"再看一眼"
+    hover = aiRange(AI_HOVER_MIN, AI_HOVER_MAX)
+    q[#q + 1] = { kind = 'hover', wait = hover }
+  end
+  return q, { cells = totalCells, softRows = softRows, hover = hover, rot = plan.rot, landingY = plan.landingY }
 end
 
 -- 清盘重开（演示循环用）：不弹结算页，横幅与入场动画复位
@@ -876,8 +929,8 @@ local function demoLoopReset()
   trySet(topBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C_ACCENT2)
   trySet(botBanner, 'fontSize', 22)
-  AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.hes, AI.dur = 'thinking', 0, nil, 1, nil, false, 0
-  AI.wait = aiRange(AI_THINK_MIN, AI_THINK_MAX)
+  AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.dur = 'thinking', 0, nil, 1, nil, 0
+  AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
 end
 
 -- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
@@ -896,10 +949,21 @@ local function aiDrop()
   end
   AI.count = AI.count + 1
   AI.sumSec = AI.sumSec + AI.dur
+  -- 一块一条节奏日志：从这行能看出"确实分段执行了"
+  local p = AI.pace or {}
+  local gaps = p.gaps or 0
+  local avgGap = 0
+  if gaps > 0 then avgGap = (p.sumGap or 0) / gaps end
+  print('demo pace think=' .. aiFmt(p.think or 0)
+    .. ' rot=' .. (p.rot or 0)
+    .. ' move=' .. (p.cells or 0) .. '*' .. aiFmt(avgGap)
+    .. ' soft=' .. (p.soft or 0)
+    .. ' hover=' .. aiFmt(p.hover or 0)
+    .. ' drop=' .. tostring(p.drop or 'hard')
+    .. ' total=' .. aiFmt(AI.dur))
   AI.dur = 0
   if AI.count % 10 == 0 then
-    -- 心跳：块数 / 平均每块秒数 / 当前堆高（验收三数直接从这个日志读）
-    print('demo auto n=' .. AI.count .. ' avg=' .. string.format('%.2f', AI.sumSec / AI.count)
+    print('demo auto n=' .. AI.count .. ' avg=' .. aiFmt(AI.sumSec / AI.count)
       .. 's stack=' .. stackHeight())
   end
   local h = stackHeight()
@@ -909,102 +973,190 @@ local function aiDrop()
   end
 end
 
-AI = { phase = 'thinking', t = 0, wait = 0.6, queue = nil, qi = 1, piece = nil,
-  count = 0, sumSec = 0, dur = 0, hes = false, hesDir = 1 }
+AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
+  count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2 }
 
--- 每个 OnUpdate 调一次：thinking（完全不动）→ acting（逐格横移/旋转，各自计时）
--- → hesitate（10~15% 的犹豫）→ settling（落底前停顿）→ dropping（硬降）
+-- 每个 OnUpdate 调一次：thinking（观察）→ acting（旋转/横移/小落，逐段计时）
+-- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
 autoTick = function(dt)
-  if guideStage ~= 0 then return end      -- 玩家已接管 / 在看键位表
+  if guideStage ~= 0 then return end
   if gameOver then
-    demoLoopReset()                       -- 兜底：真走到结算就清盘继续演
+    demoLoopReset()
     return
   end
   if not piece or not board then return end
-  if AI.piece and AI.piece ~= piece then  -- 方块换了（清盘/重开）：重新起一轮思考
-    AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.hes = 'thinking', 0, nil, 1, nil, false
-    AI.wait = aiRange(AI_THINK_MIN, AI_THINK_MAX)
+  if AI.piece and AI.piece ~= piece then          -- 方块换了（清盘/重开）
+    AI.phase, AI.t, AI.queue, AI.qi, AI.piece = 'thinking', 0, nil, 1, nil
+    AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
   end
   AI.t = AI.t + dt
-  AI.dur = AI.dur + dt                    -- 本块累计用时（心跳里的 avg 用它算）
+  AI.dur = AI.dur + dt
   local ph = AI.phase
-  if ph == 'thinking' then
-    if AI.t < AI.wait then return end
+  local function nextAction()
+    AI.qi = AI.qi + 1
     AI.t = 0
-    AI.piece = piece
-    local plan = aiChoose()
-    if plan and plan.reset then
-      print('demo reset plan=too-high')
-      demoLoopReset()
+  end
+  if ph == 'thinking' then
+    -- 进入思考的**那一刻**就把方案与整段时长算好：这样才能把"观察"补到单块 >= 1.5s
+    if not AI.queue then
+      local plan = aiChoose()
+      if plan and plan.reset then
+        print('demo reset plan=too-high')
+        demoLoopReset()
+        return
+      end
+      if not plan then
+        AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+        AI.t = 0
+        return
+      end
+      local q, info = buildQueue(plan)
+      AI.queue, AI.info, AI.qi = q, info, 1
+      AI.piece = piece
+      AI.dur = 0
+      local rest = 0
+      for _, a in ipairs(q) do rest = rest + (a.wait or 0) end
+      local target = aiRange(1.8, 3.2)
+      AI.softPer = 0
+      local dropKind = 'hard'
+      if aiRand(100) <= 50 then dropKind = 'soft' end
+      local rows = (info.landingY or piece.y) - piece.y
+      if rows < 1 then rows = 1 end
+      local dropTime = 0
+      if dropKind == 'soft' then
+        local per = (target - rest) / rows
+        if per < AI_SOFT_MIN then per = AI_SOFT_MIN end
+        if per > AI_SOFT_MAX then per = AI_SOFT_MAX end
+        AI.softPer = per
+        dropTime = rows * per
+      end
+      -- 观察时长 = 目标总时长 - 其余各段；夹在 0.25~1.2s（够长才像"人在看"）
+      -- 兜底：软降 + 长距离 + 多动作会让整块超过 3.4s ⇒ 这一块改成硬降（人也常常直接按到底）
+      if dropKind == 'soft' and (rest + dropTime + AI_OBSERVE_MIN) > 3.4 then
+        dropKind, dropTime, AI.softPer = 'hard', 0, 0
+      end
+      local think = target - rest - dropTime
+      if think < AI_OBSERVE_MIN then think = AI_OBSERVE_MIN end
+      if think > 1.2 then think = 1.2 end
+      AI.wait = think
+      AI.t = 0
+      AI.pace = { think = think, rot = info.rot, cells = info.cells,
+        gaps = 0, sumGap = 0, soft = info.softRows, hover = info.hover, drop = dropKind }
+      -- 计划日志：看到"这块是什么方块、打算放哪一列、软降还是硬降"
+      print('demo plan name=' .. tostring(piece.name) .. ' from=' .. piece.x
+        .. ' target=' .. plan.x .. ' rot=' .. plan.rot .. ' drop=' .. dropKind)
       return
     end
-    local hes = (aiRand(100) <= AI_HESITATE_P)
-    AI.queue = buildQueue(plan, hes)
-    AI.qi = 1
-    AI.hes = hes
-    AI.hesDir = 1
-    if piece.x > COLS / 2 then AI.hesDir = -1 end
-    AI.wait, AI.settleWait = planTiming(AI.queue, hes)
-    AI.wait = AI.wait                        -- 思考期间完全不动
-    AI.phase = 'acting'
+    if AI.t < AI.wait then return end
     AI.t = 0
+    AI.phase = 'acting'
     return
   end
   if ph == 'acting' then
     local a = AI.queue and AI.queue[AI.qi]
     if not a then
-      if AI.hes then
-        AI.hes = false
-        AI.phase, AI.t, AI.wait = 'hesitate', 0, 0.2   -- 到位后先停 0.2s 再回退
+      -- 序列走完：软降 / 硬降
+      AI.phase, AI.t = 'dropping', 0
+      AI.dropped = 0
+      AI.fallTimer = 0
+      if AI.pace.drop == 'soft' then
+        AI.nudge = (aiRand(100) <= 30)        -- 软降途中 30% 顺手横调 1 格
+        AI.nudgeAt = aiRand(3)
+      end
+      print('demo act drop=' .. AI.pace.drop)
+      return
+    end
+    if a.kind == 'rot' then
+      if not a.done then
+        a.done = true
+        local nc = rotateCells(piece.cells, piece.n)
+        if not collides(nc, piece.x, piece.y) then
+          piece.cells = nc
+          renderPiece()
+        end
+        print('demo act rot x=' .. piece.x)
+      end
+      if AI.t >= a.wait then nextAction() end
+      return
+    end
+    if a.kind == 'move' then
+      if not a.done then
+        a.done = true
+        for _ = 1, a.cells do
+          if not collides(piece.cells, piece.x + a.dir, piece.y) then
+            piece.x = piece.x + a.dir
+          end
+        end
+        renderPiece()
+        AI.pace.gaps = AI.pace.gaps + 1
+        AI.pace.sumGap = AI.pace.sumGap + (a.gap or 0)
+        print('demo act move x=' .. piece.x)
+      end
+      if AI.t >= a.wait then nextAction() end
+      return
+    end
+    if a.kind == 'soft' then
+      -- 用倒计时而不是绝对时刻：AI.t 会在每次 nextAction 归零，绝对时刻会变成"等很久"
+      if not a.done then
+        a.done = true
+        a.timer = 0
+      end
+      if a.left > 0 then
+        a.timer = (a.timer or 0) - dt
+        if a.timer <= 0 then
+          a.timer = a.per
+          if not collides(piece.cells, piece.x, piece.y + 1) then
+            piece.y = piece.y + 1
+            renderPiece()
+          end
+          a.left = a.left - 1
+          if a.left == 0 then print('demo act soft y=' .. piece.y) end
+        end
         return
       end
-      AI.phase, AI.t, AI.wait = 'settling', 0, AI.settleWait
+      a.timer = (a.timer or 0) - dt
+      if a.timer <= 0 then nextAction() end
       return
     end
-    if AI.t < a.dur then return end
-    AI.t = 0
-    if a.kind == 'rot' then
-      local nc = rotateCells(piece.cells, piece.n)
-      if not collides(nc, piece.x, piece.y) then
-        piece.cells = nc
-        renderPiece()
-      end
-    elseif a.kind == 'move' then
-      if not collides(piece.cells, piece.x + a.dir, piece.y) then
-        piece.x = piece.x + a.dir
-        renderPiece()
-      end
-    end
-    AI.qi = AI.qi + 1
-    return
-  end
-  if ph == 'hesitate' then
-    if AI.t < AI.wait then return end
-    AI.t = 0
-    if AI.wait == 0.2 then                     -- 停顿结束 → 回退一格
-      AI.wait = 0.15
-      if not collides(piece.cells, piece.x - AI.hesDir, piece.y) then
-        piece.x = piece.x - AI.hesDir
-        renderPiece()
-      end
+    if a.kind == 'hover' then
+      if not a.done then a.done = true print('demo act hover ' .. aiFmt(a.wait)) end
+      if AI.t >= a.wait then nextAction() end
       return
     end
-    if not collides(piece.cells, piece.x + AI.hesDir, piece.y) then  -- 移回来
-      piece.x = piece.x + AI.hesDir
-      renderPiece()
-    end
-    AI.phase, AI.t, AI.wait = 'settling', 0, AI.settleWait
-    return
-  end
-  if ph == 'settling' then
-    if AI.t < AI.wait then return end          -- 落底前"确认一下位置"
-    AI.phase, AI.t = 'dropping', 0
-    return
   end
   if ph == 'dropping' then
-    aiDrop()
-    AI.phase, AI.queue, AI.qi, AI.piece, AI.hes = 'thinking', nil, 1, nil, false
-    AI.t, AI.wait = 0, aiRange(AI_THINK_MIN, AI_THINK_MAX)
+    if AI.pace.drop == 'soft' then
+      local canFall = not collides(piece.cells, piece.x, piece.y + 1)
+      if canFall then
+        AI.fallTimer = (AI.fallTimer or 0) - dt
+        if AI.fallTimer <= 0 then
+          AI.fallTimer = AI.softPer
+          piece.y = piece.y + 1
+          AI.dropped = (AI.dropped or 0) + 1
+          if AI.nudge and AI.dropped == AI.nudgeAt then
+            local d = 1
+            if piece.x > COLS / 2 then d = -1 end
+            if not collides(piece.cells, piece.x + d, piece.y) then
+              piece.x = piece.x + d
+              print('demo act nudge x=' .. piece.x)
+            end
+          end
+          renderPiece()
+        end
+      end
+      if not canFall then
+        -- 落地后若这块太快（< 1.5s），落定前再停一下（像人抬手前确认一下）
+        if AI.dur < AI_PIECE_MIN then return end
+        aiDrop()
+        AI.phase, AI.queue, AI.qi, AI.piece = 'thinking', nil, 1, nil
+        AI.t, AI.wait = 0, aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+      end
+      return
+    end
+    if AI.dur < AI_PIECE_MIN then return end     -- 太快就再停一下（同软降）
+    aiDrop()                                     -- 硬降
+    AI.phase, AI.queue, AI.qi, AI.piece = 'thinking', nil, 1, nil
+    AI.t, AI.wait = 0, aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
   end
 end
 

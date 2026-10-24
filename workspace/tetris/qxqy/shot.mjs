@@ -31,12 +31,92 @@ function shot(name) {
   return snap
 }
 
-// 入场自演：步进到「棋盘上至少堆了 4 行」（最多 40s）——这样一帧就看得见 AI 真的在玩，
-// 而不是刚消完行的一次空盘。种子固定，所以这帧可复现。
+// 进场自演：抓「堆到 4 行」那一帧 + 之后两张（核对"最高堆叠在哪一侧/有没有中间深井"）
+// 棋盘位置用 cellN 的序号反推（cellN 是 OnStart 里按 row-major 造的，比用坐标反算更稳）
+const EMPTY = -15065818
+const boardOf = (scene) => {
+  const g = Array.from({ length: 20 }, () => new Array(10).fill(0))
+  for (const n of scene.nodes || []) {
+    const m = /^cell(\d+)$/.exec(String(n.name))
+    if (!m || n.kind !== 'image' || n.imageColor === EMPTY) continue
+    const i = Number(m[1]) - 1
+    g[Math.floor(i / 10)][i % 10] = 1
+  }
+  return g
+}
+const analyze = (label, scene) => {
+  const g = boardOf(scene)
+  // 只看第 3 行以下：方块出生在第 1~2 行，算进来会把高度顶成 20（踩过）
+  const h = []
+  for (let c = 0; c < 10; c++) {
+    let top = 0
+    for (let r = 4; r < 20; r++) if (g[r][c]) { top = 20 - r; break }   // 跳过顶部 4 行（下落的方块在那儿）
+    h.push(top)
+  }
+  const wells = []
+  for (let c = 1; c < 9; c++) {
+    const d = Math.min(h[c - 1], h[c + 1]) - h[c]
+    if (d >= 3) wells.push(`列${c + 1}深${d}`)
+  }
+  const maxH = Math.max(...h)
+  const at = h.map((v, i) => [v, i + 1]).filter(([v]) => v === maxH).map(([, i]) => i)
+  const side = maxH === 0 ? '空盘'
+    : at.every((c) => c <= 3) ? '左'
+      : at.every((c) => c >= 8) ? '右'
+        : at.every((c) => c >= 4 && c <= 7) ? '中' : '分散'
+  console.log(`  ${label} heights=[${h.join(',')}] 最高=${maxH}@列${at.join('/')} 侧=${side} 中间深井=${wells.length ? wells.join(' ') : '无'}`)
+  return { h, maxH, at, side, wells }
+}
+
 const filledCells = () => (s.playGet({ view: true }).scene.nodes || [])
-  .filter((n) => n.kind === 'image' && String(n.name).startsWith('cell') && n.imageColor !== -15065818).length
+  .filter((n) => /^cell\d+$/.test(String(n.name)) && n.imageColor !== EMPTY).length
 for (let i = 0; i < 80 && filledCells() < 42; i++) step(15)
-shot('preview-guide.png')          // 入场自演中：上横幅「俄罗斯方块」+ 下横幅「按任意键开始」+ AI 正在堆
+let snap = shot('preview-guide.png')   // 入场自演中：上横幅「俄罗斯方块」+ 下横幅「按任意键开始」+ AI 正在堆
+analyze('guide', snap.scene)
+step(200); snap = shot('preview-ai-place-1.png'); analyze('place-1', snap.scene)
+step(240); snap = shot('preview-ai-place-2.png'); analyze('place-2', snap.scene)
+step(240); snap = shot('preview-ai-place-3.png'); analyze('place-3', snap.scene)
+
+// 抓「同一块方块的三个时刻」：挑一块横移 >= 3 格的（`demo plan from/target` 判定），
+// 收前 3 条**列不同**的 demo act move，这块结束时才落盘 —— 否则会把不同块的帧混在一起。
+{
+  let frames = []
+  let skip = true
+  let done = false
+  let seen = (s.playGet({ view: true }).logs || []).length
+  for (let guard = 0; guard < 12000 && !done; guard++) {
+    step(1)
+    const sn = s.playGet({ view: true })
+    const logs = (sn.logs || []).map((l) => l.text)
+    for (let i = seen; i < logs.length; i++) {
+      const line = logs[i]
+      if (line.startsWith('demo plan')) {
+        const from = Number(/from=(-?\d+)/.exec(line)?.[1])
+        const target = Number(/target=(-?\d+)/.exec(line)?.[1])
+        skip = Math.abs(target - from) < 3
+        frames = []
+      } else if (line.startsWith('demo act move') && !skip && frames.length < 3) {
+        const x = Number(/x=(-?\d+)/.exec(line)?.[1])
+        if (!frames.some((f) => f.x === x)) {
+          const img = renderScenePng(sn.scene, sn.canvasWidth, sn.canvasHeight, assets)
+          frames.push({ buf: Buffer.from(img.data, 'base64'), line, x })
+        }
+      } else if (line.startsWith('demo pace')) {
+        if (!skip && frames.length === 3) {
+          frames.forEach((f, k) => {
+            writeFileSync(join(root, 'docs', `preview-ai-pace-${k + 1}.png`), f.buf)
+            console.log(`preview-ai-pace-${k + 1}.png  ${f.buf.length}B  触发日志=${f.line}  块节奏=${line}`)
+          })
+          done = true
+          break
+        }
+        frames = []
+      }
+    }
+    seen = logs.length
+  }
+  if (!done) console.log('!! 没抓到 3 帧的横移块')
+}
 key('KeyboardMoveLeftKeyDown'); key('KeyboardMoveLeftKeyUp')
 step(20)
 shot('preview-play.png')           // 游戏中：重力已跑，横幅已清
