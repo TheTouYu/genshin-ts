@@ -581,8 +581,9 @@ export function buildSkillEntry(opts: {
     )
   })
   const params = buildSkillParams({ cdSeconds: opts.cdSeconds })
-  // f8（忽略公共冷却）只出现在**首条**技能上（编辑器多技能形态实测）；非首条写它会被编辑器归一化掉
-  if (opts.ignorePublicCd && opts.index === 1) params.push({ number: 8, wire: 0, value: 1 })
+  // f8 = 「忽略公共冷却」开关：**勾了就写，与是否首条无关**。
+  // （2026-10-24 二次差分证伪了"只有首条带 f8"：用户给第 2 条勾上后，字节里第 2 条也出现 `4001`）
+  if (opts.ignorePublicCd) params.push({ number: 8, wire: 0, value: 1 })
   fields.push({ number: 3, wire: 2, value: emit(params) })
   fields.push({ number: 12, wire: 2, value: new TextEncoder().encode(opts.name) })
   fields.unshift({ number: 1, wire: 0, value: opts.index })

@@ -55,6 +55,11 @@ check('第 2 条（序号 2，无 f8）与编辑器逐字节一致', () => {
   assert.equal(Buffer.from(bytes).toString('hex'), innerOf(fixture.entries['2'].hex))
 })
 
+check('第 2 条 + 勾选忽略公共冷却（f8）与编辑器逐字节一致', () => {
+  const bytes = buildSkillEntry({ index: 2, configId: 1191182338, name: '技能_2', cdSeconds: 0, ignorePublicCd: true })
+  assert.equal(Buffer.from(bytes).toString('hex'), innerOf(fixture.entries['2_with_ignore_public_cd'].hex))
+})
+
 check('序号必须体现在字节里（写死 1 的回归）', () => {
   const a = buildSkillEntry({ index: 1, configId: 1, name: 'x', cdSeconds: 0 })
   const b = buildSkillEntry({ index: 2, configId: 1, name: 'x', cdSeconds: 0 })
