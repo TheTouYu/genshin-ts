@@ -22,6 +22,7 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
   ArrowDown/S   -> KeyboardCraftspersonKey37Down / KeyboardMoveBackwardKeyDown 软降
   Space         -> KeyboardJumpKey            硬降
   R             -> KeyboardCharacterSkill3Key 重开
+  Q             -> KeyboardCharacterSkill2Key 真结算（发服务端信号 tetris_settle → 官方结算页）
   H             -> KeyboardCharacterSkill1Key 键位表（暂停开关；真机若不认则无害，右栏常驻键位卡兜底）
   T             -> KeyboardCharacterSkill4Key 调试：填满最底两行（仅用例用）
 
@@ -278,6 +279,32 @@ settleDestroy = function()
   settleReady, settleBuildTried = false, false
   settleOn, settleT, settleDone, settleFade = false, 0, false, -1
   print('settle destroy n=' .. n)
+end
+
+-- 真结算：把「游戏结束」发成服务端信号 tetris_settle —— 地图 hl 里的服务端图 1082130480
+-- 收到后「设玩家结算状态 = Victory」→「结算关卡」，弹出官方结算页。
+-- 真机是否有 game.ServerSignal 事先未知，所以两种形态都 pcall 探测、结果逐条打日志：
+--   ① game.ServerSignal.send('名')             —— 本轮任务单给的形态
+--   ② game.ServerSignal('名'):SendSignal()     —— 模拟器 Lua 桥的工厂形态（D112 实测）
+-- 两种都失败 ⇒ 本机 Lua 无信号通道，退出改法（Q 退回原来的「结算明细」开关，按键不失效）。
+local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
+local function sendSettleSignal()
+  local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
+  if ok then
+    settleSignalState = 'sent'
+    print('settle signal sent')
+    return true
+  end
+  print('settle signal FAILED :: ' .. tostring(err))
+  local ok2, err2 = pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
+  if ok2 then
+    settleSignalState = 'sent'
+    print('settle signal sent (factory form)')
+    return true
+  end
+  print('settle signal FAILED (factory form) :: ' .. tostring(err2))
+  settleSignalState = 'none'
+  return false
 end
 
 -- 每个结算槽位在"容器模板"里的候选子控件名（模拟器的 settle 模板 / 真机的 客户端控件容器_1 两套命名）
@@ -785,7 +812,7 @@ showGameOver = function()
     setText(settleBest, '最高 ' .. bestScore)
     setText(settleInfo, '消行 ' .. lines .. ' 行　落块 ' .. pieceCount .. '　等级 ' .. level)
     setText(settleExtra, '')
-    setText(settleOpts, '[R] 再来一局　　[Q] 结算明细')
+    setText(settleOpts, '[R] 再来一局　　[Q] 结算')
     trySet(settleTitle, 'fontSize', 44)
     settleSize, settleT, settleFade, settleDone, settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
@@ -817,7 +844,7 @@ showGameOver = function()
   trySet(botBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C(255, 214, 232, 246))
   setText(botBanner, '本局 ' .. score .. ' 分　消行 ' .. lines .. ' 行'
-    .. '　　[R] 再来一局　　[Q] 结算明细')
+    .. '　　[R] 再来一局　　[Q] 结算')
   setText(hint, '')
 end
 
@@ -1596,6 +1623,9 @@ function OnStart()
   listen('KeyboardCharacterSkill2KeyDown', function()
     startIfWaiting()
     if not gameOver then return end
+    -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
+    if sendSettleSignal() then return end
+    -- ② 本机 Lua 无信号通道时的退路：原来的「结算明细」开关
     settleOpen = not settleOpen
     local mins = math.floor(elapsed / 60)
     local secs = math.floor(elapsed % 60)
