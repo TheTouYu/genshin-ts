@@ -433,3 +433,19 @@ tools/ys-editor/ys-fakedeath-fix verify           # rc=0：✓ winex11 / ✓ win
 - 同文件里 2191157（更早的进程）同型：22 in / 21 out，`h0=0x4ac`、`mask=0x160`；2207102 则以 `qb=0x0` 停住。
   ⇒ **同一批进程都停在「mask=0x160 不含输入位」的等待上**，且 `0x4ac` 这个句柄跨进程复现。
 - 旧探针只有 msgwait 一路有数据（ntdll 三份都已被 400 行上限打满）⇒ 这正是本轮重做仪表的直接动因。
+
+## 11.6 两条现场旁证（本轮顺手取的，都是对象级读数）
+
+1. **安装不会连坐在役游戏**：`install` 新建 inode（现役 `win32u.so` inode 5396656、14,062,032 B；
+   游戏 2954009 的 `/proc/*/maps` 里仍是旧 inode 2558106/2558116，路径 `/tmp/sandbox/wine/…`）
+   ⇒ 游戏跑的是它启动时映射的那一代，**磁盘上的新 .so 只影响新起的进程**。游戏存活读数：
+   `ELAPSED 06:12:09 / %CPU 34.6 / STAT S<Lsl`。
+2. **焦点仍被隐藏窗口占着**（与 §9 的「三环链」同型，杀编辑器后依旧）：
+   `DISPLAY=:1`（游戏所在的 Xwayland，`XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.VXP8W3`，
+   代理可从 `/proc/<game>/environ` 取到 ⇒ **代理现在能读这块 X**，此前「无 DISPLAY」的结论只对本会话 shell 生效）：
+   - `_NET_ACTIVE_WINDOW` = `0x600003`，`xdotool getwindowfocus` = **6291459 = 0x600003**（同一个）；
+   - `_NET_CLIENT_LIST` 只有 `0x400003`（原神主窗）；
+   - `0x600003` 上 `WM_NAME/WM_CLASS/_NET_WM_WINDOW_TYPE` 全无、`getwindowpid` = **no pid**
+     ⇒ 不是普通受管窗口（override-redirect 或 mutter/Xwayland 内部 1×1 窗口）。
+   - 这台机器上 `xwininfo` **未安装**（`xdotool`/`xprop`/`wmctrl` 有）。要判它属谁，下一步用
+     `xdotool getwindowgeometry` + `xprop -id 0x600003` 全量输出，或直接看 `xlsclients -l`。
