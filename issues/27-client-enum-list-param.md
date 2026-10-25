@@ -114,11 +114,17 @@ Error: Generic parameter not matched: {"type":"enum","value":"ray_filter_type_sc
 
 新增回归：`tests/client_raycast_args_test.ts` + `package.json` 的 `test:client-raycast`。
 
-**仍未闭合（编辑器 wire 层）**：我们生成的形态与编辑器**同构**（同一对构造节点
-`getEntityTypeList` gid 200050 / `getRayFilterTypeList` gid 200110，cid 均为 1031；pin0 数量 + pin1..10 枚举槽），
-编辑器差分（地图 1073741838）实测：两个 enum_list 参数**必须靠构造节点连线提供**（参数面板不能直接勾值），
-连线形态 `{id: <构造节点>, kind: 4, index: 0}`，且**被连线的参数引脚仍保留空 `ArrayBase` 字面量**。
-待确认：枚举数值映射（本轮用户选的槽值为 2606 / 实体类型 1402，而三方表里 `ray_filter_type_scene` = 2602）。
+**编辑器 wire 层（已闭合 2026-10-24）**：我们生成的形态与编辑器**同构**——同一对构造节点
+`getEntityTypeList` gid 200050 / `getRayFilterTypeList` gid 200110（cid 均 1031）、pin0 数量 + pin1..10 枚举槽；
+两个 enum_list 参数**只能靠构造节点连线提供**（参数面板不能直接勾值），连线形态
+`{id: <构造节点>, kind: 4, index: 0}`，且**被连线的参数引脚仍保留空 `ArrayBase` 字面量**（字面量与连线共存）。
+枚举数值映射**已确认无偏差**：用户选的「光标受击盒」=2606，「场景」=2602，「物件」=1402，与三方表逐条一致。
+规则已落 `docs/game-engine-knowledge/node-graphs.md`「enum_list 参数的合法形态」节。
+
+**注入层（结构证据，2026-10-24）**：往地图 1073741838 新建 placeholder 图 `1082130434`（20008 造物技能）后
+单文件注入 `probe.gia` → 图名 `_GSTS_enumListProbe`、9 节点；回读真实 `.gil`：两构造节点 数量=1、槽=1402/2602，
+射线节点 pin5/pin6 = `ArrayBase` + `connects→(5,4,0)/(6,4,0)`（与编辑器样本逐字段同形）；Temp 与 Save_Level 同步
+同 md5 `c080e9ce…`，`check-gil-composite-refs --incoming` 0 悬空。用户重载地图后确认「没问题」（编辑器接受）。
 
 ## 4. 期望行为（二选一，任一可验收）
 

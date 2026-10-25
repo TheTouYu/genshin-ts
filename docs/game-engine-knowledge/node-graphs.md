@@ -2,7 +2,7 @@
 
 > 状态：部分已验证
 > 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v12 + 2026-08-06 v13-v21）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
-> 最近校验：2026-08-06
+> 最近校验：2026-10-24
 > 适用范围：节点图的概念结构、新建图/节点实例编码、批量注入（SysCall 基础节点）
 
 节点图是关卡逻辑的主要载体。一个节点图包含各种节点，以及节点之间的控制流和数据流连接。节点图必须挂载在实体或元件上才能运行，详见[节点图挂载与生命周期](graph-mounting.md)。
@@ -225,6 +225,23 @@ CLI param op 对 R<T> pin 自动包装（reflectConcreteIndex 查位置）。
 - bool=false 编码 = EnumBase + bEnum 空消息（true = bEnum{1:1}，见 signals.md）
 - SysCall 固定节点 InParam 无 compositePinIndex（仅 SysGraph 有 CPI）
 - 解码工具：`scripts/inspect-graph-nodes.py <map.gil> <graphId> --pins`
+
+### enum_list 参数（客户端图筛选用列表）的合法形态（2026-10-24 编辑器差分闭合）
+
+证据：地图 1073741838「enum参数实验」，编辑器动作三轮（建图 → 放「获取射线检测结果」空参 → 加两个构造节点并连线），
+快照 `.scratch/enum-list-diff/2026-10-24-probe/raw/`（v0/v1/v2）；我方产物对拍 = `.scratch/enum-list-repro`。
+
+1. **参数面板不能直接勾选 enum_list 的值**：这类参数（客户端元数据 `connectionType=17`、pin `type=17`）在编辑器里
+   显示为列表输入，值必须由**构造节点连线**提供。空参时它落盘成**空 `ArrayBase`(class=10002) 字面量**（`valueText=ArrayBase`）。
+2. **合法形态 = 构造节点 + 连线，且参数引脚同时保留空 `ArrayBase` 字面量**（两者共存，不是二选一）：
+   - 「获取实体类型列表」`gid=200050 / cid=1031`，输入 pin0=数量(`int`)、pin1..10=枚举槽(`type=13`)，输出 pin0=`type=17`
+   - 「获取射线筛选类型列表」`gid=200110 / cid=1031`，结构相同（数量默认 0；实体类型列表默认 1）
+   - 连线挂在参数引脚上：`connects=[{id:<构造节点 nodeIndex>, kind:4(OutParam), index:0}]`，引脚值仍是空 `ArrayBase`
+3. **枚举槽的值是数字枚举 id**（不是名字）：本轮实测——「实体类型列表」选「物件」= **1402**、
+   「射线筛选类型列表」选「光标受击盒」= **2606**、「场景」= **2602**（与
+   `src/thirdparty/.../node_data/client_enum_values.ts` 的 `ray_filter_type_*` 表逐条一致，用户 2026-10-24 确认）。
+4. 我方编译器 `src/compiler/ir_to_gia_transform/client_graph.ts` 的 `expandEnumListLiterals` 正是按此形态生成
+   （字面量枚举数组 → 构造节点 + 连线），注入后回读与编辑器同形（`assets:node-graphs read` 逐 pin 对照）。
 
 ### 新建节点图 wire 配方（真实快照 v1 / v7-v8）
 
