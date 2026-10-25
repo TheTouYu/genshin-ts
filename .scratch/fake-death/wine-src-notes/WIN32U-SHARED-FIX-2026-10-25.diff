@@ -1,0 +1,112 @@
+--- a/dlls/win32u/winstation.c
++++ b/dlls/win32u/winstation.c
+@@ -23,8 +23,11 @@
+ #endif
+ 
+ #include <assert.h>
++#include <fcntl.h>
+ #include <stdarg.h>
+ #include <stddef.h>
++#include <stdio.h>
++#include <unistd.h>
+ 
+ #include <pthread.h>
+ 
+@@ -172,6 +175,46 @@
+     return status;
+ }
+ 
++/* 2026-10-25 本机补丁：共享会话对象指针有效性校验。
++ *
++ * 现场：千星编辑器假死时主线程 100% 单核、每秒约 5 万次 SIGSEGV（SEGV_ACCERR，同一地址
++ * 0x40000000d），出错指令在 get_shared_desktop() 的 seqlock 读里，r14 恒为 0x400000005：
++ * 线程级缓存 data->shared_desktop 里存着一个**不在任何已映射 session 块内**的指针，而
++ * 调用方 `while (get_shared_desktop(...) == STATUS_PENDING)` 无上限重试 ⇒ 一次违例变死循环。
++ * 这里只做一件事：指针不在已映射块内就判定缓存失效，交给调用方清缓存重取。
++ * 未命中时行为与上游逐条等价（多一次 O(块数) 的地址比较，块数通常 1~3）。 */
++/* 落盘探针：编辑器的 stderr 走共享管道、看不到，所以把「缓存失效被捕获」这件事写进文件。
++ * 有界（最多 32 行），不会在风暴里刷盘。 */
++static void shared_fix_note( const char *what, const void *object )
++{
++    static int notes;
++    char buf[160];
++    int fd, len;
++
++    if (notes >= 32) return;
++    notes++;
++    len = snprintf( buf, sizeof(buf), "%u %s %p\n", (unsigned int)getpid(), what, object );
++    if (len <= 0) return;
++    fd = open( "/tmp/wine32u-shared-fix.log", O_WRONLY | O_CREAT | O_APPEND, 0666 );
++    if (fd < 0) return;
++    write( fd, buf, len );
++    close( fd );
++}
++
++static BOOL shared_object_is_mapped( const shared_object_t *object )
++{
++    struct session_block *block;
++    const char *p = (const char *)object;
++
++    if (!object) return FALSE;
++    LIST_FOR_EACH_ENTRY( block, &session_blocks, struct session_block, entry )
++    {
++        if (p >= (const char *)block->data && p + sizeof(*object) <= (const char *)block->data + block->size)
++            return TRUE;
++    }
++    return FALSE;
++}
++
+ const shared_object_t *find_shared_session_object( object_id_t id, mem_size_t offset )
+ {
+     struct session_block *block = NULL;
+@@ -206,10 +249,16 @@
+ 
+     TRACE( "lock %p, desktop_shm %p\n", lock, desktop_shm );
+ 
+-    if (!(object = data->shared_desktop))
++    if (!(object = data->shared_desktop) || !shared_object_is_mapped( object ))
+     {
+         struct obj_locator locator;
+ 
++        if (object)
++        {
++            ERR( "shared desktop object %p is not in any mapped session block, refreshing cache\n", object );
++            shared_fix_note( "desktop-cache-invalid", object );
++            data->shared_desktop = NULL;
++        }
+         SERVER_START_REQ( get_thread_desktop )
+         {
+             req->tid = GetCurrentThreadId();
+@@ -220,6 +269,13 @@
+ 
+         data->shared_desktop = find_shared_session_object( locator.id, locator.offset );
+         if (!(object = data->shared_desktop)) return STATUS_INVALID_HANDLE;
++        if (!shared_object_is_mapped( object ))   /* 仍未映射：宁可报无共享桌面，也不进无限解引用 */
++        {
++            ERR( "fresh shared desktop object %p is not mapped, refusing\n", object );
++            shared_fix_note( "desktop-fresh-unmapped", object );
++            data->shared_desktop = NULL;
++            return STATUS_INVALID_HANDLE;
++        }
+     }
+ 
+     if (!lock->id || !shared_object_release_seqlock( object, lock->seq ))
+@@ -240,10 +296,17 @@
+ 
+     TRACE( "lock %p, queue_shm %p\n", lock, queue_shm );
+ 
+-    if (!(object = data->shared_queue))
++    if (!(object = data->shared_queue) || !shared_object_is_mapped( object ))
+     {
+         struct obj_locator locator;
+ 
++        if (object)
++        {
++            ERR( "shared queue object %p is not in any mapped session block, refreshing cache\n", object );
++            shared_fix_note( "queue-cache-invalid", object );
++            data->shared_queue = NULL;
++        }
++
+         SERVER_START_REQ( get_msg_queue )
+         {
+             wine_server_call( req );

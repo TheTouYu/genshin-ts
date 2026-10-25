@@ -163,3 +163,65 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
 1. **重开编辑器**（必须：15:35 那个实例是坏构建）→ 让 `ys-fakedeath-ab` 抓到假死 → 读 before/after 的 perf 与 CPU 曲线；
 2. 若修法 A 成立 → 默认改成「排空开」（marker 反过来当关闭开关），重编 + 回归 §四 4/5；
 3. 若不成立 → §三 设计 B（按 mask 分桶），或按新的 perf 剖面重新定位。
+
+
+---
+
+# 七、2026-10-25 16:10–16:35：找到真正的死因（SIGSEGV 风暴）并打了 win32u 补丁
+
+## 7.1 先把 handoff 的方案 A **证伪**（别再在事件队列上下刀）
+
+编辑器用上新驱动后**真死**一次，读数为证：
+
+| 判据 | 读数 | 结论 |
+|---|---|---|
+| 驱动探针（`/tmp/wine11-proc.log`） | 死时 `calls=2~5`/250ms、`scans=4~18`、`max` 个位数 | **队列没有积压**，`XCheckIfEvent` 不在热点 |
+| 修法 A 开关 A/B（等长窗口 CPU ticks） | `drain=off` **+61** / `drain=on` **+63** | **排空对本例无效** |
+| 主线程 | 100% 单核、`syscall=running`、`utime:stime ≈ 1:1` | 不是纯用户态自旋，信号投递占一半 |
+| `strace -c` | **`rt_sigreturn` 5.9 万次/秒** | 每秒约 6 万次信号 |
+| `strace -e trace=signal` | 2 秒 **200,518 次 SIGSEGV**，**全部 `SEGV_ACCERR`、`si_addr` 恒为 `0x40000000d`** | 同一地址的违例风暴 |
+| gdb 抓首次违例 | `mov 0x8(%r14),%rax`，**r14 ≡ `0x400000005`**；指令在 `win32u.so` | 坏指针解引用 |
+| 该 15 字节自旋锁序列在 win32u 41 个 `.o` 里搜索 | **唯一命中 `winstation.o` 的 `get_shared_desktop`**（`dlls/win32u/winstation.c:202`） | 位置钉死 |
+| 地址所属映射 | `18b401000-4140060000 ---p`（255 GB PROT_NONE 保留区） | 指针指向**未映射**的共享会话区 |
+
+⇒ 死法是**活锁**：`get_shared_desktop()` 拿线程级缓存 `data->shared_desktop` 里的坏指针去读 seqlock →
+每次违例 → 调用侧 `while (get_shared_desktop(...) == STATUS_PENDING)` 无上限重试 → 十万次/秒。
+`data->shared_desktop` 在**整个 win32u 里只有两处赋值、没有任何失效点**。
+
+## 7.2 修复（`dlls/win32u/winstation.c`，diff 见 `wine-src-notes/WIN32U-SHARED-FIX-2026-10-25.diff`）
+
+1. 新增 `shared_object_is_mapped()`：判断对象指针是否落在**已映射的 session 块**区间内；
+2. `get_shared_desktop()` / `get_shared_queue()`：缓存指针不在块内 ⇒ `ERR` + **清缓存重取**；
+3. 重取后仍不在块内 ⇒ 返回 `STATUS_INVALID_HANDLE`（宁可报「没有共享桌面」，也不进无限解引用）；
+4. **落盘探针**（stderr 不可见，见 7.4）：命中时追加一行到 `/tmp/wine32u-shared-fix.log`（最多 32 行）。
+
+## 7.3 安装 / 回滚（已一并进 `ys-fakedeath-fix`）
+
+```bash
+tools/ys-editor/ys-fakedeath-fix win32u-install   # 装（备份 win32u.so.bak-fakedeath-20261025，2328576B）
+tools/ys-editor/ys-fakedeath-fix win32u-status    # 看补丁/探针/备份
+tools/ys-editor/ys-fakedeath-fix win32u-revert    # 回原件（字节比对）
+```
+
+**已验证**：导出符号集与原件**逐行相同（diff 0）**；scratch prefix 里
+`wine notepad`/`wine winecfg` 窗口正常出现、驱动版本无 `nodrv` 报错、驱动探针照常出数。
+**待验证**：编辑器真机复现（判据见 7.5）。
+
+## 7.4 顺带查到的独立问题（未修，先记账）
+
+- 启动器日志里 **76,940 条** `err:msg:process_hardware_message unknown message type 1/2/3`
+  （`dlls/win32u/message.c:2906`，**全部来自同一线程 `00d0`**）。机制：`INPUT_HARDWARE` 走
+  `req->input.hw.msg = input->hi.uMsg` 原样入队；`get_hardware_msg_bit()` 对未知消息**默认返回 QS_MOUSEBUTTON**，
+  而 `process_hardware_message()` 认不出就把消息丢掉。**能喂出 msg=1/2/3 的调用方未定位**（`NtUserSendInput` 本身拒绝
+  `INPUT_HARDWARE`；驱动侧四条 `NtUserSendHardwareInput` 都只发 keyboard/mouse）——下一步需要驱动侧探针。
+- **编辑器 stderr 落盘缺口**：它是 `pipe:[41693466]`（与游戏共用），launcher 的 `game.log` mtime 停在 14:46
+  ⇒ 编辑器自己的 `err/fixme`（含上面的 unknown message type）**一条都看不到**。为绕开这条缺口，本补丁自带文件探针。
+
+## 7.5 真机复现的判据（下次假死/正常使用时读）
+
+| 现象 | 读数 | 判定 |
+|---|---|---|
+| 修复生效 | `/tmp/wine32u-shared-fix.log` 出现 `desktop-cache-invalid` 行 | **根因坐实**（缓存指针失效），且活锁被切断 |
+| 只出现 `desktop-fresh-unmapped` | 重取后仍不在块内 | 块从未映射（另一条路径），需要看 server 侧 session section |
+| 完全没探针行但照样死 | `strace -e trace=signal -c` 仍见万级 SIGSEGV | 自旋不在 `get_shared_desktop`，回到 perf 定位 |
+| 正常使用 | 探针文件不出现、CPU 正常 | 补丁无副作用（默认路径只多一次 O(块数) 地址比较） |

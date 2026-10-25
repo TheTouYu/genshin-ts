@@ -88,6 +88,14 @@ syscall_word() { # $1=tid → "running" / 数字 / "?"
 
 probe_tail() { [ -f "$PROC_LOG" ] && tail -n "${1:-3}" "$PROC_LOG"; }
 
+signal_snap() { # $1=pid $2=tag  记录 2s 内 SIGSEGV 次数（本机假死的判据：10 万次/秒级）+ 带上 win32u 探针
+  local pid="$1" tag="$2" out="$OUT/sig-$tag-$TS.txt"
+  timeout 8 strace -f -c -e trace=signal -p "$pid" > "$out" 2>&1
+  local n; n=$(grep -oE '[0-9]+ +SIGSEGV' "$out" | awk '{print $1}' | head -1)
+  log "   信号($tag): SIGSEGV=${n:-0} 次/2s  $( [ -f /tmp/wine32u-shared-fix.log ] && echo "| win32u探针=$(wc -l < /tmp/wine32u-shared-fix.log) 行" )"
+  [ -f /tmp/wine32u-shared-fix.log ] && cp -a /tmp/wine32u-shared-fix.log "$OUT/wine32u-fix-$TS.log"
+}
+
 perf_snap() { # $1=pid  $2=tag
   [ "$DO_PERF" = 1 ] || return 0
   local pid="$1" tag="$2" out="$OUT/perf-$tag-$TS"
@@ -163,6 +171,7 @@ while :; do
       log "==== 判定自旋（pid=$pid tid=$tid）：基线取证 ${BASE}s → 翻转 drain（原状态=$was_on）→ 观察 ${AFTER}s"
       threads_dump "$pid" >> "$LOG"
       log "   探针(基线): $(probe_tail 3 | tr '\n' '|')"
+      signal_snap "$pid" "before"
       [ "$DO_PERF" = 1 ] && perf_snap "$pid" "before"
       if [ "$DO_FLIP" = 1 ] && [ "$was_on" = 0 ]; then
         : > "$M_DRAIN"; log "   → 已 touch $M_DRAIN（修法 A 生效，运行中即时切换）"
@@ -177,9 +186,15 @@ while :; do
         [ "$rec" -ge 3 ] && { log "   ✓ 已恢复（cpu<15% 连续 3 次）"; break; }
       done
       log "   探针(翻转后): $(probe_tail 3 | tr '\n' '|')"
+      signal_snap "$pid" "after"
       [ "$DO_PERF" = 1 ] && perf_snap "$pid" "after"
       if [ "$DO_FLIP" = 1 ] && [ "$was_on" = 0 ]; then
-        rm -f "$M_DRAIN"; log "   ← 已还原 marker（drain=off）"
+        if [ "${rec:-0}" -ge 3 ]; then
+          # 翻转后恢复 ⇒ 保留 drain=on：让用户能继续用；同时这就是「修法 A 有效」的证据
+          log "   ✓ 保留 marker（drain=on）——修法 A 生效；还原用: ys-fakedeath-fix drain-off"
+        else
+          rm -f "$M_DRAIN"; log "   ← 未恢复，已还原 marker（drain=off）"
+        fi
       fi
       if [ "$ONCE" = 1 ]; then log "== --once 完成，退出"; exit 0; fi
     fi
