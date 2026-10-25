@@ -32,6 +32,9 @@ export type RegisteredSignalDefinition = {
   sendId: number
   monitorId: number
   serverId: number
+  /** 第四份内置定义「发送客户端脚本信号」的节点 id（注册表条目 f9）；旧地图可能没有。
+   * 只读信息：编译器按信号名查 pin 布局，不消费这个 id。 */
+  clientScriptId?: number
   encoding?: RegisteredSignalEncoding
   clientEncoding?: RegisteredSignalClientEncoding
 }

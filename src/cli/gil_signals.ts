@@ -348,11 +348,38 @@ function readSignalSource(gilPath: string, payload: Uint8Array) {
     : undefined
 }
 
+/**
+ * 注册表条目 f9 = 第四份内置定义「发送客户端脚本信号」的节点 id（编辑器按信号写）。
+ * 只读用途：inspect 显示 / 写入后回读校验。缺 f9 的老地图返回空表。
+ */
+function readRegistryClientScriptIds(payload: Uint8Array): Map<string, number> {
+  const result = new Map<string, number>()
+  const root = parseWireMessage(payload)
+  const topField = root?.find((field) => field.number === 10 && field.wire === 2)
+  if (!topField) return result
+  const top = parseWireMessage(topField.value as Uint8Array) ?? []
+  const registry = top.find((field) => field.number === 5 && field.wire === 2)
+  if (!registry) return result
+  for (const entry of parseWireMessage(registry.value as Uint8Array) ?? []) {
+    if (entry.number !== 3 || entry.wire !== 2) continue
+    const fields = parseWireMessage(entry.value as Uint8Array) ?? []
+    const name = fields.find((field) => field.number === 3 && field.wire === 2)
+    const identity = fields.find((field) => field.number === 9 && field.wire === 2)
+    if (!name || !identity) continue
+    const id = parseNodeGraphId(identity.value as Uint8Array)?.nodeId
+    const nameText = decodeUtf8(name.value as Uint8Array)
+    if (id === undefined || !nameText) continue
+    result.set(nameText, id)
+  }
+  return result
+}
+
 export function readRegisteredSignalsFromGil(gilPath: string): RegisteredSignalDefinition[] {
   const { payload, fields } = readGilPayloadFields(gilPath)
   const entries = parseSignalEntries(payload, fields)
   const ids = extractSignalNodeIds(payload, fields)
   const layouts = readSignalLayouts(payload)
+  const clientScriptIds = readRegistryClientScriptIds(payload)
   const source = readSignalSource(gilPath, payload)
   // 编辑器创建的信号可能缺 identity/layout（如 1915 的「日志操作」）——跳过并警告，
   // 不让单个不可读条目堵死 inspect/compile/register 整条链路（2026-09-01）。
@@ -375,6 +402,7 @@ export function readRegisteredSignalsFromGil(gilPath: string): RegisteredSignalD
       sendId: identity.send.nodeId,
       monitorId: identity.monitor.nodeId,
       serverId: identity.sendServer.nodeId,
+      ...(clientScriptIds.has(entry.name) ? { clientScriptId: clientScriptIds.get(entry.name) } : {}),
       encoding: { ...layout, source }
     })
   }

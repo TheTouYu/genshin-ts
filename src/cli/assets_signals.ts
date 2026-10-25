@@ -48,6 +48,14 @@ function usage(exitCode = 1): never {
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
     '  --server-id <id>         new signal server identity node ID (auto when omitted)',
+    '  --client-script-id <id>  client-script send node ID (auto when omitted)',
+    '  --signal-version <n>     raise the signal version floor explicitly (>= threshold only)',
+    '',
+    'register/update/repair always write the four builtin composite definitions the editor',
+    'keeps per signal: 向服务器节点图发送信号 / 监听信号 / 发送信号 / 发送客户端脚本信号,',
+    'plus the registry identities.  Missing the client-script one leaves the send/monitor/',
+    'server definitions pointing at a node id that does not exist, which makes the game',
+    'reject the signal ("信号有问题").',
     '  -h, --help               show help'
   ].join('\n')
   console[exitCode === 0 ? 'log' : 'error'](output)
@@ -96,6 +104,8 @@ export function parseArgs(argv: readonly string[]) {
   let sendId: number | undefined
   let monitorId: number | undefined
   let serverId: number | undefined
+  let clientScriptId: number | undefined
+  let signalVersion: number | undefined
   const params: SignalRegistrationParam[] = []
   if (argv[0] === 'inspect' || argv[0] === 'repair' || argv[0] === 'update' || argv[0] === 'register') {
     command = argv[0]
@@ -115,6 +125,12 @@ export function parseArgs(argv: readonly string[]) {
     else if (arg === '--send-id') sendId = nonNegativeId(value(argv, i++), '--send-id')
     else if (arg === '--monitor-id') monitorId = nonNegativeId(value(argv, i++), '--monitor-id')
     else if (arg === '--server-id') serverId = nonNegativeId(value(argv, i++), '--server-id')
+    else if (arg === '--client-script-id')
+      clientScriptId = nonNegativeId(value(argv, i++), '--client-script-id')
+    else if (arg === '--signal-version') {
+      signalVersion = nonNegativeId(value(argv, i++), '--signal-version')
+      if (signalVersion <= 0) throw new Error('[error] --signal-version must be a positive integer')
+    }
     else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
@@ -132,7 +148,8 @@ export function parseArgs(argv: readonly string[]) {
       templateSignalName ||
       sendId !== undefined ||
       monitorId !== undefined ||
-      serverId !== undefined
+      serverId !== undefined ||
+      clientScriptId !== undefined
     ) {
       throw new Error(
         '[error] update preserves signal IDs and does not accept template or ID options'
@@ -142,7 +159,13 @@ export function parseArgs(argv: readonly string[]) {
     if (!targetSignalName) throw new Error('[error] --target-signal is required')
     if (!templateGilPath) throw new Error('[error] --template-gil is required')
     if (!templateSignalName) throw new Error('[error] --template-signal is required')
-    if (name || sendId !== undefined || monitorId !== undefined || serverId !== undefined) {
+    if (
+      name ||
+      sendId !== undefined ||
+      monitorId !== undefined ||
+      serverId !== undefined ||
+      clientScriptId !== undefined
+    ) {
       throw new Error('[error] repair preserves signal name and IDs')
     }
   }
@@ -171,6 +194,8 @@ export function parseArgs(argv: readonly string[]) {
     sendId,
     monitorId,
     serverId,
+    clientScriptId,
+    signalVersion,
     params
   }
 }
@@ -226,7 +251,8 @@ function runInspect(
   for (const entry of entries) {
     const params = entry.params.map((param) => `${param.name}:${param.type}`).join(' ') || '(none)'
     console.log(
-      `  ${entry.name} send=${entry.sendId} monitor=${entry.monitorId} server=${entry.serverId} params=[${params}]`
+      `  ${entry.name} send=${entry.sendId} monitor=${entry.monitorId} server=${entry.serverId} ` +
+        `clientScript=${entry.clientScriptId ?? '(none)'} params=[${params}]`
     )
   }
 }
@@ -245,7 +271,8 @@ async function runRegister(
       ? updateSignalInGil({
           bytes: sourceBytes,
           targetSignalName: args.targetSignalName!,
-          signal: { name: args.name!, params: args.params }
+          signal: { name: args.name!, params: args.params },
+          version: args.signalVersion
         })
       : args.command === 'repair'
         ? repairSignalInGil({
@@ -253,7 +280,8 @@ async function runRegister(
             targetSignalName: args.targetSignalName!,
             templateBytes: new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath!))),
             templateSignalName: args.templateSignalName!,
-            expectedParams: args.params.length > 0 ? args.params : undefined
+            expectedParams: args.params.length > 0 ? args.params : undefined,
+            version: args.signalVersion
           })
         : registerSignalInGil({
             bytes: sourceBytes,
@@ -261,12 +289,14 @@ async function runRegister(
               ? new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath)))
               : undefined,
             templateSignalName: args.templateSignalName!,
+            version: args.signalVersion,
             signal: {
               name: args.name!,
               params: args.params,
               sendId: args.sendId,
               monitorId: args.monitorId,
-              serverId: args.serverId
+              serverId: args.serverId,
+              clientScriptId: args.clientScriptId
             }
           })
   const candidateSha = sha256Bytes(result.bytes)
@@ -281,6 +311,7 @@ async function runRegister(
       readBack.sendId !== result.signal.sendId ||
       readBack.monitorId !== result.signal.monitorId ||
       readBack.serverId !== result.signal.serverId ||
+      readBack.clientScriptId !== result.signal.clientScriptId ||
       ((args.command === 'update' || (args.command === 'repair' && args.params.length > 0)) &&
         readBack.params.map((param) => `${param.name}:${param.type}`).join('|') !==
           args.params.map((param) => `${param.name}:${param.type}`).join('|'))
@@ -335,7 +366,8 @@ async function runRegister(
       `status=${'status' in result ? result.status : 'changed'} template=${result.templateSignalName} ` +
       `params=${result.signal.params.length} ` +
       `sendId=${result.signal.sendId} monitorId=${result.signal.monitorId} ` +
-      `serverId=${result.signal.serverId} candidateSha256=${candidateSha}`
+      `serverId=${result.signal.serverId} clientScriptId=${result.signal.clientScriptId ?? '(none)'} ` +
+      `candidateSha256=${candidateSha}`
   )
 }
 

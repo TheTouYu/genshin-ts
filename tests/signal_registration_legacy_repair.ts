@@ -74,13 +74,27 @@ const definitions = (bytes: Uint8Array) =>
       .map((field) => [definitionId(field), field])
   )
 const fieldBytes = (field: WireField) => emitWireMessage([field])
+// 信号区之外的内容：注册表（f5）+ 该信号的四份内置定义（send/monitor/server +
+// 第四份「发送客户端脚本信号」，2026-10-25 起 repair 会补齐它；多信号地图上第四份
+// 定义不止一份，按显示名排除）。
+const SIGNAL_DEF_IDS = [1610612741, 1610612742, 1610612743] as const
+const definitionName = (field: WireField): string | undefined => {
+  if (field.number !== 2 || field.wire !== 2) return undefined
+  const ws = parseWireMessage(field.value as Uint8Array)
+  const inner = ws?.find((entry) => entry.number === 1 && entry.wire === 2)
+  if (!inner) return undefined
+  return text(parse(inner.value as Uint8Array), 200)
+}
 const unrelated = (bytes: Uint8Array) =>
   top(bytes)
-    .filter(
-      (field) =>
-        field.number !== 5 &&
-        !(field.number === 2 && [1610612741, 1610612742, 1610612743].includes(definitionId(field)!))
-    )
+    .filter((field) => {
+      if (field.number === 5) return false
+      if (field.number !== 2) return true
+      const id = definitionId(field)
+      if (id === undefined) return true
+      if ((SIGNAL_DEF_IDS as readonly number[]).includes(id)) return false
+      return definitionName(field) !== '发送客户端脚本信号'
+    })
     .map(fieldBytes)
 
 const cli = parseArgs([
@@ -164,6 +178,17 @@ assert.equal(
 )
 assert.deepEqual(unrelated(result.bytes), unrelated(malformed))
 const repairedDefs = definitions(result.bytes)
+// 第四份内置定义（「发送客户端脚本信号」）必须存在：缺它 = 三份定义的 n107 悬空引用
+// → 试玩校验报「信号有问题」（2026-10-25 hl 差分实证）。
+const clientScriptId = result.signal.clientScriptId
+assert.ok(clientScriptId !== undefined, 'repair materializes the client-script id')
+assert.ok(clientScriptId! >= 1610612737, 'client-script id lives in the 0x60000001 segment')
+assert.ok(repairedDefs.has(clientScriptId!), 'repair materializes the client-script definition')
+assert.equal(
+  contains(repairedDefs.get(clientScriptId!)!.value as Uint8Array, '发送客户端脚本信号'),
+  true,
+  'client-script definition display name'
+)
 const donorDefs = definitions(donor)
 for (const id of [1610612741, 1610612742, 1610612743]) {
   const repairedBytes = fieldBytes(repairedDefs.get(id)!)

@@ -2224,6 +2224,9 @@ async function main() {
   program
     .command('assets:signals')
     .description('inspect or register signals in a map GIL')
+    // 子动作是位置参数：让 --help 落到 assets_signals.ts 的 usage()，才能列出
+    // register/update/repair 的动作与选项（含四份内置复合定义的说明）。
+    .helpOption(false)
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .action(async () => {

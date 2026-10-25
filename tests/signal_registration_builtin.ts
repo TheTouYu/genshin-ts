@@ -5,7 +5,10 @@ import { join } from 'node:path'
 
 import { buildFile } from '../src/injector/binary.js'
 import { emitWireMessage, parseWireMessage } from '../src/cli/static_assembly/wire.js'
-import { registerSignalInGil } from '../src/cli/gil_signal_registrations.js'
+import {
+  registerSignalInGil,
+  repairSignalInGil
+} from '../src/cli/gil_signal_registrations.js'
 import { readRegisteredSignalsFromGil } from '../src/cli/gil_signals.js'
 
 const REAL_MAP = process.env.GSTS_SIGNAL_TEST_MAP
@@ -40,6 +43,66 @@ function pinOf(paramEntry: Uint8Array, field: number): number | undefined {
 }
 function registryOf(top: any[]): any[] {
   return parseWireMessage(top.find((f) => f.number === 5)!.value as Uint8Array)!
+}
+
+function containsVarint(data: Uint8Array, expected: number, depth = 0): boolean {
+  if (depth > 6) return false
+  for (const field of parseWireMessage(data) ?? []) {
+    if (field.wire === 0 && field.number === 5 && field.value === expected) return true
+    if (field.wire === 2 && containsVarint(field.value as Uint8Array, expected, depth + 1)) return true
+  }
+  return false
+}
+
+// 从注册产物里删掉第四份定义 + 条目 f9 + 第四条 identity（复刻旧 CLI 的失败产物形态）。
+function stripClientScriptDefinition(bytes: Uint8Array, clientScriptId: number): Uint8Array {
+  const payload = bytes.slice(20, -4)
+  const root = parseWireMessage(payload)!
+  const topField = root.find((f) => f.number === 10 && f.wire === 2)!
+  const top = parseWireMessage(topField.value as Uint8Array)!
+  const isClientScriptDef = (field: any): boolean => {
+    if (field.number !== 2 || field.wire !== 2) return false
+    const ws = parseWireMessage(field.value as Uint8Array)!
+    const inner = ws.find((x) => x.number === 1 && x.wire === 2)
+    if (!inner) return false
+    const root2 = parseWireMessage(inner.value as Uint8Array)!
+    const nameField = root2.find((x) => x.number === 200 && x.wire === 2)
+    return (
+      !!nameField &&
+      Buffer.from(nameField.value as Uint8Array).toString('utf8') === '发送客户端脚本信号'
+    )
+  }
+  const nextTop = top
+    .filter((field) => !isClientScriptDef(field))
+    .map((field) => {
+      if (field.number !== 5 || field.wire !== 2) return field
+      const entries = parseWireMessage(field.value as Uint8Array)!
+      const next = entries.flatMap((entry) => {
+        if (entry.number === 2 && entry.wire === 2) {
+          const sub = parseWireMessage(entry.value as Uint8Array)!
+          const id = sub.find((x) => x.number === 5 && x.wire === 0)?.value
+          return id === clientScriptId ? [] : [entry]
+        }
+        if (entry.number === 3 && entry.wire === 2) {
+          const sub = parseWireMessage(entry.value as Uint8Array)!
+          if (!sub.some((x) => x.number === 9 && x.wire === 2)) return [entry]
+          return [
+            { ...entry, value: emitWireMessage(sub.filter((x) => !(x.number === 9 && x.wire === 2))) }
+          ]
+        }
+        return [entry]
+      })
+      return { ...field, value: emitWireMessage(next) }
+    })
+  const nextRoot = root.map((field) =>
+    field === topField ? { ...field, value: emitWireMessage(nextTop) } : field
+  )
+  return buildFile(emitWireMessage(nextRoot), {
+    schema: 1,
+    headTag: 0x0326,
+    fileType: 2,
+    tailTag: 0x0679
+  })
 }
 
 // ── 1. fresh map, from-scratch str+str ────────────────────────────────────────
@@ -213,7 +276,86 @@ const monDef = defOf(t5, r5.signal.monitorId)
 assert.equal(n3Field2(monDef, 'senderPos', 103), 3, 'monitor senderPos field2=3')
 assert.equal(n3Field2(monDef, 'hop', 103), 4, 'monitor hop field2=4')
 
+// ── 6. 第四份内置定义「发送客户端脚本信号」（2026-10-25 hl 差分实证）─────────
+// 编辑器给每个信号写四份定义：向服务器节点图发送信号 / 监听信号 / 发送信号 /
+// 发送客户端脚本信号（节点 id 走 0x60000001 段）。前三份的 n107 映射以 n4 引用第四份；
+// 只写三份 = 悬空引用 → 试玩校验报「信号有问题」。0 参数信号也必须带它（旧实现 0 参数
+// 走 builtin 会直接抛错，因此这条同时覆盖「无 donor 注册 0 参数信号」）。
+const CLIENT_SCRIPT_NAME = '发送客户端脚本信号'
+const r6 = registerSignalInGil({ bytes: freshBytes, signal: { name: 'settle', params: [] } })
+assert.equal(r6.signal.clientScriptId, 1610612737, 'client-script id from 0x60000001')
+const t6 = top10(r6.bytes)
+const defIds6 = t6
+  .filter((f) => f.number === 2 && f.wire === 2)
+  .map((f) => {
+    const inner = parseWireMessage(f.value as Uint8Array)!.find((x) => x.number === 1 && x.wire === 2)!
+    const root = parseWireMessage(inner.value as Uint8Array)!
+    const idMsg = root.find((x) => x.number === 4 && x.wire === 2)!
+    const generic = parseWireMessage(idMsg.value as Uint8Array)!.find((x) => x.number === 1 && x.wire === 2)!
+    return parseWireMessage(generic.value as Uint8Array)!.find((x) => x.number === 5)!.value as number
+  })
+assert.deepEqual(
+  defIds6.sort((a, b) => a - b),
+  [1610612737, 1610612741, 1610612742, 1610612743],
+  'four builtin definitions (client-script first id)'
+)
+const clientScriptDef6 = defOf(t6, 1610612737)
+assert.ok(clientScriptDef6, 'client-script definition present')
+const clientScriptRoot6 = parseWireMessage(
+  parseWireMessage(clientScriptDef6!)!.find((x) => x.number === 1 && x.wire === 2)!.value as Uint8Array
+)!
+assert.equal(
+  Buffer.from(clientScriptRoot6.find((x) => x.number === 200)!.value as Uint8Array).toString('utf8'),
+  CLIENT_SCRIPT_NAME,
+  'client-script display name'
+)
+// 注册表条目 f9 = 第四份定义的 identity；identity 列表里也有它（编辑器形态：4 条）
+const entry6 = parseWireMessage(
+  registryOf(t6).find((f) => f.number === 3 && f.wire === 2)!.value as Uint8Array
+)!
+const f9 = entry6.find((x) => x.number === 9 && x.wire === 2)
+assert.ok(f9, 'registry entry carries f9')
+assert.equal(parseWireMessage(f9!.value as Uint8Array)!.find((x) => x.number === 5)!.value, 1610612737)
+assert.equal(
+  registryOf(t6).filter((f) => f.number === 2 && f.wire === 2).length,
+  4,
+  'four registry identities'
+)
+// 前三份定义的 n107 映射必须引用第四份（曾经缺的正是这个引用目标）
+for (const id of [r6.signal.sendId, r6.signal.monitorId, r6.signal.serverId]) {
+  const def = parseWireMessage(defOf(t6, id)!)!
+  const inner = parseWireMessage(def.find((x) => x.number === 1 && x.wire === 2)!.value as Uint8Array)!
+  const mapping = inner.find((x) => x.number === 107 && x.wire === 2)!
+  assert.ok(
+    containsVarint(mapping.value as Uint8Array, 1610612737),
+    'n107 references the client-script definition for ' + id
+  )
+}
+const dir6 = mkdtempSync(join(tmpdir(), 'gsts-signal-test-'))
+const f6 = join(dir6, 'map.gil')
+writeFileSync(f6, r6.bytes)
+const rb6 = readRegisteredSignalsFromGil(f6).find((entry) => entry.name === 'settle')
+assert.equal(rb6!.clientScriptId, 1610612737, 'read-back exposes clientScriptId')
+
+// ── 7. repair 补齐缺失的第四份定义（旧 CLI 产物 → 编辑器形态）────────────────
+// legacy = 从 r6 里删掉第四份定义 + 条目 f9 + 第四条 identity（复刻 2026-10-25 hl 的
+// 失败产物形态）。repair 用完整产物当模板，产物应逐字节回到完整产物。
+const legacy = stripClientScriptDefinition(r6.bytes, 1610612737)
+const repaired = repairSignalInGil({
+  bytes: legacy,
+  targetSignalName: 'settle',
+  templateBytes: r6.bytes,
+  templateSignalName: 'settle'
+})
+assert.equal(repaired.status, 'repaired')
+assert.equal(repaired.signal.clientScriptId, 1610612737)
+assert.ok(
+  Buffer.compare(Buffer.from(repaired.bytes), Buffer.from(r6.bytes)) === 0,
+  'repair restores the exact editor shape (byte-equal)'
+)
+
 rmSync(dir1, { recursive: true, force: true })
 rmSync(dir3, { recursive: true, force: true })
+rmSync(dir6, { recursive: true, force: true })
 console.log('PASS signal_registration_builtin')
 

@@ -18,6 +18,10 @@ export type SignalRegistrationSpec = {
   sendId: number
   monitorId: number
   serverId: number
+  /** 第四份内置定义的节点 id（「发送客户端脚本信号」）。编辑器给每个信号都生成它，
+   * 并被三份 send/monitor/server 定义的 n107 信号名映射以 n4 引用（2026-10-25 差分实证：
+   * 缺这一份 → n107 悬空引用 → 试玩校验报「信号有问题」）。老地图/旧 CLI 产物可能没有。 */
+  clientScriptId?: number
 }
 
 // Register input: node IDs optional, auto-assigned from the highest occupied ID.
@@ -56,9 +60,12 @@ type SignalIndexEntry = {
    * （2026-08-15 灯阵实证：repair 复刻模板 field5=2 但条目 signalVersion=3 → 引擎拒绝加载，
    * 用户重存统一为 4 后正常）。 */
   signalVersion: number
+  /** 条目 f9：第四份内置定义（「发送客户端脚本信号」）的节点 id。
+   * 编辑器写；缺省 = 该信号没有第四份定义（老地图常态）。 */
+  clientScriptId?: number
 }
 
-type DefinitionKind = 'send' | 'monitor' | 'server'
+type DefinitionKind = 'send' | 'monitor' | 'server' | 'clientScript'
 
 type ParamTemplates = {
   sourceSignal: string
@@ -67,6 +74,7 @@ type ParamTemplates = {
   send?: WireField
   monitor?: WireField
   server?: WireField
+  clientScript?: WireField
 }
 
 type SignalPool = {
@@ -79,6 +87,22 @@ const SERVER_NODE_TYPE = 20000
 const CLIENT_NODE_TYPE = 20002
 const SIGNAL_NODE_KIND = 22001
 const MONITOR_FIXED_OUTPUTS = new Set(['事件源实体', '事件源GUID', '信号来源实体'])
+
+// 第四份内置定义「发送客户端脚本信号」：编辑器给每个信号生成一份（服务器图 → 客户端
+// 脚本的发送节点），并在三份 send/monitor/server 定义的 n107 信号名映射里以 n4 引用它的
+// 节点 id（2026-10-25 hl 差分：CLI 只克隆三份 → 该引用悬空 → 试玩校验「信号有问题」）。
+// 它的节点 id 走独立 id 段 0x60000001 起（send/monitor/server 从 0x60000005 起，见
+// assignSignalIds）；样例 1073741827 两个信号 = 1610612737/1610612738，其余 41-43/44-46。
+const CLIENT_SCRIPT_ID_BASE = 1610612737
+const CLIENT_SCRIPT_DISPLAY = '发送客户端脚本信号'
+// 第四份定义的固定输入参数（不是信号参数；占序号 0，信号参数顺延为 1..n）。
+const CLIENT_SCRIPT_FIXED_PARAMS = new Set(['目标玩家'])
+// 固定 pin（字节取自编辑器 0 参数信号样本 1073741834）：输入流 1、输出流 2、
+// 信号名 4、目标玩家 6；带参数时信号参数顺延 7..（pin 数值引擎不校验，见
+// builtinTemplatesFor 注释的 2026-09-02 四轮差分证据）。
+const CLIENT_SCRIPT_PINS = { inflow: 1, outflow: 2, name: 4, target: 6 }
+const CLIENT_SCRIPT_TARGET_N3 = '08 03'
+const CLIENT_SCRIPT_TARGET_N4 = '18 01 20 01'
 
 export const PARAM_TYPE_CODES: Partial<Record<SignalParamType, number>> = {
   entity: 1,
@@ -410,6 +434,7 @@ function parseSignalIndexEntry(field: WireField): SignalIndexEntry | undefined {
     })
   const signalVersion = varint(value, 6)
   if (signalVersion === undefined) return undefined
+  const clientScript = value.find((entry) => entry.number === 9 && entry.wire === 2)
   return {
     field,
     name,
@@ -420,6 +445,9 @@ function parseSignalIndexEntry(field: WireField): SignalIndexEntry | undefined {
       monitorId: monitorIdentity.id,
       serverId: serverIdentity.id
     },
+    clientScriptId: clientScript
+      ? nodeIdentity(clientScript.value as Uint8Array).id
+      : undefined,
     paramEntries: value.filter((entry) => entry.number === 4 && entry.wire === 2)
   }
 }
@@ -475,6 +503,8 @@ function definitionParams(wrapper: WireField, kind: DefinitionKind): WireField[]
     const name = subParamName(sub)
     if (!name) return false
     if (kind === 'monitor') return sub.number === 103 && !MONITOR_FIXED_OUTPUTS.has(name)
+    if (kind === 'clientScript')
+      return sub.number === 102 && !CLIENT_SCRIPT_FIXED_PARAMS.has(name)
     return sub.number === 102
   })
 }
@@ -486,6 +516,9 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
     const id = definitionNodeId(field)
     if (id) definitions.set(id, { kind: 'send', wrapper: field })
   }
+  const clientScriptDefs = top.filter(
+    (field) => definitionDisplayName(field) === CLIENT_SCRIPT_DISPLAY
+  )
   const byType = new Map<SignalParamType, ParamTemplates[]>()
   for (const entry of entries) {
     const kindOfId = new Map<number, DefinitionKind>([
@@ -493,6 +526,9 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
       [entry.identity.monitorId, 'monitor'],
       [entry.identity.serverId, 'server']
     ])
+    const clientScriptId =
+      entry.clientScriptId ?? matchClientScriptDefinition(clientScriptDefs, entry.identity)
+    if (clientScriptId) kindOfId.set(clientScriptId, 'clientScript')
     const defs = new Map<DefinitionKind, WireField>()
     for (const [id, kind] of kindOfId) {
       const def = definitions.get(id)
@@ -509,7 +545,7 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
         sourceParam: param.name,
         index: entry.paramEntries[i]
       }
-      for (const kind of ['send', 'monitor', 'server'] as const) {
+      for (const kind of ['send', 'monitor', 'server', 'clientScript'] as const) {
         const def = defs.get(kind)
         if (!def) continue
         const match = definitionParams(def, kind).find((sub) => subParamName(sub) === param.name)
@@ -613,6 +649,20 @@ function builtinTemplatesFor(
           { number: 3, wire: 2, value: n3WithField2(ser.n3, layout.field2 + k) },
           { number: 4, wire: 2, value: ser.n4 },
           { number: 8, wire: 0, value: r }
+        ])
+      },
+      // 第四份「发送客户端脚本信号」定义的参数条目：描述符与 send 同型（2026-10-25
+      // 样本 1073741827 zaowu_probe：clientScript 与 send 的 n4 逐字节相同，只差序号
+      // field2 与 pin），序号从 1 起（0 = 固定「目标玩家」），pin = 目标玩家 + 1 + k。
+      clientScript: {
+        number: 102,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(placeholder) },
+          { number: 2, wire: 0, value: 1 },
+          { number: 3, wire: 2, value: n3WithField2(send.n3, 1 + k) },
+          { number: 4, wire: 2, value: send.n4 },
+          { number: 8, wire: 0, value: CLIENT_SCRIPT_PINS.target + 1 + k }
         ])
       }
     })
@@ -724,28 +774,58 @@ function builtinSignalDef(kind: 'send' | 'mon' | 'ser', signal: SignalRegistrati
   const sendIdentity = encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId)
   const monIdentity = encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId)
   const serverIdentity = encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId)
+  const clientScriptIdentity =
+    signal.clientScriptId !== undefined
+      ? encodeNodeIdentity(SERVER_NODE_TYPE, signal.clientScriptId)
+      : undefined
   // Verified against the editor's own bytes: send n107 field 3 references the
   // SERVER identity (type 20002); server n107 field 3 references the SEND identity.
+  // n4 = 第四份「发送客户端脚本信号」定义（2026-10-25 差分：编辑器三份定义都带它，
+  // 缺这份 → 悬空引用 → 试玩校验报「信号有问题」）。
   const inner =
     kind === 'mon'
       ? { 1: 1002, name: signal.name, a: sendIdentity, b: serverIdentity }
       : kind === 'ser'
         ? { 1: 1001, name: signal.name, a: monIdentity, b: sendIdentity }
         : { 1: 1001, name: signal.name, a: monIdentity, b: serverIdentity }
+  const mapping: WireField[] = [
+    { number: 1, wire: 2, value: TEXT.encode(inner.name) },
+    { number: 2, wire: 2, value: inner.a },
+    { number: 3, wire: 2, value: inner.b }
+  ]
+  if (clientScriptIdentity) mapping.push({ number: 4, wire: 2, value: clientScriptIdentity })
   const fields: WireField[] = [
     { number: 1, wire: 0, value: inner[1] },
     {
       // monitor def carries the name under field 102, send/server under 101
       number: kind === 'mon' ? 102 : 101,
       wire: 2,
-      value: emitWireMessage([
-        { number: 1, wire: 2, value: TEXT.encode(inner.name) },
-        { number: 2, wire: 2, value: inner.a },
-        { number: 3, wire: 2, value: inner.b }
-      ])
+      value: emitWireMessage(mapping)
     }
   ]
   return { number: 107, wire: 2, value: emitWireMessage(fields) }
+}
+
+/** 第四份内置定义「发送客户端脚本信号」的 n107 信号名映射：列出其余三份（send/
+ * server/monitor）的节点 id（2026-10-25 样本 1073741834/1073741827 逐字节一致）。 */
+function builtinClientScriptSignalDef(signal: SignalRegistrationSpec): WireField {
+  return {
+    number: 107,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 1, wire: 0, value: 1006 },
+      {
+        number: 108,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(signal.name) },
+          { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId) },
+          { number: 3, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) },
+          { number: 4, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) }
+        ])
+      }
+    ])
+  }
 }
 const BUILTIN_DISPLAY: Record<'send' | 'mon' | 'ser', { text: string; kind: number }> = {
   send: { text: '发送信号', kind: 1 },
@@ -769,15 +849,22 @@ function buildBuiltinTemplate(
   pool: SignalPool,
   version: number
 ): { template: SignalIndexEntry; templateDefinitions: WireField[] } {
+  if (signal.clientScriptId === undefined) {
+    throw new Error('[error] signal needs a client-script definition id')
+  }
   const first = signal.params[0]
-  const firstTemplates = pool.byType.get(first.type)?.[0]
-  if (!firstTemplates) throw new Error(`[error] no layout for parameter type: ${first.type}`)
-  const kinds: { kind: 'send' | 'mon' | 'ser'; entry: WireField }[] = [
-    { kind: 'send', entry: firstTemplates.send! },
-    { kind: 'mon', entry: firstTemplates.monitor! },
-    { kind: 'ser', entry: firstTemplates.server! }
+  const firstTemplates = first ? pool.byType.get(first.type)?.[0] : undefined
+  if (first && !firstTemplates) throw new Error(`[error] no layout for parameter type: ${first.type}`)
+  const kinds: { kind: 'send' | 'mon' | 'ser' | 'clientScript'; entry?: WireField }[] = [
+    { kind: 'send', entry: firstTemplates?.send },
+    { kind: 'mon', entry: firstTemplates?.monitor },
+    { kind: 'ser', entry: firstTemplates?.server },
+    { kind: 'clientScript', entry: firstTemplates?.clientScript }
   ]
   const templateDefinitions = kinds.map(({ kind, entry }) => {
+    if (kind === 'clientScript') {
+      return builtinClientScriptDefinition(signal, version, entry)
+    }
     const id =
       kind === 'send' ? signal.sendId : kind === 'mon' ? signal.monitorId : signal.serverId
     const identity = encodeNodeIdentity(
@@ -801,7 +888,7 @@ function buildBuiltinTemplate(
     if (kind === 'mon') {
       for (const fixed of BUILTIN_MONITOR_FIXED) root.push(builtinFixedEntry(fixed))
     }
-    root.push(entry)
+    if (entry) root.push(entry)
     if (kind === 'ser') root.push(builtinServerExtraPin())
     root.push({
       number: 106,
@@ -825,28 +912,156 @@ function buildBuiltinTemplate(
     root.push({ number: 204, wire: 0, value: 8 })
     return { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: emitWireMessage(root) }]) }
   })
+  const entryFields: WireField[] = [
+    { number: 1, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId) },
+    { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
+    { number: 3, wire: 2, value: TEXT.encode(signal.name) }
+  ]
+  if (firstTemplates) {
+    entryFields.push({ number: 4, wire: 2, value: firstTemplates.index.value })
+  }
+  entryFields.push(
+    { number: 6, wire: 0, value: version },
+    { number: 7, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) },
+    { number: 9, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.clientScriptId) }
+  )
   const template: SignalIndexEntry = {
-    field: {
-      number: 3,
-      wire: 2,
-      value: emitWireMessage([
-        { number: 1, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId) },
-        { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
-        { number: 3, wire: 2, value: TEXT.encode(signal.name) },
-        { number: 4, wire: 2, value: firstTemplates.index.value },
-        { number: 6, wire: 0, value: version },
-        { number: 7, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
-      ])
-    },
+    field: { number: 3, wire: 2, value: emitWireMessage(entryFields) },
     name: signal.name,
     params: [...signal.params],
     identity: { sendId: signal.sendId, monitorId: signal.monitorId, serverId: signal.serverId },
-    paramEntries: [firstTemplates.index],
+    clientScriptId: signal.clientScriptId,
+    paramEntries: firstTemplates ? [firstTemplates.index] : [],
     // builtin 布局的版本 = versionFloor(注册后信号数)（2026-08-15 最小图三轮差分：
     // 版本阈值随被引用信号数增长，f(N)=max(3,ceil(3N/4))），与 f6 及定义 #4 field5 一致。
     signalVersion: version
   }
   return { template, templateDefinitions }
+}
+
+/** 把第四份定义的 pin 序号归一为规范值（f100 输入流 1 / f101 输出流 2 / 信号名 4 /
+ * 目标玩家 6 / 信号参数 7+k）。donor 克隆来的定义带着 donor 地图的 pin 号（2026-10-25
+ * 实测样本：zaowu_probe 的 4th def 目标玩家 pin=9，而规范值 6），不归一就与编辑器产物
+ * 差一个 varint。pin 数值引擎不校验（见 builtinTemplatesFor 注释），归一纯粹为字节对拍。 */
+function normalizeClientScriptPins(
+  wrapper: WireField,
+  params: readonly SignalRegistrationParam[]
+): WireField {
+  const wrapperFields = message(wrapper, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return wrapper
+  const root = message(inner, 'signal definition')
+  const withPin = (field: WireField, pin: number, label: string): WireField => {
+    const sub = message(field, label)
+    const next = sub.some((entry) => entry.number === 8 && entry.wire === 0)
+      ? sub.map((entry) => (entry.number === 8 && entry.wire === 0 ? { ...entry, value: pin } : entry))
+      : [...sub, { number: 8, wire: 0, value: pin }]
+    return { ...field, value: emitWireMessage(next) }
+  }
+  const paramPins = new Map<string, number>()
+  params.forEach((param, index) => {
+    paramPins.set(param.name, CLIENT_SCRIPT_PINS.target + 1 + index)
+  })
+  const nextRoot = root.map((field) => {
+    if (field.wire !== 2) return field
+    if (field.number === 100) return withPin(field, CLIENT_SCRIPT_PINS.inflow, 'client-script inflow')
+    if (field.number === 101) return withPin(field, CLIENT_SCRIPT_PINS.outflow, 'client-script outflow')
+    if (field.number === 106 && subParamName(field) === undefined) {
+      const name = text(message(field, 'client-script name pin'), 1)
+      if (name === '信号名') return withPin(field, CLIENT_SCRIPT_PINS.name, 'client-script name pin')
+      return field
+    }
+    if (field.number === 102) {
+      const name = subParamName(field)
+      if (name === undefined) return field
+      if (CLIENT_SCRIPT_FIXED_PARAMS.has(name)) {
+        return withPin(field, CLIENT_SCRIPT_PINS.target, 'client-script target pin')
+      }
+      const pin = paramPins.get(name)
+      return pin === undefined ? field : withPin(field, pin, 'client-script param pin')
+    }
+    return field
+  })
+  return {
+    ...wrapper,
+    value: emitWireMessage(
+      wrapperFields.map((field) =>
+        field === inner ? { ...field, value: emitWireMessage(nextRoot) } : field
+      )
+    )
+  }
+}
+
+/** 第四份内置定义「发送客户端脚本信号」的 builtin 形态（无 donor 时）。
+ * 字节骨架取自编辑器 0 参数信号样本（地图 1073741834）：f4 身份 / f100 输入流 pin1 /
+ * f101 输出流 pin2 / f102「目标玩家」pin6 / [信号参数 pin 7..] / f106 信号名 pin4 /
+ * f107 映射 / f200 名 / f203=1 / f204=8。带参数时参数条目由 buildDefinition 用
+ * pool 的 clientScript 模板重建（pin 7+k，序号 1+k；样本 1073741827 同构）。 */
+function builtinClientScriptDefinition(
+  signal: SignalRegistrationSpec,
+  version: number,
+  entry: WireField | undefined
+): WireField {
+  const identity = encodeNodeIdentity(SERVER_NODE_TYPE, signal.clientScriptId!)
+  const pin = (number: number, tag: string, index: number): WireField => ({
+    number,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 2, wire: 0, value: 1 },
+      { number: 3, wire: 2, value: hexToBytes(tag) },
+      { number: 4, wire: 2, value: emitWireMessage([]) },
+      { number: 8, wire: 0, value: index }
+    ])
+  })
+  const root: WireField[] = [
+    {
+      number: 4,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 2, value: identity },
+        { number: 2, wire: 2, value: identity },
+        { number: 4, wire: 2, value: emitWireMessage([]) },
+        { number: 5, wire: 0, value: version }
+      ])
+    },
+    pin(100, '08 01', CLIENT_SCRIPT_PINS.inflow),
+    pin(101, '08 02', CLIENT_SCRIPT_PINS.outflow),
+    {
+      number: 102,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 2, value: TEXT.encode('目标玩家') },
+        { number: 2, wire: 0, value: 1 },
+        { number: 3, wire: 2, value: hexToBytes(CLIENT_SCRIPT_TARGET_N3) },
+        { number: 4, wire: 2, value: hexToBytes(CLIENT_SCRIPT_TARGET_N4) },
+        { number: 8, wire: 0, value: CLIENT_SCRIPT_PINS.target }
+      ])
+    }
+  ]
+  if (entry) root.push(entry)
+  root.push({
+    number: 106,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 1, wire: 2, value: TEXT.encode('信号名') },
+      {
+        number: 4,
+        wire: 2,
+        value: namePinWithSignal(hexToBytes(BUILTIN_NAMEPIN_N4.send), signal.name)
+      },
+      { number: 5, wire: 2, value: hexToBytes('08 06 10 01') },
+      { number: 8, wire: 0, value: CLIENT_SCRIPT_PINS.name }
+    ])
+  })
+  root.push(builtinClientScriptSignalDef(signal))
+  root.push({ number: 200, wire: 2, value: TEXT.encode(CLIENT_SCRIPT_DISPLAY) })
+  root.push({ number: 203, wire: 0, value: 1 })
+  root.push({ number: 204, wire: 0, value: 8 })
+  return {
+    number: 2,
+    wire: 2,
+    value: emitWireMessage([{ number: 1, wire: 2, value: emitWireMessage(root) }])
+  }
 }
 
 function cloneParamEntry(template: WireField, oldName: string, newName: string): WireField {
@@ -864,15 +1079,15 @@ function cloneParamEntry(template: WireField, oldName: string, newName: string):
 
 // 参数条目的 n3 描述符 field2 = 参数在信号内的全局序号（2026-08-16 灯阵差分实证：
 // send/server 参数 = 序号（0 省略字段）；monitor 参数 = 3 + 序号，前 3 个固定字段
-// （事件源实体/事件源GUID/信号来源实体）占 0/1/2。builtin 模板的 field2 是历史样本
-// 遗留常量（vec3=2/int=0/entity=1/guid=5…），直接克隆会让双参数及非零常量类型
-// 的序号错位 → 引擎信号参数校验失败拒载（游戏进不去、无日志）。
+// （事件源实体/事件源GUID/信号来源实体）占 0/1/2；第四份「发送客户端脚本信号」定义
+// 的首个输入固定是「目标玩家」占 0，信号参数从 1 起（2026-10-25 样本 1073741827）。
 function rewriteParamN3Field2(entry: WireField, kind: DefinitionKind, paramIndex: number): WireField {
   if (entry.wire !== 2 || entry.number !== 102 && entry.number !== 103) return entry
   const sub = message(entry, 'parameter entry')
   const n3 = sub.find((field) => field.number === 3 && field.wire === 2)
   if (!n3) return entry
-  const field2 = kind === 'monitor' ? 3 + paramIndex : paramIndex
+  const field2 =
+    kind === 'monitor' ? 3 + paramIndex : kind === 'clientScript' ? 1 + paramIndex : paramIndex
   const n3Fields = message(n3, 'parameter n3 descriptor')
   const next = field2 === 0
     ? n3Fields.filter((field) => !(field.number === 2 && field.wire === 0))
@@ -886,16 +1101,30 @@ function rewriteParamN3Field2(entry: WireField, kind: DefinitionKind, paramIndex
   }
 }
 
+/** 改写条目/引脚消息里的 pinIndex（字段 8 varint）。 */
+function withPinIndex(entry: WireField, pin: number): WireField {
+  if (entry.wire !== 2) return entry
+  const sub = message(entry, 'signal definition pin entry')
+  const next = sub.some((field) => field.number === 8 && field.wire === 0)
+    ? sub.map((field) => (field.number === 8 && field.wire === 0 ? { ...field, value: pin } : field))
+    : [...sub, { number: 8, wire: 0, value: pin }]
+  return { ...entry, value: emitWireMessage(next) }
+}
+
 function replaceInFixed(
   data: Uint8Array,
   template: SignalIndexEntry,
   spec: SignalRegistrationSpec
 ): Uint8Array {
-  const idMap = new Map([
+  const idMap = new Map<number, number>([
     [template.identity.sendId, spec.sendId],
     [template.identity.monitorId, spec.monitorId],
     [template.identity.serverId, spec.serverId]
   ])
+  // 第四份定义自己的 id 也出现在它的身份字段 #4 与其余三份的 n107 映射里，必须一起重写。
+  if (template.clientScriptId !== undefined && spec.clientScriptId !== undefined) {
+    idMap.set(template.clientScriptId, spec.clientScriptId)
+  }
   return transformMessage(data, (field) => {
     if (field.wire === 0 && field.number === 5 && idMap.has(field.value as number)) {
       return { ...field, value: idMap.get(field.value as number)! }
@@ -913,6 +1142,8 @@ function replaceInFixed(
 // send/monitor/sendServer definitions occupy 1610612738..1610612740, so
 // auto-assignment starts after the highest occupied ID and is therefore
 // guaranteed collision-free (IDs carry no semantics, only uniqueness).
+// 第四份「发送客户端脚本信号」走自己的段（0x60000001 起，见 CLIENT_SCRIPT_ID_BASE），
+// 在调用前用 assignClientScriptId 分配好后随输入传入。
 function assignSignalIds(
   spec: SignalRegistrationInput,
   occupiedIds: ReadonlySet<number>
@@ -931,6 +1162,21 @@ function assignSignalIds(
   return { ...spec, sendId, monitorId: sendId + 1, serverId: sendId + 2 }
 }
 
+// 四个 id（含第四份定义）必须互不相同且都不被占用。
+function validateIds(spec: SignalRegistrationSpec, occupiedIds: ReadonlySet<number>): void {
+  const ids = [spec.sendId, spec.monitorId, spec.serverId, spec.clientScriptId].filter(
+    (id): id is number => id !== undefined
+  )
+  if (ids.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+    throw new Error(
+      '[error] sendId, monitorId, serverId and clientScriptId must be distinct positive safe integers'
+    )
+  }
+  for (const id of ids) {
+    if (occupiedIds.has(id)) throw new Error(`[error] signal node ID already occupied: ${id}`)
+  }
+}
+
 function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
   if (!spec.name.trim()) throw new Error('[error] signal name is required')
   const ids = [spec.sendId, spec.monitorId, spec.serverId]
@@ -938,8 +1184,7 @@ function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
     throw new Error(
       '[error] sendId, monitorId and serverId must be distinct positive safe integers'
     )
-  }
-  const names = new Set<string>()
+  }  const names = new Set<string>()
   const typeCounts = new Map<SignalParamType, number>()
   for (const param of spec.params) {
     if (!param.name.trim() || names.has(param.name)) {
@@ -990,6 +1235,12 @@ function buildIndexEntry(
     if (field.number === 7) {
       return [{ ...field, value: encodeNodeIdentity(CLIENT_NODE_TYPE, spec.serverId) }]
     }
+    // 模板条目已带 f9（builtin 模板 / 编辑器样本）时原地改写，不重复追加。
+    if (field.number === 9 && field.wire === 2) {
+      return spec.clientScriptId === undefined
+        ? []
+        : [{ ...field, value: encodeNodeIdentity(SERVER_NODE_TYPE, spec.clientScriptId) }]
+    }
     if (field.number !== 4 || field.wire !== 2) return [field]
     if (paramSlot > 0) return []
     paramSlot++
@@ -998,6 +1249,19 @@ function buildIndexEntry(
       return cloneParamEntry(templates.index, templates.sourceParam, param.name)
     })
   })
+  // 条目 f9 = 第四份内置定义（「发送客户端脚本信号」）的节点 identity（编辑器顺序：
+  // 1 send / 2 monitor / 3 name / 4..4+n params / 6 version / 7 server / 9 clientScript）。
+  // 模板没有 f9 字段时（donor 侧老地图）追加在末尾，与编辑器顺序一致。
+  if (
+    spec.clientScriptId !== undefined &&
+    !rebuilt.some((field) => field.number === 9 && field.wire === 2)
+  ) {
+    rebuilt.push({
+      number: 9,
+      wire: 2,
+      value: encodeNodeIdentity(SERVER_NODE_TYPE, spec.clientScriptId)
+    })
+  }
   return { ...template.field, value: emitWireMessage(rebuilt) }
 }
 
@@ -1020,7 +1284,9 @@ function buildDefinition(
       !!name &&
       (kind === 'monitor'
         ? sub.number === 103 && !MONITOR_FIXED_OUTPUTS.has(name)
-        : sub.number === 102)
+        : kind === 'clientScript'
+          ? sub.number === 102 && !CLIENT_SCRIPT_FIXED_PARAMS.has(name)
+          : sub.number === 102)
     if (!isParam) {
       return [
         {
@@ -1038,12 +1304,18 @@ function buildDefinition(
       const offset = typeOffsets.get(param.type) ?? 0
       typeOffsets.set(param.type, offset + 1)
       const templates = pool.byType.get(param.type)?.[offset]
-      const entry = templates?.[kind]
+      // 第四份定义的参数条目与 send 同型（只差 pin 与序号）；pool 里没有 clientScript
+      // 模板时（donor 缺第四份定义 / 地图模板未带），退回 send 形状并给规范 pin。
+      const useSendShape = kind === 'clientScript' && !templates?.clientScript
+      const entry = templates?.[kind] ?? (useSendShape ? templates?.send : undefined)
       if (!templates || !entry) {
         throw new Error(`[error] no ${kind} template entry for parameter type: ${param.type}`)
       }
       const cloned = cloneParamEntry(entry, templates.sourceParam, param.name)
-      return rewriteParamN3Field2(cloned, kind, paramIndex)
+      const ordinal = rewriteParamN3Field2(cloned, kind, paramIndex)
+      return useSendShape
+        ? withPinIndex(ordinal, CLIENT_SCRIPT_PINS.target + 1 + paramIndex)
+        : ordinal
     })
   })
   return {
@@ -1176,6 +1448,119 @@ function definitionNodeId(wrapper: WireField): number | undefined {
   return generic ? nodeIdentity(generic.value as Uint8Array).id : undefined
 }
 
+/** 复合定义显示名（定义根字段 200 的字符串）；非定义字段返回 undefined。 */
+function definitionDisplayName(wrapper: WireField): string | undefined {
+  if (wrapper.number !== 2 || wrapper.wire !== 2) return undefined
+  const wrapperFields = message(wrapper, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return undefined
+  return text(message(inner, 'signal definition'), 200)
+}
+
+/** 地图里所有已占用的定义节点 id（含孤儿定义），用于第四份定义的 id 分配。 */
+function occupiedDefinitionIds(top: readonly WireField[]): Set<number> {
+  const ids = new Set<number>()
+  for (const field of top) {
+    const id = definitionNodeId(field)
+    if (id !== undefined) ids.add(id)
+  }
+  return ids
+}
+
+/** 第四份定义「发送客户端脚本信号」的 id：0x60000001 起取第一个未占用（编辑器分配
+ * 段与 send/monitor/server 的 0x60000005 起分开，见 CLIENT_SCRIPT_ID_BASE 注释）。 */
+function assignClientScriptId(occupied: ReadonlySet<number>): number {
+  let id = CLIENT_SCRIPT_ID_BASE
+  while (occupied.has(id)) id += 1
+  return id
+}
+
+/** 目标地图/模板地图里的第四份内置定义（按显示名定位；多信号地图会有多份，按 id 或
+ * n107 引用配对，见 findClientScriptDefinitionFor）。 */
+function findClientScriptDefinition(top: readonly WireField[]): WireField | undefined {
+  return top.find((field) => definitionDisplayName(field) === CLIENT_SCRIPT_DISPLAY)
+}
+
+/** 精确配对某信号的第四份定义：优先 f9 给出的 id，其次 n107 引用关系（编辑器老地图
+ * 的条目可能没有 f9），只有一个候选时退回它（单信号地图的常态）。 */
+function findClientScriptDefinitionFor(
+  top: readonly WireField[],
+  identity: SignalIdentity,
+  clientScriptId?: number
+): WireField | undefined {
+  const candidates = top.filter(
+    (field) => definitionDisplayName(field) === CLIENT_SCRIPT_DISPLAY
+  )
+  if (candidates.length === 0) return undefined
+  if (clientScriptId !== undefined) {
+    const byId = candidates.find((field) => definitionNodeId(field) === clientScriptId)
+    if (byId) return byId
+  }
+  const own = [identity.sendId, identity.monitorId, identity.serverId]
+  const byReference = candidates.find((field) => {
+    const refs = new Set(definitionReferenceIds(field))
+    return own.some((id) => refs.has(id))
+  })
+  if (byReference) return byReference
+  return candidates.length === 1 ? candidates[0] : undefined
+}
+
+/** 定义 n107（信号名映射）里引用的全部节点 id（含第四份定义）。 */
+function definitionReferenceIds(wrapper: WireField): number[] {
+  if (wrapper.number !== 2 || wrapper.wire !== 2) return []
+  const wrapperFields = message(wrapper, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return []
+  const mapping = message(inner, 'signal definition').find(
+    (field) => field.number === 107 && field.wire === 2
+  )
+  if (!mapping) return []
+  const found = new Set<number>()
+  const visit = (data: Uint8Array, depth = 0): void => {
+    if (depth > 4) return
+    for (const field of fields(data, 'signal definition mapping')) {
+      if (field.wire === 0 && field.number === 5 && typeof field.value === 'number') {
+        found.add(field.value)
+      } else if (field.wire === 2 && printableWireText(field.value as Uint8Array) === undefined) {
+        visit(field.value as Uint8Array, depth + 1)
+      }
+    }
+  }
+  visit(mapping.value as Uint8Array)
+  return [...found]
+}
+
+/** 从三份定义（或本图已有定义）的 n107 信号名映射里认出被引用的第四份定义 id ——
+ * 它不是该信号的 send/monitor/server，且落在 0x6000000x 第四份 id 段。
+ * 旧地图/旧 CLI 产物只有引用、没有定义实体，这个函数正是用来发现那种悬空引用。 */
+function referencedClientScriptId(
+  wrappers: readonly WireField[],
+  identity: SignalIdentity
+): number | undefined {
+  const own = new Set([identity.sendId, identity.monitorId, identity.serverId])
+  const found = new Set<number>()
+  for (const wrapper of wrappers) {
+    for (const id of definitionReferenceIds(wrapper)) {
+      if (id >= CLIENT_SCRIPT_ID_BASE && !own.has(id)) found.add(id)
+    }
+  }
+  return found.size === 1 ? [...found][0] : undefined
+}
+
+/** 第四份定义按 n107 引用与信号配对：编辑器老地图的注册表条目可能没有 f9
+ * （2026-10-25 样本 1073741827 就是这样），只能靠定义之间的引用关系认领。 */
+function matchClientScriptDefinition(
+  clientScriptDefs: readonly WireField[],
+  identity: SignalIdentity
+): number | undefined {
+  const own = [identity.sendId, identity.monitorId, identity.serverId]
+  for (const wrapper of clientScriptDefs) {
+    const refs = new Set(definitionReferenceIds(wrapper))
+    if (own.some((id) => refs.has(id))) return definitionNodeId(wrapper)
+  }
+  return undefined
+}
+
 function header(bytes: Uint8Array) {
   if (bytes.length < 24) throw new Error('[error] invalid GIL size')
   return {
@@ -1215,6 +1600,9 @@ export function repairSignalInGil(input: {
   templateBytes: Uint8Array
   templateSignalName: string
   expectedParams?: SignalRegistrationParam[]
+  /** 显式版本下限（引擎只要求 >= 阈值且条目 f6 == 各定义 #4 field5；编辑器自己的版本
+   * 是它内部的单调计数器，做字节对拍时用它对齐）。 */
+  version?: number
 }): RepairSignalResult {
   const targetSource = readSignalSource(input.bytes)
   const targets = targetSource.entries.filter((entry) => entry.name === input.targetSignalName)
@@ -1296,7 +1684,42 @@ export function repairSignalInGil(input: {
   // 版本一致性 + 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，
   // >=3 且条目 f6 与定义 #4 field5 一致即可加载）。定义 field5 与条目 f6 统一为目标
   // 版本与 3 的较大值。
-  const effectiveVersion = Math.max(target.signalVersion, versionFloor(targetSource.entries.length))
+  const effectiveVersion = Math.max(
+    target.signalVersion,
+    versionFloor(targetSource.entries.length),
+    input.version ?? 0
+  )
+
+  // 第四份「发送客户端脚本信号」（2026-10-25 hl 实证）：模板侧可能只有 n107 引用而没有
+  // 定义实体（旧 CLI 产物就是这样把悬空 id 带过来的），目标侧也可能缺。两种情况都在
+  // repair 里补齐 —— 缺这份 = 试玩校验报「信号有问题」。
+  const templateThrees = templateSource.top.filter(
+    (field) =>
+      field.number === 2 &&
+      definitionTexts(field).includes(template.name) &&
+      definitionDisplayName(field) !== CLIENT_SCRIPT_DISPLAY
+  )
+  const templateClientScriptDef = findClientScriptDefinitionFor(
+    templateSource.top,
+    template.identity,
+    template.clientScriptId
+  )
+  const templateClientScriptId =
+    (templateClientScriptDef ? definitionNodeId(templateClientScriptDef) : undefined) ??
+    template.clientScriptId ??
+    referencedClientScriptId(templateThrees, template.identity)
+  const targetClientScriptDef =
+    target.clientScriptId !== undefined
+      ? targetSource.top.find(
+          (field) => field.number === 2 && definitionNodeId(field) === target.clientScriptId
+        )
+      : undefined
+  const clientScriptId =
+    target.clientScriptId ??
+    assignClientScriptId(new Set([...occupiedDefinitionIds(targetSource.top), ...targetIds]))
+  const buildSignal: SignalRegistrationSpec = { ...signal, clientScriptId }
+  const buildTemplate: SignalIndexEntry = { ...template, clientScriptId: templateClientScriptId }
+
   const replacements = new Map<WireField, WireField>()
   const kinds: DefinitionKind[] = ['send', 'monitor', 'server']
   for (let index = 0; index < kinds.length; index++) {
@@ -1308,15 +1731,47 @@ export function repairSignalInGil(input: {
         buildDefinition(
           templateDefinitions.get(templateIds[index])!,
           kinds[index],
-          template,
-          signal,
+          buildTemplate,
+          buildSignal,
           pool
         ),
         effectiveVersion
       )
     )
   }
-  const nextTop = targetSource.top.map((field) => replacements.get(field) ?? field)
+  let nextTop = targetSource.top.map((field) => replacements.get(field) ?? field)
+  // 目标已有第四份定义 → 与其余三份一起重建；只有引用/完全没有 → 追加一份新的。
+  const clientScriptBuilt = (): WireField =>
+    rewriteDefinitionVersion(
+      templateClientScriptDef
+        ? normalizeClientScriptPins(
+            buildDefinition(
+              templateClientScriptDef,
+              'clientScript',
+              buildTemplate,
+              buildSignal,
+              pool
+            ),
+            buildSignal.params
+          )
+        : builtinClientScriptDefinition(buildSignal, effectiveVersion, undefined),
+      effectiveVersion
+    )
+  if (targetClientScriptDef) {
+    const position = nextTop.indexOf(targetClientScriptDef)
+    nextTop[position] = clientScriptBuilt()
+  } else {
+    const created = clientScriptBuilt()
+    const signalDefinitionIndexes = nextTop
+      .map((field, index) => ({ field, index }))
+      .filter(({ field }) => field.number === 2 && definitionTexts(field).length > 0)
+      .map(({ index }) => index)
+    const insertAt = signalDefinitionIndexes.length
+      ? Math.max(...signalDefinitionIndexes) + 1
+      : nextTop.findIndex((field) => field.number > 2)
+    nextTop = [...nextTop]
+    nextTop.splice(insertAt < 0 ? nextTop.length : insertAt, 0, created)
+  }
   // 重建注册表索引条目：pool 来自模板（规范布局），条目 pinIndex 同步为模板值。
   // 修复前 repair 只重建三份定义、条目残留旧 pinIndex（2026-08-15 灯阵信号差分实证：
   // 用户编辑器"追加参数"路径写入序号式布局，repair 需整体恢复为类型值布局）。
@@ -1325,8 +1780,19 @@ export function repairSignalInGil(input: {
     throw new Error('[error] signal registry index not found in target')
   }
   const nextIndex = targetSource.index.fields.map((field) =>
-    field === target.field ? withSignalVersion(buildIndexEntry(target, signal, pool), effectiveVersion) : field
+    field === target.field
+      ? withSignalVersion(buildIndexEntry(target, buildSignal, pool), effectiveVersion)
+      : field
   )
+  // 目标原来没有第四份 identity 时补一条（编辑器顺序：三条之后追加）。
+  if (target.clientScriptId === undefined) {
+    const firstEntry = nextIndex.findIndex((field) => field.number === 3)
+    nextIndex.splice(firstEntry < 0 ? nextIndex.length : firstEntry, 0, {
+      number: 2,
+      wire: 2,
+      value: encodeNodeIdentity(SERVER_NODE_TYPE, clientScriptId)
+    })
+  }
   nextTop[indexPosition] = { ...targetSource.index.field, value: emitWireMessage(nextIndex) }
   const unchanged = Buffer.compare(
     Buffer.from(emitWireMessage(nextTop)),
@@ -1335,7 +1801,7 @@ export function repairSignalInGil(input: {
   if (unchanged) {
     return {
       bytes: input.bytes,
-      signal,
+      signal: buildSignal,
       templateSignalName: template.name,
       status: 'already-repaired'
     }
@@ -1345,7 +1811,7 @@ export function repairSignalInGil(input: {
   )
   return {
     bytes: buildFile(emitWireMessage(nextRoot), targetSource.sourceHeader),
-    signal,
+    signal: buildSignal,
     templateSignalName: template.name,
     status: 'repaired'
   }
@@ -1355,6 +1821,8 @@ export function updateSignalInGil(input: {
   bytes: Uint8Array
   targetSignalName: string
   signal: Omit<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'>
+  /** 显式版本下限（同 repairSignalInGil.version）。 */
+  version?: number
 }): UpdateSignalResult {
   const { sourceHeader, sourceRoot, topField, top, index, entries } = readSignalSource(input.bytes)
   const target = entries.find((entry) => entry.name === input.targetSignalName)
@@ -1366,7 +1834,11 @@ export function updateSignalInGil(input: {
     throw new Error(`[error] signal already registered: ${input.signal.name}`)
   }
 
-  const signal: SignalRegistrationSpec = { ...input.signal, ...target.identity }
+  const signal: SignalRegistrationSpec = {
+    ...input.signal,
+    ...target.identity,
+    ...(target.clientScriptId !== undefined ? { clientScriptId: target.clientScriptId } : {})
+  }
   const pool = buildParamPool(top, entries)
   validateSpec(signal, pool)
   const kinds = new Map<number, DefinitionKind>([
@@ -1374,9 +1846,16 @@ export function updateSignalInGil(input: {
     [target.identity.monitorId, 'monitor'],
     [target.identity.serverId, 'server']
   ])
+  // 第四份「发送客户端脚本信号」定义（改名/改参数时它的 n106 名 pin 与 n107 映射、
+  // 参数条目同样要跟着改，否则改名后信号名不一致）。
+  if (target.clientScriptId !== undefined) kinds.set(target.clientScriptId, 'clientScript')
   const found = new Set<number>()
   // 版本下限（2026-08-15 最小图实证：vec3 信号版本 2 被引擎拒绝，>=3 且 f6==field5 可加载）
-  const effectiveVersion = Math.max(target.signalVersion, versionFloor(signalEntries(index.fields).length))
+  const effectiveVersion = Math.max(
+    target.signalVersion,
+    versionFloor(signalEntries(index.fields).length),
+    input.version ?? 0
+  )
   const nextTop = top.map((field) => {
     const id = definitionNodeId(field)
     const kind = id === undefined ? undefined : kinds.get(id)
@@ -1384,7 +1863,7 @@ export function updateSignalInGil(input: {
     found.add(id!)
     return rewriteDefinitionVersion(buildDefinition(field, kind, target, signal, pool), effectiveVersion)
   })
-  if (found.size !== 3) throw new Error(`[error] incomplete signal definitions: ${target.name}`)
+  if (found.size < 3) throw new Error(`[error] incomplete signal definitions: ${target.name}`)
 
   const targetIndexPosition = index.fields.indexOf(target.field)
   const nextIndex = [...index.fields]
@@ -1410,6 +1889,8 @@ export function registerSignalInGil(input: {
   templateSignalName?: string
   signal: SignalRegistrationInput
   templateBytes?: Uint8Array
+  /** 显式版本下限（同上；默认 versionFloor(注册后信号数)）。 */
+  version?: number
 }): RegisterSignalResult {
   const sourceHeader = header(input.bytes)
   if (sourceHeader.headTag !== 0x0326 || sourceHeader.tailTag !== 0x0679) {
@@ -1444,13 +1925,19 @@ export function registerSignalInGil(input: {
     existingEntries.flatMap((entry) => [
       entry.identity.sendId,
       entry.identity.monitorId,
-      entry.identity.serverId
+      entry.identity.serverId,
+      ...(entry.clientScriptId !== undefined ? [entry.clientScriptId] : [])
     ])
   )
-  const signal = assignSignalIds(input.signal, occupiedIds)
-  for (const id of [signal.sendId, signal.monitorId, signal.serverId]) {
-    if (occupiedIds.has(id)) throw new Error(`[error] signal node ID already occupied: ${id}`)
-  }
+  for (const id of occupiedDefinitionIds(top)) occupiedIds.add(id)
+  // 第四份定义的 id 段与 send/monitor/server 分开（0x60000001 起）；显式给出时用它，
+  // 否则取该段第一个空闲（与编辑器逐信号递增的分配结果一致）。
+  const clientScriptId =
+    input.signal.clientScriptId ?? assignClientScriptId(occupiedIds)
+  const signal = assignSignalIds({ ...input.signal, clientScriptId }, occupiedIds)
+  validateIds(signal, occupiedIds)
+  // 新信号的版本 = versionFloor(注册后信号数)，可用 input.version 抬高（只升不降）。
+  const targetVersion = Math.max(versionFloor(existingEntries.length + 1), input.version ?? 0)
 
   // Resolve the parameter-layout source: an explicit donor signal, or builtin
   // layouts (byte-verbatim from editor-created signals) when no donor covers
@@ -1488,12 +1975,30 @@ export function registerSignalInGil(input: {
     const donorPool = buildParamPool(templateTop, templateEntries)
     if (poolCovers(donorPool, signal.params)) {
       validateSpec(signal, donorPool)
+      const donorThrees = templateTop.filter(
+        (field) =>
+          field.number === 2 &&
+          definitionTexts(field).includes(donor.name) &&
+          definitionDisplayName(field) !== CLIENT_SCRIPT_DISPLAY
+      )
+      const donorClientScript = findClientScriptDefinitionFor(
+        templateTop,
+        donor.identity,
+        donor.clientScriptId
+      )
+      // 第四份定义随 donor 一起克隆（id/名字/参数在 buildDefinition 里重写）。donor 没有
+      // 第四份（旧地图/旧 CLI 产物）时：仍从 n107 里认出被引用的那个 id（用于 id 重写），
+      // 然后用 builtin 骨架补出新定义，保证新图里不出现悬空引用。
+      const clientScriptTemplateId = donorClientScript
+        ? definitionNodeId(donorClientScript)
+        : referencedClientScriptId(donorThrees, donor.identity)
       source = {
-        template: donor,
+        template: { ...donor, clientScriptId: clientScriptTemplateId },
         pool: donorPool,
-        templateDefinitions: templateTop.filter(
-          (field) => field.number === 2 && definitionTexts(field).includes(donor.name)
-        ),
+        templateDefinitions: [
+          ...donorThrees,
+          ...(donorClientScript ? [donorClientScript] : [])
+        ],
         templateName: donor.name
       }
     }
@@ -1504,7 +2009,7 @@ export function registerSignalInGil(input: {
     const mapPool = buildParamPool(top, existingEntries)
     const pool = mergePoolFor(signal.params, mapPool)
     validateSpec(signal, pool)
-    const built = buildBuiltinTemplate(signal, pool, versionFloor(existingEntries.length + 1))
+    const built = buildBuiltinTemplate(signal, pool, targetVersion)
     source = {
       template: built.template,
       pool,
@@ -1514,21 +2019,40 @@ export function registerSignalInGil(input: {
   }
   const { template, pool, templateDefinitions, templateName } = source
   const byId = new Map(templateDefinitions.map((field) => [definitionNodeId(field), field]))
+  // 编辑器写入顺序：向服务器节点图发送信号 → 监听信号 → 发送信号 → 发送客户端脚本信号
+  // （2026-10-25 样本 1073741834：43/42/41/37）。
+  const clientScriptTemplateId = template.clientScriptId ?? signal.clientScriptId
+  if (clientScriptTemplateId === undefined) {
+    throw new Error('[error] signal needs a client-script definition id')
+  }
   const orderedTemplateIds = [
     template.identity.serverId,
     template.identity.monitorId,
-    template.identity.sendId
+    template.identity.sendId,
+    clientScriptTemplateId
   ]
   const kinds: Record<number, DefinitionKind> = {
     [template.identity.serverId]: 'server',
     [template.identity.monitorId]: 'monitor',
-    [template.identity.sendId]: 'send'
+    [template.identity.sendId]: 'send',
+    [clientScriptTemplateId]: 'clientScript'
   }
   const clones = orderedTemplateIds.map((id) => {
+    const kind = kinds[id]
+    if (kind === 'clientScript' && !byId.has(id)) {
+      // donor 里有引用但没有第四份定义（或走 builtin 路）：按 builtin 骨架补。
+      return builtinClientScriptDefinition(signal, targetVersion, undefined)
+    }
     const field = byId.get(id)
     if (!field || field.wire !== 2)
       throw new Error(`[error] incomplete template signal definition: ${id}`)
-    return buildDefinition(field, kinds[id], template, signal, pool)
+    // 版本统一：克隆的模板定义带着 donor 的 #4 field5，必须改写为新条目版本，否则
+    // 条目 f6 与定义 field5 不一致 → 引擎拒绝加载（2026-08-15 灯阵实证）。
+    const built = buildDefinition(field, kind, template, signal, pool)
+    return rewriteDefinitionVersion(
+      kind === 'clientScript' ? normalizeClientScriptPins(built, signal.params) : built,
+      targetVersion
+    )
   })
 
   const signalDefinitionIndexes = top
@@ -1547,6 +2071,14 @@ export function registerSignalInGil(input: {
     { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
     { number: 2, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
   ]
+  // 第四份 identity（编辑器顺序：三条之后追加，2026-10-25 样本 1073741834）。
+  if (signal.clientScriptId !== undefined) {
+    idFields.push({
+      number: 2,
+      wire: 2,
+      value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.clientScriptId)
+    })
+  }
   const firstEntry = index.fields.findIndex((field) => field.number === 3)
   let nextIndex = [...index.fields]
   nextIndex.splice(firstEntry < 0 ? nextIndex.length : firstEntry, 0, ...idFields)
@@ -1557,7 +2089,7 @@ export function registerSignalInGil(input: {
   // 版本回填（2026-08-15 最小图实证）：引擎校验所有被引用信号版本 >= versionFloor(信号数)。
   // 逐个 register 时旧信号版本按当时数量生成（偏低），新信号加入后必须把全表条目 f6 与
   // 三份定义 #4 field5 回填到新阈值（只提升不降级），否则旧信号低于新阈值 → 引擎拒绝加载。
-  const targetVersion = versionFloor(existingEntries.length + 1)
+
   const bumpIndex = nextIndex.map((field) => {
     if (field.wire !== 2) return field
     const inner = parseWireMessage(field.value as Uint8Array)
@@ -1568,12 +2100,14 @@ export function registerSignalInGil(input: {
   })
   nextIndex = bumpIndex
   nextTop[indexPosition] = { ...index.field, value: emitWireMessage(bumpIndex) }
-  // 定义回填：旧信号三份定义 #4 field5 < 新阈值 → 提升
+  // 定义回填：旧信号四份定义 #4 field5 < 新阈值 → 提升（含第四份「发送客户端脚本信号」，
+  // 引擎要求条目 f6 与它引用的每份定义 field5 一致）。
   const oldSigIds = new Set(
     existingEntries.flatMap((entry) => [
       entry.identity.sendId,
       entry.identity.monitorId,
-      entry.identity.serverId
+      entry.identity.serverId,
+      ...(entry.clientScriptId !== undefined ? [entry.clientScriptId] : [])
     ])
   )
   for (let i = 0; i < nextTop.length; i++) {
