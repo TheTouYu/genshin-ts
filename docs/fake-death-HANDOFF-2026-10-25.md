@@ -225,3 +225,50 @@ tools/ys-editor/ys-fakedeath-fix win32u-revert    # 回原件（字节比对）
 | 只出现 `desktop-fresh-unmapped` | 重取后仍不在块内 | 块从未映射（另一条路径），需要看 server 侧 session section |
 | 完全没探针行但照样死 | `strace -e trace=signal -c` 仍见万级 SIGSEGV | 自旋不在 `get_shared_desktop`，回到 perf 定位 |
 | 正常使用 | 探针文件不出现、CPU 正常 | 补丁无副作用（默认路径只多一次 O(块数) 地址比较） |
+
+
+---
+
+# 八、保证工作流：补丁的「落盘 + 防漂移」（2026-10-25 17:54）
+
+补丁的价值在于**长期在役**。runner 是 launcher 管的，随时可能被更新/重装覆盖，所以做了三层：
+
+## 8.1 工件落盘（不依赖 .scratch 与 build tree）
+
+```
+/home/h/.local/share/ys-fakedeath/artifacts/
+  winex11.so.patched   3,428,400B   5a9270a3…   (仪表 + 可选 drain；默认不出手)
+  win32u.so.patched   14,035,056B   fc081f0d…   (共享会话指针校验；默认路径逐条等价)
+  winex11.so.pristine    470,816B   d5e12837…   (出厂原件)
+  win32u.so.pristine   2,328,576B   cde26ecc…   (出厂原件)
+  SHA256SUMS / MANIFEST.txt（含构建源树、补丁源码路径、安装/校验/回滚命令）
+```
+
+补丁**源码**在 git 里（`wine-src-notes/PROTO-2026-10-25.diff`、`WINE-SHARED-FIX-2026-10-25.diff`），
+所以即使工件丢了也能从 build tree 重建（`wine-build/` 下 `make dlls/{winex11.drv,win32u}/…`）。
+
+## 8.2 一条命令装/验/回
+
+```bash
+tools/ys-editor/ys-fakedeath-fix apply-all    # 装两件 + 立即校验
+tools/ys-editor/ys-fakedeath-fix verify       # 只读比对哈希：rc=0 在役 / rc=1 漂移（附修复命令）
+tools/ys-editor/ys-fakedeath-fix revert-all   # 两件回出厂原件（字节比对）
+tools/ys-editor/ys-fakedeath-fix status | win32u-status
+```
+
+`verify` **负向测试已过**：把工件换成假文件 → `✗ win32u.so 漂移 (…)` + `rc=1` + 打印修复命令；
+换回真工件 → `rc=0`。
+
+## 8.3 自动漂移检查（不会静默失效）
+
+```bash
+systemctl --user status ys-fakedeath-verify.timer     # 开机 5 分钟后 + 此后每天一次
+```
+
+命中漂移时走 `dsh-notify -u critical -t 8000` 弹一条（带 stack-tag 防叠摞），文案里直接给修复命令。
+unit：`~/.config/systemd/user/ys-fakedeath-verify.{service,timer}`；实测 `Result=success / ExecMainStatus=0`，
+`NEXT` 已排到次日。
+
+**什么时候会漂移**（提前知道就不会慌）：launcher 更新/重装 runner、手动替换 runner 目录、换机重装。
+发现漂移 → 一条 `apply-all`；如果 runner 的 wine 版本变了（不是 11.14 spritz），**不要**直接 apply——
+先用 `MANIFEST.txt` 里的源树重建，否则驱动接口版本会打架（10-20 就踩过 110/111 的墙）。

@@ -64,6 +64,22 @@ status() {
   ls -la "$TARGET" "$BACKUP" 2>/dev/null | sed 's/^/           /'
 }
 
+ARTIFACTS="${YS_FAKEDEATH_ARTIFACTS:-/home/h/.local/share/ys-fakedeath/artifacts}"
+UNIXDIR="$RUNNER/lib/wine/x86_64-unix"
+
+art_verify() { # 只读：比对 runner 当前 .so 与工件哈希；漂移返回 1
+  local fail=0
+  for pair in "winex11.so winex11.so.patched" "win32u.so win32u.so.patched"; do
+    local live="${pair%% *}" want="${pair##* }"
+    [ -f "$ARTIFACTS/$want" ] || { echo "✗ 缺工件 $ARTIFACTS/$want"; fail=1; continue; }
+    if [ ! -f "$UNIXDIR/$live" ]; then echo "✗ runner 无 $live"; fail=1; continue; fi
+    local h1 h2; h1=$(sha256sum "$UNIXDIR/$live" | cut -d' ' -f1); h2=$(sha256sum "$ARTIFACTS/$want" | cut -d' ' -f1)
+    if [ "$h1" = "$h2" ]; then echo "✓ $live 与工件一致（补丁在役）"
+    else echo "✗ $live 漂移（runner 当前 ${h1:0:12}…，工件 ${h2:0:12}…）"; fail=1; fi
+  done
+  return $fail
+}
+
 case "${1:-}" in
   status) status ;;
 
@@ -92,6 +108,7 @@ case "${1:-}" in
   win32u-install)
     W="$RUNNER/lib/wine/x86_64-unix/win32u.so"; WB="$W.bak-fakedeath-20261025"
     src="$REPO/.scratch/fake-death/wine-build/dlls/win32u/win32u.so"
+    [ -f "$src" ] || src="$ARTIFACTS/win32u.so.patched"
     [ -f "$src" ] || { echo "✗ 找不到构建产物 $src"; exit 3; }
     [ -f "$WB" ] || cp -a "$W" "$WB"
     install -m 755 "$src" "$W"
@@ -106,6 +123,24 @@ case "${1:-}" in
     cmp -s "$W" "$WB" && echo "已从备份还原（字节相同）: $WB -> $W" || { echo "✗ 还原后字节不一致"; exit 3; }
     rm -f /tmp/wine32u-shared-fix.log
     echo "提示：已加载旧 .so 的进程需重启才生效"
+    ;;
+  apply-all)
+    "$0" install >/dev/null && "$0" win32u-install >/dev/null
+    echo "—— apply-all 完成，校验："
+    art_verify && echo "✓ 两件补丁均在役"
+    ;;
+  revert-all)
+    "$0" revert && "$0" win32u-revert
+    ;;
+  verify)
+    art_verify; rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "修复：tools/ys-editor/ys-fakedeath-fix apply-all"
+      [ "${2:-}" = "--notify" ] && command -v dsh-notify >/dev/null && \
+        dsh-notify -u critical -t 8000 -a "ys-fakedeath" -h string:x-dunst-stack-tag:ys-fakedeath \
+        "Wine 补丁已漂移（runner 被更新？）" "执行：~/genshin-ts/tools/ys-editor/ys-fakedeath-fix apply-all" >/dev/null 2>&1
+    fi
+    exit $rc
     ;;
   revert)
     [ -f "$BACKUP" ] || { echo "✗ 没有备份可还原"; exit 1; }
