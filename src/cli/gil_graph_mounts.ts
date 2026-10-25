@@ -23,6 +23,14 @@ import {
  *   repeated 追加；解除最后一个图 → f13 空 message（槽保留为 08036a00）。
  * - def 挂载时编辑器双写 root4（f1=defID）+ root8 全部实例（f2.f1=defID）；
  *   场景实体挂载只写 root5（f1=场景实体 ID）。
+ *
+ * 层语义（2026-10-25 真机实测，见 docs/game-engine-knowledge/graph-mounting.md）：
+ * - **只有 entity 层（root5，场景实体实例）会被场景执行**——玩家角色 / 普通实体 / 关卡实体；
+ *   def 层（root4 f7 + root8 f6）只改元件模板定义，场景里的实例各持自己的副本 → 不执行。
+ * - 同一个 id 可以同时存在于 root4 与 root5 两个命名空间（例：1090519041），
+ *   两种挂载写出的槽字节完全相同（`08036a11…a09c01`），因此**回显不打印层就无法分辨挂错层**。
+ * - 实测对拍：CLI `--entity` 产物 root5 记录 sha 与用户编辑器手挂成功版逐字节相同；
+ *   CLI `--def` 产物 root4 记录亦逐字节相同 —— wire 两面对，差别纯在"哪一层被场景执行"。
  */
 
 const MOUNT_SLOT = 3
@@ -309,8 +317,12 @@ function usage(exitCode = 1): never {
     '',
     '  --graph <graph-id>   NodeGraph GID (required for attach/detach;',
     '                       with list without a target-id prints reverse lookup)',
-    '  --def                target is a component definition (root4 + root8 instances)',
-    '  --entity             target is a scene entity (root5; default)',
+    '  --def                target is a component definition template (root4 f7 +',
+    '                       root8 instances f6). TEMPLATE LAYER ONLY: the scene does',
+    '                       not execute template mounts - see MOUNT LAYERS below',
+    '  --entity             target is a scene entity instance (root5 f6; default).',
+    '                       THIS is the executed layer: player character / normal',
+    '                       entity / level entity',
     '  --gil <file>         explicit GIL source',
     '  --map-id <id>        target map ID (location only; requires project config)',
     '  --output <file>      create output without overwriting',
@@ -324,6 +336,17 @@ function usage(exitCode = 1): never {
     'every definition (root4) and scene entity (root5) with their mounts,',
     'and graphs not mounted anywhere. list --graph <gid> (no target-id)',
     'prints which definitions/entities mount that graph.',
+    '',
+    'MOUNT LAYERS (real-machine result, 2026-10-25):',
+    '  A server NodeGraph runs in the scene only when it is mounted on the',
+    '  ENTITY layer (kind=entity, a scene entity instance: player character,',
+    '  normal entity, level entity). kind=def writes the component definition',
+    '  template (root4) plus page instances (root8); scene instances keep their',
+    '  own copies, so a def mount looks successful but is never executed.',
+    '  The same id often exists in BOTH namespaces (e.g. 1090519041 is both a',
+    '  definition and a scene entity) and both layers use identical slot bytes,',
+    '  so mounting on the wrong layer is invisible without the kind readout.',
+    '  Recommended carrier for server graphs: the level entity (global host).',
     'These commands modify .gil asset structures. They are not GIA NodeGraph',
     'injection, runtime behavior, or editor/game verification.'
   ].join('\n')
@@ -349,6 +372,7 @@ function parseArgs(argv: readonly string[]) {
   let targetId: number | undefined
   let graphId: number | undefined
   let kind: TargetKind = 'entity'
+  let kindExplicit = false
   let gilPath: string | undefined
   let mapId: number | undefined
   let outputPath: string | undefined
@@ -361,9 +385,13 @@ function parseArgs(argv: readonly string[]) {
   for (; index < argv.length; index++) {
     const arg = argv[index]
     if (arg === '--graph') graphId = nonNegativeId(value(argv, index++), '--graph')
-    else if (arg === '--def') kind = 'def'
-    else if (arg === '--entity') kind = 'entity'
-    else if (arg === '--gil') gilPath = value(argv, index++)
+    else if (arg === '--def') {
+      kind = 'def'
+      kindExplicit = true
+    } else if (arg === '--entity') {
+      kind = 'entity'
+      kindExplicit = true
+    } else if (arg === '--gil') gilPath = value(argv, index++)
     else if (arg === '--map-id') mapId = nonNegativeId(value(argv, index++), '--map-id')
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--write') write = true
@@ -378,7 +406,17 @@ function parseArgs(argv: readonly string[]) {
   if (command !== 'list' && graphId === undefined)
     throw new Error(`[error] ${command} requires --graph <graph-id>`)
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, targetId: targetId!, graphId, kind, gilPath, mapId, outputPath, write }
+  return {
+    command,
+    targetId: targetId!,
+    graphId,
+    kind,
+    kindExplicit,
+    gilPath,
+    mapId,
+    outputPath,
+    write
+  }
 }
 
 function resolveGilPath(
@@ -413,6 +451,106 @@ function backupPath(gilPath: string): string {
   fs.mkdirSync(directory, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
+}
+
+/**
+ * 打印目标在 def / entity 两层的挂载现状。
+ *
+ * 同一 id 常常同时存在于两个命名空间（实测 1090519041 既是"角色编辑实体"的定义又是场景实体），
+ * 且两层槽字节完全相同 —— 只打一层时"挂对了但挂在另一层"从回显上看毫无异常，
+ * 故默认把两层都打出来（2026-10-25 真机事故后的取证要求）。
+ */
+function layerLines(
+  bytes: Uint8Array,
+  targetId: number,
+  kind: TargetKind,
+  kindExplicit: boolean
+): string[] {
+  const def = listDefMounts(bytes).find((entry) => entry.id === targetId)
+  const entity = listEntityMounts(bytes).find((entry) => entry.id === targetId)
+  if (kindExplicit && kind === 'def' && !def)
+    throw new Error(`[error] definition ${targetId} not found in root 4`)
+  if (kindExplicit && kind === 'entity' && !entity)
+    throw new Error(`[error] entity ${targetId} not found in root 5`)
+  if (!def && !entity)
+    throw new Error(
+      `[error] target ${targetId} not found in root 4 (definitions) or root 5 (entities)`
+    )
+  const lines: string[] = []
+  const graphs = new Set<number>()
+  const push = (layer: TargetKind, mounted: number[]) => {
+    lines.push(`target=${targetId} kind=${layer} graphs=${mounted.join(',') || '(none)'}`)
+    for (const id of mounted) graphs.add(id)
+  }
+  if (entity) push('entity', entity.graphs)
+  if (def) push('def', def.graphs)
+  if (graphs.size) {
+    lines.push(
+      `names=${[...graphs]
+        .map((id) => `${id}${readGraphName(bytes, id) ? `(${readGraphName(bytes, id)})` : ''}`)
+        .join(' ')}`
+    )
+  }
+  if (entity && def)
+    lines.push(
+      `[note] id=${targetId} exists in both namespaces: the scene executes kind=entity only; ` +
+        'kind=def is the component definition template (root4 f7 / root8 f6)'
+    )
+  return lines
+}
+
+/**
+ * 层语义提示。核心规则（真机实测）：场景只执行 entity 层；def 层挂在场景实例上时会静默不执行。
+ * 这是 `assets:mounts` 曾经的语义 bug —— 写对了 wire，写错了层。
+ */
+function layerWarnings(
+  bytes: Uint8Array,
+  targetId: number,
+  kind: TargetKind,
+  graphId: number | undefined,
+  announceEntity: boolean
+): string[] {
+  if (kind === 'entity') {
+    const lines = announceEntity
+      ? [
+          '[info] kind=entity is the scene execution path ' +
+            '(player character / normal entity / level entity)'
+        ]
+      : []
+    const entity = listEntityMounts(bytes).find((entry) => entry.id === targetId)
+    const entityGraphs = new Set(entity?.graphs ?? [])
+    const def = listDefMounts(bytes).find((entry) => entry.id === targetId)
+    const defOnly = (def?.graphs ?? []).filter((id) => !entityGraphs.has(id))
+    if (defOnly.length)
+      lines.push(
+        `[warn] graph ${defOnly.join(',')} of id=${targetId} is mounted only on the def layer ` +
+          '(kind=def, template) - the scene executes kind=entity only, so it will not run; ' +
+          'repeat with --entity on the scene instance to actually execute it'
+      )
+    return lines
+  }
+  const lines = [
+    '[warn] kind=def only edits the component definition template ' +
+      '(root4 f7 + root8 instances f6); scene instances keep their own copies, ' +
+      'so this mount looks successful but is NOT executed in play'
+  ]
+  const entity = listEntityMounts(bytes).find((entry) => entry.id === targetId)
+  lines.push(
+    entity
+      ? `[warn] id=${targetId} also exists as kind=entity graphs=${
+          entity.graphs.join(',') || '(none)'
+        }; --def left that layer untouched - mount there (--entity, the default) ` +
+        'to actually run the graph'
+      : '[hint] the executed layer is kind=entity: list the scene entities of this map and ' +
+        'mount on the one you want to run the graph ' +
+        '(player character / normal entity / level entity)'
+  )
+  if (graphId !== undefined) {
+    const carriers = listEntityMounts(bytes).filter((entry) => entry.graphs.includes(graphId))
+    if (carriers.length === 0)
+      lines.push(`[warn] graph ${graphId} is mounted on no scene entity -> it will not run in play`)
+  }
+  return lines
 }
 
 /** 盘点输出：全量（无 --graph）或反向查询（--graph <gid>）。 */
@@ -464,12 +602,10 @@ async function runMounts(
       printSurvey(bytes, args.graphId)
       return
     }
-    const graphs = args.kind === 'def'
-      ? mountedDefGraphs(bytes, args.targetId)
-      : mountedEntityGraphs(bytes, args.targetId)
-    const names = graphs.map((id) => `${id}${readGraphName(bytes, id) ? `(${readGraphName(bytes, id)})` : ''}`)
-    console.log(`target=${args.targetId} kind=${args.kind} graphs=${graphs.join(',') || '(none)'}`)
-    if (names.length) console.log(`names=${names.join(' ')}`)
+    for (const line of layerLines(bytes, args.targetId, args.kind, args.kindExplicit))
+      console.log(line)
+    for (const line of layerWarnings(bytes, args.targetId, args.kind, undefined, false))
+      console.log(line)
     return
   }
   if (args.graphId !== undefined && !graphExists(bytes, args.graphId)) {
@@ -484,9 +620,7 @@ async function runMounts(
       ? mountGraphToDef(bytes, args.targetId, args.graphId!, false)
       : mountGraphToEntity(bytes, args.targetId, args.graphId!, false)
   }
-  const graphs = args.kind === 'def'
-    ? mountedDefGraphs(bytes, args.targetId)
-    : mountedEntityGraphs(bytes, args.targetId)
+  const targetLines = layerLines(bytes, args.targetId, args.kind, args.kindExplicit)
   if (args.outputPath) {
     writeNew(args.outputPath, bytes)
     console.log(`candidate=${path.resolve(args.outputPath)}`)
@@ -504,26 +638,10 @@ async function runMounts(
   } else {
     console.log('preview only; use --write to apply after backup, or --output for a candidate')
   }
-  console.log(`target=${args.targetId} kind=${args.kind} graphs=${graphs.join(',') || '(none)'}`)
+  for (const line of targetLines) console.log(line)
+  for (const line of layerWarnings(bytes, args.targetId, args.kind, args.graphId, true))
+    console.log(line)
   console.log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
-}
-
-/** 读 def 当前挂载图（root4 + root8 引用实例合并去重）。 */
-function mountedDefGraphs(bytes: Uint8Array, defId: number): number[] {
-  const payload = bytes.slice(20, -4)
-  const root = parse(payload) ?? []
-  const defRecord = wireRecords(root, 4, 1).find((record) => wireRecordId(record) === defId)
-  if (!defRecord) throw new Error(`[error] definition ${defId} not found in root 4`)
-  return readMountedGraphs(defRecord, 7)
-}
-
-/** 读场景实体当前挂载图（root5）。 */
-function mountedEntityGraphs(bytes: Uint8Array, entityId: number): number[] {
-  const payload = bytes.slice(20, -4)
-  const root = parse(payload) ?? []
-  const record = wireRecords(root, 5, 1).find((record) => wireRecordId(record) === entityId)
-  if (!record) throw new Error(`[error] entity ${entityId} not found in root 5`)
-  return readMountedGraphs(record, 6)
 }
 
 export async function runAssetsMounts(

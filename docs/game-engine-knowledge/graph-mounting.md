@@ -4,7 +4,7 @@
 
 > 状态：框架草案
 > 来源：用户对节点图挂载、实体生命周期和多人执行的说明
-> 最近校验：2026-08-01
+> 最近校验：2026-10-25（补录「挂载层级 def vs entity」真机实测；前次 2026-08-30 特殊实体挂载差分）
 > 适用范围：节点图在关卡中的运行条件和实例数量
 
 节点图不能脱离游戏对象独立运行。它必须挂载在实体或元件上，并由挂载对象的创建、销毁、[组件](components.md)事件和其他事件驱动。它在完整运行流程中的位置见[游戏运行生命周期](game-lifecycle.md)。
@@ -45,6 +45,18 @@
 - 它挂载在哪里；
 - 挂载对象是否已经创建；
 - 对应事件是否会在该对象生命周期中发生。
+
+## 挂载层级：def（模板定义）vs entity（场景实体实例）（2026-10-25 真机实测）
+
+**规则：场景只执行挂在 entity 层（root5 场景实体实例）上的节点图；def 层（root4 元件/实体模板定义 `f7` + root8 页面实例 `f6`）写了也不会被场景执行。** 服务端图推荐挂**关卡实体**（全局宿主，图里用 `getListOfPlayerEntitiesOnTheField()` 自己取玩家，不依赖具体角色实例）。
+
+证据（地图 hl `1073741834`；真实地图只读，全部实验在 `cp` 出来的 `/tmp` 拷贝上）：
+
+- 命令（cwd `/home/h/genshin-ts`；`GSTS_LOCALLOW_DIR=$HOME/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`，CLI 要的是 `…/AppData/LocalLow` 这层，源码自己拼 `miHoYo/原神/BeyondLocal`）：`node dist/src/cli/gsts.js assets:mounts attach 1090519041 --graph 1073741825 [--def] --gil /tmp/base.gil --output /tmp/out-*.gil`。
+- **字节层**（`--entity` 与编辑器产物逐字节相同）：CLI `--entity` 产物 root5 `1090519041`（size 1014，sha256 前 16 位 `5e43cd0a6ab0b7ec`）== 用户编辑器成功保存版（`~/.genshin-ts/backups/110170759/1073741834/hl-before-mountclean-1025-180432.gil`）同记录；关卡实体 `1094713345` 的 entity 记录（size 206，`a08972c219694556`）在编辑器态与我方基线一致；CLI `--def` 产物 root4 `1090519041`（size 1001，`53a871d464b3a905`）也与编辑器产物相同。
+- **槽字节两面对所以"看不出挂错层"**：两层挂载槽都等于 `08036a11 0a0f 0a0d 0801 108180808004 a81fa09c01`（空槽 `08036a00`）；`1090519041` 同时存在于 root4（"角色编辑实体"定义）与 root5（场景实体），`assets:mounts list` 分两行 `kind=def` / `kind=entity` 输出。
+- **行为层（用户真机确认）**：CLI `--def` 挂 `1090519041` → 回显 `target=1090519041 kind=def graphs=1073741825`，试玩**没有任何图日志**（图不执行）；用户在编辑器里把同一张图挂到**关卡实体 `1094713345`**（`kind=entity`）→ 图执行、官方结算页正常弹出。
+- **范围**：适用于服务端节点图的场景执行路径（客户端图/技能实例走各自的绑定链，见 `client-nodegraph-development`）。CLI 自 2026-10-25 起 `list`/`attach`/`detach` 默认打印两层并给 `[warn]`，回归断言在 `tests/gil_graph_mounts.ts`。
 
 ## 特殊实体
 

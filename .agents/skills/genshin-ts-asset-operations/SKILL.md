@@ -137,6 +137,14 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 →（需要 GIA 时）verify-injection 单文件注入 → 回读挂载关系 → 用户游戏核验
 ```
 
+- **🔴 挂载层级决定是否执行（2026-10-25 真机实测；这条是本域最容易静默失手的一步）**：
+  - **只有 entity 层被执行**：`kind=entity`（root5 `f6`，场景实体**实例**：玩家角色 / 普通实体 / **关卡实体**）→ 场景执行；`kind=def`（root4 `f7` + root8 `f6`，元件**模板定义**）→ **写了也不会被场景执行**。实测对照：`assets:mounts attach 1090519041 --graph 1073741825 --def` 回显 `target=1090519041 kind=def graphs=1073741825`，**试玩无任何图日志**；用户在编辑器里把同一张图挂到**关卡实体 1094713345**（`kind=entity`）→ 图执行、官方结算页正常弹出。
+  - **同一 id 在两个命名空间都存在，回显看不出挂错层**：`1090519041` 既是「角色编辑实体」的定义（root4）又是场景实体（root5）；两层挂载槽**字节完全相同**（`08036a11 0a0f 0a0d 0801 108180808004 a81fa09c01`），所以"挂对了但挂在另一层"从命令输出上毫无异常。2026-10-25 起 `mounts list`/`attach`/`detach` 默认把两层都打出来并附 `[note] … exists in both namespaces`；def-only 挂载会打 `[warn] … mounted only on the def layer`，`attach --def` 还会打「NOT executed in play」+「该图没挂到任何场景实体」两条警告。
+  - **字节对拍（同一轮取证，地图 hl `1073741834` 的拷贝）**：CLI `--entity` 产物 root5 `1090519041` 记录 sha `5e43cd0a6ab0b7ec`、size 1014，与用户编辑器成功版同记录**逐字节相同**；关卡实体 `1094713345` 的 entity 记录 sha `a08972c219694556`、size 206 在编辑器态与我方基线一致；CLI `--def` 产物 root4 记录 sha `53a871d464b3a905`、size 1001 也与编辑器产物相同。⇒ **两层的 wire 都对，差别纯在"哪一层被场景执行"**——这不是编码 bug，是层级选择 bug。
+  - **服务端图推荐挂关卡实体**（全局宿主）：用 `getListOfPlayerEntitiesOnTheField()` 自己在图里取玩家，不依赖某个具体角色实例，多人语义也更可控。
+  - **目标 id 只存在于 entity 命名空间时（如 `1094713345`），`--def` 直接报错** `[error] record 1094713345 not found in root 4`——看到这条就说明该挂 entity。
+  - 回归：`npx tsx tests/gil_graph_mounts.ts` 断言 entity 挂载产物被 `mounts list` 读为 `kind=entity graphs=<gid>`、detach 后回到原列表，以及 `--def` 的三条警告都在。
+
 - 缺图时先 `gsts assets:node-graphs create --gil <map> --name <name> --write`（图 ID 自动分配，从 1073741825 起；注入报 `target NodeGraph not found` 就用它补占位）。
   - **⚠️ create 是 max+1、不复用空洞（2026-08-23 实证）**：删除的主图 ID（如 1073741825）重建时会跳过，分到更大的新 ID（如 1830）。
     .gia 内嵌图 ID，必须**同步改 DSL g.server({id}) + 配置 inject.nodeGraphId + 重新挂载**到新 ID；旧挂载需用编辑器清理残引用。
@@ -144,8 +152,8 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 挂载：`gsts assets:mounts attach <target-id> --graph <gid> [--entity|--def] --gil <map> --write`；`list [<target-id>]` 查挂载关系；`detach <target-id> --graph <gid>` 卸下（最后一条卸完保留空 `08036a00` 槽）。
 - **挪挂（A→B 实体）两步候选链（2026-09-03 足球 R2.2 实证）**：`detach A --graph G --gil <map> --output cand1` → `attach B --graph G --entity --gil cand1 --output cand2` → 回读 cand2 挂载关系 + `node-graphs read --json`（排除 `"gil"` 源路径字段）与原图 **CMP-SAME 零改动验证** → 两步 `--write`（各自动备份）→ 写后 SHA==cand2 → Temp 同步双 SHA。挪挂改变图内 `getSelfEntity()` 语义（A→B）——挪前核对 B 上既有图的**定时器名单制分发**（A/B 两实体全部 whenTimerIsTriggered 的 else 均空才不串扰）。
 - **⚠️ 写回不同步 Temp=修复被引擎会话洗掉（2026-10-12 足球 1825 实证，票 24 §6 def 移植消失案）**：/tmp 脚本只写 Save_Level（终态 a3703aad）未同步 Temp → 用户下次进图，引擎从 **Temp 旧副本**（425a9ffc 态）加载地图，退出时双地址回写 → 磁盘终态变 e6c4688d，§6 修复无声消失，且引擎回写把 basicMotion 槽 9B 规范化为 11B（回写非纯回放）。**任何 .gil 写回（含自写工具脚本）最后一步必须 copy 到 `Temp/<mapId>.gil` 并核对双址 SHA 一致**；assets_* 命令的 --write 已内置，绕过 CLI 的脚本要自己做。
-- **挂载目标用普通场景实体**。⚠️ 关卡实体（1094713345，官方 defId=10003004）由游戏运行时默认创建，**禁止手动 import 添加**——手动加会导致游戏“地图异常”。需要挂载对象时先用 `assets:entities import`/`static-assemblies` 建普通实体。
-- **特殊实体挂载（玩家/角色模板，2026-08-30 用户编辑器教学差分实证）**：玩家模板 1086324737（root4 def + root5 九副本 737–745）/ 角色编辑实体 1090519041（def + 实体）；挂载条目 wire = `{1:1, 2:图GID, 501:20000}` 与普通实体同构（root5 f6 / root4 f7）。**编辑器挂模板 def = root4 f7 + root5 全部副本 f6 自动同步**；CLI `--def` 只同步 root8（元件）**不同步 root5 副本**——复现编辑器形态须 `attach --def` + 循环 `attach --entity`（每副本）。事件定向：`whenSkillNodeIsCalled` 需挂角色侧（详见 graph-mounting.md「特殊实体的节点图挂载」）。
+- **挂载目标优先级：关卡实体 > 普通场景实体**。关卡实体（`1094713345`，官方 defId=10003004）由游戏运行时默认创建、**已存在，可直接 `attach --entity` 挂它**（2026-10-25 用户编辑器实测：挂这张图能正常执行）；**禁止手动 `assets:entities import` 新建一个关卡实体**——手动加出来的会导致游戏"地图异常"。要自己造挂载对象时用 `assets:entities import`/`static-assemblies` 建普通实体。
+- **特殊实体挂载（玩家/角色模板，2026-08-30 用户编辑器教学差分实证）**：玩家模板 1086324737（root4 def + root5 九副本 737–745）/ 角色编辑实体 1090519041（def + 实体）；挂载条目 wire = `{1:1, 2:图GID, 501:20000}` 与普通实体同构（root5 f6 / root4 f7）。**编辑器挂模板 def = root4 f7 + root5 全部副本 f6 自动同步**；CLI `--def` 只同步 root8（元件）**不同步 root5 副本**——复现编辑器形态须 `attach --def` + 循环 `attach --entity`（每副本）。事件定向：`whenSkillNodeIsCalled` 需挂角色侧（详见 graph-mounting.md「特殊实体的节点图挂载」）。**注意：root5 副本才是执行层，root4/root8 只是模板**（见本节第一条层语义）。
 - 多人语义：挂到玩家/角色实体上的图按玩家分别执行；需要“全局只执行一次”时自行加去重门控，不能默认一次。
 - **玩家/角色实体变量 = 资产侧模板同步（2026-08-29 矩阵批次 11/12 实证）**：编辑器修改任一玩家实体
   变量 → 自动同步全部玩家实体副本（本地图 9 个 1086324737–745，entry 字节相同 = 模板复制）；
@@ -272,6 +280,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 信号用于节点图之间传一次性事件；直接写 GIL 时“注册信号”与“注入 NodeGraph”是两步，先注册再注入，注入不得破坏已有注册定义。
 
 - 只读：`gsts assets:signals inspect --gil <map>`（输出含 `clientScript=` 第四份定义 id）
+- **`game.ServerSignal` 在真机是函数不是表（2026-10-25 实测）**：客户侧 Lua 里 `game.ServerSignal.send('名')` 报 `attempt to index a function value`（把函数当表索引）；正确形态是 **`game.ServerSignal('名'):SendSignal()`**（函数返回一个可链式配置的对象，官方 API 文档 `research/千星知识图谱/learn-lua71/官方API文档-客户端控件.md` 也是 `game.ServerSignal(signalName: string)` 返回对象，随即 `ServerSignal:AddParam/AddInt/…` + `:SendSignal()`）。探测脚本要**两种形态都 pcall**，只探一种会把"函数"误判成"不存在"。
 - 注册：`gsts assets:signals register --name <n> --param <name:type> [--template-gil <donor>] [--template-signal <name>] [--send-id/--monitor-id/--server-id] [--signal-version <n>] --write`（省略 donor 用内置参数布局；重复的非 str 类型需要 donor，fail-closed）
   - **每个信号 = 四份内置复合定义**（2026-10-25 修复）：`向服务器节点图发送信号 / 监听信号 / 发送信号 / 发送客户端脚本信号`（第四份 id 走 `0x60000001` 段，注册表条目 `f9` 登记）。**只写三份 → 前三份的 `n107` 引用悬空 → 试玩校验报「信号有问题」**。`register`/`update`/`repair` 现在都会写/维护第四份；`repair` 能补齐旧产物缺的第四份（补齐后与编辑器产物逐字节一致）。细节见 `docs/game-engine-knowledge/signals.md`「每个信号四份内置复合定义」。
   - **无参信号可以从零注册**（2026-10-25 起 builtin 路径支持 0 参数；此前必须带 donor 否则 `Cannot read properties of undefined (reading 'type')`）——旧结论仅对旧版本成立。

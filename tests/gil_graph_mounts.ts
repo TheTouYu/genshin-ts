@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 import {
   attachMountedGraph,
@@ -11,6 +14,7 @@ import {
   mountGraphToDef,
   mountGraphToEntity,
   readMountedGraphs,
+  runAssetsMounts,
   setMountedGraphs
 } from '../src/cli/gil_graph_mounts.js'
 import { emitWireMessage as emit, parseWireMessage } from '../src/cli/static_assembly/wire.js'
@@ -307,3 +311,166 @@ function hexOf(bytes: Uint8Array): string {
 }
 
 console.log('PASS mount record isomorphism (def/inst/entity attach+detach)')
+
+// ---- CLI 层语义回归（2026-10-25 真机事故）：场景只执行 entity 层 ----
+// 事实：同一 id 可同时存在于 root4（def）与 root5（entity）两个命名空间（实测 1090519041），
+// 两层挂载槽字节完全相同，因此回显必须带 kind，且 def-only 挂载必须报「不会被执行」。
+// 断言目标：entity 挂载产物被 `mounts list` 读为 kind=entity graphs=<gid>；detach 后回到 (none)。
+
+/** 把记录字段 1（记录 id）改写成指定 id（造「同一 id 同时在两命名空间」的场景）。 */
+function withId(record: Uint8Array, id: number): Uint8Array {
+  const fields = parseWireMessage(record)!
+  const index = fields.findIndex((field) => field.number === 1 && field.wire === 0)
+  assert.ok(index >= 0, 'fixture record has no field 1')
+  fields[index] = { number: 1, wire: 0, value: id }
+  return emit(fields)
+}
+
+/** 捕获 console.log 输出（runAssetsMounts 直接打印）。 */
+async function captureLogs(run: () => Promise<void>): Promise<string[]> {
+  const lines: string[] = []
+  const original = console.log
+  console.log = (...args: unknown[]) => {
+    lines.push(args.map((arg) => String(arg)).join(' '))
+  }
+  try {
+    await run()
+  } finally {
+    console.log = original
+  }
+  return lines
+}
+
+const SHARED_ID = 1077936183 // 故意让 def 与 entity 用同一个 id（对应真实的 1090519041）
+const GRAPH_ID = 1073741828
+const ENTITY_PRESET = 1073741826 // c2_ent 真实形态里已挂的图（断言按追加语义写）
+const cliDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsts-mounts-'))
+try {
+  const basePath = path.join(cliDir, 'map.gil')
+  fs.writeFileSync(
+    basePath,
+    miniMap(
+      recordBytes(c2_def_1077936183),
+      undefined,
+      withId(recordBytes(c2_ent_1077936180), SHARED_ID),
+      [GRAPH_ID, ENTITY_PRESET]
+    )
+  )
+  const run = (argv: string[]) => runAssetsMounts(argv, {})
+
+  // 空态：两层都读得到，entity 层 graphs=(none)
+  {
+    const lines = await captureLogs(() => run(['list', String(SHARED_ID), '--gil', basePath]))
+    assert.ok(
+      lines.includes(`target=${SHARED_ID} kind=entity graphs=${ENTITY_PRESET}`),
+      `entity layer line missing: ${lines.join(' | ')}`
+    )
+    assert.ok(lines.includes(`target=${SHARED_ID} kind=def graphs=(none)`))
+    assert.ok(lines.some((line) => line.startsWith('[note]') && line.includes('both namespaces')))
+  }
+
+  // attach（默认 entity）→ 产物读回 kind=entity graphs=<gid>
+  const entityCand = path.join(cliDir, 'entity.gil')
+  {
+    const lines = await captureLogs(() =>
+      run([
+        'attach',
+        String(SHARED_ID),
+        '--graph',
+        String(GRAPH_ID),
+        '--gil',
+        basePath,
+        '--output',
+        entityCand
+      ])
+    )
+    assert.ok(
+      lines.includes(`target=${SHARED_ID} kind=entity graphs=${ENTITY_PRESET},${GRAPH_ID}`),
+      `attach echo must carry kind: ${lines.join(' | ')}`
+    )
+    assert.ok(
+      lines.some((line) => line.includes('kind=entity is the scene execution path')),
+      'attach must state that entity is the executed layer'
+    )
+    const readback = await captureLogs(() => run(['list', String(SHARED_ID), '--gil', entityCand]))
+    assert.ok(
+      readback.includes(`target=${SHARED_ID} kind=entity graphs=${ENTITY_PRESET},${GRAPH_ID}`)
+    )
+    assert.ok(readback.includes(`target=${SHARED_ID} kind=def graphs=(none)`))
+    // 产物字节侧同样成立
+    const entityBytes = new Uint8Array(fs.readFileSync(entityCand))
+    assert.deepEqual(
+      listEntityMounts(entityBytes).find((entry) => entry.id === SHARED_ID)?.graphs,
+      [ENTITY_PRESET, GRAPH_ID]
+    )
+  }
+
+  // detach（entity）→ 回到 graphs=(none)
+  {
+    const detached = path.join(cliDir, 'entity-detached.gil')
+    const lines = await captureLogs(() =>
+      run([
+        'detach',
+        String(SHARED_ID),
+        '--graph',
+        String(GRAPH_ID),
+        '--entity',
+        '--gil',
+        entityCand,
+        '--output',
+        detached
+      ])
+    )
+    assert.ok(lines.includes(`target=${SHARED_ID} kind=entity graphs=${ENTITY_PRESET}`))
+    const readback = await captureLogs(() => run(['list', String(SHARED_ID), '--gil', detached]))
+    assert.ok(readback.includes(`target=${SHARED_ID} kind=entity graphs=${ENTITY_PRESET}`))
+  }
+
+  // --def：必须打出「不会被执行」警告，并指出同 id 的 entity 层没被改动
+  {
+    const defCand = path.join(cliDir, 'def.gil')
+    const lines = await captureLogs(() =>
+      run([
+        'attach',
+        String(SHARED_ID),
+        '--graph',
+        String(GRAPH_ID),
+        '--def',
+        '--gil',
+        basePath,
+        '--output',
+        defCand
+      ])
+    )
+    assert.ok(lines.includes(`target=${SHARED_ID} kind=def graphs=${GRAPH_ID}`))
+    assert.ok(
+      lines.some((line) => line.startsWith('[warn]') && line.includes('NOT executed in play')),
+      `--def must warn it is not executed: ${lines.join(' | ')}`
+    )
+    assert.ok(
+      lines.some(
+        (line) => line.startsWith('[warn]') && line.includes('also exists as kind=entity')
+      ),
+      '--def must point at the untouched entity layer'
+    )
+    assert.ok(
+      lines.some(
+        (line) => line.startsWith('[warn]') && line.includes('mounted on no scene entity')
+      ),
+      '--def must warn the graph runs nowhere in the scene'
+    )
+    // 默认（不带 --def）list 也必须点出「只挂在模板层 → 不会执行」
+    const readback = await captureLogs(() => run(['list', String(SHARED_ID), '--gil', defCand]))
+    assert.ok(readback.includes(`target=${SHARED_ID} kind=def graphs=${GRAPH_ID}`))
+    assert.ok(
+      readback.some(
+        (line) => line.startsWith('[warn]') && line.includes('mounted only on the def layer')
+      ),
+      `list must flag def-only mounts: ${readback.join(' | ')}`
+    )
+  }
+} finally {
+  fs.rmSync(cliDir, { recursive: true, force: true })
+}
+
+console.log('PASS mounts CLI layer semantics (entity executes / def warns)')
