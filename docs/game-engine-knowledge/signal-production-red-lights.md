@@ -7,6 +7,11 @@
 > `genshin-ts-evidence/node-graph-logic/signals/2026-08-01-monitor-signal/notes/manifest.md`
 
 > 知识树：红灯清单已录入 `knowledge/game-engine-knowledge/production-chain-evidence.md`（2026-08-08，bnd_7320a9bd）
+>
+> 姊妹坑（**CLI 注册侧**，不在本文范围）：`assets:signals register` 曾只写 send/monitor/server
+> 三份 CompositeDef，缺第四份「发送客户端脚本信号」→ 前三份 `n107` 的 `f4` 引用悬空 →
+> 试玩校验报「信号有问题」（2026-10-25 修复，commit `19b6eed1`）。规则见
+> [`signals.md`](signals.md) 「每个信号四份内置复合定义」。
 
 本文档是生产修复的唯一入口：记录红灯差异、wire 形态、修复范围和验证方式，避免后续会话
 丢失上下文。**修复前必须由用户明确要求**；未获要求时保持红灯，不进入 production seam。
