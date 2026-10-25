@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""ys-qbits-report —— 读 /tmp/wine32u-qbits.log（探针⑦⑧⑨）与 /tmp/wine32u-msgwait.log（探针⑥）。
+
+为什么不只是 tail：冻结现场的判据是「配对」而不是「某一行好看」——
+  · 每个 tid 的 wait-in 必须配 wait-out（不配对 = 这个线程正停在等待里，这是现场快照）
+  · peek-pend 的 b 位里若含 QS_PAINT/QS_ALLPOSTMESSAGE/QS_SENDMESSAGE ⇒「队列位在、产不出消息」
+  · pd-out 的 c=1（客户端 is_queue_signaled 说有事）而 d/e 位与 a/b 掩码不交 ⇒ 客户端与服务端判定打架
+工具只读、只解析、不下结论；把「该看哪几行」摘出来，结论仍由人判断。
+
+字段（探针⑦⑧⑨，行格式：`<ms> <pid> <tid> <tag> a=.. b=.. c=.. d=.. e=.. f=..`）：
+  peek-in   a=共享 wake_bits  b=共享 changed_bits  c=internal_bits  d=本次掩码(mask|clear_bits)
+            e=last（0xffffffff=无限范围） f=flags
+  peek-in-hwnd a=hwnd
+  peek-pend a=skip(1=走共享内存早返回，没问服务端) b=wake_bits c=changed_bits d=signal_bits
+            e=clear_bits f=filter->mask
+  peek-got  a=消息类型 b=消息号 c=hwnd d=wake_bits e=changed_bits f=wparam
+  post      a=hwnd b=msg c=wparam d=lparam
+  qs-local  a=flags b=wake_bits c=changed_bits d=返回值 e=1（本地快路）
+  qs-srv    a=flags b=wake_bits c=changed_bits d=返回值 e=0（走服务端，服务端据此清 changed_bits）
+  pd-out    a=wanted wake_mask b=wanted changed_mask c=is_queue_signaled(1/0)
+            d=共享 wake_bits e=共享 changed_bits f=共享 wake_mask
+  wait-in   a=count b=timeout c=wake_mask d=changed_mask e=共享 wake_bits f=共享 wake_mask
+  wait-out  a=返回值 b=count c=wake_mask d=changed_mask e=共享 changed_bits f=共享 changed_mask
+msgwait.log（探针⑥，旧格式 `pid tid tag a=..` 或新格式 `ms pid tid tag ...`）：
+  msgwait-in  count/timeout/mask/h0/qb     msgwait-out ret/timeout/mask/count/ra
+
+用法：
+  ys-qbits-report                       # 默认两份日志
+  ys-qbits-report --log X --msgwait Y --tail 30 --json
+退出码：0 有数据且解析成功 / 1 无日志 / 2 用法错
+"""
+import argparse, json, os, re, sys
+
+QS = {
+    0x0001: "QS_KEY", 0x0002: "QS_MOUSEMOVE", 0x0004: "QS_MOUSEBUTTON", 0x0020: "QS_PAINT",
+    0x0040: "QS_SENDMESSAGE", 0x0080: "QS_HOTKEY", 0x0100: "QS_ALLPOSTMESSAGE", 0x0400: "QS_TIMER",
+    0x0800: "QS_MOUSE", 0x1000: "QS_POSTMESSAGE", 0x2000: "QS_RAWINPUT", 0x4000: "QS_INPUT",
+    0x8000: "QS_SMRESULT", 0x1CFF: "QS_ALLINPUT",
+    0x40000000: "QS_HARDWARE", 0x80000000: "QS_DRIVER",
+}
+WATCH = 0x20 | 0x100 | 0x40          # QS_PAINT | QS_ALLPOSTMESSAGE | QS_SENDMESSAGE
+TAGS = {"msgwait-in", "msgwait-out", "peek-in", "peek-in-hwnd", "peek-pend", "peek-got",
+        "post", "qs-local", "qs-srv", "pd-out", "wait-in", "wait-out"}
+KV_RE = re.compile(r"([a-z]\w*)=(?:0x)?([0-9a-fA-F]+)")
+
+
+def bits(v):
+    names = [n for b, n in sorted(QS.items()) if v and (v & b) == b and b not in (0x1CFF,)]
+    return f"0x{v:x}" + ("(" + "|".join(names) + ")" if names else "")
+
+
+def parse_head(line):
+    """两种行格式：新 `<ms> <pid> <tid> <tag> ...`；旧（10-25 首版探针）`<pid> <tid> <tag> ...`。"""
+    toks = line.rstrip("\n").split()
+    idx = next((i for i, t in enumerate(toks) if t in TAGS), None)
+    if idx is None:
+        return None
+    nums, tag, rest = toks[:idx], toks[idx], " ".join(toks[idx + 1:])
+    if len(nums) == 3:
+        ms, pid, tid = (int(x) for x in nums)
+    elif len(nums) == 2:
+        ms, pid, tid = 0, int(nums[0]), int(nums[1])
+    else:
+        return None
+    return ms, pid, tid, tag, rest
+
+
+def parse_qbits(path):
+    rows = []
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            head = parse_head(line)
+            if not head:
+                continue
+            ms, pid, tid, tag, rest = head
+            kv = {k: int(v, 16) for k, v in KV_RE.findall(rest)}
+            rows.append({"ms": ms, "pid": pid, "tid": tid, "tag": tag, "kv": kv, "raw": line.rstrip("\n")})
+    return rows
+
+
+def parse_msgwait(path):
+    rows = []
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            head = parse_head(line)
+            if not head or not head[3].startswith("msgwait"):
+                continue
+            ms, pid, tid, tag, rest = head
+            rows.append({"ms": ms, "pid": pid, "tid": tid, "tag": tag, "raw": line.rstrip("\n")})
+    return rows
+
+
+def report(log, msgwait, tail):
+    out = []
+    for path in (log, msgwait):
+        if not os.path.exists(path):
+            out.append(f"✗ 缺 {path}")
+            continue
+        st = os.stat(path)
+        out.append(f"· {path}: {st.st_size} bytes, mtime {__import__('time').strftime('%H:%M:%S', __import__('time').localtime(st.st_mtime))}")
+
+    rows = parse_qbits(log) if os.path.exists(log) else []
+    mw = parse_msgwait(msgwait) if os.path.exists(msgwait) else []
+    if not rows and not mw:
+        out.append("✗ 两份日志都没有可解析行")
+        return "\n".join(out), 1
+
+    # §1 按 tag 计数（按 pid 分组，冻结现场常常多进程混写同一个文件）
+    tags = {}
+    for r in rows:
+        tags.setdefault(r["pid"], {}).setdefault(r["tag"], 0)
+        tags[r["pid"]][r["tag"]] += 1
+    out.append("\n§1 按进程/tag 计数（qbits）")
+    for pid in sorted(tags):
+        out.append(f"  pid {pid}: " + ", ".join(f"{k}×{v}" for k, v in sorted(tags[pid].items())))
+
+    # §2 未配对等待
+    out.append("\n§2 停在等待里的线程（wait-in 未配 wait-out）")
+    pend = {}
+    for r in rows:
+        if r["tag"] == "wait-in":
+            pend.setdefault(r["tid"], []).append(r)
+        elif r["tag"] == "wait-out" and pend.get(r["tid"]):
+            pend[r["tid"]].pop()
+    stuck = {t: v for t, v in pend.items() if v}
+    if not stuck:
+        out.append("  （无）")
+    for tid, lst in stuck.items():
+        r = lst[-1]
+        kv = r["kv"]
+        out.append(f"  tid {tid}: 停在 wait-in × {len(lst)}；count={kv.get('a')} timeout={kv.get('b')} "
+                   f"wake_mask={bits(kv.get('c', 0))} changed_mask={bits(kv.get('d', 0))} "
+                   f"共享 wake_bits={bits(kv.get('e', 0))} 共享 wake_mask={bits(kv.get('f', 0))}")
+        out.append(f"      原文: {r['raw']}")
+
+    # §3 「位在但产不出消息」
+    out.append("\n§3 「队列位在、PeekMessage 产不出消息」（peek-pend 且 wake 位命中关注位）")
+    hits = [r for r in rows if r["tag"] == "peek-pend" and (r["kv"].get("b", 0) & WATCH)]
+    out.append(f"  命中 {len(hits)} / peek-pend 共 {sum(1 for r in rows if r['tag'] == 'peek-pend')}")
+    for r in hits[:3] + hits[-5:] if len(hits) > 8 else hits:
+        kv = r["kv"]
+        out.append(f"  [{r['pid']}/{r['tid']} @{r['ms']}] skip={kv.get('a')} wake={bits(kv.get('b', 0))} "
+                   f"changed={bits(kv.get('c', 0))} signal_bits={bits(kv.get('d', 0))} clear_bits={bits(kv.get('e', 0))}")
+    if len(hits) > 3:
+        out.append("  （中间行略）")
+
+    # §4 客户端/服务端判定打架
+    out.append("\n§4 pd-out：客户端说有事、但掩码与共享位不相交（= 两侧判定打架）")
+    bad = []
+    for r in rows:
+        if r["tag"] != "pd-out":
+            continue
+        kv = r["kv"]
+        if kv.get("c") == 1 and not ((kv.get("d", 0) & kv.get("a", 0)) or (kv.get("e", 0) & kv.get("b", 0))):
+            bad.append(r)
+    out.append(f"  命中 {len(bad)} / pd-out 共 {sum(1 for r in rows if r['tag'] == 'pd-out')}")
+    for r in bad[:5]:
+        kv = r["kv"]
+        out.append(f"  [{r['pid']}/{r['tid']} @{r['ms']}] wanted wake={bits(kv.get('a', 0))} changed={bits(kv.get('b', 0))} "
+                   f"共享 wake={bits(kv.get('d', 0))} changed={bits(kv.get('e', 0))} 注册 wake_mask={bits(kv.get('f', 0))}")
+
+    # §5 post 与 peek-got 的配对（粗粒度：同 pid 内 post 后 ≤300ms 是否出现过 peek-got）
+    out.append("\n§5 post → peek-got 配对（同 pid，≤300ms）")
+    posts = [r for r in rows if r["tag"] == "post"]
+    gots = [r for r in rows if r["tag"] == "peek-got"]
+    orphan = [p for p in posts
+              if not any(g["pid"] == p["pid"] and 0 <= g["ms"] - p["ms"] <= 300 for g in gots)]
+    out.append(f"  post × {len(posts)}，其中 {len(orphan)} 条在 300ms 内没有对应的 peek-got")
+    for p in orphan[-5:]:
+        kv = p["kv"]
+        out.append(f"  [{p['pid']}/{p['tid']} @{p['ms']}] hwnd=0x{kv.get('a', 0):x} msg=0x{kv.get('b', 0):x} "
+                   f"wp=0x{kv.get('c', 0):x} lp=0x{kv.get('d', 0):x}")
+
+    # §6 msgwait 配对
+    out.append("\n§6 msgwait-in/out 配对")
+    ins = {}
+    for r in mw:
+        key = (r["pid"], r["tid"])
+        if r["tag"] == "msgwait-in":
+            ins.setdefault(key, []).append(r)
+        elif r["tag"] == "msgwait-out":
+            if ins.get(key):
+                ins[key].pop()
+    stuckmw = {k: v for k, v in ins.items() if v}
+    out.append(f"  in 未配 out 的线程: {len(stuckmw)}")
+    for (pid, tid), lst in list(stuckmw.items())[:5]:
+        out.append(f"  [{pid}/{tid}] 未配 out × {len(lst)}，最后一条: {lst[-1]['raw']}")
+
+    # §7 原文尾巴
+    out.append(f"\n§7 原文末尾 {tail} 行（qbits）")
+    for r in rows[-tail:]:
+        out.append("  " + r["raw"])
+    if mw:
+        out.append(f"§7b 原文末尾 {min(tail, 10)} 行（msgwait）")
+        for r in mw[-min(tail, 10):]:
+            out.append("  " + r["raw"])
+
+    text = "\n".join(out)
+    return text, 0
+
+
+def main():
+    ap = argparse.ArgumentParser(add_help=True)
+    ap.add_argument("--log", default="/tmp/wine32u-qbits.log")
+    ap.add_argument("--msgwait", default="/tmp/wine32u-msgwait.log")
+    ap.add_argument("--tail", type=int, default=20)
+    ap.add_argument("--json", action="store_true")
+    a = ap.parse_args()
+    text, rc = report(a.log, a.msgwait, a.tail)
+    if a.json:
+        print(json.dumps({"rc": rc, "text": text}, ensure_ascii=False))
+    else:
+        print(text)
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main())

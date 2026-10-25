@@ -342,3 +342,94 @@ unit：`~/.config/systemd/user/ys-fakedeath-verify.{service,timer}`；实测 `Re
 - 探针文件：`/tmp/wine32u-msgwait.log`（本次关键）、`wine32u-paint.log`、`wine32u-cursor.log`、`wine-ntdll-{swait,wait,obj}.log`、`wine11-proc.log`；
 - **关不掉的窗口由代理代杀**（用户明确要求）：`for p in $(pgrep -f 'BeyondEditor\.exe'); do kill -TERM "$p"; done`（实测干净退出，不碰游戏）；
 - 现场兜底：**双击标题栏 / 全屏**可解锁输入。
+
+---
+
+# 十一、2026-10-25 19:40-19:55：队列位配对仪表落地（下一轮的第一件事已做完）
+
+> 结论先行：§10.2 要求的「`set_queue_bits`/`clear_queue_bits`/`peek_message` 配对日志」**做了，但改变了做法**——
+> 服务端那两行代码在 **wineserver 进程内**，探它要重启 wineserver，而 wineserver 与游戏共用（重启=杀游戏，用户令不动）。
+> 所以仪表全部落在 **win32u 客户端侧**：记「共享内存里看到的位」+「peek 取值/产出/早返回」+「等待注册的掩码与返回值」，
+> 三者配对即可区分「位被谁置了没清」与「signal 了却产不出消息」。
+
+## 11.1 三处前提纠正（源码事实，覆盖 §10.1 的写法）
+
+1. **`0x01000000` 不是内部位**。`msgwait-in` 的 `c=` 是 `NtUserGetQueueStatus(mask)` 的返回值
+   = `MAKELONG(changed_bits & flags, **wake_bits & flags**)`（`win32u/input.c:929-951`）。
+   故 `0x01000000` = **高半字**里的 `QS_ALLPOSTMESSAGE(0x100)`，即 `wake_bits` 含 0x100、`changed_bits` 为 0；
+   `0x1000100` 才是两半都含 0x100。内部位是 `QS_DRIVER=0x80000000` / `QS_HARDWARE=0x40000000`（`message.c:81-83`）。
+2. **`set_queue_bits`/`clear_queue_bits` 不在 win32u**，在 `server/queue.c`（wineserver）。win32u 只读写共享内存的
+   `wake_bits/changed_bits/internal_bits/wake_mask/changed_mask` 并发 `set_queue_mask` / `get_message` 请求。
+3. **信号判定在两侧是两套**（这轮新发现的缝，可能是根因所在）：
+   - 客户端 `wait_message`→`process_driver_events`→`is_queue_signaled()` 用「共享 `wake_bits`/`changed_bits` & **本次 mask**」；
+   - 服务端 `get_queue_status()`（`server/queue.c:683-689`）用「`wake_bits & queue_shm->**wake_mask**` | `changed_bits & changed_mask` | internal」，
+     而 `wake_mask` 是**上一次 `set_queue_mask`/`get_message` 写回的值**；
+   - `NtUserMsgWaitForMultipleObjectsEx` 在**没带 `MWMO_INPUTAVAILABLE`** 时给 `wait_objects` 传 `wake_mask = 0`
+     （`message.c:3544`）⇒ 服务端只看 `changed_bits`，客户端却还在看 `wake_bits`。
+   ⇒ 只要 `wake_bits` 留下一个 `changed_bits` 已消失的陈旧位（典型：`QS_ALLPOSTMESSAGE`），
+   就会出现「客户端说有事 → 直接进 `NtWaitForMultipleObjects` → 服务端按 `wake_mask=0` 判无事 → 停住」。
+   本轮已加探针把这一对判断逐次落盘（见 11.2 的 `wait-in` / `pd-out`）。
+
+## 11.2 仪表 v2（都已编译、已安装、哈希一致）
+
+补丁脚本（幂等、可重放）：`.scratch/fake-death/apply-qbtrace-2026-10-25.py`、
+`.scratch/fake-death/apply-wait-trace-2026-10-25.py`。落盘日志 **`/tmp/wine32u-qbits.log`**（新）+ 旧四份不变。
+行格式：`<ms 单调> <pid> <tid> <tag> a=.. b=.. …`（**全部十六进制**；`ms` 与 `NtGetTickCount` 同基准 = 开机毫秒）。
+
+| tag | 含义 | 字段 |
+|---|---|---|
+| `peek-in` | `peek_message` 入口（只在关注位出现/共享位变化/本线程首次时记） | a=共享 wake_bits b=共享 changed_bits c=internal_bits d=本次掩码 e=last f=flags |
+| `peek-in-hwnd` | 同上，跟一行 hwnd（否则少一字段） | a=hwnd |
+| `peek-pend` | 没取到消息（返回 STATUS_PENDING） | a=**skip**(1=走共享内存早返回、没问服务端) b=wake_bits c=changed_bits d=signal_bits e=clear_bits f=filter->mask |
+| `peek-got` | 取到消息 | a=消息类型 b=消息号 c=hwnd d=wake_bits e=changed_bits f=wparam |
+| `post` | `NtUserPostMessage` 调用点 | a=hwnd b=msg c=wparam d=lparam |
+| `qs-local` / `qs-srv` | `NtUserGetQueueStatus`：本地快路 / 走服务端（服务端据此**清 changed_bits**） | a=flags b=wake_bits c=changed_bits d=返回值 e=1/0 |
+| `pd-out` | `process_driver_events` 出口：本次想要的掩码 vs 共享位 vs 客户端判定 | a=wanted wake_mask b=wanted changed_mask c=**is_queue_signaled** d=共享 wake_bits e=共享 changed_bits f=共享 wake_mask |
+| `wait-in` / `wait-out` | `wait_message` 里 `NtWaitForMultipleObjects` 的进出 | in: a=count b=timeout c=wake_mask d=changed_mask e=共享 wake_bits f=共享 wake_mask；out: a=返回值 e=共享 changed_bits f=共享 changed_mask |
+
+配套读数工具：**`tools/ys-editor/ys-qbits-report`** —— 直接回答四个问题（不用人肉翻日志）：
+① 哪个 tid 的 `wait-in` 没配 `wait-out`（= 冻结瞬间它停在哪个等待里，含 count/timeout/mask）；
+② `peek-pend` 里有多少次 wake 位命中 `0x20|0x100|0x40`（= 「位在却产不出消息」）；
+③ `pd-out` 里有多少次「客户端说有事(c=1)但掩码与共享位不相交」（= 两侧判定打架）；
+④ `post` 有多少条在 300ms 内没有对应的 `peek-got`。
+
+**容量设计（对上一代的修正）**：所有探针改成**按字节轮转**（qbits/msgwait 32MB 截断重建；ntdll 三份同样），
+并加**每秒行上限**（qbits 200、GetQueueStatus 40）。上一代的「每进程 400 行封顶」实测让三路 ntdll 探针在
+编辑器启动 **19 秒**后全部失明（2207223 于 19:33:58 打满），这是本轮最关键的一条仪器教训。
+
+## 11.3 安装/结构闸门（读数）
+
+```
+tools/ys-editor/ys-fakedeath-fix win32u-install   # rc=0，备份 win32u.so.bak-fakedeath-20261025
+tools/ys-editor/ys-fakedeath-fix ntdll-install    # rc=0
+（工件同步）artifacts/{win32u,ntdll}.so.patched 更新，SHA256SUMS 重算，旧工件存 artifacts/superseded-20261025-1945/
+tools/ys-editor/ys-fakedeath-fix verify           # rc=0：✓ winex11 / ✓ win32u / ✓ ntdll 三件与工件一致
+```
+结构闸门（冷 prefix `prefix-gate15`，`cmd /c echo gate-ok`）：**rc=0，输出 gate-ok**，探针文件被创建
+（qbits 出现 `qs-local a=0x1cff …`），`wine-ntdll-swait.log` 正常写入。
+⚠️ **GUI 闸门这次跑不了**：代理 shell 没有 `DISPLAY`（`DISPLAY` 未设置，`X0` 存在但 `XAUTHORITY` 不可读，
+`nodrv_CreateWindow`）。⇒ 「窗口能建、消息循环能跑」这一层由**用户从游戏里重开编辑器**来验（见 11.4 第 1 步）。
+
+## 11.4 复现与读法（下一轮照做）
+
+1. **重开编辑器**（本轮已代杀：`for p in $(pgrep -f 'BeyondEditor\.exe'); do kill -TERM "$p"; done`，游戏未动）；
+2. 走一次会假死的路径（点「试玩」→ 试玩失败 → 编辑器无响应），或任何一次复现；
+3. 卡住时**先别杀**，跑：
+   ```bash
+   tools/ys-editor/ys-qbits-report                 # 四问 + 原文尾巴
+   tools/ys-editor/ys-qbits-report --tail 60
+   tail -3 /tmp/wine32u-msgwait.log               # 看最后一次 in 有没有 out
+   ```
+4. 判读优先级：**§2 未配对等待**（冻结快照）→ **§4 判定打架** → **§3 位在产不出消息** → **§5 post 无对应 got**；
+5. 定位到具体一行后再动补丁（`apply-qbtrace` / `apply-wait-trace` 两脚本可重放，改完 `make -j6 dlls/win32u/win32u.so` + `win32u-install`）。
+
+## 11.5 冻结标本存档（2207223，19:33-19:37）
+
+`.scratch/fake-death/frozen-2207223/`（msgwait / paint / ntdll 三份原样拷贝）。`ys-qbits-report` 对它的读数：
+
+- `msgwait-in` 36 / `msgwait-out` 35，**最后一条 in 没有 out** ⇒ 主线程停在
+  `MsgWaitForMultipleObjectsEx(count=1, timeout=INFINITE, mask=0x160, h0=0x4ac, qb=0x1000000)`；
+- 此前 35 条 out 全是 **a=1**（`WAIT_OBJECT_0+1` = 队列句柄）且立刻重入 ⇒ §10.1 的「队列自旋」确证；
+- 同文件里 2191157（更早的进程）同型：22 in / 21 out，`h0=0x4ac`、`mask=0x160`；2207102 则以 `qb=0x0` 停住。
+  ⇒ **同一批进程都停在「mask=0x160 不含输入位」的等待上**，且 `0x4ac` 这个句柄跨进程复现。
+- 旧探针只有 msgwait 一路有数据（ntdll 三份都已被 400 行上限打满）⇒ 这正是本轮重做仪表的直接动因。
