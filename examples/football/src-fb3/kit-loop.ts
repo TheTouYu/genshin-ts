@@ -32,7 +32,8 @@ const S_PREVY = 1207959584n
 const S_PREVZ = 1207959585n
 
 const SPEED = 25.0
-const STEP = 25.0 * 0.0666 // 每拍前进距离（float 常量，避免 int*float 泛型不匹配）
+const STEP = 25.0 * 0.0666
+const HIDDEN_Y = -3.0 // 每拍前进距离（float 常量，避免 int*float 泛型不匹配）
 const HIT_R = 0.8
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
@@ -43,6 +44,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const players = f.getListOfPlayerEntitiesOnTheField()
   const p0 = f.getCorrespondingValueFromList(0n, players)
   const pLoc = f.getEntityLocation(p0)
+  const pP = f.split3dVector(pLoc)
+  // 玩家的"躯干高度"：以玩家脚下 +0.9m 作为判定中心
+  const pBody = f.create3dVector(pP.xComponent, f.addition(pP.yComponent, 0.9), pP.zComponent)
   const prev = f.create3dVector(
     f.querySkillVariableValue(S_PREVX),
     f.querySkillVariableValue(S_PREVY),
@@ -53,55 +57,77 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const phase = f.localVariable('int')
 
   f.doubleBranch(
-    f.lessThanOrEqualTo(tick, 24n),
+    f.lessThanOrEqualTo(tick, 8n),
     () => {
-      // —— E3：三档高度，每 8 拍一档 ——
+      // —— E3 地形：只测一档（空中 +3），另两档 +0.2 / −2 在 8~16 / 16~24 拍 ——
       phase.set(0n)
-      f.doubleBranch(
-        f.lessThanOrEqualTo(tick, 8n),
-        () => {
-          nxt.set(f.create3dVector(6.0, 3.0, 6.0))
-        },
-        () => {
-          f.doubleBranch(
-            f.lessThanOrEqualTo(tick, 16n),
-            () => {
-              nxt.set(f.create3dVector(6.0, 0.2, 6.0))
-            },
-            () => {
-              nxt.set(f.create3dVector(6.0, -2.0, 6.0))
-            }
-          )
-        }
-      )
+      nxt.set(f.create3dVector(6.0, 3.0, 6.0))
     },
     () => {
       f.doubleBranch(
-        f.lessThanOrEqualTo(tick, 48n),
+        f.lessThanOrEqualTo(tick, 16n),
         () => {
-          // —— E1：沿 +X 25 m/s 掠 24 拍 ——
-          phase.set(1n)
-          const k = f.dataTypeConversion(f.subtraction(tick, 24n), 'float')
-          const bx = f.subtraction(f.multiplication(k, STEP), 10.0)
-          nxt.set(f.create3dVector(bx, 0.9, 6.0))
+          phase.set(0n)
+          nxt.set(f.create3dVector(6.0, 0.2, 6.0))
         },
         () => {
-          // —— E4：定 (6,0.9,6) 朝 +X 投射线 ——
-          phase.set(2n)
-          nxt.set(f.create3dVector(6.0, 0.9, 6.0))
+          f.doubleBranch(
+            f.lessThanOrEqualTo(tick, 24n),
+            () => {
+              phase.set(0n)
+              nxt.set(f.create3dVector(6.0, -2.0, 6.0))
+            },
+            () => {
+              f.doubleBranch(
+                f.lessThanOrEqualTo(tick, 48n),
+                () => {
+                  // —— E1 隧穿：以**玩家实际位置**为中心，从 pz−10 沿 +X 掠过（y=玩家+0.9）——
+                  phase.set(1n)
+                  const k = f.dataTypeConversion(f.subtraction(tick, 24n), 'float')
+                  const bx = f.subtraction(f.addition(f.multiplication(k, STEP), pP.xComponent), 10.0)
+                  nxt.set(f.create3dVector(bx, f.addition(pP.yComponent, 0.9), pP.zComponent))
+                },
+                () => {
+                  f.doubleBranch(
+                    f.lessThanOrEqualTo(tick, 80n),
+                    () => {
+                      // —— E4 射线：朝玩家方向投 20m（层=场景）；命中则贴到命中点 ——
+                      phase.set(2n)
+                      nxt.set(f.create3dVector(pP.xComponent, f.addition(pP.yComponent, 1.2), f.addition(pP.zComponent, 6.0)))
+                    },
+                    () => {
+                      // —— 探针结束：恢复"地下跟随"（用户 2026-10-25：必须贴着玩家，否则距离节流掉频率）——
+                      phase.set(3n)
+                      nxt.set(f.create3dVector(pP.xComponent, HIDDEN_Y, pP.zComponent))
+                    }
+                  )
+                }
+              )
+            }
+          )
         }
       )
     }
   )
 
-  // 两种判据（E1 段累计）
+  // 两种判据（E1 段累计）：
+  //   点判据 = 本拍球心到玩家躯干 < HIT_R
+  //   线段判据 = 上一拍→本拍线段到玩家躯干的最短距离 < HIT_R（15Hz 25m/s 每拍 1.67m ⇒ 点判据必漏）
   const pointHit = f.lessThanOrEqualTo(
-    f._3dVectorModuloOperation(f._3dVectorSubtraction(nxt.value, pLoc)),
+    f._3dVectorModuloOperation(f._3dVectorSubtraction(nxt.value, pBody)),
     HIT_R
   )
-  const segHit = f.lessThanOrEqualTo(
-    f._3dVectorModuloOperation(f._3dVectorSubtraction(prev, pLoc)),
-    HIT_R
+  const ab = f._3dVectorSubtraction(nxt.value, prev)
+  const apv = f._3dVectorSubtraction(pBody, prev)
+  const abLen = f._3dVectorModuloOperation(ab)
+  const abLenSafe = f.greaterThan(abLen, 0.001)
+  const distLine = f.division(
+    f._3dVectorModuloOperation(f._3dVectorCrossProduct(ab, apv)),
+    abLen
+  )
+  const segHit = f.logicalAndOperation(
+    abLenSafe,
+    f.lessThanOrEqualTo(distLine, HIT_R)
   )
   f.doubleBranch(
     f.equal(phase.value, 1n),
@@ -125,11 +151,12 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   )
 
   // E4 射线
+  const toPlayer = f._3dVectorNormalization(f._3dVectorSubtraction(pBody, nxt.value))
   const hit = f.getRayDetectionResult(
     self,
     nxt.value,
-    f.create3dVector(1.0, 0.0, 0.0),
-    12.0,
+    toPlayer,
+    20.0,
     TargetType.None,
     f.getEntityTypeList(),
     f.getRayFilterTypeList([RayFilterType.Scene])
@@ -197,7 +224,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           f.querySkillVariableValue(S_E1S),
           f.querySkillVariableValue(S_E4)
         ),
-        f.create3dVector(f.querySkillVariableValue(S_E3), 0.0, 0.0),
+        f.create3dVector(pP.xComponent, pP.zComponent, f.querySkillVariableValue(S_E3)),
         f.create3dVector(0.0, 0.0, 0.0),
         phase.value
       )
