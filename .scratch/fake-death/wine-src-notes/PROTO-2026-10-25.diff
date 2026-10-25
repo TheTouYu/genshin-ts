@@ -1,6 +1,6 @@
 --- a/dlls/winex11.drv/event.c
 +++ b/dlls/winex11.drv/event.c
-@@ -366,6 +366,90 @@
+@@ -366,6 +366,91 @@
      return pfd.revents;
  }
  
@@ -53,10 +53,10 @@
 +    return cached;
 +}
 +
-+static void probe_proc_window( struct proc_stats *st, int events, int matched, BOOL drain )
++static void probe_proc_window( struct proc_stats *st, int events, int matched, int iters, BOOL drain )
 +{
 +    static ULONGLONG window_start;
-+    static unsigned int calls, scans, events_total, matched_total, idle_calls, max_scan;
++    static unsigned int calls, scans, events_total, matched_total, idle_calls, max_scan, iter_max;
 +    struct timespec ts;
 +    ULONGLONG now;
 +    int fd, n;
@@ -71,6 +71,7 @@
 +    matched_total += matched;
 +    if (st->scans > 0 && matched == 0) idle_calls++;
 +    if ((unsigned int)st->scans > max_scan) max_scan = st->scans;
++    if ((unsigned int)iters > iter_max) iter_max = iters;
 +
 +    if (!window_start) window_start = now;
 +    if (now - window_start < 250) return;   /* 250ms 窗口：短促的启动风暴也能留痕 */
@@ -78,32 +79,34 @@
 +    if ((fd = open( "/tmp/wine11-proc.log", O_WRONLY | O_CREAT | O_APPEND, 0644 )) >= 0)
 +    {
 +        n = snprintf( buf, sizeof(buf),
-+                      "t=%llu pid=%d calls=%u scans=%u events=%u matched=%u idle=%u max=%u mask=0x%x drain=%d\n",
++                      "t=%llu pid=%d calls=%u scans=%u events=%u matched=%u idle=%u max=%u itermax=%u mask=0x%x drain=%d\n",
 +                      (unsigned long long)now, (int)getpid(), calls, scans, events_total, matched_total,
-+                      idle_calls, max_scan, (unsigned int)st->mask, (int)drain );
++                      idle_calls, max_scan, iter_max, (unsigned int)st->mask, (int)drain );
 +        if (n > 0) write( fd, buf, n );
 +        close( fd );
 +    }
 +    window_start = now;
-+    calls = scans = events_total = matched_total = idle_calls = max_scan = 0;
++    calls = scans = events_total = matched_total = idle_calls = max_scan = iter_max = 0;
 +}
 +
  /***********************************************************************
   *           ProcessEvents   (X11DRV.@)
   */
-@@ -373,38 +457,65 @@
+@@ -373,38 +458,71 @@
  {
      static const INPUT input = { .type = INPUT_MOUSE, .mi.dwFlags = MOUSEEVENTF_MOVE_NOCOALESCE };
      struct x11drv_thread_data *data = x11drv_thread_data();
 +    struct proc_stats st;
      XEvent event;
 -    int count;
-+    int count = 0, matched = 0;
++    int count = 0, matched = 0, iter = 0;
 +    BOOL nested, drain;
  
      if (!data) return FALSE;
 -    if (data->current_event) mask = 0;  /* don't process nested events */
--
++    nested = (data->current_event != NULL);
++    if (nested) mask = 0;  /* don't process nested events */
+ 
 -    /* local patch (2026-10-25 #2, genshin fake-death)：perf 实测 XCheckIfEvent 占 56%，
 -     * 被 WPF Dispatcher 的 NtUserGetQueueStatus 高频调用；队列里积压着**不匹配 mask** 的
 -     * 事件时，每次调用都要线性扫整个队列 ⇒ 主线程 72% CPU 空转、消息泵饿死。
@@ -112,9 +115,7 @@
 -        static int last_qlen = -1;
 -        static DWORD last_mask;
 -        int qlen = XEventsQueued( data->display, QueuedAfterReading );
-+    nested = (data->current_event != NULL);
-+    if (nested) mask = 0;  /* don't process nested events */
- 
+-
 -        if (qlen > 0 && qlen == last_qlen && mask == last_mask) return FALSE;
 -        last_qlen = qlen;
 -        last_mask = mask;
@@ -127,11 +128,13 @@
 +        /* 修法 A（2026-10-25 原型）：**整条排空**队列逐条分发，不再「只取匹配 mask 的事件」。
 +         * 原件把不匹配的事件留在队列里，而 XCheckIfEvent 每次都从队头线性扫到第一个匹配项：
 +         * 队列积压 × 高频调用 = O(N²)。排空后队列为空，之后每次调用零扫描（O(1)）。
-+         * 安全阀：单次调用最多分发 2000 条 —— 事件处理器自己会造新事件（focus_in/out →
-+         * XSetInputFocus），排空循环可能自我维持；封顶保证每次调用都有界返回，把 CPU 还给
-+         * 应用的消息循环，剩余事件下一轮再排。 */
-+        while (count < 2000 && XCheckIfEvent( data->display, &event, probe_take_any_event, (char *)&st ))
++         * 安全阀：单次调用最多**取出** 256 条（`iter` 是取出计数，不是分发计数 —— 被 XFilterEvent /
++         * host_window_filter_event 吞掉的事件也必须计，否则「取出→被吞→再投回」的闭环会让封顶失效）。
++         * 撞限时 NtYieldExecution() 再返回 FALSE：QS_DRIVER 保持置位，win32u 的 wait_message
++         * 会立刻再次调用本函数（`message.c` 的 do/while 里没有等待），不 yield 就是紧循环。 */
++        while (iter < 256 && XCheckIfEvent( data->display, &event, probe_take_any_event, (char *)&st ))
 +        {
++            iter++;
 +            if (filter_event( data->display, &event, (char *)(UINT_PTR)mask )) matched++;
 +            if (XFilterEvent( &event, None ) || host_window_filter_event( &event )) continue;
 +            get_event_data( &event );
@@ -148,7 +151,7 @@
 -        get_event_data( &event );
 -        call_event_handler( data->display, &event );
 -        free_event_data( &event );
-+        for (; XCheckIfEvent( data->display, &event, probe_filter_event, (char *)&st ); count++)
++        for (; XCheckIfEvent( data->display, &event, probe_filter_event, (char *)&st ); count++, iter++)
 +        {
 +            if (XFilterEvent( &event, None ) || host_window_filter_event( &event )) continue;
 +            get_event_data( &event );
@@ -162,13 +165,17 @@
      if (count) TRACE( "processed %d events\n", count );
      NtUserSendHardwareInput( NULL, SEND_HWMSG_RAWINPUT, &input, 0 ); /* flush win32u accumulated motion */
  
-+    probe_proc_window( &st, count, matched, drain );
++    probe_proc_window( &st, count, matched, iter, drain );
 +
 +    if (drain)
 +    {
 +        /* 队列已排空：报告「已排空」，让 win32u 清 QS_DRIVER 并重新武装 fd 轮询。
-+         * 若撞到 2000 条上限、或 socket 上还有没读进来的数据，返回 FALSE（下一轮再排）。 */
-+        if (count >= 2000) return FALSE;
++         * 若撞到 256 条上限、或 socket 上还有没读进来的数据，返回 FALSE（下一轮再排）。 */
++        if (iter >= 256)
++        {
++            NtYieldExecution();
++            return FALSE;
++        }
 +        if (check_fd_events( ConnectionNumber( data->display ), POLLIN )) return FALSE;
 +        XFlush( data->display );
 +        return TRUE;
@@ -177,7 +184,7 @@
      if (mask != QS_ALLINPUT || check_fd_events( ConnectionNumber( data->display ), POLLIN )) return FALSE;
      XFlush( data->display ); /* all events have been processed, flush any pending request */
      return TRUE;
-@@ -840,9 +951,12 @@
+@@ -840,9 +958,12 @@
          clock_gettime( CLOCK_MONOTONIC, &cts );
          cnow = (ULONGLONG)cts.tv_sec * 1000 + cts.tv_nsec / 1000000;
  
@@ -192,7 +199,7 @@
          }
          else if (access( "/tmp/.winex11-cancelmode-ratelimit", F_OK ) == 0)
          {
-@@ -852,7 +966,10 @@
+@@ -852,7 +973,10 @@
                  send_message( hwnd, WM_CANCELMODE, 0, 0 );
              }
          }
@@ -204,7 +211,7 @@
      }
  
      /* don't reset the foreground window, if the window which is
-@@ -877,8 +994,8 @@
+@@ -877,8 +1001,8 @@
       * 所以上面那段复位永远不执行 ⇒ 应用永远收不到 WM_KILLFOCUS/WM_ACTIVATE(INACTIVE)，
       * 它的输入状态机（CEF 每窗一份）就一直停在"激活中"，之后所有点击被它自己吞掉。
       * 修法：失焦时若前台仍指向本窗口，就把前台复位到桌面（带 200ms 防抖，避免风暴中反复设前台）。

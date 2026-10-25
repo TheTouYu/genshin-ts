@@ -78,8 +78,12 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
    - `matched` vs `events` = 「按原 mask 本不该处理、但被排空处理掉」的事件数。
 3. **修法 A（默认关，`/tmp/.winex11-drain` 存在即生效）**：排空整条队列逐条分发，同时用 `filter_event`
    另行记账「有没有匹配原 mask 的事件」；排空后返回 TRUE（让 win32u 清 `QS_DRIVER` 并重新武装 fd 轮询）。
-   **安全阀：单次调用最多分发 2000 条** —— 事件处理器自己会造新事件（focus_in/out → `XSetInputFocus`），
-   排空循环可能自我维持；封顶保证每次调用有界返回、把 CPU 还给应用消息循环。
+   **安全阀：单次调用最多**取出** 256 条，撞限 `NtYieldExecution()` 后返回 FALSE** —— 三重理由：
+   ① 事件处理器自己会造新事件（focus_in/out → `XSetInputFocus`），排空循环可能自我维持；
+   ② `count` 只数「分发」、被 `XFilterEvent`/`host_window_filter_event` 吞掉的不计 ⇒ 用 `count` 封顶在
+   「取出→被吞→再投回」闭环里会失效（独立评审抓出的会坏级缺陷，已改成独立的 `iter` 取出计数）；
+   ③ 撞限返 FALSE 会保持 `QS_DRIVER`，而 win32u 的 `wait_message` 是 `do{NtWaitForMultipleObjects}while(…&&!process_driver_events)`，
+   队列 handle 在 QS_DRIVER 置位期间恒 signaled ⇒ **不 yield 就是紧循环**（评审 §4）。
 4. 编译：`cd .scratch/fake-death/wine-build && make -j6 dlls/winex11.drv/winex11.so`（增量 1.8s；无新增 error）。
 
 ## 6.3 安装与结构闸门（读数）
@@ -92,6 +96,8 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
   - `/tmp/wine11-proc.log` 出现 `drain=1` 行 ⇒ 修法 A 的代码路径**确实执行，且不破坏窗口创建与消息分发**。
 - **驱动 ABI 未变**：`nm -D --defined-only` 对比原件与补丁 .so，**导出符号集逐行相同**（diff 0 行）——
   本次只加了 static 函数，`WINE_GDI_DRIVER_VERSION`/驱动函数表不动，所以不存在 10-20 那个「驱动接口 110 vs 111」的墙。
+- **仪表字段**：`t= pid= calls= scans= events= matched= idle= max= itermax= mask= drain=`。
+  注意计数是**进程级 static**（多线程共写），判据按整进程读，别当主线程指标（评审 §7 的可测性提醒）。
 - 顺手读数（修法 A 的前提在小规模上就成立）：
   `calls=7 scans=119 events=118 matched=30 idle=4 max=75 mask=0x1cff drain=1`
   —— 118 条被排空的事件里只有 30 条匹配当时的 mask；原件路径下那 88 条会**留在队列里被后续每次调用重扫**。
@@ -130,6 +136,27 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
 3. **未在编辑器上验证**：本轮只跑过 notepad/winecfg；真正的判据在 6.4。
 4. 游戏 `YuanShen.exe` 也走这只 runner：不带 marker 时行为 = 原件（只有每秒一行日志的开销）；
    `tools/ys-editor/ys-fakedeath-fix revert` 一条命令回原件。
+
+## 6.5.1 独立静态评审（另一模型，只读，2026-10-25 15:56）
+
+**结论：返回语义安全、嵌套安全、XPutBackEvent 不会死循环、XFlush 次序自洽**；抓出两处必修：
+
+1. **（会坏级，已修）封顶用 `count` 会失效**：`count` 只在分发后自增，被 `XFilterEvent`/`host_window_filter_event`
+   吞掉的走 `continue` 不计 ⇒ 「取出→被吞→再投回」闭环里封顶形同虚设。已改 `iter` 取出计数 + cap 256 + 撞限 `NtYieldExecution()`。
+2. **（A/B 矩阵级，已满足）drain 必须与两个 focus 开关分开测**：MapNotify 清 `data->reparenting`、
+   UnmapNotify「意外 unmapped」置 `reparenting=1`，而 `focus_out()` 有 `window_is_reparenting()` 抑制守卫
+   （`event.c` 的 FocusOut 段）⇒ 记账被提前处理会**反向改焦点语义**，与 `suppress-cancelmode`/`fg-reset` 叠加则不可归因。
+   本构建三个 marker 默认全 off，drain 单独可测 ✔。
+
+**评审给出的更小替代**（本轮未走，理由记录在案）：win32u 一行 `message.c:3346` 改 `pProcessEvents(QS_ALLINPUT)` ——
+`filter_event` 对 QS_ALLINPUT 恒真，原件循环自动全排空，零新代码、一行回滚；但**要重编 `win32u.so`**，
+而 10-20 已实测过驱动接口 110 vs 111 的墙（vanilla 树强改常量 → 窗口一个都建不出来）。本轮只动 `winex11.so`（ABI 已验证相同），
+所以不走这条路；若将来要做得更小，先解决 win32u 的同源构建。
+
+**仍未闭合（评审标注未核实）**：
+- `XFilterEvent` 的 XIM 回调是否可能在 `current_event==NULL` 期间回调进 win32u 再触发 `ProcessEvents`（递归 drain 风险）→ 需读 `xim.c`；
+- `keyboard.c`/`mouse.c` 处理链里是否有同步 `SendMessage` 到窗口过程 —— 若有，则「一次 `GetQueueStatus(QS_PAINT)` 里分发 KeyPress」
+  等于在画图中途重入窗口过程（WPF/CEF 最易崩的形状）。这两条决定「输入/焦点/拖拽/菜单回归」要通过到什么程度。
 
 ## 6.6 下一步
 
