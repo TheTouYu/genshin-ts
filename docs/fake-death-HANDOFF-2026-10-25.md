@@ -449,3 +449,18 @@ tools/ys-editor/ys-fakedeath-fix verify           # rc=0：✓ winex11 / ✓ win
      ⇒ 不是普通受管窗口（override-redirect 或 mutter/Xwayland 内部 1×1 窗口）。
    - 这台机器上 `xwininfo` **未安装**（`xdotool`/`xprop`/`wmctrl` 有）。要判它属谁，下一步用
      `xdotool getwindowgeometry` + `xprop -id 0x600003` 全量输出，或直接看 `xlsclients -l`。
+
+## 11.7 代杀命令的自匹配坑（本轮实测踩到）
+
+文档里沿用的 `for p in $(pgrep -f 'BeyondEditor\.exe'); do kill -TERM "$p"; done` **会把自己也杀掉**：
+`pgrep -f` 匹配整条命令行，而执行这条命令的 `bash -c` 命令行里**就含** `BeyondEditor\.exe` 这个模式串
+（本轮实测：第三条 PID 是当前 shell，SIGTERM 后工具调用被中断）。安全写法（两种任选）：
+
+```bash
+# ① 正则自避免：把模式写成字符类
+for p in $(pgrep -f '[B]eyondEditor\.exe'); do kill -TERM "$p"; done
+# ② 先解析再杀：排除自身与父进程
+self=$$; for p in $(pgrep -f 'BeyondEditor\.exe'); do [ "$p" = "$self" ] || [ "$p" = "$PPID" ] || kill -TERM "$p"; done
+```
+同族前科：`dsh-game-mode` 的 `ExecCondition` 用 `pgrep -f "YuanShen|GenshinImpact"` 自匹配导致闸门恒假
+（2026-10-18 修）。**凡是 `pgrep -f` 的模式串出现在执行它的命令行里，就一定自匹配。**
