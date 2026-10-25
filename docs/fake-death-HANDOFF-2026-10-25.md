@@ -90,6 +90,8 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
   - 窗口正常出现（`记事本`、`Wine 设置`）；
   - `/proc/<pid>/maps` 里 `winex11.so` 的 inode == runner 当前 inode（证明是这份 .so 在跑）；
   - `/tmp/wine11-proc.log` 出现 `drain=1` 行 ⇒ 修法 A 的代码路径**确实执行，且不破坏窗口创建与消息分发**。
+- **驱动 ABI 未变**：`nm -D --defined-only` 对比原件与补丁 .so，**导出符号集逐行相同**（diff 0 行）——
+  本次只加了 static 函数，`WINE_GDI_DRIVER_VERSION`/驱动函数表不动，所以不存在 10-20 那个「驱动接口 110 vs 111」的墙。
 - 顺手读数（修法 A 的前提在小规模上就成立）：
   `calls=7 scans=119 events=118 matched=30 idle=4 max=75 mask=0x1cff drain=1`
   —— 118 条被排空的事件里只有 30 条匹配当时的 mask；原件路径下那 88 条会**留在队列里被后续每次调用重扫**。
