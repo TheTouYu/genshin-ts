@@ -50,20 +50,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const hasCarrier = f.greaterThan(f.getCustomVariable(selfE, 'kit_has_carrier').asType('int'), 0n)
   // Y **固定**（2026-10-24 用户实测 bug：跟随玩家 y ⇒ 玩家一跳把造物顶出草地，露出来）。
   // 只跟 X/Z，Y 恒等于隐藏层高度 HIDDEN_Y；split3dVector 取分量（creation_skill 白名单有）。
-  // 跟随：只跟 X/Z，Y 固定 HIDDEN_Y（2026-10-24 用户实测：跟 y 会被玩家跳跃顶出草地）
-  f.doubleBranch(
-    hasCarrier,
-    () => {
-      const pc = f.split3dVector(f.getEntityLocation(carrierVar))
-      f.complexCreationTeleport(f.create3dVector(pc.xComponent, HIDDEN_Y, pc.zComponent), f.create3dVector(0, 0, 0))
-    },
-    () => {
-      const pf = f.split3dVector(f.getEntityLocation(fallbackCarrier))
-      f.complexCreationTeleport(f.create3dVector(pf.xComponent, HIDDEN_Y, pf.zComponent), f.create3dVector(0, 0, 0))
-    }
-  )
-
-  // ④ 回传一拍：pos/vel/spin 先填 0 向量（物理接入后改成真实状态）
-  const zero = f.create3dVector(0, 0, 0)
-  chanSendState6(f, KitSignal.kit_state, 'P', tick, zero, zero, zero, back)
+  // ⚠️ 临时停用跟随（2026-10-25 探针期）：探针图会自己 teleport 这只史莱姆，
+  //    两个图同时 teleport 会互相抢；探针验完即恢复（本段代码在 git 历史里）
+  void hasCarrier
+  void carrierVar
+  void fallbackCarrier
 })
