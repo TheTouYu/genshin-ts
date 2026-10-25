@@ -102,6 +102,13 @@ local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行
 local settleReady = false   -- 结算层当前是否存活（按需创建、重开即销毁）
 local settleBuildTried = false  -- 这一局试过创建没有（避免每帧重试；销毁时复位）
 local settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts
+-- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
+-- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
+-- 注意必须声明在**上面 10 个 settle 变量之后**：写在前面会把后面那些当全局（nil），成员数恒为 2（踩过）。
+local function settleMembers()
+  return { settleScrim, settleCard, settleBorder, settleTitle,
+           settleScore, settleBest, settleInfo, settleExtra, settleOpts }
+end
 local settleOn, settleT, settleDone = false, 0, false
 local settleFade = -1       -- 遮罩/面板淡入进度（0..1，只在变化够大时写 UI）
 local settleSize = 44       -- 标题当前字号（脉冲 44→48→44）
@@ -254,12 +261,17 @@ end
 settleDestroy = function()
   if not (settleReady or settleLayer or settleTitle) then return end
   local n = 0
-  for _, ctl in ipairs({ settleScrim, settleCard, settleBorder, settleTitle, settleScore,
-                         settleBest, settleInfo, settleExtra, settleOpts, settleLayer }) do
+  local members = settleMembers()
+  for i = 1, 9 do
+    local ctl = members[i]
     if ctl then
       local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
       if ok then n = n + 1 end
     end
+  end
+  if settleLayer then
+    local ok = pcall(function() game.DestroyClientUIControl(settleLayer) end)
+    if ok then n = n + 1 end
   end
   settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
   settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
@@ -278,6 +290,28 @@ local SETTLE_KEY_NAMES = {
   opts  = { 'settleOpts', 'botBanner' },
 }
 
+-- 按 kind 分类子控件（typeof 返回的是 ClientUIImageControl / ClientUITextBoxControl /
+-- ClientUIContainerControl 这类名字；**不按控件名挑**——编辑器新建的容器模板子件就叫「图片/文本框/容器节点」）
+local function classifyKids(ctl)
+  local out = { image = {}, text = {}, container = {} }
+  if not ctl then return out end
+  local ok, kids = pcall(function() return ctl:GetChildren() end)
+  if not (ok and type(kids) == 'table') then return out end
+  for i = 1, #kids do
+    local kid = kids[i]
+    local okT, t = pcall(function() return typeof(kid) end)
+    local low = (okT and type(t) == 'string') and string.lower(t) or ''
+    if string.find(low, 'image') then
+      out.image[#out.image + 1] = kid
+    elseif string.find(low, 'text') then
+      out.text[#out.text + 1] = kid
+    elseif string.find(low, 'container') then
+      out.container[#out.container + 1] = kid
+    end
+  end
+  return out
+end
+
 -- ① 容器整棵实例化：逐条候选打印结果（真机 2026-10-24 实证容器组返回 nil，所以这里是排查主入口）
 local function probeSettleContainer()
   for _, g in ipairs(TPL_GUIDS.settle) do
@@ -285,17 +319,23 @@ local function probeSettleContainer()
     if ok and ctl then
       local okc, kids = pcall(function() return ctl:GetChildren() end)
       local n = (okc and type(kids) == 'table') and #kids or -1
-      local hasTitle = findIn(ctl, SETTLE_KEY_NAMES.title) ~= nil
-      local hasOpts = findIn(ctl, SETTLE_KEY_NAMES.opts) ~= nil
+      local cls = classifyKids(ctl)
       print('settle try tpl=' .. g .. ' -> ok kids=' .. n
-        .. ' title=' .. tostring(hasTitle) .. ' opts=' .. tostring(hasOpts))
-      if hasTitle and hasOpts then return ctl end
+        .. ' img=' .. #cls.image .. ' text=' .. #cls.text .. ' cont=' .. #cls.container
+        .. ' title=' .. tostring(findIn(ctl, SETTLE_KEY_NAMES.title) ~= nil)
+        .. ' opts=' .. tostring(findIn(ctl, SETTLE_KEY_NAMES.opts) ~= nil))
+      -- 按**结构**判定可用：有 figure 也行（图片=面板底、文本框=至少一行字）
+      if (#cls.text >= 1) then return ctl, cls end
+      -- 名字命中的老模板（模拟器 settle / 真机上一版容器）也接受
+      if findIn(ctl, SETTLE_KEY_NAMES.title) and findIn(ctl, SETTLE_KEY_NAMES.opts) then
+        return ctl, cls
+      end
       pcall(function() game.DestroyClientUIControl(ctl) end)   -- 不命中别留垃圾
     else
       print('settle try tpl=' .. g .. ' -> nil')
     end
   end
-  return nil
+  return nil, nil
 end
 
 -- ② 单控件（textbox）模板：只探 guid（探针实例用完就销毁——否则它先造出来会被后造的遮罩盖住）
@@ -315,54 +355,63 @@ local function probeSettleTextbox()
 end
 
 local function buildSettleLayer()
-  local container = probeSettleContainer()
+  local container, cls = probeSettleContainer()
+  local textGuid                       -- 文字模板 guid（容器里文字不够时补行用）
+  local sl = {}                        -- 六个文字槽位，按顺序分配
   if container then
     settleLayer = container
-    settleTitle = findIn(container, SETTLE_KEY_NAMES.title)
-    settleScore = findIn(container, SETTLE_KEY_NAMES.score)
-    settleBest = findIn(container, SETTLE_KEY_NAMES.best)
-    settleInfo = findIn(container, SETTLE_KEY_NAMES.info)
-    settleExtra = findIn(container, SETTLE_KEY_NAMES.extra)
-    settleOpts = findIn(container, SETTLE_KEY_NAMES.opts)
-    -- 遮罩 + 面板 + 描边：cell image 模板，父 = 这一层 ⇒ 同在实例层，压得住棋盘。
-    -- 运行时实例化是"追加到子节点末尾 = 画得更上面"，所以造完要 SetAsFirstSibling 挪到最底。
-    settleScrim = instInto(TPL_GUIDS.cell, container, nil)
-    settleCard = instInto(TPL_GUIDS.cell, container, nil)
-    settleBorder = instInto(TPL_GUIDS.cell, container, nil)
-    tryCall(settleCard, 'SetAsFirstSibling')
-    tryCall(settleBorder, 'SetAsFirstSibling')
-    tryCall(settleScrim, 'SetAsFirstSibling')
-  else
-    -- ③ 退路：真机容器模板不可实例化 ⇒ 用**单个 textbox 模板**实例化 6 次当结算文字。
-    -- 顺序要紧：先造 3 张 image（遮罩/描边/面板，在下面），再造文字（在上面）。
-    local guid = probeSettleTextbox()
-    if guid then
-      -- 先 image（遮罩/描边/面板，画在下面），再文字（画在上面）
-      settleScrim = instInto(TPL_GUIDS.cell, root, nil)
-      settleBorder = instInto(TPL_GUIDS.cell, root, nil)
-      settleCard = instInto(TPL_GUIDS.cell, root, nil)
-      local function again()
-        local ok, c = pcall(function() return game.InstantiateClientUIControl(guid, root) end)
-        if ok and c then return c end
-        return nil
+    -- 先按现在这套模板的名字取（模拟器 settle / 早期真机容器）
+    sl[1] = findIn(container, SETTLE_KEY_NAMES.title)
+    sl[2] = findIn(container, SETTLE_KEY_NAMES.score)
+    sl[3] = findIn(container, SETTLE_KEY_NAMES.best)
+    sl[4] = findIn(container, SETTLE_KEY_NAMES.info)
+    sl[5] = findIn(container, SETTLE_KEY_NAMES.extra)
+    sl[6] = findIn(container, SETTLE_KEY_NAMES.opts)
+    -- 名字取不到 ⇒ 按结构取：编辑器新建的容器模板子件就叫「图片/文本框/容器节点」
+    if cls then
+      for i = 1, 6 do
+        if not sl[i] and cls.text[i] then sl[i] = cls.text[i] end
       end
-      settleTitle = again()
-      settleScore = again()
-      settleBest = again()
-      settleInfo = again()
-      settleExtra = again()
-      settleOpts = again()
-      print('settle layer via=textbox guid=' .. tostring(guid)
-        .. ' texts=' .. (settleTitle and 1 or 0) + (settleScore and 1 or 0) + (settleBest and 1 or 0)
-        + (settleInfo and 1 or 0) + (settleExtra and 1 or 0) + (settleOpts and 1 or 0))
+      if cls.image[1] then settleCard = cls.image[1] end
+    end
+    print('settle via=container kids=' .. ((cls and (#cls.image + #cls.text + #cls.container)) or 0)
+      .. ' img=' .. ((cls and #cls.image) or 0) .. ' text=' .. ((cls and #cls.text) or 0)
+      .. ' cont=' .. ((cls and #cls.container) or 0))
+  end
+  -- 六个槽位里还缺的，用文字模板补（真机容器只有 1 个文本框，要补 5 个；全是容器最省）
+  local missing = 0
+  for i = 1, 6 do
+    if not sl[i] then missing = missing + 1 end
+  end
+  if missing > 0 then
+    textGuid = probeSettleTextbox()
+    if textGuid then
+      for i = 1, 6 do
+        if not sl[i] then
+          local ok, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
+          if ok and c then sl[i] = c end
+        end
+      end
+      print('settle via=textbox guid=' .. tostring(textGuid) .. ' filled=' .. missing)
     end
   end
+  settleTitle, settleScore, settleBest = sl[1], sl[2], sl[3]
+  settleInfo, settleExtra, settleOpts = sl[4], sl[5], sl[6]
+  -- 遮罩：cell image（两宿主都能实例化）；它必须画在**所有东西下面** ⇒ 造完挪到根的第一个子节点
+  if settleTitle then
+    settleScrim = instInto(TPL_GUIDS.cell, root, nil)
+    tryCall(settleScrim, 'SetAsFirstSibling')
+  end
+  -- 面板底：容器自带图片就用它，否则用 cell 现造一块
+  if settleTitle and not settleCard then settleCard = instInto(TPL_GUIDS.cell, root, nil) end
+  if not settleLayer and settleCard then tryCall(settleCard, 'SetAsFirstSibling') end
   if not (settleTitle and settleOpts) then
     -- 全部候选都不可实例化 ⇒ 清掉半成品，让 showGameOver 走布局横幅
-    for _, ctl in ipairs({ settleLayer, settleScrim, settleCard, settleBorder, settleTitle,
-                           settleScore, settleBest, settleInfo, settleExtra, settleOpts }) do
-      if ctl then pcall(function() game.DestroyClientUIControl(ctl) end) end
+    local members = settleMembers()
+    for i = 1, 9 do
+      if members[i] then pcall(function() game.DestroyClientUIControl(members[i]) end) end
     end
+    if settleLayer then pcall(function() game.DestroyClientUIControl(settleLayer) end) end
     settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
     settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
     settleReady = false
@@ -378,6 +427,7 @@ local function buildSettleLayer()
     .. ' scrim=' .. (settleScrim and 'y' or 'n') .. ' card=' .. (settleCard and 'y' or 'n'))
   -- 样式显式写死（真机模板是上一轮导入的旧值，不能依赖 authoring）
   for _, ctl in ipairs({ settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts }) do
+    -- 这 6 个在下面要么都取到、要么整层判失败，用 ipairs 无风险
     trySet(ctl, 'horizontalAlignment', 'Middle')
     trySet(ctl, 'verticalAlignment', 'Middle')
     trySet(ctl, 'bgColor', C(0, 0, 0, 0))
@@ -391,9 +441,9 @@ local function buildSettleLayer()
   settleSetColors(0)
   -- 懒创建：层刚建好就直接进入动画起点（不隐藏，也不留"隐藏态"给真机去误解）
   local n = 0
-  for _, ctl in ipairs({ settleScrim, settleCard, settleBorder, settleTitle, settleScore,
-                         settleBest, settleInfo, settleExtra, settleOpts }) do
-    if ctl then n = n + 1 else n = n end
+  local members = settleMembers()
+  for i = 1, 9 do
+    if members[i] then n = n + 1 end
   end
   print('settle build ok n=' .. n .. ' via=' .. (settleLayer and 'container' or 'textbox'))
   layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
@@ -746,9 +796,9 @@ showGameOver = function()
     settleSetColors(0)
     tryCall(settleTitle, 'SetAnchoredPosition', 0, settleTitleOff)
     tryCall(settleOpts, 'SetAnchoredPosition', 0, settleOptsOff)
-    for _, ctl in ipairs({ settleScrim, settleCard, settleBorder, settleTitle, settleScore,
-                           settleBest, settleInfo, settleOpts }) do
-      tryCall(ctl, 'SetVisible', true)
+    local members = settleMembers()
+    for i = 1, 9 do
+      tryCall(members[i], 'SetVisible', true)
     end
     tryCall(settleExtra, 'SetVisible', false)
     -- 布局横幅不参与结算（避免与结算层重复信息）
