@@ -31,6 +31,29 @@ function shot(name) {
   return snap
 }
 
+// 抖屏读数：拿 scene 里每个 cell 的真实渲染矩阵（matrix.tx/ty）与"抖动前那一帧"逐格比。
+// 判据只看**位移**，不看颜色 —— 消行会改颜色，位置才是抖动证据。
+const cellPos = (scene) => {
+  const m = new Map()
+  for (const n of scene.nodes || []) {
+    if (/^cell\d+$/.test(String(n.name)) && n.matrix) m.set(n.name, { tx: n.matrix.tx, ty: n.matrix.ty })
+  }
+  return m
+}
+const cellShift = (scene, base) => {
+  let max = 0
+  let sample = ''
+  for (const [name, p] of cellPos(scene)) {
+    const b = base.get(name)
+    if (!b) continue
+    const dx = p.tx - b.tx
+    const dy = p.ty - b.ty
+    const d = Math.hypot(dx, dy)
+    if (d > max) { max = d; sample = `${name} dx=${dx.toFixed(2)} dy=${dy.toFixed(2)}px` }
+  }
+  return { max, sample, cells: base.size }
+}
+
 // 进场自演：抓「堆到 4 行」那一帧 + 之后两张（核对"最高堆叠在哪一侧/有没有中间深井"）
 // 棋盘位置用 cellN 的序号反推（cellN 是 OnStart 里按 row-major 造的，比用坐标反算更稳）
 const EMPTY = -15065818
@@ -127,8 +150,29 @@ shot('preview-play.png')           // 游戏中：重力已跑，横幅已清
 key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')
 step(10)
 key('KeyboardCharacterSkill4KeyDown'); key('KeyboardCharacterSkill4KeyUp')  // T 填底两行
+step(2)
+// 对照帧：抖动之前（棋盘在原位）。下面抖屏帧要拿它当基准逐格算位移。
+const baseSnap = shot('preview-shake-base.png')
+const basePos = cellPos(baseSnap.scene)
 key('KeyboardJumpKeyDown'); key('KeyboardJumpKeyUp')                        // 硬降触发真实消行
-step(10)
+// 抖屏 2 行 = 0.20s（dt=1/30 ⇒ 6 帧，指数衰减）。逐帧读真实渲染坐标，落盘偏移最大那一帧。
+let best = null
+let lastShift = 0
+for (let i = 0; i < 12; i++) {
+  step(1)
+  const sn = s.playGet({ view: true })
+  const img = renderScenePng(sn.scene, sn.canvasWidth, sn.canvasHeight, assets)
+  const buf = Buffer.from(img.data, 'base64')
+  const shift = cellShift(sn.scene, basePos)
+  lastShift = shift.max
+  const shakeLog = (sn.logs || []).map((l) => l.text).filter((t) => t.startsWith('shake')).at(-1)
+  if (shakeLog && !best) console.log(`  抖动日志：${shakeLog}（第 ${i + 1} 帧读到）`)
+  if (!best || shift.max > best.max) best = { ...shift, buf, frame: i + 1, log: shakeLog }
+}
+writeFileSync(join(root, 'docs', 'preview-shake.png'), best.buf)
+console.log(`preview-shake.png  ${best.buf.length}B  峰值位移 ${best.max.toFixed(2)}px @第 ${best.frame} 帧（${best.sample}）` +
+  `  对照组 preview-shake-base.png 为 0px；12 帧后残余 ${lastShift.toFixed(2)}px ${lastShift < 0.01 ? '✓ 已复位' : '✗ 没复位'}` +
+  `\n  放大对照：python3 qxqy/shake-ab.py → docs/preview-shake-ab.png（4× 裁切，左基准右抖动）`)
 shot('preview-clear.png')          // 首次消行后的提示态
 // gameover：连续硬降堆到顶（不消行）。**逐次检测**，命中那一帧 settleT 才 = 0，
 // 中途帧的 settleT 才准（否则攒到 3 帧才判，动画早已跑完）。

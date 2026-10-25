@@ -31,7 +31,9 @@ const serverNodes = (() => {
   if (back.project?.root) walk(back.project.root)
   return n
 })()
-check('importGia 解出客户端模板 = 2（cell + hit）', templateCount === 2, `${templateCount}`)
+// 2026-10-25：模板数从 2 变 4 —— 2026-10-24 那轮加了结算层的 settle(容器) 与 stext(文字) 两个模板，
+// 这里原来写死 2 就一直红（与本轮音效/抖屏无关，顺手对齐）。
+check('importGia 解出客户端模板 = 4（cell + hit + settle + stext）', templateCount === 4, `${templateCount}`)
 check('importGia 解出脚本映射 = 1', scriptCount === 1, (back.scripts || []).map((s) => s.path).join(','))
 check('importGia 解出服务端控件 = 18（根 + 容器 + 10 个文本 + 6 个按钮标签）', serverNodes === 18, `${serverNodes}`)
 check('GIA 是整合包（服务端 + 客户端同文件）', back.metadata?.combined === true, String(back.metadata?.combined))

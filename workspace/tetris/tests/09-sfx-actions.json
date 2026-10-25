@@ -1,0 +1,22 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "09 每个操作一条音效（audioHistory 断言）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyDown" },
+    { "t": 0.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey36Down" },
+    { "t": 0.5, "kind": "key", "typeName": "KeyboardJumpKeyDown" }
+  ],
+  "asserts": [
+    { "at": 0.15, "kind": "log", "contains": "newgame", "source": "client" },
+    { "at": 0.25, "kind": "log", "contains": "move x=", "source": "client" },
+    { "at": 0.35, "kind": "log", "contains": "rotate ", "source": "client" },
+    { "at": 0.55, "kind": "log", "contains": "lock ", "source": "client" }
+  ],
+  "audioExpect": [20007, 20008, 20004],
+  "audioExclude": [20002],
+  "note": "移动=20007 / 旋转=20008 / 落地=20004；本局先按 R 清盘 ⇒ 硬降不可能消行，所以落地音一定播、消行音一定不播"
+}

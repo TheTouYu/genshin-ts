@@ -39,15 +39,40 @@ for (const file of files) {
     continue
   }
   const logs = (report.snapshot?.logs || []).map((row) => row.text)
-  if (report.passed) {
+
+  // 音效断言（2026-10-25 扩展）：用例可写 `audioExpect: [id...]` / `audioExclude: [id...]`。
+  // 判据读模拟器的 rt.audioHistory（playGet().audio.recent 就是 rt.audioSnapshot()），
+  // 而 assert 的 `lua` kind 跑在**新建沙箱**里读不到它 ⇒ 这条只能在 runner 层验。
+  const audioRows = (() => {
+    try { return studio.playGet().audio.recent } catch { return [] }
+  })()
+  try { studio.playStop() } catch { /* 停不掉不影响判定 */ }
+  const audioIds = audioRows.map((row) => row.audioId)
+  const tally = [...audioIds.reduce((m, id) => m.set(id, (m.get(id) || 0) + 1), new Map())]
+    .map(([id, n]) => `${id}×${n}`).join(' ')
+  const expectAudio = Array.isArray(testCase.audioExpect) ? testCase.audioExpect : []
+  const excludeAudio = Array.isArray(testCase.audioExclude) ? testCase.audioExclude : []
+  const missingAudio = expectAudio.filter((id) => !audioIds.includes(id))
+  const forbiddenAudio = excludeAudio.filter((id) => audioIds.includes(id))
+  const audioOk = missingAudio.length === 0 && forbiddenAudio.length === 0
+
+  if (report.passed && audioOk) {
     pass += 1
-    console.log(`PASS ${file}  (${testCase.asserts.length} 断言)`)
+    console.log(`PASS ${file}  (${testCase.asserts.length} 断言` +
+      `${expectAudio.length ? ` + 音效 ${expectAudio.join('/')}` : ''})` +
+      `${audioIds.length ? `  audio: ${tally}` : ''}`)
   } else {
     console.log(`FAIL ${file}`)
     for (const r of report.results) {
       if (!r.ok) {
         console.log(`  · ${r.kind}@${r.at} 期望=${JSON.stringify(r.expected)} 实得=${JSON.stringify(r.actual)} ${r.message || ''}`)
       }
+    }
+    if (missingAudio.length) {
+      console.log(`  · audio 期望含 ${missingAudio.join(',')}，实得历史：${tally || '(空)'}`)
+    }
+    if (forbiddenAudio.length) {
+      console.log(`  · audio 不该出现 ${forbiddenAudio.join(',')}，实得历史：${tally || '(空)'}`)
     }
     failures.push({ file, results: report.results, logs })
   }

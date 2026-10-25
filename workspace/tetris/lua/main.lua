@@ -31,6 +31,12 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
   stage 1 游戏中：首次锁定提示"堆满一行即消除"，首次消行提示分值表
   stage 2 键位表：按 H 暂停并显示完整键位，再按 H 继续
   失败：上横幅 GAME OVER（红），下横幅 得分 / 本局最高 / 按 R 重开
+
+音效 / 抖屏（2026-10-25 新增）：
+  音效 只在"动作真的发生"时播一条（移动/旋转/落地/消行/结束），全走 pcall；
+       id 见 SFX 表 —— 全部是内置音效库 20001 组的小整数（语义待听感确认）
+  抖屏 消行时把 200 格 + 4 条外框按同一偏移量整体平移，0.18~0.28s 指数衰减，
+       行数越多越强；只在 shakeT > 0 的帧写坐标，抖完复位一次（基准坐标创建时存下来）
 =========================================================================]]
 
 local COLS, ROWS    = 10, 20
@@ -90,6 +96,9 @@ end
 
 -- 前向声明（局部化，避免污染全局表）
 local root, cells, preview, frames
+-- 抖动基准坐标（唯一真源）：创建时按格位/框位存下来，抖屏按 base+offset 写、抖完写回 base。
+-- 必须声明在 applyShake 之前（Lua 的 local 只对它之后的代码生效，写在后面会被当全局 nil）。
+local cellBX, cellBY, frameBX, frameBY = {}, {}, {}, {}
 local title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner
 local board, piece, nextName
 local score, lines, level, bestScore
@@ -151,6 +160,72 @@ local function tryCall(ctl, method, a, b)
   local ok, err = pcall(function() ctl[method](ctl, a, b) end)
   if not ok then noteFail(tostring(method), err) return false end
   return true
+end
+
+--------------------------------------------------------------------------------
+-- 音效（2026-10-25）：game.PlayAudio2D(audioId) —— audioId 必须是整数（内置音效库的小整数 id）。
+-- id 都在 20001 组里，时长来自模拟器音频白名单 studio/assets/audio-catalog.js（可离线核对）：
+--   **音色语义未确认**（音效库只给时长、不给名字），换音只改下面这张表。
+-- 纪律：
+--   ① 只在"动作真的发生"时播（移动/旋转成功、锁定、消行、结束），不在每帧播；
+--   ② `sfxFrame == frameSeq` 保证**同一帧最多播一条**（真机一帧内可能连来两个动作）；
+--   ③ 全走 pcall —— 真机缺这个 API 时一处抛错会中断整段 OnStart（2026-10-24 踩过）。
+--------------------------------------------------------------------------------
+local SFX = {
+  move   = 20007,   -- 0.249s（最短）  ⇒ 左右移动 / 手机热区轻点
+  rotate = 20008,   -- 0.300s（次短）  ⇒ 旋转
+  lock   = 20004,   -- 0.459s          ⇒ 落地
+  over   = 20006,   -- 1.030s（最长）  ⇒ 游戏结束（"低沉"待听感确认）
+}
+-- 消行按行数换 id：四档互不相同 ⇒ 1 行与 4 行听得出差别（音高关系未确认）
+local SFX_CLEAR = { 20001, 20002, 20003, 20005 }   -- 0.870 / 0.557 / 0.731 / 0.880s
+local SFX_MUTE = false      -- 调试开关：true 全静音
+local sfxFrame = -1         -- 上一次播声的帧号（同一帧最多一条）
+local frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
+local sfxCount = 0          -- 本会话已播条数（探针读数）
+local function sfx(id, force)
+  if SFX_MUTE or not id then return false end
+  -- frameSeq == 0 表示 OnUpdate 还一次没跑（真机上若不派发就别把音全吞了）⇒ 此时不做帧闸
+  if not force and frameSeq > 0 and sfxFrame == frameSeq then return false end
+  sfxFrame = frameSeq
+  local ok, err = pcall(function() game.PlayAudio2D(id) end)
+  if not ok then noteFail('PlayAudio2D', err) return false end
+  sfxCount = sfxCount + 1
+  return true
+end
+
+--------------------------------------------------------------------------------
+-- 抖屏（2026-10-25）：2D UI 没有相机 ⇒ 抖屏 = 把所有视觉元素按同一偏移量整体平移。
+-- 基准坐标在创建时存进 cellBX/cellBY/frameBX/frameBY（唯一真源，不再由字面量重算）。
+-- 性能：200 格 + 4 框 × 0.18~0.28s ≈ 6~9 帧 ⇒ 1200~1800 次 SetAnchoredPosition；
+--       **只在 shakeT > 0 的帧写**，抖完复位一次，平时一帧都不写。
+--------------------------------------------------------------------------------
+local SHAKE_DUR = { 0.18, 0.20, 0.23, 0.28 }        -- 1/2/3/4 行
+local SHAKE_AMP = { 7, 10, 13, 17 }                 -- 像素；PITCH=30 ⇒ 4 行约半格
+local SHAKE_FREQ = 2 * math.pi * 9                  -- 9Hz：0.2s 内约 2 个周期
+local shakeT, shakeDur, shakeAmp, shakePhase = 0, 0, 0, 0
+local function applyShake(ox, oy)
+  for i = 1, #cells do
+    local c = cells[i]
+    if c then tryCall(c, 'SetAnchoredPosition', cellBX[i] + ox, cellBY[i] + oy) end
+  end
+  if not frames then return end
+  for i = 1, 4 do
+    local f = frames[i]
+    if f then tryCall(f, 'SetAnchoredPosition', frameBX[i] + ox, frameBY[i] + oy) end
+  end
+end
+-- reset=true 连坐标一起复位（抖完 / 重开 / layout 重排时用）
+local function stopShake(reset)
+  if reset and (shakeT > 0 or shakePhase > 0) then applyShake(0, 0) end
+  shakeT, shakePhase = 0, 0
+end
+local function startShake(rows)
+  if rows < 1 then return end
+  if rows > 4 then rows = 4 end
+  shakeDur, shakeAmp = SHAKE_DUR[rows], SHAKE_AMP[rows]
+  shakeT, shakePhase = shakeDur, 0
+  print('shake rows=' .. rows .. ' amp=' .. shakeAmp .. ' dur=' .. shakeDur)
 end
 
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
@@ -405,13 +480,14 @@ local function buildSettleLayer()
       .. ' img=' .. ((cls and #cls.image) or 0) .. ' text=' .. ((cls and #cls.text) or 0)
       .. ' cont=' .. ((cls and #cls.container) or 0))
   end
+  -- 文字模板 guid（容器占位框替换与补行都要用）
+  local textGuid = probeSettleTextbox()
   -- 六个槽位里还缺的，用文字模板补（真机容器只有 1 个文本框，要补 5 个；全是容器最省）
   local missing = 0
   for i = 1, 6 do
     if not sl[i] then missing = missing + 1 end
   end
   if missing > 0 then
-    textGuid = probeSettleTextbox()
     if textGuid then
       for i = 1, 6 do
         if not sl[i] then
@@ -421,6 +497,15 @@ local function buildSettleLayer()
       end
       print('settle via=textbox guid=' .. tostring(textGuid) .. ' filled=' .. missing)
     end
+  end
+  -- 容器自带的那个 textbox 在真机上是编辑器默认占位（会显示一个大「？」），
+  -- 而 SetVisible(false) 对运行时实例不生效、藏不住 ⇒ 直接销毁它，文字全部走文字模板。
+  if cls and cls.text[1] and sl[1] == cls.text[1] then
+    pcall(function() game.DestroyClientUIControl(sl[1]) end)
+    sl[1] = nil
+    local ok2, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
+    if ok2 and c then sl[1] = c end
+    print('settle container-textbox replaced (placeholder removed)')
   end
   settleTitle, settleScore, settleBest = sl[1], sl[2], sl[3]
   settleInfo, settleExtra, settleOpts = sl[4], sl[5], sl[6]
@@ -623,6 +708,7 @@ spawn = function()
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
     print('gameover score=' .. score)
+    sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
     updateBest()
     showGameOver()
   end
@@ -661,6 +747,10 @@ clearLines = function()
     score = score + pts[cleared] * level
     lines = lines + cleared
     level = lines // 10 + 1
+    -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
+    -- 入场自演期间只抖不出声（与"抑制教学提示/高频日志"同一套口径）
+    if not autoDriving then sfx(SFX_CLEAR[cleared], true) end
+    startShake(cleared)
     if autoDriving then
       print('demo clear n=' .. cleared .. ' lines=' .. lines)   -- 自演也在消行（心跳级日志）
     else
@@ -676,6 +766,7 @@ clearLines = function()
       print('guide clear-tip')
     end
   end
+  return cleared   -- 调用方（doLock）用它决定"落地音还是消行音"
 end
 
 doLock = function()
@@ -696,7 +787,9 @@ doLock = function()
   if not autoDriving then
     print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
   end
-  clearLines()
+  local cleared = clearLines()
+  -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
+  if cleared == 0 and not autoDriving then sfx(SFX.lock) end
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
   if not taughtLock and not autoDriving then
     taughtLock = true
@@ -718,6 +811,17 @@ local function stepDown()
   end
 end
 
+-- 左右移动：键位（箭头 / WASD / 手机热区）共用一条路径 —— 成功才播移动音。
+local function moveBy(dx)
+  if gameOver or not piece then return false end
+  if collides(piece.cells, piece.x + dx, piece.y) then return false end
+  piece.x = piece.x + dx
+  renderPiece()
+  print('move x=' .. piece.x)
+  sfx(SFX.move)
+  return true
+end
+
 -- 顺时针 90°：(r,c) → (c, n+1-r)，盒内 1-based（n = 包围盒边长）。
 -- rotate() 与入场 AI 共用同一份转法，避免两处不一致。
 local function rotateCells(cells, n)
@@ -732,6 +836,7 @@ local function rotate()
   if not collides(nc, piece.x, piece.y) then
     piece.cells = nc
     print('rotate ' .. piece.name)
+    sfx(SFX.rotate)
     renderPiece()
   end
 end
@@ -751,6 +856,7 @@ local function newGame()
   settleOn, settleT, settleDone, settleFade, settleSize = false, 0, false, -1, 44
   dimRatio, dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
+  stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
   nextName = BAG[rand(#BAG)]
   spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
@@ -1416,6 +1522,8 @@ local function layout(W, H)
   place(botBanner, 0, -(halfH - 28), W - 180, 48)
 
   if settleReady then layoutSettle(W, H) end
+  -- 抖动状态必须能被 layout 覆盖后复位：重排后基准坐标仍是创建时那套，直接停抖并写回基准
+  if shakeT > 0 then stopShake(true) end
 end
 
 --------------------------------------------------------------------------------
@@ -1460,8 +1568,11 @@ function OnStart()
     local col = (i - 1) % COLS
     local row = (i - 1) // COLS
     c.name = 'cell' .. i
+    -- 基准坐标存下来（抖屏用；不再各处重算字面量）
+    cellBX[i] = (col - 4.5) * PITCH
+    cellBY[i] = (9.5 - row) * PITCH
     c:SetSizeDelta(CELL, CELL)
-    c:SetAnchoredPosition((col - 4.5) * PITCH, (9.5 - row) * PITCH)
+    c:SetAnchoredPosition(cellBX[i], cellBY[i])
     c.imageColor = COL_EMPTY
     cells[i] = c
   end
@@ -1485,8 +1596,9 @@ function OnStart()
     if fr then
       local sp = specs[i]
       fr.name = 'frame' .. i
+      frameBX[i], frameBY[i] = sp[1], sp[2]
       fr:SetSizeDelta(sp[3], sp[4])
-      fr:SetAnchoredPosition(sp[1], sp[2])
+      fr:SetAnchoredPosition(frameBX[i], frameBY[i])
       fr.imageColor = FRAME_COL
     end
     frames[i] = fr
@@ -1560,22 +1672,8 @@ function OnStart()
     end
   end
 
-  listen('KeyboardCraftspersonKey38Down', act(function()   -- ←
-    if gameOver or not piece then return end
-    if not collides(piece.cells, piece.x - 1, piece.y) then
-      piece.x = piece.x - 1
-      renderPiece()
-      print('move x=' .. piece.x)
-    end
-  end))
-  listen('KeyboardCraftspersonKey39Down', act(function()   -- →
-    if gameOver or not piece then return end
-    if not collides(piece.cells, piece.x + 1, piece.y) then
-      piece.x = piece.x + 1
-      renderPiece()
-      print('move x=' .. piece.x)
-    end
-  end))
+  listen('KeyboardCraftspersonKey38Down', act(function() moveBy(-1) end))   -- ←
+  listen('KeyboardCraftspersonKey39Down', act(function() moveBy(1) end))    -- →
   listen('KeyboardCraftspersonKey36Down', act(rotate))     -- ↑
   listen('KeyboardCraftspersonKey37Down', act(stepDown))   -- ↓
   listen('KeyboardJumpKeyDown', act(function()             -- Space
@@ -1589,22 +1687,8 @@ function OnStart()
     doLock()
   end))
   -- WASD（真机常用；具名键 MoveLeft/Right/Forward/Backward）
-  listen('KeyboardMoveLeftKeyDown', act(function()          -- A
-    if gameOver or not piece then return end
-    if not collides(piece.cells, piece.x - 1, piece.y) then
-      piece.x = piece.x - 1
-      renderPiece()
-      print('move x=' .. piece.x)
-    end
-  end))
-  listen('KeyboardMoveRightKeyDown', act(function()         -- D
-    if gameOver or not piece then return end
-    if not collides(piece.cells, piece.x + 1, piece.y) then
-      piece.x = piece.x + 1
-      renderPiece()
-      print('move x=' .. piece.x)
-    end
-  end))
+  listen('KeyboardMoveLeftKeyDown', act(function() moveBy(-1) end))    -- A
+  listen('KeyboardMoveRightKeyDown', act(function() moveBy(1) end))     -- D
   listen('KeyboardMoveForwardKeyDown', act(rotate))         -- W
   listen('KeyboardMoveBackwardKeyDown', act(stepDown))      -- S
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
@@ -1683,12 +1767,8 @@ function OnStart()
     local cursorDown = (type(Enum) == 'table' and Enum.CursorEventType
       and Enum.CursorEventType.CursorDown) or nil
     local actions = {
-      btnA = function() if guideStage ~= 2 and not gameOver and piece
-        and not collides(piece.cells, piece.x - 1, piece.y) then
-        piece.x = piece.x - 1 renderPiece() print('move x=' .. piece.x) end end,
-      btnB = function() if guideStage ~= 2 and not gameOver and piece
-        and not collides(piece.cells, piece.x + 1, piece.y) then
-        piece.x = piece.x + 1 renderPiece() print('move x=' .. piece.x) end end,
+      btnA = function() if guideStage ~= 2 then moveBy(-1) end end,
+      btnB = function() if guideStage ~= 2 then moveBy(1) end end,
       btnC = function() if guideStage ~= 2 then stepDown() end end,
       btnD = function() if guideStage ~= 2 then rotate() end end,
       btnE = function()
@@ -1750,6 +1830,23 @@ end
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
+  frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
+  -- 抖屏：只在 shakeT > 0 的帧写坐标；到点复位一次后就不再碰任何控件
+  if shakeT > 0 then
+    shakePhase = shakePhase + d
+    shakeT = shakeT - d
+    if shakeT <= 0 then
+      shakeT, shakePhase = 0, 0
+      applyShake(0, 0)
+      print('shake end')
+    else
+      local u = 1 - shakeT / shakeDur                        -- 0（刚触发）→ 1（结束）
+      local decay = math.exp(-3 * u)                         -- 指数衰减
+      local ox = shakeAmp * decay * math.sin(shakePhase * SHAKE_FREQ)
+      local oy = shakeAmp * decay * math.cos(shakePhase * SHAKE_FREQ * 1.3)
+      applyShake(ox, oy)
+    end
+  end
   if bannerTimer > 0 and not gameOver then
     bannerTimer = bannerTimer - d
     if bannerTimer <= 0 then

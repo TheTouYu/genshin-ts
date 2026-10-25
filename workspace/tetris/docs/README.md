@@ -53,7 +53,32 @@
   消行后**不递减 r**（删行+顶部插空行后，原 r-1 行落到索引 r，需要重判——这是首版 bug）。
 - **随机**：内置 LCG（种子 20261023），不用 `os`/`math.random`，用例可复现。
 - **日志（用例断言用）**：`cellCount=200` / `piece=<名> x=<列> y=<行>` / `fall y=` / `move x=` /
-  `rotate <名>` / `harddrop rows= y=` / `lock <名> cells=<落格下标>` / `clear n= score= lines=` / `gameover score=` / `newgame`。
+  `rotate <名>` / `harddrop rows= y=` / `lock <名> cells=<落格下标>` / `clear n= score= lines=` / `gameover score=` / `newgame` /
+  `shake rows=<n> amp=<px> dur=<s>`（消行起抖）/ `shake end`（抖完复位）。
+
+### 4.1 音效与抖屏（2026-10-25）
+
+- **音效**：`game.PlayAudio2D(audioId)`（id 必须是整数，取自内置音效库）。只在"动作真的发生"时播一条，
+  全部 `pcall` 包住（真机缺 API 时一处抛错会中断整段 `OnStart`——2026-10-24 踩过）。
+  `sfxFrame == frameSeq` 保证**同一帧最多一条**；消行音优先于落地音（同一帧不叠两条）。
+
+  | 时机 | id | 白名单时长 | 语义 |
+  | --- | --- | --- | --- |
+  | 左右移动 / 手机热区轻点 | 20007 | 0.249s | 占位，**未听感确认** |
+  | 旋转 | 20008 | 0.300s | 占位，未确认 |
+  | 落地（未消行） | 20004 | 0.459s | 占位，未确认 |
+  | 消行 1/2/3/4 行 | 20001/20002/20003/20005 | 0.87/0.557/0.731/0.88s | 四档互不相同，音高关系未确认 |
+  | 游戏结束 | 20006 | 1.030s | 占位（"低沉"是猜的） |
+
+  时长来自模拟器音频白名单 `studio/assets/audio-catalog.js`（`audioDuration(id)`，离线可查）；
+  该目录**只有时长没有音色名**，`https://oss.070077.xyz/audio/<id>.mp3` 是唯一音源（本机当时无网）。
+  改音只改 `lua/main.lua` 里的 `SFX` / `SFX_CLEAR` 两张表。
+
+- **抖屏**：2D UI 没有相机 ⇒ 把所有视觉元素按同一偏移量整体平移。200 格 + 4 条外框的**基准坐标在创建时
+  存进 `cellBX/cellBY/frameBX/frameBY`**（唯一真源），抖动时写 `base+offset`，抖完复位一次。
+  幅度按消行数 7/10/13/17px、时长 0.18/0.20/0.23/0.28s、`exp(-3u)` 衰减、9Hz 抖动，
+  **只在 `shakeT > 0` 的帧写坐标**（0.2s ≈ 6 帧 ≈ 1200 次调用），平时一帧都不写。
+  `layout()` 与 `newGame()` 都会停抖并复位（抖动中按 R 不会留歪棋盘）；入场 AI 自演期间只抖不响。
 
 ## 5. 怎么跑
 
@@ -69,6 +94,9 @@ node qxqy/build.mjs
 
 # ③ 交付物自查（GIA 体积 / importGia 解出模板与脚本 / 存档能被 importData 与 createStudio 加载）
 node qxqy/check-gia.mjs
+
+# ④ 音效 / 抖屏探针（读模拟器 audioHistory 与控件真实坐标；全绿退出码 0）
+node qxqy/probe-audio.mjs
 ```
 
 - `runner.mjs` 读 `tetris.save.json` → `createStudio(save)` → 逐条 `playRunCase(case, {canvasId:'mobile-16-9'})`；
@@ -76,7 +104,7 @@ node qxqy/check-gia.mjs
 - 修改游戏逻辑后 **先改 `lua/main.lua`，再 `node qxqy/build.mjs`**（存档里的脚本源码是构建时内联进去的，
   只改 `.lua` 不会让旧存档变）。
 
-## 6. 用例（`tests/`，8 条 / 53 断言）
+## 6. 用例（`tests/`，10 条 / 61 断言；另有 2 例带音效断言）
 
 | 用例 | 覆盖 | 关键断言 |
 | --- | --- | --- |
@@ -86,9 +114,18 @@ node qxqy/check-gia.mjs
 | `04-line-clear-score.json` | 消行计分（真实锁定链路） | 填两行后硬降 → `clear n=2 score=300 lines=2`；消行前 `FILLED 20`、消行后 `FILLED 4` |
 | `05-rotate-harddrop.json` | 旋转 + 硬降落格 + 落格上色 | `rotate Z`、`lock Z cells=176,186,185,195`、`cell195/cell176` = 方块色、`hud FILLED 4` |
 | `06-gameover-restart.json` | 堆到顶判负 + R 重开 | `gameover score=`；重开后 `hud` 回到 `SCORE 0 … FILLED 0` |
+| `07-guide-stages.json` | 引导三拍（横幅 → 首锁 → 首消） | `guide stage=1` / `guide lock-tip` / `guide clear-tip` + 各态 `hint`/`botBanner` 文本 |
+| `08-click-pad.json` | 手机热区链路（点 btnA/D/E） | `hits=6`、`move x=3`、`rotate`、`touchdrop y=`；`btnA` 控件在场 |
+| `09-sfx-actions.json` | **每个操作一条音效**（新增） | `move x=` / `rotate ` / `lock ` + `audioExpect:[20007,20008,20004]`（且不含消行音 20002） |
+| `10-shake-clear.json` | **消行抖屏 + 消行音**（新增） | `clear n=2 score=300`、`shake rows=2 amp=10 dur=0.2`、`shake end` + `audioExpect:[20002]`（且不含落地音 20004） |
 
 用例不是"陪着代码走"的：做过 3 组变异回归（重开键名改错 / 分数表错位 / 锁定时不消行），
 三组都让对应用例报红，证明断言确实在判东西。
+
+**音效怎么断言**：用例断言的 6 种 kind（`log/control/var/signal/tree/lua`）都读不到模拟器的
+`rt.audioHistory`（`lua` kind 跑在**新建沙箱**里，只有 `var/logs/control/signals`）⇒ 改由 runner 在
+`playRunCase` 之后读 `playGet().audio.recent`，用例里写 `audioExpect:[id...]` / `audioExclude:[id...]`，
+缺一条或多一条都会让该用例 FAIL 并打印 audio 计数表（例：`audio: 20007×3`）。
 
 ## 7. 导入真机
 
@@ -191,7 +228,9 @@ node qxqy/shot.mjs   # 出 docs/preview-guide.png（入场自演"堆到 4 行"�
                      #    preview-settle-anim-1.png（结算动画 settleT≈0.2s）/
                      #    preview-settle-anim-2.png（settleT≈0.5s）/
                      #    preview-gameover.png（settleT≈1.0s 稳定帧）/ preview-gameover-detail.png（Q 明细）/
-                     #    preview-after-restart.png（按 R 重开后：结算层必须已销毁、盘面干净）
+                     #    preview-after-restart.png（按 R 重开后：结算层必须已销毁、盘面干净）/
+                     #    preview-shake-base.png（抖动前基准）+ preview-shake.png（消行抖动中的帧）
+python3 qxqy/shake-ab.py   # → docs/preview-shake-ab.png：上面两张的棋盘左上角 4× 放大左右对照
 ```
 
 结算那三张是**逐帧检测"游戏结束出现的那一帧"**再按固定步数抓的（`isOver()` 每落一块查一次），
