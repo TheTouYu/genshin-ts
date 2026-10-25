@@ -27,6 +27,7 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
 ## 三、下一刀的两个设计（按推荐度）
 
 ### A. 让 `X11DRV_ProcessEvents` 不再“只取匹配 mask 的事件”（推荐）
+> **状态（2026-10-25 15:55）**：已实现并装进 runner，结构闸门已过；编辑器上的 A/B 待跑。见 §六。
 `dlls/winex11.drv/event.c:373` 起：现在只用 `filter_event(mask)` 取出**匹配**的事件，不匹配的留在队列里反复被扫。
 改法：改成 `while (XCheckIfEvent(display,&event,always_true,...))` 把队列**排空**并逐条分发，
 同时记下“有没有匹配原 mask 的事件”用于返回 QS 状态。
@@ -47,3 +48,78 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
 ## 五、当前环境注意
 - 用户已切到 **Hyprland / Mutter 会话**（XDG 变量每次变），所有工具靠 `ys-env.sh` 自动发现 X 环境；
 - `perf` 已装（`pkexec pacman -S perf` 装过一次）；采样要指定 `-e cpu_core/cycles/u`（默认事件会选到不可用的 atom PMU）。
+
+
+---
+
+# 六、2026-10-25 15:40–15:55：原型构建（原件默认 + 仪表 + 可选修法 A）已装、结构闸门已过
+
+## 6.1 开工前必须知道的树状态（别重复踩）
+
+- 15:35 的构建里 `X11DRV_ProcessEvents` 带着 §二.4 那个「队列长度 + mask 不变就早返回」的**有害守卫**；
+  15:36 已 `ys-fakedeath-fix revert`（runner 回原件），但**源码树里还留着**。
+  15:35:26 启动的那个编辑器实例加载的正是这个构建（`/proc/<pid>/maps` 里 `winex11.so (deleted)`，inode 落在
+  构建产物 `wine-build/dlls/winex11.drv/winex11.so` 那一代），主线程 94.7% CPU 自旋 = **启动即无响应**。
+  ⇒ 那个标本与本轮修法无关，**不要当证据**；重开编辑器是必须的。
+- `wine-src/dlls/winex11.drv/event.c` 里另有两处默认生效的行为改动（10-20 的「失焦不发 WM_CANCELMODE」、
+  10-20 的「失焦前台复位」）。本轮全部改成 **opt-in marker**，让「不带 marker ≈ 上游 11.14 原件」成为可检验基线。
+- `maybe_reset_input_state`（10-24 自动复位）调用点早已注释停用，只剩函数定义 → 编译报 `-Wunused-function`（无害）。
+
+## 6.2 本轮构建做了什么
+
+源树 `.scratch/fake-death/wine-src`；应用器 `.scratch/fake-death/apply-proto-2026-10-25.py`（幂等，锚点不对就报错退出，
+配方 = 10-20 构建链 + `tools/ys-editor/fake-death-winex11.patch` + 本脚本）：
+
+1. **删掉有害守卫**（§二.4）；
+2. **中性仪表（默认开）**：把 `XCheckIfEvent` 的谓词换成计数包装，每 250ms 窗口写一行
+   `/tmp/wine11-proc.log`：`t= pid= calls= scans= events= matched= idle= max= mask=0xNNN drain=0|1`。
+   - `scans/calls` = 平均每次调用扫过多少 X 事件 —— **O(N²) 的直接读数**（不看 perf 也能判）；
+   - `idle` = 扫了但一条都没匹配上的调用数（病态签名）；`max` = 单次最大扫描长度；
+   - `matched` vs `events` = 「按原 mask 本不该处理、但被排空处理掉」的事件数。
+3. **修法 A（默认关，`/tmp/.winex11-drain` 存在即生效）**：排空整条队列逐条分发，同时用 `filter_event`
+   另行记账「有没有匹配原 mask 的事件」；排空后返回 TRUE（让 win32u 清 `QS_DRIVER` 并重新武装 fd 轮询）。
+   **安全阀：单次调用最多分发 2000 条** —— 事件处理器自己会造新事件（focus_in/out → `XSetInputFocus`），
+   排空循环可能自我维持；封顶保证每次调用有界返回、把 CPU 还给应用消息循环。
+4. 编译：`cd .scratch/fake-death/wine-build && make -j6 dlls/winex11.drv/winex11.so`（增量 1.8s；无新增 error）。
+
+## 6.3 安装与结构闸门（读数）
+
+- 装：`tools/ys-editor/ys-fakedeath-fix install` → runner `winex11.so` 470816B → **3427192B**；
+  备份 `winex11.so.bak-fakedeath-20261020`（470816B，`cmp` 与原件字节相同）。
+- 闸门（scratch prefix，不碰游戏前缀）：`wine notepad`、`wine winecfg` 各一次 →
+  - 窗口正常出现（`记事本`、`Wine 设置`）；
+  - `/proc/<pid>/maps` 里 `winex11.so` 的 inode == runner 当前 inode（证明是这份 .so 在跑）；
+  - `/tmp/wine11-proc.log` 出现 `drain=1` 行 ⇒ 修法 A 的代码路径**确实执行，且不破坏窗口创建与消息分发**。
+- 顺手读数（修法 A 的前提在小规模上就成立）：
+  `calls=7 scans=119 events=118 matched=30 idle=4 max=75 mask=0x1cff drain=1`
+  —— 118 条被排空的事件里只有 30 条匹配当时的 mask；原件路径下那 88 条会**留在队列里被后续每次调用重扫**。
+
+## 6.4 A/B 协议（工具已就位，不用人肉盯）
+
+`tools/ys-editor/ys-fakedeath-ab [--timeout 7200] [--cpu 0.45] [--sustain 10] [--after 30] [--no-flip] [--no-perf]`
+
+- 只认 **inode == runner 当前** 的编辑器进程（旧构建自动跳过并记一行）；
+- 只判 **wine 主线程**（tid==pid）的 CPU ≥45% 且 `syscall=running` 连续 10s（渲染线程高 CPU 不算——那正是正常使用）；
+- 判定自旋后：dump 前 6 个线程状态 → `perf record -e cpu_core/cycles/u -F 199 -p <pid>`（报前 28 行）
+  → `touch /tmp/.winex11-drain` → 观察 30s（CPU 曲线 + 探针尾部）→ 再抓一次 perf → **还原 marker**；
+- 结果：`.scratch/fake-death/ab/ab-<ts>.log` + `perf-{before,after}-<ts>.{data,txt}`。
+- **成立判据**：翻转后主线程 CPU 落到 <15%，且 `drain=1` 行的 `scans/calls` 从「每次几十~几百」掉到「0~几条」、
+  `events` 不再堆积。**不成立**：CPU 不降 ⇒ 自旋不在 `XCheckIfEvent`（或在事件处理器内部），回去重定位。
+- `ys-fakedeath-fix` 新增：`drain-on|drain-off`、`suppress`、`ratelimit`、`original`、`fg-reset-on|off`、
+  `default`（清全部 marker）、`probe [N]`、`log-clear`。
+
+## 6.5 风险（写在前面，别当已解决）
+
+1. **返回语义变了**：原件只在 `mask == QS_ALLINPUT` 时返回 TRUE；修法 A 排空后无条件报「已排空」。
+   已核对 server 侧（`server/queue.c` 的 `set_queue_mask`：`poll_events` → `clear_queue_bits(QS_DRIVER)` +
+   `set_fd_events(POLLIN)`），事件不丢、新事件靠 fd 可读重新置位；但**输入/焦点/拖拽/菜单**仍需回归（§四 4/5 步）。
+2. **排空循环可能自我维持**（见 6.2 安全阀）：2000 条封顶只保证有界，不保证风暴停止。
+3. **未在编辑器上验证**：本轮只跑过 notepad/winecfg；真正的判据在 6.4。
+4. 游戏 `YuanShen.exe` 也走这只 runner：不带 marker 时行为 = 原件（只有每秒一行日志的开销）；
+   `tools/ys-editor/ys-fakedeath-fix revert` 一条命令回原件。
+
+## 6.6 下一步
+
+1. **重开编辑器**（必须：15:35 那个实例是坏构建）→ 让 `ys-fakedeath-ab` 抓到假死 → 读 before/after 的 perf 与 CPU 曲线；
+2. 若修法 A 成立 → 默认改成「排空开」（marker 反过来当关闭开关），重编 + 回归 §四 4/5；
+3. 若不成立 → §三 设计 B（按 mask 分桶），或按新的 perf 剖面重新定位。

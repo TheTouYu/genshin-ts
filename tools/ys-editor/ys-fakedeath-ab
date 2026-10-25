@@ -1,0 +1,186 @@
+#!/bin/bash
+# ys-fakedeath-ab —— 假死 A/B 自动取证（2026-10-25）
+#
+# 干什么：盯着千星编辑器进程（BeyondEditor.exe），一旦检测到「主线程纯用户态自旋」
+# （= 死法 B 的签名：CPU 高 + /proc/<tid>/syscall = running），自动做三件事：
+#   ① 抓基线：线程读数 + 探针日志（/tmp/wine11-proc.log）尾部 + perf 热点前 25 名；
+#   ② 打开修法 A（touch /tmp/.winex11-drain）——运行中即时生效，不用重启编辑器；
+#   ③ 记录修法 A 生效后的 CPU 曲线与第二次 perf 热点，然后**把 marker 还原成原状**。
+#
+# 它只读 /proc、/tmp 日志，只写自己的结果目录和一个可撤销的 marker；
+# 不做任何窗口/焦点/指针注入（不抢桌面）。
+#
+# 用法: ys-fakedeath-ab [选项]
+#   --timeout SECS    盯多久（默认 7200）
+#   --cpu FRACTION    自旋判据：主线程 CPU 占比 ≥（默认 0.45）
+#   --sustain SECS    需要连续满足多久才判定（默认 10）
+#   --baseline SECS   翻转前记录的时长（默认 10）
+#   --after SECS      翻转后观察时长（默认 30）
+#   --perf            顺带 perf 采样（默认开；--no-perf 关）
+#   --no-flip         只取证不翻转（纯观察模式）
+#   --out DIR         结果目录（默认 <repo>/.scratch/fake-death/ab）
+#   --once            只测当前已在跑的进程，不等待新进程
+#
+# 判据（都得过）：进程映射的 winex11.so inode == runner 当前 inode（否则是旧构建，跳过）；
+#                 **wine 主线程**（tid==pid，不是渲染线程）CPU ≥ 阈值；syscall = running；
+#                 连续 --sustain 秒。（渲染线程高 CPU 不算：那正是正常人用着的编辑器。）
+set -u
+RUNNER="${RUNNER:-/home/h/.local/share/anime-game-launcher/runners/spritz-wine-tkg-staging-wow64-11.14-1}"
+SO="$RUNNER/lib/wine/x86_64-unix/winex11.so"
+M_DRAIN=/tmp/.winex11-drain
+PROC_LOG=/tmp/wine11-proc.log
+REPO="$(cd "$(dirname "$0")/../.." && pwd)"
+OUT="$REPO/.scratch/fake-death/ab"
+TIMEOUT=7200; CPU_TH=0.45; SUSTAIN=10; BASE=10; AFTER=30
+DO_PERF=1; DO_FLIP=1; ONCE=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --timeout) TIMEOUT="$2"; shift 2 ;;
+    --cpu) CPU_TH="$2"; shift 2 ;;
+    --sustain) SUSTAIN="$2"; shift 2 ;;
+    --baseline) BASE="$2"; shift 2 ;;
+    --after) AFTER="$2"; shift 2 ;;
+    --perf) DO_PERF=1; shift ;;
+    --no-perf) DO_PERF=0; shift ;;
+    --no-flip) DO_FLIP=0; shift ;;
+    --out) OUT="$2"; shift 2 ;;
+    --once) ONCE=1; shift ;;
+    *) echo "未知参数: $1" >&2; exit 2 ;;
+  esac
+done
+mkdir -p "$OUT"
+TS="$(date +%Y%m%d-%H%M%S)"
+LOG="$OUT/ab-$TS.log"
+
+log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
+
+[ -f "$SO" ] || { echo "✗ 找不到 $SO" >&2; exit 3; }
+SO_INO="$(stat -c %i "$SO")"
+SO_SIZE="$(stat -c %s "$SO")"
+log "== ys-fakedeath-ab 开始：so_inode=$SO_INO size=$SO_SIZE cpu≥$CPU_TH 持续${SUSTAIN}s 翻转=$DO_FLIP perf=$DO_PERF timeout=${TIMEOUT}s"
+grep -qa 'wine11-proc' "$SO" && log "   so 含 10-25 仪表标记 ✓" || log "   ⚠ so 不含仪表标记（探针数据不会有）"
+log "   markers 现状: drain=$([ -f $M_DRAIN ] && echo on || echo off)"
+
+# ---- helpers -----------------------------------------------------------------
+cpu_ticks() { # $1=pid → **主线程**(tid==pid) 的 "tid ticks"；取不到就退化为 CPU 最高的线程
+  local pid="$1" t v best_tid=0 best=0 tick
+  if tick=$(awk '{print $14+$15}' "/proc/$pid/task/$pid/stat" 2>/dev/null) && [ -n "${tick:-}" ]; then
+    echo "$pid $tick"; return
+  fi
+  for t in /proc/$pid/task/*; do
+    [ -r "$t/stat" ] || continue
+    v=$(awk '{print $14+$15}' "$t/stat" 2>/dev/null) || continue
+    if [ "${v:-0}" -gt "$best" ]; then best="$v"; best_tid=$(basename "$t"); fi
+  done
+  echo "$best_tid $best"
+}
+
+mapped_ino() { # $1=pid
+  awk '/winex11\.so/{print $5}' "/proc/$1/maps" 2>/dev/null | head -1
+}
+
+syscall_word() { # $1=tid → "running" / 数字 / "?"
+  local s
+  s=$(head -c 40 "/proc/$1/syscall" 2>/dev/null | awk '{print $1}')
+  [ -z "$s" ] && s="?"
+  echo "$s"
+}
+
+probe_tail() { [ -f "$PROC_LOG" ] && tail -n "${1:-3}" "$PROC_LOG"; }
+
+perf_snap() { # $1=pid  $2=tag
+  [ "$DO_PERF" = 1 ] || return 0
+  local pid="$1" tag="$2" out="$OUT/perf-$tag-$TS"
+  if timeout 12 perf record -q -e cpu_core/cycles/u -F 199 -p "$pid" -o "$out.data" -- sleep 4 2>"$out.err"; then
+    perf report -i "$out.data" --stdio 2>/dev/null | sed -n '/^# Overhead/,$p' | head -28 > "$out.txt"
+    log "   perf($tag) → $(grep -m1 -E 'XCheckIfEvent|filter_event' "$out.txt" | sed 's/  */ /g' || echo '未命中 XCheckIfEvent')"
+  else
+    log "   perf($tag) 失败: $(head -2 "$out.err" 2>/dev/null | tr '\n' ' ')"
+  fi
+}
+
+threads_dump() { # $1=pid
+  local t
+  for t in /proc/$1/task/*; do
+    printf '     tid=%s state=%s syscall=%s wchan=%s ticks=%s\n' \
+      "$(basename "$t")" "$(awk '{print $3}' "$t/stat" 2>/dev/null)" \
+      "$(syscall_word "$(basename "$t")")" "$(cat "$t/wchan" 2>/dev/null)" \
+      "$(awk '{print $14+$15}' "$t/stat" 2>/dev/null)"
+  done 2>/dev/null | sort -t= -k5 -nr | head -6
+}
+
+# ---- main loop ---------------------------------------------------------------
+START=$(date +%s)
+declare -A spin_count=() skip_noted=() handled=()
+while :; do
+  now=$(date +%s)
+  [ $((now - START)) -ge "$TIMEOUT" ] && { log "== 超时退出（${TIMEOUT}s，未检测到自旋）"; break; }
+
+  pids=$(pgrep -f 'BeyondEditor\.exe' 2>/dev/null | tr '\n' ' ')
+  if [ -z "${pids// /}" ]; then
+    log "   (没有编辑器进程在跑，等它起来；--once 则退出)"
+    [ "$ONCE" = 1 ] && break
+    sleep 2; continue
+  fi
+
+  for pid in $pids; do
+    ino=$(mapped_ino "$pid")
+    if [ -z "$ino" ]; then continue; fi                  # 还没加载 winex11（启动早期）
+    if [ "${ino}" != "$SO_INO" ]; then
+      if [ "${skip_noted[$pid]:-0}" = 0 ]; then
+        log "   pid=$pid 映射的 winex11.so inode=$ino ≠ 当前 $SO_INO —— **旧构建**，本轮不测（要测请重启编辑器）"
+        skip_noted[$pid]=1
+      fi
+      continue
+    fi
+    read -r tid t0 <<<"$(cpu_ticks "$pid")"
+    [ "${tid:-0}" = 0 ] && continue
+    sleep 2
+    read -r _ t1 <<<"$(cpu_ticks "$pid")"
+    d=$((t1 - t0)); cpu=$((d * 100 / 200))           # USER_HZ=100，2s = 200 tick
+    sc=$(syscall_word "$tid")
+
+    spin=0
+    awk -v c="$cpu" -v th="$CPU_TH" 'BEGIN{exit !(c/100 >= th)}' && spin=1
+    [ "$sc" = "running" ] || spin=0
+
+    if [ "$spin" = 1 ]; then
+      spin_count[$pid]=$(( ${spin_count[$pid]:-0} + 1 ))
+      log "   pid=$pid tid=$tid cpu=${cpu}% syscall=$sc 自旋计数=${spin_count[$pid]}"
+    else
+      if [ "${spin_count[$pid]:-0}" -ge 1 ]; then
+        log "   pid=$pid cpu=${cpu}% syscall=$sc —— 自旋中断（计数归零）"
+      fi
+      spin_count[$pid]=0
+    fi
+
+    if [ "${spin_count[$pid]:-0}" -ge "$(( SUSTAIN / 2 ))" ] && [ "${handled[$pid]:-0}" = 0 ]; then
+      handled[$pid]=1
+      was_on=0; [ -f "$M_DRAIN" ] && was_on=1
+      log "==== 判定自旋（pid=$pid tid=$tid）：基线取证 ${BASE}s → 翻转 drain（原状态=$was_on）→ 观察 ${AFTER}s"
+      threads_dump "$pid" >> "$LOG"
+      log "   探针(基线): $(probe_tail 3 | tr '\n' '|')"
+      [ "$DO_PERF" = 1 ] && perf_snap "$pid" "before"
+      if [ "$DO_FLIP" = 1 ] && [ "$was_on" = 0 ]; then
+        : > "$M_DRAIN"; log "   → 已 touch $M_DRAIN（修法 A 生效，运行中即时切换）"
+      fi
+      post_end=$(( $(date +%s) + AFTER ))
+      rec=0
+      while [ "$(date +%s)" -lt "$post_end" ]; do
+        read -r _ a <<<"$(cpu_ticks "$pid")"; sleep 2; read -r _ b <<<"$(cpu_ticks "$pid")"
+        ca=$(( (b - a) * 100 / 200 )); s2=$(syscall_word "$tid")
+        log "   观察: cpu=${ca}% syscall=$s2"
+        [ "$ca" -lt 15 ] && rec=$((rec + 1)) || rec=0
+        [ "$rec" -ge 3 ] && { log "   ✓ 已恢复（cpu<15% 连续 3 次）"; break; }
+      done
+      log "   探针(翻转后): $(probe_tail 3 | tr '\n' '|')"
+      [ "$DO_PERF" = 1 ] && perf_snap "$pid" "after"
+      if [ "$DO_FLIP" = 1 ] && [ "$was_on" = 0 ]; then
+        rm -f "$M_DRAIN"; log "   ← 已还原 marker（drain=off）"
+      fi
+      if [ "$ONCE" = 1 ]; then log "== --once 完成，退出"; exit 0; fi
+    fi
+  done
+  [ "$ONCE" = 1 ] && { log "== --once：未见自旋，退出"; exit 0; }
+done
+log "== 结束。日志: $LOG"

@@ -1,62 +1,104 @@
 #!/bin/bash
-# ys-fakedeath-fix —— 假死根治件的安装/回滚/开关（2026-10-20）
+# ys-fakedeath-fix —— 假死根治件的安装/回滚/开关
 #
-# 治的是什么：千星编辑器（Wine 应用）在「点击过界面（应用持有鼠标捕获）→ 窗口失焦」之后，
-# X 层的点击**照常投递**给应用（ys-xrec 实测），但应用内部不再响应任何点击；唯一解卡动作是
-# 让窗口被重新 configure（KWin 的 Meta+右键拖动=resize 会发 ConfigureWindow）。
-# 判据链见 docs/fake-death-2026-10-20.md。
+# 治的是什么：千星编辑器（Wine 应用）输入假死。判据链与读数见
+#   docs/fake-death-2026-10-20.md（形态 A：点击进了应用但应用不认）
+#   docs/fake-death-HANDOFF-2026-10-25.md（形态 B：主线程在 XCheckIfEvent 里 72% CPU 空转）
 #
-# 补的是什么：dlls/winex11.drv/event.c 的 focus_out() **无条件**发 WM_CANCELMODE
-# （自 2022 f3eebcfa4d 起未变；上游 bug 59653/59965 同案、均 UNCONFIRMED、补丁早已失效）。
-# 原生 Windows 的鼠标捕获**不因键盘焦点变化被取消**；这里取消它就会让应用的拖拽/鼠标状态机脱节。
+# 本版（2026-10-25 原型构建）只装三样东西，**不带 marker 时与上游 wine 11.14 逐条等价**：
+#   ① 中性仪表：每 ~1s 一行 /tmp/wine11-proc.log（calls/scans/events/matched/idle/max/mask/drain）
+#      —— scans/calls 就是「平均每次调用扫过多少 X 事件」，O(N²) 的直接读数。
+#   ② 修法 A（默认关）：/tmp/.winex11-drain 存在 → X11DRV_ProcessEvents 排空整个 X 队列。
+#   ③ 三个历史补丁的 A/B 开关（默认关 = 原件行为，见下）。
 #
-# 开关（**默认惰性**：不设文件/环境变量 = 完全原始行为）：
-#   /tmp/.winex11-keep-capture 存在  ⇒ 持有 capture 时跳过 WM_CANCELMODE（运行时切换，无需重启）
-#   WINEX11_KEEP_CAPTURE_ON_FOCUS_OUT=1 同样生效（进程启动时读一次）
+# marker（都存在即生效，删掉即恢复原件行为；运行时切换，不用重启进程）：
+#   /tmp/.winex11-drain                修法 A：排空队列（本次候选修复）
+#   /tmp/.winex11-suppress-cancelmode  失焦不发 WM_CANCELMODE（2026-10-20 F2 版行为）
+#   /tmp/.winex11-cancelmode-ratelimit 失焦时每 500ms 最多发一次 WM_CANCELMODE
+#   /tmp/.winex11-fg-reset             失焦且前台仍指向本窗时，把前台复位到桌面（带 200ms 防抖）
 #
 # 用法：
-#   ys-fakedeath-fix status            # 装没装、开关在不在、runner 版本
-#   ys-fakedeath-fix install           # 备份 runner 原件 → 装补丁 .so
-#   ys-fakedeath-fix revert            # 从备份还原
-#   ys-fakedeath-fix on | off          # 开/关补丁（marker 文件，即时生效于新事件）
+#   ys-fakedeath-fix status                # 装没装、哪些 marker 在、探针日志新鲜度
+#   ys-fakedeath-fix install [SRC]         # 备份 runner 原件（已有备份则保留）→ 装补丁 .so
+#   ys-fakedeath-fix revert                # 从备份还原原件
+#   ys-fakedeath-fix drain-on|drain-off    # 修法 A 开/关（= on/off）
+#   ys-fakedeath-fix suppress|ratelimit|original   # WM_CANCELMODE 三态（original=原件行为）
+#   ys-fakedeath-fix fg-reset-on|fg-reset-off
+#   ys-fakedeath-fix default               # 清掉全部 marker（= 原件行为 + 仪表）
+#   ys-fakedeath-fix probe [N]             # 看探针日志尾部（默认 12 行）
+#   ys-fakedeath-fix log-clear             # 清空 /tmp/wine11-*.log（重新计数用）
 # 退出码：0 成功 / 1 无备份或无需回滚 / 2 用法错误 / 3 前置条件不满足
 set -u
 RUNNER="${RUNNER:-/home/h/.local/share/anime-game-launcher/runners/spritz-wine-tkg-staging-wow64-11.14-1}"
 TARGET="$RUNNER/lib/wine/x86_64-unix/winex11.so"
 BACKUP="$TARGET.bak-fakedeath-20261020"
 SRC="${SRC:-/home/h/genshin-ts/.scratch/fake-death/wine-build/dlls/winex11.drv/winex11.so}"
-MARKER_ORIG=/tmp/.winex11-cancelmode-original
-MARKER_RATE=/tmp/.winex11-cancelmode-ratelimit
+M_DRAIN=/tmp/.winex11-drain
+M_SUPPRESS=/tmp/.winex11-suppress-cancelmode
+M_RATE=/tmp/.winex11-cancelmode-ratelimit
+M_FG=/tmp/.winex11-fg-reset
+PROC_LOG=/tmp/wine11-proc.log
+
+marker_state() {  # $1=路径 → "on"/"off"
+  [ -f "$1" ] && echo on || echo off
+}
 
 status() {
   echo "runner   : $RUNNER"
   echo "target   : $TARGET ($(stat -c%s "$TARGET" 2>/dev/null || echo missing) bytes)"
-  if [ -f "$BACKUP" ]; then echo "backup   : 有 ($(stat -c%s "$BACKUP") bytes)"; else echo "backup   : 无（未安装过）"; fi
-  if grep -qaE "cancelmode-original|cancelmode-ratelimit|keep-capture" "$TARGET" 2>/dev/null; then echo "patched  : 是（.so 内含补丁标记）"; else echo "patched  : 否"; fi
-  if [ -f "$MARKER_ORIG" ]; then echo "cancelmode: 原始行为（每次失焦都发 WM_CANCELMODE）"
-  elif [ -f "$MARKER_RATE" ]; then echo "cancelmode: 限速（500ms 最多一次）"
-  else echo "cancelmode: 默认=不发（切断焦点乒乓，实测治假死）"; fi
+  if [ -f "$BACKUP" ]; then
+    echo "backup   : 有 ($(stat -c%s "$BACKUP") bytes)"
+    cmp -s "$TARGET" "$BACKUP" 2>/dev/null && echo "identity : 与原件**字节相同**（= 原件在役）" || echo "identity : 与原件不同（补丁 .so 在役）"
+  else echo "backup   : 无（未安装过）"; fi
+  if grep -qaE "wine11-proc|winex11-drain" "$TARGET" 2>/dev/null; then
+    echo "patched  : 是（含仪表/修法A 标记）"
+  elif grep -qaE "cancelmode-original|wine11-focusin|wine11-mouse|keep-capture" "$TARGET" 2>/dev/null; then
+    echo "patched  : 是（旧版 2026-10-20 补丁，没有 10-25 仪表）"
+  else echo "patched  : 否"; fi
+  echo "markers  : drain=$(marker_state $M_DRAIN)  suppress-cancelmode=$(marker_state $M_SUPPRESS)  ratelimit=$(marker_state $M_RATE)  fg-reset=$(marker_state $M_FG)"
+  if [ -f "$PROC_LOG" ]; then
+    echo "probe    : $PROC_LOG  $(stat -c%s "$PROC_LOG") bytes, mtime $(stat -c%y "$PROC_LOG" | cut -c1-19)"
+    tail -1 "$PROC_LOG" | sed 's/^/           /'
+  else echo "probe    : 无 $PROC_LOG（说明没有进程加载过带仪表的 .so）"; fi
   ls -la "$TARGET" "$BACKUP" 2>/dev/null | sed 's/^/           /'
 }
 
 case "${1:-}" in
   status) status ;;
+
   install)
-    [ -f "$SRC" ] || { echo "✗ 找不到构建产物 $SRC"; exit 3; }
+    src="${2:-$SRC}"
+    [ -f "$src" ] || { echo "✗ 找不到构建产物 $src"; exit 3; }
     [ -f "$TARGET" ] || { echo "✗ 找不到 runner 原件 $TARGET"; exit 3; }
     [ -f "$BACKUP" ] || cp -a "$TARGET" "$BACKUP"
-    install -m 755 "$SRC" "$TARGET"
-    echo "已安装: $SRC -> $TARGET"
-    echo "备份: $BACKUP"
-    grep -qa "keep-capture" "$TARGET" && echo "✓ 校验：目标 .so 含补丁标记" || { echo "✗ 校验失败"; exit 3; }
+    install -m 755 "$src" "$TARGET"
+    echo "已安装: $src -> $TARGET"
+    echo "备份  : $BACKUP"
+    if grep -qa "wine11-proc" "$TARGET"; then echo "✓ 校验：目标 .so 含 10-25 仪表标记"
+    else echo "✗ 校验失败：目标 .so 不含 wine11-proc 标记"; exit 3; fi
     ;;
+
   revert)
     [ -f "$BACKUP" ] || { echo "✗ 没有备份可还原"; exit 1; }
     install -m 755 "$BACKUP" "$TARGET"
-    echo "已从备份还原: $BACKUP -> $TARGET"
+    cmp -s "$TARGET" "$BACKUP" && echo "已从备份还原（字节相同）: $BACKUP -> $TARGET" || { echo "✗ 还原后字节不一致"; exit 3; }
     ;;
-  original)  : > "$MARKER_ORIG"; rm -f "$MARKER_RATE"; echo "已切回原始行为（$MARKER_ORIG）——假死会复发，仅用于 A/B" ;;
-  ratelimit) : > "$MARKER_RATE"; rm -f "$MARKER_ORIG"; echo "已切到限速模式（$MARKER_RATE）" ;;
-  default)   : > /dev/null; rm -f "$MARKER_ORIG" "$MARKER_RATE"; echo "已切回默认（失焦不发 WM_CANCELMODE）" ;;
-  *) echo "用法: $0 {status|install|revert|default|ratelimit|original}"; exit 2 ;;
+
+  drain-on|on)   : > "$M_DRAIN"; echo "✓ 修法 A 开（$M_DRAIN）——排空 X 队列；新事件即刻生效" ;;
+  drain-off|off) rm -f "$M_DRAIN"; echo "✓ 修法 A 关（回原件扫描行为）" ;;
+
+  suppress)      : > "$M_SUPPRESS"; rm -f "$M_RATE"; echo "✓ 失焦不发 WM_CANCELMODE（$M_SUPPRESS）" ;;
+  ratelimit)     : > "$M_RATE"; rm -f "$M_SUPPRESS"; echo "✓ WM_CANCELMODE 限速 500ms（$M_RATE）" ;;
+  original)      rm -f "$M_SUPPRESS" "$M_RATE"; echo "✓ WM_CANCELMODE 回原件行为（每次失焦都发）" ;;
+
+  fg-reset-on)   : > "$M_FG"; echo "✓ 失焦前台复位 开（$M_FG）" ;;
+  fg-reset-off)  rm -f "$M_FG"; echo "✓ 失焦前台复位 关（原件行为）" ;;
+
+  default)       rm -f "$M_DRAIN" "$M_SUPPRESS" "$M_RATE" "$M_FG"; echo "✓ 全部 marker 清空 = 原件行为 + 仪表" ;;
+
+  probe)         n="${2:-12}"; [ -f "$PROC_LOG" ] || { echo "✗ 无 $PROC_LOG"; exit 3; }; tail -n "$n" "$PROC_LOG" ;;
+
+  log-clear)     rm -f /tmp/wine11-proc.log /tmp/wine11-focusin.log /tmp/wine11-mouse.log /tmp/wine11-map.log /tmp/wine11-reset.log; echo "✓ 已清空 /tmp/wine11-*.log" ;;
+
+  *) echo "用法: $0 {status|install [SRC]|revert|drain-on|drain-off|on|off|suppress|ratelimit|original|fg-reset-on|fg-reset-off|default|probe [N]|log-clear}"; exit 2 ;;
 esac
