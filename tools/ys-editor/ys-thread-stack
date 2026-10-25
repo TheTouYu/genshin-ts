@@ -1,0 +1,41 @@
+#!/bin/bash
+# ys-thread-stack <pid> <tid> [frames=12] —— 抓单个线程的栈，并把落在我方/系统 .so 的帧符号化。
+# 用途：假死时定位「处理窗口消息的那个线程」卡在哪（配合 winex11 探针的 tid= 字段）。
+set -u
+PID=${1:?用法: ys-thread-stack <pid> <tid> [frames]}; TID=${2:?}; N=${3:-12}
+WINEBUILD=${WINEBUILD:-/home/h/genshin-ts/.scratch/fake-death/wine-build}
+RAW=$(mktemp /tmp/ystack.XXXXXX)
+timeout 45 gdb -p "$PID" -batch -ex 'set debuginfod enabled off' -ex 'set pagination off' \
+      -ex "select-thread $TID" -ex "bt $N" >"$RAW" 2>&1 || true
+# gdb 不认 select-thread 时，退化为：列出全部线程但只打印匹配 LWP 的块
+if ! grep -q '^#' "$RAW"; then
+  timeout 60 gdb -p "$PID" -batch -ex 'set debuginfod enabled off' -ex 'set pagination off' \
+        -ex 'thread apply all bt 6' 2>/dev/null | awk -v T="$TID" '
+          /^Thread .*LWP /{ hit = ($0 ~ ("LWP " T "[^0-9]")) }
+          hit' >"$RAW"
+fi
+echo "== 原始栈（$RAW）"; cat "$RAW"
+echo "== 地址→模块映射"
+python3 - "$PID" "$RAW" "$WINEBUILD" <<'PY'
+import sys, re, subprocess, os
+pid, path, build = sys.argv[1], sys.argv[2], sys.argv[3]
+maps=[]
+for l in open(f'/proc/{pid}/maps'):
+    p=l.split(); a,b=p[0].split('-')
+    maps.append((int(a,16), int(b,16), p[-1] if len(p)>=6 and p[-1].startswith('/') else ('[anon]' if len(p)<6 else p[-1])))
+def resolve(addr):
+    for s,e,n in maps:
+        if s<=addr<e:
+            off=addr-s
+            if n.endswith(('win32u.so','winex11.so','ntdll.so')):
+                # 用同名构建件做 addr2line（仅当偏移可对）
+                local=os.path.join(build,'dlls',os.path.basename(n).replace('.so',''),os.path.basename(n))
+                if os.path.exists(local):
+                    out=subprocess.run(['addr2line','-f','-C','-e',local,hex(off)],capture_output=True,text=True).stdout.strip().replace('\n',' ')
+                    return f"{n}+0x{off:x}  [{out}]"
+            return f"{n}+0x{off:x}"
+    return "?"
+for line in open(path):
+    m=re.search(r'^#(\d+)\s+(0x[0-9a-f]+)', line)
+    if m: print(f"  #{m.group(1)} {resolve(int(m.group(2),16))}")
+PY
