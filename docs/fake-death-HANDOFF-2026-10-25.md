@@ -272,3 +272,47 @@ unit：`~/.config/systemd/user/ys-fakedeath-verify.{service,timer}`；实测 `Re
 **什么时候会漂移**（提前知道就不会慌）：launcher 更新/重装 runner、手动替换 runner 目录、换机重装。
 发现漂移 → 一条 `apply-all`；如果 runner 的 wine 版本变了（不是 11.14 spritz），**不要**直接 apply——
 先用 `MANIFEST.txt` 里的源树重建，否则驱动接口版本会打架（10-20 就踩过 110/111 的墙）。
+
+
+---
+
+# 九、2026-10-25 18:00-18:30：C 型（窗口定格）的三环链与两个新仪表
+
+## 9.1 新仪表（都在跑，默认只读）
+
+| 探针 | 位置 | 读数 |
+|---|---|---|
+| 按事件类型计数 `e=E/C/Fi/Fo/M/U/P/CM/K/B/D/R` | `winex11.so`（`X11DRV_ProcessEvents` 谓词） | 定格期 Expose≈0、PropertyNotify 上万、FocusIn/Out 25 次/秒 |
+| `tid=` / `ew=` | 同上 | 哪个线程在处理事件、Expose 打到哪个窗口 |
+| **paint 链** `expose/begin/end` | `win32u.so`（`expose_window_surface` / `NtUserBeginPaint/EndPaint`）→ `/tmp/wine32u-paint.log` | 定格期 **39 对 begin/end 仍在**（应用在画，画的是旧内容） |
+
+## 9.2 三环链（本次定格实测）
+
+1. **应用主线程被一个无限等待按住**：全进程 23 线程 0 running、14×`read` + 8×`futex`、8 个 futex 地址互不相同（不是单锁死锁）；主线程停在 Wine 的线程唤醒管道 `read`。
+2. **WM（本会话实际是 mutter，`xlsclients` 里挂着 `mutter-x11-frames`）把这窗口判为"无响应"，停止转发输入**：
+   - 用户点击「日志」窗口后，探针 **`K0/B0`**（没有任何 KeyPress/ButtonPress 进来）；
+   - `XGetInputFocus` 与 `_NET_ACTIVE_WINDOW` 都指向 **0x600003**——一个 1×1、`override=1`、位于 (-100,-100)、无 `WM_NAME` 的隐藏窗口；
+   - **没有 pointer/keyboard grab**（0 时长抓取查询返回 `GrabSuccess`）；堆叠顺序正常（日志窗在最顶）。
+   - 早前那张「beyondeditor.exe 无响应 / 强制退出·等待」弹窗即 **mutter 的判定**，不是 Wine 的。
+3. **结构性动作即解锁**：全屏 / 双击标题栏 → mutter 重新同步并恢复输入 → 用户看到"活了"。
+
+## 9.3 仍然卡住的一步（明天的入口）
+
+**"主线程在等哪个 object"还没拿到名字**，两条路都被挡：
+
+- **ntdll 探针不可用（源码树问题）**：给 `dlls/ntdll/unix/sync.c` 的无限等待加记录后编译失败——
+  `sync.c:914: 'get_inproc_alert_fd_reply' 没有名为 'fsync_shm_idx' 的成员`。
+  即**这棵源树的 `server/protocol.def` 与该文件不匹配**（fsync 相关），与我们的补丁无关，是**既有不一致**。
+  ⇒ 要用 ntdll 侧探针，得先修这个协议/源码不一致（或换一棵干净的 spritz 11.14 源树）。
+  （runner 的 `ntdll.so` **未被替换**：无备份文件、大小/时间仍为出厂件，已验证。）
+- **gdb 栈只能到 PE 边界**：帧落在匿名映射（非 PE 头），无法命名；`addr2line` 不适用。
+
+## 9.4 明天的三条候选（按性价比）
+
+1. **修源树 fsync 不一致 → 编 ntdll.so 带无限等待探针**（记录 handle 数组 + 返回值）——一步到位，风险可控（有备份/哈希/verify/一键回）；
+2. 换干净的 `spritz-wine-11.14-1` 源树重编 ntdll（更慢但更稳）；
+3. **绕过**：在 `win32u.so` 里给 `NtUserGetMessage/PeekMessage` 加计数（确认主线程确实不在消息循环），再从应用侧日志推断它自认为在等什么——**信息量低于 1/2，但不需要 ntdll**。
+
+## 9.5 现场可用兜底（不依赖修好）
+
+窗口定格时：**双击标题栏**（或全屏）即可恢复输入。这是 mutter 的"重新同步"，不是修 bug。
