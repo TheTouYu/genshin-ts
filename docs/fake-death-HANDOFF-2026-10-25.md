@@ -94,6 +94,15 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
   `calls=7 scans=119 events=118 matched=30 idle=4 max=75 mask=0x1cff drain=1`
   —— 118 条被排空的事件里只有 30 条匹配当时的 mask；原件路径下那 88 条会**留在队列里被后续每次调用重扫**。
 
+### 6.3.1 试过但**不可用**的验证通道（别重复）
+
+- **桌面注入全被挡**：`xdotool windowsize` / `wmctrl -i -r` 被 `ys-shim` 拦（共用桌面必须有焦点租约）；
+  `ys-gui-slot` 在本机会话直接 `rc=3`（KWin 权威通道不可用 —— 已迁 Hyprland）。
+  ⇒ 要事件就**冷 prefix 启 Wine 应用**（`winecfg` 冷启动能出 3~4 行探针），不要试图注入桌面。
+- **`XSendEvent` 合成按键不被 Wine 采纳**：`/home/h/genshin-ts/.scratch/fake-death/xsendkey.c`（只向指定窗口
+  post KeyPress/KeyRelease，不动焦点指针）编译可用、也把事件推进了驱动（探针有 `events`），但记事本标题
+  始终不出 `*`（未修改标记）⇒ **输入通道回归只能靠真机编辑器**（§四 4/5 步），不能拿合成事件当替代。
+
 ## 6.4 A/B 协议（工具已就位，不用人肉盯）
 
 `tools/ys-editor/ys-fakedeath-ab [--timeout 7200] [--cpu 0.45] [--sustain 10] [--after 30] [--no-flip] [--no-perf]`
@@ -102,7 +111,9 @@ runner 现为**出厂原件**（`ys-fakedeath-fix revert`，与备份 cmp 一致
 - 只判 **wine 主线程**（tid==pid）的 CPU ≥45% 且 `syscall=running` 连续 10s（渲染线程高 CPU 不算——那正是正常使用）；
 - 判定自旋后：dump 前 6 个线程状态 → `perf record -e cpu_core/cycles/u -F 199 -p <pid>`（报前 28 行）
   → `touch /tmp/.winex11-drain` → 观察 30s（CPU 曲线 + 探针尾部）→ 再抓一次 perf → **还原 marker**；
-- 结果：`.scratch/fake-death/ab/ab-<ts>.log` + `perf-{before,after}-<ts>.{data,txt}`。
+- 结果：`.scratch/fake-death/ab/ab-<ts>.log` + `perf-{before,after}-<ts>.{data,txt}`；
+  文件格式与判读法见 `.scratch/fake-death/ab/README.md`。
+  **默认会翻转**（30s 后自动还原 marker）；纯观察加 `--no-flip`。
 - **成立判据**：翻转后主线程 CPU 落到 <15%，且 `drain=1` 行的 `scans/calls` 从「每次几十~几百」掉到「0~几条」、
   `events` 不再堆积。**不成立**：CPU 不降 ⇒ 自旋不在 `XCheckIfEvent`（或在事件处理器内部），回去重定位。
 - `ys-fakedeath-fix` 新增：`drain-on|drain-off`、`suppress`、`ratelimit`、`original`、`fg-reset-on|off`、

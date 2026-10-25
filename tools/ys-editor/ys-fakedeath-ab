@@ -118,9 +118,12 @@ while :; do
 
   pids=$(pgrep -f 'BeyondEditor\.exe' 2>/dev/null | tr '\n' ' ')
   if [ -z "${pids// /}" ]; then
-    log "   (没有编辑器进程在跑，等它起来；--once 则退出)"
+    if [ $(( $(date +%s) - ${last_idle:-0} )) -ge 60 ]; then   # 空转说明每 60s 一行，别刷日志
+      log "   (没有编辑器进程在跑，等它起来；--once 则退出)"
+      last_idle=$(date +%s)
+    fi
     [ "$ONCE" = 1 ] && break
-    sleep 2; continue
+    sleep 5; continue
   fi
 
   for pid in $pids; do
