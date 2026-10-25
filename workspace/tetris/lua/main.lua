@@ -46,11 +46,12 @@ local TPL_GUIDS = {
   -- 2026-10-24 真机日志实证：容器组 1073741865 在真机 `InstantiateClientUIControl` 返回 nil
   -- ⇒ 容器整棵实例化在真机不支持（要么容器不在可实例化表里，要么引擎只认叶子控件），
   -- 所以下面还有一组 settleText（单控件模板）退路，并把每条候选的探测结果打进日志。
-  settle = { 1073741865, 1073741921, 1073741845, 1073741859, __GUID_SETTLE__ },
+  -- 2026-10-25 两个实验：容器模板 2210（整棵复用）/ 文字模板 2202（逐个数实例化）
+  settle = { 1073742210, 1073741865, 1073741921, 1073742107 },
   -- 结算层**单控件（textbox）模板**候选：模拟器 stext + 真机模板区里的 textbox 记录（逐个试）
   -- 1073742200 = 2026-10-24 用 `gsts assets:ui template clone 1073741935 --id 1073742200 --top-level`
   -- 新建的**顶层 textbox 模板**（真机容器模板实例化不了，这个才是真机能用的那条）
-  settleText = { 1073742200, 1073741935, 1073741923, 1073741937, 1073741934,
+  settleText = { 1073742202, 1073742200, 1073741935, 1073741923, 1073741937, 1073741934,
                  1073741933, 1073741922, __GUID_STEXT__ },
 }
 local STEP          = 1 / 60
@@ -98,15 +99,17 @@ local introFont, introPulse
 local autoDriving = false   -- true = 本次落子由入场 AI 驱动（抑制教学提示与高频日志）
 local elapsed = 0           -- 本局用时（结算明细用）
 local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行时实例化，层级高于棋盘格）
-local settleReady = false   -- 结算层真的可用了（容器整棵 或 单控件文字都行；两者都拿不到才回退布局横幅）
+local settleReady = false   -- 结算层当前是否存活（按需创建、重开即销毁）
+local settleBuildTried = false  -- 这一局试过创建没有（避免每帧重试；销毁时复位）
 local settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts
 local settleOn, settleT, settleDone = false, 0, false
 local settleFade = -1       -- 遮罩/面板淡入进度（0..1，只在变化够大时写 UI）
 local settleSize = 44       -- 标题当前字号（脉冲 44→48→44）
+local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用
 local settleTitleY, settleOptsY = 150, -150        -- 标题 / 选项的落位
 local settleTitleOff, settleOptsOff = 420, -420     -- 滑入起点（屏幕外）
 local dimRatio, dimApplied = 0, -1                  -- 兜底压暗（结算层不可用时才用）
-local settleHideAll, settleSetColors                -- 定义见「结算层」段
+local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
 local AI                    -- 入场自演状态机（定义见「AI 自演」段）
 local pieceCount = 0        -- 本局已落方块数（结算明细用）
 local settleOpen = false    -- 结算明细是否展开（Q 切换）
@@ -246,11 +249,23 @@ local function findIn(node, names)
   return nil
 end
 
-settleHideAll = function()
+-- 销毁整层：SetVisible(false) 在真机不保险（实测重开后结算页还在），所以重开就真销毁。
+-- 逐个 pcall：真机某个控件销毁抛错不能中断后面（同 OnStart 的护栏思路）。
+settleDestroy = function()
+  if not (settleReady or settleLayer or settleTitle) then return end
+  local n = 0
   for _, ctl in ipairs({ settleScrim, settleCard, settleBorder, settleTitle, settleScore,
-                         settleBest, settleInfo, settleExtra, settleOpts }) do
-    tryCall(ctl, 'SetVisible', false)
+                         settleBest, settleInfo, settleExtra, settleOpts, settleLayer }) do
+    if ctl then
+      local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
+      if ok then n = n + 1 end
+    end
   end
+  settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
+  settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
+  settleReady, settleBuildTried = false, false
+  settleOn, settleT, settleDone, settleFade = false, 0, false, -1
+  print('settle destroy n=' .. n)
 end
 
 -- 每个结算槽位在"容器模板"里的候选子控件名（模拟器的 settle 模板 / 真机的 客户端控件容器_1 两套命名）
@@ -366,7 +381,6 @@ local function buildSettleLayer()
     trySet(ctl, 'horizontalAlignment', 'Middle')
     trySet(ctl, 'verticalAlignment', 'Middle')
     trySet(ctl, 'bgColor', C(0, 0, 0, 0))
-    tryCall(ctl, 'SetVisible', false)
   end
   trySet(settleTitle, 'fontSize', 44)
   trySet(settleScore, 'fontSize', 30)
@@ -375,7 +389,14 @@ local function buildSettleLayer()
   trySet(settleExtra, 'fontSize', 22)
   trySet(settleOpts, 'fontSize', 28)
   settleSetColors(0)
-  settleHideAll()
+  -- 懒创建：层刚建好就直接进入动画起点（不隐藏，也不留"隐藏态"给真机去误解）
+  local n = 0
+  for _, ctl in ipairs({ settleScrim, settleCard, settleBorder, settleTitle, settleScore,
+                         settleBest, settleInfo, settleExtra, settleOpts }) do
+    if ctl then n = n + 1 else n = n end
+  end
+  print('settle build ok n=' .. n .. ' via=' .. (settleLayer and 'container' or 'textbox'))
+  layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
 end
 
 -- 结算层文字颜色（alpha 随面板淡入；a 是 0..255）
@@ -399,10 +420,7 @@ local function settleTick(d)
   if r1 > 1 then r1 = 1 end
   if math.abs(r1 - settleFade) >= 0.05 or (r1 >= 1 and settleFade < 1) then
     settleFade = r1
-    if settleScrim then trySet(settleScrim, 'imageColor', C(math.floor(140 * r1), 0, 0, 0)) end
-    if settleCard then trySet(settleCard, 'imageColor', C(math.floor(232 * r1), 20, 24, 34)) end
-    if settleBorder then trySet(settleBorder, 'imageColor', C(math.floor(90 * r1), 76, 194, 255)) end
-    settleSetColors(math.floor(255 * r1))
+    settleSetColors(math.floor(255 * r1))     -- 只动文字颜色 alpha（真机验证过的通道）
     if not settleReady then
       -- 兜底（没有结算层）：压暗棋盘本身
       dimRatio = 0.45 * r1
@@ -655,7 +673,7 @@ local function newGame()
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
   settleOn, settleT, settleDone, settleFade, settleSize = false, 0, false, -1, 44
   dimRatio, dimApplied = 0, -1
-  if settleHideAll then settleHideAll() end
+  settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   nextName = BAG[rand(#BAG)]
   spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
@@ -705,6 +723,11 @@ showGameOver = function()
   bannerTimer = 0
   settleOpen = false
   print('guide gameover score=' .. score .. ' lines=' .. lines)
+  -- 懒创建：第一次结算才建这一层（建的时候棋盘格早就存在 ⇒ 天然在它上面）
+  if not settleReady and not settleBuildTried then
+    settleBuildTried = true
+    buildSettleLayer()
+  end
   if settleReady then
     -- 结算层：先把文字写好，位置由 settleTick 从屏幕外滑入（0→0.9s 四段动画）
     setText(settleTitle, '游戏结束')
@@ -715,9 +738,11 @@ showGameOver = function()
     setText(settleOpts, '[R] 再来一局　　[Q] 结算明细')
     trySet(settleTitle, 'fontSize', 44)
     settleSize, settleT, settleFade, settleDone, settleOn = 44, 0, -1, false, true
-    if settleScrim then trySet(settleScrim, 'imageColor', C(0, 0, 0, 0)) end
-    if settleCard then trySet(settleCard, 'imageColor', C(0, 20, 24, 34)) end
-    if settleBorder then trySet(settleBorder, 'imageColor', C(0, 76, 194, 255)) end
+    -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
+    -- 所以"渐暗"只靠文字 fontColor 的 A 通道渐入（这条通道在真机是一直在用的）。
+    if settleScrim then trySet(settleScrim, 'imageColor', C(140, 0, 0, 0)) end
+    if settleCard then trySet(settleCard, 'imageColor', C(232, 20, 24, 34)) end
+    if settleBorder then trySet(settleBorder, 'imageColor', C(120, 76, 194, 255)) end
     settleSetColors(0)
     tryCall(settleTitle, 'SetAnchoredPosition', 0, settleTitleOff)
     tryCall(settleOpts, 'SetAnchoredPosition', 0, settleOptsOff)
@@ -1243,7 +1268,33 @@ end
 -- 布局：按画布尺寸算三栏 + 上下横幅（换设备不用重新导入）
 --------------------------------------------------------------------------------
 
+-- 结算层几何（懒创建：层在 gameOver 那一刻才建，所以建完要立刻用它摆位）
+-- 框高仍按 h >= fontSize*1.45+4：标题 44（脉冲到 48 ⇒ 需 73.6）⇒ 给 80；30→52；24→44；22→40；28→48。
+layoutSettle = function(W, H)
+  local halfH = H / 2
+  local function place2(ctl, x, y, w, h)
+    if not ctl then return end
+    tryCall(ctl, 'SetSizeDelta', w, h)
+    tryCall(ctl, 'SetAnchoredPosition', x, y)
+  end
+  local cw = W - 240
+  if cw > 780 then cw = 780 end
+  local ch = 400
+  place2(settleScrim, 0, 0, W + 60, H + 60)        -- 全屏遮罩
+  place2(settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
+  place2(settleCard, 0, 0, cw, ch)                 -- 面板底
+  settleTitleY, settleOptsY = 140, -136
+  settleTitleOff, settleOptsOff = halfH + 80, -(halfH + 80)
+  place2(settleTitle, 0, settleTitleY, cw - 60, 80)
+  place2(settleScore, 0, 72, cw - 60, 52)
+  place2(settleBest, 0, 20, cw - 60, 44)
+  place2(settleInfo, 0, -28, cw - 60, 40)
+  place2(settleExtra, 0, -66, cw - 60, 40)
+  place2(settleOpts, 0, settleOptsY, cw - 60, 48)
+end
+
 local function layout(W, H)
+  CANVAS_W, CANVAS_H = W, H
   local halfW, halfH = W / 2, H / 2
   local panelW = 420
   local leftCX, rightCX = -(halfW - panelW / 2 - 20), halfW - panelW / 2 - 20
@@ -1287,24 +1338,7 @@ local function layout(W, H)
   -- 底行：结算 26 号（需 41.7）、入场呼吸 22~23 号 ⇒ 给 48
   place(botBanner, 0, -(halfH - 28), W - 180, 48)
 
-  -- 结算层几何（层建不出来时整段跳过）。框高仍按 h >= fontSize*1.45+4：
-  -- 标题 44（脉冲到 48 ⇒ 需 73.6）⇒ 给 80；30→52；24→44；22→40；28→48。
-  if settleReady then
-    local cw = W - 240
-    if cw > 780 then cw = 780 end
-    local ch = 400
-    place(settleScrim, 0, 0, W + 60, H + 60)         -- 全屏遮罩（盖住棋盘 = 压暗到 45%）
-    place(settleBorder, 0, 0, cw + 8, ch + 8)        -- 强调色描边
-    place(settleCard, 0, 0, cw, ch)                  -- 面板底
-    settleTitleY, settleOptsY = 140, -136
-    settleTitleOff, settleOptsOff = halfH + 80, -(halfH + 80)
-    place(settleTitle, 0, settleTitleY, cw - 60, 80)   -- 44（脉冲到 48 需 73.6）
-    place(settleScore, 0, 72, cw - 60, 52)             -- 30
-    place(settleBest, 0, 20, cw - 60, 44)              -- 24
-    place(settleInfo, 0, -28, cw - 60, 40)             -- 22
-    place(settleExtra, 0, -66, cw - 60, 40)            -- 22
-    place(settleOpts, 0, settleOptsY, cw - 60, 48)     -- 28
-  end
+  if settleReady then layoutSettle(W, H) end
 end
 
 --------------------------------------------------------------------------------
@@ -1398,8 +1432,8 @@ function OnStart()
     preview[i] = c
   end
 
-  -- 结算层：必须在棋盘格/预览/外框**之后**创建（实例按创建顺序叠，后来的在上面）
-  buildSettleLayer()
+  -- 结算层**不在 OnStart 建**（2026-10-25 真机：常驻 + SetVisible(false) 不保险 ⇒ 开局白屏、
+  -- 重开后结算页残留）。改成第一次 gameOver 时懒创建，重开即销毁 —— 见 showGameOver / newGame。
 
   title, hud, hudNext, best = find('title'), find('hud'), find('hudNext'), find('best')
   hint, keyA, keyB, keyC = find('hint'), find('keyA'), find('keyB'), find('keyC')
@@ -1499,6 +1533,7 @@ function OnStart()
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
+    settleDestroy()          -- 双保险：newGame 里还会再调一次（幂等），保证 R 一定销毁结算层
     newGame()
     setText(topBanner, '')
     setText(botBanner, '')

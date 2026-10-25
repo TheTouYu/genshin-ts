@@ -190,7 +190,8 @@ node qxqy/shot.mjs   # 出 docs/preview-guide.png（入场自演"堆到 4 行"�
                      #    preview-play.png / preview-clear.png /
                      #    preview-settle-anim-1.png（结算动画 settleT≈0.2s）/
                      #    preview-settle-anim-2.png（settleT≈0.5s）/
-                     #    preview-gameover.png（settleT≈1.0s 稳定帧）/ preview-gameover-detail.png（Q 明细）
+                     #    preview-gameover.png（settleT≈1.0s 稳定帧）/ preview-gameover-detail.png（Q 明细）/
+                     #    preview-after-restart.png（按 R 重开后：结算层必须已销毁、盘面干净）
 ```
 
 结算那三张是**逐帧检测"游戏结束出现的那一帧"**再按固定步数抓的（`isOver()` 每落一块查一次），
@@ -277,6 +278,12 @@ npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
 - **动画（0→0.9s 四段）**：①0→0.45s 遮罩 alpha 0→140（棋盘压到 45%）、面板/描边/文字一起淡入
   ②0.15s 起标题自屏幕外滑入（ease-out 0.35s）③0.35s 起选项自下方滑入 ④0.55s 起标题脉冲 44→48→44
   （面板内标题框给 80 高，`48*1.45+4 = 73.6` 才画得下）。
+- **懒创建 + 重开即销毁（2026-10-25 真机两 bug 的根治）**：结算层**不在 OnStart 建**，第一次 `gameOver`
+  才建（`settle build ok n=9`），R 重开时 `DestroyClientUIControl` 整层销毁（`settle destroy n=10`）。
+  旧做法是"OnStart 常驻 + `SetVisible(false)` 隐藏"，真机实测**隐藏不生效** ⇒ 开局白屏（那张全屏 image
+  是 cell 模板实例、默认不透明）+ 重开后结算页残留。**不要再依赖 SetVisible 隐藏运行时实例。**
+- **渐暗只走文字 alpha**：真机可能不认 `imageColor` 的 A 通道，所以 scrim/card/border **一次性给终值颜色**，
+  0→0.9s 的淡入只作用在 6 个 textbox 的 `fontColor` alpha 上（这条通道真机一直在用）。
 - **兜底**：模板探测失败、或实例化成功但子控件取不到（guid 撞车），都会 `settleLayer = nil`
   退化为布局横幅结算，玩家不会看到空白。
 - 离线出图：`docs/preview-settle-anim-1.png`（settleT≈0.2s）/`-2.png`（≈0.5s）/`preview-gameover.png`（≈1.0s 稳定帧）。

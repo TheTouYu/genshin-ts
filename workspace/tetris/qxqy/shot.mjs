@@ -73,6 +73,10 @@ const filledCells = () => (s.playGet({ view: true }).scene.nodes || [])
 for (let i = 0; i < 80 && filledCells() < 42; i++) step(15)
 let snap = shot('preview-guide.png')   // 入场自演中：上横幅「俄罗斯方块」+ 下横幅「按任意键开始」+ AI 正在堆
 analyze('guide', snap.scene)
+{
+  const settleAtEntry = (snap.scene.nodes || []).filter((n) => /settle/i.test(String(n.name))).length
+  console.log(`  入场结算残留节点 = ${settleAtEntry}  ${settleAtEntry === 0 ? '✓ 干净' : '✗ 有残留'}`)
+}
 step(200); snap = shot('preview-ai-place-1.png'); analyze('place-1', snap.scene)
 step(240); snap = shot('preview-ai-place-2.png'); analyze('place-2', snap.scene)
 step(240); snap = shot('preview-ai-place-3.png'); analyze('place-3', snap.scene)
@@ -144,4 +148,15 @@ shot('preview-gameover.png')
 key('KeyboardCharacterSkill2KeyDown'); key('KeyboardCharacterSkill2KeyUp')   // Q 结算明细
 step(2)
 shot('preview-gameover-detail.png')
+// R 重开：结算层必须真销毁（懒创建 ⇒ 重开即销毁，不靠 SetVisible）
+key('KeyboardCharacterSkill3KeyDown'); key('KeyboardCharacterSkill3KeyUp')
+step(24)
+const afterR = shot('preview-after-restart.png')
+{
+  const left = (afterR.scene.nodes || []).filter((n) => /settle/i.test(String(n.name))).length
+  const logs = (afterR.logs || []).map((l) => l.text)
+  const destroyed = logs.filter((t) => t.startsWith('settle destroy')).at(-1) || '(无 destroy 日志)'
+  const built = logs.filter((t) => t.startsWith('settle build')).at(-1) || '(无 build 日志)'
+  console.log(`  重开后结算残留节点 = ${left}  ${left === 0 ? '✓ 已销毁' : '✗ 还在'}  | build: ${built}  | destroy: ${destroyed}`)
+}
 s.playStop()
