@@ -12,8 +12,10 @@
 // 视觉反馈：A 段看它停在草面/半空/地下三档；B 段看它高速掠过玩家（若点判据漏、线段判据中，
 //           两个计数会不同，由日志读）；C 段看它跳到命中点。
 import { g } from 'genshin-ts/runtime/core'
+import { chanSendState6 } from '../../client-kit/channels.js'
 import { RayFilterType } from 'genshin-ts/definitions/client_enums'
 import { TargetType } from 'genshin-ts/definitions/enum'
+import { KitSignal } from './signals.js'
 
 // cfgId 铁律：每个槽一个字面量（`SLOT + 3n` 会被 Stage 1 改写成 f.addition，config_id 要字面量）
 const S_TICK = 1207959578n
@@ -179,4 +181,36 @@ g.creationSkill({ id: 1082130440, name: '_GSTS_kitProbe' }).on('start', (_evt: a
   f.setSkillVariable(S_PREVX, nxt.value.x)
   f.setSkillVariable(S_PREVY, nxt.value.y)
   f.setSkillVariable(S_PREVZ, nxt.value.z)
+
+// ———— 回传（服务端 _GSTS_kitListen 打印；每 8 拍一次，避免洪泛）———
+  const atReport = f.logicalOrOperation(
+    f.logicalOrOperation(
+      f.logicalOrOperation(f.equal(tick, 8.0), f.equal(tick, 16.0)),
+      f.logicalOrOperation(f.equal(tick, 24.0), f.equal(tick, 32.0))
+    ),
+    f.logicalOrOperation(
+      f.logicalOrOperation(f.equal(tick, 40.0), f.equal(tick, 48.0)),
+      f.logicalOrOperation(f.equal(tick, 56.0), f.equal(tick, 64.0))
+    )
+  )
+  f.doubleBranch(
+    atReport,
+    () => {
+      const e1p = f.querySkillVariableValue(S_E1P)
+      const e1s = f.querySkillVariableValue(S_E1S)
+      const e3 = f.querySkillVariableValue(S_E3)
+      const e4 = f.querySkillVariableValue(S_E4)
+      chanSendState6(
+        f,
+        KitSignal.kit_state,
+        'P',
+        f.dataTypeConversion(tick, 'int'),
+        f.create3dVector(e1p, e1s, e4),
+        f.create3dVector(e3, 0.0, 0.0),
+        f.create3dVector(0.0, 0.0, 0.0),
+        st.value
+      )
+    },
+    () => {}
+  )
 })
