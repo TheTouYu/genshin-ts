@@ -316,3 +316,29 @@ unit：`~/.config/systemd/user/ys-fakedeath-verify.{service,timer}`；实测 `Re
 ## 9.5 现场可用兜底（不依赖修好）
 
 窗口定格时：**双击标题栏**（或全屏）即可恢复输入。这是 mutter 的"重新同步"，不是修 bug。
+
+---
+
+# 十、2026-10-25 19:20-19:40：收敛到 `win32u` 的消息等待/队列位（下一轮的起点）
+
+## 10.1 已定位的层次（比 §9 更进一层）
+
+主线程确实走 `NtUserMsgWaitForMultipleObjectsEx`（`win32u/message.c:3477`），探针 `msgwait-in/out` 两次复现出现**两种错法**：
+
+| 复现 | 读数 | 判读 |
+|---|---|---|
+| A（pid 2191157） | `msgwait-in count=1 timeout=INFINITE mask=0x160 h=0x4ac` → `msgwait-out **a=1**`（队列索引），立刻重入 | **队列自旋**：QS 位在、但 `PeekMessage` 产不出消息 |
+| B（pid 2207223） | `msgwait-in c(qbits)=**0x1000100** h=0x3a4` → `msgwait-out **a=0**`（句柄被 signal） | 句柄反复 signal + 队列位含内部位 `0x01000000` |
+
+`mask=0x160` = `QS_PAINT|QS_SENDMESSAGE|QS_ALLPOSTMESSAGE`（**不含输入位 0x0007**）⇒ 点击不会唤醒该等待。
+
+## 10.2 下一轮第一件事（照做即可）
+
+在 `dlls/win32u/message.c` 给 **`set_queue_bits` / `clear_queue_bits` / `peek_message` 的 `QS_PAINT(0x20)` 与 `0x01000000` 内部位**加配对日志（谁置位/谁清位/`PeekMessage` 是否产出消息），与 `msgwait-out` 的返回值对读，定位「置了不清」或「signal 了但没消息」的那一行。
+
+## 10.3 现场与工具（不变）
+
+- 三件 `.so` 由 `tools/ys-editor/ys-fakedeath-fix`（`apply-all|verify|revert-all`）管理，工件 `/home/h/.local/share/ys-fakedeath/artifacts/`，每日 systemd 漂移检查；
+- 探针文件：`/tmp/wine32u-msgwait.log`（本次关键）、`wine32u-paint.log`、`wine32u-cursor.log`、`wine-ntdll-{swait,wait,obj}.log`、`wine11-proc.log`；
+- **关不掉的窗口由代理代杀**（用户明确要求）：`for p in $(pgrep -f 'BeyondEditor\.exe'); do kill -TERM "$p"; done`（实测干净退出，不碰游戏）；
+- 现场兜底：**双击标题栏 / 全屏**可解锁输入。
