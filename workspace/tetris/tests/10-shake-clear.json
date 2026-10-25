@@ -10,7 +10,7 @@
   ],
   "asserts": [
     { "at": 0.3, "kind": "log", "contains": "debug-fill", "source": "client" },
-    { "at": 0.6, "kind": "log", "contains": "clear n=2 score=300", "source": "client" },
+    { "at": 0.6, "kind": "log", "contains": "clear n=2 score=332", "source": "client" },
     { "at": 0.6, "kind": "log", "contains": "shake rows=2 amp=10 dur=0.2", "source": "client" },
     { "at": 0.9, "kind": "log", "contains": "shake end", "source": "client" }
   ],

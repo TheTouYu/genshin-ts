@@ -62,7 +62,25 @@ local TPL_GUIDS = {
                  1073741933, 1073741922, __GUID_STEXT__ },
 }
 local STEP          = 1 / 60
-local GRAVITY_TICKS = 30           -- 每 30 拍下坠一格（0.5s）
+
+-- ===== 数值表：唯一来源 docs/数值策划.md §2/§3/§5 —— 调平衡只改这一段 =====
+-- 单表而不是 13 个 local：Lua 的 main chunk 有 200 个 local 硬上限，本文件已经贴着上限（实测）。
+local NUM = {
+  LEVEL_UP_LINES = 10,      -- 每 10 行升一级（docs §4.5）
+  LEVEL_CAP      = 12,      -- 等级上限（110 行）：到顶不再加速（docs §3.3）
+  -- 各级"每格下落拍数"（60 拍 = 1 秒）。L1=30 拍 = 0.5s/格，与旧版 GRAVITY_TICKS 一致。
+  -- 节奏：0.500 0.433 0.383 0.333 0.300 0.250 0.233 0.200 0.167 0.150 0.133 0.117 s/格
+  SPEED          = { 30, 26, 23, 20, 18, 15, 14, 12, 10, 9, 8, 7 },
+  SCORE          = { 100, 300, 500, 800 },   -- 1/2/3/4 行基础分（Tetris Guideline 表，docs §2.1）
+  SOFT           = 1,       -- 软降（↓ / S / 手机↓）每格加分（docs §2.2）
+  HARD           = 2,       -- 硬降（空格）每格加分（docs §2.2）
+  COMBO          = 50,      -- 连击加成：COMBO × (combo-1) × level（docs §2.3）
+  B2B_NUM        = 3,       -- Back-to-Back：连续两次四消，基础分 ×1.5（整数化 3/2）
+  B2B_DEN        = 2,
+  FLASH          = { 0.10, 0.13, 0.17, 0.22 },  -- 消行闪白时长（1/2/3/4 行；恒 < 抖屏时长，docs §5.1）
+  LEVEL_TIP      = 1.2,     -- 升级提示持续秒数（docs §5.3）
+  COMBO_TIP      = 0.8,     -- 连击提示持续秒数（docs §5.4）
+}
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
 local COL_EMPTY  = C(255, 26, 29, 38)
@@ -129,6 +147,7 @@ local dimRatio, dimApplied = 0, -1                  -- 兜底压暗（结算层�
 local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
 local AI                    -- 入场自演状态机（定义见「AI 自演」段）
 local pieceCount = 0        -- 本局已落方块数（结算明细用）
+local combo, maxCombo, b2b = 0, 0, false   -- 本局连击计数 / 最高连击 / 上一次是四消（B2B）
 local settleOpen = false    -- 结算明细是否展开（Q 切换）
 local RIGHT_CX = 410
 local showGameOver, updateBest
@@ -709,7 +728,8 @@ spawn = function()
     gameOver = true
     print('gameover score=' .. score)
     sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
-    updateBest()
+    -- 入场自演顶死时不写最高分：bestScore 是玩家账（与 P0 同一口径，docs §7.1）
+    if not autoDriving then updateBest() end
     showGameOver()
   end
   renderPiece()
@@ -736,17 +756,28 @@ clearLines = function()
     end
   end
   if cleared > 0 then
-    -- 视觉反馈：整盘已落方块闪白 0.12s（每行都触发，不只是首次）
+    -- 视觉反馈：整盘已落方块闪白（按行数分档：1 行 0.10s → 4 行 0.22s，恒短于抖屏时长）
     for r2 = 1, ROWS do
       for c2 = 1, COLS do
         if board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
       end
     end
-    flashT = 0.12
-    local pts = { 100, 300, 500, 800 }   -- 1/2/3/4 行
-    score = score + pts[cleared] * level
+    flashT = NUM.FLASH[cleared] or NUM.FLASH[4]
+    -- 计分（docs/数值策划.md §2）：基础分 × 等级 + 连击加成；四消连击（B2B）基础分再 ×1.5。
+    -- 连击口径：连续"有消行的锁定"计数，combo=1 是第一次，≥2 才给加成；没消行的锁定归零（见 doLock）
+    combo = combo + 1
+    if combo > maxCombo then maxCombo = combo end
+    local base = NUM.SCORE[cleared]
+    local b2bApplied = (cleared == 4 and b2b)     -- 这一次是否吃到 ×1.5（日志里 b2b=1 表示吃到了）
+    if b2bApplied then base = base * NUM.B2B_NUM // NUM.B2B_DEN end   -- 800 → 1200
+    b2b = (cleared == 4)
+    local comboBonus = 0
+    if combo >= 2 then comboBonus = NUM.COMBO * (combo - 1) * level end
+    score = score + base * level + comboBonus
     lines = lines + cleared
-    level = lines // 10 + 1
+    local levelBefore = level
+    level = lines // NUM.LEVEL_UP_LINES + 1
+    if level > NUM.LEVEL_CAP then level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
     -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
     -- 入场自演期间只抖不出声（与"抑制教学提示/高频日志"同一套口径）
     if not autoDriving then sfx(SFX_CLEAR[cleared], true) end
@@ -754,7 +785,8 @@ clearLines = function()
     if autoDriving then
       print('demo clear n=' .. cleared .. ' lines=' .. lines)   -- 自演也在消行（心跳级日志）
     else
-      print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines)
+      print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines
+        .. ' combo=' .. combo .. ' b2b=' .. (b2bApplied and 1 or 0))
     end
     -- 首次消行：由简入深——把"分值表"这项进阶信息押到玩家已经会消行之后
     -- （入场 AI 自演期间的消行不算，否则玩家真正上手时这条引导已经被吃掉）
@@ -764,6 +796,20 @@ clearLines = function()
       setText(botBanner, '空格 直落到底')
       bannerTimer = 4.0
       print('guide clear-tip')
+    end
+    -- 升级 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
+    -- 优先级：升级 > 连击；已有横幅在播时让位（bannerTimer > 0 不抢）
+    if not autoDriving and bannerTimer <= 0 then
+      if level > levelBefore then
+        setText(botBanner, level >= NUM.LEVEL_CAP and ('等级 ' .. level .. '　已满速')
+                                           or ('等级 ' .. level .. '　速度提升'))
+        bannerTimer = NUM.LEVEL_TIP
+        print('tip level=' .. level)
+      elseif combo >= 2 then
+        setText(botBanner, '连击 ×' .. combo)
+        bannerTimer = NUM.COMBO_TIP
+        print('tip combo=' .. combo)
+      end
     end
   end
   return cleared   -- 调用方（doLock）用它决定"落地音还是消行音"
@@ -788,6 +834,10 @@ doLock = function()
     print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
   end
   local cleared = clearLines()
+  if cleared == 0 then
+    combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
+    b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
+  end
   -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
   if cleared == 0 and not autoDriving then sfx(SFX.lock) end
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
@@ -800,10 +850,13 @@ doLock = function()
   renderHud()
 end
 
-local function stepDown()
+-- 下落一格。manual=true 表示玩家自己按的（↓ / S / 手机↓）：成功下落才给软降分。
+-- 重力调用必须传 false —— 否则重力会白送软降分（docs/数值策划.md §7-P6 的坑）。
+local function stepDown(manual)
   if gameOver or not piece then return end
   if not collides(piece.cells, piece.x, piece.y + 1) then
     piece.y = piece.y + 1
+    if manual then score = score + NUM.SOFT end
     renderPiece()
     print('fall y=' .. piece.y)
   else
@@ -850,6 +903,7 @@ local function newGame()
   end
   score, lines, level = 0, 0, 1
   pieceCount = 0
+  combo, maxCombo, b2b = 0, 0, false
   elapsed = 0
   gameOver, tickCount, acc = false, 0, 0
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
@@ -882,6 +936,13 @@ local function startIfWaiting()
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
+  -- P0（docs/数值策划.md §7-P0）：入场 AI 自演期间的分数/行数/落块数/连击**不计入玩家账**。
+  -- 自演真的会消行（clearLines 里没有 autoDriving 守卫），不在这里归零的话玩家接管瞬间
+  -- HUD 可能不是 0 分、结算"消行率"会被 AI 的块拉低。归零法比在 clearLines 里加守卫更稳。
+  score, lines, level = 0, 0, 1
+  pieceCount = 0
+  combo, maxCombo, b2b = 0, 0, false
+  renderHud()
   setText(hint, '堆满一行即消除')
   print('guide stage=1')
 end
@@ -1675,7 +1736,7 @@ function OnStart()
   listen('KeyboardCraftspersonKey38Down', act(function() moveBy(-1) end))   -- ←
   listen('KeyboardCraftspersonKey39Down', act(function() moveBy(1) end))    -- →
   listen('KeyboardCraftspersonKey36Down', act(rotate))     -- ↑
-  listen('KeyboardCraftspersonKey37Down', act(stepDown))   -- ↓
+  listen('KeyboardCraftspersonKey37Down', act(function() stepDown(true) end))   -- ↓（软降计分）
   listen('KeyboardJumpKeyDown', act(function()             -- Space
     if gameOver or not piece then return end
     local dropped = 0
@@ -1684,13 +1745,14 @@ function OnStart()
       dropped = dropped + 1
     end
     print('harddrop rows=' .. dropped .. ' y=' .. piece.y)
+    score = score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
     doLock()
   end))
   -- WASD（真机常用；具名键 MoveLeft/Right/Forward/Backward）
   listen('KeyboardMoveLeftKeyDown', act(function() moveBy(-1) end))    -- A
   listen('KeyboardMoveRightKeyDown', act(function() moveBy(1) end))     -- D
   listen('KeyboardMoveForwardKeyDown', act(rotate))         -- W
-  listen('KeyboardMoveBackwardKeyDown', act(stepDown))      -- S
+  listen('KeyboardMoveBackwardKeyDown', act(function() stepDown(true) end))  -- S（软降计分）
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
@@ -1716,7 +1778,7 @@ function OnStart()
     local rate = 0
     if pieceCount > 0 then rate = math.floor(lines * 100 / pieceCount) end
     local detail = '等级 ' .. level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
-      .. '　消行率 ' .. rate .. '%'
+      .. '　消行率 ' .. rate .. '%　最高连击 ' .. maxCombo
     if settleOpen then
       if settleReady then
         setText(settleExtra, detail)
@@ -1769,7 +1831,7 @@ function OnStart()
     local actions = {
       btnA = function() if guideStage ~= 2 then moveBy(-1) end end,
       btnB = function() if guideStage ~= 2 then moveBy(1) end end,
-      btnC = function() if guideStage ~= 2 then stepDown() end end,
+      btnC = function() if guideStage ~= 2 then stepDown(true) end end,
       btnD = function() if guideStage ~= 2 then rotate() end end,
       btnE = function()
         if guideStage == 2 or gameOver or not piece then return end
@@ -1884,8 +1946,10 @@ function OnUpdate(dt)
     acc = acc - STEP
     guard = guard + 1
     tickCount = tickCount + 1
-    if not gameOver and tickCount % GRAVITY_TICKS == 0 then
-      stepDown()   -- 判负在 spawn -> showGameOver 里收口
+    -- 下落间隔随等级变化（SPEED_TICKS，docs §3）：level 已封顶 LEVEL_CAP，表项必存在
+    local perTicks = NUM.SPEED[level] or NUM.SPEED[NUM.LEVEL_CAP]
+    if not gameOver and tickCount % perTicks == 0 then
+      stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
     end
   end
 end

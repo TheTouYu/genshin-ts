@@ -43,7 +43,7 @@
     {
       "at": 0.6,
       "kind": "log",
-      "contains": "clear n=2 score=300",
+      "contains": "clear n=2 score=332",
       "source": "client"
     },
     {
@@ -51,7 +51,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 300　消行 2　等级 1　已填 4"
+      "equals": "得分 332　消行 2　等级 1　已填 4"
     }
   ]
 }

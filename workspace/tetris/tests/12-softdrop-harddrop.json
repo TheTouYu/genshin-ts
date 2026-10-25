@@ -1,0 +1,45 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "12 软降/硬降计分（重力不给分）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 0.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.55,
+      "kind": "log",
+      "contains": "harddrop rows=15",
+      "source": "client"
+    },
+    {
+      "at": 0.55,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "得分 33　消行 0　等级 1　已填 4"
+    }
+  ],
+  "note": "3 次 ↓ = 3 格 = +3；硬降 15 格 = +30；0.5s 处重力那一拍不计分（否则会多 1 分）"
+}

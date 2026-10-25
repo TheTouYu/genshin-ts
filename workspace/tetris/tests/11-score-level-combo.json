@@ -1,0 +1,103 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "11 计分规则：连击加成 + 等级倍率（12 行到等级 2）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 0.8,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.4,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 1.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.8,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 2.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 2.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 2.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.6,
+      "kind": "log",
+      "contains": "clear n=2 score=332 lines=2 combo=1 b2b=0",
+      "source": "client"
+    },
+    {
+      "at": 1.0,
+      "kind": "log",
+      "contains": "clear n=2 score=712 lines=4 combo=2 b2b=0",
+      "source": "client"
+    },
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "clear n=2 score=2154 lines=10 combo=5 b2b=0",
+      "source": "client"
+    },
+    {
+      "at": 2.5,
+      "kind": "log",
+      "contains": "clear n=2 score=3284 lines=12 combo=6 b2b=0",
+      "source": "client"
+    },
+    {
+      "at": 2.6,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "得分 3284　消行 12　等级 2　已填 4"
+    }
+  ],
+  "note": "分项对账：332=300+16*2；712=332+300+50*1*1+15*2；2154=…+300+50*4*1；3284=2154+300*2+50*5*2+15*2（等级 2 生效）"
+}
