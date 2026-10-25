@@ -464,3 +464,30 @@ self=$$; for p in $(pgrep -f 'BeyondEditor\.exe'); do [ "$p" = "$self" ] || [ "$
 ```
 同族前科：`dsh-game-mode` 的 `ExecCondition` 用 `pgrep -f "YuanShen|GenshinImpact"` 自匹配导致闸门恒假
 （2026-10-18 修）。**凡是 `pgrep -f` 的模式串出现在执行它的命令行里，就一定自匹配。**
+
+## 11.8 2026-10-25 19:52 现场：一个「X 活着、位在、却没输入没重绘」的冻结标本（pid 2255750）
+
+新仪表第一次抓到冻结实例。**下面每条都是对象级读数**，其中第 6 条的正对照**没做成**，已标注。
+
+1. **应用活着**：向两个窗口各发一次 `_NET_WM_PING`（`WM_PROTOCOLS` 已含 `_NET_WM_PING`），
+   **两窗都在 2s 内回显**；同一时刻 `wine11-proc.log` 出现 `CM1`（Wine 处理了这个 ClientMessage）
+   ⇒ **不是事件循环死**，"无响应"不是这个意思。
+2. **X 只送来 PropertyNotify**：仪表整段读数 `e=E0/…/P6…P11/CM0|CM1/**K0/B0/M0**/Fi0/Fo0`，
+   `mask=0x1cff`（QS_ALLINPUT）、`idle=0`、`matched=全部`。
+   ⇒ **零 Expose、零 KeyPress、零 ButtonPress、零 MotionNotify**。
+3. **窗口正常**：`千星沙箱` 0x540000a = `map_state=2(viewable)` 2176×1411+384+29；
+   `资源管理器` 0x5400007 = 384×1411+0+29；两者 `_NET_WM_PID=2255750`、`WM_CLASS=beyondeditor.exe`。
+4. **焦点不是被"应用隐藏窗"占着，而是 mutter 的 guard window**：`0x600003` 的窗口名就是
+   **`mutter guard window`**（1×1、(-100,-100)、override=1、mapped）⇒ 语义是「**当前没有任何窗口持有焦点**」。
+   §9 与 §11.6 里"焦点被隐藏窗口占着"的说法据此改述（不是应用 bug）。
+5. **主线程在做什么**：`NtWaitForMultipleObjects(count=2, [0x4ac, 0x114], WAIT_ANY, INFINITE)`，**约 7 次/秒**返回后重入；
+   阻塞态是 `read(fd 9, 16B)`，fd 9 与 fd 10 是**同一个 `pipe:[53231836]` 的两端**，而该 pipe 的另一个持有者是
+   **wineserver（pid 2953851）** ⇒ 这是 Wine 的 server 等待/唤醒通道，**不是应用自建管道**（§10.1 的表述据此收紧）。
+   0x4ac / 0x114 在 `obj` 探针（event/semaphore/mutant/timer 创建）里**查不到** ⇒ 它们是 server 侧创建的对象
+   （疑为 queue 句柄 / `idle_event`，**未证实**）。
+6. **仪表读数（20s 前，最后一次 GetQueueStatus）**：`qs-local a=0x160 b=0x11a c=0x0 d=0x1000000`；
+   按 winuser.h 真实位义 `0x11a = QS_ALLPOSTMESSAGE(0x100) | QS_TIMER(0x10) | QS_POSTMESSAGE(0x8) | QS_MOUSEMOVE(0x2)`
+   ⇒ **wake_bits 说"有投递消息/定时器/鼠标移动"，changed_bits 已被 `GetQueueStatus(0x160)` 的 `clear_bits` 清成 0**。
+7. ⚠️ **冻结期零 `peek-*` 行（没有任何 PeekMessage/GetMessage 调用）——但正对照没做成**：
+   在独立前缀跑 `wine64 notepad` 时窗口没建起来（`xdotool search --class notepad` 空），
+   所以"零 peek"只能标为**待证**，不能当结论（写法错误的探针会给出同样的零）。**下一轮第一件事就是补这个正对照。**
