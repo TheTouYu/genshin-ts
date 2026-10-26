@@ -9,7 +9,7 @@
 #
 # 判据（三条全过才算 owner，任何一条取不到读数也判"不是"）：
 #   ① 目标窗（默认 yuanshen.exe）在当前窗口表里带 ACTIVE；
-#   ② 该窗的 `ds` 含 `cur`（KWin 会 unmaps 别的桌面上的窗口 ⇒ 注入全部丢失）；
+#   ② 该窗的 `ds` 含 `cur`（别桌面上的窗口拿不到输入 ⇒ 注入全部丢失；ds 空/4294967295=所有桌面）；
 #   ③ （可选 --require-visible）ys-capture status 的 visible==1，即抓帧通道看到的是可见窗。
 #
 # 用法（注入类工具在**每次**注入前调；返回非零就别注入）：
@@ -18,6 +18,8 @@
 #   ys-own --require-visible     # 额外要求帧可见（闭环保真帧时用）
 #   ys-own --attrib-file F       # 夹具：用文件替代 ys-wins --attrib（自测/注入用例）
 # 退出码：0=是我  4=不是我（附具体哪条不过）  2=用法
+#        5=**读数不可用**（窗口表空/rc≠0 ⇒ 不可判定）——2026-10-26：空结果绝不当"没有窗口"，
+#          也不许写进缓存（旧版"空 + 5s 缓存"让下游把不可判定读成"没窗口"）。
 set -u
 HERE="$(dirname "$(readlink -f "$0")")"
 . "$HERE/ys-env.sh" >/dev/null 2>&1 || true
@@ -41,17 +43,38 @@ done
 if [ -n "$ATTRIB_FILE" ]; then
   [ -r "$ATTRIB_FILE" ] || { echo "[ys-own] 读不到夹具：$ATTRIB_FILE" >&2; exit 2; }
   ATTRIB=$(cat "$ATTRIB_FILE")
+  # 空夹具 = 不可判定（不是"没有窗口"）：0 行窗口表既可能是"真没有窗"，也可能是"通道坏了"，
+  # 两者分不开 ⇒ 一律 fail-closed（2026-10-26 用户令）。
+  if [ -z "$(printf '%s' "$ATTRIB" | tr -d '[:space:]')" ]; then
+    echo "[ys-own] 夹具为空（$ATTRIB_FILE）：0 行窗口表 = 不可判定，不是「没有窗口」⇒ 拒绝注入" >&2
+    exit 5
+  fi
 else
-  # 2026-10-23：attrib 走 KWin 脚本，实测 **1004ms/次** —— 每步注入都付一次就把 6 步/s 的预算吃光。
+  # 2026-10-23：attrib 实测 **1004ms/次**（KWin 时代）—— 每步注入都付一次就把预算吃光。
   # 缓存 MAX_AGE 秒（缺省 5s）；焦点/桌面变化由 ys-session 记账，出错会立刻被下一条判据抓到。
+  # 2026-10-26：**空结果不许进缓存**。ys-wins 空输出已改 rc=3，但旧版缓存文件可能残留空内容；
+  #   "空 + 新鲜" 曾被下游读成"没有窗口"⇒ DESKTOP_HIDDEN/焦点判据静默失效。
   CACHE="${TMPDIR:-/tmp}/.ys-own-attrib"
   if [ "$NO_CACHE" != "1" ] && [ -s "$CACHE" ]; then
     AGE=$(( $(date +%s) - $(stat -c %Y "$CACHE" 2>/dev/null || echo 0) ))
-    if [ "$AGE" -le "$MAX_AGE" ]; then ATTRIB=$(cat "$CACHE"); fi
+    if [ "$AGE" -le "$MAX_AGE" ]; then
+      CACHED=$(cat "$CACHE")
+      case "$CACHED" in
+        \[*) ATTRIB="$CACHED" ;;            # 只认"以 [ 开头的窗口行"；其余当缓存损坏
+        *)   rm -f "$CACHE" ;;              # 空/半截缓存 ⇒ 丢掉重读
+      esac
+    fi
   fi
   if [ -z "${ATTRIB:-}" ]; then
-    ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null) || { echo "[ys-own] ys-wins --attrib 失败" >&2; exit 4; }
-    printf '%s' "$ATTRIB" > "$CACHE" 2>/dev/null || true
+    ATTRIB=$("$HERE/ys-wins" --attrib 2>/dev/null); WRC=$?
+    # 空输出 / rc=3（ys-wins 的"不可判定"）都**不许**当成"没有窗口"：明确报错并非零退出。
+    if [ "$WRC" -ne 0 ] || [ -z "$(printf '%s' "$ATTRIB" | tr -d '[:space:]')" ]; then
+      rm -f "$CACHE"
+      echo "[ys-own] 窗口表读数不可用（ys-wins --attrib rc=$WRC，非空行 $([ -n "${ATTRIB:-}" ] && echo 有 || echo 无)）⇒ 不可判定，拒绝注入" >&2
+      echo "[ys-own] 排障：$HERE/ys-wins --attrib ；或 YS_WINS_BACKEND=ewmh" >&2
+      exit 5
+    fi
+    printf '%s' "$ATTRIB" > "$CACHE" 2>/dev/null || true   # 只缓存非空结果
   fi
 fi
 

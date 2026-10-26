@@ -1,6 +1,8 @@
 #!/bin/bash
 # ys-shot <窗口id> <输出.png>        —— 指定 X11 窗口 id（先校验存在再截图）
-# ys-shot -t <标题子串> <输出.png>   —— 按标题：经 KWin 取几何 → 截屏幕区域（逻辑坐标 ×1.5 = 物理）
+# ys-shot -t <标题子串> <输出.png>   —— 按标题：经 ys-kwin-geo（EWMH）取几何 → 截屏幕区域
+#                                        （2026-10-26：ys-kwin-geo 已改读 EWMH = **物理**坐标，
+#                                         故这里**不再 ×1.5**；旧 KWin 逻辑坐标才需要换算）
 # ys-shot -r x y w h <输出.png>      —— 直接截物理坐标区域
 #
 # 为什么要有它（2026-10-17 事故）：`import -silent -window $(...)` 的子命令一旦失败就展开成空参，
@@ -23,8 +25,7 @@ case "$MODE" in
     T="${1:?缺标题子串}"; OUT="${2:?缺输出文件}"
     geo=$(timeout 8 "$(dirname "$0")/ys-kwin-geo" 2>/dev/null | awk -v q="$T" 'index($0,q){print $1,$2,$3,$4; exit}')
     [ -n "$geo" ] || { echo "[ys-shot] 未找到标题含 '$T' 的窗口——拒绝截图" >&2; exit 3; }
-    set -- $geo; X=$(awk -v v="$1" 'BEGIN{printf "%d", v*1.5}'); Y=$(awk -v v="$2" 'BEGIN{printf "%d", v*1.5}')
-    W=$(awk -v v="$3" 'BEGIN{printf "%d", v*1.5}'); H=$(awk -v v="$4" 'BEGIN{printf "%d", v*1.5}')
+    set -- $geo; X="$1"; Y="$2"; W="$3"; H="$4"   # EWMH 几何已是物理像素（见 ys-kwin-geo 头注释）
     import -silent -window root -crop "${W}x${H}+${X}+${Y}" +repage "$OUT" 2>/dev/null || { echo "[ys-shot] 区域截图失败" >&2; exit 4; } ;;
   -r)
     X="${1:?}"; Y="${2:?}"; W="${3:?}"; H="${4:?}"; OUT="${5:?缺输出文件}"

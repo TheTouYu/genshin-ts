@@ -1,37 +1,79 @@
 #!/usr/bin/env python3
-"""ys-follow-win — 把「当前虚拟桌面」切到目标窗口所在桌面（KWin 权威通道）。
+"""ys-follow-win — 把「当前虚拟桌面」切到目标窗口所在桌面（**X11/EWMH 通道**）。
 
 为什么需要（2026-10-20 实测）：
-  · 原神窗口在 KWin 的**另一个虚拟桌面**上时，`ys-capture latest` 直接 fail-closed 报
+  · 目标窗口在**另一个虚拟桌面**上时，`ys-capture latest` 直接 fail-closed 报
     `OTHER_DESKTOP`（守卫是对的：拿不到可信帧就不给）。旧做法是**回去问用户切桌面** ——
     这是把系统能力缺口转嫁给用户，与 AGI 目标相反。
-  · EWMH `_NET_WM_DESKTOP` 在这台机器上**不可信**（报 0 而 KWin 报别的桌面，见 D34），
-    所以必须走 KWin Scripting 读 `windowList()[].desktop`。
+
+2026-10-26 GNOME 51.1 + Wayland 适配（`org.kde.KWin` 总线**不存在**）：
+  · 读数：`_NET_WM_DESKTOP`（窗口所在桌面）/ `_NET_CURRENT_DESKTOP`（当前桌面）/
+    `_NET_NUMBER_OF_DESKTOPS`（桌面数）——全部经 `ys_attrib` 的 `_stacking/_xprop_win/_xprop_root`
+    复用实现，不写第五份。
+  · 切换：`/usr/bin/wmctrl -s N`（**绝对路径**绕开 `tools/ys-editor/shims/wmctrl`）+ rc 检查 +
+    回读 `_NET_CURRENT_DESKTOP` 复验；切不动就非零退出（不冒充"已切"）。
+  · 桌面数**只认 EWMH**：本机 EWMH=2 而 `gsettings get … num-workspaces` = 4，读 gsettings 会
+    拿一个不存在的桌面号去切（静默失败）。
+  · 旧版"EWMH `_NET_WM_DESKTOP` 不可信（报 0 而 KWin 报别的桌面，见 D34）"的结论**在 KWin 时代**
+    成立；换成 mutter 后 EWMH 就是唯一权威源，此时再走 KWin 脚本只会得到空读数。
 
 用法：
   ys-follow-win yuanshen.exe          # 切到该窗口所在桌面（已在则 no-op）
-  ys-follow-win yuanshen.exe --dry    # 只报窗口在哪个桌面，不切换
+  ys-follow-win yuanshen.exe --dry    # 只报窗口在哪个桌面，不切换（**零窗口操作**）
 
-退出码：0 已在该桌面/切换成功｜2 找不到窗口｜3 KWin Scripting 不可用
+退出码：0 已在该桌面/切换成功｜2 找不到窗口｜3 EWMH 读不可用｜7 未获桌面切换授权
+        ｜8 判不出目标桌面｜9 切换未生效（wmctrl rc≠0 或回读不一致）
 """
-import os
 import json
+import os
 import subprocess
 import sys
-import tempfile
-import time
 
-TAG_PREFIX = "ys-follow-win"
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_env                                   # noqa: E402  X 会话环境唯一入口
+import ys_attrib as A                           # noqa: E402  _stacking/_xprop_win/_xprop_root 复用
+
+ALL_DESKTOPS = 4294967295                       # EWMH：窗口出现在所有桌面
+# 切换器路径：绝对路径**绕开** tools/ys-editor/shims/wmctrl（shim 只放行白名单子命令）；
+# 测试夹具可用 YS_WMCTRL 指向假二进制（只影响切换动作，不影响读数）。
+WMCTRL = os.environ.get("YS_WMCTRL") or "/usr/bin/wmctrl"
 
 
-def _run(cmd, timeout=15):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+def ewmh_desktops():
+    """(目标窗记录, 当前桌面, 桌面数)；读不到关键项返回 None 项。"""
+    cur = A._xprop_root("_NET_CURRENT_DESKTOP")
+    ndesk = A._xprop_root("_NET_NUMBER_OF_DESKTOPS")
+    return cur, ndesk
 
 
-def _gdbus(method, *args):
-    return _run(["gdbus", "call", "--session", "--dest", "org.kde.KWin",
-                 "--object-path", "/Scripting",
-                 "--method", f"org.kde.kwin.Scripting.{method}", *args])
+def find_window(cls):
+    """在 EWMH 栈表里按 WM_CLASS 找目标窗（从栈顶往下，取最上面那个）。"""
+    stack = A._stacking()
+    if not stack:
+        return None, 3                          # 栈表读不到 = 不可判定
+    want = cls.lower()
+    for wid in reversed(stack):
+        w = A._xprop_win(wid)
+        if w and want and want in (w.get("class") or "").lower():
+            return w, 0
+    return None, 2
+
+
+def switch_desktop(n):
+    """`/usr/bin/wmctrl -s n` + rc 检查 + 回读复验。返回 (ok, detail)。"""
+    try:
+        r = subprocess.run([WMCTRL, "-s", str(n)], capture_output=True,
+                           text=True, timeout=10, env=ys_env.env())
+    except Exception as e:                                  # noqa: BLE001
+        return False, f"wmctrl 启动失败：{type(e).__name__}: {e}"
+    if r.returncode != 0:
+        return False, "wmctrl -s %d rc=%d err=%s" % (n, r.returncode,
+                                                    (r.stderr or "").strip()[:160])
+    after = A._xprop_root("_NET_CURRENT_DESKTOP")
+    if after != n:
+        return False, "切换后回读 _NET_CURRENT_DESKTOP=%s（目标 %d）" % (after, n)
+    return True, "now=%d" % after
 
 
 def main():
@@ -40,9 +82,8 @@ def main():
     # 2026-10-21 复盘：真机会话里代理在**没问用户**的情况下 65s 就切走了用户的虚拟桌面，
     # 用户 177s 才发现。切桌面是比点击更重的动作（用户眼前整屏被换掉），必须单独授权。
     if not dry:
-        grant_ok = subprocess.run([os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                "ys-screen-grant"), "status"],
-                                  capture_output=True).returncode == 0
+        grant_ok = subprocess.run([os.path.join(HERE, "ys-screen-grant"), "status"],
+                                  capture_output=True, env=ys_env.env()).returncode == 0
         if not (grant_ok and os.environ.get("YS_ALLOW_DESKTOP_SWITCH") == "1"):
             print(json.dumps({"ok": False, "error": "DESKTOP_SWITCH_NOT_APPROVED",
                               "detail": "切虚拟桌面要单独授权：先向用户申请，并显式设置 "
@@ -54,82 +95,59 @@ def main():
         return 2
     cls = args[0]
 
-    # KWin 脚本：读窗口桌面并（非 dry 时）切过去；结果用 print 落 journal
-    js = f'''
-const cls = "{cls}";
-const dry = {"true" if dry else "false"};
-let wins = [];
-try {{ wins = workspace.windowList(); }} catch (e) {{ wins = workspace.clientList(); }}
-let target = null;
-for (let i = 0; i < wins.length; i++) {{
-    const w = wins[i];
-    const rc = (w.resourceClass || "").toString();
-    if (rc === cls) {{ target = w; break; }}
-}}
-if (!target) {{ print("FOLLOWWIN notfound"); }}
-else {{
-    // 2026-10-21 真机实证：X11 窗口 _NET_WM_DESKTOP=3，但 KWin 的 w.desktop 为 null
-    // （老 API 语义下 null = "在所有桌面"），旧代码据此打印 already 并**从不切桌面**，
-    // 而下游 look 用 attrib 的 cur= 判归属 ⇒ 会话报 success、感知层报 OTHER_DESKTOP，两边打架。
-    // 退到 desktops[] 列表取第一个真实桌面；仍判不出就 fail-closed，不再冒充 already。
-    let d = target.desktop;
-    let src = "desktop";
-    if (!d && target.desktops && target.desktops.length > 0) {{ d = target.desktops[0]; src = "desktops[0]"; }}
-    const cur = workspace.currentDesktop;
-    print("FOLLOWWIN found desktop=" + (d ? d.id : "unknown") + " src=" + src + " current=" + cur.id);
-    if (!dry) {{
-        if (!d) {{
-            print("FOLLOWWIN nodekstop");   // 判不出在哪张桌面：宁可报错，不冒充成功
-        }} else if (d.id !== cur.id) {{
-            workspace.currentDesktop = d;
-            const after = workspace.currentDesktop;
-            print("FOLLOWWIN switched to " + d.id + " now=" + after.id + (after.id === d.id ? " verified" : " MISMATCH"));
-        }} else {{
-            print("FOLLOWWIN already");
-        }}
-    }}
-}}
-'''
-    fd, path = tempfile.mkstemp(suffix=".js", prefix="ysfollow-")
-    with os.fdopen(fd, "w") as f:
-        f.write(js)
-    tag = f"{TAG_PREFIX}-{int(time.time()*1000)}"
-    try:
-        r = _gdbus("loadScript", path, tag)
-        if r.returncode != 0 or "Error" in (r.stderr or ""):
-            print(f"[ys-follow-win] KWin Scripting 不可用：{(r.stderr or '').strip()[:160]}", file=sys.stderr)
+    cur, ndesk = ewmh_desktops()
+    if cur is None:
+        print("[ys-follow-win] EWMH 读不到 _NET_CURRENT_DESKTOP（X/WM 不可用）——不可判定",
+              file=sys.stderr)
+        return 3
+
+    win, rc = find_window(cls)
+    if rc != 0:
+        if rc == 3:
+            print("[ys-follow-win] EWMH 读不到窗口栈表（不可判定，不是「没有窗口」）",
+                  file=sys.stderr)
             return 3
-        _gdbus("start")
-        time.sleep(0.6)
-        j = _run(["journalctl", "--user", "--since", "5 seconds ago", "--no-pager"], timeout=15)
-        lines = [ln for ln in (j.stdout or "").splitlines() if "FOLLOWWIN" in ln]
-        for ln in lines:
-            print("[ys-follow-win]", ln.split("FOLLOWWIN", 1)[1].strip())
-        if any("notfound" in ln for ln in lines):
-            return 2
-        # fail-closed：判不出桌面（nodekstop）或切换后回读不一致（MISMATCH）都不许返回 0，
-        # 否则上游（ys-session）会把"没切"记成"已切"。
-        if any("nodekstop" in ln for ln in lines):
-            return 8
-        if any("MISMATCH" in ln for ln in lines):
-            return 9
-        # 2026-10-21 事故回灌：抬窗/切桌面**必须登记所有权**。否则会话的 released 闩锁
-        # 仍为 True，ys-focus-guard 开头 `if s.get("released"): return 0` ⇒ 没人负责
-        # 把屏幕收回，画面会一直停在游戏上（真机实测 21:30:52 切过去后无人交还）。
-        try:
-            subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                         "ys-session"),
-                            "claim", "--reason", "follow-win"],
-                           capture_output=True, timeout=15)
-        except Exception:                                    # noqa: BLE001
-            pass
+        print("[ys-follow-win] 找不到 WM_CLASS≈%r 的窗口" % cls, file=sys.stderr)
+        return 2
+
+    ds = win.get("desktop")
+    print("[ys-follow-win] found win=%s class=%s desktop=%s current=%s ndesk=%s src=ewmh"
+          % (win.get("id"), win.get("class"), ds, cur, ndesk))
+    if ds is None:
+        print("[ys-follow-win] 判不出窗口所在桌面（_NET_WM_DESKTOP 不可读）——不冒充 already",
+              file=sys.stderr)
+        return 8
+    if ndesk is not None and ds != ALL_DESKTOPS and not (0 <= ds < ndesk):
+        print("[ys-follow-win] 窗口桌面号 %s 超出 EWMH 桌面数 %s（读数矛盾）" % (ds, ndesk),
+              file=sys.stderr)
+        return 8
+
+    if ds == ALL_DESKTOPS:
+        print("[ys-follow-win] already（窗口在所有桌面可见，不需要切）")
+        ds = cur
+    if dry:
+        print("[ys-follow-win] dry：窗口在桌面 %s，当前 %s %s"
+              % (ds, cur, "（需切换）" if ds != cur else "（已在该桌面）"))
         return 0
-    finally:
-        _gdbus("unloadScript", tag)
-        try:
-            os.unlink(path)
-        except OSError:
-            pass
+
+    if ds != cur:
+        ok, detail = switch_desktop(ds)
+        if not ok:
+            print("[ys-follow-win] 切桌面失败（未生效，不冒充成功）：%s" % detail, file=sys.stderr)
+            return 9
+        print("[ys-follow-win] switched to %d %s" % (ds, detail))
+    else:
+        print("[ys-follow-win] already")
+
+    # 2026-10-21 事故回灌：抬窗/切桌面**必须登记所有权**。否则会话的 released 闩锁仍为 True，
+    # ys-focus-guard 开头 `if s.get("released"): return 0` ⇒ 没人负责把屏幕收回，画面会一直停在游戏上。
+    try:
+        subprocess.run([sys.executable, os.path.join(HERE, "ys-session"),
+                        "claim", "--reason", "follow-win"],
+                       capture_output=True, timeout=15, env=ys_env.env())
+    except Exception:                                        # noqa: BLE001
+        pass
+    return 0
 
 
 if __name__ == "__main__":

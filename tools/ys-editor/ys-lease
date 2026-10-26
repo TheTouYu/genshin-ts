@@ -235,12 +235,24 @@ def _state_ewmh(timeout=5.0):
         g = geo.get(wid)
         if not g:
             continue
+        # 2026-10-26：这三项原先是**常量**（min=0 / 无 pid）或恒 -1（desktop），
+        # 于是"最小化窗被当成可见""按 pid 匹配的分支永不命中""桌面判据恒真/恒假"
+        # （队友在 ys-session 里踩到过：每次 begin 白跑一趟切桌面）。
+        # 一次 xprop 全量读回，别逐属性起进程。实测 mutter 最小化会置 _NET_WM_STATE_HIDDEN。
+        allp = q(["xprop", "-id", wid])
+        mn = 1 if "_NET_WM_STATE_HIDDEN" in allp else 0
+        mds = re.search(r"_NET_WM_DESKTOP\(CARDINAL\) = (\d+)", allp)
+        mpid = re.search(r"_NET_WM_PID\(CARDINAL\) = (\d+)", allp)
         wins.append({"i": i, "id": wid, "c": g["c"], "cls": g["cls"],
                      "x": g["x"], "y": g["y"], "w": g["w"], "h": g["h"],
-                     "min": 0, "active": 1 if wid == act else 0})
+                     "min": mn, "pid": int(mpid.group(1)) if mpid else 0,
+                     "ds": int(mds.group(1)) if mds else None,
+                     "active": 1 if wid == act else 0})
     if not wins:
         return None
-    state = {"active": act, "desktop": -1, "wins": wins, "source": "ewmh", "active_proxy": proxy}
+    mcur = re.search(r"= (\d+)", q(["xprop", "-root", "_NET_CURRENT_DESKTOP"]))
+    state = {"active": act, "desktop": int(mcur.group(1)) if mcur else -1,
+             "wins": wins, "source": "ewmh", "active_proxy": proxy}
     state["active_window"] = next((w for w in wins if w["id"] == act), None)
     return state
 
@@ -326,6 +338,9 @@ def _record(w):
         "class": w.get("cls") or w.get("class") or "",
         "geom": geom,
         "index": w.get("i", w.get("index")),
+        # 2026-10-26：最小化/桌面也要透出（原先只有 index/usable，调用方拿不到"这窗是不是隐藏的"）
+        "min": int(w.get("min") or 0),
+        "desktop": w.get("ds", w.get("desktop")),
         "usable": not _is_unusable(w),
     }
 

@@ -36,7 +36,8 @@ import uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEASES = os.environ.get("YS_LEASE_BIN") or os.path.join(HERE, "ys-lease")
 GRANT = os.path.join(HERE, "ys-screen-grant")
-WINS = os.path.join(HERE, "ys-wins")
+# 2026-10-26：不再调 `ys-wins --attrib` 取桌面（空文本曾冒充"桌面 0"）；桌面维度统一读 EWMH
+# （`ys_attrib._xprop_win/_xprop_root`），见 cur_desktop / window_desktop / attr_desktops。
 DEFAULT_PATH = os.path.expanduser("~/.ys/session.json")
 # 本机 X11 会话是 :1（systemd 服务同值）；缺 DISPLAY 时 xdotool 解析窗口会返回空，
 # 表现为 RESOLVE_FAILED/TARGET_NOT_FOUND（2026-10-21 真机第一次 W2 的实际死因）。
@@ -85,22 +86,71 @@ def lease(args, timeout=60):
     return d
 
 
-def window_desktop(classes=("yuanshen",)):
-    """从 ys-wins --attrib 读游戏窗所在虚拟桌面号（ds=）；读不到返回 None。
+ALL_DESKTOPS = 4294967295          # EWMH：窗口出现在所有桌面（ds 语义里等同"不限定"）
+YSM_ATOP = os.path.join(HERE, "ys-atop")
 
-    为什么不从 ys-lease kwin-state 取：它的窗口记录没有 per-window desktop 字段。
+
+def _attrib():
+    """取 `ys_attrib` 模块（EWMH 读数唯一实现，复用 `_stacking/_xprop_win/_xprop_root`）。
+
+    2026-10-26 GNOME 适配：桌面维度**不再解析 `ys-wins --attrib` 文本行**——那份文本在无 KWin 的
+    桌面上曾是"空 + rc=0"，而空值被下游当成"窗口在桌面 0/不限定桌面"⇒ 桌面归属判据静默失效。
+    现在直接读 EWMH 属性（ds=`_NET_WM_DESKTOP`，cur=`_NET_CURRENT_DESKTOP`）。
+    导入失败/读不到 → 返回 None（调用方必须按"不可判定"处理，不许当 0）。
     """
     try:
-        r = subprocess.run([WINS, "--attrib"], capture_output=True, text=True, timeout=20)
+        if HERE not in sys.path:
+            sys.path.insert(0, HERE)
+        import ys_attrib as _A
+        return _A
     except Exception:                                        # noqa: BLE001
         return None
-    for line in (r.stdout or "").splitlines():
-        low = line.lower()
-        if not any(c in low for c in classes):
+
+
+def ewmh_window(cls_substrs):
+    """按 WM_CLASS 子串在 EWMH 栈表里找窗口（栈顶优先）；返回 (记录, A) 或 (None, A)。"""
+    A = _attrib()
+    if A is None:
+        return None, None
+    stack = A._stacking()
+    if not stack:
+        return None, A
+    for wid in reversed(stack):
+        w = A._xprop_win(wid)
+        if not w:
             continue
-        m = re.search(r"\bds=(\d+)", line)
-        if m:
-            return int(m.group(1))
+        low = (w.get("class") or "").lower()
+        if any(c and c in low for c in cls_substrs):
+            return w, A
+    return None, A
+
+
+def cur_desktop():
+    """当前虚拟桌面（EWMH `_NET_CURRENT_DESKTOP`）；读不到返回 None。
+
+    2026-10-26：不再用 ys-lease `kwin-state` 的 desktop 字段——EWMH 后端里它**硬编码 -1**
+    （`_state_ewmh` 的已知空洞），把它当"当前桌面"会让"桌面已归还/无需切换"这类判据恒真
+    （实测：`gd != st.get("desktop")` 在 ds=0/-1 时永远成立 ⇒ 每次都白跑一趟切桌面）。
+    """
+    A = _attrib()
+    if A is None:
+        return None
+    return A._xprop_root("_NET_CURRENT_DESKTOP")
+
+
+def window_desktop(classes=("yuanshen",)):
+    """读窗口所在虚拟桌面号（EWMH `_NET_WM_DESKTOP`）；读不到返回 None。
+
+    为什么不从 ys-lease kwin-state 取：它的窗口记录没有 per-window desktop 字段。
+    窗口在"所有桌面"（4294967295）时返回**当前桌面**——那种窗在哪个桌面都可见。
+    """
+    w, A = ewmh_window(classes)
+    if not w or w.get("desktop") is None:
+        return None
+    ds = int(w["desktop"])
+    if ds == ALL_DESKTOPS:
+        return A._xprop_root("_NET_CURRENT_DESKTOP")
+    return ds
     return None
 
 
@@ -179,7 +229,7 @@ def cmd_begin(a):
     # 回哪张桌面：以**用户窗（firefox）所在桌面**为准，而不是游戏桌面。
     # 用户手动切到游戏桌面时 current=3，但交还目标是 firefox 的 ds=2。
     fds = window_desktop(("firefox",))
-    sess["prev_desktop"] = fds if fds is not None else st.get("desktop")
+    sess["prev_desktop"] = fds if fds is not None else cur_desktop()
     game_cls = os.environ.get("YS_GAME_CLASS", "yuanshen.exe").lower()
 
     def pick(state):
@@ -205,8 +255,8 @@ def cmd_begin(a):
     # ⇒ **屏幕授权即含桌面借用**：只要本轮持有效凭据（begin 刚申请到），
     #   游戏在别的桌面就自动切过去，并在 end 时切回 prev_desktop（firefox 所在桌面）。
     #   不再需要单独的 YS_ALLOW_DESKTOP_SWITCH（那是给**非会话**的 follow-win 用的）。
-    gd = window_desktop(("yuanshen",))
-    if game is not None and gd is not None and gd != st.get("desktop"):
+    gd, cd = attr_desktops(("yuanshen",))
+    if game is not None and gd is not None and cd is not None and gd != cd:
         # 切桌面（会话内视为已授权），并记账
         t0 = time.time()
         fw = subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"),
@@ -226,15 +276,16 @@ def cmd_begin(a):
 
     if game is None:
         print(json.dumps({"ok": False, "error": "TARGET_NOT_FOUND",
-                          "detail": {"desktop": st.get("desktop"),
+                          "detail": {"desktop": cur_desktop(),
                                      "wins": len(st.get("wins") or [])},
-                          "next_action": "ys-wins --attrib 看游戏窗 ds=；"
+                          "next_action": "看 EWMH：xprop -root _NET_CLIENT_LIST_STACKING + "
+                                         "python3 tools/ys-editor/ys_attrib.py '<标题>'；"
                                          "会话内桌面借用已自动生效，仍找不到说明窗口已关闭"}, ensure_ascii=False))
         subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True, timeout=20)
         return 3
     sess["target"] = game
     rs = lease(["kwin-raise", "--id", game["internalId"]])
-    sess["desktop_after_raise"] = lease(["kwin-state"]).get("desktop")
+    sess["desktop_after_raise"] = cur_desktop()
     if not rs.get("ok"):
         print(json.dumps({"ok": False, "error": "RAISE_FAILED", "detail": rs,
                           "next_action": "先确认游戏窗存在且可激活"}, ensure_ascii=False))
@@ -395,16 +446,16 @@ def cmd_end(a):
         res["restore"] = rs
         # 桌面也回到开始那张（用户令：三件交还判据含 current desktop）
         try:
-            st2 = lease(["kwin-state"])
             prev_ds = cur.get("prev_desktop")
-            res["desktop_after_restore"] = st2.get("desktop")
-            if prev_ds is not None and st2.get("desktop") != prev_ds:
+            now_ds = cur_desktop()          # EWMH；kwin-state 的 desktop 在 EWMH 后端恒 -1
+            res["desktop_after_restore"] = now_ds
+            if prev_ds is not None and now_ds is not None and now_ds != prev_ds:
                 fw = subprocess.run([sys.executable, os.path.join(HERE, "ys-follow-win"), "firefox"],
                                     capture_output=True, text=True, timeout=40,
                                     env=dict(os.environ, YS_ALLOW_DESKTOP_SWITCH="1"))
                 res["desktop_restore"] = {"rc": fw.returncode,
                                           "out": (fw.stdout or "")[-300:],
-                                          "desktop": lease(["kwin-state"]).get("desktop")}
+                                          "desktop": cur_desktop()}
         except Exception as exc:                             # noqa: BLE001
             res["desktop_restore"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         g = subprocess.run([sys.executable, GRANT, "revoke"], capture_output=True, text=True,
@@ -421,13 +472,13 @@ def cmd_end(a):
                              if "yuanshen" in str(w.get("class") or "").lower()), None)
             res["handback"] = {
                 "active_class": act.get("class"), "active_idx": act.get("index"),
-                "game_idx": game_idx, "desktop": st3.get("desktop"),
+                "game_idx": game_idx, "desktop": cur_desktop(),
                 "desktop_prev": cur.get("prev_desktop")}
             _exp_cls = _expected_handback_class(rs, cur)
             ok_hb = (str(act.get("class") or "").lower() == _exp_cls
                      and game_idx is not None and act.get("index") is not None
                      and int(act["index"]) > int(game_idx)
-                     and st3.get("desktop") == cur.get("prev_desktop"))
+                     and cur_desktop() == cur.get("prev_desktop"))
             res["handback_ok"] = bool(ok_hb)
             if not ok_hb:
                 res["ok"] = False
@@ -446,43 +497,48 @@ def cmd_end(a):
 
 
 def attr_desktops(classes=("yuanshen",)):
-    """从 `ys-wins --attrib` 同时读**窗口所在桌面 ds=** 与**当前桌面 cur=**（同一行、同一权威源）。
+    """读 (窗口所在桌面 ds, 当前桌面 cur)——**EWMH 双读数**（`_NET_WM_DESKTOP` /
+    `_NET_CURRENT_DESKTOP`，同一权威源 `ys_attrib`）。
 
     为什么不能用 kwin-state 的 desktop 字段：2026-10-21 实测它会与真实当前桌面不一致
-    （kwin-state 说 3，抓帧守护与 ys-wins 都说 2）⇒ focus 据此判断"不用切桌面"，
+    （kwin-state 说 3，抓帧守护与真实桌面都说 2）⇒ focus 据此判断"不用切桌面"，
     于是抬了个在别的桌面上的窗口，读屏/抓帧照样被拒。
+    2026-10-26：数据源从 `ys-wins --attrib` 的文本行换成 EWMH 属性（空文本曾冒充"桌面 0"）；
+    窗口在"所有桌面"时 ds 归一成 cur（那种窗在哪都可见，不该触发切桌面）。
     """
-    try:
-        r = subprocess.run([WINS, "--attrib"], capture_output=True, text=True, timeout=20)
-    except Exception:                                        # noqa: BLE001
+    w, A = ewmh_window(classes)
+    if A is None:
         return None, None
-    for line in (r.stdout or "").splitlines():
-        low = line.lower()
-        if not any(c in low for c in classes):
-            continue
-        ds = re.search(r"\bds=(\d+)", line)
-        cur = re.search(r"\bcur=(\d+)", low)
-        return (int(ds.group(1)) if ds else None, int(cur.group(1)) if cur else None)
-    return None, None
+    cur = A._xprop_root("_NET_CURRENT_DESKTOP")
+    if not w or w.get("desktop") is None:
+        return None, cur
+    ds = int(w["desktop"])
+    if ds == ALL_DESKTOPS:
+        ds = cur
+    return ds, cur
 
 
 def _atop_verified(timeout=25):
-    """KWin 权威栈顶判定（~1s）：`ys-atop --json --verify` 的 verdict 是唯一判据。
+    """栈顶判定的唯一判据：`ys-atop --json` 的 verdict。
 
     为什么不能只看会话闩锁：`released=false` 只表示"我们没主动交还"，
     别的窗口随时可能盖上来（2026-10-22 实测 openless 以 idx=7 盖住 idx=6 的原神）。
+    2026-10-26：不再传 `--verify`（那走 KWin 脚本慢路径，无 KWin 的桌面上返回空 ⇒ 判定不可用），
+    默认的 EWMH 快路径已带 verdict/occluders；返回 None = 拿不到回执（调用方按不可判定处理）。
     """
+    # ⚠️ 必须**直接执行** ys-atop（bash 脚本，有 shebang）：旧写法 `[sys.executable, YSM_ATOP, ...]`
+    # 是「用 python3 跑 bash 脚本」⇒ 恒 SyntaxError ⇒ 本函数 2026-10-21 起一直返回 None，
+    # 快路径永不命中、`at2` 复核恒放行（两级判据同时静默失效）。
     try:
-        r = subprocess.run([sys.executable, os.path.join(HERE, "ys-atop"), "--json", "--verify"],
+        r = subprocess.run([YSM_ATOP, "--json"],
                            capture_output=True, text=True, timeout=timeout)
     except Exception:                                        # noqa: BLE001
         return None
     for line in reversed((r.stdout or "").strip().splitlines()):
         try:
-            d = json.loads(line)
+            return json.loads(line)
         except Exception:                                    # noqa: BLE001
             continue
-        return d
     return None
 
 

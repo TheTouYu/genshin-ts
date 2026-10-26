@@ -1,17 +1,47 @@
 #!/bin/bash
-# ys-kwin-geo — 列出 KWin 眼中所有窗口（逻辑坐标 + 标题），X11 几何不可信时的权威几何
-# 输出: <x> <y> <w> <h> <caption>
+# ys-kwin-geo — 列出窗口几何 + 标题（**X11/EWMH 通道**；2026-10-26 GNOME 适配）
+#
+# 输出: 每行 `<x> <y> <w> <h> <caption>`（栈序 底→顶，最多 12 行）
+# 退出码: 0 有输出 / 3 **读不到**（EWMH 不可用或零窗口）—— 禁止「空输出 + rc=0」
+#
+# ⚠️ 坐标系变更（2026-10-26，下游必读）：旧实现读 KWin `frameGeometry`=**逻辑**坐标
+#   （本机 1707×960，×1.5 才是物理 2560×1440）；现在读 EWMH/`xdotool getwindowgeometry`
+#   =**物理**坐标，与截图 / xdotool / `ys-pointer-click` 同一空间。**下游不许再乘 1.5**
+#   （`ys-shot -t` 曾如此，已同批改）。
+# 已知盲区：EWMH 只看得见 X11/XWayland 窗，Wayland 原生窗不在栈表里（不是"没有窗口"）。
 set -u
-JS=/tmp/ys-kwin-geo.js
-cat > "$JS" << 'JS'
-var list = workspace.windowList();
-for (var i = 0; i < list.length; i++) {
-  var w = list[i], g = w.frameGeometry;
-  if (g.width < 40 || g.height < 40) continue;
-  console.info("YS-GEO " + Math.round(g.x) + " " + Math.round(g.y) + " " + Math.round(g.width) + " " + Math.round(g.height) + " " + String(w.caption||"(无名)"));
-}
-JS
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "ysgeo$RANDOM" >/dev/null 2>&1
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-sleep 0.6
-journalctl --user --since "2 seconds ago" 2>/dev/null | grep -o "YS-GEO [-0-9]* [-0-9]* [-0-9]* [-0-9]* .*" | sed 's/^YS-GEO //' | tail -12
+HERE="$(cd "$(dirname "$0")" && pwd)"
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+
+OUT=$(python3 - "$HERE" <<'PY'
+import sys
+
+sys.path.insert(0, sys.argv[1])
+import ys_env            # noqa: E402  X 会话环境唯一入口（ys_attrib 内部走它）
+import ys_attrib as A    # noqa: E402  复用 _stacking/_xprop_win/_geometry，不写第五份
+_ = ys_env
+
+stack = A._stacking()
+if not stack:
+    sys.exit(3)                          # 读不到栈表 = 不可判定（不是"没有窗口"）
+rows = []
+for wid in stack:                        # 底→顶
+    w = A._xprop_win(wid)
+    g = A._geometry(wid)
+    if not w or not g:
+        continue
+    if g[2] < 40 or g[3] < 40:           # 跳过装饰/1×1 幽灵窗（沿用旧阈值 40）
+        continue
+    rows.append("%d %d %d %d %s" % (g[0], g[1], g[2], g[3],
+                                    (w.get("caption") or "(无名)").replace("\n", " ")))
+if not rows:
+    sys.exit(3)
+print("\n".join(rows[-12:]))
+PY
+)
+RC=$?
+if [ "$RC" -ne 0 ] || [ -z "${OUT:-}" ]; then
+  echo "[ys-kwin-geo] 读不到窗口几何（EWMH 不可用或零窗口）rc=$RC" >&2
+  exit 3
+fi
+printf '%s\n' "$OUT"

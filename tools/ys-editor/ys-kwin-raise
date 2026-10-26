@@ -1,38 +1,114 @@
 #!/bin/bash
-# ys-kwin-raise <标题子串> — 把窗口**提到堆叠最上层 + 激活**（wmctrl 对 Wine 窗会静默失败，D136）
+# ys-kwin-raise <标题子串|WM_CLASS> — 把窗口**提到堆叠最上层 + 激活**（保留命令名，实现换成 EWMH）。
 #
-# 为什么不能只设 activeWindow（2026-10-17 实证）：`workspace.activeWindow = t` 只改焦点、**不改堆叠顺序**——
-# 于是"激活成功"后窗口仍在别的窗口下面，**鼠标点击落在压住它的那个窗口上**（本轮：点编辑器菜单却点到了 Firefox）。
-# 判据也必须双条：① activeWindow == t ② **stackingOrder 最上层 == t**（KWin 里 stackingOrder 末元素=最上层）。
+# 2026-10-26 GNOME 51.1 + Wayland 适配（`org.kde.KWin` 总线**不存在**）：
+#   旧实现走 `gdbus … /Scripting` + `sleep 0.8` + `journalctl` 捞回执 —— 无 KWin 时它
+#   **空输出且 rc=0**，调用方（ys-peek / ys-act / ys-observe / ys-switch-save …）无法检测。
+#   现在：线索（标题/class）→ **EWMH 栈表解析出窗口 id** → 转发 `ys-lease kwin-raise --id`。
+#   ys-lease 自带 EWMH 回退（`/usr/bin/wmctrl -i -a`）+ 严格验证（active==目标；active_proxy
+#   不算成功），失败 **rc=1**；本工具把它保持为非零（不吞）。
 #
-# 用法: ys-kwin-raise <标题子串>     输出 "OK active=<..> | top=<..>" / "FAIL ..."
+# 为什么不能只用裸 wmctrl（2026-10-17 实证）：只改焦点不改堆叠 ⇒ 点击落到压住它的窗上；
+#   ys-lease 验的是"焦点真的落到目标"（active_proxy 直接判失败），正是这里要的语义。
+#
+# 用法: ys-kwin-raise <线索> [--id 0x…] [--class C] [--caption T] [--pid N] [--json]
+#   成功输出 "OK active=<caption [class]>"（--json 时原样转发 ys-lease 的 JSON 一行）
+# 退出码: 0 成功 / 2 用法 / 3 线索解析不到（EWMH 不可读，或无匹配窗口） / 4 抬窗未通过验证
 set -u
-T="${1:?用法: ys-kwin-raise <标题子串>}"
-TAG="ysraise$RANDOM"
-JS="/tmp/ys-kwin-raise-$TAG.js"
-cat > "$JS" << JS
-var list = workspace.windowList(), t = null;
-for (var i = 0; i < list.length; i++) {
-  // 同时按 caption 与 WM_CLASS 匹配（2026-10-17 加）：
-  // 只按 caption 匹配时，带破折号/空格的长标题（如 Firefox 的「X — Y — Mozilla Firefox」）
-  // 传全串会匹配失败；传 WM_CLASS（firefox / yuanshen.exe）更稳。
-  var cap = String(list[i].caption || ""), cls = String(list[i].resourceClass || "");
-  if (cap.indexOf("$T") >= 0 || cls.indexOf("$T") >= 0) { t = list[i]; break; }
-}
-if (!t) { console.info("YS-RAISE-$TAG FAIL not-found"); }
-else {
-  try { workspace.activeWindow = t; } catch (e) { console.info("YS-RAISE-$TAG ERR active:" + e); }
-  try { workspace.raiseWindow(t); } catch (e) { console.info("YS-RAISE-$TAG ERR raise:" + e); }
-  var ord = workspace.stackingOrder;
-  var top = ord.length ? ord[ord.length - 1] : null;
-  var a = workspace.activeWindow;
-  console.info("YS-RAISE-$TAG OK active=" + (a ? String(a.caption) : "NONE")
-             + " | top=" + (top ? String(top.caption) : "NONE"));
-}
-JS
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-sleep 0.8
-OUT=$(journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-RAISE-$TAG .*" | tail -1)
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1
-echo "${OUT#YS-RAISE-$TAG }"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+. "$HERE/ys-env.sh" >/dev/null 2>&1 || true
+
+WANT=""; WID=""; WCLS=""; WCAP=""; WPID=""; JSON=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --id|-i)      WID="${2:-}"; shift ;;
+    --class|-c)   WCLS="${2:-}"; shift ;;
+    --caption|-t) WCAP="${2:-}"; shift ;;
+    --pid)        WPID="${2:-}"; shift ;;
+    --json)       JSON=1 ;;
+    -h|--help)    sed -n '2,21p' "$0"; exit 0 ;;
+    --*)          echo "[ys-kwin-raise] 未知参数：$1" >&2; exit 2 ;;
+    *)            if [ -z "$WANT" ]; then WANT="$1"; else
+                    echo "[ys-kwin-raise] 多余参数：$1（只接受一个标题/class 线索）" >&2; exit 2
+                  fi ;;
+  esac
+  shift
+done
+WANT="${WANT:-${YS_WIN_TITLE:-原神}}"
+
+# ── 线索 → 窗口 id（EWMH 栈表；读不到就非零，绝不空输出 rc=0）──────────────────
+if [ -z "$WID" ]; then
+  WID=$(YS_KR_WANT="$WANT" YS_KR_CLS="$WCLS" YS_KR_CAP="$WCAP" python3 - "$HERE" <<'PY'
+import os
+import sys
+
+sys.path.insert(0, sys.argv[1])
+import ys_env            # noqa: E402  X 会话环境唯一入口（ys_attrib 内部也走它）
+import ys_attrib as A    # noqa: E402  复用 _stacking/_xprop_win，不写第五份
+_ = ys_env
+
+want = os.environ.get("YS_KR_WANT", "")
+cls = os.environ.get("YS_KR_CLS", "")
+cap = os.environ.get("YS_KR_CAP", "")
+
+stack = A._stacking()
+if not stack:
+    sys.exit(3)                # 读不到栈表 = 不可判定（不是"没有窗口"）
+
+
+def hit(w):
+    c = (w.get("class") or "").lower()
+    t = w.get("caption") or ""
+    if cls and cls.lower() in c:
+        return True
+    if cap and cap in t:
+        return True
+    return bool(want) and (want.lower() in c or want in t)
+
+
+for wid in reversed(stack):    # 从栈顶往下：同 class 有多个窗时取最上面那个
+    w = A._xprop_win(wid)
+    if w and hit(w):
+        print(wid)
+        sys.exit(0)
+sys.exit(4)                    # 栈表可读，但没有匹配
+PY
+)
+  RC=$?
+  case "$RC" in
+    0) : ;;
+    3) echo "FAIL resolve: EWMH 读不到窗口栈表（不可判定，不是「没有窗口」）" >&2; exit 3 ;;
+    4) echo "FAIL not-found: 没有 caption/WM_CLASS 含 '$WANT' 的窗口" >&2; exit 3 ;;
+    *) echo "FAIL resolve: 解析器异常 rc=$RC" >&2; exit 3 ;;
+  esac
+fi
+
+# 只解析不抬窗（自测/排障用：验证「线索→窗口 id」这一段而不动窗口）
+if [ "${YS_KR_DRY:-0}" = "1" ]; then echo "DRY id=$WID"; exit 0; fi
+
+# ── 转发 ys-lease（唯一实现；失败必然非零）──────────────────────────────────────
+set -- kwin-raise --id "$WID"
+[ -n "$WCLS" ] && set -- "$@" --class "$WCLS"
+[ -n "$WPID" ] && set -- "$@" --pid "$WPID"
+OUT=$("$HERE/ys-lease" "$@" 2>/dev/null); RC=$?
+
+printf '%s' "$OUT" | YS_KR_JSON="$JSON" YS_KR_RC="$RC" python3 -c '
+import json, os, sys
+json_mode = os.environ.get("YS_KR_JSON") == "1"
+rc = int(os.environ.get("YS_KR_RC") or 1)
+raw = sys.stdin.read().strip()
+try:
+    d = json.loads(raw.splitlines()[-1]) if raw else {}
+except Exception:
+    d = {}
+if json_mode:
+    print(raw if raw else json.dumps({"ok": False, "error": "EMPTY_LEASE_OUTPUT"},
+                                     ensure_ascii=False))
+elif d.get("ok") and rc == 0:
+    print("OK active=%s" % (d.get("active") or "?"))
+else:
+    probs = ",".join(d.get("problems") or []) or "-"
+    print("FAIL %s %s active=%s" % (d.get("error") or "RAISE_NOT_VERIFIED", probs,
+                                    d.get("active") or "none"))
+'
+exit "$RC"

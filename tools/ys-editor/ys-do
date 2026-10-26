@@ -111,38 +111,105 @@ def locate(ctrl, frame_path):
 
 
 # ── 焦点（M1）：注入前必须确认游戏在栈顶 ──────────────────────────
+# 2026-10-26 GNOME 适配：抬窗/判定**只走 ys-lease + ys-atop --json**（KWin 脚本在无 KWin 的
+# 桌面会"空输出 rc=0"，那正是"把不可判定当没有焦点"的来源）。三处都不许把空当结论：
+#   · 判定   → `ys-atop --json` 的 verdict（NOT_FOUND / 不可判定都必须显式报出来）
+#   · 抬窗   → `ys-lease kwin-raise --id <wid>`（失败必 rc≠0，且 active_proxy 不算成功）
+#   · 还原   → `ys-lease kwin-raise --class <cls>`（class 取自 kwin-state 的 active.class）
 def game_atop():
-    """用 ys-atop 判定（不能用 `ys-wins | tail -1`：那永远是 plasmashell 任务栏面板）。"""
-    r = sh([os.path.join(HERE, "ys-atop"), WIN_TITLE], timeout=40)
-    return r.returncode == 0, r.stdout.strip()
+    """返回 (是否 OK, 说明, 目标窗口 id)。用 `ys-atop --json` 的 verdict 判，不用文本行。"""
+    r = sh([os.path.join(HERE, "ys-atop"), "--json", WIN_TITLE], timeout=40)
+    d = {}
+    for ln in reversed((r.stdout or "").strip().splitlines()):
+        try:
+            d = json.loads(ln)
+            break
+        except Exception:                                    # noqa: BLE001
+            continue
+    if not d:
+        return False, f"ys-atop --json 没有 JSON 回执（rc={r.returncode}）：{(r.stderr or '').strip()[:120]}", ""
+    if not d.get("checked"):
+        # checked=false = 通道不可用（不是"没窗口"）
+        return False, f"栈顶判定不可用（{d.get('error') or d.get('detail') or 'checked=false'}）", ""
+    wid = ((d.get("window") or {}).get("id") or "")
+    verdict = d.get("verdict") or "UNKNOWN"
+    ok = verdict == "OK" and r.returncode == 0
+    return ok, ("verdict=OK" if ok else
+                f"verdict={verdict}（当前桌面 {d.get('current_desktop')}，"
+                f"目标窗 {wid or '?'}，遮挡比例 {d.get('covered_ratio')}）"), wid
+
+
+def lease_raise(**kw):
+    """转发 `ys-lease kwin-raise`；返回 (ok, 说明)。失败必非零，明说原因。"""
+    cmd = [os.path.join(HERE, "ys-lease"), "kwin-raise"]
+    for k, v in kw.items():
+        if v not in (None, ""):
+            cmd += [f"--{k}", str(v)]
+    r = sh(cmd, timeout=40)
+    d = {}
+    for ln in reversed((r.stdout or "").strip().splitlines()):
+        try:
+            d = json.loads(ln)
+            break
+        except Exception:                                    # noqa: BLE001
+            continue
+    if r.returncode == 0 and d.get("ok"):
+        return True, f"active={d.get('active')}"
+    return False, "%s %s" % (d.get("error") or f"rc={r.returncode}",
+                             ",".join(d.get("problems") or []) or
+                             (r.stderr or "").strip()[:120])
 
 
 def acquire_focus():
-    ok, _ = game_atop()
+    ok, why, wid = game_atop()
     if not ok:
-        sh([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE], timeout=40)
+        rok, rwhy = lease_raise(id=wid) if wid else (False, "没有目标窗 id（ys-atop 判不出窗口）")
+        if not rok:
+            return False, f"抬窗失败：{rwhy}；先前判定：{why}"
         time.sleep(1.0)
-        ok, line = game_atop()
+        ok, why, wid = game_atop()
         if not ok:
-            return False, line
+            return False, f"抬窗后仍不在栈顶：{why}"
     return True, ""
 
 
 def restore_focus(previous):
-    """归还原焦点。`previous` 是 ys-wins 行里的 WM_CLASS（如 firefox）——
-    ys-kwin-raise 现在同时按 caption 与 WM_CLASS 匹配，分类名比长标题稳得多。"""
-    if previous:
-        sh([os.path.join(HERE, "ys-kwin-raise"), previous], timeout=40)
+    """归还原焦点。`previous` 是 `ys-lease kwin-state` 里 active.class（如 firefox /
+    yuanshen.exe）—— ys-lease 的 `_pick` 按 class **精确小写相等**匹配，所以必须用同一个
+    字段来源，不要自己从 ys-wins 行里猜。"""
+    if not previous:
+        return
+    # 2026-10-26：Wayland 原生窗（本机 firefox）在 EWMH 栈表里不存在 ⇒ 按 class 抬窗必失败。
+    # 走 `ys-lease restore`：它在"无可用 X11 归还目标"时会用**键盘层 Alt+Tab**交还（实测有效），
+    # 这样 ys-do 的收尾对 Wayland 窗口也不再是必败路径。
+    r = sh([os.path.join(HERE, "ys-lease"), "restore", "--prev-json", "", "--fast"], timeout=30)
+    try:
+        d = json.loads((r.stdout or "").strip().splitlines()[-1])
+    except Exception:                                        # noqa: BLE001
+        d = {}
+    if d.get("ok"):
+        return
+    ok, why = lease_raise(**{"class": previous})
+    if not ok:
+        print(f"[ys-do] 焦点还原失败（{previous}）：{why}", file=sys.stderr)
 
 
 def current_focus_class():
-    """取当前焦点窗口的 WM_CLASS（还原用）。行格式：[n] 标题 | class | 几何 | 标记"""
-    r = sh([os.path.join(HERE, "ys-wins")], timeout=30)
-    for ln in r.stdout.strip().splitlines():
-        if "|ACTIVE" in ln:
-            parts = ln.split("|")
-            return parts[1].strip() if len(parts) > 1 else ""
-    return ""
+    """取当前焦点窗口的 class（还原用），来源=`ys-lease kwin-state` 的 active.class。
+
+    2026-10-26：不再解析 `ys-wins` 文本行——那份行里的 class 取 WM_CLASS 的**第一段**，
+    而 ys-lease 的 `_pick` 用**第二段**；两者在本机相同，换机器就会错位（静默还原失败）。
+    """
+    r = sh([os.path.join(HERE, "ys-lease"), "kwin-state"], timeout=30)
+    try:
+        d = json.loads((r.stdout or "").strip().splitlines()[-1])
+    except Exception:                                        # noqa: BLE001
+        return ""
+    if not d.get("ok"):
+        return ""
+    act = d.get("active") or {}
+    # `_record()` 的字段名是 class（不是 cls）；`_pick()` 匹配的正是这个值（精确小写相等）
+    return act.get("class") or act.get("cls") or ""
 
 
 # ── 注入 ──────────────────────────────────────────────────────────

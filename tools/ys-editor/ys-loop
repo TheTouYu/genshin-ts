@@ -83,12 +83,52 @@ def send_key(code):
     subprocess.run(["ydotool", "key", f"{code}:0"], env=env, capture_output=True, timeout=30)
 
 
+def _json_last(stdout):
+    for ln in reversed((stdout or "").strip().splitlines()):
+        try:
+            return json.loads(ln)
+        except Exception:                                    # noqa: BLE001
+            continue
+    return {}
+
+
+def atop():
+    """`ys-atop --json` 的 verdict（2026-10-26：不再用文本模式，也不再把空读成"没有焦点"）。
+
+    返回 (是否 OK, 说明, 目标窗 id)。checked=false ⇒ 通道不可用，同样判不 OK 并说明原因。
+    """
+    r = tool("ys-atop", "--json", WIN_TITLE, timeout=40)
+    d = _json_last(r.stdout)
+    if not d:
+        return False, f"ys-atop --json 无 JSON 回执（rc={r.returncode}）", ""
+    wid = ((d.get("window") or {}).get("id") or "")
+    if not d.get("checked"):
+        return False, "栈顶判定不可用：%s" % (d.get("error") or d.get("detail") or "checked=false"), wid
+    verdict = d.get("verdict") or "UNKNOWN"
+    ok = verdict == "OK" and r.returncode == 0
+    return ok, ("verdict=OK" if ok else f"verdict={verdict}"), wid
+
+
 def raise_game():
-    """把原神抬到栈顶并取焦点（注入前必做）。"""
-    subprocess.run([os.path.join(HERE, "ys-kwin-raise"), WIN_TITLE],
-                   capture_output=True, timeout=60,
-                   env=ys_env.env())
+    """把原神抬到栈顶并取焦点（注入前必做）：`ys-atop --json` 拿窗口 id → `ys-lease kwin-raise`。
+
+    返回 (ok, 说明)。2026-10-26：旧实现调 `ys-kwin-raise` 且**完全不看结果**（无 KWin 的桌面上
+    它空输出 rc=0）⇒ "抬过了"从来不是事实。现在失败必非零且带回原因，调用方据此中止。
+    """
+    ok, why, wid = atop()
+    if ok:
+        return True, "already atop"
+    if not wid:
+        return False, f"判不出目标窗 id（{why}）⇒ 不发抬窗命令"
+    r = subprocess.run([os.path.join(HERE, "ys-lease"), "kwin-raise", "--id", wid],
+                       capture_output=True, timeout=60, env=ys_env.env())
+    d = _json_last(r.stdout)
+    if not (r.returncode == 0 and d.get("ok")):
+        return False, "抬窗失败：%s %s" % (d.get("error") or f"rc={r.returncode}",
+                                          ",".join(d.get("problems") or []))
     time.sleep(1)
+    ok2, why2, _ = atop()
+    return (True, "raised+verified") if ok2 else (False, f"抬窗后仍不 OK：{why2}")
 
 
 def state():
@@ -144,10 +184,10 @@ def main():
     rec(event="round_start", log_before=os.path.basename(log_before or ""), gil_sha=sha_before)
     fail = None
 
-    # 焦点（M1）：整轮都在原神上跑
-    r = sh([os.path.join(HERE, "ys-kwin-raise"), os.environ.get("YS_WIN_TITLE", "原神")], timeout=60)
-    time.sleep(1)
-    if not step("focus", "OK active" in r.stdout, r.stdout.strip()[:80]):
+    # 焦点（M1）：整轮都在原神上跑。2026-10-26：判据换成 `ys-atop --json` 的 verdict +
+    # `ys-lease kwin-raise` 的回执；拿不到明确成功就 **fail=4 并说明原因**（不许把空当"没有焦点"）。
+    ok_f, why_f = raise_game()
+    if not step("focus", ok_f, why_f[:100]):
         fail = 4
 
     # ⓪ 开轮前置：**确保不在试玩里**——上一轮若退出失败，游戏会停在 PLAYTEST/PAUSE，
@@ -207,9 +247,10 @@ def main():
     if fail is None and inp and not no_input:
         # ⚠️ 必须先重新拿焦点：`ys-do playtest-start` 结束时会**还原焦点**，
         # 若直接跑输入脚本，键会送到别的窗口（表现为「按了 W 玩家不动」）。
-        raise_game()
-        if not step("refocus_for_input", True, subprocess.run(
-                [os.path.join(HERE, "ys-atop")], capture_output=True, text=True).returncode == 0):
+        # 2026-10-26：`raise_game()` 现在带回原因；refocus 的判据用 `ys-atop --json` 的 verdict，
+        # 不再是"命令 rc==0"（旧写法 `ys-atop` 无参数、退出码 2 也算失败，且不解释为什么）。
+        ok_r, why_r = raise_game()
+        if not step("refocus_for_input", ok_r, why_r[:100]):
             uncertain.append("输入前焦点没拿到：本轮的输入很可能没送达游戏")
         time.sleep(6)
         r = sh(["bash", inp], timeout=900)

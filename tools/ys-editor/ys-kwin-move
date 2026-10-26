@@ -1,7 +1,15 @@
 #!/bin/bash
-# ys-kwin-move <x> <y> [tol] — 把指针移到 KWin 逻辑坐标 (x,y)，闭环小步进
-# 为什么需要它：①X11 位置回读在焦点回归态下会冻死（D280）②大幅步进有指针加速会过冲
-# 依赖: ys-kwin-cursor（合成器读数）
+# ys-kwin-move <x> <y> [tol] — 把指针移到 (x,y)，闭环小步进（**X11/EWMH 读数**，物理像素）
+#
+# 为什么需要它：①大幅步进有指针加速会过冲 ②ydotool 只给相对移动，必须有外部读数闭环
+#   （2026-10-17 D280：合成器读数与 X11 回读不一致时，只有"移到目标再外部回读"能定胜负）。
+#
+# 2026-10-26 GNOME 适配：读数通道从 KWin `workspace.cursorPos`（**逻辑** 1707×960）换成
+#   `xdotool getmouselocation`（**物理** 2560×1440，见 ys-kwin-cursor）。**目标坐标也必须是
+#   物理坐标**（与 ys-put / ys-pointer-click 同空间）；传逻辑坐标会整体偏到 2/3 处。
+#   读不到指针 ⇒ rc=3（fail-closed），绝不在"不知道指针在哪"的情况下继续步进。
+# 依赖: ys-kwin-cursor（读数）
+# 退出码: 0 命中 / 3 读不到指针 / 4 12 轮内未收敛。注入类工具，自带进槽（ys-gui-slot）。
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -12,14 +20,25 @@ TX="${1:?用法: ys-kwin-move <x> <y> [tol]}"; TY="${2:?}"; TOL="${3:-3}"
 if [ "${YS_SLOT_ACTIVE:-0}" != "1" ]; then
   exec "$HERE/ys-gui-slot" "${YS_WIN:?YS_WIN 未解析：请先 source tools/ys-editor/ys-env.sh（禁止写死已过期的窗 id）}" "${YS_MAX:-30}" env YS_SLOT_ACTIVE=1 bash "$0" "$@"
 fi
+
+# 读数：拿不到就非零退出（不许把"读不到"当"在动"）
+cursor() {
+  local out
+  out=$("$HERE/ys-kwin-cursor" 2>/dev/null) || return 3
+  [ -n "$out" ] || return 3
+  printf '%s\n' "$out"
+}
+
 for i in $(seq 1 12); do
-  read cx cy <<< "$("$HERE/ys-kwin-cursor")"
-  [ -z "${cx:-}" ] && { echo "读数失败" >&2; exit 3; }
+  CUR=$(cursor) || { echo "[ys-kwin-move] 读不到指针位置（ys-kwin-cursor rc≠0）⇒ 停止步进" >&2; exit 3; }
+  read -r cx cy <<< "$CUR"
+  [ -n "${cx:-}" ] && [ -n "${cy:-}" ] || { echo "[ys-kwin-move] 读数为空 ⇒ 停止步进" >&2; exit 3; }
   dx=$((TX-cx)); dy=$((TY-cy))
   if [ "${dx#-}" -le "$TOL" ] && [ "${dy#-}" -le "$TOL" ]; then echo "命中 $cx,$cy（第 $i 轮）"; exit 0; fi
-  # 限幅：单步 ≤250 逻辑px（超过会触发加速过冲）
+  # 限幅：单步 ≤250px（超过会触发指针加速过冲）
   [ "$dx" -gt 250 ] && dx=250; [ "$dx" -lt -250 ] && dx=-250
   [ "$dy" -gt 250 ] && dy=250; [ "$dy" -lt -250 ] && dy=-250
   ydotool mousemove -x "$dx" -y "$dy" 2>/dev/null; sleep 0.7   # 0.35s 实测回读偏早（读到移动前的值）
 done
-read cx cy <<< "$("$HERE/ys-kwin-cursor")"; echo "未命中（目标 $TX,$TY，当前 $cx,$cy）" >&2; exit 4
+CUR=$(cursor) || { echo "[ys-kwin-move] 未收敛且读不到指针（ys-kwin-cursor rc≠0）" >&2; exit 3; }
+echo "未命中（目标 $TX,$TY，当前 ${CUR}）" >&2; exit 4
