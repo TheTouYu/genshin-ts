@@ -458,7 +458,19 @@ def _raise_once(want, timeout=2.0, minimize_game=False):
                    .replace("MIN_GAME", "true" if minimize_game else "false")
                    .replace("MARK", f"YS-FOCUS-{tag}"), "raise", timeout)
     if not raw:
-        return None
+        # GNOME/Mutter 回退（2026-10-26 实测）：windowraise + windowfocus 有效；
+        # windowactivate 在 Mutter 下静默失败（返回 0 但 _NET_ACTIVE_WINDOW 仍是幽灵窗 0x200003）。
+        wid = (want or {}).get("id") or ""
+        if not re.match(r"^0x[0-9a-fA-F]+$", wid):
+            return None
+        try:
+            import subprocess as _sp
+            _sp.run(["xdotool", "windowraise", wid], capture_output=True, timeout=5)
+            _sp.run(["xdotool", "windowfocus", wid], capture_output=True, timeout=5)
+        except Exception:                            # noqa: BLE001
+            return None
+        time.sleep(0.25)
+        return _state_ewmh()
     try:
         state = json.loads(raw)
     except Exception:                                    # noqa: BLE001
@@ -525,6 +537,11 @@ def acquire(name="原神", max_s=30, owner_pid=None):
         return {"ok": False, "error": "KWIN_UNAVAILABLE",
                 "hint": "KWin Scripting 不可用——拒绝用 xdotool 猜焦点（fail-closed）"}
     prev = _record(state.get("active_window"))
+    # EWMH 回退下 active 可能是"栈顶代理"（Mutter 的 _NET_ACTIVE_WINDOW 恒为幽灵窗 0x200003），
+    # 代理不等于真焦点 ⇒ 此时绝不能判 noop，必须真去激活一次（2026-10-26 实测：否则以为已在前台、
+    # 实际用户盯着 firefox，后续所有点击都落在 firefox 上）。
+    if state.get("active_proxy"):
+        prev = None
     prev_is_target = bool(prev and GAME_CLASS in (prev.get("class") or "").lower())
     game = _game(state)
     if prev_is_target and game is not None:
