@@ -13,14 +13,22 @@
 # 2026-10-23 增补 DESKTOP_HIDDEN（「窗在别的虚拟桌面」这条默认前提）：
 #   原神窗在**别的虚拟桌面**时 KWin 会把它 unmaps，于是 ydotool 的点击/按键**一个都收不到**，
 #   而本工具当时仍 PASS —— 2026-10-23 的一次采集因此白烧约 5 分钟并打扰了用户一次。
-#   唯一权威读数是 `ys-wins --attrib` 的 `ds=`（窗口所在桌面）与 `cur=`（当前桌面）。
+#   权威读数是 `ys-wins --attrib` 的 `ds=`（窗口所在桌面）与 `cur=`（当前桌面）；
+#   GNOME/Wayland 下这条由 ys-wins 的 **EWMH 后端**给出（`_NET_WM_DESKTOP` vs
+#   `_NET_CURRENT_DESKTOP`，行尾 `source=ewmh` 标明权威度），KDE 下仍是 KWin 的 `ds=/cur=`。
 #   本检查**只读**（绝不自己切桌面/抬窗/注入）；修复由人决定，命令写在 FAIL 行里。
 #   夹具：`YS_PREFLIGHT_FAKE_ATTRIB=<文件>` 用该文件替代 `ys-wins --attrib` 的输出，
 #         于是「ds==cur ⇒ PASS」的正样本可以在**不移动任何窗口**的前提下被测到。
 #
+# 2026-10-26 修正（GNOME 换桌面后「没判」冒充「没问题」）：
+#   ys-wins 曾对 `--attrib` 回**空 + rc=0**，于是桌面项一律降级 WARN ⇒ DESKTOP_HIDDEN 红线
+#   **静默失效**。现在两头都收紧：①ys-wins 空输出必须 rc=3；②本项能拿到读数就按真判据判
+#   （不等 ⇒ FAIL），**只有完全拿不到读数才 WARN，且文案写「不可判定」**——不可判定与
+#   "还没看"是两件事，不能都写成"未判定"。
+#
 # 用法: ys-preflight                # 全部检查
 #       ys-preflight --quick        # 只跑本地检查（不截图、不查 CLI）
-#                                   # 注：桌面归属检查在 --quick 下**也跑**（代价一次 KWin 查询或 0）
+#                                   # 注：桌面归属检查在 --quick 下**也跑**（代价一次窗口表查询）
 #       YS_PREFLIGHT_FAKE_ATTRIB=F ys-preflight --quick   # 用夹具判桌面归属（不碰屏幕）
 # 退出码: 0 = 全部 OK / 1 = 有 FAIL（先修再动手）/ 2 = 有 WARN（可继续但有风险）
 set -u
@@ -52,31 +60,33 @@ done
 
 # ── 2 焦点/堆叠 + 虚拟桌面：看不见的窗口 = 拿不到的读数（对应复盘 #1）
 #
-# desktop_check — 「原神在不在**当前**虚拟桌面」的唯一判据（2026-10-23 加）。
-#   为什么必须在这里判：窗在别的桌面时 KWin 会 unmaps 它，ydotool 的点击/按键**一个都收不到**，
-#   后续所有取数/注入都是在跟一个"屏幕上并不存在的窗口"对话。读数只认 `ys-wins --attrib`：
-#     [n] caption | <WM_CLASS> | x,y WxH | min= | ds=<窗口所在桌面集合> | cur=<当前桌面> | idx= | act=
-#   · ds 与 cur 不等（且 ds 不是「不限定桌面」） ⇒ FAIL DESKTOP_HIDDEN
-#   · 相等                                        ⇒ OK
-#   · 找不到 yuanshen.exe 窗口（游戏没在跑）       ⇒ SKIP（**不判 FAIL**：不是故障，是没有对象）
-#   · 取不到读数（KWin 脚本不可用 / 行里没有 ds=）  ⇒ WARN（判定不了 ≠ 没问题）
+# desktop_check — 「原神在不在**当前**虚拟桌面」的唯一判据（2026-10-23 加，2026-10-26 收紧）。
+#   为什么必须在这里判：窗在别的桌面时合成器会 unmaps 它，ydotool 的点击/按键**一个都收不到**，
+#   后续所有取数/注入都是在跟一个"屏幕上并不存在的窗口"对话。读数认 `ys-wins --attrib`：
+#     [n] caption | <WM_CLASS> | x,y WxH | min= | ds=<窗口所在桌面集合> | cur=<当前桌面> | idx= | act= | source=
+#   · 有读数且 ds 与 cur 不等（且 ds 不是「不限定桌面」） ⇒ **FAIL** DESKTOP_HIDDEN
+#   · 有读数且相等                                  ⇒ OK（回执里写明 source=kwin|ewmh 的权威度）
+#   · 找不到 yuanshen.exe 窗口（游戏没在跑）         ⇒ SKIP（**不判 FAIL**：不是故障，是没有对象）
+#   · 完全拿不到读数（两个后端都空 / 行里没有 ds=）  ⇒ WARN，文案写「**不可判定**」
 #   只读：本函数不切桌面、不抬窗、不注入。修桌面是人的决定，命令印在 FAIL 行里。
 #   ds 的空值/-1/4294967295 = 「在所有桌面」⇒ 视为可达（与 ys-atop 的 visible_on 同口径，
 #   避免同一事实两处判据打架）。
 desktop_check() {
-  local lines src row ds cur same=0
+  local lines src auth row ds cur same=0 rc=0
   if [ -n "${YS_PREFLIGHT_FAKE_ATTRIB:-}" ]; then
     if [ ! -r "$YS_PREFLIGHT_FAKE_ATTRIB" ]; then
-      warn "窗口所在桌面" "夹具不可读：$YS_PREFLIGHT_FAKE_ATTRIB —— 桌面归属未判定"
+      warn "窗口所在桌面" "夹具不可读：$YS_PREFLIGHT_FAKE_ATTRIB —— 桌面归属不可判定"
       return
     fi
     lines="$(cat "$YS_PREFLIGHT_FAKE_ATTRIB" 2>/dev/null)"
     src="夹具 $(basename "$YS_PREFLIGHT_FAKE_ATTRIB")"
   else
-    lines="$(timeout 30 "$HERE/ys-wins" --attrib 2>/dev/null)"
+    lines="$(timeout 30 "$HERE/ys-wins" --attrib 2>/dev/null)" || rc=$?
     src="ys-wins --attrib"
   fi
-  [ -z "${lines:-}" ] && { warn "窗口所在桌面" "$src 无输出（KWin 脚本不可用）—— 桌面归属未判定，注入前请人工确认"; return; }
+  # 空 = 不可判定（不是"没问题"）。ys-wins 空输出必须 rc=3；这里把 rc 一起印出来，
+  # 让"通道坏了"和"窗口表真的空"在回执里区分得开。
+  [ -z "${lines:-}" ] && { warn "窗口所在桌面" "$src 无输出（rc=$rc）—— 桌面归属不可判定：注入前请人工确认原神在当前桌面"; return; }
   # 认窗用 WM_CLASS（标题会变，且「原神编辑器」也含"原神"）；class 两侧带分隔符，避开 caption
   # 里出现 " | " 的错位（ys-atop 同一教训）。多窗取栈序最上那个（最后一行 = idx 最大）。
   row="$(printf '%s\n' "$lines" | grep -Ei '\|[[:space:]]*yuanshen\.exe[[:space:]]*\|' | tail -1)"
@@ -85,22 +95,66 @@ desktop_check() {
     return
   fi
   printf '%s' "$row" | grep -q 'ds=' || {
-    warn "窗口所在桌面" "$src 的行里没有 ds= 字段（ys-wins 输出格式变了？）—— 桌面归属未判定"
+    warn "窗口所在桌面" "$src 的行里没有 ds= 字段（ys-wins 输出格式变了？）—— 桌面归属不可判定"
     return; }
   ds="$(printf '%s' "$row" | grep -o 'ds=[-0-9,]*' | head -1 | cut -d= -f2)"
   cur="$(printf '%s' "$row" | grep -o 'cur=[-0-9]*' | head -1 | cut -d= -f2)"
+  # 权威度：行尾 `source=kwin|ewmh`（老版本 ys-wins / 夹具没有这个字段 ⇒ 记 unknown，不冒充）
+  auth="$(printf '%s' "$row" | grep -o 'source=[a-zA-Z]*' | head -1 | cut -d= -f2)"
+  auth="${auth:-unknown}"
   if [ -z "${cur:-}" ] || [ "$cur" = "-1" ]; then
-    warn "窗口所在桌面" "$src 没给出当前桌面（cur='${cur:-}'）—— 桌面归属未判定"
+    warn "窗口所在桌面" "$src 没给出当前桌面（cur='${cur:-}'）—— 桌面归属不可判定"
     return
   fi
   [ -z "$ds" ] && same=1                                  # 空 = 不限定桌面（与 ys-atop 同口径）
   case "$ds" in -1|4294967295) same=1;; esac              # 在所有桌面 ⇒ 当前桌面也看得到
   case ",$ds," in *",$cur,"*) same=1;; esac               # ds 可能是 "0,2" 这种桌面集合
   if [ "$same" != "1" ]; then
-    bad "窗口所在桌面" "DESKTOP_HIDDEN 原神在桌面 ${ds}、当前桌面 ${cur} ⇒ KWin 把窗口 unmaps，点击/按键全部无效（这次采集会白烧数分钟并打扰用户）。修复：YS_ALLOW_DESKTOP_SWITCH=1 tools/ys-editor/ys-follow-win yuanshen.exe"
+    bad "窗口所在桌面" "DESKTOP_HIDDEN 原神在桌面 ${ds}、当前桌面 ${cur}（src=${auth}）⇒ 合成器把窗口 unmaps，点击/按键全部无效（这次采集会白烧数分钟并打扰用户）。修复：YS_ALLOW_DESKTOP_SWITCH=1 tools/ys-editor/ys-follow-win yuanshen.exe"
   else
-    ok "窗口所在桌面" "原神 ds=${ds:-<不限>} cur=${cur}（同桌面，输入可达）"
+    ok "窗口所在桌面" "原神 ds=${ds:-<不限>} cur=${cur}（同桌面，输入可达；src=${auth}）"
   fi
+}
+
+# stack_check — 「原神是不是栈顶那个最大窗」的唯一判据（2026-10-26 换成 EWMH 真读数）。
+#   旧实现 `ys-wins | head -3 | grep -c 原神` 有两条错：①GNOME 下 ys-wins 空 ⇒ 该项恒 WARN，
+#   判据静默失效；②"前 3 行里有原神"本来就不等于"原神在栈顶"（面板/小窗把行数撑走）。
+#   现在读 `ys-atop --json`（默认快路径 = 纯 EWMH `ys_attrib.py`，回执 src=x11）的
+#   verdict / covered_ratio：判据与 ys-capture/ys-peek 同源，不另立一套。
+#     OK            ⇒ [OK]     原神是最上层的大窗
+#     NOT_ATOP      ⇒ [WARN]   原神不是最上层大窗（抓图可能拿到别的窗）—— 风险，不是阻断
+#     OCCLUDED      ⇒ [WARN]   最小化 / 被完全遮挡（covered_ratio≥0.995）
+#     OTHER_DESKTOP ⇒ [SKIP]   与①同一个事实，不判第二次（①已判 FAIL）
+#     NOT_FOUND     ⇒ [SKIP]   游戏没在跑（没有对象可判）
+#     取不到读数     ⇒ [WARN]   **不可判定**（不许写成"未判定"或"OK"）
+stack_check() {
+  local js parsed verdict="" cover="" src=""
+  js="$(timeout 20 "$HERE/ys-atop" --json 2>/dev/null)"
+  if [ -n "${js:-}" ]; then
+    parsed="$(printf '%s' "$js" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+print("%s|%s|%s" % (d.get("verdict") or "UNKNOWN",
+                    d.get("covered_ratio", 0), d.get("src") or "?"))
+' 2>/dev/null)" || true
+    if [ -n "${parsed:-}" ]; then
+      verdict="${parsed%%|*}"
+      local rest="${parsed#*|}"
+      cover="${rest%%|*}"
+      src="${rest#*|}"
+    fi
+  fi
+  case "${verdict:-}" in
+    OK) ok "堆叠序" "原神是最上层大窗（EWMH atop=true, covered_ratio=${cover}, src=${src}）";;
+    NOT_ATOP) warn "堆叠序" "原神不在最上层大窗（covered_ratio=${cover}, src=${src}）—— 抓图可能拿到别的窗，先 ys-peek / ys-kwin-raise";;
+    OCCLUDED) warn "堆叠序" "原神被最小化或完全遮挡（covered_ratio=${cover}, src=${src}）—— 取帧会拿到别的窗口";;
+    OTHER_DESKTOP) skip "堆叠序" "原神不在当前桌面 —— 已由①「窗口所在桌面」判 FAIL，同一事实不判两次";;
+    NOT_FOUND) skip "堆叠序" "找不到 yuanshen.exe 窗口（游戏没在跑）—— 没有对象可判";;
+    *) warn "堆叠序" "ys-atop --json 给不出读数（verdict='${verdict:-空}'）—— 堆叠/遮挡不可判定";;
+  esac
 }
 
 echo "② 窗口与堆叠"
@@ -109,9 +163,7 @@ if [ "$QUICK" = "0" ]; then
   if xdotool getwindowgeometry --shell "$WIN" >/dev/null 2>&1; then
     ok "原神窗 $WIN" "$(xdotool getwindowgeometry --shell "$WIN" 2>/dev/null | tr '\n' ' ')"
   else bad "原神窗 $WIN" "窗口不存在（游戏没开？）"; fi
-  TOP=$("$HERE/ys-wins" 2>/dev/null | head -3 | grep -c "原神" || true)
-  if [ "${TOP:-0}" -gt 0 ]; then ok "堆叠序" "原神在栈顶附近"
-  else warn "堆叠序" "原神不在栈顶 —— 抓图可能拿到陈旧帧，先 ys-peek/ys-kwin-raise"; fi
+  stack_check
 fi
 
 # ── 3 画面状态：界面态与「结算页残留」都向 ys-state 要读数（对应复盘 #5 #6 #7 #13）

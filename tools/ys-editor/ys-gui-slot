@@ -250,13 +250,20 @@ restore() {
   fi
   if [ "$ALREADY_FOCUSED" = "1" ]; then
     # 2026-10-21（用户口径）：占用时目标已在焦点 ≠ 无需归还。旧行为直接 return，
-    # 结果是用户仍盯着游戏、而这里打「未改动」。正确语义 = 切回默认屏（firefox）并验证堆叠。
+    # 结果是用户仍盯着游戏、而这里打「未改动」。正确语义 = 切回默认屏并验证堆叠。
     local out2 rc2 ti2 gi2
     out2=$("$LEASE_BIN" restore --prev-json "" --fallback "$FALLBACK_CLASS" 2>&1); rc2=$?
     ti2=$(json_get "$out2" "d.get('target_index')")
     gi2=$(json_get "$out2" "d.get('game_index')")
-    if [ "$rc2" -eq 0 ]; then
+    if [ "$rc2" -eq 0 ] && [ "$(json_get "$out2" "1 if d.get('noop') else 0")" != "1" ]; then
       echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗 ⇒ 已切回默认屏：$(json_get "$out2" "d.get('restored','')")（idx $ti2 > game $gi2）"
+      return
+    fi
+    if [ "$rc2" -eq 0 ]; then
+      # 2026-10-26：GNOME 下回落窗（firefox）是 Wayland 原生窗，X11 层拿不到它 ⇒ 什么都没做。
+      # 旧文案把这条路径打成「已切回默认屏」，用户看到的是"画面还在游戏上"（假成功）。
+      echo "[ys-gui-slot] ⚠️ 未交还：无可用归还目标（$(json_get "$out2" "d.get('detail','')")）——屏幕仍在目标窗上，请手动切回" >&2
+      [ "${YS_FOCUS_NOOP_OK:-0}" = "1" ] || RESTORE_RC=9
       return
     fi
     echo "[ys-gui-slot] ⚠️ 切回默认屏失败（$FALLBACK_CLASS）：$out2" >&2
@@ -267,12 +274,17 @@ restore() {
   out=$("$LEASE_BIN" restore --prev-json "$PREV_JSON" --fallback "$FALLBACK_CLASS" 2>&1); rc=$?
   ti=$(json_get "$out" "d.get('target_index')")
   gi=$(json_get "$out" "d.get('game_index')")
-  if [ "$rc" -eq 0 ]; then
+  if [ "$rc" -eq 0 ] && [ "$(json_get "$out" "1 if d.get('noop') else 0")" != "1" ]; then
     desc=$(json_get "$out" "d.get('restored','')")
     echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原：$desc（idx $ti > game $gi）"
     return
   fi
-  echo "[ys-gui-slot] ⚠️ 还原失败（KWin 堆叠验证未通过，重试 3 次；前焦=${PREV_DESC}）：$out" >&2
+  if [ "$rc" -eq 0 ]; then
+    echo "[ys-gui-slot] ⚠️ 未交还：无可用归还目标（$(json_get "$out" "d.get('detail','')")）——屏幕仍在目标窗上，请手动切回" >&2
+    [ "${YS_FOCUS_NOOP_OK:-0}" = "1" ] || RESTORE_RC=9
+    return
+  fi
+  echo "[ys-gui-slot] ⚠️ 还原失败（堆叠验证未通过，重试 3 次；前焦=${PREV_DESC}）：$out" >&2
   RESTORE_RC=9
 }
 trap restore EXIT INT TERM HUP

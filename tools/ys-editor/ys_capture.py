@@ -429,8 +429,71 @@ def fast_attrib(display, win_hex, want_class=DEFAULT_CLASS):
     return out
 
 
+_KWIN_DEAD = {'at': 0.0}      # 最近一次确认「KWin 通道不可达」的时刻
+KWIN_RETRY_S = 300.0          # 多久才再试一次 KWin（GNOME 下每次尝试要付 ~0.9s）
+
+
+def _blind_probe(display, win_hex, box):
+    """检测「非 X11 表面（Wayland 原生窗）盖在目标窗上」。返回 (blind|None, detail)。
+
+    为什么需要（2026-10-26 实测）：mutter 下 Wayland 原生窗**不在** `_NET_CLIENT_LIST_STACKING` 里，
+    EWMH 完全看不见它 —— 本轮现场就是「EWMH 说 atop=true、指针下却是 root 窗」。
+    判据（只读、~10ms）：指针落在目标几何内，而 X 报的"指针下窗口"不是目标窗
+    ⇒ 该处有非本窗表面盖着。局限：只有一个采样点（指针位置），指针在目标外时返回 None（未知）。
+    """
+    if not box:
+        return None, 'no-box'
+    try:
+        p = subprocess.run([os.path.join('/usr/sbin', 'xdotool'), 'getmouselocation', '--shell'],
+                           capture_output=True, text=True, timeout=3,
+                           env={**os.environ, 'DISPLAY': display})
+    except Exception as e:                                    # noqa: BLE001
+        return None, f'probe-error:{type(e).__name__}'
+    if p.returncode != 0:
+        return None, 'probe-rc'
+    try:
+        kv = dict(part.split('=', 1) for part in p.stdout.split() if '=' in part)
+        px, py = int(kv.get('X', '0')), int(kv.get('Y', '0'))
+        pw = int(kv.get('WINDOW', '0'))
+        x, y, w, h = [int(v) for v in box]
+        target = int(str(win_hex), 16)
+    except (TypeError, ValueError):
+        return None, 'probe-parse'
+    if not (x <= px < x + w and y <= py < y + h):
+        return None, 'pointer-outside'
+    return (pw != target), f'pointer-window=0x{pw:x}'
+
+
+def invisibility(st):
+    """归属读数 → (看不见?, 判据名)。**唯一实现**：write_state / 通道选择 / 稽核共用这一份。"""
+    st = st or {}
+    v = st.get('verdict') or 'UNKNOWN'
+    if st.get('blind'):
+        return True, 'WAYLAND_OVERLAY'
+    if v in ('OCCLUDED', 'OTHER_DESKTOP'):
+        return True, v
+    if v == 'NOT_ATOP':
+        # 只是"不在栈顶"但没有任何窗压在上面（covered_ratio=0）时 XShm 读回是可靠的
+        return ((st.get('covered_ratio') or 0) > 0), v
+    return False, v
+
+
+def visible_ok(st):
+    """能不能把这一帧当"看得见的画面"交给动作类调用方。"""
+    v = (st or {}).get('verdict') or 'UNKNOWN'
+    if v not in ('OK', 'NOT_ATOP'):
+        return False
+    return not invisibility(st)[0]
+
+
 def strict_attrib(display, win_hex, want_class=DEFAULT_CLASS, timeout=25):
-    """KWin 权威路径：调 `ys-atop --json --verify`（单次 ~1.2s，子进程 CPU ~73ms）。"""
+    """归属判定：KWin 可用时用 KWin；GNOME/Mutter 下用 EWMH + Wayland 遮挡探针。
+
+    2026-10-26 换桌面事故：`ys-atop --json --verify` 走 KWin Scripting，GNOME 下恒
+    KWIN_UNAVAILABLE ⇒ 旧实现把结论钉成 UNKNOWN ⇒ `visible` 恒 0 ⇒ 客户端 rc=15
+    **封死所有取帧**（而像素本身是活的：XShm 2.2ms/帧、content_seq 在涨）。
+    但只用 EWMH 会**假绿**（Wayland 原生窗在 X11 里不可见）⇒ 必须叠加 `_blind_probe`。
+    """
     t0 = time.perf_counter()
     here = os.path.dirname(os.path.abspath(__file__))
     env = {**os.environ, 'DISPLAY': display, 'YS_WIN': win_hex,
@@ -438,20 +501,37 @@ def strict_attrib(display, win_hex, want_class=DEFAULT_CLASS, timeout=25):
            'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', '/run/user/%d' % os.getuid()),
            'DBUS_SESSION_BUS_ADDRESS': os.environ.get(
                'DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/%d/bus' % os.getuid())}
-    try:
-        p = subprocess.run([os.path.join(here, 'ys-atop'), '--json', '--verify'],
-                           capture_output=True, text=True, timeout=timeout, env=env)
-        obj = json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout.strip() else {}
-    except Exception as e:                                    # noqa: BLE001
-        obj = {'verdict': 'UNKNOWN', 'error': f'{type(e).__name__}: {e}'}
+
+    def _run_atop(extra):
+        try:
+            p = subprocess.run([os.path.join(here, 'ys-atop'), '--json', *extra],
+                               capture_output=True, text=True, timeout=timeout, env=env)
+            return json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout.strip() else {}
+        except Exception as e:                                # noqa: BLE001
+            return {'verdict': 'UNKNOWN', 'error': f'{type(e).__name__}: {e}'}
+
+    # ① KWin 权威通道（KDE 机器仍走这条，零行为变化）
+    #    GNOME/Mutter 下这条恒失败且每次要付 ~0.9s（ys-wins 脚本超时），
+    #    所以探到一次不可达就记下来，5 分钟内直接走 EWMH（strict_loop 每 2s 一轮，不能每轮都付）。
+    obj, src = {}, 'ewmh'
+    if time.time() - _KWIN_DEAD['at'] >= KWIN_RETRY_S:
+        obj, src = _run_atop(['--verify']), 'kwin'
+        if obj.get('src') != 'kwin' or obj.get('checked') is False or not obj.get('verdict'):
+            _KWIN_DEAD['at'] = time.time()
+            obj, src = {}, 'ewmh'
+    if src == 'ewmh':
+        # ② GNOME/Mutter：EWMH 后端（ys-atop 的 x11 快路径，实测 ~30ms）
+        e = _run_atop([])
+        obj, src = (e, 'ewmh') if e.get('src') == 'x11' else (e or obj, 'none')
     verdict = obj.get('verdict', 'UNKNOWN')
-    src = obj.get('src', 'kwin')
-    if src != 'kwin':
-        # xs 快路径冒充权威 = 票 34 的原样失效；这里显式降级为 UNKNOWN，由客户端 fail closed
-        verdict = 'UNKNOWN'
+    win = obj.get('window') if isinstance(obj.get('window'), dict) else None
+    blind, blind_detail = _blind_probe(display, win_hex, (win or {}).get('bbox'))
+    if blind and verdict in ('OK', 'NOT_ATOP'):
+        verdict = 'OCCLUDED'          # 被 Wayland 表面盖住 ⇒ 画面可能滞后，按遮挡处理（fail-closed）
     return {'verdict': verdict, 'src': src, 'detail': obj.get('detail', ''),
             'covered_ratio': obj.get('covered_ratio'),
-            'window': obj.get('window'), 'current_desktop': obj.get('current_desktop'),
+            'window': win, 'current_desktop': obj.get('current_desktop'),
+            'blind': bool(blind), 'blind_detail': blind_detail,
             'elapsed_ms': round((time.perf_counter() - t0) * 1000, 1)}
 
 
@@ -780,6 +860,10 @@ class Daemon:
         self.strict = {'verdict': 'UNKNOWN', 'src': 'none', 'detail': '未跑', 'elapsed_ms': 0}
         self.strict_ts = 0.0
         self.strict_lock = threading.Lock()
+        # 合成器通道（KWin ScreenShot2）是否存在：GNOME/Mutter 下不存在。
+        # 不存在时**不许**把"看不见"翻译成"该切合成器"——那只会每帧撞异常，
+        # 正确语义是保住 XShm 并把 visible=0 交给客户端 fail-closed。
+        self.compositor_ok = True
         self.capture_ms = 0.0
         self.loop_ms = 0.0
         self.last_rgb_path = ''
@@ -908,10 +992,24 @@ class Daemon:
 
     def strict_loop(self):
         while not self.stop.is_set():
-            res = strict_attrib(self.args.display, self.win or DEFAULT_WIN, self.want_class)
+            win = str(self.win or '')
+            if not (len(win) == 9 and win.startswith('0x')):     # 'auto'/空 = 还没解析到真窗
+                self.stop.wait(max(0.2, self.args.strict_sec))
+                continue
+            try:
+                res = strict_attrib(self.args.display, win, self.want_class)
+            except Exception as e:                        # noqa: BLE001
+                # 线程异常会**静默死掉**（state 里 strict 永远"未跑"，没有任何报警）——
+                # 2026-10-26 实测踩过一次（win='auto' → int() 抛错）。这里记账并继续。
+                self.audit_verdict = 'STRICT_ERROR'
+                self._log_event('strict-error', detail=f'{type(e).__name__}: {e}')
+                self.stop.wait(1.0)
+                continue
             with self.strict_lock:
                 self.strict = res
                 self.strict_ts = time.time()
+            if res.get('src') != 'kwin':
+                self.compositor_ok = False
             self.stop.wait(max(0.2, self.args.strict_sec))
 
     # ---- 编码线程：只为「最新内容」编码，落后就丢旧帧
@@ -1016,22 +1114,13 @@ class Daemon:
         return False
 
     def _window_invisible(self):
-        """窗口当前是否"看不见"（被遮挡/别的虚拟桌面/不在栈顶）——返回 (bool, verdict)。
+        """窗口当前是否"看不见"（被遮挡/别的虚拟桌面/不在栈顶/Wayland 盖住）——(bool, verdict)。
 
         为什么这决定抓帧通道（2026-10-23 实测）：X11 对**不可见**窗口的 GetImage 内容本来就是
-        未定义的，Xwayland 只是**偶尔**把新内容同步进窗口像素 ⇒ 实测滞后 0.3–2.23s；
-        同一时段合成器通道（KWin ScreenShot2）13/13 连续帧都在变。所以"看不见"时直接用合成器
-        通道当主通道（慢 3–4fps，但内容是真的），"看得见"时用 XShm（10fps）并由稽核兜底。
+        未定义的，Xwayland 只是**偶尔**把新内容同步进窗口像素 ⇒ 实测滞后 0.3–2.23s。
+        判据本身只有一份：模块级 `invisibility()`（write_state 与通道选择共用）。
         """
-        st = self.strict or {}
-        v = st.get('verdict') or 'UNKNOWN'
-        if v in ('OCCLUDED', 'OTHER_DESKTOP'):
-            return True, v
-        if v == 'NOT_ATOP':
-            # 只是"不在栈顶"但没有任何窗口压在上面（covered_ratio=0）时，XShm 读回是可靠的；
-            # 只有真被压住（有重叠）才算"看不见"。
-            return (st.get('covered_ratio') or 0) > 0, v
-        return False, v
+        return invisibility(self.strict)
 
     def static_ms(self):
         """距**内容**上一次真正变化多少毫秒（不是距上一次抓帧）。"""
@@ -1085,6 +1174,11 @@ class Daemon:
 
     def _audit_once(self):
         now = time.time()
+        if not self.compositor_ok:
+            # GNOME/Mutter：没有独立合成器通道 ⇒ 帧停滞稽核**做不了**。
+            # 不许静默当成"没发现陈旧"（那会让稽核通过 = 假绿）；点名写进 state 让调用方看见。
+            self.audit_verdict = 'AUDIT_UNAVAILABLE_NO_COMPOSITOR'
+            return
         if now < self.fallback_until:      # 已经在合成器通道上，无需稽核
             return
         if self.grabber is None:           # 主通道没起来，谈不上「陈旧」
@@ -1322,8 +1416,8 @@ class Daemon:
             fallback = time.time() < self.fallback_until      # 稽核判定的回退
             invisible, invis_v = self._window_invisible()     # 看不见 ⇒ XShm 内容不可信
             demanded = self._demand_fresh()
-            if invisible and not fallback and demanded:
-                # 有人读 + 看不见 ⇒ 合成器通道（240–570ms/帧，但内容是真的）
+            if invisible and not fallback and demanded and self.compositor_ok:
+                # 有人读 + 看不见 + 有合成器通道 ⇒ 切合成器（240–570ms/帧，但内容是真的）
                 fallback = True
                 self._demand_driven = True
             if not demanded:
@@ -1419,7 +1513,7 @@ class Daemon:
                   str(0), str(os.getpid()),
                   ('background' if self.source == 'window' else 'screen'),
                   str(self.last_src),
-                  ('1' if self.strict.get('verdict') == 'OK' else '0'),
+                  ('1' if visible_ok(strict) else '0'),
                   # v2：内容身份 / 静止时长 / 稽核（帧停滞的机读判据）
                   str(self.content_seq), str(static_ms), str(self.stale_events),
                   str(self.audit_ok), str(self.audit_stale), self.audit_verdict,

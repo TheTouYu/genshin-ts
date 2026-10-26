@@ -1,15 +1,41 @@
 #!/bin/bash
-# ys-wins — 列出 KWin 堆叠序（底→顶）的窗口清单：标题 / WM_CLASS / 几何 / 是否活动
+# ys-wins — 列出窗口堆叠序（底→顶）的窗口清单：标题 / WM_CLASS / 几何 / 是否活动
 #
 # 为什么要有它（2026-10-17 实测教训）：
 #   `xdotool search` 对 Wine 窗经常返回空或返回**非顶层**的中间窗；而"屏幕上到底是哪个窗口在
 #   我点的那一点"必须按 **stackingOrder**（KWin 语义：末元素=最上层）判定，不能靠猜。
 #   实测被这一点误导过：把"点不动"归因给界面没有该控件，真因是另一个窗口压在上面。
 #
+# ── 双后端（2026-10-26 增补：桌面换成 GNOME 51.1 + Wayland，`org.kde.KWin` 不存在）────────
+#   1) kwin：KDE 桌面的权威通道（gdbus → org.kde.KWin /Scripting JS → journalctl 捞 console.info）。
+#      别的桌面机器继续用它，行为与 2026-10-17 版一致。
+#   2) ewmh：X11/EWMH 通道（`_NET_CLIENT_LIST_STACKING` 栈序、`_NET_WM_DESKTOP` vs
+#      `_NET_CURRENT_DESKTOP`、`_NET_WM_STATE_HIDDEN`、`WM_CLASS`/`_NET_WM_NAME`、xdotool 几何）。
+#      **不写第四份实现**：直接 import 同目录 `ys_attrib.py` 复用它的
+#      `_stacking/_xprop_win/_xprop_root/_geometry/_run`（这几个函数自带 `ys_env` 的
+#      DISPLAY/XAUTHORITY 解析，是 X 会话的唯一入口）。
+#   `auto`（默认）选择顺序：KWin 总线不在 ⇒ **不付那 0.9s sleep**，直接 ewmh；
+#     KWin 总线在但捞不到行（journalctl 不可用/JS 报错）⇒ 也降级 ewmh。
+#   `YS_WINS_BACKEND=kwin|ewmh|auto` 可强制后端（自测/排障用）。
+#
+# 权威度：每行末尾带 `source=kwin|ewmh`，调用方自己判权威度：
+#   · kwin 的 frameGeometry 是**逻辑坐标**；ewmh 是 X **物理**坐标（本机物理=逻辑，无缩放差）。
+#   · ewmh 只看得见 X11/XWayland 窗：Wayland 原生窗（firefox 等）**不在**栈表里 ⇒ 它仍可能是
+#     遮挡者但读不到（这是 EWMH 的已知盲区，不是"没有遮挡"）。
+#   · GNOME 下 `_NET_ACTIVE_WINDOW` 可能指向 mutter 的匿名窗（实测 0x200003，不在 client list）
+#     ⇒ 此时**不标** ACTIVE（不猜）。调用方应把"没有 ACTIVE 行"读成"焦点不在任何 X11 窗上"。
+#
 # 用法: ys-wins [--attrib]
-# 输出: 每行 "  [n] caption | class | x,y WxH | min=0|1 |TOP |ACTIVE"
-#   --attrib 追加归属字段（票 34）："| ds=<桌面号列表> | cur=<当前桌面> | idx=<n> | act=<0|1>"
+# 输出: 每行 "[n] caption | class | x,y WxH | min=0|1 |TOP |ACTIVE | source=<后端>"
+#   --attrib 追加归属字段（票 34）："| ds=<桌面号> | cur=<当前桌面> | idx=<n> | act=<0|1> | source=<后端>"
 #   默认输出格式**保持不变**（ys-atop / ys-do / ys-loop / ys-preflight 都在解析它）。
+#   ds= 的语义与 KWin 版一致：空 = 不限定桌面（所有桌面）；EWMH 的 4294967295 = 所有桌面。
+#
+# 退出码: 0 = 有输出 / 3 = **空输出**（两个后端都拿不到读数）。
+#   ⚠️ 空输出必须非 0（2026-10-26 实测教训）：GNOME 下 KWin 通道对 `--attrib` 回**空 + rc=0**，
+#   5+ 个下游（ys-atop --verify / ys-lease / ys-capture / ys-screen-grant / ys-preflight）把
+#   "空 + rc=0" 当成"权威读数为空"⇒ DESKTOP_HIDDEN 红线静默失效。空就是不可判定，
+#   不可判定不许冒充成功。
 #
 # ⚠️ JS 必须落在**宿主可见**的路径（2026-10-18 实测）：
 #   DSH/沙箱用 `--tmpfs /tmp` 隔离，写在 /tmp 的 JS 宿主 KWin 读不到 ⇒ 脚本"加载成功"却零输出，
@@ -19,18 +45,31 @@ set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ATTRIB=0
 for a in "$@"; do [ "$a" = "--attrib" ] && ATTRIB=1; done
-TAG="yswins$RANDOM"
-JSDIR="${YS_KWIN_JS_DIR:-$HERE}"
-if ! : > "$JSDIR/.ys-kwin-probe.$$" 2>/dev/null; then
-  JSDIR="${TMPDIR:-/tmp}"
-else
-  rm -f "$JSDIR/.ys-kwin-probe.$$"
-fi
-JS="$JSDIR/.ys-kwin-$TAG.js"
-trap 'rm -f "$JS"' EXIT
-if [ "$ATTRIB" = "1" ]; then
-  # 当前桌面：KWin 5 是 int；KWin 6 是 VirtualDesktop 对象（x11DesktopNumber）。
-  cat > "$JS" << JS
+BACKEND="${YS_WINS_BACKEND:-auto}"
+
+JS=""
+trap '[ -n "$JS" ] && rm -f "$JS"' EXIT
+
+# ── 后端 1：KWin（KDE 权威通道）────────────────────────────────────────────────
+kwin_present() {
+  command -v gdbus >/dev/null 2>&1 || return 1
+  # introspect 只读：不做 loadScript/start，不产生副作用（载入未用脚本也是副作用）
+  timeout 4 gdbus introspect --session --dest org.kde.KWin --object-path /Scripting \
+    >/dev/null 2>&1
+}
+
+wins_kwin() {
+  local TAG="yswins$RANDOM" JSDIR
+  JSDIR="${YS_KWIN_JS_DIR:-$HERE}"
+  if ! : > "$JSDIR/.ys-kwin-probe.$$" 2>/dev/null; then
+    JSDIR="${TMPDIR:-/tmp}"
+  else
+    rm -f "$JSDIR/.ys-kwin-probe.$$"
+  fi
+  JS="$JSDIR/.ys-kwin-$TAG.js"
+  if [ "$ATTRIB" = "1" ]; then
+    # 当前桌面：KWin 5 是 int；KWin 6 是 VirtualDesktop 对象（x11DesktopNumber）。
+    cat > "$JS" << JS
 function _cur() {
   var c = workspace.currentDesktop;
   if (typeof c === "number") return "" + c;
@@ -62,11 +101,12 @@ for (var i = 0; i < ord.length; i++) {
     + " | ds=" + ds.join(",")
     + " | cur=" + CUR
     + " | idx=" + i
-    + " | act=" + (w === workspace.activeWindow ? 1 : 0));
+    + " | act=" + (w === workspace.activeWindow ? 1 : 0)
+    + " | source=kwin");
 }
 JS
-else
-  cat > "$JS" << JS
+  else
+    cat > "$JS" << JS
 var ord = workspace.stackingOrder;
 for (var i = 0; i < ord.length; i++) {
   var w = ord[i];
@@ -77,12 +117,93 @@ for (var i = 0; i < ord.length; i++) {
     + Math.round(g.x) + "," + Math.round(g.y) + " " + Math.round(g.width) + "x" + Math.round(g.height)
     + " | min=" + (w.minimized ? 1 : 0)
     + (i === ord.length - 1 ? " |TOP" : "")
-    + (w === workspace.activeWindow ? " |ACTIVE" : ""));
+    + (w === workspace.activeWindow ? " |ACTIVE" : "")
+    + " | source=kwin");
 }
 JS
+  fi
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
+  sleep 0.9
+  journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-WINS-$TAG .*" | grep -v "bash -c" | sed "s/YS-WINS-$TAG //"
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1
+  rm -f "$JS"; JS=""
+}
+
+# ── 后端 2：EWMH（X11/XWayland；复用 ys_attrib.py，不写第四份实现）───────────────
+wins_ewmh() {
+  YS_WINS_ATTRIB="$ATTRIB" python3 - "$HERE" <<'PY'
+import os
+import re
+import sys
+
+sys.path.insert(0, sys.argv[1])
+import ys_attrib as A          # noqa: E402  （同目录模块：_stacking/_xprop_win/_geometry/_run）
+
+attrib = os.environ.get("YS_WINS_ATTRIB") == "1"
+
+stack = A._stacking()                       # 底→顶；末元素=最上层
+if not stack:
+    sys.exit(3)                             # 读不到栈表 = 不可判定（不是"没有窗口"）
+cur = A._xprop_root("_NET_CURRENT_DESKTOP")
+
+# 活动窗：`_NET_ACTIVE_WINDOW` 的原始文本（格式 "…: window id # 0x…"，故不能用 _xprop_root）
+act = ""
+rc, out, _ = A._run(["xprop", "-root", "_NET_ACTIVE_WINDOW"])
+if rc == 0 and out:
+    body = out.split(":", 1)[-1] if ":" in out else out
+    m = re.search(r"0x[0-9a-fA-F]+", body)
+    if m:
+        act = m.group(0).lower()
+
+rows = []
+for wid in stack:
+    w = A._xprop_win(wid)                   # 窗在列表与查询之间消失 ⇒ None，跳过
+    if not w:
+        continue
+    g = A._geometry(wid)                    # ⚠️ 几何只认 xdotool：wmctrl 的坐标是 2×
+    if not g:
+        continue
+    rows.append((w, g))
+if not rows:
+    sys.exit(3)
+
+n = len(rows)
+for i, (w, g) in enumerate(rows):
+    is_act = bool(act) and w["id"] == act    # 只有真是 X11 客户窗才标 ACTIVE（否则不猜）
+    line = "[%d] %s | %s | %d,%d %dx%d | min=%d%s%s" % (
+        i, w["caption"] or "(无题)", w["class"] or "?",
+        g[0], g[1], g[2], g[3], 1 if w["minimized"] else 0,
+        " |TOP" if i == n - 1 else "",
+        " |ACTIVE" if is_act else "")
+    if attrib:
+        # ds 空 = 不限定桌面（与 KWin 版同口径）；4294967295 = 所有桌面
+        line += " | ds=%s | cur=%s | idx=%d | act=%d" % (
+            "" if w["desktop"] is None else str(w["desktop"]),
+            "-1" if cur is None else str(cur), i, 1 if is_act else 0)
+    print(line + " | source=ewmh")
+PY
+}
+
+OUT=""
+case "$BACKEND" in
+  kwin) OUT="$(wins_kwin)";;
+  ewmh) OUT="$(wins_ewmh)";;
+  *)    if kwin_present; then
+          OUT="$(wins_kwin)"
+          [ -n "$OUT" ] || OUT="$(wins_ewmh)"   # KWin 在但捞不到行 ⇒ 降级
+        else
+          OUT="$(wins_ewmh)"
+        fi;;
+esac
+
+if [ -z "${OUT:-}" ]; then
+  # 空输出必须非 0：禁止「空 + rc=0」（下游会把它当权威读数为空）
+  if [ "$BACKEND" = "kwin" ]; then
+    echo "ys-wins: KWin 后端没有回任何行（YS_WINS_BACKEND=kwin 强制，未降级到 ewmh）" >&2
+  else
+    echo "ys-wins: 无窗口读数（KWin 总线不在或未回行，且 EWMH 也读不到）" >&2
+  fi
+  exit 3
 fi
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.loadScript "$JS" "$TAG" >/dev/null 2>&1
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1
-sleep 0.9
-journalctl --user --since "3 seconds ago" 2>/dev/null | grep -o "YS-WINS-$TAG .*" | grep -v "bash -c" | sed "s/YS-WINS-$TAG //"
-gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.unloadScript "$TAG" >/dev/null 2>&1
+printf '%s\n' "$OUT"

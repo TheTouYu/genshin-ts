@@ -192,7 +192,28 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 | `xdotool windowraise` | ⚠️ 只在 X11 层抬升，Wayland 原生窗仍在它之上 |
 
 **注意 shim**：`wmctrl` 会被 `tools/ys-editor/shims` 拦成 rc=77（**子进程也吃 PATH 里的 shim**）；
-工具内部调用要用**绝对路径 `/usr/bin/wmctrl`**。已修进 `ys-lease._raise_once` 的 GNOME 回退（commit `bc9fa908`）。
+工具内部调用要用**绝对路径 `/usr/bin/wmctrl`**。
+
+> **2026-10-26 当天更正（第二次）**：`bc9fa908` 虽然标题写「改用 wmctrl -i -a」，但那次提交**代码里写的是
+> `xdotool windowraise/windowfocus`**，而这两个子命令不在 shim 白名单 ⇒ rc=77，且调用处**不检查 rc** ⇒
+> 抬窗一直静默无效；随后 `_verify_active` 又把「幽灵 active 代理成栈顶窗」当成"已激活"⇒ **假成功**。
+> 现在：`ys-lease._raise_once` 真的走 `/usr/bin/wmctrl -i -a` 并**检查 rc**（失败返回 None 让上层硬失败），
+> `_verify*` 在 `active_proxy=True` 时报 `ACTIVE_IS_PROXY` 而**不判成功**。
+> 真机读数：`ys-lease kwin-raise --id 0x1000003` → `{"ok":true,"active":"原神 [yuanshen.exe]"}`，
+> `_NET_ACTIVE_WINDOW` `0x200003` → `0x1000003`。
+
+### 取帧闸门与归属通道（2026-10-26 适配后口径）
+
+| 环节 | 现在的规则 |
+|---|---|
+| 权威归属来源 | **两个合法来源**：`kwin`（合成器）与 `ewmh`（EWMH + Wayland 遮挡探针）。`ys-atop --json --verify` 会用 `ys-wins` 行尾的 `source=` 如实标 `src`，**不再拿 EWMH 冒充 kwin** |
+| `visible` | 由 `ys_capture.invisibility()` 单一函数推出（OK/NOT_ATOP+覆盖0 ⇒ 可见；OCCLUDED/OTHER_DESKTOP/**WAYLAND_OVERLAY** ⇒ 不可见）。`blind=true` 时恒不可见（fail-closed 保留） |
+| Wayland 遮挡探针 | `_blind_probe()`：指针落在目标几何内、而指针下窗口不是目标 ⇒ 有非 X11 表面盖着（实测抬窗前 `pointer-window=0x4e9`=root ⇒ `OCCLUDED`；抬窗后 `0x1000003` ⇒ `OK`）。**局限**：单点采样（指针位置） |
+| 合成器通道缺失 | `compositor_ok=False` ⇒ 不再把"看不见"翻译成"切合成器"（那只会每帧撞异常），稽核标 `AUDIT_UNAVAILABLE_NO_COMPOSITOR` |
+| 归还语义 | `restore` 的交叉复核若拿不到 `ys-wins` 读数，回执带 `cross_check:"unavailable(...)"`；`noop` 分支**不再**打印"已切回默认屏"，改打「⚠️ 未交还：无可用归还目标」并按 `YS_FOCUS_NOOP_OK` 决定 rc（默认 9） |
+| 判态 | `ys-state` 的守护请求现在**带 `win`**（原来只读 `YS_WIN`，而 `ys-env.sh --print` 不输出它 ⇒ 守护用空窗 ⇒ `截取超时 3s（窗口  可能已消失）`+判态回退本地）。实测 `ys-state --fast` → `GAME_WORLD` |
+| `ys-wins` | 双后端 `kwin/ewmh`（`YS_WINS_BACKEND` 可强制）；**空输出改 `exit 3`**（原来 `空+rc=0` 让 5+ 下游当权威）。EWMH 路径复用 `ys_attrib.py`，实测 **105ms**（KDE 时代 931ms） |
+
 
 ### 输入注入在 Wayland 下**是有效的**——但要先确认"真的没有别的东西盖着"
 
@@ -296,7 +317,7 @@ xdotool getmouselocation        # 看它报的 window: 字段
 | `ys-capture latest` | **取数主通道**（回执带 `content.id`/`static_ms`/`channel`/`demand_wait_ms`） | 等"画面推进"用 `content.id` 或 `--min-content-id N`（rc=13=还没推进），别比 `src` 路径 |
 | `ys-capture audit` | **帧停滞现场判定**（只读，一次性） | 0=通道健康 / **3=XSHM_STALE**（主通道滞后，守护会自愈）/ 2=判不了；输出两条通道的变化比例 |
 | `ys-act <脚本> <out.png>` | **「抬升→动作→抓新鲜图→还原」一条龙** | GUI 的主力工作单元；脚本内可用 `_ys-ui.sh` 的判据函数 |
-| `ys-wins` | **KWin 堆叠序**（底→顶） | 判「屏幕上那点是谁」的**唯一权威**；`import -window`/xdotool 都答不了这个 |
+| `ys-wins` | **堆叠序**（底→顶）：KWin 有就用 KWin，否则 EWMH（行尾 `source=` 标明来源） | 判「屏幕上那点是谁」的权威；`import -window`/xdotool 都答不了这个。**Wayland 原生窗不在表里**（盲区，用 `ys_capture._blind_probe` 补） |
 | `ys-put <x> <y>` | 指针绝对定位（**只移动不点**） | **只用外部回读**（`xdotool getmouselocation`）验证，不匹配即非零退出、**绝不打印 OK** |
 | `ys-kwin-cursor` | 读指针位置（逻辑坐标） | X11 回读失效时的权威通道；`ys-kwin-put` 已废弃（自证陷阱），改转发到 `ys-put` |
 | `ys-drag <x1> <y1> <x2> <y2>` | 绝对坐标拖拽 | 按下 → 分步移动 → 抬起；用于相机环绕/视野转动/滑块 |

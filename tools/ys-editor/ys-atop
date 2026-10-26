@@ -64,9 +64,16 @@ if [ -n "${YS_ATTR_FIXTURE:-}" ]; then
 else
   LINES="$(timeout 30 "$HERE/ys-wins" --attrib 2>/dev/null)"
 fi
+
 if [ -z "${LINES:-}" ] && [ "$SRC" = "kwin" ]; then
   printf '{"checked":false,"verdict":"UNKNOWN","error":"ys-wins --attrib 无输出（KWin 脚本不可用）"}\n'
   exit 9
+fi
+# 2026-10-26 GNOME 适配：ys-wins 在无 KWin 的桌面上走 EWMH 后端，行尾带 source=ewmh。
+# 标签必须如实反映数据来源——否则「EWMH 冒充 KWin 权威」正是票 34 原样的失效模式
+# （`src=kwin` 会让调用方以为合成器通道还在，例如 ys_capture 的 visible 判据）。
+if [ "$SRC" = "kwin" ] && printf '%s' "$LINES" | grep -q 'source=ewmh'; then
+  SRC="ewmh"
 fi
 
 YS_ATTR_LINES="$LINES" YS_ATTR_WANT="$WANT" \

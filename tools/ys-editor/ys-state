@@ -283,7 +283,22 @@ def load_env():
 
 
 def win_id():
-    return os.environ.get("YS_WIN") or ""          # 动态解析（见 ys_look.WIN）；禁止写死已过期的窗 id
+    """游戏窗 id：YS_WIN 优先，否则问唯一实现 ys_win（**禁止写死已过期的窗 id**）。
+
+    2026-10-26（GNOME 适配）：原来只读 `YS_WIN`，而 `ys-env.sh --print` 并不输出它 ⇒ 恒空串
+    ⇒ 请求守护时不带 win ⇒ 守护用它启动时的默认窗（可能是空的）⇒
+    `截取超时 3s（窗口  可能已消失）` + 判态被迫回退本地 + 结果 UNKNOWN。
+    """
+    w = (os.environ.get("YS_WIN") or "").strip()
+    if w:
+        return w
+    load_env()
+    try:
+        sys.path.insert(0, HERE)
+        import ys_win
+        return ys_win.resolve(prefer_sandbox=False) or ""
+    except Exception:                                  # noqa: BLE001
+        return ""
 
 
 def observe_frame():
@@ -531,8 +546,9 @@ def template_readings(pix):
         bin_path = None
         try:
             bin_path, shape = raw_frame_bin(pix)
-            r = daemon_call({"cmd": "batch", "jobs": jobs,
-                             "frame_bin": bin_path, "frame_shape": shape}, timeout=60)
+            r = daemon_call(dict({"cmd": "batch", "jobs": jobs,
+                                  "frame_bin": bin_path, "frame_shape": shape},
+                                 **(_wincfg())), timeout=60)
             if r and isinstance(r.get("results"), list):
                 for x in r["results"]:
                     best = x.get("best") or {}
@@ -676,6 +692,7 @@ def anchor_readings(profile, frame_path=None, frame_bin=None, shape=None):
     if frame_bin:
         req.update({"frame_bin": frame_bin, "frame_shape": shape})
     else:
+        req.update(_wincfg())
         req["frame"] = os.path.abspath(frame_path)
     r = ys_look.daemon(req, timeout=30)
     if not r:                                   # 冷启动 / 服务刚重启：重试一次再判仪器故障
@@ -884,7 +901,7 @@ def _ocr_boxes(frame_path):
     import json as _json
     if os.environ.get('YS_STATE_OCR_LOCAL') != '1':
         try:
-            _req = {"cmd": "ocr"}
+            _req = {"cmd": "ocr", **_wincfg()}
             if frame_path:
                 _req["frame"] = os.path.abspath(frame_path)
             r = daemon_call(_req, timeout=120)
@@ -1091,6 +1108,12 @@ def _daemon_fail(why):
     return None
 
 
+def _wincfg():
+    """给守护请求带窗口 id（守护的默认窗可能在启动时解析成空串，见 win_id 注释）。"""
+    w = win_id()
+    return {"win": w} if w else {}
+
+
 def daemon_state(frame=None, profile=None, max_age_ms=None):
     """向常驻服务要一次 fast 判定；服务不可用/报错返回 None（由调用方回退本地）。
 
@@ -1099,6 +1122,9 @@ def daemon_state(frame=None, profile=None, max_age_ms=None):
     """
     req = {"cmd": "state", "channel": "fast",
            "profile": profile or os.environ.get("YS_PROFILE") or PROFILE_DEFAULT}
+    _w = win_id()
+    if _w:
+        req["win"] = _w          # 守护的默认窗可能过期/为空（启动时解析一次），显式带上才可靠
     if max_age_ms:
         req["max_age_ms"] = float(max_age_ms)
     if frame:
@@ -1115,7 +1141,7 @@ def daemon_state(frame=None, profile=None, max_age_ms=None):
 
 def daemon_probe(name, frame=None):
     """向常驻服务要一次具名探针判定；不可用返回 None（回退本地）。"""
-    req = {"cmd": "probe", "name": PROBE_ALIAS.get(name, name)}
+    req = {"cmd": "probe", "name": PROBE_ALIAS.get(name, name), **_wincfg()}
     if frame:
         req["frame"] = os.path.abspath(frame)
     r = daemon_call(req, timeout=30)

@@ -15,7 +15,7 @@
 # fail-closed 退出码（票 34 红线：拿不到可信帧就拒绝，绝不返回别的窗口/旧帧）：
 #   0  OK          2  NOT_ATOP/NOT_FOUND   4  OTHER_DESKTOP（目标窗不在当前桌面）
 #   5  OCCLUDED    7  DAEMON_DOWN          8  STALE_FRAME（帧太旧）
-#   9  STRICT_UNAVAILABLE（KWin 权威通道不可用/结论过旧）
+#   9  STRICT_UNAVAILABLE（权威归属通道不可用/结论过旧；合法来源 = kwin 或 ewmh）
 #   10 FORMAT_NOT_READY（请求的预编码格式与当前帧内容不符）
 #   11 COPY_FAILED
 #   12 BACKGROUND_NOT_ALLOWED（守护是 window 模式/帧是后台帧，但调用方没带 --allow-background）
@@ -43,6 +43,7 @@ CMD="${1:-}"; [ $# -gt 0 ] && shift || true
 recheck_desktop() {  # 0 = 目标窗确实在当前桌面（**只在结论过期时**才做，别为主路径付 931ms）
   # 2026-10-21 实测：会话空闲交还 → 桌面切回用户那张 → 动作工具重取焦点切回游戏，
   # 但抓帧守护的 strict 结论还停在上一张桌面（sage 可到 2s）⇒ 连 --live 读屏都读不到。
+  # 2026-10-26 更正：ys-wins 有 EWMH 后端后实测 ~105ms（KDE 时代 931ms）；下面的成本前提仍成立
   # 2026-10-21 性能：ys-wins --attrib 实测 931ms（qdbus 才 39ms，但 xprop 的 _NET_WM_DESKTOP
   # 与 KWin 的 ds= 实测不一致，不能用它做判据）⇒ 只在结论确实过期时才付这 0.9s。
   [ "${sage:-0}" -gt 800 ] || return 1
@@ -204,26 +205,32 @@ cmd_latest() {
     NOT_ATOP)      deny 2 NOT_ATOP "窗口不在栈顶（EWMH：${fage}ms 前判定）";;
     *)             deny 9 STRICT_UNAVAILABLE "EWMH 快路径结论未知（${fast:-空}）";;
   esac
-  # ── 闸门②：KWin 权威通道（票 34 的教训：KWin 脚本静默失效时绝不拿 X11 冒充）
+  # ── 闸门②：权威归属通道
+  # 票 34 的教训：KWin 脚本静默失效时**绝不拿 X11 冒充**权威。2026-10-26 GNOME 适配后
+  # 合法权威有两个来源：`kwin`（合成器 ScreenShot2）与 `ewmh`（EWMH + Wayland 遮挡探针，
+  # 实现在守护侧 strict_attrib）。**其余一律拒绝**——`none`/空 说明守护连归属都没判出来。
   if [ "$ALLOW_BG" = "1" ]; then
     :
   else
-    [ "$ssrc" = "kwin" ] || deny 9 STRICT_UNAVAILABLE \
-      "KWin 权威通道不可用（strict_src=${ssrc:-空}）——拒绝用 X11 快路径冒充（票 34）"
+    case "${ssrc:-}" in
+      kwin|ewmh) ;;
+      *) deny 9 STRICT_UNAVAILABLE \
+           "归属通道不可用（strict_src=${ssrc:-空}）——只接受 kwin（合成器）或 ewmh（EWMH+遮挡探针）" ;;
+    esac
     case "$strict" in
       OK) ;;
       OTHER_DESKTOP) if [ "$ALLOW_OD" = 1 ]; then
-                       [ "${YS_CAPTURE_VERBOSE:-0}" = "1" ] && echo "[note] KWin：窗口在其他虚拟桌面（感知默认跨桌面读取）" >&2
+                       [ "${YS_CAPTURE_VERBOSE:-0}" = "1" ] && echo "[note] 归属($ssrc)：窗口在其他虚拟桌面（感知默认跨桌面读取）" >&2
                      else
-                       recheck_desktop || deny 4 OTHER_DESKTOP "KWin：窗口不在当前虚拟桌面"
+                       recheck_desktop || deny 4 OTHER_DESKTOP "归属($ssrc)：窗口不在当前虚拟桌面"
                      fi;;
-      OCCLUDED)      deny 5 OCCLUDED "KWin：窗口被遮挡";;
-      NOT_FOUND)     deny 2 NOT_FOUND "KWin：找不到目标窗口";;
-      NOT_ATOP)      deny 2 NOT_ATOP "KWin：窗口不在栈顶";;
-      *)             deny 9 STRICT_UNAVAILABLE "KWin 归属结论未知（${strict:-空}）";;
+      OCCLUDED)      deny 5 OCCLUDED "归属($ssrc)：窗口被遮挡";;
+      NOT_FOUND)     deny 2 NOT_FOUND "归属($ssrc)：找不到目标窗口";;
+      NOT_ATOP)      deny 2 NOT_ATOP "归属($ssrc)：窗口不在栈顶";;
+      *)             deny 9 STRICT_UNAVAILABLE "归属结论未知（${strict:-空}）";;
     esac
     [ "$sage" -le "$STRICT_TTL_MS" ] || deny 9 STRICT_UNAVAILABLE \
-      "KWin 归属结论已 ${sage}ms 旧（> --strict-ttl-ms=$STRICT_TTL_MS）"
+      "归属结论已 ${sage}ms 旧（> --strict-ttl-ms=$STRICT_TTL_MS）"
   fi
   fi  # end screen-mode gates
   # ── 选格式（按 --out 后缀，其次 --format；无 --out 则只回源路径）

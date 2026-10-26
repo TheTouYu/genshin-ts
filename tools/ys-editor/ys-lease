@@ -50,6 +50,8 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_env  # noqa: E402  —— X 会话环境唯一入口；xdotool 子进程必须带它（门禁 env-single-source）
 RAISE = os.path.join(HERE, "ys-kwin-raise")
 
 # ── 可观测性（2026-10-26 用户要求："窗口适配完成了也没加日志，连自己出问题了都不知道"）
@@ -172,7 +174,7 @@ def _state_ewmh(timeout=5.0):
 
     def q(args, t=timeout):
         try:
-            r = sp.run(args, capture_output=True, text=True, timeout=t)
+            r = sp.run(args, capture_output=True, text=True, timeout=t, env=ys_env.env())
             return r.stdout if r.returncode == 0 else ""
         except Exception:                                # noqa: BLE001
             return ""
@@ -386,6 +388,11 @@ def _verify(state, rec):
     game = _game(state)
     active = state.get("active_window")
     problems = []
+    if state.get("active_proxy"):
+        # EWMH 回退时，幽灵 active（Mutter 的 0x200003 焦点代理窗）会被代理成**栈顶窗**。
+        # 于是「active == 目标」在代理态下只证明"目标此刻在最上面"，**不证明**任何激活动作发生过
+        # （旧实现据此报告抬窗成功，而真正抬窗的 xdotool 调用被 shim 拦掉了 —— 自证陷阱）。
+        problems.append("ACTIVE_IS_PROXY(无法证明焦点落到目标)")
     same = False
     if active is not None and target is not None:
         if active.get("i") is not None and target.get("i") is not None:
@@ -482,22 +489,30 @@ def _raise_once(want, timeout=2.0, minimize_game=False):
                    .replace("MIN_GAME", "true" if minimize_game else "false")
                    .replace("MARK", f"YS-FOCUS-{tag}"), "raise", timeout)
     if not raw:
-        # GNOME/Mutter 回退（2026-10-26 实测）：windowraise + windowfocus 有效；
-        # windowactivate 在 Mutter 下静默失败（返回 0 但 _NET_ACTIVE_WINDOW 仍是幽灵窗 0x200003）。
+        # GNOME/Mutter 回退（2026-10-26 实测更正）：
+        #   · `xdotool windowactivate` 返回 0 但**无效**（_NET_ACTIVE_WINDOW 仍是幽灵窗）；
+        #   · `xdotool windowraise/windowfocus` 走 PATH ⇒ 命中 tools/ys-editor/shims/xdotool，
+        #     白名单里没有这两个子命令 ⇒ **rc=77 被拦**，而旧代码不查 rc ⇒ 抬窗静默无效，
+        #     随后又被 active_proxy（栈顶代理）判成"成功"（本轮最贵的自证陷阱）。
+        #   · 唯一实测有效的通道是 `/usr/bin/wmctrl -i -a <wid>`（绝对路径绕开 shim）。
         wid = (want or {}).get("id") or ""
         if not re.match(r"^0x[0-9a-fA-F]+$", wid):
             return None
         try:
             import subprocess as _sp
-            _sp.run(["xdotool", "windowraise", wid], capture_output=True, timeout=5)
-            _sp.run(["xdotool", "windowfocus", wid], capture_output=True, timeout=5)
-        except Exception:                            # noqa: BLE001
+            _r = _sp.run(["/usr/bin/wmctrl", "-i", "-a", wid],
+                         capture_output=True, text=True, timeout=5)
+            _rc, _err = _r.returncode, ((_r.stderr or "").strip()[:200])
+        except Exception as e:                       # noqa: BLE001
+            _lease_log("raise.wmctrl-error", target=wid, err=f"{type(e).__name__}: {e}")
             return None
         time.sleep(0.25)
         _st1 = _state_ewmh() or {}
         _aw1 = _st1.get("active_window") or {}
-        _lease_log("raise.ewmh", target=wid, active=_aw1.get("id"),
-                   ok=(_aw1.get("id") == wid), via="wmctrl+xdotool")
+        _lease_log("raise.ewmh", target=wid, active=_aw1.get("id"), rc=_rc, err=_err,
+                   ok=(_rc == 0 and not _st1.get("active_proxy")), via="wmctrl -i -a")
+        if _rc != 0:
+            return None                              # 抬窗没做成 ⇒ 不返回"成功状态"，让上层硬失败
         return _st1
     try:
         state = json.loads(raw)
@@ -743,9 +758,11 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
             time.sleep(0.3)
             state = kwin_state()          # 只重读 KWin 状态并验证
         ok, problems, target, game = _verify(state, want_rec)
+        cross = None
         if ok and not fast:
             # 独立通道复核（ys-wins --attrib；与账本/自测同一权威读数）
             wstate = ys_wins_state()
+            cross = "ok" if wstate is not None else "unavailable(ys-wins 无读数)"
             wok, wproblems, wtarget, wgame = _verify(wstate, want_rec)
             if not wok:
                 ok, problems, target, game = False, [f"ys-wins:{p}" for p in wproblems], wtarget, wgame
@@ -760,6 +777,8 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
                    "restored_info": _record(target),
                    "game_index": game.get("i") if game else None,
                    "target_index": target.get("i") if target else None}
+            if cross:
+                out["cross_check"] = cross      # 独立通道复核是否真的跑到了（GNOME 下可能不可用）
             if fallback_reason:
                 out["fallback_reason"] = fallback_reason
             return out
@@ -788,6 +807,9 @@ def release(force=False, fast=False, discard=False, fallback_class=FALLBACK_CLAS
                 "hint": "守门已放弃这条租约（连续失败 3 次），不再做任何窗口操作"}
     prev = d.get("prev")
     prev_is_game = isinstance(prev, dict) and GAME_CLASS in (prev.get("class") or "").lower()
+    # 2026-10-26 修：这一行原来引用未定义变量 `prev_is_target` ⇒ 任何 noop 租约走到 release 都
+    # NameError 直接崩（跨桌面都存在，不只是 GNOME）。判据就是分支条件本身。
+    prev_is_target = bool(d.get("noop") or d.get("prev_is_target") or prev_is_game)
     if d.get("noop") or d.get("prev_is_target") or prev_is_game:
         # 2026-10-21（用户口径；D424/D428 的补充）：没有"用户窗"可还时**不是什么都不做**。
         # 事故：我拿屏幕时游戏已在焦点 ⇒ noop 租约 ⇒ release 零窗口操作 ⇒ 用户仍盯着游戏，
@@ -934,6 +956,9 @@ def _verify_active(state, rec):
     """只验证 active == 目标（raise 目标用；不要求它在游戏之上）。"""
     if state is None:
         return False, ["KWIN_UNAVAILABLE"], None
+    if state.get("active_proxy"):
+        # 幽灵 active 被代理成栈顶窗时，"active==目标"只说明目标在最上面，不能证明焦点真的过去了
+        return False, ["ACTIVE_IS_PROXY(无法证明焦点落到目标)"], _pick(state, rec)
     target = _pick(state, rec)
     active = state.get("active_window")
     if active is None:
