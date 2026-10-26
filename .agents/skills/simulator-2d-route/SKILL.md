@@ -69,7 +69,7 @@ description: 千星模拟器「2D 界面 + Lua」生产线——把 UI 控件与
 |---|---|---|
 | **路线选择 + 与我方生态衔接** | **本技能** | 何时走模拟器、与 `gsts` CLI / `game-from-scratch` / `device-playtest-loop` 的分工 |
 | 工具与 op 全量细节 | 全局技能 `qxqy-simulator`（插件，上游） | 逐个 op 的字段、排障、用例队列写法 —— 按需查阅，**改动走我方 fork + PR** |
-| 七步工作流（策划→真机） | 全局技能 `qxqy-game-studio`（插件，上游） | 步骤产物与交接清单 —— 按需查阅 |
+| 七步工作流（策划→真机） | 上游 `qxqy-game-studio`（**本机未安装**，2026-10-26 体检实测） | 步骤产物与交接清单 —— 需要时先 `dsh plugin add` 装上游插件，别按名字直接加载 |
 | 真机试玩与取数 | `device-playtest-loop`（我方） | 开退试玩、注入、日志、判据 |
 | 编辑器/GIL 资产面 | `genshin-ts-asset-operations` 等（我方） | 节点图/UI 控件/变量/信号/结构体… |
 

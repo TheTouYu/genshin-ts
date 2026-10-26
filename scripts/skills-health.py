@@ -106,11 +106,28 @@ def plugin_skills() -> dict[str, Path]:
                 return
         record(skill_md, plugin_dir.name)
 
+    # 只认「会被加载器当技能读」的载体。2026-10-26 实测：不加过滤时
+    # `**/skills/*/SKILL.md` 会把三类**非载体的同名文件**当技能收进来，
+    # 让 DEAD 假绿、让「同名两份」虚报 36 个：
+    #   · 插件仓里的 .dsh/skills/*  —— /skill-switches 的禁用桩（data，不是技能）
+    #   · .scratch/**               —— 恢复/沙箱副本
+    #   · research/**               —— 上游提示词泄露存档
+    SKIP_PARTS = {".scratch", "research", "node_modules"}
+
+    def is_loaded_carrier(p: Path) -> bool:
+        if SKIP_PARTS & set(p.parts):
+            return False
+        if len(p.parts) >= 2 and p.parts[-2:] == (".dsh", p.parts[-1]):
+            return False
+        return "/.dsh/skills/" not in str(p)
+
     for root in roots:
         if not root.is_dir():
             continue
         try:
             for hit in root.glob("**/skills/*/SKILL.md"):
+                if not is_loaded_carrier(hit):
+                    continue
                 record(hit, hit.parent.name)
             for hit in root.glob("**/dsh-plugin/skill.md"):
                 record_plugin_decl(hit, hit.parent)
