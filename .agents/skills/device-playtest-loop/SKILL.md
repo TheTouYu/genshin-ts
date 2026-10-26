@@ -40,6 +40,29 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 **先模拟器后真机**是默认顺序：能在模拟器验证的（UI 树/字段/试玩）先用 `qxqy-simulator` 或 `gsts client:sim`，
 真机只留"模拟器证明不了的事"（真实输入、真实渲染、真实负载、真机 API 差异）。
 
+## ⚡ 开工三问（顺序不能换；2026-10-26 真实事故固化）
+
+> **事故**：我在「记录千星编辑器音效列表数据」任务里，全程抓的是 `0x1000003`（原神窗，内容是一帧**冻结的旧画面**），
+> 而用户真正操作的窗是 `0x2200008`（千星沙箱）。三次判据全绿、rc=0，产出零价值。用户判词：
+> 「窗口都不对」「你截图的一直都是固定的」。**取错窗口时，后面所有判据都在给错画面背书。**
+
+**① 目标窗是哪个？**（最先确认，不要靠 `latest` 的默认值）
+```bash
+ys-wins                       # 看有哪些窗（3 个 beyondeditor + 1 个 yuanshen）
+ys-capture grab --target editor --out /tmp/ed.png    # 编辑器 = 面积最大的 beyondeditor 窗
+ys-capture grab --target game   --out /tmp/gm.png    # 游戏 = yuanshen 窗
+```
+- `ys-capture latest` **只给守护进程那一个窗**（默认原神）；**编辑器任务一律用 `grab --target editor`**。
+- 判据：抓完 OCR 一下，看到「资源管理器/实体节点图/音效播放器…」才是编辑器；看到游戏画面说明选错窗。
+
+**② 这一帧可信吗？**（冻结帧会让你在错画面上做对判据）
+- **`crc/content.id` 变化 ≠ 画面有效**：MangoHud 的 FPS/GPU 计时器每帧都变 ⇒ 冻结的旧帧也会"内容在变"。
+- 判据（同窗两帧）：`grab` 两次（间隔 ~1.2s）比像素；**差异 <1% 而你又期待画面在动 ⇒ 这是冻结帧**，改用能动的窗或先把该窗切到前台。
+- 实测数字：`0x1000003` 两帧差 **0.08 均值 / 0.1% 像素 / 47 of 50 块全同**（全来自叠加层）⇒ 冻结；
+  `0x2200008` 静默时两帧完全相同（**正常**，编辑器静止 UI），动一下就变——**静止 ≠ 冻结，靠"有没有变化"区分不了，要看"该动的时候动了没有"**。
+
+**③ 要不要占屏？** 需要点击/按键才申请凭据（`ys-screen-grant`）；只读抓帧不占屏。
+
 ## 铁律（违反 = 白烧十分钟以上）
 
 > 完整条文见根 `AGENTS.md`「真机实验铁律」；这里给可执行版本。
@@ -157,6 +180,8 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 ## 桌面环境换了 = GUI 注入链可能整体静默失效（2026-10-26 实测，先查这条）
 
 > **操作者只需记住 3 条**（其余都是设计说明，模块已处理，**不要**自己判断桌面）：
+> 0. **先定目标窗**：编辑器任务 `ys-capture grab --target editor`，游戏任务 `--target game`；
+>    `ys-capture latest` 只给守护那一个窗（默认原神）——抓错窗会让后面全部判据给错画面背书。
 > 1. 动手前跑 `ys-preflight`，只看结尾 `PREFLIGHT-RESULT verdict=`：`GO` 直接干、`CARE` 看 `blocking=`、`STOP` 先修。
 > 2. 取帧一律 `ys-capture latest`（默认 `--purpose action`）；**离线分析**才加 `--purpose analyze`。`rc=9/15` 已自动重试，不必手搓。
 > 3. 交还/抬窗只调 `ys-hand-back` / `ys-lease kwin-raise` / `ys-gui-slot`：精确激活→Alt+Tab→X11 三条通道在内部自动选，回执 `via=` 告诉你走了哪条。
@@ -320,6 +345,7 @@ xdotool getmouselocation        # 看它报的 window: 字段
 | **`ys-loop`** | **一轮 9 步编排器** | focus → goto_my_map → map_leave → build(重挂) → map_enter → playtest_start → refocus → input → playtest_stop → artifact_new_log；**门禁只到「有日志/有标记」，不代表玩法通过**（见「验收标准」节） |
 | **`ys-time-audit`** | **自我行为计量** | 从会话事件流按类别统计时间占比；实测推翻自我认知（等循环 70% / GUI 19%）；每轮跑一次，占比异常即链路有问题 |
 | `ys-peek <out.png>` | **抓一帧** | **默认零打扰**（`ys-capture` daemon 帧，不抬窗不抢焦点，回执 `path=daemon`）；抬窗回退必须显式 `--allow-raise`（否则 rc=4 并说明原因） |
+| **`ys-capture grab --target editor\|game`** | **按意图抓指定窗**（XShm 2ms；BadMatch 自动退 `XGetImage` ~300ms，回执 `src=`） | 编辑器任务**用这个**，不要用 `latest`（它只给守护那一窗） |
 | `ys-capture latest` | **取数主通道**（回执带 `content.id`/`static_ms`/`channel`/`demand_wait_ms`） | 等"画面推进"用 `content.id` 或 `--min-content-id N`（rc=13=还没推进），别比 `src` 路径 |
 | `ys-capture audit` | **帧停滞现场判定**（只读，一次性） | 0=通道健康 / **3=XSHM_STALE**（主通道滞后，守护会自愈）/ 2=判不了；输出两条通道的变化比例 |
 | `ys-act <脚本> <out.png>` | **「抬升→动作→抓新鲜图→还原」一条龙** | GUI 的主力工作单元；脚本内可用 `_ys-ui.sh` 的判据函数 |
@@ -850,7 +876,9 @@ tools/ys-editor/ys-sample list
 **第 1 步 只读看界面（不抬窗、不申请）**
 ```bash
 . tools/ys-editor/ys-env.sh
-tools/ys-editor/ys-capture latest --out /tmp/f.png --format png   # 常驻帧，零打扰
+# 先定目标窗（2026-10-26）：**编辑器任务**用 grab --target editor（latest 只给守护那一窗=原神）
+tools/ys-editor/ys-capture grab --target editor --out /tmp/ed.png   # 任意窗一次性抓帧，不占屏
+tools/ys-editor/ys-capture latest --out /tmp/f.png --format png     # 守护窗的常驻帧（游戏任务用）
 tools/ys-screen /tmp/f.png --json > /tmp/s.json                   # 结构+文本+控件+容器
 ```
 先看 `screen.containers`（哪些面板/列表/按钮）与 `text[]`（每条带 bbox），再决定要动哪些——**别一上来就抬窗**。
@@ -1014,3 +1042,4 @@ ys-capture status | jq .state.audit                    # stale_events / verdict 
   已登记 `failure-ledger.gates.tsv`。
 
 **别做**：把「画面没变」直接解释成「游戏没反应」；也不要再给采集脚本加固定等待来"绕开"停滞。
+| 2026-10-26 | **窗口优先 + 帧可信（开工三问）**：`ys-capture latest` 只给守护那一窗（默认原神），编辑器任务必须 `grab --target editor`；`crc/content.id` 变化 ≠ 画面有效（MangoHud 计时器让冻结帧也"在变"）；实测 0x1000003 两帧差 0.1%（冻结）、0x2200008 静默静止（正常）。文档加"开工三问"并把 `grab --target` 写进工具地图与采集配方 |
