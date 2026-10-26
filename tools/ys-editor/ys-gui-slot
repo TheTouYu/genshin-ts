@@ -244,6 +244,11 @@ print(json.dumps({'ok': False, 'error': 'TARGET_UNRESOLVED',
   exit 3
 fi
 
+# 2026-10-26 修归还 bug：槽运行期间必须有人刷新 holding，否则 guard 空闲层按 3s 判"模型在思考"
+# 就把屏幕还回去（实测：长槽跑到一半帧里出现 DSH 自己的窗口）。hold = 槽时限。
+"$YS_HOME/ys-session" claim --hold-seconds "$MAX" --reason "gui-slot" --prev-json "$PREV_JSON" \
+  >/dev/null 2>&1 || true
+
 ALREADY_FOCUSED=0
 [ "$CUR_ID" = "$TARGET_ID" ] && ALREADY_FOCUSED=1
 
@@ -266,6 +271,7 @@ fi
 START=$(date +%s); CMD_RC=0; RESTORE_RC=0; RESTORED=0
 
 restore() {
+  "$YS_HOME/ys-session" hold-done >/dev/null 2>&1 || true
   [ "$RESTORED" = "1" ] && return
   RESTORED=1
   # 2026-10-23（.03/.04 采集零归还事故）：槽结束第一件事 = 解除 hold。
