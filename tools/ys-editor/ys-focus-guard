@@ -11,8 +11,9 @@
      打印 ALERT、**从此不再对它做任何窗口操作**；退避 0.5→1（→2→4→8 若还有下次）。
   ② **no-op 租约**：acquire 时目标已在焦点 ⇒ 租约带 `noop`，release 只删文件、不做任何窗口操作。
   ③ **失败路径不反复 raise**：`ys-lease release` 内部只有第一次尝试 raise，后续只重读验证。
-  ④ **全程失败自愈保险**：连续 **5 次**无法恢复任何租约 ⇒ 写 CRITICAL 并
-     `systemctl --user stop ys-focus-guard`（干净退出；unit 的 Restart=on-failure 不会重启）。
+  ④ **全程失败自愈保险（2026-10-26 重设计）**：只统计"真的动过窗口"的失败（通道类错误不算，
+     因为它们对用户零打扰）；连续 5 次 ⇒ CRITICAL + 告警（文件 + notify-send）+ 长退避后继续，
+     **不再 `systemctl stop` 自己**——那次自停让屏幕 6 小时无人回收。
   判据：**守护在无法恢复时必须"安静地失败"，绝不能持续干扰用户。**
 
 机制：
@@ -51,7 +52,16 @@ LOG = os.environ.get("YS_FOCUS_GUARD_LOG") or os.path.expanduser(
     "~/.dsh/cmdlog/ys-focus-guard.log")
 STOP_CMD = os.environ.get("YS_FOCUS_GUARD_STOP") or "systemctl --user stop ys-focus-guard"
 MAX_LEASE_ATTEMPTS = 3          # 同一租约连续失败 3 次 ⇒ abandoned
-GLOBAL_FAIL_LIMIT = 5           # 连续 5 次无法恢复任何租约 ⇒ CRITICAL + 自停
+GLOBAL_FAIL_LIMIT = 5           # 连续 5 次"真的动过窗口且没恢复"⇒ CRITICAL + 长退避
+# 2026-10-26 重设计（用户令）：原实现在第 5 次连续失败时 `systemctl stop` 自己 + exit 0。
+# 换到 GNOME 后，那 5 次失败**全是 KWIN_UNAVAILABLE**（一次窗口都没动过，用户毫无感知），
+# 保险却把它当"扰民 5 次"⇒ 干净退出 ⇒ `Restart=on-failure` 不重启 ⇒ 死了 6 小时没人知道，
+# 屏幕从此没有任何所有者。两处改：①只统计真的动过窗口的失败；②自停改成"长退避 + 告警"。
+CHANNEL_ERRORS = {"KWIN_UNAVAILABLE", "DAEMON_DOWN", "NO_LEASE", "KBD_ERROR", "NOT_FRONT",
+                  "NO_PREV", "RESTORE_UNAVAILABLE"}
+GLOBAL_COOLDOWN_S = float(os.environ.get("YS_FOCUS_GUARD_COOLDOWN_S", "60"))
+ALERT_FILE = os.environ.get("YS_FOCUS_GUARD_ALERT_FILE") or \
+    os.path.expanduser("~/.dsh/cmdlog/ys-focus-guard.alert")
 LEASE_STATE = {}                # key -> {"attempts": n, "next_ts": t}
 GLOBAL_FAILS = 0
 SEEN_ABANDONED = set()
@@ -318,6 +328,37 @@ def enforce_session_idle(verbose=False):
     return 1
 
 
+def _disturbs_user(res):
+    """这次失败有没有**真的动过窗口**。通道不可用/没有可还目标都不算扰民。
+
+    判据：错误码在 CHANNEL_ERRORS 里 ⇒ 没动过；否则看 attempts（抬过几次窗）。
+    """
+    if not isinstance(res, dict):
+        return False
+    if res.get("error") in CHANNEL_ERRORS:
+        return False
+    try:
+        return int(res.get("attempts") or 0) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _alert(msg):
+    """面向用户的告警（自停/长退避都要留痕）：写文件 + 尽力 notify-send。"""
+    try:
+        d = os.path.dirname(ALERT_FILE)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        with open(ALERT_FILE, "a", encoding="utf-8") as fh:
+            fh.write(time.strftime("%Y-%m-%d %H:%M:%S") + " " + msg + "\n")
+    except OSError:
+        pass
+    try:
+        subprocess.run(["notify-send", "-u", "critical", "ys-focus-guard", msg], timeout=5)
+    except Exception:                                    # noqa: BLE001
+        pass
+
+
 def check_once(verbose=False, allow_stop=False):
     """返回 1 = 本应有租约要归还（已处理或失败）；0 = 无该归还的租约。"""
     global GLOBAL_FAILS
@@ -361,7 +402,8 @@ def check_once(verbose=False, allow_stop=False):
                 print(f"[ys-focus-guard] 归还焦点（{why}）→ OK {res.get('restored')}")
         return 1
 
-    GLOBAL_FAILS += 1
+    if _disturbs_user(res):
+        GLOBAL_FAILS += 1
     st["attempts"] += 1
     if st["attempts"] >= MAX_LEASE_ATTEMPTS:
         marked = mark_abandoned(lease, st["attempts"], res)
@@ -379,12 +421,12 @@ def check_once(verbose=False, allow_stop=False):
             print(f"[ys-focus-guard] 归还失败（{why}，第 {st['attempts']} 次，退避 {delay:.1f}s）")
 
     if allow_stop and GLOBAL_FAILS >= GLOBAL_FAIL_LIMIT:
-        log(f"CRITICAL 连续 {GLOBAL_FAILS} 次无法恢复任何租约 —— 停止 ys-focus-guard 自身（不再干扰用户）")
-        try:
-            subprocess.run(STOP_CMD, shell=True, timeout=10)
-        except Exception as e:                           # noqa: BLE001
-            log(f"CRITICAL 自停命令失败：{type(e).__name__}: {e}")
-        sys.exit(0)
+        msg = (f"连续 {GLOBAL_FAILS} 次归还失败（都是真的动过窗口）⇒ 长退避 "
+               f"{GLOBAL_COOLDOWN_S:.0f}s 后继续重试，**不再自停**（自停会让屏幕永久没人管）")
+        log("CRITICAL " + msg)
+        _alert(msg)
+        GLOBAL_FAILS = 0
+        time.sleep(max(0.0, GLOBAL_COOLDOWN_S))
     return 1
 
 

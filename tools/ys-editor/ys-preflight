@@ -200,6 +200,29 @@ if [ "$QUICK" = "0" ] && [ -n "${GSTS_LOCALLOW_DIR:-}" ] && [ -n "${YS_MAP_ID:-}
   else bad "节点图挂载" "0 个宿主 —— 图不会执行（试玩回写最常见），先重挂"; fi
 fi
 
+# ── ⑤ 屏幕归还层（2026-10-26：guard 曾因 KWIN_UNAVAILABLE 自停 6h，屏幕无人回收）
+echo "⑤ 焦点归还层"
+_guard_alive() {   # 对象级判据：argv 精确匹配（别用 systemctl is-active 这种记录类读数）
+  local f first second
+  for f in /proc/[0-9]*/cmdline; do
+    [ -r "$f" ] || continue
+    first=$(tr '\0' '\n' 2>/dev/null < "$f" | sed -n 1p)
+    second=$(tr '\0' '\n' 2>/dev/null < "$f" | sed -n 2p)
+    case "${first##*/}" in
+      python3|python) case "$second" in *ys-focus-guard*) return 0 ;; esac ;;
+      ys-focus-guard) return 0 ;;
+    esac
+  done
+  return 1
+}
+if _guard_alive; then ok "ys-focus-guard" "在跑（空闲层有人负责交还）"
+else warn "ys-focus-guard" "不在跑 —— 我思考期间屏幕不会自动交还（槽结束仍会还）；start: systemctl --user start ys-focus-guard"; fi
+_AF="${YS_FOCUS_GUARD_ALERT_FILE:-$HOME/.dsh/cmdlog/ys-focus-guard.alert}"
+if [ -s "$_AF" ]; then
+  _n=$(wc -l < "$_AF" 2>/dev/null || echo 0)
+  warn "guard 告警" "$_n 条历史告警（tail: $(tail -1 "$_AF" | cut -c1-90)）"
+else ok "guard 告警" "无"; fi
+
 echo "───────────────────────────────"
 [ "${SKIP:-0}" -gt 0 ] && echo "· $SKIP 项 SKIP —— 前置不成立，未判定（不要把 SKIP 当通过）"
 if [ "$FAIL" -gt 0 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"; exit 1; fi

@@ -73,12 +73,16 @@ grant_status() {   # 只读 ys-screen-grant status（结果缓存；rc 原样返
 # 租期判据**只此一处**（restore() 与 --plan 共用）：有有效凭据且非测试模式 ⇒ 占用结束不归还。
 # 「关掉租期模型」的注入用例只改这个函数体 ⇒ 真实归还行为与 plan 的 hold 同时翻转；
 # 若 plan 自己另写一份判据，注入后 T13 仍会绿，那就成了空转断言（本仓库踩过：断言绿但没在判）。
-guard_alive() {   # 对象级：守卫进程是否真的在跑（不看 systemd 的 is-active 记录）
-  local p c
-  for p in /proc/[0-9]*/cmdline; do
-    [ -r "$p" ] || continue
-    c=$(tr '\0' ' ' 2>/dev/null < "$p") || continue
-    case "$c" in python3*ys-focus-guard*|*/python3*ys-focus-guard*|bash*ys-focus-guard*) return 0 ;; esac
+guard_alive() {   # 对象级判据：argv 精确匹配（别用 systemctl is-active 这种记录类读数）
+  local f first second
+  for f in /proc/[0-9]*/cmdline; do
+    [ -r "$f" ] || continue
+    first=$(tr '\0' '\n' 2>/dev/null < "$f" | sed -n 1p)
+    second=$(tr '\0' '\n' 2>/dev/null < "$f" | sed -n 2p)
+    case "${first##*/}" in
+      python3|python) case "$second" in *ys-focus-guard*) return 0 ;; esac ;;
+      ys-focus-guard) return 0 ;;
+    esac
   done
   return 1
 }
