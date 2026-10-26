@@ -225,6 +225,11 @@ def cmd_begin(a):
                if "firefox" in str(w.get("class") or "").lower() and not w.get("min")]
         if ffs:
             prev = ffs[-1]
+    # 2026-10-26：prev 若就是游戏自己（ALREADY_FOCUSED 场景），"交还回游戏"毫无意义，
+    # 还会让 ys-lease 去"把游戏抬到它自己之上" ⇒ STACKING_NOT_RESTORED 死循环（真机实测：
+    # guard 三次 hand_back 全 rc=1 就是这个）。与 `claim` 的 T9 口径一致：游戏类 prev 归一 None。
+    if prev and any(k in str(prev.get("class") or "").lower() for k in ("yuanshen", "genshin")):
+        prev = None
     sess["prev_active"] = prev
     # 回哪张桌面：以**用户窗（firefox）所在桌面**为准，而不是游戏桌面。
     # 用户手动切到游戏桌面时 current=3，但交还目标是 firefox 的 ds=2。

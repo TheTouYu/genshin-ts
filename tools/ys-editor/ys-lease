@@ -764,6 +764,12 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
         return {"ok": False, "error": "KWIN_UNAVAILABLE"}
     # 目标解析只有一处实现（dry-run 与真实路径共用，注入后不会脱钩）
     want, want_rec, rec, fallback_reason, fb = _resolve_target(state0, prev, fallback_class)
+    # 2026-10-26：prev 记录可能被污染成游戏自己（会话 begin 在游戏已前台时记录的就是它）。
+    # 那种情况下"把游戏抬到游戏之上"必然 STACKING_NOT_RESTORED（真机三次全红就是这么来的）⇒
+    # 当"没有用户窗"处理，走键盘层 Alt+Tab / 回退，而不是硬撞三次。
+    _g0 = _game(state0)
+    if want and _g0 and str(want.get("id") or "").lower() == str(_g0.get("id") or "").lower():
+        want, fallback_reason = None, "PREV_IS_GAME"
     if want is None:
         # 先试键盘层（Alt+Tab）——它是唯一能交还给 Wayland 原生窗的通道（见 _kbd_return）。
         _kr = _kbd_return((_game(state0) or {}).get("id") or "")
