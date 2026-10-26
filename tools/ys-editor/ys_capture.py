@@ -1630,7 +1630,9 @@ def _portal_screenshot(timeout=15.0):
     except Exception as e:                                # noqa: BLE001
         return None, f"portal-call: {type(e).__name__}: {e}"
     t0 = time.time()
-    while time.time() - t0 < timeout:
+    # 2026-10-26 事故：portal 若在等"允许截屏"授权框，调用会**静默等到超时**（表现为"0 帧但没报错"）。
+    # 3s 内没出文件就明确报"需要人点允许"，而不是假装在跑。授权已存在时实测 0.4–1.9s 出帧。
+    while time.time() - t0 < min(timeout, 3.0):
         time.sleep(0.15)
         for p in glob.glob(os.path.join(pics, 'Screenshot*.png')):
             try:
@@ -1639,7 +1641,8 @@ def _portal_screenshot(timeout=15.0):
                     return p, None
             except OSError:
                 continue
-    return None, "portal-timeout"
+    return None, ("PORTAL_NEEDS_APPROVAL: 3s 内未出帧——多半是 portal 弹了『允许截屏』授权框在等人点允许"
+                  "（已授权时实测 0.4–1.9s；权限存于 PermissionStore 表 screenshot 的 app-id 条目）")
 
 
 def cmd_grab(args):
