@@ -1609,6 +1609,39 @@ def read_state_fields(d):
     return out
 
 
+def _portal_screenshot(timeout=15.0):
+    """走 xdg-desktop-portal 取**合成器真值**整屏帧（PNG 路径）。
+
+    为什么必须有这条（2026-10-26 实测）：`0x1000003`（原神窗，**千星编辑器就在里面**）的
+    X11 读回与屏幕真值差 **99.6% 像素 / 平均差 110** —— Xwayland 缓冲陈旧，抓到的是一帧旧画面
+    （用户判词「你截图的一直都是固定的」）。该窗全屏 2560×1440 @ (0,0) ⇒ 整屏帧 == 该窗画面。
+    代价：~1s、闪一下屏、落 `~/Pictures/Screenshot.png`（本函数用完即删）。
+    """
+    import glob
+    pics = os.path.expanduser('~/Pictures')
+    before = {p: os.path.getmtime(p) for p in glob.glob(os.path.join(pics, 'Screenshot*.png'))}
+    try:
+        subprocess.run(["gdbus", "call", "--session",
+                        "--dest", "org.freedesktop.portal.Desktop",
+                        "--object-path", "/org/freedesktop/portal/desktop",
+                        "--method", "org.freedesktop.portal.Screenshot.Screenshot",
+                        "", "{'interactive': <false>, 'modal': <false>}"],
+                       capture_output=True, timeout=8)
+    except Exception as e:                                # noqa: BLE001
+        return None, f"portal-call: {type(e).__name__}: {e}"
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        time.sleep(0.15)
+        for p in glob.glob(os.path.join(pics, 'Screenshot*.png')):
+            try:
+                mt = os.path.getmtime(p)
+                if before.get(p) != mt and os.path.getsize(p) > 10000:
+                    return p, None
+            except OSError:
+                continue
+    return None, "portal-timeout"
+
+
 def cmd_grab(args):
     """`grab --win <id>|--target editor|game --out f [--format bmp|png]`：**任意窗口**一次性抓帧。
 
@@ -1645,7 +1678,51 @@ def cmd_grab(args):
         return 3
     out = args.out
     fmt = (args.format or ('png' if out.lower().endswith('.png') else 'bmp')).lower()
+    via = (getattr(args, 'via', '') or 'auto').lower()
     t0 = time.perf_counter()
+    if via == 'auto' and target in ('game', 'genshin', 'ys'):
+        via = 'portal'      # 本机实测：原神窗 X11 读回与屏幕真值差 99.6%（陈旧缓冲）
+    if via == 'auto':
+        # 判据：窗口几何 == 屏幕尺寸且位于 (0,0) ⇒ 整屏帧就是该窗；这类窗在本机 X11 读回会陈旧。
+        try:
+            import ys_attrib as _ya
+            _g = _ya._geometry(win) or [0, 0, 0, 0]
+            _sd = subprocess.run(['xdotool', 'getdisplaygeometry'], capture_output=True,
+                                 text=True, timeout=5, env=ys_env.env()).stdout.split()
+            _sw, _sh = (int(_sd[0]), int(_sd[1])) if len(_sd) >= 2 else (0, 0)
+            if _g[2] == _sw and _g[3] == _sh:
+                via = 'portal'
+        except Exception:                                 # noqa: BLE001
+            pass
+    if via == 'portal':
+        _png, _err = _portal_screenshot()
+        if _err:
+            print(json.dumps({"ok": False, "error": "PORTAL_FAILED", "win": win,
+                              "detail": _err}, ensure_ascii=False))
+            return 5
+        try:
+            from PIL import Image
+            import numpy as _np
+            _im = Image.open(_png).convert('RGB')
+            rgb = _np.asarray(_im, dtype=_np.uint8)
+            h, w = rgb.shape[0], rgb.shape[1]
+            data = encode_png_stored(rgb) if fmt == 'png' else encode_bmp(rgb)
+            with open(out, 'wb') as fh:
+                fh.write(data)
+            try:
+                os.unlink(_png)          # 不把测试帧留在用户 ~/Pictures
+            except OSError:
+                pass
+            crc = zlib.crc32(rgb.tobytes()) & 0xffffffff
+            print(json.dumps({"ok": True, "win": win, "target": target or "win", "out": out,
+                              "format": fmt, "w": w, "h": h, "bytes": len(data),
+                              "crc32": "%08x" % crc, "src": "portal", "via": via,
+                              "ms": round((time.perf_counter() - t0) * 1000, 1)}, ensure_ascii=False))
+            return 0
+        except Exception as e:                            # noqa: BLE001
+            print(json.dumps({"ok": False, "error": "PORTAL_DECODE", "win": win,
+                              "detail": f"{type(e).__name__}: {e}"}, ensure_ascii=False))
+            return 5
     try:
         _wid = int(win, 16) if str(win).lower().startswith('0x') else int(win)
         g = XShmGrabber(args.display or os.environ.get('DISPLAY', ':1'), _wid)
@@ -2024,6 +2101,7 @@ def main(argv=None):
     gr.add_argument('--out', required=True)
     gr.add_argument('--format', default='')
     gr.add_argument('--display', default='')
+    gr.add_argument('--via', default='')   # portal|auto|xshm（全屏窗 auto=portal：X11 读回会陈旧）
     gr.set_defaults(func=cmd_grab)
     au = sub.add_parser('audit')
     au.add_argument('--dir', default=os.environ.get('YS_CAPTURE_DIR', DEFAULT_DIR))

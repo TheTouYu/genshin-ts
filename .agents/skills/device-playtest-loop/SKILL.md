@@ -46,20 +46,24 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 > 而用户真正操作的窗是 `0x2200008`（千星沙箱）。三次判据全绿、rc=0，产出零价值。用户判词：
 > 「窗口都不对」「你截图的一直都是固定的」。**取错窗口时，后面所有判据都在给错画面背书。**
 
-**① 目标窗是哪个？**（最先确认，不要靠 `latest` 的默认值）
+**① 目标窗是哪个？**（2026-10-26 用户纠正：**千星编辑器就在原神窗 `0x1000003` 里**，
+beyondeditor 那三个窗（资源管理器/千星沙箱/日志）是**辅助窗**，不是干活的地方）
 ```bash
-ys-wins                       # 看有哪些窗（3 个 beyondeditor + 1 个 yuanshen）
-ys-capture grab --target editor --out /tmp/ed.png    # 编辑器 = 面积最大的 beyondeditor 窗
-ys-capture grab --target game   --out /tmp/gm.png    # 游戏 = yuanshen 窗
+ys-wins                                  # 4 个窗：3×beyondeditor + 1×yuanshen
+ys-capture grab --target game  --out /tmp/g.png   # 干活窗（=原神窗，全屏 2560×1440）
+ys-capture grab --target editor --out /tmp/e.png  # 辅助窗（面积最大的 beyondeditor）
 ```
-- `ys-capture latest` **只给守护进程那一个窗**（默认原神）；**编辑器任务一律用 `grab --target editor`**。
-- 判据：抓完 OCR 一下，看到「资源管理器/实体节点图/音效播放器…」才是编辑器；看到游戏画面说明选错窗。
+- `ys-capture latest` 只给守护进程那**一个**窗（默认原神）——正好是干活窗，但它走 X11 读回。
+- **本机实测：该窗的 X11 读回是陈旧缓冲**（与合成器真值差 **99.6% 像素、平均差 110**）⇒
+  `grab --target game` 默认走 **portal 合成器通道**（`src=portal`，~0.5s，回执可见）。
+  要复现旧行为：`--via xshm`（拿到的是旧帧）。
 
 **② 这一帧可信吗？**（冻结帧会让你在错画面上做对判据）
 - **`crc/content.id` 变化 ≠ 画面有效**：MangoHud 的 FPS/GPU 计时器每帧都变 ⇒ 冻结的旧帧也会"内容在变"。
 - 判据（同窗两帧）：`grab` 两次（间隔 ~1.2s）比像素；**差异 <1% 而你又期待画面在动 ⇒ 这是冻结帧**，改用能动的窗或先把该窗切到前台。
-- 实测数字：`0x1000003` 两帧差 **0.08 均值 / 0.1% 像素 / 47 of 50 块全同**（全来自叠加层）⇒ 冻结；
-  `0x2200008` 静默时两帧完全相同（**正常**，编辑器静止 UI），动一下就变——**静止 ≠ 冻结，靠"有没有变化"区分不了，要看"该动的时候动了没有"**。
+- **可靠判据（本机决定性那条）**：把 X11 读回与**合成器真值**（portal 整屏）比像素 —— 实测
+  `0x1000003` 两者差 **99.6%（平均差 110）** ⇒ X11 那一帧是**旧的**。所以干活窗一律 `--via portal`（默认已生效）；
+  只有 `src=xshm` 的回执才需要怀疑。`content.id`/crc 变化**不能**证明画面有效（MangoHud 计时器在动）。
 
 **③ 要不要占屏？** 需要点击/按键才申请凭据（`ys-screen-grant`）；只读抓帧不占屏。
 
@@ -180,8 +184,8 @@ ys-capture grab --target game   --out /tmp/gm.png    # 游戏 = yuanshen 窗
 ## 桌面环境换了 = GUI 注入链可能整体静默失效（2026-10-26 实测，先查这条）
 
 > **操作者只需记住 3 条**（其余都是设计说明，模块已处理，**不要**自己判断桌面）：
-> 0. **先定目标窗**：编辑器任务 `ys-capture grab --target editor`，游戏任务 `--target game`；
->    `ys-capture latest` 只给守护那一个窗（默认原神）——抓错窗会让后面全部判据给错画面背书。
+> 0. **先定目标窗 + 通道**：干活窗是**原神窗**（千星编辑器在里面）⇒ `ys-capture grab --target game`
+>    （默认走 portal 合成器通道，因为该窗 X11 读回陈旧 99.6%）；辅助窗才用 `--target editor`。
 > 1. 动手前跑 `ys-preflight`，只看结尾 `PREFLIGHT-RESULT verdict=`：`GO` 直接干、`CARE` 看 `blocking=`、`STOP` 先修。
 > 2. 取帧一律 `ys-capture latest`（默认 `--purpose action`）；**离线分析**才加 `--purpose analyze`。`rc=9/15` 已自动重试，不必手搓。
 > 3. 交还/抬窗只调 `ys-hand-back` / `ys-lease kwin-raise` / `ys-gui-slot`：精确激活→Alt+Tab→X11 三条通道在内部自动选，回执 `via=` 告诉你走了哪条。
