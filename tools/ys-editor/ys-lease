@@ -135,15 +135,103 @@ console.info("MARK " + JSON.stringify({ active: act ? String(act.internalId || "
 """
 
 
+def _state_ewmh(timeout=5.0):
+    """EWMH 回退通道（2026-10-26 新增）：GNOME/Mutter 或任何支持 _NET_CLIENT_LIST_STACKING 的 WM。
+
+    背景：本机桌面换成 GNOME（gnome-shell + mutter-x11-frame）后 KWin Scripting 不存在，
+    kwin_state() 恒返回 None ⇒ ys-lease / ys-gui-slot 全部 fail-closed（KWIN_UNAVAILABLE），
+    而 dsh-guard 的 L1-FOCUS 规则又强制必须走它们 ⇒ 死锁。
+
+    返回与 kwin_state() 同结构：{active, desktop, wins:[{i,id,c,cls,x,y,w,h,min,active}], active_window}
+    读数来源（三条都是 EWMH 标准，GNOME 全支持）：
+      - 堆叠序 : xprop -root _NET_CLIENT_LIST_STACKING（底→顶）
+      - 几何/类: wmctrl -lGx（一行全拿，不逐窗起进程）
+      - 活动窗 : xprop -root _NET_ACTIVE_WINDOW（xdotool getactivewindow 在 Mutter 下会给幽灵窗 0x200003）
+    """
+    import subprocess as sp
+
+    def q(args, t=timeout):
+        try:
+            r = sp.run(args, capture_output=True, text=True, timeout=t)
+            return r.stdout if r.returncode == 0 else ""
+        except Exception:                                # noqa: BLE001
+            return ""
+
+    ids = []
+    raw_stack = q(["xprop", "-root", "_NET_CLIENT_LIST_STACKING"])
+    # 注意格式差异：xprop 对 _NET_CLIENT_LIST_STACKING 输出 "…(WINDOW): window id # 0x…, 0x…"
+    # （冒号 + #，**没有等号**）；早先按 "=" 切分会得到空列表 ⇒ 整个回退恒 None。
+    m_stack = re.search(r"window id #(.*)$", raw_stack, re.M)
+    if m_stack:
+        ids = [x.lower() for x in re.findall(r"0x[0-9a-fA-F]+", m_stack.group(1))]
+    elif "=" in raw_stack:
+        ids = [x.lower() for x in re.findall(r"0x[0-9a-fA-F]+", raw_stack.split("=", 1)[1])]
+    if not ids:
+        return None
+
+    geo = {}
+    # 不用 wmctrl（在本机被 ys-shim 拦，rc=77）；xdotool getwindowgeometry 可用且不经 shim
+    for wid in ids:
+        out = q(["xdotool", "getwindowgeometry", wid])
+        pm = re.search(r"Position:\s*(-?\d+),(-?\d+)", out)
+        gm = re.search(r"Geometry:\s*(\d+)x(\d+)", out)
+        if not pm or not gm:
+            continue
+        cl = q(["xprop", "-id", wid, "WM_CLASS"])
+        cm = re.findall(r'"([^"]*)"', cl)
+        # caption 必须抓：ys-gui-slot / _resolve_target 按 caption/class 解析目标窗，
+        # 留空会让 TARGET_UNRESOLVED（2026-10-26 实测：候选已找到但匹配不上）
+        nm = q(["xprop", "-id", wid, "_NET_WM_NAME"])
+        nm2 = q(["xprop", "-id", wid, "WM_NAME"])
+        cap = ""
+        for raw_nm in (nm, nm2):
+            m_nm = re.search(r'=\s*"([^"]*)"', raw_nm)
+            if m_nm and m_nm.group(1):
+                cap = m_nm.group(1)
+                break
+        geo[wid] = {"x": int(pm.group(1)), "y": int(pm.group(2)),
+                    "w": int(gm.group(1)), "h": int(gm.group(2)),
+                    "cls": (cm[1] if len(cm) > 1 else (cm[0] if cm else "")),
+                    "c": cap}
+
+    act = None
+    raw_act = q(["xprop", "-root", "_NET_ACTIVE_WINDOW"])
+    m_act = re.search(r"window id #\s*(0x[0-9a-fA-F]+)", raw_act)
+    if m_act:
+        act = m_act.group(1).lower()
+    elif "=" in raw_act:
+        m2 = re.search(r"0x[0-9a-fA-F]+", raw_act.split("=", 1)[1])
+        act = m2.group(0).lower() if m2 else None
+
+    if act and act not in ids:
+        act = ids[-1] if ids else None        # Mutter 下 _NET_ACTIVE_WINDOW 可能是幽灵窗 0x200003
+        proxy = True
+    else:
+        proxy = False
+    wins = []
+    for i, wid in enumerate(ids):
+        g = geo.get(wid)
+        if not g:
+            continue
+        wins.append({"i": i, "id": wid, "c": g["c"], "cls": g["cls"],
+                     "x": g["x"], "y": g["y"], "w": g["w"], "h": g["h"],
+                     "min": 0, "active": 1 if wid == act else 0})
+    if not wins:
+        return None
+    state = {"active": act, "desktop": -1, "wins": wins, "source": "ewmh", "active_proxy": proxy}
+    state["active_window"] = next((w for w in wins if w["id"] == act), None)
+    return state
+
+
 def kwin_state(timeout=2.0):
     """KWin stackingOrder + activeWindow（权威；与 ys-wins 同源）。"""
     raw = _kwin_js(lambda tag: _PROBE_BODY.replace("MARK", f"YS-FOCUS-{tag}"), "probe", timeout)
     if not raw:
-        return None
+        return _state_ewmh()          # GNOME/Mutter 回退（无 KWin Scripting 时）
     try:
         state = json.loads(raw)
     except Exception:                                    # noqa: BLE001
-        return None
+        return _state_ewmh()          # KWin 返回非 JSON（或脚本未装载）⇒ 回退 EWMH
     act = state.get("active")
     # 窗口记录的键是 internalId（不是 id）——写错会让 active_window 恒为 None，
     # 于是所有"目标是否已是活动窗"的判定全部失真（2026-10-21 用户听到多余操作音的根因）。
@@ -556,6 +644,17 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
     # 目标解析只有一处实现（dry-run 与真实路径共用，注入后不会脱钩）
     want, want_rec, rec, fallback_reason, fb = _resolve_target(state0, prev, fallback_class)
     if want is None:
+        # 2026-10-26（GNOME 回退轮）：本机 firefox 是 **Wayland 原生窗**，不出现在 X11 的
+        # _NET_CLIENT_LIST_STACKING 里（本机列表只有 3 个 beyondeditor + 1 个 yuanshen），
+        # 而 GNOME Shell 的 Eval 在 41+ 默认被禁用（实测 `gdbus … org.gnome.Shell.Eval` → (false, '')）
+        # ⇒ 拿不到 Wayland 窗口，也就永远"找不到回落窗"。
+        # 处置：此时"不动任何窗口"就是最安全的结果（比误激活别的窗好）；**保留租约反而更糟**——
+        # 屏幕会被租约钉住、guard 回收不了（用户已投诉过"执行完不记得归还画面"）。
+        # 语义用 ok+noop 明示"没还，因为没有可还的"，而不是伪装成成功归还。
+        return {"ok": True, "noop": True, "fallback_reason": fallback_reason,
+                "detail": ("无可归还目标（%s；回退窗 %s 不在 X11 客户端列表，通常是 Wayland 原生应用）"
+                           " ⇒ 未改动任何窗口" % (fallback_reason, fallback_class))}
+    if False:
         return {"ok": False, "error": "FALLBACK_NOT_FOUND",
                 "fallback_reason": fallback_reason,
                 "detail": f"原焦点不可用（{fallback_reason}），且找不到回落窗 {fallback_class}"}
