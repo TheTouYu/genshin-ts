@@ -23,6 +23,12 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import ys_env            # X 会话/D-Bus 环境唯一入口（干净 shell 下也必须能调）
+except Exception:            # noqa: BLE001
+    ys_env = None
+
 DEST = os.environ.get("YS_FOCUS_BUS", "org.gnome.Shell")
 PATH = os.environ.get("YS_FOCUS_PATH", "/org/ys/Focus")
 IFACE = "org.ys.Focus"
@@ -34,7 +40,14 @@ def call(method, *args):
     cmd = ["gdbus", "call", "--session", "--dest", DEST, "--object-path", PATH,
            "--method", f"{IFACE}.{method}", *args]
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+        env = dict(ys_env.env() if ys_env is not None else os.environ)
+        # 会话总线：干净 shell 里 DBUS_SESSION_BUS_ADDRESS 常缺失，gdbus 会去 dbus-launch（失败）。
+        if not env.get("DBUS_SESSION_BUS_ADDRESS"):
+            _rt = env.get("XDG_RUNTIME_DIR") or "/run/user/%d" % os.getuid()
+            env["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=%s/bus" % _rt
+        if not env.get("DISPLAY"):
+            env["DISPLAY"] = ":1"
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT, env=env)
     except Exception as e:                                   # noqa: BLE001
         return None, f"{type(e).__name__}: {e}"
     if p.returncode != 0:

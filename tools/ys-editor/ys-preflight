@@ -223,6 +223,8 @@ if [ -s "$_AF" ]; then
   warn "guard 告警" "$_n 条历史告警（tail: $(tail -1 "$_AF" | cut -c1-90)）"
 else ok "guard 告警" "无"; fi
 
+echo "───────────────────────────────"
+[ "${SKIP:-0}" -gt 0 ] && echo "· $SKIP 项 SKIP —— 前置不成立，未判定（不要把 SKIP 当通过）"
 # 机器可读结论（2026-10-26）：把"哪些 WARN 可以忽略"也做成模块判断，不让模型读文案。
 # 已知可忽略：地图身份（判态 UNKNOWN 时本来就判不了）、guard 告警历史、ydotool 走 shim。
 _IGN_PAT='^(地图身份|guard 告警|ydotool.*)$'
@@ -236,10 +238,11 @@ EOF
 if [ "$FAIL" -gt 0 ]; then _V=STOP
 elif [ -n "$_BLOCK" ]; then _V=CARE
 else _V=GO; fi
+_RC=0; [ "$FAIL" -gt 0 ] && _RC=1; [ "$_RC" -eq 0 ] && [ "$WARN" -gt 0 ] && _RC=2
+if [ "$_RC" -eq 1 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"
+elif [ "$_RC" -eq 2 ]; then echo "⚠ $WARN 项 WARN —— 可继续，但请确认你已读过每一条"
+else echo "✓ 全部通过 —— 可以动手"; fi
+# 机器可读结论**必须是最后一行**（模型/脚本用 tail -1 取，2026-10-26 验收代理抓到的泄漏点）
 printf 'PREFLIGHT-RESULT verdict=%s fail=%s warn=%s ignorable=%s blocking="%s"\n' \
   "$_V" "$FAIL" "$WARN" "$_IGN" "${_BLOCK%; }"
-echo "───────────────────────────────"
-[ "${SKIP:-0}" -gt 0 ] && echo "· $SKIP 项 SKIP —— 前置不成立，未判定（不要把 SKIP 当通过）"
-if [ "$FAIL" -gt 0 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"; exit 1; fi
-if [ "$WARN" -gt 0 ]; then echo "⚠ $WARN 项 WARN —— 可继续，但请确认你已读过每一条"; exit 2; fi
-echo "✓ 全部通过 —— 可以动手"; exit 0
+exit "$_RC"
