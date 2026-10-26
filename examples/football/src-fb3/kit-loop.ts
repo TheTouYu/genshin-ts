@@ -23,13 +23,13 @@ import { KitSignal } from './signals.js'
 
 const SLOT_TICK = 1207959557n
 // 探针自持槽（cfgId 必须字面量：`SLOT + 3n` 会被 Stage 1 改写成 f.addition，config_id 要字面量）
-const S_E1P = 1207959579n
-const S_E1S = 1207959580n
-const S_E3 = 1207959581n
-const S_E4 = 1207959582n
-const S_PREVX = 1207959583n
-const S_PREVY = 1207959584n
-const S_PREVZ = 1207959585n
+const S_E1P = 1207959553n
+const S_E1S = 1207959554n
+const S_E3 = 1207959555n
+const S_E4 = 1207959556n
+const S_PREVX = 1207959559n
+const S_PREVY = 1207959560n
+const S_PREVZ = 1207959564n
 
 const SPEED = 25.0
 const STEP = 25.0 * 0.0666
@@ -41,8 +41,12 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const tick = chanIncr(f, SLOT_TICK)
 
   // 最近玩家（客户端参数序 (iD, list)）
+  // ⚠️ 玩家列表元素是**玩家控制器实体**，它的 getEntityLocation 恒为 0（D318 实锤）。
+  //    要拿真实坐标必须再取「该玩家当前激活的角色实体」。
   const players = f.getListOfPlayerEntitiesOnTheField()
   const p0 = f.getCorrespondingValueFromList(0n, players)
+  // ⚠️ getActiveCharacterOfSpecifiedPlayer / getPlayerSCharacterList 在 beyond 模式都 CLIENT_NODE_UNAVAILABLE
+  //    ⇒ 客户端只能用玩家实体本身（实测其位置非 0，跟随曾经工作过）
   const pLoc = f.getEntityLocation(p0)
   const pP = f.split3dVector(pLoc)
   // 玩家的"躯干高度"：以玩家脚下 +0.9m 作为判定中心
