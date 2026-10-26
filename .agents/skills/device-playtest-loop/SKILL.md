@@ -154,6 +154,35 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 ⚠ guard 是常驻 python 进程：**改 `ys-focus-guard` 源码后必须 `systemctl --user restart ys-focus-guard`** 才加载新代码。
 回归：`python3 tools/ys-editor/tests/session-claim.selftest.py`（T8–T16）。
 
+## 桌面环境换了 = GUI 注入链可能整体静默失效（2026-10-26 实测，先查这条）
+
+`tools/ys-editor/` 的焦点/注入层**原本强绑 KWin**（`gdbus org.kde.KWin /Scripting`）。
+本机 2026-10-26 换成 **GNOME**（`gnome-shell` + `mutter-x11-frame`）后，`ys-lease` / `ys-gui-slot` /
+`ys-wins` 全部报 `KWIN_UNAVAILABLE`（fail-closed），而 `dsh-guard` 的 **L1-FOCUS 规则又强制必须走它们**
+⇒ **完全死锁**：裸调 `xdotool` 被守卫拦、走硬通道被 KWin 缺失拦。
+
+**判据（30 秒）**：`ps -eo comm | grep -iE 'kwin|gnome-shell'` + `echo $XDG_CURRENT_DESKTOP`。
+看到 gnome-shell 而没有 kwin ⇒ 命中本条。
+
+**已修（commit `062ce36a`）**：`ys-lease` 新增 `_state_ewmh()` 回退，返回结构与 `kwin_state()` 一致
+（`_verify`/`_pick`/`_resolve_target` 无需改动）。四条读数来源与**四个实测坑**：
+
+| 项 | 用这个 | 别用 | 坑 |
+|---|---|---|---|
+| 堆叠序 | `xprop -root _NET_CLIENT_LIST_STACKING` | — | **输出是 `window id # 0x…`（冒号+#，没有等号）**，按 `=` 切分得到空列表 ⇒ 回退恒 None |
+| 几何 | `xdotool getwindowgeometry <wid>` | `wmctrl -lGx` | **`wmctrl` 被 `ys-shim` 拦（rc=77）** |
+| 类名 | `xprop -id <wid> WM_CLASS` | — | — |
+| 标题 | `xprop -id <wid> _NET_WM_NAME` | — | **不抓 caption 会让 `ys-gui-slot` 报 `TARGET_UNRESOLVED`**（候选找到了但匹配不上） |
+| 活动窗 | `xprop -root _NET_ACTIVE_WINDOW` | `xdotool getactivewindow` | Mutter 下两者都可能给**幽灵窗 `0x200003`**（不在堆叠表）⇒ 用栈顶作代理并在 state 标 `active_proxy` |
+
+**两条环境事实**：
+- **Wayland 原生窗口（如 firefox）不出现在 X11 的 `_NET_CLIENT_LIST_STACKING` 里** ⇒ 交还目标 `FALLBACK_CLASS=firefox`
+  永远找不到。`GNOME Shell Eval` 在 **GNOME 41+ 默认禁用**（实测 `gdbus … org.gnome.Shell.Eval` → `(false, '')`），拿不到 Wayland 窗表。
+  ⇒ 已改为**降级语义**：无回落窗时返回 `ok + noop + detail` 明示"未改动任何窗口"，**不保留租约**
+  （保留会让屏幕被钉死、guard 回收不了）。
+- **`xdotool windowactivate` 在 Mutter 下静默失败**（返回 0 但 `getactivewindow` 仍是幽灵窗）；
+  **`xdotool windowfocus` 有效**（实测 `active=16777219` 且 OCR 画面随之变化）。
+
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
 `ys-gui-slot` 里跑的命令，与槽外**不是同一个文件系统视图**——以下四条都在槽内实测踩过：
