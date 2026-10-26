@@ -38,14 +38,31 @@ def current_session_id() -> str:
     return Path(p).parent.name if p else ""
 
 
+ARTIFACT_NAMES = (
+    "session.v4.jsonl.zstd", "session.v4.jsonl",
+    "session.v3.jsonl.zstd", "session.v3.jsonl",
+    "session.jsonl.zstd", "session.jsonl",
+)
+
+
+def artifact(d: Path) -> Path:
+    """会话目录 -> 日志文件；兼容 v0 `session.jsonl[.zstd]` 与 v3 `session.v3.jsonl[.zstd]`。"""
+    for name in ARTIFACT_NAMES:
+        cand = d / name
+        if cand.exists():
+            return cand
+    hits = sorted(d.glob("session*.jsonl*"))
+    return hits[-1] if hits else d / "session.jsonl.zstd"
+
+
 def scan(root: Path, idle_hours: float, min_size_mb: float):
     """返回 [(project, session_dir, size_bytes, mtime)] —— 命中归档条件者。"""
     cur = current_session_id()
     cutoff = time.time() - idle_hours * 3600
     hits = []
     for proj in sorted(p for p in root.iterdir() if p.is_dir()):
-        for sd in sorted(p for p in proj.glob("session-*") if p.is_dir()):
-            f = sd / "session.jsonl.zstd"
+        for sd in sorted(p for p in proj.iterdir() if p.is_dir() and artifact(p).exists()):
+            f = artifact(sd)
             if not f.exists():
                 continue
             if cur and sd.name == cur:

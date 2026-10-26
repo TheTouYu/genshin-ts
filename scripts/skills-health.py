@@ -41,6 +41,8 @@ IGNORE = {
     "rubik-2x2", "rubik-3x3", "rubik-3x3-client", "lights-out", "football",
     "cube-replica-c4", "create-genshin-ts", "node-modules", "signal-demo",
     "progressive-query", "knowledge-search",
+    # 长期任务的「线 id」（CLAUDE.md 说明并行线时用），不是技能名。
+    "sim-2d", "gui-agi",
 }
 
 
@@ -223,7 +225,15 @@ def skill_digest(root: Path, name: str) -> str | None:
     files = [d / "SKILL.md"]
     scripts = d / "scripts"
     if scripts.is_dir():
-        files.extend(sorted(p for p in scripts.rglob("*") if p.is_file()))
+        # 只比"生效内容"：__pycache__（rglob 会带上 .pyc）与 *.bak* 备份不属于技能本体。
+        # 2026-10-26 实测：两份 SKILL.md 与三个脚本逐字节相同，仅因用户级多了
+        # .bak-preV3 与 __pycache__ 就被判 STALE —— 假告警会把真告警淹没。
+        files.extend(sorted(
+            p for p in scripts.rglob("*")
+            if p.is_file()
+            and "__pycache__" not in p.parts
+            and ".bak" not in p.name
+        ))
     for p in files:
         if not p.is_file():
             continue

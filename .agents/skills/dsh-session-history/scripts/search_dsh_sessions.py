@@ -565,7 +565,7 @@ def cmd_index(path_str, rebuild, jobs):
     return 0
 
 
-def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None, scope=None):
+def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None, scope=None, grep=None):
     """v3.1：默认只索引/显示 mtime 最新 30 个会话（--all 全量），**按最后活动排序**。
 
     旧版两宗罪（2026-09-12 用户实测）：①冷缓存 scan = 全项目解压（165 会话/285MB >90s）；
@@ -589,6 +589,19 @@ def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None, scope=None
         return 1
     metas.sort(key=lambda m: (m.get("mtime_ns") or 0, m.get("created") or 0),
                reverse=not oldest_first)
+    if grep:                      # 标题优先：先按标题/首条用户消息筛，再截断（2026-10-25 用户实测路径）
+        try:
+            rx = re.compile(grep, re.IGNORECASE)
+        except re.error as exc:
+            print("[error] --grep 正则无效: %s" % exc)
+            return 1
+        scanned = len(metas)
+        metas = [m for m in metas
+                 if rx.search(str(m.get("title") or "") + " " + " ".join(m.get("users") or []))]
+        if not metas:
+            print("[warn] 标题/用户消息里没有匹配 %r 的会话（已扫 %d 个）" % (grep, scanned))
+            return 1
+        print("(标题/用户消息命中 %d/%d 个会话)" % (len(metas), scanned))
     shown = metas if limit <= 0 else metas[:limit]
     for m in shown:
         print_scan_entry(m)
@@ -1113,7 +1126,8 @@ def main(argv):
         limit = 0 if opts.get("--all") else opt_int("--limit", 30)
         return cmd_scan(pos[0] if pos else None, limit,
                         oldest_first=bool(opts.get("--oldest-first")),
-                        rebuild=bool(opts.get("--rebuild")), scope=scope)
+                        rebuild=bool(opts.get("--rebuild")), scope=scope,
+                        grep=opts.get("--grep"))
     if cmd == "recent":
         return cmd_recent(pos[0] if pos else None,
                           since_min=scope["since_min"], newest=scope["newest"],

@@ -96,10 +96,27 @@ def _fmt(ts: int) -> str:
     return f"{time.strftime('%m-%d %H:%M', lt)} ({age_s})"
 
 
+ARTIFACT_NAMES = (
+    "session.v4.jsonl.zstd", "session.v4.jsonl",
+    "session.v3.jsonl.zstd", "session.v3.jsonl",
+    "session.jsonl.zstd", "session.jsonl",
+)
+
+
+def _artifact(d):
+    """会话目录 -> 日志文件；兼容 v0 `session.jsonl[.zstd]` 与 v3 `session.v3.jsonl[.zstd]`。"""
+    for name in ARTIFACT_NAMES:
+        cand = os.path.join(d, name)
+        if os.path.exists(cand):
+            return cand
+    hits = sorted(glob.glob(os.path.join(d, "session*.jsonl*")))
+    return hits[-1] if hits else os.path.join(d, "session.jsonl.zstd")
+
+
 def _find_session(arg: str | None) -> str:
     if arg:
         if os.path.isdir(arg):
-            cand = os.path.join(arg, "session.jsonl.zstd")
+            cand = _artifact(arg)
             if os.path.exists(cand):
                 return cand
             hits = glob.glob(os.path.join(arg, "*.jsonl.zstd")) + glob.glob(os.path.join(arg, "*.jsonl"))
@@ -112,7 +129,7 @@ def _find_session(arg: str | None) -> str:
         return env
     cwd_key = "--" + os.getcwd().strip("/").replace("/", "-").replace(".", "-") + "--"
     root = os.path.join(SESSIONS_ROOT, cwd_key)
-    hits = glob.glob(os.path.join(root, "*", "session.jsonl.zstd"))
+    hits = glob.glob(os.path.join(root, "*", "session*.jsonl*"))
     if not hits:
         raise SystemExit(f"找不到会话（cwd={os.getcwd()}，试 --session）")
     return max(hits, key=os.path.getmtime)
@@ -131,7 +148,7 @@ def main() -> int:
 
     if a.list:
         for d in sorted(glob.glob(os.path.join(a.list, "*")), key=os.path.getmtime, reverse=True)[:20]:
-            f = os.path.join(d, "session.jsonl.zstd")
+            f = _artifact(d)
             if not os.path.exists(f):
                 continue
             try:

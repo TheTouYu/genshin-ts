@@ -34,6 +34,26 @@ python3 ~/.agents/skills/dsh-session-history/scripts/last_user.py --list ~/.dsh/
 - **配套**：捞回原话后立刻把"未闭事项 + 用户原话逐字 + 关键数值"写进项目 `.scratch/ISSUE-BOARD.md`
   （看板是**派生物**，不是真相源；真相源永远是会话 JSONL + `git log` + 盘上文件 + 页面实拍）。
 
+## 🔎 第一步永远先「按标题筛」：`scan --grep`（2026-10-25 用户实测固化）
+
+**问题**：用户问「把最近那两个相关会话的结论找出来」时，我第一反应是 `search` 全库正则——**白花一轮**：
+真正相关的会话**标题里就写着**（`不行，现在需要继续完成假死` / `读 …/PROMPT-fake-death-rootcause.md`），
+而 `search` 只能命中正文里的字符串，还得靠关键词猜对（我猜的 `XCheckIfEvent` 一条没中）。
+
+**正确第一步（秒级，免解析全文）**：
+
+```bash
+# 按标题 + 前 6 条用户消息筛（v3.2 新增 --grep；默认仍只索引最新 30 个，可配 --since-min/--newest/--all）
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py \
+  scan ~/.dsh/sessions/--home-h-dsh-plugins-- --grep '假死|卡死|无响应|事件循环' --limit 5
+```
+
+命中后会打印 `(标题/用户消息命中 N/M 个会话)`，`M` 是本次作用域实际扫过的会话数——
+**没有命中也会说"已扫 M 个"**，能区分「真没有」与「没扫到」。
+
+**判据**：先 `scan --grep` 拿到候选（标题 + 首条用户原话），再对候选跑 `dialog --tail N --full`；
+只有标题看不出相关性时才退回 `search`（搜活动，不搜症状）。
+
 ## 原则（长期进化视角）
 
 1. **聊天记录是线索，不是最终证据**。找到的历史说法必须与当前源码、`git log`、测试、
@@ -141,6 +161,9 @@ python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py rece
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py recent ~/.dsh/sessions --newest 4 \
   --grep '(ensure-edge|page-probe|page-shots|npm run|docker |zstd -d -c|playwright|msedge|find /|tar |rm -rf)'
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py recent <单个会话目录> --max-size 50
+
+# 0c.【首选③】按标题找"哪次会话干过这件事"（v3.2）——先这一步，再 dialog
+python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan <会话目录> --grep '假死|卡死|无响应' --limit 5
 
 # 1. 会话全景（v3.1：**按最后活动排序**；默认只索引/显示最新 30 个 + 跳过 >25MB，冷缓存秒级；--all 全量）
 python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py scan ~/.dsh/sessions/--home-h-genshin-ts--
