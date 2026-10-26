@@ -304,12 +304,59 @@ def _uid_present(arr_full=None):
     return found
 
 
+_STRIP_CACHE = {}          # box → (texts, t)；与 _UID_CACHE 同寿（5s）
+_HP_STRIP = (1100, 1300, 350, 100)   # 底部血条「n/m」：与 ys-state 的 native_readings 同一坐标口径
+
+
+def _strip_texts(arr_full, box):
+    """按绝对坐标裁条 → OCR → 文本列表（带 5s 缓存）。取不到返回 None。"""
+    import numpy as _np
+    bx, by, bw, bh = box
+    now = time.monotonic()
+    hit = _STRIP_CACHE.get(box)
+    if hit and (now - hit[1]) < 5.0:
+        return hit[0]
+    try:
+        if arr_full is not None and len(getattr(arr_full, "shape", ())) >= 2 \
+                and arr_full.shape[0] >= by + bh and arr_full.shape[1] >= bx + bw:
+            strip = arr_full[by:by + bh, bx:bx + bw]
+            a8 = strip if strip.dtype == _np.uint8 else \
+                (_np.clip(strip, 0, 1) * 255).round().astype(_np.uint8)
+        else:
+            raw = YL.grab(bx, by, bw, bh)
+            a8 = (_np.clip(raw, 0, 1) * 255).round().astype(_np.uint8)
+        eng, _err = _ocr_engine()
+        if eng is None:
+            return None
+        texts = [b.get("text") or "" for b in _ocr_array(eng, a8, (bx, by))]
+    except Exception:                              # noqa: BLE001
+        return None
+    if len(_STRIP_CACHE) > 8:
+        _STRIP_CACHE.clear()
+    _STRIP_CACHE[box] = (texts, now)
+    return texts
+
+
+def _hp_present(arr_full=None):
+    """底部血条「n/m」是否在场（GAME_WORLD 的第二条本体判据）。
+
+    2026-10-26（假阳性事故）：`_apply_world_uid` 原来**只看右下 UID 行**，而**千星编辑模式的
+    底栏同样画 UID**（游戏客户端自己渲染的编辑器 UI），于是「游戏在编辑器里」被判成 GAME_WORLD
+    —— 7 个态全 false、margin=-0.25，却把 state 改写成 GAME_WORLD 并把 confidence 抬到 0.6，
+    回执自相矛盾。修法：要求血条同时在场（与 ys-state 的 native_readings 同一判据口径）。
+    """
+    texts = _strip_texts(arr_full, _HP_STRIP)
+    if not texts:
+        return False
+    return any("/" in t and any(ch.isdigit() for ch in t) for t in texts)
+
+
 def _apply_world_uid(res, arr_full=None):
-    """UNKNOWN/PLAYTEST ⇒ 用 UID 小条补判 GAME_WORLD（就地改 res）。判据只有这一份。"""
+    """UNKNOWN/PLAYTEST ⇒ 用 UID 小条**+ 底部血条**补判 GAME_WORLD（就地改 res）。判据只有这一份。"""
     if (res or {}).get("state") not in ("UNKNOWN", "PLAYTEST"):
         return res
     try:
-        if _uid_present(arr_full):
+        if _uid_present(arr_full) and _hp_present(arr_full):
             res["replaced"] = str(res.get("state")) + "->GAME_WORLD"
             res["state"] = "GAME_WORLD"
             res["confidence"] = max(0.6, float(res.get("confidence") or 0))

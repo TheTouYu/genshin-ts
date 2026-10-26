@@ -1016,7 +1016,16 @@ def decide_with_native(readings, frame_path, offset=(0, 0)):
         res2['readings'] = merged
         res2['native'] = True
         return res2
-    return res
+    # 2026-10-26 诊断实测：本体判据**取到了但不成立**时，原来这里把整段 extra 丢掉、
+    # 返回第一次的 7 态 res —— CLI/JSON 里既看不到本体判据，也看不到差在哪一条，
+    # 读出来就是「7 态全 false + novel=low_support」，看起来像"OCR 根本没跑"。
+    # 同一帧实测：GAME_WORLD 过 2/3（右下 UID 行过、左面板无派蒙标题过，底部血条数值缺）。
+    # 现在交出**合并后**的结果（state 仍是 UNKNOWN、退出码 4 不变），只让证据可见：
+    # verdicts/criteria 带上本体判据，`native_partial` 标明"OCR 跑了但不够"。
+    res2['readings'] = merged
+    res2['native'] = True
+    res2['native_partial'] = True
+    return res2
 
 
 # ══════════════════════════════════════════════════════════════════
