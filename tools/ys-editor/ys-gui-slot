@@ -73,6 +73,16 @@ grant_status() {   # 只读 ys-screen-grant status（结果缓存；rc 原样返
 # 租期判据**只此一处**（restore() 与 --plan 共用）：有有效凭据且非测试模式 ⇒ 占用结束不归还。
 # 「关掉租期模型」的注入用例只改这个函数体 ⇒ 真实归还行为与 plan 的 hold 同时翻转；
 # 若 plan 自己另写一份判据，注入后 T13 仍会绿，那就成了空转断言（本仓库踩过：断言绿但没在判）。
+guard_alive() {   # 对象级：守卫进程是否真的在跑（不看 systemd 的 is-active 记录）
+  local p c
+  for p in /proc/[0-9]*/cmdline; do
+    [ -r "$p" ] || continue
+    c=$(tr '\0' ' ' 2>/dev/null < "$p") || continue
+    case "$c" in python3*ys-focus-guard*|*/python3*ys-focus-guard*|bash*ys-focus-guard*) return 0 ;; esac
+  done
+  return 1
+}
+
 lease_hold_active() {
   [ "${YS_SLOT_TEST:-0}" != "1" ] || return 1
   grant_status
@@ -176,9 +186,19 @@ esac
 # ── 1) KWin 权威状态：记录 prev + 解析目标（幽灵 id 免疫） ────────────────────
 STATE0=$("$LEASE_BIN" kwin-state 2>/dev/null) || {
   echo "[ys-gui-slot] KWin 权威通道不可用（拒绝用 xdotool 猜焦点）" >&2; exit 3; }
-PREV_JSON=$(json_get "$STATE0" "json.dumps(d.get('active') or None, ensure_ascii=False)")
-PREV_DESC=$(json_get "$PREV_JSON" "((d or {}).get('caption') or '(无题)') + ' [' + ((d or {}).get('class') or '?') + ']' if d else 'none'")
-CUR_ID=$(json_get "$STATE0" "(d.get('active') or {}).get('internalId','')")
+# 2026-10-26（GNOME）：幽灵 active 时 ys-lease 会把 active 代理成**栈顶 X11 窗**。
+# 于是 `CUR_ID == TARGET_ID` 恒成立 ⇒ 槽误判"已在焦点"⇒ **从来不抬窗**（本轮实测：
+# 整段 _NET_ACTIVE_WINDOW 恒 0x200003，游戏其实一步没动）。代理态必须当"未知/未聚焦"。
+ACTIVE_PROXY=$(json_get "$STATE0" "1 if d.get('active_proxy') else 0")
+if [ "$ACTIVE_PROXY" = "1" ]; then
+  PREV_JSON=""
+  PREV_DESC="(非 X11 窗口：用户当时在看 Wayland 原生窗)"
+  CUR_ID=""
+else
+  PREV_JSON=$(json_get "$STATE0" "json.dumps(d.get('active') or None, ensure_ascii=False)")
+  PREV_DESC=$(json_get "$PREV_JSON" "((d or {}).get('caption') or '(无题)') + ' [' + ((d or {}).get('class') or '?') + ']' if d else 'none'")
+  CUR_ID=$(json_get "$STATE0" "(d.get('active') or {}).get('internalId','')")
+fi
 
 TARGET=$( "$LEASE_BIN" resolve-window --id "$WIN_RAW" --name "$(name_of "$WIN_DEC")" \
           --pid "$(pid_of "$WIN_DEC")" --geom "$(geom_of "$WIN_DEC")" 2>/dev/null)
@@ -243,7 +263,10 @@ restore() {
   # 多步任务每步都要重新申请。租期内不**主动**归还——但归还责任已交给空闲层：
   # 上面的 hold-done + claim 登记的 auto-session 保证空闲 idle_ms 后警卫必还。
   # 判据走 lease_hold_active（唯一源；`--plan` 判的是同一个函数，注入用例改它 ⇒ T13 必红）。
-  if lease_hold_active; then
+  # 2026-10-26：这条 early-return 的前提是"空闲层（guard）会回收"。实测 guard 会因
+  # CRITICAL 自停（journal: 11:45:54 连续 5 次失败 → systemctl stop 自身），此后**没有任何角色**
+  # 负责归还 ⇒ 屏幕被钉在游戏上。所以：守卫不活着时，槽自己交还。
+  if lease_hold_active && guard_alive; then
     _left=$(printf '%s' "$GRANT_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin).get('left_s'))" 2>/dev/null)
     echo "[ys-gui-slot] 租期内不主动归还（凭据剩 ${_left}s）——空闲 10s 后由 ys-focus-guard 交还（auto-session 已登记）"
     return
@@ -255,6 +278,10 @@ restore() {
     out2=$("$LEASE_BIN" restore --prev-json "" --fallback "$FALLBACK_CLASS" 2>&1); rc2=$?
     ti2=$(json_get "$out2" "d.get('target_index')")
     gi2=$(json_get "$out2" "d.get('game_index')")
+    if [ "$(json_get "$out2" "d.get('via','')")" = "alt-tab" ]; then
+      echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out2" "d.get('verify','')")）"
+      return
+    fi
     if [ "$rc2" -eq 0 ] && [ "$(json_get "$out2" "1 if d.get('noop') else 0")" != "1" ]; then
       echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗 ⇒ 已切回默认屏：$(json_get "$out2" "d.get('restored','')")（idx $ti2 > game $gi2）"
       return
@@ -274,6 +301,10 @@ restore() {
   out=$("$LEASE_BIN" restore --prev-json "$PREV_JSON" --fallback "$FALLBACK_CLASS" 2>&1); rc=$?
   ti=$(json_get "$out" "d.get('target_index')")
   gi=$(json_get "$out" "d.get('game_index')")
+  if [ "$(json_get "$out" "d.get('via','')")" = "alt-tab" ]; then
+    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out" "d.get('verify','')")）"
+    return
+  fi
   if [ "$rc" -eq 0 ] && [ "$(json_get "$out" "1 if d.get('noop') else 0")" != "1" ]; then
     desc=$(json_get "$out" "d.get('restored','')")
     echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原：$desc（idx $ti > game $gi）"

@@ -585,12 +585,16 @@ def acquire(name="原神", max_s=30, owner_pid=None):
     # 实际用户盯着 firefox，后续所有点击都落在 firefox 上）。
     if state.get("active_proxy"):
         prev = None
+    # 代理态 = 用户当时在看一个**非 X11 窗口**（本机就是 Wayland 原生的 firefox）。
+    # X11 层没有它的地址，但键盘层（Alt+Tab）够得到 ⇒ 记下这个事实，交还时走键盘通道。
+    prev_wayland = bool(state.get("active_proxy"))
     prev_is_target = bool(prev and GAME_CLASS in (prev.get("class") or "").lower())
     game = _game(state)
     if prev_is_target and game is not None:
         # 目标已在焦点：这是 no-op 租约（2026-10-19 事故：prev==target 的租约永远恢复不了，
         # 守护会无限重试并把用户反复拖回游戏桌面）。记下 noop 标志，release 直接清文件、不做任何窗口操作。
         d = {"win": WIN, "name": name, "prev": None, "prev_is_target": True, "noop": True,
+             "prev_wayland": prev_wayland,
              "acquired_at": time.time(), "expires": time.time() + max_s, "max_s": max_s,
              "owner_pid": int(owner_pid or os.getppid()), "version": 2}
         _save(d)
@@ -615,7 +619,7 @@ def acquire(name="原神", max_s=30, owner_pid=None):
         return {"ok": False, "error": "RAISE_NOT_VERIFIED", "problems": problems,
                 "detail": "KWin 未能把游戏窗置为 activeWindow（拒绝写租约）"}
     d = {"win": WIN, "name": name,
-         "prev": prev, "prev_is_target": prev_is_target,
+         "prev": prev, "prev_is_target": prev_is_target, "prev_wayland": prev_wayland,
          "acquired_at": time.time(), "expires": time.time() + max_s,
          "max_s": max_s, "owner_pid": int(owner_pid or os.getppid()), "version": 2}
     _save(d)
@@ -694,6 +698,46 @@ def dry_restore(prev_json, fallback_class=FALLBACK_CLASS):
             "touched_windows": False}
 
 
+def _kbd_return(win_id="", tries=3, settle=0.55):
+    """把画面交还给 **Wayland 原生窗**：Alt+Tab（键盘层不需要窗口 id）。
+
+    2026-10-26 实测（本机）：firefox 是 Wayland 原生窗，X11 里**没有地址**
+    （`_NET_CLIENT_LIST_STACKING` 只有 4 个 X11 客户端：3×beyondeditor + 1×yuanshen），
+    `wmctrl -i -a` / `xdotool windowactivate` 都够不到它；但 `Alt+Tab` 由合成器自己处理，
+    实测能在「原神(X11) ↔ firefox(Wayland)」之间来回：
+        active 0x1000003（原神） → Alt+Tab → 0x200003（幽灵=没有 X11 窗持焦点）+ 指针下变 root。
+    验证判据就是这个 `active_proxy=True`（比"画面看起来变了"可靠）。
+    前置：目标 X11 窗当前必须是前台 —— 否则会把用户正在看的窗口切走（这条是硬闸门）。
+    """
+    if not win_id:
+        return {"ok": False, "error": "NO_WIN"}
+    st0 = _state_ewmh() or {}
+    cur = (st0.get("active_window") or {}).get("id")
+    if st0.get("active_proxy") or not cur or cur != win_id:
+        return {"ok": False, "error": "NOT_FRONT",
+                "detail": f"当前 active={cur} proxy={st0.get('active_proxy')}（只在目标窗确为前台时才动键盘）"}
+    env = ys_env.env()
+    for attempt in range(1, tries + 1):
+        try:
+            for ev in ("56:1", "15:1", "15:0", "56:0"):   # LeftAlt↓ Tab↓ Tab↑ LeftAlt↑
+                subprocess.run(["/usr/bin/ydotool", "key", ev], capture_output=True,
+                               timeout=5, env=env)
+                time.sleep(0.12)
+        except Exception as e:                     # noqa: BLE001
+            return {"ok": False, "error": "KBD_ERROR", "detail": f"{type(e).__name__}: {e}"}
+        time.sleep(settle)
+        st = _state_ewmh() or {}
+        actual = st.get("active") or (st.get("active_window") or {}).get("id")
+        _lease_log("release.kbd", attempt=attempt, active=actual,
+                   proxy=bool(st.get("active_proxy")), ok=bool(st.get("active_proxy")))
+        if st.get("active_proxy"):
+            return {"ok": True, "via": "alt-tab", "attempts": attempt,
+                    "restored": "(Wayland 原生窗；经键盘层 Alt+Tab 交还)",
+                    "verify": "active_proxy=True（无任何 X11 窗持焦点）"}
+    return {"ok": False, "error": "KBD_RETURN_NOT_VERIFIED", "attempts": tries,
+            "detail": "Alt+Tab 后仍有 X11 窗持焦点"}
+
+
 def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
     """按 KWin 权威记录归还：activate + raise + 堆叠验证（重试 3 次）。
 
@@ -706,6 +750,14 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
     # 目标解析只有一处实现（dry-run 与真实路径共用，注入后不会脱钩）
     want, want_rec, rec, fallback_reason, fb = _resolve_target(state0, prev, fallback_class)
     if want is None:
+        # 先试键盘层（Alt+Tab）——它是唯一能交还给 Wayland 原生窗的通道（见 _kbd_return）。
+        _kr = _kbd_return((_game(state0) or {}).get("id") or "")
+        if _kr.get("ok"):
+            return {"ok": True, "noop": False, "via": _kr["via"],
+                    "restored": _kr["restored"], "verify": _kr["verify"],
+                    "attempts": _kr["attempts"], "fallback_reason": fallback_reason,
+                    "target_index": None, "game_index": None,
+                    "cross_check": "n/a(kbd)"}
         # 2026-10-26（GNOME 回退轮）：本机 firefox 是 **Wayland 原生窗**，不出现在 X11 的
         # _NET_CLIENT_LIST_STACKING 里（本机列表只有 3 个 beyondeditor + 1 个 yuanshen），
         # 而 GNOME Shell 的 Eval 在 41+ 默认被禁用（实测 `gdbus … org.gnome.Shell.Eval` → (false, '')）
@@ -714,8 +766,11 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
         # 屏幕会被租约钉住、guard 回收不了（用户已投诉过"执行完不记得归还画面"）。
         # 语义用 ok+noop 明示"没还，因为没有可还的"，而不是伪装成成功归还。
         return {"ok": True, "noop": True, "fallback_reason": fallback_reason,
-                "detail": ("无可归还目标（%s；回退窗 %s 不在 X11 客户端列表，通常是 Wayland 原生应用）"
-                           " ⇒ 未改动任何窗口" % (fallback_reason, fallback_class))}
+                "kbd_return": {k: _kr.get(k) for k in ("error", "detail") if _kr.get(k)},
+                "detail": ("无可归还目标（%s；回退窗 %s 不在 X11 客户端列表，通常是 Wayland 原生应用；"
+                           "键盘层 Alt+Tab 也没成：%s） ⇒ 未改动任何窗口"
+                           % (fallback_reason, fallback_class,
+                              _kr.get("error") or _kr.get("detail") or "未知"))}
     if False:
         return {"ok": False, "error": "FALLBACK_NOT_FOUND",
                 "fallback_reason": fallback_reason,
@@ -947,6 +1002,10 @@ def kwin_state_cmd():
     act = state.get("active_window")
     return {"ok": True,
             "desktop": state.get("desktop"),
+            "source": state.get("source"),
+            # 2026-10-26：这条必须透出。幽灵 active 被代理成栈顶窗时，调用方（ys-gui-slot）
+            # 靠它区分"真的在焦点"与"其实没有 X11 窗持焦点"；不透出 ⇒ 槽误判"已在焦点"⇒ 从不抬窗。
+            "active_proxy": bool(state.get("active_proxy")),
             "active": _record(act),
             "wins": [dict(_record(w), active=(w.get("id") == (act or {}).get("id")))
                      for w in state.get("wins", [])]}
