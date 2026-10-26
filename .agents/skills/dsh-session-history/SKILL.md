@@ -51,6 +51,12 @@ python3 ~/.agents/skills/dsh-session-history/scripts/search_dsh_sessions.py \
 命中后会打印 `(标题/用户消息命中 N/M 个会话)`，`M` 是本次作用域实际扫过的会话数——
 **没有命中也会说"已扫 M 个"**，能区分「真没有」与「没扫到」。
 
+> ⚠️ **别用 `| tail -N` 截首屏**（2026-10-26 事故）：命中行在**最上面**，`tail` 会把它切掉，
+> 于是"没找到"是假象。要尾读就 `| tail -1` 取结尾那行
+> `HITS 3/30: 7f5300665be2(/device-playtest-loop 切换) …`（v3.3 新增，短 id + 标题前缀）。
+> 实测：我 `tail -20` 截掉了 `scan --grep '音效'` 的命中（目标会话排第 1/3），
+> 转而全量 `dialog --grep` 扫 40 个会话——**技能没问题，读数方式错了**。
+
 **判据**：先 `scan --grep` 拿到候选（标题 + 首条用户原话），再对候选跑 `dialog --tail N --full`；
 只有标题看不出相关性时才退回 `search`（搜活动，不搜症状）。
 

@@ -510,6 +510,12 @@ def fmt_ms(ms) -> str:
         return "?"
 
 
+def short_id(m):
+    """会话短 id：用于一行式命中清单（前缀即可定位）。"""
+    sid = str(m.get("id") or m.get("dir") or "")
+    return sid[-12:] if len(sid) > 12 else sid
+
+
 def print_scan_entry(meta: dict):
     created = fmt_ms(meta.get("created")) if meta.get("created") else "?"
     activity = fmt_ms((meta.get("mtime_ns") or 0) / 1e6)
@@ -607,6 +613,12 @@ def cmd_scan(path_str, limit, oldest_first, rebuild=False, jobs=None, scope=None
         print_scan_entry(m)
     if limit > 0 and len(metas) > limit:
         print("(共 %d 会话，已显示最新 %d；--all 看全量)" % (len(metas), limit))
+    # 2026-10-26 事故修：命中信息原来只在**最上面**，而长输出习惯上会被 `| tail` 截掉首屏 ⇒
+    # 模型据此误判"没找到"并退回全库 search（正是本技能明令避免的路）。
+    # 末尾复述一行紧凑清单，让 `tail -1` 也能拿到结论。
+    if grep:
+        _hits = " ".join("%s(%s)" % (short_id(m), (m.get("title") or "")[:24]) for m in shown)
+        print("HITS %d/%d: %s" % (len(metas), scanned, _hits))
     print("(索引 %d 会话，%.1fs)" % (len(metas), time.time() - t0))
     return 0
 
