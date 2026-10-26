@@ -180,8 +180,38 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
   永远找不到。`GNOME Shell Eval` 在 **GNOME 41+ 默认禁用**（实测 `gdbus … org.gnome.Shell.Eval` → `(false, '')`），拿不到 Wayland 窗表。
   ⇒ 已改为**降级语义**：无回落窗时返回 `ok + noop + detail` 明示"未改动任何窗口"，**不保留租约**
   （保留会让屏幕被钉死、guard 回收不了）。
-- **`xdotool windowactivate` 在 Mutter 下静默失败**（返回 0 但 `getactivewindow` 仍是幽灵窗）；
-  **`xdotool windowfocus` 有效**（实测 `active=16777219` 且 OCR 画面随之变化）。
+### 激活窗口：用 `wmctrl -i -a`（2026-10-26 实测，唯一在 Mutter 下有效的通道）
+
+| 方法 | 结果 |
+|---|---|
+| **`/usr/bin/wmctrl -i -a <wid>`** | ✅ **有效**（`_NET_ACTIVE_WINDOW` 从幽灵窗 `0x200003` 变为目标窗，用户当场确认画面切过去） |
+| `xdotool windowactivate` | ❌ 返回 0 但**无效**（active 仍是幽灵窗） |
+| `xdotool windowfocus` | ⚠️ 只设 X 输入焦点，不改 EWMH active |
+| `GNOME Shell Eval` | ❌ GNOME 41+ 默认禁用（`(false, '')`） |
+| `org.gnome.Shell.Introspect.GetWindows` | ❌ `AccessDenied` |
+| `xdotool windowraise` | ⚠️ 只在 X11 层抬升，Wayland 原生窗仍在它之上 |
+
+**注意 shim**：`wmctrl` 会被 `tools/ys-editor/shims` 拦成 rc=77（**子进程也吃 PATH 里的 shim**）；
+工具内部调用要用**绝对路径 `/usr/bin/wmctrl`**。已修进 `ys-lease._raise_once` 的 GNOME 回退（commit `bc9fa908`）。
+
+### 🔴 能力缺口：Wayland 会话下**输入注入完全不可用**（2026-10-26 四条通道实测）
+
+本机 `XDG_SESSION_TYPE=wayland`（GNOME + Mutter + Xwayland + Wine）下，四条通道全部失效：
+
+| 通道 | 命令 | 实测结果 |
+|---|---|---|
+| uinput 鼠标 | `/usr/bin/ydotool mousemove -x 50 -y -50` | 指针**纹丝不动**（`(1989,1277)` → `(1989,1277)`） |
+| uinput 键盘 | `/usr/bin/ydotool key 1:1 1:0`（ESC） | 画面像素差 **0.075**（无反应） |
+| XTest 指针 | `xdotool mousemove X Y` | 指针**不动**（Xwayland 已知限制） |
+| XTest 点击 | `xdotool click 1` | 画面像素差 **0.0** |
+
+`ydotoold` 在跑、socket 正常、`YDOTOOL_SOCKET` 正确 —— **是 Mutter 不响应 uinput/XTest**。
+**窗口在前台时复测也一样无效**（排除"焦点不在"这个混淆因素）。
+
+⇒ **能做的**：读帧（`ys-capture` + `ys-text`/`ys-screen` 完全可用）、切桌面（`xdotool set_desktop`）、
+激活窗口（`wmctrl -i -a`）、`ys-lease`/`ys-gui-slot` 的租约与归还逻辑。
+⇒ **不能做的**：任何点击/按键注入。需要交互的任务要么**请用户手动操作 + 我们读帧**，
+要么换到 X11 会话（KWin/X11 下 ydotool 与 xdotool 都正常，见技能其余各节）。
 
 ## 受控槽内的环境边界（2026-10-17 实测，会反复踩）
 
