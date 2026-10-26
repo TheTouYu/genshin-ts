@@ -1609,6 +1609,80 @@ def read_state_fields(d):
     return out
 
 
+def cmd_grab(args):
+    """`grab --win <id>|--target editor|game --out f [--format bmp|png]`：**任意窗口**一次性抓帧。
+
+    2026-10-26 事故（用户实测）：`ys-capture latest` 只能给守护进程那一个窗（默认原神），
+    而千星编辑器的活全在 `0x2200008` 千星沙箱上 —— 模型手里拿到的一直是**另一个窗口**的画面，
+    还"很成功"（rc=0），于是所有判读都建立在错画面上。窗口选择必须能由**意图**表达。
+    """
+    import ys_win
+    target = (getattr(args, 'target', None) or '').lower()
+    win = (args.win or '').strip()
+    if target in ('editor', 'gb', 'sandbox'):
+        # 编辑器有 3 个 beyondeditor 窗（资源管理器 384×1411 / 千星沙箱 2176×1411 / 日志 900×800）；
+        # 人真正在操作的是**面积最大的那个**（千星沙箱）。resolve_editor() 给的是标题首个匹配
+        # （常是资源管理器）⇒ 这里按面积选。
+        try:
+            import ys_attrib as _ya
+            _c = [wid for wid in (_ya._stacking() or [])
+                  if 'beyondeditor' in ((_ya._xprop_win(wid) or {}).get('class') or '').lower()]
+            _best, _area = '', 0
+            for wid in _c:
+                g = _ya._geometry(wid) or [0, 0, 0, 0]
+                if g[2] * g[3] > _area:
+                    _best, _area = wid, g[2] * g[3]
+            win = _best or (ys_win.resolve_editor() or '')
+        except Exception:                                  # noqa: BLE001
+            win = ys_win.resolve_editor() or ''
+    elif target in ('game', 'genshin', 'ys'):
+        win = ys_win.resolve(prefer_sandbox=False) or ''
+    elif not win:
+        win = ys_win.resolve(prefer_sandbox=False) or ''
+    if not win:
+        print(json.dumps({"ok": False, "error": "WIN_UNRESOLVED",
+                          "detail": "解析不到目标窗口（--win/--target 都给不出）"}, ensure_ascii=False))
+        return 3
+    out = args.out
+    fmt = (args.format or ('png' if out.lower().endswith('.png') else 'bmp')).lower()
+    t0 = time.perf_counter()
+    try:
+        _wid = int(win, 16) if str(win).lower().startswith('0x') else int(win)
+        g = XShmGrabber(args.display or os.environ.get('DISPLAY', ':1'), _wid)
+        rgb, _ms = g.grab()
+        w, h = g.w, g.h
+        _src = "xshm"
+        g.close()
+    except Exception as e:                                # noqa: BLE001
+        # XShm 对某些窗（非顶层映射/不同 visual/未重定向）会 BadMatch(8) ⇒ 退回 XGetImage。
+        # 实测代价 56–160ms（vs XShm 2ms），仍远快于 `import -window`（GNOME 下 6.9s）。
+        try:
+            import numpy as _np
+            from Xlib import display as _xd, X as _X
+            _d = _xd.Display(args.display or os.environ.get('DISPLAY', ':1'))
+            _w = _d.create_resource_object('window', _wid)
+            _g = _w.get_geometry()
+            _img = _w.get_image(0, 0, _g.width, _g.height, _X.ZPixmap, 0xffffffff)
+            rgb = _np.frombuffer(_img.data, dtype=_np.uint8) \
+                .reshape(_g.height, _g.width, 4)[:, :, :3].copy()
+            w, h = _g.width, _g.height
+            _src = "xgetimage"
+        except Exception as e2:                           # noqa: BLE001
+            print(json.dumps({"ok": False, "error": "GRAB_FAILED", "win": win,
+                              "detail": f"XShm: {type(e).__name__}: {e} / XGetImage: {type(e2).__name__}: {e2}"},
+                             ensure_ascii=False))
+            return 4
+    data = encode_png_stored(rgb) if fmt == 'png' else encode_bmp(rgb)
+    with open(out, 'wb') as fh:
+        fh.write(data)
+    crc = zlib.crc32(rgb.tobytes()) & 0xffffffff
+    print(json.dumps({"ok": True, "win": win, "target": target or "win", "out": out,
+                      "format": fmt, "w": w, "h": h, "bytes": len(data),
+                      "crc32": "%08x" % crc, "src": _src,
+                      "ms": round((time.perf_counter() - t0) * 1000, 1)}, ensure_ascii=False))
+    return 0
+
+
 def cmd_audit(args):
     """一次性交叉通道稽核（只读，不动窗口）：判「内容真静止」还是「主通道陈旧」。
 
@@ -1944,6 +2018,13 @@ def main(argv=None):
     s.add_argument('--width', type=int, default=FRAME_W)
     s.add_argument('--height', type=int, default=FRAME_H)
     s.set_defaults(func=cmd_serve)
+    gr = sub.add_parser('grab')
+    gr.add_argument('--win', default='')
+    gr.add_argument('--target', default='')      # editor | game（按意图选窗，模型不必记窗口 id）
+    gr.add_argument('--out', required=True)
+    gr.add_argument('--format', default='')
+    gr.add_argument('--display', default='')
+    gr.set_defaults(func=cmd_grab)
     au = sub.add_parser('audit')
     au.add_argument('--dir', default=os.environ.get('YS_CAPTURE_DIR', DEFAULT_DIR))
     au.add_argument('--class', dest='class_', default=DEFAULT_CLASS)

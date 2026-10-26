@@ -348,6 +348,9 @@ case "$CMD" in
   audit)    exec "$PY" "$HERE/ys_capture.py" audit --dir "$DIR" "$@";;
   bench)    cmd_bench "$@";;
   selftest) exec "$PY" "$HERE/ys_capture.py" selftest --cli "$HERE/ys-capture" "$@";;
+  # 2026-10-26：按**意图**抓任意窗口（editor|game|--win）。latest 只能给守护那一个窗，
+  # 而千星编辑器的活全在 0x2200008 —— 用户实测"截图一直是固定的/窗口都不对"就是这个。
+  grab)     exec "$PY" "$HERE/ys_capture.py" grab "$@";;
   ""|-h|--help|help)
     sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//';;
   *) echo "{\"ok\":false,\"error\":\"BAD_CMD\",\"detail\":\"未知子命令 $CMD\"}"; exit 1;;
