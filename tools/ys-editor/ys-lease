@@ -51,6 +51,26 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RAISE = os.path.join(HERE, "ys-kwin-raise")
+
+# ── 可观测性（2026-10-26 用户要求："窗口适配完成了也没加日志，连自己出问题了都不知道"）
+# 每次 raise / acquire / release 决策都落一行 JSON 到 ~/.ys/ys-lease.log。
+# 关：YS_LEASE_LOG=0；改路径：YS_LEASE_LOG_PATH=/path
+LEASE_LOG = os.environ.get("YS_LEASE_LOG_PATH") or os.path.expanduser("~/.ys/ys-lease.log")
+
+
+def _lease_log(evt, **kw):
+    if os.environ.get("YS_LEASE_LOG") == "0":
+        return
+    try:
+        d = os.path.dirname(LEASE_LOG)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        rec = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "pid": os.getpid(), "evt": evt}
+        rec.update(kw)
+        with open(LEASE_LOG, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:                                    # noqa: BLE001
+        pass
 # 测试缝（2026-10-21，F-20261021-55）：「目标已是活动窗 ⇒ 零窗口操作」这条判据原本无法离线判定——
 # 回执里的 attempts 要真跑一次 KWin 才看得见，而真跑就会动用户屏幕。
 # 下面两个缝只在显式设置时生效，生产路径永远走真 KWin。
@@ -448,6 +468,10 @@ console.info("MARK " + JSON.stringify({ raised: t ? String(t.internalId || "") :
 
 def _raise_once(want, timeout=2.0, minimize_game=False):
     """activate + raise（可选把独占全屏的游戏最小化），返回同一轮 KWin 状态（权威）。"""
+    _st0 = _state_ewmh() or {}
+    _aw = _st0.get("active_window") or {}
+    _lease_log("raise.begin", target=(want or {}).get("id"), active=_aw.get("id"),
+               source=_st0.get("source"), proxy=_st0.get("active_proxy"))
     if RAISE_LOG:
         try:
             with open(RAISE_LOG, "a", encoding="utf-8") as fh:
@@ -470,7 +494,11 @@ def _raise_once(want, timeout=2.0, minimize_game=False):
         except Exception:                            # noqa: BLE001
             return None
         time.sleep(0.25)
-        return _state_ewmh()
+        _st1 = _state_ewmh() or {}
+        _aw1 = _st1.get("active_window") or {}
+        _lease_log("raise.ewmh", target=wid, active=_aw1.get("id"),
+                   ok=(_aw1.get("id") == wid), via="wmctrl+xdotool")
+        return _st1
     try:
         state = json.loads(raw)
     except Exception:                                    # noqa: BLE001
@@ -551,6 +579,7 @@ def acquire(name="原神", max_s=30, owner_pid=None):
              "acquired_at": time.time(), "expires": time.time() + max_s, "max_s": max_s,
              "owner_pid": int(owner_pid or os.getppid()), "version": 2}
         _save(d)
+        _lease_log("acquire.noop", win=WIN, reason="target-already-focused")
         return {"ok": True, "noop": True,
                 "lease": {"win": WIN, "prev": "(no-op: 目标已在焦点)", "prev_info": None, "max_s": max_s},
                 "ms": round((time.time() - t0) * 1000, 1)}
@@ -563,6 +592,7 @@ def acquire(name="原神", max_s=30, owner_pid=None):
             "geom": f"{game.get('x', 0)},{game.get('y', 0)} {game.get('w', 0)}x{game.get('h', 0)}"}
     state2 = _raise_once(want)
     ok, problems, _target = _verify_active(state2, _want_record(want))
+    _lease_log("acquire.verify", want=want.get("id"), ok=ok, problems=problems)
     if not ok:
         state2 = _raise_once(want)          # 再试一次（去掉最小化后首次激活偶尔慢一拍）
         ok, problems, _target = _verify_active(state2, _want_record(want))
@@ -762,19 +792,28 @@ def release(force=False, fast=False, discard=False, fallback_class=FALLBACK_CLAS
         # 2026-10-21（用户口径；D424/D428 的补充）：没有"用户窗"可还时**不是什么都不做**。
         # 事故：我拿屏幕时游戏已在焦点 ⇒ noop 租约 ⇒ release 零窗口操作 ⇒ 用户仍盯着游戏，
         # 而回执是 ok:true，我还对外报「屏幕已还」。正确语义 = **主动切回默认屏（firefox）并验证堆叠**。
+        _lease_log("release.begin", prev_is_target=prev_is_target, has_prev=False, branch="noop")
         res = _restore(None, fast=fast, fallback_class=fallback_class, recover=recover)
         res["fallback_reason"] = res.get("fallback_reason") or "PREV_IS_TARGET"
         if res.get("ok") or discard:
             _remove()
         res["lease_kept"] = os.path.exists(LEASE)
+        _lease_log("release.done", branch="noop", ok=res.get("ok"), noop=res.get("noop"),
+                   lease_kept=res.get("lease_kept"), restored=res.get("restored"),
+                   fallback_reason=res.get("fallback_reason"),
+                   detail=str(res.get("detail"))[:140])
         return res
     if not force and d.get("expires", 0) < time.time():
         return {"ok": False, "error": "EXPIRED",
                 "hint": "租约已过期；归还得用 --force（看门狗就是这么做的）"}
+    _lease_log("release.begin", prev_is_target=prev_is_target, has_prev=bool(prev))
     res = _restore(prev, fast=fast, fallback_class=fallback_class, recover=recover)
     if res.get("ok") or res.get("error") == "PREV_GONE" or discard:
         _remove()
     res["lease_kept"] = os.path.exists(LEASE)
+    _lease_log("release.done", ok=res.get("ok"), error=res.get("error"),
+               noop=res.get("noop"), lease_kept=res.get("lease_kept"),
+               restored=res.get("restored"), detail=str(res.get("detail"))[:140])
     return res
 
 
