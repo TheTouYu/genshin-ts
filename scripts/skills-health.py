@@ -8,7 +8,8 @@
 本脚本回答四个问题：
   1. AGENTS.md / CLAUDE.md 里反引号引用的技能，是否都能解析到真实 SKILL.md？
   2. 全局 ~/.agents/skills/ 下的软链接是否有悬空？
-  3. 项目与全局是否存在同名重复实体（结构漂移预警）？
+  3. 同名技能是否**只有一份实体**（2026-10-26 用户令：「所有的技能都不准有两份，用链接」）？
+     项目级是唯一实体，用户级 ~/.agents/skills/<name> 必须是指向它的软链接。
   4. SKILL.md frontmatter 是否能通过 DSH 加载器的解析（YAML 陷阱/name 一致性）？
      （2026-09-04 事故催生：editor-incremental-gia-investigator 的 description 值内
      含英文冒号+空格 "closed: the"，YAML 单行 plain scalar 被判嵌套映射，frontmatter
@@ -246,49 +247,37 @@ def skill_digest(root: Path, name: str) -> str | None:
 
 
 def check_duplicate_drift() -> list[tuple[str, str, str, str, str]]:
-    """项目级与用户级同名技能：返回 [(name, 生效指纹, 另一份指纹, 判定, 说明)]。
+    """同名技能两份副本的**形态**检查，返回 [(name, 项目指纹, 全局指纹, 判定, 说明)]。
 
-    DSH 加载器 rank：项目级 project-agents=200 **压过** 用户级 user-agents=500，
-    所以同名时生效的是项目级副本。
+    用户令（2026-10-26）：「所有的技能都不准有两份，用链接」。
+    ⇒ 判定只剩两种：
+      · **LINK（要求形态）**：项目级是唯一实体，用户级是软链接（或反之）。
+      · **DUP（违规）**：两侧都是真实目录 —— 两份会各自漂移，且项目级 rank 200
+        压过用户级 rank 500（加载到项目级），改到用户级的那次「优化」会静默失效。
+        实证：2026-10-26 dsh-session-history 的「先按标题筛」写在用户级，
+        本工作区加载的是项目级旧版，该优化从未进入任何会话上下文。
 
-    判据要分两种情况，不能"内容不同就报错"：
-      · **STALE（真问题）**：生效的项目级副本**比另一份旧**（mtime 落后）。
-        这才是"你以为在用新版，实际加载的是旧版"——静默降级。
-        2026-10-19 实证的正是这一类：项目级 dsh-session-history 是 09-10 的 v3，
-        只认 session.jsonl.zstd（v0），读不了当前 v4 会话；而用户级那份是 v3.1 能读。
-      · **AHEAD（正常）**：生效副本比另一份新 —— 项目级就是主副本，另一份是旧快照。
-        用户级目录本机是**只读挂载**（/dev/sda4 ro），本来就没法同步，不算故障。
-    内容相同 = SAME。
+    修法一律是：内容先合并成唯一正确版（放进项目级实体，进 git），
+    再把用户级换成本地软链（旧目录 mv 到 ~/.agents/skills-archive/ 保留可回滚）。
     """
     out = []
     if not (PROJECT_SKILLS.is_dir() and GLOBAL_SKILLS.is_dir()):
         return out
     names = sorted(
-        {p.name for p in PROJECT_SKILLS.iterdir() if p.is_dir()}
-        & {p.name for p in GLOBAL_SKILLS.iterdir() if p.is_dir()}
+        {p.name for p in PROJECT_SKILLS.iterdir() if p.is_dir() or p.is_symlink()}
+        & {p.name for p in GLOBAL_SKILLS.iterdir() if p.is_dir() or p.is_symlink()}
     )
     for name in names:
-        a = skill_digest(PROJECT_SKILLS, name)
-        b = skill_digest(GLOBAL_SKILLS, name)
-        if a is None or b is None:
+        proj = PROJECT_SKILLS / name
+        glob_ = GLOBAL_SKILLS / name
+        if proj.is_symlink() or glob_.is_symlink():
+            side = "用户级" if glob_.is_symlink() else "项目级"
+            real = os.path.realpath(glob_ if glob_.is_symlink() else proj)
+            out.append((name, "", "", "LINK", f"{side}为软链 -> {real}"))
             continue
-        if a == b:
-            out.append((name, a, b, "SAME", ""))
-            continue
-        try:
-            proj_mt = (PROJECT_SKILLS / name / "SKILL.md").stat().st_mtime
-            glob_mt = (GLOBAL_SKILLS / name / "SKILL.md").stat().st_mtime
-        except OSError:
-            out.append((name, a, b, "DRIFT", "无法比较 mtime"))
-            continue
-        if proj_mt < glob_mt:
-            note = ("生效副本(项目级)比另一份**旧** %s，实际加载的是旧版"
-                    % _age(glob_mt - proj_mt))
-            out.append((name, a, b, "STALE", note))
-        else:
-            note = ("生效副本(项目级)比另一份新 %s，用户级是旧快照（只读挂载，无需同步）"
-                    % _age(proj_mt - glob_mt))
-            out.append((name, a, b, "AHEAD", note))
+        out.append((name, skill_digest(PROJECT_SKILLS, name) or "",
+                    skill_digest(GLOBAL_SKILLS, name) or "", "DUP",
+                    "同名技能存在**两份实体**（会各自漂移，改到非生效那份等于没改）"))
     return out
 
 
@@ -311,7 +300,9 @@ def main() -> int:
         fine, where = has_skillmd(name)
         if fine:
             ok.append(name)
-            if where == "全局" and (PROJECT_SKILLS / name).exists():
+            if (where == "全局" and (PROJECT_SKILLS / name).exists()
+                    and not (PROJECT_SKILLS / name).is_symlink()
+                    and not (GLOBAL_SKILLS / name).is_symlink()):
                 dupes.append(name)
         else:
             dead.append((name, where))
@@ -341,26 +332,25 @@ def main() -> int:
     for name in dupes:
         print(f"  NOTE {name} — 项目/全局双实体，注意同步")
     for name, a, b, verdict, note in drifts:
-        if verdict == "STALE":
-            print(f"  STALE {name} — {note}（项目级 {a[:8]} / 用户级 {b[:8]}）")
-        elif verdict == "AHEAD":
-            print(f"  AHEAD {name} — {note}")
+        if verdict == "DUP":
+            print(f"  DUP  {name} — {note}（项目级 {a[:8]} / 用户级 {b[:8]}）")
+        elif verdict == "LINK" and show_all:
+            print(f"  LINK {name} — {note}")
     for name, target in dangling:
         print(f"  DANGLING 全局软链接 {name} -> {target} 目标不存在")
 
-    stale_n = sum(1 for _, _, _, v, _ in drifts if v == "STALE")
-    if dead or dangling or badfm or stale_n:
+    dup_n = sum(1 for _, _, _, v, _ in drifts if v == "DUP")
+    if dead or dangling or badfm or dup_n:
         print(f"\n结果：FAIL（{len(dead)} 死引用，{len(dangling)} 悬空链接，"
-              f"{len(badfm)} frontmatter 不可加载，{stale_n} 生效副本落后）")
+              f"{len(badfm)} frontmatter 不可加载，{dup_n} 同名技能两份实体）")
         print("处理：先确认引用是否仍在用（在用→恢复实体），删除/改链接属破坏性操作须用户确认。")
         print("BADFM = 文件在但 DSH 加载器会静默忽略（YAML 陷阱/字段缺失/name 错位），按提示改 frontmatter。")
-        print("STALE = 同名技能项目级(rank 200，生效)内容比用户级(rank 500)旧 ⇒ 实际加载的是旧版；"
-              "把新版同步进项目级即可。AHEAD 属正常，不报错。")
+        print("DUP = 同名技能在两处各一份真实目录 ⇒ 必然漂移，且生效的是项目级(rank 200)。"
+              "修法：内容合并进项目级 → 用户级 mv 到 ~/.agents/skills-archive/ → ln -s 项目级路径。")
         return 1
-    same_n = sum(1 for _, _, _, v, _ in drifts if v == "SAME")
-    ahead_n = sum(1 for _, _, _, v, _ in drifts if v == "AHEAD")
-    print(f"\n结果：PASS（{len(ok)} 技能引用全部可解析，0 悬空链接，0 生效副本落后；"
-          f"双副本 {len(drifts)} 个：一致 {same_n} / 生效副本更新 {ahead_n}）")
+    link_n = sum(1 for _, _, _, v, _ in drifts if v == "LINK")
+    print(f"\n结果：PASS（{len(ok)} 技能引用全部可解析，0 悬空链接，0 同名双实体；"
+          f"同名技能 {len(drifts)} 个全部为软链：{link_n}）")
     return 0
 
 

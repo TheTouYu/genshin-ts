@@ -95,7 +95,7 @@
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 | Beyond 语义资源（effectID→TextMapHash／状态效果名／IL2CPP） | `beyond-semantic-resource-reverse` |
 | 差分+抓包学 wire／扩展 `gsts assets:*` | `diff-capture-cli-builder` |
-| 技能加载失败/怀疑技能体系受损 | 先跑 `python3 scripts/skills-health.py`；删除技能或改 `~/.agents/skills` 链接结构属破坏性操作，须确认。**技能加载失败=基础设施故障，当轮报告并附报错原文** |
+| 技能加载失败/怀疑技能体系受损/「优化了还报错」 | 先跑 `python3 scripts/skills-health.py`；**同名技能只准一份实体（2026-10-26 用户令）**：实体留在本仓 `.agents/skills/<name>`，`~/.agents/skills/<name>` 必须是软链，体检报 `DUP` 即违规。删除技能或改链接结构属破坏性操作，须确认。**技能加载失败=基础设施故障，当轮报告并附报错原文** |
 
 ## 写回真实地图红线（高频违规点）
 

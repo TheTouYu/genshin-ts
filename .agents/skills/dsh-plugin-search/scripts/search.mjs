@@ -18,16 +18,37 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// 数据目录：优先脚本同级 data/，其次上级 data/（技能布局 scripts/search.mjs + 上级 data/）
-const DATA_DIR = fs.existsSync(path.join(__dirname, 'data'))
-  ? path.join(__dirname, 'data')
-  : fs.existsSync(path.join(__dirname, '..', 'data'))
-    ? path.join(__dirname, '..', 'data')
-    : path.join(__dirname, 'data');
-const CACHE_FILE = path.join(DATA_DIR, 'repos.json');
+// 缓存位置（按优先级）：
+//   1. $DSH_PLUGIN_SEARCH_CACHE 指定的文件路径（沙箱/自定义场景指到工作区）
+//   2. $XDG_CACHE_HOME/dsh-plugin-search/repos.json 或 ~/.cache/dsh-plugin-search/repos.json
+// 不再写技能目录（那是 global-skills git 仓，写入会弄脏工作树；workspace-write 沙箱下也会被拒）。
+// 旧缓存（技能目录 data/repos.json）仍可读，仅作降级读源。
+const LEGACY_CACHE_CANDIDATES = [
+  path.join(__dirname, 'data', 'repos.json'),
+  path.join(__dirname, '..', 'data', 'repos.json'),
+];
+function resolveCacheFile() {
+  if (process.env.DSH_PLUGIN_SEARCH_CACHE) return path.resolve(process.env.DSH_PLUGIN_SEARCH_CACHE);
+  const base = process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache');
+  return path.join(base, 'dsh-plugin-search', 'repos.json');
+}
+const CACHE_FILE = resolveCacheFile();
+const DATA_DIR = path.dirname(CACHE_FILE);
+const DEFAULT_CACHE_FILE = path.join(
+  process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache'),
+  'dsh-plugin-search', 'repos.json');
+// 读取回退链：读任何可用的既有缓存都比重新抓取强（TTL 校验兜底）；写入只走 CACHE_FILE。
+function cacheFileForRead() {
+  for (const f of [CACHE_FILE, DEFAULT_CACHE_FILE, ...LEGACY_CACHE_CANDIDATES]) {
+    if (fs.existsSync(f)) return f;
+  }
+  return CACHE_FILE;
+}
 const TOPIC = 'dsh-plugin';
 const PER_PAGE = 100;
 const DEFAULT_PAGES = 10; // GitHub 搜索 API 最多返回 1000 条
@@ -175,12 +196,29 @@ function scoreRepo(repo, queryTokens, opts) {
 
 // ---------------- 数据获取 ----------------
 
+let cachedToken;
+/** GitHub token：优先环境变量，其次 gh CLI 登录态（本地已登录时免限流等待）。 */
+function ghToken() {
+  if (cachedToken !== undefined) return cachedToken;
+  cachedToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '';
+  if (!cachedToken) {
+    try {
+      const r = spawnSync('gh', ['auth', 'token'], { encoding: 'utf8', timeout: 5000 });
+      cachedToken = r.status === 0 ? r.stdout.trim() : '';
+    } catch { cachedToken = ''; }
+  }
+  return cachedToken;
+}
+
 async function apiGet(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': UA } });
+  const headers = { Accept: 'application/vnd.github+json', 'User-Agent': UA };
+  const token = ghToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(url, { headers });
   if (res.status === 403) {
     const reset = res.headers.get('x-ratelimit-reset');
     const wait = reset ? Math.max(0, Number(reset) * 1000 - Date.now()) : 60_000;
-    throw new Error(`GitHub 限流(403)，建议等待 ${Math.ceil(wait / 1000)}s 后重试，或使用缓存(--refresh 会触发) `);
+    throw new Error(`GitHub 限流(403)，建议等待 ${Math.ceil(wait / 1000)}s 后重试，或使用缓存(--refresh 会触发)${token ? '' : '；gh auth login 或设 GH_TOKEN 可提高配额'}`);
   }
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${(await res.text()).slice(0, 200)}`);
   return res;
@@ -196,7 +234,7 @@ async function fetchTopicPages(pages, onPage) {
     all.push(...data.items);
     onPage?.(p, all.length, res.headers.get('x-ratelimit-remaining'));
     if (data.items.length < PER_PAGE) break;
-    if (p < pages) await sleep(7500); // 未认证搜索 API：10 次/分钟
+    if (p < pages) await sleep(ghToken() ? 500 : 7500); // 认证 30 次/分钟；未认证 10 次/分钟
   }
   return all;
 }
@@ -216,19 +254,27 @@ function compactRepo(it) {
 }
 
 function loadCache() {
-  if (!fs.existsSync(CACHE_FILE)) return null;
-  try { return JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch { return null; }
+  const file = cacheFileForRead();
+  if (!fs.existsSync(file)) return null;
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
 
 function saveCache(repos) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
   const cache = { fetchedAt: new Date().toISOString(), source: `topic:${TOPIC}`, count: repos.length, repos };
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(cache));
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(cache));
+    log(`缓存已写入 ${CACHE_FILE}（${repos.length} 个仓库）`);
+  } catch (e) {
+    // 只读文件系统/沙箱拒写：降级为不缓存，查询结果仍完整返回。
+    log(`缓存写入失败（${e.code ?? e.message}），本次结果不落盘；可用 DSH_PLUGIN_SEARCH_CACHE 指定可写路径`);
+  }
   return cache;
 }
 
 async function refreshCache(pages, opts) {
-  log(`拉取 topic:${TOPIC} 数据（${pages} 页 × ${PER_PAGE}）…（未认证限流 10 次/分钟，需等待）`);
+  const authed = !!ghToken();
+  log(`拉取 topic:${TOPIC} 数据（${pages} 页 × ${PER_PAGE}）…（${authed ? '已用 gh 认证，限流 30 次/分钟' : '未认证限流 10 次/分钟，需等待'}）`);
   const repos = await fetchTopicPages(pages, (p, n, rem) => {
     log(`页 ${p} 完成，累计 ${n} 个仓库，剩余配额 ${rem}`);
   });
@@ -244,7 +290,6 @@ async function refreshCache(pages, opts) {
     log(`全文搜索补充 ${data.items.length} 条，去重后共 ${repos.length} 个仓库`);
   }
   const cache = saveCache(repos);
-  log(`缓存已写入 ${CACHE_FILE}（${repos.length} 个仓库）`);
   return cache;
 }
 
@@ -280,7 +325,6 @@ function parseArgs(argv) {
 
 async function main() {
   const { opts, query } = parseArgs(process.argv.slice(2));
-  fs.mkdirSync(DATA_DIR, { recursive: true });
 
   if (opts.list) {
     const cache = loadCache();
