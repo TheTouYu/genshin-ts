@@ -17,14 +17,17 @@
 #     `YS_ATTR_FIXTURE=<文件>` 读 ys-wins --attrib 格式的夹具行（测试用，不碰屏幕）。
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-JSON=0; VERIFY=0; WANT=""
+JSON=0; VERIFY=0; WANT=""; WANT_EXPLICIT=0
 for a in "$@"; do
   case "$a" in
     --json) JSON=1;;
     --verify) VERIFY=1;;
-    *) WANT="$a";;
+    *) WANT="$a"; WANT_EXPLICIT=1;;
   esac
 done
+# 2026-10-26 实测陷阱：`ys-atop --json 千星沙箱` 返回的却是**原神**——因为身份判据是
+# WM_CLASS 优先，而 YS_WIN_CLASS 有默认值 yuanshen.exe。显式给标题时必须按标题匹配。
+[ "$WANT_EXPLICIT" = "1" ] && export YS_WIN_CLASS=""
 WANT="${WANT:-${YS_WIN_TITLE:-原神}}"
 
 if [ "$JSON" != "1" ]; then
@@ -46,7 +49,9 @@ fi
 if [ -z "${YS_ATTR_FIXTURE:-}" ] && [ "$VERIFY" != "1" ]; then
   # 显式给了 YS_WIN 才用窗口 id（最稳）；否则交给 ys_attrib 按 WM_CLASS/标题发现，
   # 避免"问别的窗口却永远返回原神窗"的错误归属。
-  if [ -n "${YS_WIN:-}" ]; then
+  # 显式给标题时**不许**用 YS_WIN 钉窗：ys-env.sh 会设 YS_WIN=游戏窗，于是
+  # `ys-atop --json 千星沙箱` 静默返回原神（2026-10-26 实测，两层陷阱的第二层）。
+  if [ -n "${YS_WIN:-}" ] && [ "$WANT_EXPLICIT" != "1" ]; then
     exec python3 "$HERE/ys_attrib.py" "$WANT" --win "$YS_WIN"
   fi
   exec python3 "$HERE/ys_attrib.py" "$WANT"
@@ -77,7 +82,7 @@ if [ "$SRC" = "kwin" ] && printf '%s' "$LINES" | grep -q 'source=ewmh'; then
 fi
 
 YS_ATTR_LINES="$LINES" YS_ATTR_WANT="$WANT" \
-YS_ATTR_WANT_CLASS="${YS_WIN_CLASS:-yuanshen.exe}" YS_ATTR_SRC="$SRC" python3 - <<'PY'
+YS_ATTR_WANT_CLASS="${YS_WIN_CLASS-yuanshen.exe}" YS_ATTR_SRC="$SRC" python3 - <<'PY'
 import json, os, re, sys, time
 
 want = os.environ.get("YS_ATTR_WANT", "原神")

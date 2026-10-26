@@ -137,7 +137,11 @@ def _union_ratio(rects, area):
 
 def attrib(want_id=None, want_title=None, want_class=None):
     t0 = time.time()
-    want_id = (want_id or WIN_DEFAULT).lower()
+    # 2026-10-26 实测陷阱（第二层）：WIN_DEFAULT 来自 YS_WIN（ys-env.sh 设成游戏窗），
+    # 于是 `ys-atop --json 千星沙箱` 即使没给 --win 也会被钉在游戏窗上、静默返回原神。
+    # 显式给了**非默认标题** ⇒ 不拿环境窗钉死。
+    _explicit_title = want_title is not None and want_title != TITLE_DEFAULT
+    want_id = (want_id or ("" if _explicit_title else WIN_DEFAULT)).lower()
     want_title = TITLE_DEFAULT if want_title is None else want_title
     want_class = CLASS_DEFAULT if want_class is None else want_class
     cur = _xprop_root("_NET_CURRENT_DESKTOP")
@@ -229,19 +233,23 @@ def attrib(want_id=None, want_title=None, want_class=None):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     win = os.environ.get("YS_WIN", WIN_DEFAULT)
+    win_explicit = False
     title, klass = None, None
     rest = []
     i = 0
     while i < len(argv):
         a = argv[i]
         if a == "--win" and i + 1 < len(argv):
-            win = argv[i + 1]; i += 2; continue
+            win = argv[i + 1]; win_explicit = True; i += 2; continue
         if a == "--class" and i + 1 < len(argv):
             klass = argv[i + 1]; i += 2; continue
         if a.startswith("--"):
             i += 1; continue
         title = a
         i += 1
+    # 显式给了非默认标题、又没给 --win ⇒ 不拿 YS_WIN 钉窗（否则静默返回游戏窗）
+    if title and title != TITLE_DEFAULT and not win_explicit:
+        win = ""
     out, rc = attrib(want_id=win, want_title=title, want_class=klass)
     print(json.dumps(out, ensure_ascii=False))
     return rc

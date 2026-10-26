@@ -146,8 +146,10 @@ def main():
           and (s8.get("prev_active") or {}).get("class") == "kitty"
           and s8.get("holding_until", 0) - t0 >= 258
           and float(s8.get("expires") or 0) > time.time() + 300
-          and s8.get("idle_ms") == 10000)
-    check("T8 无会话+prev ⇒ auto-session（state=active/prev=kitty/hold≈260s）", ok,
+          # 2026-10-23 用户令：空闲交还 10s → 3s（ys-session:124/329 默认值），
+          # 本文件 T1 夹具第 51 行也已是 3000；T8 原先断 10000 是**测试落后于决定**。
+          and s8.get("idle_ms") == 3000)
+    check("T8 无会话+prev ⇒ auto-session（state=active/prev=kitty/hold≈260s/idle 3000）", ok,
           f"auto={j.get('auto_created')} prev={(s8.get('prev_active') or {}).get('class')}")
 
     # T9 prev 是游戏类 ⇒ 归一为 None（ALREADY_FOCUSED 场景，交还回退 firefox）

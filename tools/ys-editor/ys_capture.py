@@ -68,6 +68,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import zlib
@@ -1750,7 +1751,9 @@ def cmd_selftest(args):
     import numpy as np
     from PIL import Image
     cli = args.cli or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys-capture')
-    root = args.workdir or '.scratch/gui-perf/selftest'
+    # 2026-10-26：默认写临时目录。原来写 `.scratch/gui-perf/selftest`，那里是**被 git 跟踪**的
+    # 夹具目录 ⇒ 每跑一次自测就把 13 个 fixtures 改脏，提交时得逐个挑掉。
+    root = args.workdir or tempfile.mkdtemp(prefix='ys-capture-selftest-')
     os.makedirs(root, exist_ok=True)
     results = []
 
