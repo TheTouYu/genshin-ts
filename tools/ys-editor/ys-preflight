@@ -41,7 +41,7 @@ YS_STATE="$HERE/ys-state"
 FAIL=0; WARN=0; SKIP=0
 ok()   { printf '  [OK]   %-22s %s\n' "$1" "${2:-}"; }
 bad()  { printf '  [FAIL] %-22s %s\n' "$1" "${2:-}"; FAIL=$((FAIL+1)); }
-warn() { printf '  [WARN] %-22s %s\n' "$1" "${2:-}"; WARN=$((WARN+1)); }
+warn() { printf '  [WARN] %-22s %s\n' "$1" "${2:-}"; WARN=$((WARN+1)); WARN_LABELS="${WARN_LABELS:-}${1}"$'\n'; }
 skip() { printf '  [SKIP] %-22s %s\n' "$1" "${2:-}"; SKIP=$((SKIP+1)); }   # 前置不成立，未判定（不是红也不是黄）
 
 echo "══ ys-preflight $(date '+%F %T') ══"
@@ -223,6 +223,21 @@ if [ -s "$_AF" ]; then
   warn "guard 告警" "$_n 条历史告警（tail: $(tail -1 "$_AF" | cut -c1-90)）"
 else ok "guard 告警" "无"; fi
 
+# 机器可读结论（2026-10-26）：把"哪些 WARN 可以忽略"也做成模块判断，不让模型读文案。
+# 已知可忽略：地图身份（判态 UNKNOWN 时本来就判不了）、guard 告警历史、ydotool 走 shim。
+_IGN_PAT='^(地图身份|guard 告警|ydotool.*)$'
+_IGN=0; _BLOCK=""
+while IFS= read -r _l; do
+  [ -z "$_l" ] && continue
+  if printf '%s' "$_l" | grep -Eq "$_IGN_PAT"; then _IGN=$((_IGN+1)); else _BLOCK="$_BLOCK$_l; "; fi
+done <<EOF
+${WARN_LABELS:-}
+EOF
+if [ "$FAIL" -gt 0 ]; then _V=STOP
+elif [ -n "$_BLOCK" ]; then _V=CARE
+else _V=GO; fi
+printf 'PREFLIGHT-RESULT verdict=%s fail=%s warn=%s ignorable=%s blocking="%s"\n' \
+  "$_V" "$FAIL" "$WARN" "$_IGN" "${_BLOCK%; }"
 echo "───────────────────────────────"
 [ "${SKIP:-0}" -gt 0 ] && echo "· $SKIP 项 SKIP —— 前置不成立，未判定（不要把 SKIP 当通过）"
 if [ "$FAIL" -gt 0 ]; then echo "✗ $FAIL 项 FAIL —— 先修再动手（这些正是白烧十分钟的来源）"; exit 1; fi

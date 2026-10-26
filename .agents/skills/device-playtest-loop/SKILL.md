@@ -156,6 +156,12 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 
 ## 桌面环境换了 = GUI 注入链可能整体静默失效（2026-10-26 实测，先查这条）
 
+> **操作者只需记住 3 条**（其余都是设计说明，模块已处理，**不要**自己判断桌面）：
+> 1. 动手前跑 `ys-preflight`，只看结尾 `PREFLIGHT-RESULT verdict=`：`GO` 直接干、`CARE` 看 `blocking=`、`STOP` 先修。
+> 2. 取帧一律 `ys-capture latest`（默认 `--purpose action`）；**离线分析**才加 `--purpose analyze`。`rc=9/15` 已自动重试，不必手搓。
+> 3. 交还/抬窗只调 `ys-hand-back` / `ys-lease kwin-raise` / `ys-gui-slot`：精确激活→Alt+Tab→X11 三条通道在内部自动选，回执 `via=` 告诉你走了哪条。
+> 下面各节是**为什么这样设计**（排障与改代码时读），不是操作步骤。
+
 `tools/ys-editor/` 的焦点/注入层**原本强绑 KWin**（`gdbus org.kde.KWin /Scripting`）。
 本机 2026-10-26 换成 **GNOME**（`gnome-shell` + `mutter-x11-frame`）后，`ys-lease` / `ys-gui-slot` /
 `ys-wins` 全部报 `KWIN_UNAVAILABLE`（fail-closed），而 `dsh-guard` 的 **L1-FOCUS 规则又强制必须走它们**

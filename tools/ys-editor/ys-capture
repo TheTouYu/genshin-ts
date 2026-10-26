@@ -101,6 +101,13 @@ cmd_latest() {
       --max-age-ms) MAX_AGE_MS="${2:?}"; shift 2;;
       --strict-ttl-ms) STRICT_TTL_MS="${2:?}"; shift 2;;
       --allow-background) ALLOW_BG=1; shift;;
+      # 2026-10-26：把"我这是离线分析还是动作前取帧"从模型手里收回来。
+      --purpose)
+        case "${2:-action}" in
+          analyze|offline|分析|离线) ALLOW_BG=1 ;;
+          action|live|动作)          ALLOW_BG=0 ;;
+          *) deny 1 BAD_ARG "未知 --purpose ${2:-}（action|analyze）" ;;
+        esac; shift 2;;
       # 兼容旧调用（默认就是允许，显式写也无害）
       --allow-other-desktop) ALLOW_OD=1; shift;;
       # 动作类调用：要求帧与「用户当前所见」一致，跨桌面即拒
@@ -150,7 +157,7 @@ cmd_latest() {
   if [ "${ver:-v1}" = "v2" ] && [ "${visible:-1}" != "1" ] && [ "${fsrc:-}" = "xshm-window" ] \
      && [ "$ALLOW_BG" != "1" ]; then
     deny 15 CHANNEL_UNAVAILABLE \
-      "窗口看不见（visible=${visible:-?}，KWin 判定 ${strict:-?}）且快通道尚未切到合成器通道：画面可能滞后 0.3–2.7s，拒绝交付。重试一次；持续出现说明 KWin 通道不可用（或确认要后台帧就带 --allow-background）"
+      "窗口看不见（visible=${visible:-?}，KWin 判定 ${strict:-?}）且快通道尚未切到合成器通道：画面可能滞后 0.3–2.7s，拒绝交付。已自动重试一次；仍失败说明本桌面没有合成器通道（GNOME）且画面确被遮挡 —— 要么先把目标窗切到前台，要么明确要后台帧就带 --purpose analyze"
   fi
   local now age_ms
   now=$(date +%s%N)
@@ -328,7 +335,14 @@ cmd_bench() {  # bench [--iters N] [--out FILE]：量 latest 热路径（含 bas
 
 case "$CMD" in
   serve)    exec "$PY" "$HERE/ys_capture.py" serve --dir "$DIR" "$@";;
-  latest)   cmd_latest "$@";;
+  latest)
+    # 通道类失败自带"再试一次"（模型不该读 deny 文案再手动重试）：
+    # 9=归属结论过期/通道不可用、15=看不见且快通道没切——重试一次通常自愈。
+    ( cmd_latest "$@" ); _rc=$?
+    case "$_rc" in
+      9|15) sleep 0.25; ( cmd_latest "$@" ); _rc=$?; exit "$_rc" ;;
+      *) exit "$_rc" ;;
+    esac ;;
   status)   exec "$PY" "$HERE/ys_capture.py" status --dir "$DIR" "$@";;
   stop)     exec "$PY" "$HERE/ys_capture.py" stop --dir "$DIR" "$@";;
   audit)    exec "$PY" "$HERE/ys_capture.py" audit --dir "$DIR" "$@";;
