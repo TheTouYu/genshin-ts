@@ -157,6 +157,59 @@ console.info("MARK " + JSON.stringify({ active: act ? String(act.internalId || "
 """
 
 
+FOCUS_BIN = os.environ.get("YS_FOCUS_BIN") or os.path.join(HERE, "ys-focus")
+
+
+def _ysfocus(method, *args, timeout=8):
+    """问 gnome-shell 扩展（ys-focus@local）：窗口表 / 焦点 / 精确激活。
+
+    **可选增强**：桥不在（GNOME 51 要重登才扫描新扩展，或别的桌面）时返回
+    {"available": False}，调用方必须退回 X11/EWMH 路径——模型不需要知道当前有没有桥。
+    """
+    try:
+        r = subprocess.run([FOCUS_BIN, method, *args], capture_output=True,
+                           text=True, timeout=timeout, env=ys_env.env())
+        out = (r.stdout or "").strip().splitlines()
+        d = json.loads(out[-1]) if out else {}
+        d.setdefault("available", False)
+        return d
+    except Exception as e:                                # noqa: BLE001
+        return {"available": False, "error": f"{type(e).__name__}: {e}"}
+
+
+def _sync_focus(state):
+    """用桥纠正"谁是前台"：X11 侧拿不到 Wayland 焦点，只有 mutter 知道。
+
+    桥可用时：X11 窗在前台 ⇒ active 用真值、proxy=False；Wayland 窗在前台 ⇒
+    active=None、proxy=True，但把 focused 记下来（交还时按它精确激活）。
+    """
+    got = _ysfocus("focused")
+    if not got.get("available"):
+        return state
+    w = got.get("window") or None
+    state["focused"] = w
+    state["source"] = (state.get("source") or "") + "+shell"
+    if w is None:
+        return state
+    if w.get("x11"):
+        wid = "0x%x" % int(w["id"]) if str(w.get("id", "")).isdigit() else str(w.get("id"))
+        match = next((r for r in state.get("wins", []) if r.get("id") == wid), None)
+        if match is not None:
+            state["active"] = wid
+            state["active_proxy"] = False
+            state["active_window"] = match
+            for r in state.get("wins", []):
+                r["active"] = 1 if r.get("id") == wid else 0
+    else:
+        # Wayland 原生窗在前台：X11 里没有它 ⇒ 不能把"栈顶 X11 窗"当焦点
+        state["active"] = None
+        state["active_proxy"] = True
+        state["active_window"] = None
+        for r in state.get("wins", []):
+            r["active"] = 0
+    return state
+
+
 def _state_ewmh(timeout=5.0):
     """EWMH 回退通道（2026-10-26 新增）：GNOME/Mutter 或任何支持 _NET_CLIENT_LIST_STACKING 的 WM。
 
@@ -254,7 +307,7 @@ def _state_ewmh(timeout=5.0):
     state = {"active": act, "desktop": int(mcur.group(1)) if mcur else -1,
              "wins": wins, "source": "ewmh", "active_proxy": proxy}
     state["active_window"] = next((w for w in wins if w["id"] == act), None)
-    return state
+    return _sync_focus(state)      # 桥在就用 mutter 的真值纠正（Wayland 前台也认得出来）
 
 
 def kwin_state(timeout=2.0):
@@ -403,6 +456,18 @@ def _verify(state, rec):
     game = _game(state)
     active = state.get("active_window")
     problems = []
+    fw = state.get("focused")
+    if fw is not None:
+        target = _pick(state, rec)
+        game = _game(state)
+        problems = []
+        wid = ("0x%x" % int(fw["id"])) if str(fw.get("id", "")).isdigit() else str(fw.get("id"))
+        if fw and fw.get("x11") and target is not None and wid == str(target.get("id")):
+            if game is not None and (target.get("i") or 0) <= (game.get("i") or 0):
+                problems.append(f"STACKING_NOT_RESTORED(target_idx={target.get('i')} game_idx={game.get('i')})")
+        else:
+            problems.append(f"SHELL_FOCUS_NOT_TARGET(focused={fw.get('wm_class') if fw else None})")
+        return (not problems), problems, target, game
     if state.get("active_proxy"):
         # EWMH 回退时，幽灵 active（Mutter 的 0x200003 焦点代理窗）会被代理成**栈顶窗**。
         # 于是「active == 目标」在代理态下只证明"目标此刻在最上面"，**不证明**任何激活动作发生过
@@ -603,6 +668,16 @@ def acquire(name="原神", max_s=30, owner_pid=None):
     # 代理态 = 用户当时在看一个**非 X11 窗口**（本机就是 Wayland 原生的 firefox）。
     # X11 层没有它的地址，但键盘层（Alt+Tab）够得到 ⇒ 记下这个事实，交还时走键盘通道。
     prev_wayland = bool(state.get("active_proxy"))
+    # 桥在时能知道那个 Wayland 窗**是谁**（id/wm_class）——交还时就能精确激活它，
+    # 而不是 Alt+Tab 盲切。桥不在，这段为空，行为与原来一致。
+    _fc = state.get("focused") or {}
+    prev_wayland_key = ""
+    if prev_wayland and _fc and not _fc.get("x11"):
+        prev_wayland_key = str(_fc.get("id") or _fc.get("wm_class") or "")
+    if prev_wayland_key:
+        prev = {"internalId": "", "caption": (str(_fc.get("title") or "")[:60] or "(Wayland 原生窗)"),
+                "class": str(_fc.get("wm_class") or ""), "geom": "", "index": None,
+                "usable": True, "wayland_key": prev_wayland_key}
     prev_is_target = bool(prev and GAME_CLASS in (prev.get("class") or "").lower())
     game = _game(state)
     if prev_is_target and game is not None:
@@ -771,7 +846,22 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
     if want and _g0 and str(want.get("id") or "").lower() == str(_g0.get("id") or "").lower():
         want, fallback_reason = None, "PREV_IS_GAME"
     if want is None:
-        # 先试键盘层（Alt+Tab）——它是唯一能交还给 Wayland 原生窗的通道（见 _kbd_return）。
+        # ① 精确通道：桥（gnome-shell 扩展）可用且知道那个 Wayland 窗是谁 ⇒ 直接激活它。
+        _wk = str((prev or {}).get("wayland_key") or "") if isinstance(prev, dict) else ""
+        if _wk:
+            _act = _ysfocus("activate", _wk)
+            if _act.get("available") and _act.get("ok"):
+                _fw = (_ysfocus("focused").get("window") or {})
+                if _fw and not _fw.get("x11"):
+                    _lease_log("release.shell", key=_wk, ok=True,
+                               focused=str(_fw.get("title") or "")[:40])
+                    return {"ok": True, "noop": False, "via": "shell-activate",
+                            "restored": "(Wayland 原生窗；经 gnome-shell 桥精确激活)",
+                            "verify": f"focused={_fw.get('wm_class')} x11=False",
+                            "attempts": 1, "fallback_reason": fallback_reason,
+                            "target_index": None, "game_index": None,
+                            "cross_check": "n/a(shell)"}
+        # ② 键盘层兜底（Alt+Tab）——不依赖任何身份信息，但只能"回上一个应用"。
         _kr = _kbd_return((_game(state0) or {}).get("id") or "")
         if _kr.get("ok"):
             return {"ok": True, "noop": False, "via": _kr["via"],
@@ -1027,6 +1117,7 @@ def kwin_state_cmd():
             # 2026-10-26：这条必须透出。幽灵 active 被代理成栈顶窗时，调用方（ys-gui-slot）
             # 靠它区分"真的在焦点"与"其实没有 X11 窗持焦点"；不透出 ⇒ 槽误判"已在焦点"⇒ 从不抬窗。
             "active_proxy": bool(state.get("active_proxy")),
+            "focused": state.get("focused"),      # 桥可用时=真前台窗（含 Wayland 原生窗）
             "active": _record(act),
             "wins": [dict(_record(w), active=(w.get("id") == (act or {}).get("id")))
                      for w in state.get("wins", [])]}
@@ -1036,6 +1127,20 @@ def _verify_active(state, rec):
     """只验证 active == 目标（raise 目标用；不要求它在游戏之上）。"""
     if state is None:
         return False, ["KWIN_UNAVAILABLE"], None
+    fw = state.get("focused")
+    if fw is not None:
+        # 桥在：直接问 mutter"谁在前台"（含 Wayland 原生窗），比 X11 代理态精确得多。
+        t = _pick(state, rec)
+        if not fw:
+            return False, ["SHELL_FOCUS_NONE(桥说没有前台窗)"], t
+        if t is None:
+            return False, ["TARGET_NOT_FOUND"], None
+        if not fw.get("x11"):
+            return False, [f"SHELL_FOCUS_WAYLAND({fw.get('wm_class')})"], t
+        fwid = "0x%x" % int(fw["id"]) if str(fw.get("id", "")).isdigit() else str(fw.get("id"))
+        if fwid != str(t.get("id")):
+            return False, [f"SHELL_FOCUS_MISMATCH(active={fwid})"], t
+        return True, [], t
     if state.get("active_proxy"):
         # 幽灵 active 被代理成栈顶窗时，"active==目标"只说明目标在最上面，不能证明焦点真的过去了
         return False, ["ACTIVE_IS_PROXY(无法证明焦点落到目标)"], _pick(state, rec)

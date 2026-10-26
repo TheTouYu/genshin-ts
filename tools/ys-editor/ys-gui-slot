@@ -195,8 +195,24 @@ STATE0=$("$LEASE_BIN" kwin-state 2>/dev/null) || {
 # 整段 _NET_ACTIVE_WINDOW 恒 0x200003，游戏其实一步没动）。代理态必须当"未知/未聚焦"。
 ACTIVE_PROXY=$(json_get "$STATE0" "1 if d.get('active_proxy') else 0")
 if [ "$ACTIVE_PROXY" = "1" ]; then
-  PREV_JSON=""
-  PREV_DESC="(非 X11 窗口：用户当时在看 Wayland 原生窗)"
+  # 桥在时能问出"那个 Wayland 窗是谁" ⇒ 交还可精确激活它，而不是 Alt+Tab 盲切。
+  FOCUS_BIN="${YS_FOCUS_BIN:-$YS_HOME/ys-focus}"
+  _wk=$("$FOCUS_BIN" focused 2>/dev/null | python3 -c "
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: raise SystemExit
+w=d.get('window') or {}
+print(json.dumps({'wayland_key': str(w.get('id') or w.get('wm_class') or ''),
+                  'caption': (w.get('title') or '')[:60],
+                  'class': w.get('wm_class') or '', 'usable': True}) if (w and not w.get('x11')) else '')
+" 2>/dev/null)
+  if [ -n "$_wk" ]; then
+    PREV_JSON="$_wk"
+    PREV_DESC="(Wayland 原生窗，可由 gnome-shell 桥精确激活)"
+  else
+    PREV_JSON=""
+    PREV_DESC="(非 X11 窗口：用户当时在看 Wayland 原生窗；桥不可用 ⇒ 交还走 Alt+Tab 兜底)"
+  fi
   CUR_ID=""
 else
   PREV_JSON=$(json_get "$STATE0" "json.dumps(d.get('active') or None, ensure_ascii=False)")
@@ -282,10 +298,14 @@ restore() {
     out2=$("$LEASE_BIN" restore --prev-json "" --fallback "$FALLBACK_CLASS" 2>&1); rc2=$?
     ti2=$(json_get "$out2" "d.get('target_index')")
     gi2=$(json_get "$out2" "d.get('game_index')")
-    if [ "$(json_get "$out2" "d.get('via','')")" = "alt-tab" ]; then
-      echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out2" "d.get('verify','')")）"
-      return
-    fi
+    case "$(json_get "$out2" "d.get('via','')")" in
+      shell-activate)
+        echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已精确交还 $(json_get "$out2" "d.get('restored','')")（验证：$(json_get "$out2" "d.get('verify','')")）"
+        return ;;
+      alt-tab)
+        echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out2" "d.get('verify','')")）"
+        return ;;
+    esac
     if [ "$rc2" -eq 0 ] && [ "$(json_get "$out2" "1 if d.get('noop') else 0")" != "1" ]; then
       echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点本就在目标窗 ⇒ 已切回默认屏：$(json_get "$out2" "d.get('restored','')")（idx $ti2 > game $gi2）"
       return
@@ -305,10 +325,14 @@ restore() {
   out=$("$LEASE_BIN" restore --prev-json "$PREV_JSON" --fallback "$FALLBACK_CLASS" 2>&1); rc=$?
   ti=$(json_get "$out" "d.get('target_index')")
   gi=$(json_get "$out" "d.get('game_index')")
-  if [ "$(json_get "$out" "d.get('via','')")" = "alt-tab" ]; then
-    echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out" "d.get('verify','')")）"
-    return
-  fi
+  case "$(json_get "$out" "d.get('via','')")" in
+    shell-activate)
+      echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已精确交还 $(json_get "$out" "d.get('restored','')")（验证：$(json_get "$out" "d.get('verify','')")）"
+      return ;;
+    alt-tab)
+      echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜已交还 Wayland 原生窗（键盘层 Alt+Tab；验证：$(json_get "$out" "d.get('verify','')")）"
+      return ;;
+  esac
   if [ "$rc" -eq 0 ] && [ "$(json_get "$out" "1 if d.get('noop') else 0")" != "1" ]; then
     desc=$(json_get "$out" "d.get('restored','')")
     echo "[ys-gui-slot] 占用 $(( $(date +%s) - START ))s｜焦点已还原：$desc（idx $ti > game $gi）"

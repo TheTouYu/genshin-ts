@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""ys-focus — 问 gnome-shell（ys-focus@local 扩展）要"窗口表 / 焦点 / 精确激活"。
+
+**为什么需要它**：mutter 知道 Wayland 原生窗的身份与激活方式，而这两个事实在 X11 侧
+根本不存在（firefox 只有幽灵窗 0x200003）。没有这条桥，"把屏幕还给你"只能退化成
+Alt+Tab 盲切（回上一个应用，不保证是你在看的那个）。
+
+设计约束（模型负担归零）：本工具是**可选增强**——桥不在时 rc=3 且 JSON 里写明
+`available:false`，调用方（ys-lease / ys-capture / ys-gui-slot）自行退回 X11/EWMH 路径，
+**不需要模型知道当前桌面能不能用**。
+
+用法：
+  ys-focus version            → {"available":true,"version":"1"}
+  ys-focus focused           → {"available":true,"window":{...}|null}
+  ys-focus list              → {"available":true,"windows":[...]}
+  ys-focus activate <key>    → {"available":true,"ok":true}   key = 窗口 id｜WM_CLASS｜标题子串
+退出码：0 成功 / 3 桥不可用（fail-closed，不猜）
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+
+DEST = os.environ.get("YS_FOCUS_BUS", "org.gnome.Shell")
+PATH = os.environ.get("YS_FOCUS_PATH", "/org/ys/Focus")
+IFACE = "org.ys.Focus"
+TIMEOUT = float(os.environ.get("YS_FOCUS_TIMEOUT", "6"))
+
+
+def call(method, *args):
+    """调桥；不可用/异常返回 (None, 原因)。"""
+    cmd = ["gdbus", "call", "--session", "--dest", DEST, "--object-path", PATH,
+           "--method", f"{IFACE}.{method}", *args]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+    except Exception as e:                                   # noqa: BLE001
+        return None, f"{type(e).__name__}: {e}"
+    if p.returncode != 0:
+        err = (p.stderr or "").strip().splitlines()
+        msg = err[-1] if err else ""
+        if "UnknownMethod" in msg or "UnknownObject" in msg or "not provided" in msg:
+            return None, "BRIDGE_ABSENT"
+        return None, msg[:200] or "gdbus-failed"
+    return (p.stdout or "").strip(), None
+
+
+def _unwrap_str(raw):
+    """gdbus 输出形如 ('{"ok": true}',) —— 取出里面那段 JSON 文本。"""
+    raw = raw.strip()
+    if raw.startswith("('") or raw.startswith('("'):
+        body = raw[2:]
+        if body.endswith("',)") or body.endswith('",)'):
+            body = body[:-3]
+        body = body.replace("\\'", "'").replace('\\"', '"').replace("\\\\", "\\")
+        return body
+    return raw
+
+
+def main(argv):
+    what = (argv[1] if len(argv) > 1 else "version").strip()
+    if what in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+
+    if what == "version":
+        raw, err = call("Version")
+        if err:
+            print(json.dumps({"available": False, "error": err,
+                              "hint": "gnome-shell 扩展 ys-focus@local 未加载（GNOME 51 需重新登录后才会扫描新扩展）"},
+                             ensure_ascii=False))
+            return 3
+        ver = raw.strip("()'\" ,")
+        print(json.dumps({"available": True, "version": ver}, ensure_ascii=False))
+        return 0
+
+    if what in ("focused", "list"):
+        raw, err = call("Focused" if what == "focused" else "ListWindows")
+        if err:
+            print(json.dumps({"available": False, "error": err}, ensure_ascii=False))
+            return 3
+        try:
+            data = json.loads(_unwrap_str(raw))
+        except Exception as e:                               # noqa: BLE001
+            print(json.dumps({"available": False, "error": f"BAD_JSON {type(e).__name__}: {e}",
+                              "raw": raw[:200]}, ensure_ascii=False))
+            return 3
+        data["available"] = True
+        print(json.dumps(data, ensure_ascii=False))
+        return 0
+
+    if what == "activate":
+        if len(argv) < 3 or not argv[2].strip():
+            print(json.dumps({"available": True, "ok": False, "error": "BAD_ARG：缺 <key>"},
+                             ensure_ascii=False))
+            return 2
+        key = argv[2]
+        raw, err = call("Activate", key)
+        if err:
+            print(json.dumps({"available": False, "error": err}, ensure_ascii=False))
+            return 3
+        ok = raw.strip().endswith("true")
+        print(json.dumps({"available": True, "ok": ok, "key": key}, ensure_ascii=False))
+        return 0 if ok else 1
+
+    print(json.dumps({"available": False, "error": f"UNKNOWN_VERB {what}"}, ensure_ascii=False))
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
