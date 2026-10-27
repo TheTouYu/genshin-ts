@@ -1,6 +1,11 @@
 [Unit]
-Description=ys-lookd - 常驻图像识别服务（GPU 常驻，GUI 自动化用）
+Description=ys-lookd - 图像识别服务（按需启动；闲置退出后由 ys-lookd.socket 唤醒）
 After=graphical-session.target
+# 由 ys-lookd.socket 按需拉起（socket 常驻、进程随连接/随闲置退出）。
+# 2026-10-26 用户实测：本服务闲置时是显存第一大户（3144 MiB / 空转 20h43m / 0 连接），
+# 因为预载的 OCR 权重 ~2.3GB 只在进程活着时占着；`empty_cache()` 只回收 70~114 MiB。
+# ⇒ 闲置 30 分钟（YS_LOOKD_IDLE_EXIT_SEC）进程**自动退出**，下次连接再由 socket 拉起。
+# 所以：**不要在 [Install] 里 enable 本 service**（开机只 enable ys-lookd.socket）。
 
 # 2026-10-22 重启后事故：单元只写 DISPLAY=:1，而 XAUTHORITY 是每会话随机文件名
 # ⇒ 守护起来后 X 授权失败（px 报「截取失败 (0 != 3)」），两个门禁同时假红。
@@ -9,7 +14,12 @@ After=graphical-session.target
 Type=simple
 Environment=DISPLAY=:1
 Environment=YS_LOOKD_SOCK=/run/user/%U/ys-lookd.sock
+# 闲置阈值（秒）：只回收帧/模板 + cuda 缓存，保住进程省冷启动
+Environment=YS_LOOKD_IDLE_SEC=600
+# 闲置阈值（秒）：到点**退出进程**，把权重显存还给驱动（用户令：30 分钟）
+Environment=YS_LOOKD_IDLE_EXIT_SEC=1800
 ExecStart=/bin/bash -c '. /home/h/genshin-ts/tools/ys-editor/ys-env.sh >/dev/null 2>&1; exec /usr/bin/python3 /home/h/genshin-ts/tools/ys-editor/ys_lookd.py'
+# 只对"崩了"重启；闲置退出是正常退出码 0 ⇒ 不会被复活（否则空闲退出现在就白做）
 Restart=on-failure
 RestartSec=3
 

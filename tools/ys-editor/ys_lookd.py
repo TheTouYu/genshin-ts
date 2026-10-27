@@ -14,7 +14,7 @@
     live 帧先做窗口归属校验（票 34），不过就返回 error、**不抓像素**。
     契约见 `docs/architecture/gui-world-state.md` §3.5。
 """
-import json, os, socket, sys, threading, time, traceback
+import errno, json, os, socket, sys, threading, time, traceback
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ys_look as YL
 import ys_env  # noqa: E402
@@ -554,15 +554,22 @@ _OCR_TEXT_SCORE = 0.5                    # 与 RapidOCR 的 Global.text_score �
 # 的代价：进程长时间不访问的页会被内核换出，而它**永远不会再主动碰它们**，
 # 于是 swap 被永久占着（页面换出 → 不访问 → 不换入 → 不释放）。
 #
-# 设计取舍（为什么是"释放资源"而不是"退出进程"）：
-#   · 退出进程 → 下次调用要付 ~10s 冷启动（OCR 9680ms + 判态热路径 ~1.5s）；
-#   · 释放资源 → 保住进程与已 import 的模块，只丢 GPU 张量缓存；
-#     代价是下次 `_cached()` 重新建模板张量（几十 ms），远小于 10s。
-#   所以超时后 `torch.cuda.empty_cache()` + 清 `_CACHE`/`_FRAME_CACHE`，
-#   **不 unload OCR 引擎**（它加载要 9.7s，且释放后 ORT 会话重建同样贵）。
-#
-# 阈值：YS_LOOKD_IDLE_SEC（缺省 600s = 10 分钟）。设 0 关闭该行为。
+# 2026-10-26 追加（用户实测）：只 `empty_cache()` **根本不够**——它只回收
+# "已归还但被 allocator 留着"的块（实测 70~114 MiB），**模型权重占的 2.3GB 一直不还**。
+# 用户实测本服务常年是显存第一大户（3144 MiB，闲置 20h43m、0 连接、60s CPU 0.04s）。
+# 所以改成**两段式**：
+#   ① 闲置 10 分钟（YS_LOOKD_IDLE_SEC）：先回收便宜的（帧/模板缓存 + cuda 缓存），
+#      保住进程，下次调用不用付 ~10s 冷启动；
+#   ② 闲置 30 分钟（YS_LOOKD_IDLE_EXIT_SEC）：**彻底退出进程**（丢掉 OCR 引擎对象 =
+#      把权重显存真的还回驱动）。下次调用由 systemd socket activation 按需拉起
+#      （见 ys-lookd.socket：socket 常驻，进程按需），所以"退出"对调用方透明。
+# 阈值：两个都设 0 可关闭。
 _IDLE_TIMEOUT = float(os.environ.get('YS_LOOKD_IDLE_SEC') or 600)
+# 闲置退出阈值（2026-10-26 用户令：「没人用的话，30 分钟后自动退出」）。
+_IDLE_EXIT = float(os.environ.get('YS_LOOKD_IDLE_EXIT_SEC') or 1800)
+# accept 轮询步长：闲置判据只有在这个 tick 上才被检查（阈值是分钟量级，30s 足够）。
+# 测试要秒级验证时必须能调小，否则一次退出要等最多 30s 才触发。
+_ACCEPT_TICK = float(os.environ.get('YS_LOOKD_ACCEPT_TICK') or 30.0)
 _last_activity = time.time()
 
 
@@ -584,6 +591,88 @@ def _release_idle():
         note += f" (torch 释放跳过: {type(e).__name__})"
     _last_activity = time.time()
     return note
+
+
+def _rss_mib(peak=False):
+    """本进程 RSS / 峰值 RSS（VmHWM）MiB。只用于退出日志，取不到返回 -1。
+
+    注意：这两个数**只能反映"退出前"**——真正的回收发生在进程退出之后
+    （内核回收匿名页、驱动回收 shm），进程内部读不到退出后的值。所以日志写
+    「退出前 PeakRSS=X」+「进程已退出 ⇒ 内核/驱动回收全部」，不要把进程内瞬时
+    差值当成释放量（2026-10-26 实测：`del` 之后 VmRSS 几乎不动，RSS 是退出才掉）。
+    """
+    try:
+        if peak:
+            with open('/proc/self/status') as f:
+                for line in f:
+                    if line.startswith('VmHWM:'):
+                        return round(int(line.split()[1]) / 1024)
+            return -1
+        with open('/proc/self/statm') as f:
+            pages = int(f.read().split()[1])
+        return round(pages * os.sysconf('SC_PAGE_SIZE') / 2 ** 20)
+    except Exception:                           # noqa: BLE001 —— 只用于日志，取不到就 -1
+        return -1
+
+
+def _gpu_mib():
+    """(allocated, reserved) MiB；无 CUDA 返回 None。只用于退出前后的对照日志。"""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return None
+        return (round(torch.cuda.memory_allocated() / 2 ** 20),
+                round(torch.cuda.memory_reserved() / 2 ** 20))
+    except Exception:                           # noqa: BLE001
+        return None
+
+
+def _idle_exit(srv, idle_s, sock_owned):
+    """闲置到点 → 丢引擎对象、清缓存、退出进程，把权重显存真的还给驱动。
+
+    为什么必须退出而不是只 `empty_cache()`（2026-10-26 用户实测）：
+    本服务闲置时仍是机器显存第一大户（3144 MiB / 20h43m 空闲 / 0 连接 / CPU 0.04s），
+    因为 `empty_cache()` 只回收 allocator 里"已归还"的空闲块（70~114 MiB），
+    **模型权重那 2.3GB 只在进程活着时一直占着**。只有 `del` 掉引擎 + 退出才能真正归还。
+
+    为什么退出不影响调用方：systemd socket activation（ys-lookd.socket）常驻监听、
+    进程按需拉起；客户端 `os.path.exists(SOCK)` 恒真，走的是同一条连接路径。
+    单线程串行模型保证：本函数只可能从 accept 超时分支进入，**没有在途请求**。
+    """
+    global _OCR_ENGINE, _OCR_ERR, _DET
+    rss0, gpu0 = _rss_mib(), _gpu_mib()
+    note = _release_idle()
+    _OCR_ENGINE = None          # 权重在这里：del 之后 allocator 才有机会还给驱动
+    _OCR_ERR = None
+    _DET = None                 # GUI 检测器（可能也持 GPU 张量）
+    _STRIP_CACHE.clear()
+    _OCR_RES_CACHE.clear()
+    _LAST_FRAME.update({"It": None, "key": None})
+    _FULL.update({"rgb": None, "roi": None})
+    try:
+        import gc
+        gc.collect()
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+    except Exception as e:                      # noqa: BLE001 —— 退出前清理失败不许拦退出
+        note += f" (退出前清理跳过: {type(e).__name__})"
+    print(f"[ys-lookd] 闲置 {int(idle_s)}s ≥ {int(_IDLE_EXIT)}s → 退出进程归还显存："
+          f"pid={os.getpid()} rss_now={rss0}MiB 峰值={_rss_mib(peak=True)}MiB "
+          f"cuda_before={gpu0} cuda_after_del={_gpu_mib()}（alloc,reserved MiB）{note}"
+          f"｜进程退出后内核与驱动回收全部（退出后再读 GPU 进程表不应再有本 pid）", flush=True)
+    try:
+        srv.close()
+    except Exception:                           # noqa: BLE001
+        pass
+    if sock_owned:
+        try:
+            if os.path.exists(SOCK):
+                os.unlink(SOCK)
+        except OSError:
+            pass
+    raise SystemExit(0)
 
 
 def _ocr_engine():
@@ -2816,15 +2905,43 @@ def _warm_all():
     return out
 
 
+def _acquire_server_socket():
+    """返回 (监听 socket, 是否由本进程拥有 socket 文件)。
+
+    systemd socket activation（ys-lookd.socket）时监听 fd 由 systemd 传进来
+    （LISTEN_FDS/LISTEN_PID，fd 从 3 起），此时**不要 bind/unlink**——
+    那个 socket 文件的生命周期归 systemd：进程闲置退出后它仍然在，
+    下一次 connect 就能把进程按需拉起来（这是"闲置退出"对调用方透明的前提）。
+    手工/测试启动时没有 LISTEN_FDS，就按老路自己 bind（不破坏现有测试与调试用法）。
+    """
+    fds = int(os.environ.get("LISTEN_FDS", "0") or 0)
+    pid = os.environ.get("LISTEN_PID")
+    if fds >= 1 and pid and int(pid) == os.getpid():
+        srv = socket.socket(fileno=3)
+        print(f"[ys-lookd] socket activation: 接管 systemd 传入的监听 fd=3（{SOCK}）", flush=True)
+        return srv, False
+    try:
+        if os.path.exists(SOCK):
+            os.unlink(SOCK)
+        srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        srv.bind(SOCK); os.chmod(SOCK, 0o600); srv.listen(8)
+    except OSError as e:
+        if e.errno in (errno.EADDRINUSE, errno.EACCES) and os.path.exists(SOCK):
+            raise SystemExit(
+                f"[ys-lookd] 拿不到监听地址 {SOCK}（{e.strerror}）：很可能 systemd 的 "
+                f"ys-lookd.socket 正在监听它。要么交给 socket activation（"
+                f"`systemctl --user start ys-lookd.socket` + 本进程 nohup 起不来是对的），"
+                f"要么先 `systemctl --user stop ys-lookd.socket` 再手工起。")
+        raise
+    return srv, True
+
+
 def serve():
     global _last_activity
     # 进程内 XShm/ctypes 从 os.environ 读 DISPLAY/XAUTHORITY：服务启动自愈一次
     # （2026-10-22 重启后 XAUTHORITY 变成新文件名，守护里的旧值必须能被重新解析）
     ys_env.apply()
-    if os.path.exists(SOCK):
-        os.unlink(SOCK)
-    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    srv.bind(SOCK); os.chmod(SOCK, 0o600); srv.listen(8)
+    srv, sock_owned = _acquire_server_socket()
     # 预热：① 建 CUDA context；② 把 ys-state 判据模块 import 进来（首请求不再付 ~200ms）
     try:
         import numpy as np
@@ -2905,14 +3022,24 @@ def serve():
     print(f"[ys-lookd] listening {SOCK}", flush=True)
     # accept 设超时：否则 recv 阻塞时**没有任何机会**执行闲置检查（超时释放就永远不触发）。
     # 30s 一轮足够准（阈值是 600s 量级），又不会空转耗 CPU。
-    srv.settimeout(30.0)
+    srv.settimeout(_ACCEPT_TICK)
+    _released_at = None      # 最近一次"释放缓存"的闲置时刻，避免每轮 accept 重复打印
     while True:
         try:
             c, _ = srv.accept()
         except socket.timeout:
-            if _IDLE_TIMEOUT > 0 and (time.time() - _last_activity) >= _IDLE_TIMEOUT:
-                print(f"[ys-lookd] 闲置 {int(time.time()-_last_activity)}s ≥ {int(_IDLE_TIMEOUT)}s"
+            idle = time.time() - _last_activity
+            # ② 兜底退出：闲置到点就真退出（把权重显存还回去）。必须在 ① 之前判——
+            #    否则先释放缓存、`_release_idle()` 又会刷新 _last_activity，永远走不到退出。
+            if _IDLE_EXIT > 0 and idle >= _IDLE_EXIT:
+                _idle_exit(srv, idle, sock_owned)
+            # ① 先回收便宜的（帧/模板 + cuda 缓存），保住进程省掉下次 ~10s 冷启动。
+            if (_IDLE_TIMEOUT > 0 and idle >= _IDLE_TIMEOUT
+                    and (_released_at is None or idle - _released_at >= _IDLE_TIMEOUT)):
+                _released_at = idle
+                print(f"[ys-lookd] 闲置 {int(idle)}s ≥ {int(_IDLE_TIMEOUT)}s"
                       f" → 释放缓存：{_release_idle()}", flush=True)
+                _last_activity = time.time() - idle    # 释放本身不算"使用"，别把闲置时钟清零
             continue
         _last_activity = time.time()
         # 连接级读超时：客户端连上但不说完整一行 ⇒ 10s 后断开并回 RECV_TIMEOUT，

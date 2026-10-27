@@ -138,11 +138,17 @@
 - 读数：`ys-screen --json` 缓存后仍 526–1388ms；`look` 冷 14.4ms（daemon 缓存）/ 禁缓存 2502ms。
 - 下一步：拆分 load/OCR/pixel 三段，逐段砍；daemon `cmd=crop` 可把切片从 1.5–2s 降到 <50ms。
 
-### O-2026-10-19-12 `ys-lookd` 不是 systemd 常驻（无自动重启），且启动需显式 X 环境【OPEN】
+### O-2026-10-19-12 `ys-lookd` 不是 systemd 常驻（无自动重启），且启动需显式 X 环境【CLOSED 2026-10-27】
 
 - 现象：本波重启 daemon 时 `. ys-env.sh` 在子 shell 里 source ⇒ DISPLAY 为空 ⇒ 抓帧 0 字节。
 - 影响：`daemon-resilience` 门禁曾因此假红；进程挂了不会自动拉起。
 - 下一步：写 `ys-lookd.service`（显式 `Environment=DISPLAY=:1` + `XAUTHORITY`），并让门禁探 socket（已做）。
+- **闭合（2026-10-27）**：`tools/ys-editor/ys-lookd.service` 已注册为用户单元（ExecStart 内先 source
+  `ys-env.sh`，X 授权取权威值；`Restart=on-failure`），并新增 **`ys-lookd.socket` 按需启动**：
+  socket 常驻、进程随连接拉起 / 随闲置退出（`YS_LOOKD_IDLE_EXIT_SEC` 缺省 1800s）。
+  实测：客户端 connect 2.4s 内把进程拉起；闲置 25s（测试用 drop-in）后进程退出、socket 仍 active、
+  再 connect 3.3s 复起；systemd 记录 `1.5G memory peak` 随退出释出。
+  判据仍在对象上：`daemon-resilience.selftest.sh` 探 socket + `SO_PEERCRED`，不探 MainPID。
 
 ### O-2026-10-19-13 `live_accept.sh` 等脚本用 `cmd | tail -6; echo $?` 记的是 tail 的退出码【OPEN】
 

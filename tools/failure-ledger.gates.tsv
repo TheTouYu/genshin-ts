@@ -64,3 +64,4 @@ own-guard	bash tools/ys-editor/tests/own-guard.selftest.sh	注入前所有权断
 gil-guard-selftest	python3 tools/gil-guard.py --selftest	整图 .gil 写回不变量自测：好样本 0 问题 / 「501 写成全量记录」与「children 悬空引用」必须被抓到（治 2026-10-24 两次「存档已损坏」：把 root9.501 森林根集当记录清单重写 + f503 小序号被误删 + 漏 Temp 同步）	fast	
 client-kit-selftest	bash scripts/check-client-kit.sh	客户端计算抽离库编译自证：dist CLI 下 --noinject 编译 examples/client-kit，断言 IR 只含 1 图(1082130499)、关键节点计数达标(自持读写/邮箱/分支)、无信号依赖、GIA 产出。治 2026-10-24 抽离「只写不接」+ dev 模式 src/dist 双副本导致 IR 恒空的假绿	fast	
 gil-header-selftest	python3 tools/gil-header-check.py --selftest	GIL 头部长度不变量：好样本 PASS / 「payload 变长但 header 未更新」必须被抓到（治 2026-10-24 技能变量 CLI 两次把地图写成「存档已损坏」：root15 记录逐字节正确，但自造文件重建只复制前 20B，hdr[0:4]/hdr[16:20] 停在旧值）	fast	
+lookd-idle-exit	python3 tools/ys-editor/tests/lookd-idle-exit.selftest.py	常驻服务闲置**退出进程**（用户令 30 分钟没人用就退）：退出码 0 / 退出原因出声带峰值 RSS / 在途请求不被抢占 / 阈值 0 可关；治「只调 empty_cache 就宣称释放了显存」	fast	

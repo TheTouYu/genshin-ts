@@ -52,10 +52,10 @@ def target_win():
     那个默认给沙箱编辑器窗 0x2200008（2026-10-27 前台断言因此误报）。"""
     try:
         import ys_win
-        w = ys_win.resolve(prefer_sandbox=False) or ''
+        return ys_win.resolve(prefer_sandbox=False) or ''
     except Exception:
-        w = ''
-    return w or '0x1000003'
+        return ''
+    # 不用硬编码窗口 id 兜底：那会把"解析不到"伪装成一个可能早已失效的 id（no-dead-window-id 门禁）
 
 
 def renew(task):
@@ -207,6 +207,10 @@ def main():
     ap.add_argument('--win', default='')
     a = ap.parse_args()
     a.win = a.win or target_win()
+    if not a.win:
+        log("解析不到游戏窗（ys_win.resolve(prefer_sandbox=False) 返回空）——确认游戏在跑；"
+            "本脚本不拿硬编码窗口 id 兜底")
+        return 2
     os.makedirs(a.out, exist_ok=True)
     if os.environ.get('YS_SLOT_ACTIVE') != '1':
         log("必须在 ys-gui-slot 槽内运行（前台断言/注入都要槽）"); return 2

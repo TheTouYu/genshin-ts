@@ -1,0 +1,19 @@
+[Unit]
+# 按需启动 ys-lookd：socket 常驻、进程随连接拉起 / 随闲置退出。
+#
+# 为什么需要它（2026-10-26 用户实测）：ys_lookd 闲置时是**显存第一大户**
+# （3144 MiB / 空转 20h43m / 0 连接 / 60s CPU 0.04s），因为它在启动时预载了
+# OCR 引擎（权重 ~2.3GB）。只调 `torch.cuda.empty_cache()` 只回收 70~114 MiB，
+# 权重必须靠**进程退出**才能还给驱动。而进程一退出，客户端 `os.path.exists(SOCK)`
+# 就会变假、静默回退到慢 4 倍的本地路径 —— 所以退出必须配合 socket activation：
+# systemd 持有这个 socket 文件，进程退不退它都在，下一次 connect 立刻把进程拉起来。
+Description=ys-lookd 按需启动套接字（闲置退出后由连接唤醒）
+
+[Socket]
+ListenStream=%t/ys-lookd.sock
+SocketMode=0600
+# 进程闲置退出（YS_LOOKD_IDLE_EXIT_SEC，缺省 1800s）后本 socket 保持监听，
+# 下一个连接触发 ys-lookd.service 按需启动（冷启动 ~3-10s，其中 OCR 权重预热在后台线程）。
+
+[Install]
+WantedBy=sockets.target

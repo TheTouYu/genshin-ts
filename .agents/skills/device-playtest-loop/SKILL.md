@@ -138,14 +138,16 @@ ys-gui-slot <win> 270 python3 tools/ys-editor/ys-list-collect \
 2. **评测通道过了 ≠ 生产线过了**（★ 常驻进程改代码不重启 = 没改）。
    `ys_lookd` 是常驻服务，检测器实例按路径缓存在 `_DETS`：**改 `gui_det.py`/`ys_lookd.py` 后必须重启 lookd**，
    且任何模型/解码改动都要额外报一条**生产入口 `gui_det.Detector.detect()`** 的读数（不能只报评测台数字）。
-   重启姿势（`pgrep -f` 会自匹配，必须精确解析）：
+   重启姿势（2026-10-26 起是 **systemd socket activation**：socket 常驻、进程按需起/按闲置退）：
    ```bash
-   PID=$(pgrep -f '^python3 ys_lookd.py$' | head -1)     # 只取精确 cmdline
-   [ "$(tr '\0' ' ' < /proc/$PID/cmdline)" = "python3 ys_lookd.py " ] && kill "$PID"
-   rm -f /run/user/1000/ys-lookd.sock
-   cd tools/ys-editor && DISPLAY=:1 XAUTHORITY=/run/user/1000/xauth_oypYEi \
-     setsid nohup python3 ys_lookd.py > /tmp/ys-lookd.log 2>&1 < /dev/null &
+   systemctl --user restart ys-lookd.service     # 改完代码就这一条，别手 kill、别自己起进程
+   systemctl --user status ys-lookd.socket       # 监听归 systemd；进程空闲 30 分钟会自己退出
    ```
+   **不要**再手工 `rm -f /run/user/1000/ys-lookd.sock` + `setsid nohup python3 ys_lookd.py`：那个 socket
+   现在归 `ys-lookd.socket` 所有，手工 bind 会 `EADDRINUSE`（代码会直接把这句原因打出来，不静默）。
+   **闲置退出不是故障**：空闲满 `YS_LOOKD_IDLE_EXIT_SEC`（缺省 1800s = 30 分钟）进程主动退出，把 OCR
+   权重那 2.3GB 还给驱动；下一次任意客户端 connect 由 socket 立刻拉起（冷启动 ~3–10s，权重后台预热）。
+   想看它为什么退出：`journalctl --user -u ys-lookd.service -n 20 | grep 退出进程归还显存`。
 3. **"恒定值 / 空列表"先判它是读数还是没接上**。2026-10-19 一天踩了三次同形态：
    判据只写在两条路径之一（state 漂移）、结果算出来没透出去（detections 不暴露）、
    条件回退被单个假阳性短路（"容器为空才回退"，世界里 CV 吐 1 个假 panel ⇒ 57 个真框全丢）。
@@ -392,7 +394,7 @@ xdotool getmouselocation        # 看它报的 window: 字段
 | `ys-pointer-click <x> <y> [tol] [ratio]` | 闭环定位 + 点击 | 本机**无绝对指针定位**（`ydotool -a` 无效、XTEST 在 Xwayland 死）⇒ `xdotool getmouselocation` 读回 + 相对步进，第 N 轮命中 |
 | `_ys-ui.sh` | **判据库** | `judge/is_light/is_dark/wait_light/wait_dark`；**只截 40×40**（84ms vs 全窗 5893ms） |
 | `ys_look.py` | 模板匹配 | CPU=积分图+FFT 精确 NCC（小图）／GPU=torch FFT+cumsum（大区）；**按成本链自适应** |
-| `ys-lookd.py` + `ys-lookd.service` | **GPU 常驻服务** | 摊掉 `import torch` 2~3s + CUDA ~1s；客户端自动优先走服务、连不上回退本地；实测全窗 **4.4s → 1.0s** |
+| `ys-lookd.py` + `ys-lookd.socket`/`.service` | **GPU 服务（socket 按需启动）** | 摊掉 `import torch` 2~3s + CUDA ~1s；客户端自动优先走服务、连不上回退本地；实测全窗 **4.4s → 1.0s**。**闲置 30 分钟进程自动退出**把 OCR 权重 ~2.3GB 还给驱动（`empty_cache()` 只能回收 70~114MiB），下一次 connect 由 socket 立刻拉起（systemd 报实测 `1.5G memory peak` 随退出释出） |
 | **`ys-screen`** | **屏幕摘要层**（像素→界面：文本/控件/分区/邻接/遮挡/人读摘要） | `ys-screen <png> [--json]`；离线只读帧；稳态 0.7~1.0s/帧（冷跑 4.5~8.6s 是 RapidOCR 自身开销）。**邻接**是核心：`「云阶」→ circle@(516,86) 右侧 338px` 这种"名字旁边有颗钮"的关系，OCR 永远给不出来 |
 | **`ys-layer`** | **层级/模态/压暗层**（我在第几层？怎么退？） | `ys-layer <png> [--json]` 输出 `scrim/modal/panels/close_controls/advice`；**交互遮挡**（模态压暗）与 `ys-screen` 的**视觉遮挡**（DXVK 叠加层）是两回事。自测 `tests/layer-selftest.sh` 5 帧 9 断言 |
 | **`ys-find`** | 多通道找控件 + 单目标解析 | `ys-find --frame <png> --text <标签> [--expect x,y] [--tol N]`；**解析实现只此一处**（`ys-pointer-click --text/--anchor` 内部调它）；文本匹配 NFKC+去空白+casefold 全等，**不做模糊** |
@@ -678,10 +680,11 @@ tools/agent-coach --window 2h --dry-run --format text   # 临时要一份卡片�
    `tools/ys-gates --only 1` 必须 PASS。变快不等于没变错。
 
 两个必踩的坑：
-- **daemon 从无 X 环境的 shell 启动 ⇒ `DISPLAY` 为空串 ⇒ 抓帧全 0 字节**。正确姿势：
-  `cd tools/ys-editor && . ./ys-env.sh && setsid nohup python3 ys_lookd.py`。
+- **daemon 从无 X 环境的 shell 启动 ⇒ `DISPLAY` 为空串 ⇒ 抓帧全 0 字节**。2026-10-26 起别再手工起：
+  统一走 `systemctl --user restart ys-lookd.service`（单元内部先 `source ys-env.sh`，抄运行中原神的
+  environ，X 授权是权威值）。只有跑**私有实例做实验**时才手工起，且必须 `YS_LOOKD_SOCK=/tmp/xxx.sock`。
 - **`pgrep -f "ys_lookd.py" | xargs kill` 会匹配到自己的 shell 命令行**，把自己杀掉（实测连中两次）。
-  改用遍历 `/proc/*/cmdline` 且要求 cmdline 以 `python3` 开头。
+  改用遍历 `/proc/*/cmdline` 且要求 cmdline 以 `python3` 开头；有 systemd 单元后就别 kill，用 `systemctl`。
 
 ## 变更记录
 
