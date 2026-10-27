@@ -53,10 +53,11 @@ const CARRIER_GUID = 1082130445n
 // ———— 物理常数（7.5Hz 实测拍频标定）————
 const DT = 0.1333
 const GRAVITY = 9.8
-// 草皮表面 y≈0：证据=场地线元件全在局部 y=0.01（field.structure.json）、球门横梁局部 y=2.5、
-// 球实体初始 pos.y=0.25（=表面+球半径）。此前写 −4.25（误读草地地基实体 pos.y）⇒ 球会陷到地下 4m。
-const GROUND_Y = 0.0
-const BALL_R = 0.25 // 纯滚动自旋换算半径
+// 草皮表面 y≈0（场地线 y=0.01 / 门横梁 2.5 / 球初始 0.25 三处互证）。
+// GROUND_Y 语义 = **球心贴地时的高度** = 表面 + 球半径 0.25（用户 2026-10-27 指出：漏算半径会半个球埋地）
+const BALL_R = 0.25
+const SURFACE_Y = 0.0
+const GROUND_Y = SURFACE_Y + BALL_R
 const MAX_SPEED = 18.0
 const RESTITUTION = 0.5
 const GROUND_FRICTION = 0.82 // 触地切向摩擦（事件型）
@@ -87,7 +88,7 @@ const GOAL_HALF = 3.6 // 门洞半宽（门柱局部 x 0.06..7.26 ⇒ 7.2 宽，
 const GOAL_H = 2.5 // 横梁高
 const POST_R = 0.35 // 门柱判定的碰撞半径（视觉柱径 0.12，留余量）
 const WALL_REST = 0.6 // 边界反弹保留系数
-const CENTER_Y = 0.25 // 球静止时的球心高度（表面 0 + 半径 0.25）
+const CENTER_Y = GROUND_Y // 球静止时的球心高度（表面 0 + 半径 0.25）
 
 const CARRIER_Y = -5.1
 
@@ -517,7 +518,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       // ———— ⑧ 进球判定：越过门线(|x|>52.5) + 门洞内(|z|<3.6) + 低于横梁(y<2.5) ————
       const overLine = f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0)), PITCH_X - 0.05)
       const inMouth = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), GOAL_HALF)
-      const underBar = f.lessThan(f.subtraction(by.value, GROUND_Y), GOAL_H)
+      const underBar = f.lessThan(f.subtraction(by.value, SURFACE_Y), GOAL_H)
       const goalHit = f.logicalAndOperation(overLine, f.logicalAndOperation(inMouth, underBar))
       f.doubleBranch(
         goalHit,
@@ -536,9 +537,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
       // ———— ⑨ 门柱反弹：四根柱 (x=±52.5, z=±3.6)，命中就沿 z 弹开 ————
       const absX = f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0))
-      const nearGoalX = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(absX, PITCH_X), 0.0, 0.0)), POST_R)
-      const atPostUp = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.subtraction(bz.value, GOAL_HALF))), POST_R)
-      const atPostDown = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.addition(bz.value, GOAL_HALF))), POST_R)
+      const postReach = f.addition(POST_R, BALL_R)
+      const nearGoalX = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(absX, PITCH_X), 0.0, 0.0)), postReach)
+      const atPostUp = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.subtraction(bz.value, GOAL_HALF))), postReach)
+      const atPostDown = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.addition(bz.value, GOAL_HALF))), postReach)
       f.doubleBranch(
         f.logicalAndOperation(nearGoalX, f.logicalAndOperation(atPostUp, underBar)),
         () => {
@@ -562,11 +564,11 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
       // ———— ⑩ 边界反弹：边线 z=±34 一律弹；底线 x=±52.5 只有「不在门洞内」才弹 ————
       f.doubleBranch(
-        f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), PITCH_Z),
+        f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), f.subtraction(PITCH_Z, BALL_R)),
         () => {
           const signZ = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bz.value, 0.0), () => { signZ.set(1.0) }, () => { signZ.set(-1.0) })
-          bz.set(f.multiplication(signZ.value, f.subtraction(PITCH_Z, 0.2)))
+          bz.set(f.multiplication(signZ.value, f.subtraction(PITCH_Z, f.addition(BALL_R, 0.05))))
           vz.set(f.multiplication(vz.value, -WALL_REST))
           mode.set(1n)
         },
@@ -574,13 +576,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
       f.doubleBranch(
         f.logicalAndOperation(
-          f.greaterThan(absX, PITCH_X - 0.2),
+          f.greaterThan(absX, f.subtraction(PITCH_X, BALL_R)),
           f.logicalNotOperation(f.logicalAndOperation(inMouth, underBar))
         ),
         () => {
           const signX = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bx.value, 0.0), () => { signX.set(1.0) }, () => { signX.set(-1.0) })
-          bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, 0.3)))
+          bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1))))
           vx.set(f.multiplication(vx.value, -WALL_REST))
           mode.set(1n)
         },

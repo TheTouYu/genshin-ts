@@ -26,6 +26,7 @@ const DEVICE = 'fb_phys' // 线性运动器名（同名重复添加即替换）
 const SPIN_DEVICE = 'fb_spin' // 旋转运动器名
 const TELEPORT_DIST = 5.0 // 超过此距离改用瞬时定点运动器
 const DT = 0.1333 // 客户端拍长（与 kit-loop 的 DT 保持一致）
+const DRIVE_DUR = 0.25 // 运动器时长：比拍长更长 ⇒ 即使丢一拍，球也连续运动（用户 2026-10-27 要求）
 const RAD2DEG = 57.29578
 
 g
@@ -43,15 +44,6 @@ g
       f.equal(evt.params.tag, 'B'),
       () => {
         const ball = f.queryEntityByGuid(BALL_GUID)
-        // —— 把真实角色位置回传给客户端（客户端 20008 白名单没有「取玩家角色」节点）——
-        // 服务端：玩家控制器 → 其当前角色实体 → 位置
-        const carrier = f.queryEntityByGuid(CARRIER_GUID)
-        const playerGuid = f.getPlayerGuidByPlayerId(1n)
-        const ch = f.queryEntityByGuid(playerGuid)
-        const pLoc = f.getEntityLocationAndRotation(ch).location
-        const ps = f.split3dVector(pLoc)
-        f.setCustomVariable(carrier, 'fbvx', ps.xComponent, false)
-        f.setCustomVariable(carrier, 'fbvz', ps.zComponent, false)
         const pos = evt.params.pos
         const vel = evt.params.vel
         const spin = evt.params.spin
@@ -60,7 +52,7 @@ g
         // 不会因为物理速度≈0（带球/静止）而卡在出生点。
         const delta = f._3dVectorSubtraction(pos, loc)
         const dist = f._3dVectorModuloOperation(delta)
-        const velErr = f._3dVectorZoom(delta, f.division(1.0, DT))
+        const velErr = f._3dVectorZoom(delta, f.division(1.0, DRIVE_DUR))
 
         f.doubleBranch(
           f.greaterThan(dist, TELEPORT_DIST),
@@ -78,7 +70,7 @@ g
             )
           },
           () => {
-            f.addUniformBasicLinearMotionDevice(ball, DEVICE, DT, velErr)
+            f.addUniformBasicLinearMotionDevice(ball, DEVICE, DRIVE_DUR, velErr)
           }
         )
 
@@ -96,7 +88,7 @@ g
             const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-            f.addUniformBasicRotationBasedMotionDevice(ball, SPIN_DEVICE, DT, angVel, localAxis)
+            f.addUniformBasicRotationBasedMotionDevice(ball, SPIN_DEVICE, DRIVE_DUR, angVel, localAxis)
           },
           () => {}
         )
