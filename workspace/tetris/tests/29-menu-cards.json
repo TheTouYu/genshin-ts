@@ -1,0 +1,19 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "29 v2.1 标题屏四模式大视觉卡片+模式名动画窗（卡片 12 实例/Digit 销卡/动画后进局）",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey2Down" },
+    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey2Up" }
+  ],
+  "asserts": [
+    { "at": 0.2, "kind": "log", "contains": "menu cards n=12", "source": "client" },
+    { "at": 0.25, "kind": "control", "name": "menuTitle2", "field": "text", "equals": "2  AI 对抗" },
+    { "at": 0.25, "kind": "control", "name": "menuCard2", "field": "anchoredPositionX", "equals": -130 },
+    { "at": 0.6, "kind": "log", "contains": "menu cards destroy n=12", "source": "client" },
+    { "at": 0.5, "kind": "log", "contains": "mode=ai-battle", "source": "client" },
+    { "at": 1.2, "kind": "log", "contains": "p2 inst ai-battle", "source": "client" }
+  ]
+}

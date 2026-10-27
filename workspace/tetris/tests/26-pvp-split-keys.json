@@ -5,21 +5,83 @@
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey3Down" },
-    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey3Up" },
-    { "t": 0.8, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 0.82, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 1.2, "kind": "key", "typeName": "KeyboardDropKeyDown" },
-    { "t": 1.22, "kind": "key", "typeName": "KeyboardDropKeyUp" },
-    { "t": 1.6, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 1.62, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" }
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey3Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey3Up"
+    },
+    {
+      "t": 1.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    },
+    {
+      "t": 1.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Up"
+    },
+    {
+      "t": 1.7,
+      "kind": "key",
+      "typeName": "KeyboardDropKeyDown"
+    },
+    {
+      "t": 1.72,
+      "kind": "key",
+      "typeName": "KeyboardDropKeyUp"
+    },
+    {
+      "t": 2.1,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 2.12,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    }
   ],
   "asserts": [
-    { "at": 0.6, "kind": "log", "contains": "mode=pvp", "source": "client" },
-    { "at": 0.6, "kind": "log", "contains": "p2 inst pvp", "source": "client" },
-    { "at": 0.6, "kind": "log", "contains": "layout dual", "source": "client" },
-    { "at": 1.1, "kind": "log", "contains": "p2 act=left", "source": "client" },
-    { "at": 1.5, "kind": "log", "contains": "p2 act=hard", "source": "client" },
-    { "at": 2.0, "kind": "log", "contains": "move x=", "source": "client" }
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "mode=pvp",
+      "source": "client"
+    },
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "p2 inst pvp",
+      "source": "client"
+    },
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "layout dual",
+      "source": "client"
+    },
+    {
+      "at": 1.6,
+      "kind": "log",
+      "contains": "p2 act=left",
+      "source": "client"
+    },
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "p2 act=hard",
+      "source": "client"
+    },
+    {
+      "at": 2.5,
+      "kind": "log",
+      "contains": "move x=",
+      "source": "client"
+    }
   ]
 }

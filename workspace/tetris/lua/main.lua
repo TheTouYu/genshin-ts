@@ -122,6 +122,7 @@ local NUM = {
   LD_RESETS  = 15,     -- 锁定延迟重置上限（移动/旋转成功各计一次，超限强制锁定）
   DAS_DELAY  = 0.25,   -- DAS：按住 ←/→ 多少秒后开始自动连移
   ARR_RATE   = 0.05,   -- ARR：DAS 触发后自动连移的间隔秒数
+  DAS_CAP    = 12,     -- v2.1：连续自动连移步数上限（网页 keyup 丢失兜底；正常 DAS 到墙 9 格内停涨）
   TSPIN_BONUS = 400,   -- T-spin 加成：bonus = TSPIN_BONUS × 消行数 × level（0 行无分只提示）
   -- T8 运行态（挂表，200-local 约束）：
   --   LD  = { t = -1|秒, resets = 0 }   锁定延迟计时（t<0 未激活；重力触底启动，玩家移动/旋转重置）
@@ -190,6 +191,18 @@ local ACTIVE = { 1 }                     -- 激活实例下标表：单屏={1}�
 -- T6 四模式：casual=休闲（默认，AI 自演+玩家接管+局中 5s 无操作 AI 代打）|
 -- ai-battle=双屏 AI 对战 | pvp=双屏双人 | coop=双人合作对抗 AI（旋转手+行动手，裁决①）
 local MODE = 'casual'
+-- v2.1 ②：标题屏四模式大视觉卡片（用户原话「真正花了大力气做的东西要让玩家看到」）。
+-- pendingMode/pendingT = 按 Digit 后的模式名大字动画窗（0.5s，introT 渐变手法），窗后 enterMode 开局。
+local MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
+local pendingMode, pendingT = nil, 0
+local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
+local MODE_INFO = {
+  { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 24, 98, 118) },
+  { key = '2', name = 'AI 对抗', desc = '与 hard 档 AI 决战', color = C(255, 128, 32, 42) },
+  { key = '3', name = '双人对战', desc = '同屏 PK · 互送垃圾行', color = C(255, 96, 48, 128) },
+  { key = '4', name = '双人合作', desc = '旋转手+行动手 · 共盘抗 AI', color = C(255, 32, 110, 64) },
+}
+local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双人对战', coop = '双人合作' }
 -- casual 局中接管状态机（v2-plan §三 T6）：'play'（玩家操作）→5s 无操作→'hint'（提示 2s）
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
@@ -205,7 +218,7 @@ local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘�
 local function newAIState()
   return { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
     count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
-    score = 0, lines = 0,
+    score = 0, lines = 0, fx = 0,
     search = nil,   -- T5 渐进式搜索状态（plan/idx/best2/bestScore/done/holdChecked）
   }   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）；ρ 统计在全局 RHO
 end
@@ -232,7 +245,7 @@ local function newInst()
   t.boardOX = 0                         -- 棋盘 x 偏移（单屏=0 居中；双屏 G[1]=-320 / G[2]=+320，T6b-2）
   -- T6c：每盘独立输入状态（原挂 NUM 的每盘状态搬实例——pvp 双人各自 DAS/LD/Hold 互不干扰）
   t.ld = { t = -1, resets = 0 }         -- 锁定延迟（T8）
-  t.das = { dir = 0, t = 0, arr = 0 }   -- DAS/ARR（T8）
+  t.das = { dir = 0, t = 0, arr = 0, steps = 0 }  -- DAS/ARR（T8；v2.1 steps=连续自动连移步数，达 DAS_CAP 强制停——网页 keyup 丢失兜底）
   t.st = { name = nil, bag = 0, can = true }  -- Hold 槽（T3）
   t.lastRot = false                     -- T-spin 判定前置（T8）
   t.AI = newAIState()
@@ -983,6 +996,7 @@ clearLines = function()
     sfx(SFX_CLEAR[cleared], true)
     startShake(cleared)
     if g.autoDriving then
+      g.AI.fx = 0.5   -- v2.1 C：AI 演示视觉反馈（浏览器 autoplay 锁下音效听不到——分数弹跳放大）
       print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
         .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
     else
@@ -1049,7 +1063,7 @@ doLock = function()
   g.st.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
   g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
   g.lastRot = false
-  g.das.t, g.das.arr = 0, 0       -- T8：DAS 计时归零重算（按住方向跨块继续，见 tick）
+  g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。steps 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
   local cleared = clearLines()
   if isTspin then
     -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
@@ -1212,7 +1226,10 @@ end
 
 local function startIfWaiting()
   if guideStage ~= 0 then return end
+  if pendingMode then return end       -- v2.1 ②：模式名动画窗独占（0.5s），任意键不打断
   guideStage = 1
+  pendingMode = nil                    -- v2.1 ②：任何开局路径都清动画窗状态
+  destroyMenuCards()                   -- v2.1 ②：开局销毁菜单卡片（任意键直开时卡片也要撤）
   setText(topBanner, '')
   setText(botBanner, '')
   for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
@@ -1638,7 +1655,8 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, '[1]休闲 [2]AI对战 [3]双人 [4]合作　·　任意键=休闲')
+  setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
   trySet(topBanner, 'fontColor', C_GOLD2)
   trySet(topBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C_ACCENT2)
@@ -1692,6 +1710,58 @@ raiseGarbage = function(target, n)
   sfx(SFX.garbageRecv, true)            -- 受击音（force 防同帧吞）
   startShake(n >= 3 and 3 or 2)         -- 受击抖屏（行数越多越强）
   g = save
+end
+
+-- ===== v2.1 ② 标题屏四模式大视觉卡片 =====
+-- 横排 4 卡（x=±390/±130，y=0），每卡 = cell 模板色块 260×120（暗色底）+ 2 条 settle 文字
+-- （模式名 26 号白字 / 特色句 16 号浅字；框高按 h≥1.45×fontSize+4 给 48/32）。
+-- 别加新模板（task-12 约束）：色块复用 TPL_CELL、文字复用 settleText 模板，全运行时实例化。
+local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存）
+destroyMenuCards = function()
+  local n = 0
+  for i = 1, #MC do
+    local ok = pcall(function() game.DestroyClientUIControl(MC[i]) end)
+    if ok then n = n + 1 end
+  end
+  MC = {}
+  if n > 0 then print('menu cards destroy n=' .. n) end
+end
+buildMenuCards = function()
+  if not TPL_CELL then return false end
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then print('menu cards no text tpl') return false end
+  destroyMenuCards()
+  local xs = { -390, -130, 130, 390 }
+  for i, info in ipairs(MODE_INFO) do
+    local bx = game.InstantiateClientUIControl(TPL_CELL, root)
+    if bx then
+      bx.name = 'menuCard' .. i
+      bx:SetSizeDelta(248, 120)
+      bx:SetAnchoredPosition(xs[i], 0)
+      bx.imageColor = info.color
+      MC[#MC + 1] = bx
+    end
+    local t1 = game.InstantiateClientUIControl(TPL_TEXT, root)
+    if t1 then
+      t1.name = 'menuTitle' .. i
+      t1.text = info.key .. '  ' .. info.name
+      t1.fontSize = 26
+      t1:SetSizeDelta(232, 48)
+      t1:SetAnchoredPosition(xs[i], 26)
+      MC[#MC + 1] = t1
+    end
+    local t2 = game.InstantiateClientUIControl(TPL_TEXT, root)
+    if t2 then
+      t2.name = 'menuDesc' .. i
+      t2.text = info.desc
+      t2.fontSize = 16
+      t2:SetSizeDelta(232, 32)
+      t2:SetAnchoredPosition(xs[i], -26)
+      MC[#MC + 1] = t2
+    end
+  end
+  print('menu cards n=' .. #MC)
+  return true
 end
 
 -- ===== T6b-2 双屏控件与布局 =====
@@ -2422,7 +2492,10 @@ function OnStart()
   tryCall(title, 'SetVisible', false)
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, '[1]休闲 [2]AI对战 [3]双人 [4]合作　·　任意键=休闲')
+  -- v2.1 ②：大视觉卡片承载模式选择；botBanner 呼吸提示改短句+H 说明入口
+  setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  local okCards, errCards = pcall(buildMenuCards)
+  if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
 
   -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
   -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
@@ -2495,10 +2568,10 @@ function OnStart()
     if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
     if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
     if action == 'left' then
-      g.das.dir, g.das.t, g.das.arr = -1, 0, 0
+      g.das.dir, g.das.t, g.das.arr, g.das.steps = -1, 0, 0, 0
       moveBy(-1)
     elseif action == 'right' then
-      g.das.dir, g.das.t, g.das.arr = 1, 0, 0
+      g.das.dir, g.das.t, g.das.arr, g.das.steps = 1, 0, 0, 0
       moveBy(1)
     elseif action == 'rot' then
       rotate()
@@ -2538,12 +2611,16 @@ function OnStart()
   -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。选择后 enterMode 配实例，再开局。
   for i, mname in ipairs({ 'casual', 'ai-battle', 'pvp', 'coop' }) do
     listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
-      if guideStage ~= 0 then return end
+      if guideStage ~= 0 or pendingMode then return end
       if i > 1 and isMobile then return end   -- 双屏砍手机端，回落 casual（裁决⑨）
       MODE = mname
       print('mode=' .. MODE)
-      enterMode()
-      startIfWaiting()
+      -- v2.1 ②：销卡 → 模式名大字动画窗 0.5s → enterMode 开局（OnUpdate stage0 段驱动）
+      destroyMenuCards()
+      pendingMode, pendingT = mname, 0
+      setText(topBanner, MODE_TITLE[mname] or mname)
+      trySet(topBanner, 'fontColor', MODE_INFO[i].color)
+      setText(botBanner, '')
     end)
   end
   listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
@@ -2734,13 +2811,22 @@ local function tickInstance(d)
     end
   end
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
+  -- v2.1 兜底：网页 keyup 转发丢失/乱序会让 dir 永不清零⇒方块自己左右移动（用户实测反馈②）。
+  -- 防御=连续自动连移步数（das.steps）达 DAS_CAP 强制清 dir——正常 DAS 到墙（9 格内）后
+  -- moveBy 失败不计步，只有「Up 丢失 + 块跨行移动」才会累计过 12；用户松手重按即恢复。
   if g.das.dir ~= 0 and not g.gameOver then
     g.das.t = g.das.t + d
     if g.das.t >= NUM.DAS_DELAY then
       g.das.arr = g.das.arr + d
-      while g.das.arr >= NUM.ARR_RATE do
+      while g.das.arr >= NUM.ARR_RATE and g.das.dir ~= 0 do
         g.das.arr = g.das.arr - NUM.ARR_RATE
-        moveBy(g.das.dir)
+        if moveBy(g.das.dir) then
+          g.das.steps = g.das.steps + 1
+          if g.das.steps >= NUM.DAS_CAP then
+            g.das.dir = 0            -- 连移上限：强制停（Up 丢失兜底；正常到墙时 steps 早已停涨）
+            print('das cap=' .. NUM.DAS_CAP .. ' (keyup lost?)')
+          end
+        end
       end
     end
   end
@@ -2772,6 +2858,21 @@ function OnUpdate(dt)
     end
   end
   if guideStage == 0 then
+    -- v2.1 ② 模式名进入动画窗（0.5s）：模式名大字 26→64 渐变，窗后 enterMode 开局。
+    -- 动画期间停演出与 AI 自演（视觉主角让给模式名）。
+    if pendingMode then
+      pendingT = pendingT + d
+      local size = math.min(64, 26 + math.floor(pendingT * 90))
+      trySet(topBanner, 'fontSize', size)
+      if pendingT >= 0.5 then
+        pendingMode = nil
+        trySet(topBanner, 'fontSize', 34)
+        trySet(topBanner, 'fontColor', C_GOLD2)
+        enterMode()
+        startIfWaiting()
+      end
+      return
+    end
     -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
     introT = introT + d
     local size = math.min(40, 26 + math.floor(introT * 12))
@@ -2785,6 +2886,13 @@ function OnUpdate(dt)
       trySet(botBanner, 'fontSize', pulse)
     end
     autoTick(d)   -- AI 自演：选位→旋转→逐格横移→硬降→消行→下一块，玩家按键即交还控制
+    -- v2.1 C：AI 消行的分数弹跳（前半 26 号放大、后半回 20；框高 40 按 26×1.45+4=41.7 微超但
+    -- trySet 只在帧内短暂生效且 hud 框实测容差足够——真机/网页上「AI 在得分」一眼可见）
+    if g and g.AI and g.AI.fx > 0 then
+      g.AI.fx = g.AI.fx - d
+      trySet(hud, 'fontSize', g.AI.fx > 0.25 and 26 or 20)
+      if g.AI.fx <= 0 then g.AI.fx = 0 trySet(hud, 'fontSize', 20) end
+    end
     return
   end
   if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力

@@ -5,19 +5,79 @@
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey2Down" },
-    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey2Up" },
-    { "t": 2.5, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyDown" },
-    { "t": 2.52, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyUp" }
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Up"
+    },
+    {
+      "t": 3.0,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill3KeyDown"
+    },
+    {
+      "t": 3.02,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill3KeyUp"
+    }
   ],
   "asserts": [
-    { "at": 0.6, "kind": "log", "contains": "layout dual", "source": "client" },
-    { "at": 0.6, "kind": "log", "contains": "p2 cellCount=200", "source": "client" },
-    { "at": 0.6, "kind": "control", "name": "p2cell1", "field": "anchoredPositionX", "equals": 185 },
-    { "at": 0.6, "kind": "control", "name": "cell1", "field": "anchoredPositionX", "equals": -455 },
-    { "at": 1.5, "kind": "control", "name": "keyA", "field": "text", "equals": "AI 盘" },
-    { "at": 3.0, "kind": "log", "contains": "p2 destroy n=204", "source": "client" },
-    { "at": 3.0, "kind": "log", "contains": "mode menu", "source": "client" },
-    { "at": 3.2, "kind": "control", "name": "cell1", "field": "anchoredPositionX", "equals": -135 }
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "layout dual",
+      "source": "client"
+    },
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "p2 cellCount=200",
+      "source": "client"
+    },
+    {
+      "at": 1.1,
+      "kind": "control",
+      "name": "p2cell1",
+      "field": "anchoredPositionX",
+      "equals": 185
+    },
+    {
+      "at": 1.1,
+      "kind": "control",
+      "name": "cell1",
+      "field": "anchoredPositionX",
+      "equals": -455
+    },
+    {
+      "at": 2.0,
+      "kind": "control",
+      "name": "keyA",
+      "field": "text",
+      "equals": "AI 盘"
+    },
+    {
+      "at": 3.5,
+      "kind": "log",
+      "contains": "p2 destroy n=204",
+      "source": "client"
+    },
+    {
+      "at": 3.5,
+      "kind": "log",
+      "contains": "mode menu",
+      "source": "client"
+    },
+    {
+      "at": 3.7,
+      "kind": "control",
+      "name": "cell1",
+      "field": "anchoredPositionX",
+      "equals": -135
+    }
   ]
 }
