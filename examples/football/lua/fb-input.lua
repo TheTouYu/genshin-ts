@@ -74,7 +74,7 @@ local SIGNAL = 'fb_input'
 -- 控件名必须与地图里 4 个 client-textbox 一致（1073741847..850，挂在容器节点 1073741846 下）：
 --   hud_title / hud_k1..hud_k5（控件 1073741847..852）
 -- 写文本=字段赋值（官方运行时 textbox 无 SetText，D229 实证），全部 pcall。
-local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3', k4 = 'hud_k4', k5 = 'hud_k5' }
+local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3', k4 = 'hud_k4', k5 = 'hud_k5', k6 = 'hud_k6' }
 local hudRef = {}
 
 local function getCtl(name)
@@ -102,6 +102,7 @@ local function setupHud()
   setText(HUD.k3, '【跳跃】有球 吊射 / 无球 停球')
   setText(HUD.k4, '【冲刺】有球 短传（地滚）')
   setText(HUD.k5, '【交互】有球 弧线球（左右交替）')
+  setText(HUD.k6, '【丢弃】把球放回你正前方（测试用）')
   print('[fb-in] hud-ok')
 end
 
@@ -118,6 +119,7 @@ local KEYS = {
   { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, hint = '跳跃/空格 或 3' },
   { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, hint = '冲刺/Shift 或 4' },
   { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, hint = '交互/F 或 5' },
+  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, hint = '丢弃/X 或 6' },
 }
 
 -- 发一条 fb_input(keyId, state)。整段 pcall：信号名没登记/信号对象形态变化都不许中断调用方。

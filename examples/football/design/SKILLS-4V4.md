@@ -126,7 +126,13 @@ P2（可选，趣味向）：B5 回做 / B6 花式 / E3 表情。
 | 3 | 跳跃/空格 (`KeyboardJumpKeyDown`) | `KeyboardCraftspersonKey3Down` | 吊射 7m/s + 上抛 7 | 停球（掐掉 88% 速度） |
 | 4 | 冲刺/Shift (`KeyboardSprintKeyDown`) | `KeyboardCraftspersonKey4Down` | 短传 12m/s 地滚 | — |
 | 5 | 交互/F (`KeyboardInteractKeyDown`) | `KeyboardCraftspersonKey5Down` | 弧线球 14m/s + 侧旋 ±14（左右交替） | — |
+| 6 | 丢弃/X (`KeyboardDropKeyDown`) | `KeyboardCraftspersonKey6Down` | **把球放回角色正前方 1.5m**（测试用） | — |
 | 自动 | — | — | — | 拦截：球 >6m/s 撞进 0.9m 且朝我飞来 ⇒ 沿法线反弹 |
+
+**场地与规则（2026-10-27 实装）**：场地 105×68（x∈[−52.5,52.5]、z∈[−34,34]，取自 `assets/plans/field.structure.json`）；
+边线/底线撞墙反弹（保留 0.6）；门洞半宽 3.6、横梁 2.5（取自 `goal.structure.json`：门柱局部 x 0.06..7.26 = 7.2 宽）；
+**进球判定** = 越过门线 + 在门洞内 + 低于横梁 ⇒ 球回中圈 + 客户端发 `tag='G'` ⇒ 服务端打 `fb-goal`；
+四根门柱各自有碰撞半径 0.35 的反弹。**地面高度修正为 y=0**（此前误用 −4.25，球会陷到地下 4 m）。
 
 ## 5. 4v4 必须先拍的三个多人问题（技能设计绕不过）
 

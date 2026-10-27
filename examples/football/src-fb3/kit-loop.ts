@@ -53,7 +53,9 @@ const CARRIER_GUID = 1082130445n
 // ———— 物理常数（7.5Hz 实测拍频标定）————
 const DT = 0.1333
 const GRAVITY = 9.8
-const GROUND_Y = -4.25 // 草地顶面 −4.5 + 真足球半高 ~0.25（球实体 1077936135 scale=0.25）
+// 草皮表面 y≈0：证据=场地线元件全在局部 y=0.01（field.structure.json）、球门横梁局部 y=2.5、
+// 球实体初始 pos.y=0.25（=表面+球半径）。此前写 −4.25（误读草地地基实体 pos.y）⇒ 球会陷到地下 4m。
+const GROUND_Y = 0.0
 const BALL_R = 0.25 // 纯滚动自旋换算半径
 const MAX_SPEED = 18.0
 const RESTITUTION = 0.5
@@ -78,6 +80,15 @@ const WARMUP_TICKS = 75n // 开局建图期不做物理
 //   · y 不能读玩家位置求相对值（读回异常会浮到草地上，用户当场发现两次）⇒ 用常量。
 //   · 常量取「草地地基」空模型 1077936161 的内部：实体 pos y=−5.5、scale y=1 ⇒ 占据 y∈[−5.5,−4.5]，
 //     顶面 −4.5 就是草地表面。取 −5.1 = 顶面下 0.4m：有实体支撑、被地形遮住、离玩家 ≤1m 不掉频。
+// 场地与球门（field.structure.json / goal.structure.json 实测）
+const PITCH_X = 52.5 // 底线 x=±52.5（门线）
+const PITCH_Z = 34.0 // 边线 z=±34
+const GOAL_HALF = 3.6 // 门洞半宽（门柱局部 x 0.06..7.26 ⇒ 7.2 宽，实体在 z=±3.66 旋转后居中 z∈[−3.6,3.6]）
+const GOAL_H = 2.5 // 横梁高
+const POST_R = 0.35 // 门柱判定的碰撞半径（视觉柱径 0.12，留余量）
+const WALL_REST = 0.6 // 边界反弹保留系数
+const CENTER_Y = 0.25 // 球静止时的球心高度（表面 0 + 半径 0.25）
+
 const CARRIER_Y = -5.1
 
 // 踢法：[水平速度, 上挑, 自旋Y]
@@ -130,6 +141,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const inited = f.localVariable('float')
   const ffx = f.localVariable('float')
   const ffz = f.localVariable('float')
+  const goalFlag = f.localVariable('int')
   bx.set(f.querySkillVariableValue(S_BX))
   by.set(f.querySkillVariableValue(S_BY))
   bz.set(f.querySkillVariableValue(S_BZ))
@@ -143,6 +155,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   inited.set(f.querySkillVariableValue(S_INIT))
   ffx.set(0.0)
   ffz.set(0.0)
+  goalFlag.set(0n)
 
   // ———— 玩家速度前馈（位置差分，>8m/s 视为瞬移置 0）————
   const vpVec = f.create3dVector(
@@ -483,6 +496,97 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         },
         () => {}
       )
+      // ———— ⑦ 重置键：把球放回角色正前方 1.5m（测试用手感按钮）————
+      f.doubleBranch(
+        f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
+        () => {
+          bx.set(f.addition(pP.xComponent, f.multiplication(dirX, 1.5)))
+          by.set(f.addition(pP.yComponent, CENTER_Y))
+          bz.set(f.addition(pP.zComponent, f.multiplication(dirZ, 1.5)))
+          vx.set(0.0)
+          vy.set(0.0)
+          vz.set(0.0)
+          wx.set(0.0)
+          wy.set(0.0)
+          wz.set(0.0)
+          mode.set(4n)
+        },
+        () => {}
+      )
+
+      // ———— ⑧ 进球判定：越过门线(|x|>52.5) + 门洞内(|z|<3.6) + 低于横梁(y<2.5) ————
+      const overLine = f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0)), PITCH_X - 0.05)
+      const inMouth = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), GOAL_HALF)
+      const underBar = f.lessThan(f.subtraction(by.value, GROUND_Y), GOAL_H)
+      const goalHit = f.logicalAndOperation(overLine, f.logicalAndOperation(inMouth, underBar))
+      f.doubleBranch(
+        goalHit,
+        () => {
+          goalFlag.set(1n)
+          bx.set(0.0)
+          by.set(CENTER_Y)
+          bz.set(0.0)
+          vx.set(0.0)
+          vy.set(0.0)
+          vz.set(0.0)
+          mode.set(4n)
+        },
+        () => {}
+      )
+
+      // ———— ⑨ 门柱反弹：四根柱 (x=±52.5, z=±3.6)，命中就沿 z 弹开 ————
+      const absX = f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0))
+      const nearGoalX = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(absX, PITCH_X), 0.0, 0.0)), POST_R)
+      const atPostUp = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.subtraction(bz.value, GOAL_HALF))), POST_R)
+      const atPostDown = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.addition(bz.value, GOAL_HALF))), POST_R)
+      f.doubleBranch(
+        f.logicalAndOperation(nearGoalX, f.logicalAndOperation(atPostUp, underBar)),
+        () => {
+          bz.set(f.subtraction(GOAL_HALF, f.multiplication(POST_R, 0.6)))
+          vz.set(f.multiplication(vz.value, -WALL_REST))
+          vx.set(f.multiplication(vx.value, 0.8))
+          mode.set(1n)
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.logicalAndOperation(nearGoalX, f.logicalAndOperation(atPostDown, underBar)),
+        () => {
+          bz.set(f.addition(f.multiplication(GOAL_HALF, -1.0), f.multiplication(POST_R, 0.6)))
+          vz.set(f.multiplication(vz.value, -WALL_REST))
+          vx.set(f.multiplication(vx.value, 0.8))
+          mode.set(1n)
+        },
+        () => {}
+      )
+
+      // ———— ⑩ 边界反弹：边线 z=±34 一律弹；底线 x=±52.5 只有「不在门洞内」才弹 ————
+      f.doubleBranch(
+        f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), PITCH_Z),
+        () => {
+          const signZ = f.localVariable('float')
+          f.doubleBranch(f.greaterThan(bz.value, 0.0), () => { signZ.set(1.0) }, () => { signZ.set(-1.0) })
+          bz.set(f.multiplication(signZ.value, f.subtraction(PITCH_Z, 0.2)))
+          vz.set(f.multiplication(vz.value, -WALL_REST))
+          mode.set(1n)
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.logicalAndOperation(
+          f.greaterThan(absX, PITCH_X - 0.2),
+          f.logicalNotOperation(f.logicalAndOperation(inMouth, underBar))
+        ),
+        () => {
+          const signX = f.localVariable('float')
+          f.doubleBranch(f.greaterThan(bx.value, 0.0), () => { signX.set(1.0) }, () => { signX.set(-1.0) })
+          bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, 0.3)))
+          vx.set(f.multiplication(vx.value, -WALL_REST))
+          mode.set(1n)
+        },
+        () => {}
+      )
+
       // ⑥ 限速（防隧穿）
       const sp = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
       f.doubleBranch(
@@ -521,6 +625,23 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 每拍回传（服务端 kitRender 每拍驱一次运动器）————
   // pos=球位置 vel=球速度 spin=自旋 state=状态机 mode
+  // 进球时额外发一条 tag='G'（服务端 kitRender 打 fb-goal，供离线判读）
+  f.doubleBranch(
+    f.equal(goalFlag.value, 1n),
+    () => {
+      chanSendState6(
+        f,
+        KitSignal.kit_state,
+        'G',
+        tick,
+        f.create3dVector(bx.value, by.value, bz.value),
+        f.create3dVector(0.0, 0.0, 0.0),
+        f.create3dVector(0.0, 0.0, 0.0),
+        0n
+      )
+    },
+    () => {}
+  )
   chanSendState6(
     f,
     KitSignal.kit_state,

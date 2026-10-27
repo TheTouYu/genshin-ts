@@ -30,6 +30,14 @@ const RAD2DEG = 57.29578
 g
   .server({ id: GRAPH_ID, name: '_GSTS_kitRender' })
   .onSignal(KitSignal.kit_state, (evt: any, f: any) => {
+    // 进球事件：客户端判到球越过门线后发 tag='G'，这里打一行给离线判读（服务端有 print）
+    f.doubleBranch(
+      f.equal(evt.params.tag, 'G'),
+      () => {
+        print('fb-goal')
+      },
+      () => {}
+    )
     f.doubleBranch(
       f.equal(evt.params.tag, 'B'),
       () => {
