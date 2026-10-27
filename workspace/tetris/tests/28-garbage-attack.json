@@ -1,0 +1,57 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "28 T7 垃圾行：ai-battle 玩家 2 消送 AI 盘 1 行（对照表 2消→1行），送出/受击双音效",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Up"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 1.22,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 1.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.62,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.6,
+      "kind": "log",
+      "contains": "mode=ai-battle",
+      "source": "client"
+    },
+    {
+      "at": 2.2,
+      "kind": "log",
+      "contains": "garbage n=1",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    40017,
+    20004
+  ]
+}

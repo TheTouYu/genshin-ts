@@ -87,6 +87,9 @@ local NUM = {
   -- `too many local variables (limit is 200)`）：
   --   name = 槽内块名（nil=空槽）；bag = 入槽时块所属袋序（换出块日志沿用原袋序）
   --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
+  -- T7 垃圾行对照表（v2-plan §三）：2/3/4 消 → 1/2/4 行 + 1 洞；B2B 四消再 +1（clearLines 触发）。
+  -- 每盘状态已搬 g.st/g.ld/g.das（T6c）；本表是全局常量。
+  GARBAGE = { [2] = 1, [3] = 2, [4] = 4 },
 
   -- ===== T5 AI 难度档（docs/v2-ai-design.md §四；数值依据标注见该文档）=====
   -- lv: 1=轻松(demo-easy) 2=标准(demo-normal) 3=高难(demo-hard)；默认 2（casual 演出观感不变）。
@@ -150,6 +153,7 @@ local COL_RED    = C(255, 240, 80, 90)
 local COL_BLUE   = C(255, 70, 130, 240)
 local COL_ORANGE = C(255, 245, 160, 60)
 local COL_BG     = C(255, 18, 20, 27)
+local COL_GRAY   = C(255, 92, 96, 105)   -- T7 垃圾行方块色（暗灰，区别于七色）
 
 -- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}
 local SHAPES = {
@@ -273,6 +277,7 @@ local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」
 local bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
 local showGameOver, updateBest
 local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
+local raiseGarbage    -- T7 垃圾行（实现见 enterMode 前；clearLines 消行后跨盘调用）
 -- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
 -- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
 -- 成员全部收进实例表 g（T0）；双屏时每盘各自的结算层。
@@ -328,6 +333,9 @@ local SFX = {
   over   = 50929,   -- 提示性UI_轻_整理背包 (0.978s)
   level  = 40001,   -- 战斗_治疗_回复_01 (1.653s) ← 升级音
   tspin  = 50924,   -- 拍照分享 (1.418s) ← T-spin 专属正反馈（T8）
+  -- T7 垃圾行（裁决⑩：波 3 实施时挑；真机人耳确认归 T9 清单⑥）
+  garbageSend = 40017,   -- 战斗_远程攻击_投掷_飞刀_01 (1.161s) ← 送出（攻方反馈）
+  garbageRecv = 20004,   -- 动物叫声_鬼兜虫_重受击_01 (0.459s) ← 受击（被打方警报）
 }
 -- 消行按行数换 id：四档互不相同 ⇒ 1 行与 4 行听得出差别（音高关系未确认）
 local SFX_CLEAR = { 50917, 40001, 40022, 40054 }   -- 0.785 / 1.653 / 1.064 / 2.000s
@@ -963,6 +971,13 @@ clearLines = function()
     local levelBefore = g.level
     g.level = g.lines // NUM.LEVEL_UP_LINES + 1
     if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
+    -- T7 垃圾行（v2-plan §三/设计书 §四）：双屏模式 2/3/4 消送对方盘 1/2/4 行（B2B 再 +1）。
+    -- 送出方向：g == G[1] → 送 G[2]，反之亦然（ai-battle/coop 人↔AI、pvp 玩家互送）。
+    if cleared >= 2 and G[2] then
+      local other = (g == G[1]) and G[2] or G[1]
+      raiseGarbage(other, NUM.GARBAGE[cleared] + (b2bApplied and 1 or 0))
+      sfx(SFX.garbageSend, true)     -- 送出音（攻方反馈；force 防同帧被消行音吞，D619 教训）
+    end
     -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
     -- T4：AI 自演同样出声、同样抖屏——统一走这一条链路，不再有静音旁路
     sfx(SFX_CLEAR[cleared], true)
@@ -1642,6 +1657,40 @@ feedMirror = function()
   g = G[2]
   spawn(e.name, e.bag)
   print('p2 mirror name=' .. e.name .. ' bag=' .. e.bag)   -- 双屏日志 p2 前缀（主日志锚不动）
+  g = save
+end
+
+-- T7 垃圾行（v2-plan §三/设计书 §四）：给目标盘底部垫 n 行「1 洞」垃圾（暗灰 COL_GRAY）。
+-- 跨实例铁律（§1.8 Step3 ②）：入口保存 g → 切目标 → 操作 → 还原。
+-- 洞位随机用 aiRand（AI 独立 LCG）——设计书判据「raiseGarbage 不动 bag」（全局 rand 会改出块序列）。
+-- 顶行被推出=内容丢失（首版简化，垃圾行游戏普遍语义）；当前落子与垃圾重叠则上移，上不动=顶死。
+raiseGarbage = function(target, n)
+  if not target or target.gameOver or n < 1 then return end
+  local save = g
+  g = target
+  for _ = 1, n do
+    local hole = aiRand(COLS)
+    table.remove(g.board, 1)
+    local row = {}
+    for c = 1, COLS do row[c] = (c == hole) and 0 or COL_GRAY end
+    g.board[#g.board + 1] = row
+  end
+  if g.piece then
+    while g.piece.y > 1 and collides(g.piece.cells, g.piece.x, g.piece.y) do
+      g.piece.y = g.piece.y - 1
+    end
+    if collides(g.piece.cells, g.piece.x, g.piece.y) then
+      g.gameOver = true
+      print('gameover score=' .. g.score)
+      showGameOver()
+    end
+  end
+  renderAll()
+  renderPiece()
+  renderHud()
+  print('garbage n=' .. n)              -- v2-plan T7 验收锚（被送方日志）
+  sfx(SFX.garbageRecv, true)            -- 受击音（force 防同帧吞）
+  startShake(n >= 3 and 3 or 2)         -- 受击抖屏（行数越多越强）
   g = save
 end
 
