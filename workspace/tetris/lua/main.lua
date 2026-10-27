@@ -700,8 +700,8 @@ renderAll = function()
 end
 
 local function renderNext()
-  if not preview then return end
-  for i = 1, 4 do preview[i].imageColor = COL_BG end
+  if not preview or not preview[5] then return end
+  for i = 1, 8 do preview[i].imageColor = COL_BG end
   if gameOver or not nextName then return end
   local s = SHAPES[nextName]
   for i = 1, 4 do
@@ -709,6 +709,18 @@ local function renderNext()
     local r, c = s.cells[i][1], s.cells[i][2]
     ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
     ctl.imageColor = s.color
+  end
+  -- T2：第二块预览 = bagQ 队头（下下块）。缩 14px、55% 亮度、排第一块下方（中心 y=78）。
+  -- bagQ 只读不取——渲染永不改出块序列（refill 只发生在 takeFromBag 内）。
+  local e2 = bagQ[1]
+  if e2 then
+    local s2 = SHAPES[e2.name]
+    for i = 1, 4 do
+      local ctl = preview[4 + i]
+      local r, c = s2.cells[i][1], s2.cells[i][2]
+      ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 14, 78 + (2.5 - r) * 14)
+      ctl.imageColor = dimColor(s2.color, 1)
+    end
   end
 end
 
@@ -1716,14 +1728,14 @@ function OnStart()
   -- 改为「棋盘暗场 + 顶部/底部大字」，文字始终在棋盘之外，不会被遮挡
   overlay = nil
 
-  -- NEXT 预览四格（同一模板，缩到 18px）
+  -- NEXT 预览：第一块 4 格（18px）；T2 第二块 4 格（14px 缩略、55% 亮度，renderNext 排第一块下方）
   preview = {}
-  for i = 1, 4 do
+  for i = 1, 8 do
     local c = game.InstantiateClientUIControl(tplGuid, root)
     if c then
       c.name = 'next' .. i
-      c:SetSizeDelta(18, 18)
-      c:SetAnchoredPosition(400, 175)
+      c:SetSizeDelta(i <= 4 and 18 or 14, i <= 4 and 18 or 14)
+      c:SetAnchoredPosition(400, i <= 4 and 175 or 100)
       c.imageColor = COL_BG
     end
     preview[i] = c
