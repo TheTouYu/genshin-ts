@@ -160,14 +160,23 @@ def attrib(want_id=None, want_title=None, want_class=None):
     if target is None:
         # 给了 WM_CLASS 就**只认 class**（标题会把「原神编辑器」当成游戏）；标题只在无 class 时用
         want_class = (want_class or "").lower()
-        for wid in reversed(stacking):
-            w = _xprop_win(wid)
-            if not w:
-                continue
-            ok = (want_class in (w["class"] or "").lower()) if want_class else \
-                 (want_title and want_title in (w["caption"] or ""))
-            if ok:
-                target = w
+        # 标题匹配分两遍：**先精确等，再子串**。
+        # 2026-10-26 回归：只做子串时 `--json 原神` 会命中 caption="原神编辑器" 的 beyondeditor 窗
+        # （fixture 用例 NOT_FOUND→rc=2 因此变成 OK→rc=0）。
+        for exact in ((True, False) if not want_class else (False,)):
+            for wid in reversed(stacking):
+                w = _xprop_win(wid)
+                if not w:
+                    continue
+                if want_class:
+                    ok = want_class in (w["class"] or "").lower()
+                else:
+                    cap = (w["caption"] or "").strip()
+                    ok = (cap == want_title) if exact else (want_title and want_title in cap)
+                if ok:
+                    target = w
+                    break
+            if target is not None:
                 break
     if target is None or target.get("desktop") is None:
         out.update({"verdict": "NOT_FOUND", "atop": False, "stacking_top": None,

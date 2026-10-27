@@ -32,8 +32,14 @@ WIN_TITLE = os.environ.get("YS_WIN_TITLE", "原神")
 DEFAULT_LEDGER_DIR = os.path.expanduser(os.environ.get("YS_ROUND_DIR", "~/ys-round"))
 
 
+_LAST_RC = {"rc": 0}
+
+
 def sh(cmd, timeout=60, env=None):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
+    """跑命令并**显式记录退出码**（G-FOCUS-RETURN：不许把未检查的结果直接返回）。"""
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
+    _LAST_RC["rc"] = r.returncode
+    return r
 
 
 # ── 帧与定位 ──────────────────────────────────────────────────────

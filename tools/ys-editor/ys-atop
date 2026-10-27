@@ -27,7 +27,11 @@ for a in "$@"; do
 done
 # 2026-10-26 实测陷阱：`ys-atop --json 千星沙箱` 返回的却是**原神**——因为身份判据是
 # WM_CLASS 优先，而 YS_WIN_CLASS 有默认值 yuanshen.exe。显式给标题时必须按标题匹配。
-[ "$WANT_EXPLICIT" = "1" ] && export YS_WIN_CLASS=""
+# 显式标题**且不是游戏默认标题**才清 class：`--json 原神` 仍按 yuanshen.exe 匹配
+# （否则 caption="原神编辑器" 的 beyondeditor 窗会被子串命中，fixture 用例 NOT_FOUND→rc=2 回归）。
+if [ "$WANT_EXPLICIT" = "1" ] && [ "$WANT" != "${YS_WIN_TITLE:-原神}" ]; then
+  export YS_WIN_CLASS=""
+fi
 WANT="${WANT:-${YS_WIN_TITLE:-原神}}"
 
 if [ "$JSON" != "1" ]; then

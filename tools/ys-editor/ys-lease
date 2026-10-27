@@ -877,7 +877,7 @@ def _restore(prev, fast=False, fallback_class=FALLBACK_CLASS, recover=False):
         # 屏幕会被租约钉住、guard 回收不了（用户已投诉过"执行完不记得归还画面"）。
         # 语义用 ok+noop 明示"没还，因为没有可还的"，而不是伪装成成功归还。
         return {"ok": True, "noop": True, "fallback_reason": fallback_reason,
-                "kbd_return": {k: _kr.get(k) for k in ("error", "detail") if _kr.get(k)},
+                "kbd_return": _kr,   # 保留全部键（白名单重建会让未知字段静默蒸发，G-WHITELIST）
                 "detail": ("无可归还目标（%s；回退窗 %s 不在 X11 客户端列表，通常是 Wayland 原生应用；"
                            "键盘层 Alt+Tab 也没成：%s） ⇒ 未改动任何窗口"
                            % (fallback_reason, fallback_class,

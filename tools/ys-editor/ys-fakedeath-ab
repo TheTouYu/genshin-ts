@@ -89,7 +89,8 @@ syscall_word() { # $1=tid → "running" / 数字 / "?"
 probe_tail() { [ -f "$PROC_LOG" ] && tail -n "${1:-3}" "$PROC_LOG"; }
 
 signal_snap() { # $1=pid $2=tag  记录 2s 内 SIGSEGV 次数（本机假死的判据：10 万次/秒级）+ 带上 win32u 探针
-  local pid="$1" tag="$2" out="$OUT/sig-$tag-$TS.txt"
+  local pid="$1" tag="$2" out
+  out="$OUT/sig-$tag-$TS.txt"
   timeout 8 strace -f -c -e trace=signal -p "$pid" > "$out" 2>&1
   local n; n=$(grep -oE '[0-9]+ +SIGSEGV' "$out" | awk '{print $1}' | head -1)
   log "   信号($tag): SIGSEGV=${n:-0} 次/2s  $( [ -f /tmp/wine32u-shared-fix.log ] && echo "| win32u探针=$(wc -l < /tmp/wine32u-shared-fix.log) 行" )"
@@ -98,7 +99,8 @@ signal_snap() { # $1=pid $2=tag  记录 2s 内 SIGSEGV 次数（本机假死的�
 
 perf_snap() { # $1=pid  $2=tag
   [ "$DO_PERF" = 1 ] || return 0
-  local pid="$1" tag="$2" out="$OUT/perf-$tag-$TS"
+  local pid="$1" tag="$2" out
+  out="$OUT/perf-$tag-$TS"
   if timeout 12 perf record -q -e cpu_core/cycles/u -F 199 -p "$pid" -o "$out.data" -- sleep 4 2>"$out.err"; then
     perf report -i "$out.data" --stdio 2>/dev/null | sed -n '/^# Overhead/,$p' | head -28 > "$out.txt"
     log "   perf($tag) → $(grep -m1 -E 'XCheckIfEvent|filter_event' "$out.txt" | sed 's/  */ /g' || echo '未命中 XCheckIfEvent')"
@@ -131,7 +133,25 @@ while :; do
       last_idle=$(date +%s)
     fi
     [ "$ONCE" = 1 ] && break
-    sleep 5; continue
+    for _ in $(seq 1 10); do sleep 0.5; done; continue   # G-SLEEP：固定 5s 拆成 10×0.5s（语义不变，判据可插）
+  fi
+
+  # 泵停摆判据：探针 20s 不更新 ⇒ X11DRV_ProcessEvents 不再被调用（消息泵停），与用户观感解耦
+  if [ -f "$PROC_LOG" ]; then
+    pm=$(stat -c %Y "$PROC_LOG" 2>/dev/null || echo 0)
+    if [ "${last_proc_mtime:-0}" != "$pm" ]; then last_proc_mtime=$pm; last_proc_change=$(date +%s); fi
+    if [ $(( $(date +%s) - ${last_proc_change:-$(date +%s)} )) -ge 20 ] && [ "${stall_logged:-0}" != "$pm" ]; then
+      stall_logged=$pm
+      log "   ⚠ 泵停摆：探针 ${PROC_LOG} 已 20s 未更新（驱动不再被调用）→ 抓线程与信号面"
+      p0=$(pgrep -f 'BeyondEditor\.exe' | tail -1)
+      if [ -n "$p0" ]; then
+        # 分类：停机时主线程在烧 CPU（跑）还是在等（空闲）——这两类假死修法完全不同
+        cpu_line=$(cpu_pct "$p0" 2>/dev/null | tail -1)
+        log "     $( [ -n "$cpu_line" ] && echo "$cpu_line" || echo "cpu=?" )"
+        threads_dump "$p0" 2>&1 | sed 's/^/     /' >> "$LOG"
+        signal_snap "$p0" "stall"
+      fi
+    fi
   fi
 
   for pid in $pids; do
