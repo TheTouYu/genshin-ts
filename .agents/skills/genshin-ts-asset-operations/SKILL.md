@@ -301,6 +301,13 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 写回**三同步**：GIL 内联 `f5:source` + 外部 `<mapDir>/external_lua_file/<相对路径>`（写 UTF-8 **BOM**，对齐编辑器）+ `Temp/` 活动副本；备份进 `.gsts/backups/`
 - **优先级**：非空**内联 `source` 优先**于外部文件 ⇒ 排查"改了脚本没生效"先核对两者是否一致
 - 平面 `.gil` 用 `externalLuaDest` 槽目录；目录形态地图脚本落 `<mapId>/external_lua_file/`
+- 🔴 **三条回显全绿 ≠ 脚本在跑（2026-10-27 事故）**：`register` 回显 `writePerformed=true`、
+  `mounts` 指向容器节点、`external=<字节数>` 都只能证明**结构在位**。真机是否加载执行必须另证：
+  `OnStart` 第一条写 HUD 文案 + `print('[tag] onstart')`，**单独跑一轮看到字或日志**才算活着；
+  一轮试玩里没有 `onstart` 打印 ⇒ 停止叠加玩法逻辑，先修宿主（容器 active/可见 → 挂载点层级 → 编辑器是否重开地图）。
+  完整三步门见 `lua-2d-ui-game-build` §6.5。
+- 挂载宿主只认**容器节点**（容器组 f502=23 无 f74 槽，CLI fail-closed）；`--output` 候选模式**不写**
+  `external_lua_file` 副本，只有 `--write` 才落盘（排查 `external=MISSING` 时先看用没用 `--output`）。
 
 ### F. 结构体资产（`assets:structs`，2026-09-26 落地）
 

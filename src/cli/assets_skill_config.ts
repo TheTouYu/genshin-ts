@@ -737,7 +737,7 @@ export function listSkillConfigs(payload: Uint8Array): SkillConfigView[] {
 // ==================== CLI ====================
 
 type Args = {
-  sub: 'create' | 'list'
+  sub: 'create' | 'list' | 'delete'
   gilPath: string | undefined
   mapId: number | undefined
   id: number | undefined
@@ -748,6 +748,7 @@ type Args = {
   outputPath: string | undefined
   write: boolean
   json: boolean
+  force: boolean
 }
 
 function usage(exitCode = 0): never {
@@ -769,6 +770,8 @@ function usage(exitCode = 0): never {
     '  --output <file>   create: write result to a new file (no overwrite)',
     '  --write           create: write source GIL after backup',
     '  --json            list: machine-readable output',
+    '  --force           delete: 即使该配置仍被 root5 实体引用也删除（默认拒绝）',
+    '  delete: gsts assets:skill-config delete --gil map.gil --id <配置ID> [--write|--output]',
     '  -h, --help        show help',
     '',
     'Examples:',
@@ -811,8 +814,10 @@ function parseArgs(argv: readonly string[]): Args {
   let outputPath: string | undefined
   let write = false
   let json = false
+  let force = false
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'list') sub = argv[0] as Args['sub'], index++
+  if (argv[0] === 'create' || argv[0] === 'list' || argv[0] === 'delete')
+    sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
     if (arg === '--gil') gilPath = value(argv, index++)
@@ -825,6 +830,7 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--write') write = true
     else if (arg === '--json') json = true
+    else if (arg === '--force') force = true
     else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
@@ -836,7 +842,7 @@ function parseArgs(argv: readonly string[]): Args {
     if (name === undefined) throw new Error('[error] create requires --name')
     if (write && !name) usage()
   }
-  return { sub, gilPath, mapId, id, name, template, skillType, graphIds, outputPath, write, json }
+  return { sub, gilPath, mapId, id, name, template, skillType, graphIds, outputPath, write, json, force }
 }
 
 function resolveGilPath(
@@ -882,6 +888,159 @@ function runList(bytes: Uint8Array, gil: string, args: Args): void {
   }
 }
 
+/**
+ * 递归统计某 id 在 wire 字段里作为 varint 出现的次数（用于「还有谁引用这个技能配置」的粗筛）。
+ * 只做保守判断：命中即要求 --force，不做语义级引用解析。
+ */
+function countIdRefs(fields: WireField[], target: number): number {
+  let hits = 0
+  for (const f of fields) {
+    if (f.wire === 0 && Number(f.value) === target) hits += 1
+    else if (f.wire === 2) {
+      const nested = parseWireMessage(f.value as Uint8Array)
+      if (nested) hits += countIdRefs(nested, target)
+    }
+  }
+  return hits
+}
+
+/**
+ * 删除一个技能配置（root15 记录 + root6 文件夹登记条目）。
+ * 安全：源 SHA 漂移即中止；写前备份到 .gsts/backups；写后同步 Temp。
+ * 保守闸门：该 id 仍出现在 root5（实体/造物技能条目）时默认拒绝，需 --force。
+ */
+/** 纯逻辑：从 payload 里删掉一个技能配置（root15 记录 + root6 文件夹条目）。返回新 payload 与读数。 */
+export function deleteSkillConfig(
+  payload: Uint8Array,
+  target: number,
+  options: { force?: boolean } = {}
+): { payload: Uint8Array; removed: number; removedFolder: number; name: string; refs: number } {
+  const top = parseWireMessage(payload)
+  if (!top) throw new Error('[error] cannot parse GIL payload')
+
+  let removed = 0
+  let removedFolder = 0
+  let removedName = ''
+  let refs = 0
+  const rebuilt: WireField[] = []
+  for (const f of top) {
+    if (f.number === 15 && f.wire === 2) {
+      const r15 = parseWireMessage(f.value as Uint8Array)
+      if (r15) {
+        const kept = r15.filter((rec) => {
+          if (rec.number !== 1 || rec.wire !== 2) return true
+          try {
+            const view = parseSkillConfigRecord(rec.value as Uint8Array)
+            if (view.id === target) {
+              removed += 1
+              removedName = String(view.name ?? '')
+              return false
+            }
+          } catch {
+            // 解析不了的记录原样保留
+          }
+          return true
+        })
+        rebuilt.push({ number: 15, wire: 2, value: emitWireMessage(kept) })
+        continue
+      }
+    }
+    if (f.number === 6 && f.wire === 2) {
+      const root6 = parseWireMessage(f.value as Uint8Array)
+      if (root6) {
+        const keptRecs = root6.map((x) => {
+          if (x.number !== 1 || x.wire !== 2) return x
+          const inner = parseWireMessage(x.value as Uint8Array)
+          if (!inner) return x
+          const keptInner = inner.map((y) => {
+            if (y.number !== 3 || y.wire !== 2) return y
+            const f3 = parseWireMessage(y.value as Uint8Array)
+            if (!f3) return y
+            const keptEntries = f3.filter((z) => {
+              if (z.number !== 5 || z.wire !== 2) return true
+              const e = parseWireMessage(z.value as Uint8Array) ?? []
+              const id = e.find((w) => w.number === 2 && w.wire === 0)?.value
+              if (Number(id) === target) {
+                removedFolder += 1
+                return false
+              }
+              return true
+            })
+            if (keptEntries.length === f3.length) return y
+            return { ...y, value: emitWireMessage(keptEntries) }
+          })
+          if (keptInner.every((v, i) => v === inner[i])) return x
+          return { ...x, value: emitWireMessage(keptInner) }
+        })
+        rebuilt.push({ number: 6, wire: 2, value: emitWireMessage(keptRecs) })
+        continue
+      }
+    }
+    if (f.number === 5 && f.wire === 2) {
+      const r5 = parseWireMessage(f.value as Uint8Array)
+      if (r5) refs += countIdRefs(r5, target)
+    }
+    rebuilt.push(f)
+  }
+
+  if (removed === 0) throw new Error(`[error] skill config ${target} not found in root 15`)
+  if (refs > 0 && !options.force) {
+    throw new Error(
+      `[error] skill config ${target} is still referenced ${refs}x in root 5 (实体/造物技能条目)；` +
+        '先用 assets:creations inspect 确认，确实要删再加 --force'
+    )
+  }
+  return { payload: emitWireMessage(rebuilt), removed, removedFolder, name: removedName, refs }
+}
+
+/** CLI 包装：SHA 锁 → 备份 → 写回 → Temp 同步。 */
+function runDelete(bytes: Uint8Array, gil: string, args: Args): void {
+  const target = args.id
+  if (target === undefined) throw new Error('[error] delete requires --id <技能配置ID>')
+  const sourceSha = sha256Bytes(bytes)
+  const del = deleteSkillConfig(bytes.slice(20, -4), target, { force: args.force })
+  const { removed, removedFolder, name: removedName, refs } = del
+
+  const header = {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  }
+  const result = buildFile(del.payload, header)
+  const candidateSha = sha256Bytes(result)
+
+  if (args.write) {
+    const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
+    if (nowSha !== sourceSha) throw new Error('[error] source GIL changed since read; aborting write')
+    const backupDir = path.join(path.dirname(gil), '.gsts', 'backups')
+    fs.mkdirSync(backupDir, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.delete-skill-config.bak`)
+    fs.copyFileSync(gil, backup)
+    fs.writeFileSync(gil, result)
+    try {
+      syncGilToTemp(path.dirname(gil), path.basename(gil))
+    } catch {
+      // best-effort temp sync
+    }
+    console.log(`backup=${backup}`)
+    console.log(`written=${gil}`)
+  } else if (args.outputPath) {
+    const absolute = path.resolve(args.outputPath)
+    if (fs.existsSync(absolute)) throw new Error(`[error] output already exists: ${absolute}`)
+    fs.mkdirSync(path.dirname(absolute), { recursive: true })
+    fs.writeFileSync(absolute, result)
+    console.log(`written=${absolute}`)
+  } else {
+    console.log(`preview=${gil}`)
+  }
+  console.log(
+    `delete: skillConfigId=${target} name=${removedName || '-'} removed=${removed} folderEntries=${removedFolder} ` +
+      `root5Refs=${refs} sourceSha256=${sourceSha} candidateSha256=${candidateSha} size=${bytes.length}->${result.length}`
+  )
+}
+
 export async function runAssetsSkillConfig(
   argv: readonly string[] = process.argv.slice(2),
   rootContext: RootContext = {}
@@ -898,6 +1057,10 @@ export async function runAssetsSkillConfig(
 
   if (args.sub === 'list') {
     runList(sourceBytes, gil, args)
+    return
+  }
+  if (args.sub === 'delete') {
+    runDelete(sourceBytes, gil, args)
     return
   }
 
