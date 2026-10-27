@@ -39,7 +39,7 @@
 | `[gui-agi]` | `./tools/failure-ledger check`（全量） | 空闲 550s / 游戏在跑 700s | 改动后未复跑 |
 | `[gui-agi]` | `worldsvc-selftest` | **123/123**，24.5s（注入用例 1.66s） | 2026-10-22 |
 | `[gui-agi]` | `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
-| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/tetris`，v2 主战工程） | **22/22 PASS，268.2s**（波2 完成：T5 hard ρ=0.30 + T8 进阶操作；波3 T0 独占窗口进行中） | 2026-10-27 17:2x |
+| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/tetris`，v2 主战工程） | **28/28 PASS，291.8s**（波1-3 完成：T0 实例化+T6 四模式+T7 垃圾行；T9 真机导入等用户） | 2026-10-27 19:0x |
 | `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`，等用户导入） | 17/17 PASS（上一活跃工程，冻结态） | 2026-10-24 11:4x |
 | `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
