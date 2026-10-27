@@ -51,10 +51,18 @@ end
 
 local function getCtl(name)
   if hudRef[name] ~= nil then return hudRef[name] end
+  -- ① 先按 tetris 的跑通形态：script.object 就是容器节点，子控件直接在它下面
+  local ok0, host = pcall(function() return script.object end)
+  if ok0 and host ~= nil then
+    local okc, child = pcall(function() return host:GetChild(name) end)
+    if okc and child ~= nil then hudRef[name] = child return child end
+  end
+  -- ② 兜底：向上走到布局根再取（服务端 textbox 形态）
   local root = resolveRoot()
-  if root == nil then return nil end
-  local ok, child = pcall(function() return root:GetChild(name) end)
-  if ok and child ~= nil then hudRef[name] = child return child end
+  if root ~= nil then
+    local ok, child = pcall(function() return root:GetChild(name) end)
+    if ok and child ~= nil then hudRef[name] = child return child end
+  end
   print('[fb-in] hud-miss ' .. tostring(name))
   return nil
 end

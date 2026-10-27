@@ -40,19 +40,21 @@ g
           f.greaterThan(dist, new float(TELEPORT_DIST)),
           () => {
             f.activateFixedPointMotionDevice(
-              ball, 'fb_phys', MovementMode.InstantMovement, 0.0, pos,
+              ball, 'fb_movex', MovementMode.InstantMovement, 0.0, pos,
               f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedSpeed, 0.0
             )
           },
           () => {
             f.activateFixedPointMotionDevice(
-              ball, 'fb_phys', MovementMode.UniformLinearMotion,
+              ball, 'fb_movex', MovementMode.UniformLinearMotion,
               f.division(dist, DRIVE_DUR), pos,
               f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedSpeed, DRIVE_DUR
             )
           }
         )
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
+        // 用户指正（2026-10-27）：同时加多个运动器是可以的，**同名才会替换前者**。
+        // ⇒ 位移设备与旋转设备名字必须不同且固定：fb_movex / fb_spinx（旧名 fb_phys 可能被历史设备占用）。
         const spd = f._3dVectorModuloOperation(spin)
         f.doubleBranch(
           f.greaterThan(spd, new float(0.001)),
@@ -66,7 +68,7 @@ g
             const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spin', DRIVE_DUR, angVel, localAxis)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', DRIVE_DUR, angVel, localAxis)
           },
           () => {}
         )
