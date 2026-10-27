@@ -328,8 +328,13 @@ settle destroy n=10                                 ← 按 R 后必须出现
 # ① 查游戏实际执行哪条脚本（挂载指向 ≠ deploy 写的那条！tetris 实测：活跃容器挂 main_2，而 deploy.mjs 只写 main_1 的 external ⇒ 白写）
 gsts assets:scripts mounts --gil <图.gil>          # 看 host=<活跃容器节点> 的 script guid
 # ② 把新 lua 直写进执行中的脚本（f5 内嵌 source + external + Temp 三同步 + 自动备份，一条龙）
-gsts assets:scripts update --guid <执行中的> --source-file lua/main.lua \
+gsts assets:scripts update --guid <执行中的> --source-file <注入版.lua> \
   --gil <图.gil> --map-id <id> --write            # --map-id 必带，否则 temp-sync=skipped（编辑器读 Temp！）
+#    ⚠️ --source-file 必须用 **build 注入过的版本**，不是 lua/main.lua 原文！
+#    原文里的 `__GUID_CELL__` 占位符=未定义全局 nil ⇒ TPL_GUIDS 表构造 {nil, …} 被 ipairs 在首个
+#    nil 截断 ⇒ 候选表空 ⇒ 模板探测无声失败 ⇒ error() 无声死（真机症状=canvas/device 打完就没下文，
+#    2026-10-27 实测）。注入版从 build 产物取：JSON.parse(save.json).assets.scripts[0].source。
+#    验收判据用 `/cell = \{ \d+/`（数字形态）——**别用 includes('__GUID')**（注释里的文字提及会误报）。
 # ③ 验收：sha256sum 双址一致（Save_Level/<id>.gil == Temp/<id>.gil）+ gil-guard 对比写前备份
 #    （guard 若报悬空，先对备份跑同一检查——存量悬空是历史状态编辑器一直接受，只要「写前写后同样 FAIL」即本次未引入）
 ```
