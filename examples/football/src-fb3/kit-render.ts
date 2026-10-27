@@ -6,7 +6,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { float } from 'genshin-ts/runtime/value'
 
 import { KitSignal } from './signals.js'
-import { fbDriveDirect, fbTeleport } from './fb-shared.js'
+import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/enum'
 
 const GRAPH_ID = 1073741828
 const TELEPORT_DIST = 5.0
@@ -33,14 +33,42 @@ g
         const delta = f._3dVectorSubtraction(pos, loc)
         const dist = f._3dVectorModuloOperation(delta)
         const vel = f._3dVectorZoom(delta, f.division(1.0, DRIVE_DUR))
+        // 位移：一律用**定点运动器**（日志实证：add_uniform_basic_linear_motion_device 在这颗球上无效——
+        // 速度 13.8m/s 发了 675 次，球实体位置一步没动；而旋转设备生效 ⇒ 换成定点运动器）。
+        // 近平移：UniformLinearMotion + 速度 + 时长；大跳：Instant。
         f.doubleBranch(
           f.greaterThan(dist, new float(TELEPORT_DIST)),
           () => {
-            f.callComposite(fbTeleport, { ball, pos })
+            f.activateFixedPointMotionDevice(
+              ball, 'fb_phys', MovementMode.InstantMovement, 0.0, pos,
+              f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedSpeed, 0.0
+            )
           },
           () => {
-            f.callComposite(fbDriveDirect, { ball, dur: new float(DRIVE_DUR), vel, spin })
+            f.activateFixedPointMotionDevice(
+              ball, 'fb_phys', MovementMode.UniformLinearMotion,
+              f.division(dist, DRIVE_DUR), pos,
+              f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedSpeed, DRIVE_DUR
+            )
           }
+        )
+        // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
+        const spd = f._3dVectorModuloOperation(spin)
+        f.doubleBranch(
+          f.greaterThan(spd, new float(0.001)),
+          () => {
+            const axis = f._3dVectorNormalization(spin)
+            const angVel = f.multiplication(spd, 57.29578)
+            const r = f.split3dVector(f.getEntityLocationAndRotation(ball).rotate)
+            const negX = f.multiplication(r.xComponent, -1)
+            const negY = f.multiplication(r.yComponent, -1)
+            const negZ = f.multiplication(r.zComponent, -1)
+            const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
+            const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
+            const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spin', DRIVE_DUR, angVel, localAxis)
+          },
+          () => {}
         )
       },
       () => {}

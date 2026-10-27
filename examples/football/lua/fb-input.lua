@@ -1,98 +1,44 @@
--- 注册一个 Down 监听：候选枚举名逐个试（枚举优先、字符串回落），任何失败只打印不抛出。
-local function listen(entry)
-  local handler = makeHandler(entry.hint, entry.id)
-  local hostOk, host = pcall(function() return script.object end)
-  if not hostOk or host == nil then
-    print('[fb-in] err host ' .. tostring(host) .. ' (key ' .. entry.id .. ')')
-    return false
-  end
-  for _, enumName in ipairs(entry.names) do
-    -- 路 1：枚举值（真机唯一可用形态）
-    local ok, err = pcall(function()
-      local ev = Enum.KeyEventType[enumName]
-      if ev == nil then error('Enum.KeyEventType.' .. enumName .. ' is nil') end
-      host:AddKeyEventListener(ev, handler)
-    end)
-    if ok then
-      print('[fb-in] listen ' .. enumName .. ' via enum')
-      return true
-    end
-    -- 路 2：字符串（模拟器形态；真机会抛 KeyEventType expected, got string）
-    local ok2 = pcall(function() host:AddKeyEventListener(enumName, handler) end)
-    if ok2 then
-      print('[fb-in] listen ' .. enumName .. ' via string')
-      return true
-    end
-    print('[fb-in] miss ' .. enumName .. ' enum=' .. tostring(err))
-  end
-  print('[fb-in] err listen key ' .. entry.id .. ' (all names failed)')
-  return false
-end
-
 --[[==========================================================================
-fb-input.lua —— 真实足球 v3 · 客户端 Lua 输入桥
-----------------------------------------------------------------------------
-【用途】
-  挂在客户端「容器节点」（容器类控件）上，把玩家按键转成服务器信号
-  fb_input(key:int, state:int)，服务端节点图据此驱动玩法。
-  本文件只做「按键 → 信号」一件事，不含任何玩法逻辑。
-
-【证据出处（真机 7.1 已验事实，D561）】
-  * AddKeyEventListener 在真机**只接受 Enum.KeyEventType 枚举值**；传字符串抛
-    「bad argument #2 ... KeyEventType expected, got string」。Lua 侧无异常护栏
-    （pcall 之外没有 try/catch），一句抛错会中断整段 OnStart。
-    ⇒ 本文件每个注册都：先试 Enum.KeyEventType['Keyboard<键名>Down']，pcall 失败
-      再回落字符串形态；并打印实际走了哪条路（listen ... via enum|string）。
-  * Enum.KeyEventType 成员 = 具体按键 × 相位，命名规律 Keyboard<键名>Down / Up。
-  * game.ServerSignal 在真机是**函数**（不是表）：game.ServerSignal('名') 返回可供
-    配置的信号对象，再依次 ServerSignal:AddInt(v) / :SendSignal()。
-    AddInt 返回 nil ⇒ **不能链式**，必须一行一句。
-  * 客户端 Lua 沙箱裁剪：无 io/package/coroutine，print 是唯一可靠出口（没有可写的
-    日志文件），所以「整链是否通」靠 OnStart 的心跳信号在服务器侧体现。
-
-【信号契约（与服务端图对齐，参数顺序 = AddInt 顺序）】
-  fb_input(key:int, state:int)
-    key   : 1 NormalAttack / 2 CharacterSkill1 / 3 Jump（第一轮只这三个）
-            0 = 心跳（OnStart 发一次，state=0），证明脚本已跑 + 信号链通
-    state : 1 = 按下（本桥只注册 Down 相位）；0 = 心跳/复位
-
-【打印纪律】
-  只在 OnStart 与按键回调里 print；OnUpdate 属高频路径，零 print、零工作
-  （按键事件驱动，不需要逐帧轮询）。
-
-【挂载与登记】
-  登记：gsts assets:scripts register --name fb-input --path fb-input.lua --source-file <本文件>
-  挂载：gsts assets:scripts mount --host <容器节点 guid> --script <fb-input guid>
-  信号：gsts assets:signals register --name fb_input --param key:int --param state:int
-        （缺「发送客户端信号」那条 composite 时游戏会报「信号有问题」）
-=========================================================================]]
+fb-input.lua —— 真实足球 v3 · 客户端 Lua（HUD 文案 + 按键 → 服务器信号）
+职责两件：①进图点亮 7 行 HUD（hud_title / hud_k1..k6），按键后标题改成「已触发：<键>」
+          ②按键 → 服务器信号 fb_input(key:int, state:int)
+【寻址】script.object 向上走到布局根 → root:GetChild(name)（tetris 已验证的寻址路）。
+【真机事实】AddKeyEventListener 只收 Enum.KeyEventType 枚举值；Lua 无 try/catch，
+  一句抛错整段中断 ⇒ 全部 pcall + 带名前缀日志；写文本=字段赋值 c.text（无 SetText）。
+==========================================================================]]
 
 local SIGNAL = 'fb_input'
 
-
--- ===== HUD：证明脚本在跑、并把键位说清楚（用户 2026-10-27：「一个按钮都看不到」）=====
--- 控件名必须与地图里 4 个 client-textbox 一致（1073741847..850，挂在容器节点 1073741846 下）：
---   hud_title / hud_k1..hud_k5（控件 1073741847..852）
--- 写文本=字段赋值（官方运行时 textbox 无 SetText，D229 实证），全部 pcall。
--- 控件名必须与地图里 7 个**服务端 textbox** 一致（布局 默认布局，id 1073741854..860）：
---   hud_title / hud_k1..hud_k6
--- 寻址方式抄 tetris（跑通过的路）：script.object 向上走到布局根，再 root:GetChild(name)。
--- 写文本=字段赋值（官方运行时 textbox 无 SetText），全部 pcall。
-local HUD = {
-  title = 'hud_title',
-  k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3',
-  k4 = 'hud_k4', k5 = 'hud_k5', k6 = 'hud_k6',
+-- id=发给服务端的 keyId；names=候选枚举名（按序试）；hint=HUD 上显示的物理键
+local KEYS = {
+  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, hint = '普攻/1' },
+  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, hint = '技能1/2' },
+  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, hint = '跳跃/3' },
+  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, hint = '冲刺/4' },
+  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, hint = '交互/5' },
+  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, hint = '丢弃/6' },
 }
+
+local function send(keyId, state)
+  local ok, err = pcall(function()
+    local sig = game.ServerSignal(SIGNAL)
+    if sig == nil then error('game.ServerSignal(' .. SIGNAL .. ') returned nil') end
+    sig:AddInt(keyId)
+    sig:AddInt(state)
+    sig:SendSignal()
+  end)
+  if not ok then print('[fb-in] err send ' .. tostring(err)) end
+  return ok
+end
+
+local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3', k4 = 'hud_k4', k5 = 'hud_k5', k6 = 'hud_k6' }
 local hudRoot = nil
 local hudRef = {}
 
 local function resolveRoot()
   if hudRoot ~= nil then return hudRoot end
   local ok, obj = pcall(function() return script.object end)
-  if not ok or obj == nil then
-    print('[fb-in] err host nil')
-    return nil
-  end
+  if not ok or obj == nil then print('[fb-in] err host nil') return nil end
   local cur = obj
   for _ = 1, 10 do
     local okp, parent = pcall(function() return cur:GetParent() end)
@@ -108,11 +54,8 @@ local function getCtl(name)
   local root = resolveRoot()
   if root == nil then return nil end
   local ok, child = pcall(function() return root:GetChild(name) end)
-  if ok and child ~= nil then
-    hudRef[name] = child
-    return child
-  end
-  print('[fb-in] hud-miss ' .. name)
+  if ok and child ~= nil then hudRef[name] = child return child end
+  print('[fb-in] hud-miss ' .. tostring(name))
   return nil
 end
 
@@ -120,7 +63,7 @@ local function setText(name, value)
   local c = getCtl(name)
   if c == nil then return end
   local ok, err = pcall(function() c.text = value end)
-  if not ok then print('[fb-in] hud-err ' .. name .. ' ' .. tostring(err)) end
+  if not ok then print('[fb-in] hud-err ' .. tostring(name) .. ' ' .. tostring(err)) end
 end
 
 local function setupHud()
@@ -134,100 +77,51 @@ local function setupHud()
   print('[fb-in] hud-ok')
 end
 
-local function setStatus(label)
-  setText(HUD.title, '⚽ 已触发：' .. label)
+local function setStatus(hint)
+  setText(HUD.title, '⚽ 已触发：' .. tostring(hint))
 end
 
--- 键表：id = 发给服务端的 keyId（1..5），names = 候选枚举名，hint = HUD 上给玩家看的物理键。
-local KEYS = {
-  -- names = 候选枚举名（按顺序试，第一个成功的胜出）。动作键是角色键（可能被游戏本体吃掉），
-  -- 工匠键 CraftspersonKey1..5 是千星沙箱自己的可编程键，一定存在 ⇒ 做成两手准备。
-  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, hint = '普攻/鼠左 或 1' },
-  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, hint = '技能1/E 或 2' },
-  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, hint = '跳跃/空格 或 3' },
-  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, hint = '冲刺/Shift 或 4' },
-  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, hint = '交互/F 或 5' },
-  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, hint = '丢弃/X 或 6' },
-}
-
--- 发一条 fb_input(keyId, state)。整段 pcall：信号名没登记/信号对象形态变化都不许中断调用方。
-local function send(keyId, state)
-  local ok, err = pcall(function()
-    local sig = game.ServerSignal(SIGNAL)
-    if sig == nil then error('game.ServerSignal(' .. SIGNAL .. ') returned nil') end
-    sig:AddInt(keyId)   -- 不能链式：AddInt 返回 nil
-    sig:AddInt(state)
-    sig:SendSignal()
-  end)
-  if not ok then
-    print('[fb-in] err send ' .. tostring(err))
-  end
-  return ok
-end
-
--- 每个键一个回调闭包：按下才打印（高频路径本来就只有玩家真按的时候才走）。
 local function makeHandler(hint, id)
   return function()
     print('[fb-in] key ' .. tostring(id))
     setStatus(hint)
     send(id, 1)
-    return true    -- 吃掉事件，不继续向更内层控件传递
+    return true
   end
 end
 
--- 注册一个 Down 监听：枚举优先、字符串回落，两条路都 pcall；任何失败只打印不抛出。
-local function listen(label, id)
-  local enumName = 'Keyboard' .. label .. 'Down'
-  local handler = makeHandler(label, id)
-
+local function listen(entry)
+  local handler = makeHandler(entry.hint, entry.id)
   local hostOk, host = pcall(function() return script.object end)
   if not hostOk or host == nil then
-    print('[fb-in] err host ' .. tostring(host) .. ' (key ' .. label .. ')')
+    print('[fb-in] err host ' .. tostring(host) .. ' (key ' .. tostring(entry.id) .. ')')
     return false
   end
-
-  -- 路 1：枚举值（真机唯一可用形态）
-  local ok, err = pcall(function()
-    local ev = Enum.KeyEventType[enumName]
-    if ev == nil then error('Enum.KeyEventType.' .. enumName .. ' is nil') end
-    host:AddKeyEventListener(ev, handler)
-  end)
-  if ok then
-    print('[fb-in] listen ' .. label .. ' via enum')
-    return true
+  for _, enumName in ipairs(entry.names) do
+    local ok, err = pcall(function()
+      local ev = Enum.KeyEventType[enumName]
+      if ev == nil then error('Enum.KeyEventType.' .. enumName .. ' is nil') end
+      host:AddKeyEventListener(ev, handler)
+    end)
+    if ok then print('[fb-in] listen ' .. enumName .. ' via enum') return true end
+    local ok2 = pcall(function() host:AddKeyEventListener(enumName, handler) end)
+    if ok2 then print('[fb-in] listen ' .. enumName .. ' via string') return true end
+    print('[fb-in] miss ' .. enumName .. ' enum=' .. tostring(err))
   end
-
-  -- 路 2：字符串（模拟器形态；真机会抛 KeyEventType expected, got string）
-  local ok2, err2 = pcall(function()
-    host:AddKeyEventListener(enumName, handler)
-  end)
-  if ok2 then
-    print('[fb-in] listen ' .. label .. ' via string')
-    return true
-  end
-
-  print('[fb-in] err listen ' .. label .. ' enum: ' .. tostring(err) .. ' / string: ' .. tostring(err2))
+  print('[fb-in] err listen key ' .. tostring(entry.id) .. ' (all names failed)')
   return false
 end
 
--- ===== 生命周期 =====
 function OnInit()
 end
 
 function OnStart()
   print('[fb-in] onstart')
-  setupHud()   -- 先点亮 HUD：这一步成功即证明脚本真的在跑（比信号更早、更直观）
-  -- 心跳：先证明「脚本确实在跑 + fb_input 信号链通」，再谈按键（顺序即诊断分层）
+  setupHud()
   send(0, 0)
-  -- 逐个注册：任一键失败都不影响后续（pcall 在 listen 内部逐条兜住）
-  for _, k in ipairs(KEYS) do
-    listen(k)
-  end
+  for _, k in ipairs(KEYS) do listen(k) end
 end
 
--- 按键事件驱动，逐帧不做任何事（高频路径零 print、零计算）。
--- 注意：本文件**不调用** script:EnableUpdate(true)，因此即使引擎派发 OnUpdate 也没有逐帧工作；
--- 这是刻意的——本桥只靠事件，不需要帧循环（将来若要轮询，先启用 EnableUpdate 并重估负载）。
 function OnUpdate(dt)
 end
 
