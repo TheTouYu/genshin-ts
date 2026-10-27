@@ -199,6 +199,7 @@ local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，
 -- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
 local MIRRORQ = {}
 local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
+local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘控件复用，T6b-2）
 
 -- AI 状态机初值（每实例一份；T6b 起从文件级一次性构造搬进 newInst——G[2] 也要有自己的 AI 表）
 local function newAIState()
@@ -228,6 +229,7 @@ local function newInst()
   t.combo, t.maxCombo, t.b2b = 0, 0, false
   t.settleOpen = false
   t.shakeT, t.shakeDur, t.shakeAmp, t.shakePhase = 0, 0, 0, 0
+  t.boardOX = 0                         -- 棋盘 x 偏移（单屏=0 居中；双屏 G[1]=-320 / G[2]=+320，T6b-2）
   t.AI = newAIState()
   return t
 end
@@ -354,14 +356,15 @@ local SHAKE_AMP = { 7, 10, 13, 17 }                 -- 像素；PITCH=30 ⇒ 4 �
 local SHAKE_FREQ = 2 * math.pi * 9                  -- 9Hz：0.2s 内约 2 个周期
 local function applyShake(ox, oy)
   if not g.cells then return end        -- G[2] 数据层阶段无棋盘控件（T6b-2 建控件后自然走全路径）
+  local bx = g.boardOX or 0             -- 双屏棋盘偏移（T6b-2：抖屏坐标=基准+盘偏移+抖动）
   for i = 1, #g.cells do
     local c = g.cells[i]
-    if c then tryCall(c, 'SetAnchoredPosition', g.cellBX[i] + ox, g.cellBY[i] + oy) end
+    if c then tryCall(c, 'SetAnchoredPosition', g.cellBX[i] + bx + ox, g.cellBY[i] + oy) end
   end
   if not g.frames then return end
   for i = 1, 4 do
     local f = g.frames[i]
-    if f then tryCall(f, 'SetAnchoredPosition', g.frameBX[i] + ox, g.frameBY[i] + oy) end
+    if f then tryCall(f, 'SetAnchoredPosition', g.frameBX[i] + bx + ox, g.frameBY[i] + oy) end
   end
 end
 -- reset=true 连坐标一起复位（抖完 / 重开 / layout 重排时用）
@@ -830,6 +833,15 @@ local function renderNext()
 end
 
 renderHud = function()
+  -- T6b-2 双屏：G[2]（AI/对家盘）战况写右栏 keyA-C（服务端单份控件征用，零新建）；
+  -- G[1] 保持 hud 主行（前缀 P1）。
+  if g ~= G[1] then
+    setText(keyA, 'AI 盘')
+    setText(keyB, '得分 ' .. g.score .. '　消行 ' .. g.lines)
+    setText(keyC, '等级 ' .. g.level)
+    renderNext()
+    return
+  end
   local oc = 0
   for r = 1, ROWS do
     for c = 1, COLS do
@@ -1629,6 +1641,113 @@ feedMirror = function()
   g = save
 end
 
+-- ===== T6b-2 双屏控件与布局 =====
+-- G[2] 棋盘（p2cell/p2frame 前缀防与 G[1] 撞名；坐标=基准+boardOX）。
+local function buildBoardControls(inst)
+  if not TPL_CELL or not inst then return false end
+  local save = g
+  g = inst
+  g.cells = {}
+  for i = 1, COLS * ROWS do
+    local c = game.InstantiateClientUIControl(TPL_CELL, root)
+    if not c then g = save return false end
+    local col = (i - 1) % COLS
+    local row = (i - 1) // COLS
+    c.name = 'p2cell' .. i
+    g.cellBX[i] = (col - 4.5) * PITCH
+    g.cellBY[i] = (9.5 - row) * PITCH
+    c:SetSizeDelta(CELL, CELL)
+    c:SetAnchoredPosition(g.cellBX[i] + (g.boardOX or 0), g.cellBY[i])
+    c.imageColor = COL_EMPTY
+    g.cells[i] = c
+  end
+  local FRAME_COL = C(255, 76, 194, 255)
+  local frameX = 4.5 * PITCH + CELL / 2 + 1
+  local frameY = 9.5 * PITCH + CELL / 2 + 1
+  g.frames = {}
+  local specs = {
+    { -frameX, 0, 2, 2 * frameY + 2 }, { frameX, 0, 2, 2 * frameY + 2 },
+    { 0, frameY, 2 * frameX + 2, 2 }, { 0, -frameY, 2 * frameX + 2, 2 },
+  }
+  for i = 1, #specs do
+    local fr = game.InstantiateClientUIControl(TPL_CELL, root)
+    if fr then
+      local sp = specs[i]
+      fr.name = 'p2frame' .. i
+      g.frameBX[i], g.frameBY[i] = sp[1], sp[2]
+      fr:SetSizeDelta(sp[3], sp[4])
+      fr:SetAnchoredPosition(g.frameBX[i] + (g.boardOX or 0), g.frameBY[i])
+      fr.imageColor = FRAME_COL
+    end
+    g.frames[i] = fr
+  end
+  print('p2 cellCount=' .. #g.cells)
+  g = save
+  return true
+end
+
+-- G[2] 控件销毁（exitToMenu 用；Destroy 真机生效=技能差异表#2，弃引用会在 430 上限累积）
+local function destroyBoardControls(inst)
+  if not inst or not inst.cells then return end
+  local save = g
+  g = inst
+  local n = 0
+  for _, arr in ipairs({ inst.cells, inst.frames }) do
+    for i = 1, #(arr or {}) do
+      if arr[i] then
+        local ok = pcall(function() game.DestroyClientUIControl(arr[i]) end)
+        if ok then n = n + 1 end
+      end
+    end
+  end
+  inst.cells, inst.frames = nil, nil
+  print('p2 destroy n=' .. n)
+  g = save
+end
+
+-- 摆一个实例的棋盘到指定 x 偏移（cells/frames 全量重摆；preview 只对 G[1] 重排）
+local function placeBoard(inst, ox)
+  local save = g
+  g = inst
+  g.boardOX = ox
+  if g.cells then
+    for i = 1, #g.cells do
+      tryCall(g.cells[i], 'SetAnchoredPosition', g.cellBX[i] + ox, g.cellBY[i])
+    end
+  end
+  if g.frames then
+    for i = 1, 4 do
+      tryCall(g.frames[i], 'SetAnchoredPosition', g.frameBX[i] + ox, g.frameBY[i])
+    end
+  end
+  g = save
+end
+
+-- 双屏布局：G[1] 棋盘移左（-320）、G[2] 移右（+320）；G[1] preview 重排（next 上移棋盘上方两排、
+-- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
+local function layoutDual()
+  placeBoard(G[1], -320)
+  if G[1].preview then
+    for i = 1, 4 do   -- next1-4（当前块 4 格，18px）：棋盘上方一排
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -320 + (i - 2.5) * 22, 318)
+    end
+    for i = 5, 8 do   -- next5-8（第二块，14px）：再上一排
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -320 + (i - 6.5) * 18, 338)
+    end
+    for i = 9, 12 do  -- hold1-4：左栏竖排（x=-550）
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -550, 175 - (i - 9) * 22)
+    end
+  end
+  tryCall(title, 'SetVisible', false)
+  tryCall(hint, 'SetVisible', false)
+  for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+  placeBoard(G[2], 320)
+  setText(keyA, 'AI 盘')
+  setText(keyB, '')
+  setText(keyC, '')
+  print('layout dual')
+end
+
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
 local function enterMode()
   if MODE == 'ai-battle' then
@@ -1642,6 +1761,8 @@ local function enterMode()
     newGame()                             -- 建板+状态复位；G[2] 不取块（newGame 内 ai-battle 分支）
     g = G[1]
     newGame()                             -- 主盘同起点重开（丢自演半盘）；首块 spawn→push→喂 G[2]
+    local okBuild = buildBoardControls(G[2])
+    if okBuild then layoutDual() else print('p2 build fail') end
     print('p2 inst ai-battle hard')       -- 双屏日志 p2 前缀
     g = save
   else
@@ -1654,12 +1775,23 @@ end
 local function exitToMenu()
   if G[2] then
     settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
+    destroyBoardControls(G[2])            -- 销毁 p2 棋盘控件（防 430 上限累积）
     G[2] = nil
   end
   ACTIVE = { 1 }
   MIRRORQ = {}
   MODE = 'casual'
   g = G[1]
+  placeBoard(G[1], 0)                     -- 主盘棋盘回画布中心
+  if G[1].preview then                    -- preview 回原位（next 右栏 / hold 左栏）
+    for i = 1, 4 do tryCall(G[1].preview[i], 'SetAnchoredPosition', 400, 175) end
+    for i = 5, 8 do tryCall(G[1].preview[i], 'SetAnchoredPosition', 400, 100) end
+    for i = 9, 12 do tryCall(G[1].preview[i], 'SetAnchoredPosition', -400, 175 - (i - 9) * 22) end
+  end
+  if CANVAS_W and CANVAS_H then
+    local okL, errL = pcall(layout, CANVAS_W, CANVAS_H)   -- 服务端控件全量复位（title/hint/keyA-C 回 v1 布局）
+    if not okL then print('relayout error :: ' .. tostring(errL)) end
+  end
   guideStage = 0
   demoLoopReset()                         -- 复位主盘演出与横幅（含模式菜单文案）
   print('mode menu')                      -- 回菜单锚
@@ -2149,6 +2281,7 @@ function OnStart()
       .. '（导入后跑 node qxqy/deploy.mjs --calibrate）')
   end
   print('tpl guid=' .. tplGuid)
+  TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
 
   g.cells = {}
   for i = 1, COLS * ROWS do
