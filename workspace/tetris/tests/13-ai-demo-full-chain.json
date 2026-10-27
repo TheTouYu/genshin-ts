@@ -20,13 +20,13 @@
     {
       "at": 34.5,
       "kind": "log",
-      "contains": "demo clear n=2 aiScore=300 aiLines=2 combo=1 b2b=0",
+      "contains": "demo clear n=1 aiScore=100 aiLines=1 combo=1 b2b=0",
       "source": "client"
     },
     {
       "at": 34.5,
       "kind": "log",
-      "contains": "shake rows=2 amp=10 dur=0.2",
+      "contains": "shake rows=1 amp=7 dur=0.18",
       "source": "client"
     },
     {
@@ -34,7 +34,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 300　消行 2　等级 1　已填 40"
+      "equals": "得分 100　消行 1　等级 1　已填 58"
     },
     {
       "at": 46.6,
@@ -47,7 +47,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 0　消行 0　等级 1　已填 44"
+      "equals": "得分 0　消行 0　等级 1　已填 58"
     },
     {
       "at": 46.6,
@@ -58,11 +58,11 @@
     }
   ],
   "audioExpect": [
-    40001,
+    50917,
     50872
   ],
   "audioExclude": [
     50929
   ],
-  "note": "T4 语义 + T5 决策源头的确定性读数（normal 档默认，LCG 20261023 + aiSeed 20261024 + 7-bag 首袋排 S/Z + T5 渐进式搜索/8% 失误注入的 aiRand 消耗序）：首消 33.5s（demo clear aiScore=100 + shake rows=1）；at=45 HUD='得分 100'（AI 账进 HUD）；（无事件探针版第二局 100.8s 可到 aiScore=400，本用例 t=46 接管后 AI 停，故不取该读数）；t=46 按未映射键接管 → at=46.6 HUD 回玩家账 0 分（已填 54 为 AI 留下盘面不清）；best 恒'最高 0'（AI 分不进 bestScore）。v2.1 性能修复（evalNext 四主项第二层）后决策序列再次微漂：at=45 HUD=得分 300/已填 40、at=46.6 已填 44。"
+  "note": "v2.4 BCTS 重做后（1-ply 论文权重，docs/v2-ai-design.md §三）：normal 档首消 29.8s（n=1 aiScore=100，at=34.5 断言不变）；at=45 HUD 已填 58；72.6s demo reset（normal 8% 失误档）。音频不变（50872 落块/50917 单行消）。"
 }

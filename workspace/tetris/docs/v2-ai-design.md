@@ -39,7 +39,36 @@
 4. 实施载体：AI 表加 `search = { pending = <迭代器闭包>, budget = 8ms, ply2 = {...} }`；
    autoTick 的 thinking 分支每帧 `resume` 一次，算完或超时收敛。**不新增 main 函数 local**（200 上限已满，D612）。
 
-## 三、评估函数（权重全进 NUM 表）
+## 三、评估函数（v2.4 起为 BCTS 论文版）
+
+**【论文】Christophe Thiery & Bruno Scherrer, "Building Controllers for Tetris",
+ICGA Journal 32(1), 2009**（HAL: https://hal.science/inria-00418954，本地 /tmp/bcts.pdf）。
+BCTS = 2008 强化学习竞赛冠军；**1-ply（无前瞻）+ 交叉熵优化权重** ⇒ 简化 Tetris 3500 万行、
+真 Tetris 保守下界 91 万行（Dellacherie 手调版 66 万行）。v2.4 起照抄论文权重（不手调）：
+
+| 特征 | 权重【论文】 | 定义（Table 1 + 社区标准实现） |
+|---|---|---|
+| Landing height | -12.63 | 落块四格平均高度（center of the piece） |
+| Eroded piece cells | +6.60 | 消行数 × 落块在消行中的格数（Lee 实现口径） |
+| Row transitions | -9.22 | 水平邻接满-空跳变（行左右边界视为满） |
+| Column transitions | -19.77 | 垂直邻接跳变（列顶空/列底满） |
+| Holes | -13.08 | 被实格覆盖的空格数 |
+| Cumulative wells | -10.49 | Σ d*(d+1)/2 每口井（墙视为 ROWS 高） |
+| Hole depth | -1.61 | 每洞上方实格数之和（BCTS 原创特征） |
+| Rows with holes | -24.04 | 含 ≥1 洞的行数（BCTS 原创特征） |
+
+v2.4 实测（固定种子 100 块）：**hard（纯 BCTS 1-ply+hold）ρ=0.35**（曲线 0.35~0.39，
+stack 2~7 极平，150s 零 demo reset——旧 El-Tetris 2-ply 版 60 块必 reset）；normal（+8% 失误）
+~0.19；easy（+25% 失误）0.17。截图 docs/preview-bcts-hard-mid.png（n=70 rho=0.39 时刻）。
+**关于 ρ 上限**：每块落 4 格、消 1 行需 10 格 ⇒ ρ 净持平点=0.40——长期 ρ>0.4 物理不可持续
+（等于堆高持续下降）。BCTS 千万行的含义=堆高近乎不涨（ρ≈0.4）+ 永不死。任务书 ρ≥0.50
+超过物理持平点，实测 0.35~0.39 即为「会打的人」读数（带数据供 lead 裁决验收线）。
+
+历史版本（v2.1-v2.3，El-Tetris 四权重 + 拟人修正 + 2-ply 精化）的实验记录见 git 历史
+（commit 2e858d62 及更早）；Dellacherie 补充特征与拟人项在同权重系内为负贡献的对照
+实验结论仍有效——v2.4 的 BCTS 八特征是独立权重系（交叉熵全局优化），不与旧结论冲突。
+
+### 旧版（v2.1-v2.3）评估函数（已被 BCTS 替换，存档）
 
 现有 El-Tetris 四项【经典：Lee 2013】+ 两项拟人修正【实测】：
 

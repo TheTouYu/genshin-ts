@@ -98,15 +98,18 @@ local NUM = {
   --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
   --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
   AI_LEVEL = 2,
+  -- BCTS 权重【论文】Thiery & Scherrer 2009 §4（交叉熵优化原值，照抄不手调）
+  BW = { LH = -12.63, ER = 6.60, RT = -9.22, CT = -19.77,
+         HO = -13.08, CW = -10.49, HD = -1.61, RH = -24.04 },
   nxFull = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- T5 性能修复：evalNext scratch（1-4 满行行号；11-20 各列高度）
   AI_LEVELS = {
-    { name = 'easy',   ply = 1, hold = 0, pMistake = 15, topK = 5, nudgePct = 30,
+    { name = 'easy',   ply = 1, hold = 0, pMistake = 25, topK = 8, nudgePct = 30,
       pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
       obsMin = 0.30, targetLo = 2.6, targetHi = 4.0 },
-    { name = 'normal', ply = 2, hold = 0, pMistake = 8, topK = 3, nudgePct = 30,
+    { name = 'normal', ply = 1, hold = 0, pMistake = 8, topK = 3, nudgePct = 30,
       pieceMin = 1.5, pieceMax = 3.2, moveMin = 0.08, moveMax = 0.25,
       obsMin = 0.30, targetLo = 1.8, targetHi = 3.2 },
-    { name = 'hard',   ply = 2, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+    { name = 'hard',   ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
       pieceMin = 0.9, pieceMax = 2.2, moveMin = 0.06, moveMax = 0.18,
       obsMin = 0.55, targetLo = 1.0, targetHi = 2.2 },
   },
@@ -205,7 +208,7 @@ local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；star
 local THEME = {
   bgDeep  = C(255, 11, 16, 24),     -- #0B1018 最深底
   panel   = C(255, 18, 26, 40),     -- #121A28 面板底
-  card    = C(255, 26, 36, 56),     -- #1A2438 卡片底
+  card    = C(255, 30, 43, 68),     -- #1E2B44 卡片底（v2.4：压在深空墙上要浮起来）
   textMain = C(255, 241, 245, 249), -- #F1F5F9 主文字
   textSub  = C(255, 148, 163, 184), -- #94A3B8 次文字
   selectEdge = C(255, 226, 232, 240), -- #E2E8F0 选中描边
@@ -307,7 +310,24 @@ local introT, overlay
 local introFont, introPulse
 local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
 local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
+local layout                              -- 布局函数前向声明（exitToMenu 在它定义之前就调用）
 local bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
+-- v2.4 ① 标题页「展台」实例表（MS）：这里只声明空表 + 配色/文案常量，
+-- 方法（build/destroy/tick/focusLock/teardown）在「v2.3 卡片」段附近挂上——
+-- 那个位置 trySet/TPL_TEXT/probeSettleTextbox 都在作用域内；而 startIfWaiting（更早）
+-- 只调 MS.teardown()，那时表已存在、方法已在运行时挂好。
+local MS = {
+  parts = {}, hint = {}, arrow = {},
+  hintKey = { -1, -1, -1 }, arrowKey = { -1, -1 },
+  hintText = { '1-4 选模式', '任意键 = 休闲', 'H 游戏说明' },
+  WALL = C(255, 8, 11, 18),        -- #080B12 深空墙（A=255：标题页是封闭舞台，不留背景ghost）
+  BEZEL = C(210, 74, 95, 138),    -- #4A5F8A 视窗边框（棋盘框压暗后，屏幕边界靠它）
+  TICK = C(150, 118, 214, 255),    -- 四角括号（青蓝，低对比）
+  CYAN = C(255, 118, 214, 255),    -- 提示条强调色
+  lineY = -332,
+  focus = false,
+}
+local DUAL_DECO = {}                  -- 双屏中缝装饰（2 实例；exitToMenu 拆）
 local showGameOver, updateBest
 local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
 local raiseGarbage    -- T7 垃圾行（实现见 enterMode 前；clearLines 消行后跨盘调用）
@@ -561,6 +581,15 @@ settleDestroy = function()
     local ok = pcall(function() game.DestroyClientUIControl(g.settleLayer) end)
     if ok then n = n + 1 end
   end
+  if g.settleBars then                                   -- v2.4 ②：面板分隔线（两条细带）
+    for i = 1, #g.settleBars do
+      if g.settleBars[i] then
+        local ok = pcall(function() game.DestroyClientUIControl(g.settleBars[i]) end)
+        if ok then n = n + 1 end
+      end
+    end
+    g.settleBars = nil
+  end
   g.settleLayer, g.settleScrim, g.settleCard, g.settleBorder = nil, nil, nil, nil
   g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts = nil, nil, nil, nil, nil, nil
   g.settleReady, g.settleBuildTried = false, false
@@ -719,16 +748,39 @@ local function buildSettleLayer()
     if ok2 and c then sl[1] = c end
     print('settle container-textbox replaced (placeholder removed)')
   end
+  -- ===== v2.4 ② 结算层序修正（用户「黑色窗口异常」的直接解）=====
+  -- 运行时实例是「后建的在上面」（两宿主同规则；D570 实测）。而这层是**懒创建**的：
+  -- gameOver 那一刻棋盘 200 格与左右栏文字早就存在，容器里的 6 行文字又比遮罩/面板先建
+  -- ⇒ 46 号「游戏结束」被半透明面板压在下面，看起来是一团灰雾（v23-settle.png 可证）。
+  -- 修法：按 遮罩 → 面板外沿 → 面板底 → 六行文字 的顺序重建，得到
+  --   棋盘/左右栏 < 遮罩 < 边框 < 面板 < 文字
+  if textGuid then
+    for i = 1, 6 do
+      if sl[i] then pcall(function() game.DestroyClientUIControl(sl[i]) end) end
+      sl[i] = nil
+    end
+    g.settleScrim = instInto(TPL_GUIDS.cell, root, nil)          -- ① 全屏遮罩：盖住棋盘与左右栏
+    g.settleBorder = instInto(TPL_GUIDS.cell, root, nil)         -- ② 面板外沿（4px 描边感）
+    g.settleCard = instInto(TPL_GUIDS.cell, root, nil)           -- ③ 面板底
+    for i = 1, 6 do                                             -- ④ 六行文字：最上层
+      local ok, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
+      if ok and c then c.name = 'settleText' .. i sl[i] = c end
+    end
+    -- ⑤ 面板装饰：顶部强调条（红）+ 标题下／选项上两条细带（不压字，都在行的缝里）
+    g.settleBars = {}
+    for i = 1, 3 do
+      local bar = instInto(TPL_GUIDS.cell, root, nil)
+      if bar then
+        bar.name = 'settleBar' .. i
+        g.settleBars[#g.settleBars + 1] = bar
+      end
+    end
+    print('settle reorder scrim=' .. (g.settleScrim and 'y' or 'n')
+      .. ' border=' .. (g.settleBorder and 'y' or 'n')
+      .. ' card=' .. (g.settleCard and 'y' or 'n') .. ' texts=6')
+  end
   g.settleTitle, g.settleScore, g.settleBest = sl[1], sl[2], sl[3]
   g.settleInfo, g.settleExtra, g.settleOpts = sl[4], sl[5], sl[6]
-  -- 遮罩：cell image（两宿主都能实例化）；它必须画在**所有东西下面** ⇒ 造完挪到根的第一个子节点
-  if g.settleTitle then
-    g.settleScrim = instInto(TPL_GUIDS.cell, root, nil)
-    tryCall(g.settleScrim, 'SetAsFirstSibling')
-  end
-  -- 面板底：容器自带图片就用它，否则用 cell 现造一块
-  if g.settleTitle and not g.settleCard then g.settleCard = instInto(TPL_GUIDS.cell, root, nil) end
-  if not g.settleLayer and g.settleCard then tryCall(g.settleCard, 'SetAsFirstSibling') end
   if not (g.settleTitle and g.settleOpts) then
     -- 全部候选都不可实例化 ⇒ 清掉半成品，让 showGameOver 走布局横幅
     local members = settleMembers()
@@ -756,12 +808,13 @@ local function buildSettleLayer()
     trySet(ctl, 'verticalAlignment', 'Middle')
     trySet(ctl, 'bgColor', C(0, 0, 0, 0))
   end
+  -- 字号层级（v2.4 ②：标题 44 → 本局分 34 → 最高 24 → 明细 20 → 分隔点 20 → 选项 26）
   trySet(g.settleTitle, 'fontSize', 44)
-  trySet(g.settleScore, 'fontSize', 30)
+  trySet(g.settleScore, 'fontSize', 34)
   trySet(g.settleBest, 'fontSize', 24)
-  trySet(g.settleInfo, 'fontSize', 22)
-  trySet(g.settleExtra, 'fontSize', 22)
-  trySet(g.settleOpts, 'fontSize', 28)
+  trySet(g.settleInfo, 'fontSize', 20)
+  trySet(g.settleExtra, 'fontSize', 20)
+  trySet(g.settleOpts, 'fontSize', 26)
   settleSetColors(0)
   -- 懒创建：层刚建好就直接进入动画起点（不隐藏，也不留"隐藏态"给真机去误解）
   local n = 0
@@ -773,14 +826,15 @@ local function buildSettleLayer()
   layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
 end
 
--- 结算层文字颜色（alpha 随面板淡入；a 是 0..255）
+-- 结算层文字颜色（alpha 随面板淡入；a 是 0..255）。v2.4 ②：标题提亮 + 明细不再压到 0.72
+-- （v2.3 出图里标题/明细都是灰雾，一是层序问题，二是 0.72 折损叠在深底上）
 settleSetColors = function(a)
-  local dimA = math.floor(a * 0.72)
-  trySet(g.settleTitle, 'fontColor', C(a, 255, 77, 77))
-  trySet(g.settleScore, 'fontColor', C(a, 255, 194, 76))
-  trySet(g.settleBest, 'fontColor', C(a, 232, 236, 244))
-  trySet(g.settleInfo, 'fontColor', C(dimA, 214, 232, 246))
-  trySet(g.settleExtra, 'fontColor', C(dimA, 214, 232, 246))
+  local dimA = math.floor(a * 0.82)
+  trySet(g.settleTitle, 'fontColor', C(a, 255, 118, 118))
+  trySet(g.settleScore, 'fontColor', C(a, 255, 205, 92))
+  trySet(g.settleBest, 'fontColor', C(a, 226, 232, 240))
+  trySet(g.settleInfo, 'fontColor', C(dimA, 170, 190, 214))
+  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), 110, 140, 180))
   trySet(g.settleOpts, 'fontColor', C(a, 232, 236, 244))
 end
 
@@ -795,12 +849,10 @@ local function settleTick(d)
   if math.abs(r1 - g.settleFade) >= 0.05 or (r1 >= 1 and g.settleFade < 1) then
     g.settleFade = r1
     settleSetColors(math.floor(255 * r1))     -- 只动文字颜色 alpha（真机验证过的通道）
-    if not g.settleReady then
-      -- 兜底（没有结算层）：压暗棋盘本身
-      g.dimRatio = 0.45 * r1
-      g.dimApplied = r1
-      renderAll()
-    end
+    -- v2.4 ②：棋盘压暗**始终**做（不只无结算层的兜底）——结算层在位时棋盘还在半透明遮罩
+    -- 后面，亮格会透过面板抢文字；renderAll 会擦活动块 ⇒ 统一走 renderPiece。
+    g.dimRatio, g.dimApplied = 0.45 * r1, r1
+    renderPiece()
   end
   local e = function(p)
     if p <= 0 then return 0 end
@@ -1269,6 +1321,7 @@ local function startIfWaiting()
   guideStage = 1
   pendingMode = nil                    -- v2.1 ②：任何开局路径都清动画窗状态
   destroyMenuCards()                   -- v2.1 ②：开局销毁菜单卡片（任意键直开时卡片也要撤）
+  MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
   setText(topBanner, '')
   setText(botBanner, '')
   for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
@@ -1296,13 +1349,20 @@ local function startIfWaiting()
       or 'P2：← → 移动 · ↓ 软降 · X 直落'
     setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 按任意键准备')
     setText(botBanner, '')
+    -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
+    -- （服务端 textbox 永远在运行时棋盘格之下，出图 v23-pvp-guide.png 可见被格子切一半）。
+    local seat1 = C(255, 45, 212, 191)
+    local seat2 = (MODE == 'pvp') and C(255, 168, 85, 247)
+      or ((MODE == 'coop') and C(255, 245, 158, 11) or C(255, 244, 63, 94))
     trySet(keyA, 'fontSize', 20)
+    trySet(keyA, 'fontColor', seat1)
     tryCall(keyA, 'SetSizeDelta', 520, 40)
-    tryCall(keyA, 'SetAnchoredPosition', -280, -318)
+    tryCall(keyA, 'SetAnchoredPosition', -280, -338)
     setText(keyA, keys2)
     trySet(keyB, 'fontSize', 20)
+    trySet(keyB, 'fontColor', seat2)
     tryCall(keyB, 'SetSizeDelta', 520, 40)
-    tryCall(keyB, 'SetAnchoredPosition', 280, -318)
+    tryCall(keyB, 'SetAnchoredPosition', 280, -338)
     setText(keyB, keys2b)
     setText(hint, '')
     print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
@@ -1370,16 +1430,23 @@ showGameOver = function(overTitle)
     setText(g.settleTitle, overTitle or '游戏结束')
     setText(g.settleScore, '本局 ' .. g.score .. ' 分')
     setText(g.settleBest, '最高 ' .. bestScore)
-    setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　落块 ' .. g.pieceCount .. '　等级 ' .. g.level)
-    setText(g.settleExtra, '')
-    setText(g.settleOpts, '[R] 再来一局　　[Q] 结算')
+    setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　　落块 ' .. g.pieceCount .. '　　等级 ' .. g.level)
+    -- v2.4 ②：明细行先做成分隔点（Q 键的结算明细会覆盖这一行）
+    setText(g.settleExtra, '·  ·  ·  ·  ·  ·  ·')
+    setText(g.settleOpts, '[R] 再来一局　　[Q] 结算明细')
     trySet(g.settleTitle, 'fontSize', 44)
     g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
     -- 所以"渐暗"只靠文字 fontColor 的 A 通道渐入（这条通道在真机是一直在用的）。
-    if g.settleScrim then trySet(g.settleScrim, 'imageColor', C(140, 0, 0, 0)) end
-    if g.settleCard then trySet(g.settleCard, 'imageColor', C(232, 20, 24, 34)) end
-    if g.settleBorder then trySet(g.settleBorder, 'imageColor', C(120, 76, 194, 255)) end
+    -- v2.4 ②：遮罩做成真·全屏（层序上它在棋盘/左右栏之上、面板之下）⇒ 结算时只剩面板世界
+    if g.settleScrim then trySet(g.settleScrim, 'imageColor', C(238, 6, 9, 16)) end
+    if g.settleBars then
+      trySet(g.settleBars[1], 'imageColor', C(235, 255, 82, 110))    -- 顶部强调条（红）
+      trySet(g.settleBars[2], 'imageColor', C(150, 62, 80, 112))     -- 标题下细带
+      trySet(g.settleBars[3], 'imageColor', C(150, 62, 80, 112))     -- 选项上细带
+    end
+    if g.settleCard then trySet(g.settleCard, 'imageColor', C(246, 25, 33, 50)) end
+    if g.settleBorder then trySet(g.settleBorder, 'imageColor', C(255, 44, 56, 84)) end
     settleSetColors(0)
     tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff)
     tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff)
@@ -1387,7 +1454,6 @@ showGameOver = function(overTitle)
     for i = 1, 9 do
       tryCall(members[i], 'SetVisible', true)
     end
-    tryCall(g.settleExtra, 'SetVisible', false)
     -- 布局横幅不参与结算（避免与结算层重复信息）
     setText(topBanner, '') setText(botBanner, '') setText(hint, '')
     renderAll()
@@ -1452,11 +1518,126 @@ end
 -- 四项（El-Tetris / Lee 2013 公开权重，原样）+ 两项"像人"的小修正：
 --   -0.06 × 离最近墙的列距（贴边偏好，只做同分/近似分的 tie-breaker）
 --   -0.9  × 深度，对每个 1 列宽、深度 >= 3 的中间凹槽（不许为了塞竖 I 在中间挖井）
-local W_AGG, W_LINE, W_HOLE, W_BUMP = -0.510066, 0.760666, -0.35663, -0.184483
+-- ===== BCTS 评估函数（v2.4 AI 强度重做）=====
+-- 信源【论文】Christophe Thiery & Bruno Scherrer, "Building Controllers for Tetris",
+-- ICGA Journal 32(1) 2009, §4（HAL: https://hal.science/inria-00418954；本地 /tmp/bcts.pdf）。
+-- BCTS=2008 强化学习竞赛冠军，1-ply 无前瞻 + 交叉熵优化权重 ⇒ 简化 Tetris 3500 万行
+-- （真 Tetris 保守下界 91 万行）。8 特征定义（论文 Table 1，社区标准实现口径）：
+--   Landing height=落块四格平均高度；Eroded piece cells=消行数×落块在消行中的格数（Lee 实现口径）；
+--   Row/Column transitions=水平/垂直邻接 满空 跳变数（行边界视为满、列顶空/列底满）；
+--   Holes=被实格覆盖的空格数；Cumulative wells=Σ d*(d+1)/2 每口井（墙视为 ROWS 高）；
+--   Hole depth=每洞上方实格数之和；Rows with holes=含≥1 洞的行数。
+-- 权重【论文】原值（交叉熵优化结果，不手调）；量纲：Landing~0-20、trans~20-80、wells~0-40。
+local W_AGG, W_LINE, W_HOLE, W_BUMP = -0.510066, 0.760666, -0.35663, -0.184483  -- 旧 El-Tetris（evalNext 兼容保留）
 local function evalBoard(cells, x)
   if collides(cells, x, 1) then return nil end
   local y = 1
   while y < ROWS and not collides(cells, x, y + 1) do y = y + 1 end
+  -- BCTS：模拟盘（落块标 2 以识别 eroded 归属）——第一层每块只跑 ~34 次，分配量级安全
+  local sim = {}
+  for r = 1, ROWS do
+    local row = {}
+    for c = 1, COLS do row[c] = g.board[r][c] end
+    sim[r] = row
+  end
+  local lhSum = 0
+  for i = 1, 4 do
+    local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
+    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
+      sim[br][bc] = 2
+      lhSum = lhSum + (ROWS - br + 1)
+    end
+  end
+  local lh = lhSum / 4                                   -- Landing height：四格平均
+  -- 消行 + Eroded piece cells（消行数 × 落块在消行中的格数）
+  local erodedCells = 0
+  local complete = 0
+  local r = ROWS
+  while r >= 1 do
+    local row = sim[r]
+    local full = true
+    for c = 1, COLS do
+      if row[c] == 0 then full = false break end
+    end
+    if full then
+      for c = 1, COLS do
+        if row[c] == 2 then erodedCells = erodedCells + 1 end
+      end
+      table.remove(sim, r)
+      local nrow = {}
+      for c = 1, COLS do nrow[c] = 0 end
+      table.insert(sim, 1, nrow)
+      complete = complete + 1
+    else
+      r = r - 1
+    end
+  end
+  local epc = erodedCells * complete
+  -- Row transitions（左右边界视为满）
+  local rt = 0
+  for rr = 1, ROWS do
+    local row = sim[rr]
+    local prev = true
+    for c = 1, COLS do
+      local cur = row[c] ~= 0
+      if cur ~= prev then rt = rt + 1 end
+      prev = cur
+    end
+    if not prev then rt = rt + 1 end
+  end
+  -- Column transitions + Holes + Hole depth + Rows with holes + heights（一次列扫描）
+  local ct = 0
+  local holes = 0
+  local hdepth = 0
+  local rowsWithHoles = 0
+  local heights = {}
+  local top = 0
+  local rowHasHole = {}
+  for c = 1, COLS do
+    local prev = false
+    local seen = false
+    local filledAbove = 0
+    local colH = 0
+    for rr = 1, ROWS do
+      local cur = sim[rr][c] ~= 0
+      if cur ~= prev then ct = ct + 1 end
+      prev = cur
+      if cur then
+        if not seen then colH = ROWS - rr + 1 seen = true end
+        filledAbove = filledAbove + 1
+      elseif seen then
+        holes = holes + 1
+        hdepth = hdepth + filledAbove         -- Hole depth：洞上方实格数
+        rowHasHole[rr] = true
+      end
+    end
+    if not prev then ct = ct + 1 end          -- 列底视为满：底空收尾 +1
+    heights[c] = colH
+    if colH > top then top = colH end
+  end
+  for rr = 1, ROWS do
+    if rowHasHole[rr] then rowsWithHoles = rowsWithHoles + 1 end
+  end
+  -- Cumulative wells：Σ d*(d+1)/2（1+2+…+d），墙视为 ROWS 高（BCTS/Dellacherie 标准口径）
+  local cw = 0
+  for c = 1, COLS do
+    local left = ROWS + 1
+    if c > 1 then left = heights[c - 1] end
+    local right = ROWS + 1
+    if c < COLS then right = heights[c + 1] end
+    local nb = left
+    if right < nb then nb = right end
+    local d = nb - heights[c]
+    if d > 0 then cw = cw + d * (d + 1) / 2 end
+  end
+  local BW = NUM.BW
+  return BW.LH * lh + BW.ER * epc + BW.RT * rt + BW.CT * ct
+    + BW.HO * holes + BW.CW * cw + BW.HD * hdepth + BW.RH * rowsWithHoles, top, complete
+end
+
+-- [v1 时代的旧 El-Tetris 评估体已整体替换为上方 BCTS；evalNext（第二层零分配版）
+--  仍用旧 W_* 权重供 2-ply 实验备用，v2.4 全档 ply=1 不再调用]
+local function evalBoardLegacy_unused(cells, x)
   local occ = {}
   for i = 1, 4 do
     local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
@@ -1578,6 +1759,7 @@ local function evalBoard(cells, x)
     + NUM.W_ROWTRANS * rowtrans + NUM.W_COLTRANS * coltrans + NUM.W_WELLSUM * wellsum
     + NUM.W_LANDING * landing - wWall * wallDist - wells, top, complete
 end
+evalBoardLegacy_unused = nil
 
 -- 选位：4 朝向 × 每个合法列，三层优先级（能消行且不超高 > 不超高 > 清盘）；
 -- 同分先取离墙更近的列（像人贴着边放），再取离当前列更近的，最后取更靠左的。
@@ -1616,34 +1798,15 @@ local function aiChoose()
     if a.from ~= b.from then return a.from < b.from end     -- 再比离当前列
     return a.x < b.x                                        -- 再比靠左
   end
-  local clearBest, safeBest
+  -- v2.4 纯 BCTS 分数决策：最优=BW 加权分最高（eroded 奖励已内建，不再叠「能消行优先」
+  -- 三层规则与竖 I 贴墙特判——两者都会偏离论文校准；同分 tie-break 仍贴墙+近距+靠左）
+  local best
   for _, c in ipairs(cands) do
     if c.h <= AI_RESET_ROWS then
-      if better(c, safeBest) then safeBest = c end
-      if c.clear > 0 and better(c, clearBest) then clearBest = c end
+      if better(c, best) then best = c end
     end
   end
-  local best = clearBest or safeBest
   if not best then return { reset = true } end
-  -- 竖 I 特别容易"立在中间"显得假 ⇒ 贴墙候选只要不比最优差 1.2 分就改放墙边
-  -- （左右都能放时先比平不平，一样平则取左墙——用户口径"优先最左"）
-  if g.piece.name == 'I' and NUM.AI_LEVEL < 3 then   -- hard 档跳过拟人贴墙特判（纯分数决策）
-    local wallBest
-    for _, c in ipairs(cands) do
-      if c.h <= AI_RESET_ROWS and (c.x == 1 or c.x == COLS - 1) and c.score >= best.score - 1.2 then
-        if not wallBest then
-          wallBest = c
-        elseif c.score > wallBest.score + 1e-9 then
-          wallBest = c
-        elseif math.abs(c.score - wallBest.score) <= 1e-9 then
-          local a = math.min(c.x, COLS - c.x)
-          local b = math.min(wallBest.x, COLS - wallBest.x)
-          if a < b then wallBest = c end
-        end
-      end
-    end
-    if wallBest then best = wallBest end
-  end
   -- 落点行（软降要按格数摊时间）
   local landingY = 1
   local probe = cells
@@ -1871,19 +2034,228 @@ destroyMenuCards = function()
   end
   MC = {}
   if n > 0 then print('menu cards destroy n=' .. n) end
+  -- v2.4 ①：这里**只销卡片**。展台（墙/框/标题/提示条）要留到进局那一刻才拆
+  -- （MS.teardown）——否则 0.5s 的模式名动画窗会露出生裸棋盘，闪一下。
 end
+-- ===== v2.4 ① 标题页「展台」（menu stage）==========================================
+-- 视觉验收第一轮读数（docs/v23-title.png 复看）：
+--   ① 17 张卡片浮在模拟器天空蓝背景上，没有任何「舞台」⇒ 标题页没有边界感；
+--   ② 中央棋盘的青色边框是画面最响的元素，左上 hold 槽 / 右上 next 预览 / 左栏 HUD 散在外圈；
+--   ③ 副标题 'DEEP SPACE NEON' 居中落在棋盘投影区 x∈[-165,165] 里，像一行错位水印。
+-- 做法：一套**随卡片同时建/销**的展台零件（与 MC 分开——日志锚 menu cards n=17 只数卡片）：
+--   ▸ 深空墙 4 块：把棋盘视窗以外的整屏压成深底 ⇒ HUD/预览/hold 槽自动退场
+--     （层序铁律：运行时实例后建的在上面，服务端 textbox 永远在实例层之下——2026-10-24 踩过）；
+--   ▸ 视窗边框 4 条 + 四角括号 8 条：中央棋盘变成一块「屏幕」，不再是散落的网格；
+--   ▸ 标题 44/52 号大字（实例版）：topBanner 的 fontColor A 置 0 让位（真机唯一验过的通道是 A）；
+--   ▸ 底部分段提示条：3 段 + 2 点 + 2 侧箭头，逐段高亮轮播 + 呼吸（用户 2026-10-27 令）。
+-- 只占 1 个 chunk local（MS 表，空表与配色在文件头部声明区）——main chunk 贴着 200 local
+-- 硬上限，零件全挂字段。
+MS.addCell = function(name, x, y, w, h, color)
+  if not TPL_CELL then return nil end
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
+  if not ok or not c then return nil end
+  c.name = name
+  tryCall(c, 'SetSizeDelta', w, h)
+  tryCall(c, 'SetAnchoredPosition', x, y)
+  c.imageColor = color
+  MS.parts[#MS.parts + 1] = c
+  return c
+end
+MS.addText = function(name, text, x, y, w, h, size, color, align)
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then return nil end
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+  if not ok or not c then return nil end
+  c.name = name
+  c.text = text
+  trySet(c, 'fontSize', size)
+  trySet(c, 'fontColor', color)
+  trySet(c, 'bgColor', C(0, 0, 0, 0))
+  trySet(c, 'horizontalAlignment', align or 'Middle')
+  trySet(c, 'verticalAlignment', 'Middle')
+  trySet(c, 'enableOutline', true)
+  trySet(c, 'outlineColor', C(150, 0, 0, 0))
+  tryCall(c, 'SetSizeDelta', w, h)
+  tryCall(c, 'SetAnchoredPosition', x, y)
+  MS.parts[#MS.parts + 1] = c
+  return c
+end
+-- 卡片顶部发丝线（模式色 2px）：给扁平的卡底一个「刀线」，是街机菜单的常见语汇
+MS.hairline = function(i, cx, cy, color)
+  local a = 150
+  local w = 344
+  local r, gg, b = (color // 65536) % 256, (color // 256) % 256, color % 256
+  local c = MS.addCell('menuHair' .. i, cx, cy + 54, w, 2, C(a, r, gg, b))
+  if c then
+    MS.hair = MS.hair or {}
+    MS.hair[i] = { ctl = c, r = r, g = gg, b = b }
+  end
+end
+MS.destroy = function()
+  for i = #MS.parts, 1, -1 do
+    if MS.parts[i] then pcall(function() game.DestroyClientUIControl(MS.parts[i]) end) end
+    MS.parts[i] = nil
+  end
+  for i = 1, 3 do MS.hint[i] = nil MS.hintKey[i] = -1 end
+  for i = 1, 2 do MS.arrow[i] = nil MS.arrowKey[i] = -1 end
+  MS.big, MS.focus, MS.hair = nil, false, nil
+end
+MS.build = function()
+  if not TPL_CELL then return false end
+  MS.destroy()
+  local W, H = CANVAS_W or 1280, CANVAS_H or 720
+  local halfW, halfH = W / 2, H / 2
+  -- 棋盘视窗：正好收到棋盘框外沿（frame 在 ±150 / ±300，背板 306×606）。
+  -- 早先给 174/312/-302 ⇒ 视窗比背板大 3~9px，边缘漏出背景一条亮线（出图实测）。
+  local winHalf, winTop, winBot = 151, 301, -301
+  local sideW, sideH = halfW - winHalf, winTop - winBot
+  local sideCY = (winTop + winBot) / 2
+  -- ① 深空墙：左右上下四块，只留视窗（+8 遮住画布边缘的抗锯齿缝）
+  MS.addCell('menuWallL', -(winHalf + sideW / 2), sideCY, sideW, sideH, MS.WALL)
+  MS.addCell('menuWallR', winHalf + sideW / 2, sideCY, sideW, sideH, MS.WALL)
+  MS.addCell('menuWallT', 0, (halfH + winTop) / 2, W + 8, halfH - winTop + 1, MS.WALL)
+  MS.addCell('menuWallB', 0, (winBot - halfH) / 2, W + 8, halfH + winBot + 1, MS.WALL)
+  -- ② 视窗边框 + 四角括号
+  MS.addCell('menuBezelT', 0, winTop, 2 * winHalf + 8, 3, MS.BEZEL)
+  MS.addCell('menuBezelB', 0, winBot, 2 * winHalf + 8, 3, MS.BEZEL)
+  MS.addCell('menuBezelL', -winHalf, sideCY, 3, sideH + 8, MS.BEZEL)
+  MS.addCell('menuBezelR', winHalf, sideCY, 3, sideH + 8, MS.BEZEL)
+  local AR, AT = 44, 3
+  for _, sx in ipairs({ -1, 1 }) do
+    for _, sy in ipairs({ -1, 1 }) do
+      local tag = (sx > 0 and 'R' or 'L') .. (sy > 0 and 'T' or 'B')
+      MS.addCell('menuTickH' .. tag, sx * (halfW - AR / 2 - 12), sy * (halfH - 12), AR, AT, MS.TICK)
+      MS.addCell('menuTickV' .. tag, sx * (halfW - 12), sy * (halfH - AR / 2 - 12), AT, AR, MS.TICK)
+    end
+  end
+  -- ③ 标题（实例版大字）。服务端 topBanner/botBanner 在某些宿主可能压在实例层之上，
+  --    A 置 0 双保险——A 通道是唯一真机验过的通道（D581）。
+  local titleSize = (halfH > 400) and 52 or 44
+  local titleY = math.min(winTop + (halfH - winTop) / 2 + 2, halfH - titleSize * 0.62 - 4)
+  MS.big = MS.addText('menuBig', '俄罗斯方块', 0, titleY, 660, titleSize + 26, titleSize, C_GOLD2)
+  trySet(topBanner, 'fontColor', C(0, 255, 194, 76))
+  trySet(botBanner, 'fontColor', C(0, 118, 214, 255))
+  -- ④ 底部分段提示条（3 段 + 2 分隔点 + 2 侧箭头）
+  local lineY = winBot - 30
+  MS.lineY = lineY
+  local segX, segW = { -290, 0, 290 }, { 215, 250, 215 }
+  for i = 1, 3 do
+    MS.hint[i] = MS.addText('menuHint' .. i, MS.hintText[i], segX[i], lineY, segW[i], 50, 26, MS.CYAN)
+  end
+  MS.segX = segX
+  MS.sweepX = segX[1]
+  MS.sweep = MS.addCell('menuSweep', MS.sweepX, lineY - 21, 130, 3, C(170, 118, 214, 255))
+  MS.addCell('menuDot1', -148, lineY, 6, 6, C(150, 118, 214, 255))
+  MS.addCell('menuDot2', 148, lineY, 6, 6, C(150, 118, 214, 255))
+  MS.arrow[1] = MS.addCell('menuArrowL', -430, lineY, 12, 12, MS.CYAN)
+  MS.arrow[2] = MS.addCell('menuArrowR', 430, lineY, 12, 12, MS.CYAN)
+  print('menu stage n=' .. #MS.parts)
+  return true
+end
+-- 模式名大字独占画面时（pendingMode 动画窗 0.5s）：展台标题变成模式名，其余零件让位。
+-- 为什么不用 topBanner：深空墙压在服务端 textbox 之上（层序铁律），只能让实例版大字来演。
+MS.focusLock = function(idx, mname)
+  if MS.focus then return end
+  MS.focus = true
+  local info = MODE_INFO[idx] or MODE_INFO[1]
+  if MS.big then
+    MS.big.text = MODE_TITLE[mname] or mname or '俄罗斯方块'
+    trySet(MS.big, 'fontColor', info.color)
+    tryCall(MS.big, 'SetSizeDelta', 720, 100)      -- 64 号要 >=96.8
+    tryCall(MS.big, 'SetAnchoredPosition', 0, 0)   -- 屏幕正中（顶部条带放不下 64 号墨迹）
+    trySet(MS.big, 'fontSize', 26)
+    MS.pendingSize = 26
+  end
+  if MS.hair then                                  -- 卡片没了，发丝线也别留在空中
+    for i = 1, #MS.hair do
+      local h = MS.hair[i]
+      if h then h.ctl.imageColor = C(0, h.r, h.g, h.b) end
+    end
+  end
+  for i = 1, 3 do
+    if MS.hint[i] then
+      trySet(MS.hint[i], 'fontColor', C(0, 214, 232, 246))
+      trySet(MS.hint[i], 'outlineColor', C(0, 0, 0, 0))   -- 否则描边还留一圈暗字影
+    end
+  end
+  for i = 1, 2 do
+    if MS.arrow[i] then MS.arrow[i].imageColor = C(0, 118, 214, 255) end
+  end
+end
+-- 展台退场（进局那一刻）：拆零件 + 把服务端两条横幅的颜色还给游戏（A 通道是真机通道）
+MS.teardown = function()
+  if #MS.parts == 0 then return end
+  MS.destroy()
+  trySet(topBanner, 'fontColor', C_GOLD2)
+  trySet(botBanner, 'fontColor', C_ACCENT2)
+end
+-- 底栏动效：4 阶段循环（0/1/2=高亮对应段，3=整条亮一口），段内 alpha 呼吸，箭头呼吸+外扩。
+-- 只在值真的变化时写控件（和 introFont/introPulse 同一套防抖思路，省每帧写）。
+MS.tick = function()
+  if #MS.parts == 0 or MS.focus then return end
+  local t = introT
+  local seg = math.floor(t / 0.75) % 4
+  local breathe = 0.5 + 0.5 * math.sin(t * 2.6)
+  for i = 1, 3 do
+    local ctl = MS.hint[i]
+    if ctl then
+      local on = (seg == 3) or (seg == i - 1)
+      local size = on and 30 or 26
+      local alpha = on and 255 or math.floor(105 + 55 * breathe)
+      local k = size * 1000 + alpha
+      if MS.hintKey[i] ~= k then
+        MS.hintKey[i] = k
+        trySet(ctl, 'fontSize', size)
+        trySet(ctl, 'fontColor', C(alpha, on and 118 or 148, on and 214 or 163, on and 255 or 184))
+      end
+    end
+  end
+  -- 滑动下划线：跟随当前高亮段（3 段时平滑滑过去；整条亮的那一段留在中间）
+  if MS.sweep and MS.segX then
+    local target = MS.segX[(seg < 3) and (seg + 1) or 2]
+    local nx = MS.sweepX + (target - MS.sweepX) * 0.18
+    if math.abs(nx - MS.sweepX) > 0.6 then
+      MS.sweepX = nx
+      tryCall(MS.sweep, 'SetAnchoredPosition', math.floor(nx), MS.lineY - 21)
+    elseif MS.sweepX ~= target then
+      MS.sweepX = target
+      tryCall(MS.sweep, 'SetAnchoredPosition', target, MS.lineY - 21)
+    end
+    local sa = math.floor(90 + 90 * (0.5 + 0.5 * math.sin(t * 3.1)))
+    MS.sweep.imageColor = C(sa, 118, 214, 255)
+  end
+  local ph = 0.5 + 0.5 * math.sin(t * 4.2)
+  local a, off = math.floor(60 + 150 * ph), math.floor(2 + 5 * ph)
+  for i = 1, 2 do
+    local ctl = MS.arrow[i]
+    if ctl then
+      local k = a * 100 + off
+      if MS.arrowKey[i] ~= k then
+        MS.arrowKey[i] = k
+        ctl.imageColor = C(a, 118, 214, 255)
+        tryCall(ctl, 'SetAnchoredPosition', (i == 1 and -1 or 1) * (430 + off), MS.lineY)
+      end
+    end
+  end
+end
+
 -- v2.3 ①：左右两列各两卡（避开中央 330 宽棋盘投影区）——左列 x=-420（1 休闲/2 AI 对抗），
 -- 右列 x=+420（3 双人/4 合作），列内 y=+80/-80；卡 360×110。
 -- v2.3 ② 卡片结构（深空霓虹）：深色卡底 #1A2438 + 左缘 6px 模式色标条 + 模式名 30 号主文字
 -- + 特色句 15 号次文字——主色只在色标条/选中态出现，不再整卡铺色。副标题 18 号次文字色。
-local MC_CARD = { { -420, 80 }, { -420, -80 }, { 420, 80 }, { 420, -80 } }
+local MC_CARD = { { -420, 104 }, { -420, -104 }, { 420, 104 }, { 420, -104 } }
 buildMenuCards = function()
   if not TPL_CELL then return false end
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
   if not TPL_TEXT then print('menu cards no text tpl') return false end
   destroyMenuCards()
+  -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），卡片后建 ⇒ 卡片压在墙上面
+  local okStage, errStage = pcall(MS.build)
+  if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
   for i, info in ipairs(MODE_INFO) do
     local cx, cy = MC_CARD[i][1], MC_CARD[i][2]
+    -- v2.4 ① 卡片层次：卡底（略提亮，压在深空墙上要浮起来）+ 左缘 8px 色标条 + 顶部 2px 发丝线
+    -- + 模式名 32 号主文字 + 特色句 16 号次文字。发丝线走 MS.parts（不属于 17 实例卡片组）。
     local bg = game.InstantiateClientUIControl(TPL_CELL, root)
     if bg then
       bg.name = 'menuCard' .. i
@@ -1895,40 +2267,47 @@ buildMenuCards = function()
     local bar = game.InstantiateClientUIControl(TPL_CELL, root)
     if bar then
       bar.name = 'menuBar' .. i
-      bar:SetSizeDelta(6, 110)
-      bar:SetAnchoredPosition(cx - 177, cy)
+      bar:SetSizeDelta(8, 110)
+      bar:SetAnchoredPosition(cx - 176, cy)
       bar.imageColor = info.color
       MC[#MC + 1] = bar
     end
+    MS.hairline(i, cx, cy, info.color)
     local t1 = game.InstantiateClientUIControl(TPL_TEXT, root)
     if t1 then
       t1.name = 'menuTitle' .. i
       t1.text = info.key .. '  ' .. info.name
-      t1.fontSize = 30
+      t1.fontSize = 32
       trySet(t1, 'fontColor', THEME.textMain)
-      t1:SetSizeDelta(330, 48)
-      t1:SetAnchoredPosition(cx + 6, cy + 22)
+      trySet(t1, 'bgColor', C(0, 0, 0, 0))
+      t1:SetSizeDelta(330, 52)      -- 32 号硬判据 32*1.45+4 = 50.4 ⇒ 给 52（50 会整行不画）
+      t1:SetAnchoredPosition(cx + 8, cy + 21)
       MC[#MC + 1] = t1
     end
     local t2 = game.InstantiateClientUIControl(TPL_TEXT, root)
     if t2 then
       t2.name = 'menuDesc' .. i
       t2.text = info.desc
-      t2.fontSize = 15
-      trySet(t2, 'fontColor', THEME.textSub)
-      t2:SetSizeDelta(330, 32)
-      t2:SetAnchoredPosition(cx + 6, cy - 22)
+      t2.fontSize = 16
+      trySet(t2, 'fontColor', C(255, 170, 184, 204))
+      trySet(t2, 'bgColor', C(0, 0, 0, 0))
+      t2:SetSizeDelta(330, 34)
+      t2:SetAnchoredPosition(cx + 8, cy - 23)
       MC[#MC + 1] = t2
     end
   end
   local sub = game.InstantiateClientUIControl(TPL_TEXT, root)
   if sub then
+    local W, H = CANVAS_W or 1280, CANVAS_H or 720
     sub.name = 'menuSub'
     sub.text = 'DEEP SPACE NEON · 四模式街机'
-    sub.fontSize = 18
-    trySet(sub, 'fontColor', THEME.textSub)
-    sub:SetSizeDelta(480, 36)
-    sub:SetAnchoredPosition(0, 238)
+    sub.fontSize = 16
+    trySet(sub, 'fontColor', C(196, 148, 163, 184))
+    trySet(sub, 'horizontalAlignment', 'Left')
+    trySet(sub, 'bgColor', C(0, 0, 0, 0))
+    -- v2.4 ①：从棋盘投影区（y=238，压在格子正中）挪到左上角做 edition 标签
+    sub:SetSizeDelta(390, 34)
+    sub:SetAnchoredPosition(-(W / 2 - 210), H / 2 - 30)
     MC[#MC + 1] = sub
   end
   print('menu cards n=' .. #MC)
@@ -1941,6 +2320,14 @@ local function buildBoardControls(inst)
   if not TPL_CELL or not inst then return false end
   local save = g
   g = inst
+  local plate = game.InstantiateClientUIControl(TPL_CELL, root)
+  if plate then                            -- v2.4 ①：对家盘同样需要背板（缝里不漏亮底）
+    plate.name = 'p2plate'
+    plate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
+    plate:SetAnchoredPosition(0, 0)
+    plate.imageColor = C(255, 9, 12, 20)
+    g.plate = plate
+  end
   g.cells = {}
   for i = 1, COLS * ROWS do
     local c = game.InstantiateClientUIControl(TPL_CELL, root)
@@ -1955,7 +2342,9 @@ local function buildBoardControls(inst)
     c.imageColor = COL_EMPTY
     g.cells[i] = c
   end
-  local FRAME_COL = C(255, 76, 194, 255)
+  -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
+  -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
+  local FRAME_COL = C(255, 58, 76, 108)
   local frameX = 4.5 * PITCH + CELL / 2 + 1
   local frameY = 9.5 * PITCH + CELL / 2 + 1
   g.frames = {}
@@ -1994,6 +2383,11 @@ local function destroyBoardControls(inst)
       end
     end
   end
+  if inst.plate then
+    local ok = pcall(function() game.DestroyClientUIControl(inst.plate) end)
+    if ok then n = n + 1 end
+    inst.plate = nil
+  end
   inst.cells, inst.frames = nil, nil
   print('p2 destroy n=' .. n)
   g = save
@@ -2014,6 +2408,9 @@ local function placeBoard(inst, ox)
       tryCall(g.frames[i], 'SetAnchoredPosition', g.frameBX[i] + ox, g.frameBY[i])
     end
   end
+  if g.plate then                        -- v2.4 ①：棋盘背板跟着盘走（双屏时它留在中线=一块黑板）
+    tryCall(g.plate, 'SetAnchoredPosition', ox, 0)
+  end
   g = save
 end
 
@@ -2021,6 +2418,16 @@ end
 -- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
 local function layoutDual()
   placeBoard(G[1], -280)
+  -- v2.4 ③ 双屏读图读数（v23-pvp.png）：两侧各 300+px 空区没有归属物，左栏 HUD 压在左盘边上，
+  -- 两盘除了位置没有任何席位标识。做法：棋盘框按席位染色 + 左栏战况回归左空区 + 中缝一条细线。
+  local p1c = C(255, 45, 212, 191)                       -- P1 青绿
+  local p2c = C(255, 244, 63, 94)                        -- AI 玫红
+  if MODE == 'pvp' then p2c = C(255, 168, 85, 247) end   -- 双人=紫
+  if MODE == 'coop' then p2c = C(255, 245, 158, 11) end  -- 合作=琥珀
+  for i = 1, 4 do
+    if G[1].frames and G[1].frames[i] then G[1].frames[i].imageColor = p1c end
+    if G[2] and G[2].frames and G[2].frames[i] then G[2].frames[i].imageColor = p2c end
+  end
   if G[1].preview then
     for i = 1, 4 do   -- next1-4（当前块 4 格，18px）：棋盘上方一排
       tryCall(G[1].preview[i], 'SetAnchoredPosition', -280 + (i - 2.5) * 22, 318)
@@ -2036,6 +2443,43 @@ local function layoutDual()
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
   placeBoard(G[2], 280)
+  -- 中缝细线：把两块屏分开（2 个实例，一次性建，exitToMenu 里拆）
+  if not DUAL_DECO[1] and TPL_CELL then
+    for i = 1, 2 do
+      local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
+      if ok and c then
+        c.name = 'duoLane' .. i
+        DUAL_DECO[i] = c
+      end
+    end
+  end
+  if DUAL_DECO[1] then
+    local H2 = CANVAS_H or 720
+    tryCall(DUAL_DECO[1], 'SetSizeDelta', 2, H2 * 0.66)
+    tryCall(DUAL_DECO[1], 'SetAnchoredPosition', 0, 0)
+    trySet(DUAL_DECO[1], 'imageColor', C(120, 118, 214, 255))
+  end
+  if DUAL_DECO[2] then
+    tryCall(DUAL_DECO[2], 'SetSizeDelta', 10, 10)
+    tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
+    trySet(DUAL_DECO[2], 'imageColor', C(200, 118, 214, 255))
+  end
+  -- 左栏战况归位：hud 原在 x=-(halfW-…)=压在左盘边上；挪进左空区并缩小字号防裁尾
+  local halfW = (CANVAS_W or 1280) / 2
+  local gutterX = -(halfW - 186)
+  if hud then
+    tryCall(hud, 'SetSizeDelta', 348, 40)          -- 18 号下 330 会把尾字裁掉（右缘贴边）
+    tryCall(hud, 'SetAnchoredPosition', gutterX, 250)
+    trySet(hud, 'fontSize', 17)
+  end
+  if best then
+    tryCall(best, 'SetSizeDelta', 330, 36)
+    tryCall(best, 'SetAnchoredPosition', gutterX, 202)
+  end
+  if hudNext then
+    tryCall(hudNext, 'SetSizeDelta', 330, 40)
+    tryCall(hudNext, 'SetAnchoredPosition', gutterX, 300)
+  end
   setText(keyA, 'AI 盘')
   setText(keyB, '')
   setText(keyC, '')
@@ -2070,6 +2514,10 @@ end
 -- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
 local function exitToMenu()
   MODE_OVER = false                    -- v2.2 ③：终局标志复位（R 回菜单）
+  for i = 1, #DUAL_DECO do             -- v2.4 ③：拆中缝装饰（防实例累积）
+    if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
+    DUAL_DECO[i] = nil
+  end
   if G[2] then
     settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
     destroyBoardControls(G[2])            -- 销毁 p2 棋盘控件（防 430 上限累积）
@@ -2551,19 +2999,24 @@ layoutSettle = function(W, H)
   if cw > 780 then cw = 780 end
   local ch = 400
   place2(g.settleScrim, 0, 0, W + 60, H + 60)        -- 全屏遮罩
+  if g.settleBars then                                -- v2.4 ②：面板装饰（强调条 + 两条细带）
+    place2(g.settleBars[1], 0, ch / 2 - 3, cw, 6)     -- 顶部强调条
+    place2(g.settleBars[2], 0, 104, cw - 150, 2)      -- 标题下
+    place2(g.settleBars[3], 0, -104, cw - 150, 2)     -- 选项上
+  end
   place2(g.settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
   place2(g.settleCard, 0, 0, cw, ch)                 -- 面板底
   g.settleTitleY, g.settleOptsY = 140, -136
   g.settleTitleOff, g.settleOptsOff = halfH + 80, -(halfH + 80)
   place2(g.settleTitle, 0, g.settleTitleY, cw - 60, 80)
-  place2(g.settleScore, 0, 72, cw - 60, 52)
-  place2(g.settleBest, 0, 20, cw - 60, 44)
-  place2(g.settleInfo, 0, -28, cw - 60, 40)
-  place2(g.settleExtra, 0, -66, cw - 60, 40)
+  place2(g.settleScore, 0, 66, cw - 60, 56)          -- 34 号（需 53.3）
+  place2(g.settleBest, 0, 16, cw - 60, 44)           -- 24 号（需 38.8）
+  place2(g.settleInfo, 0, -26, cw - 60, 40)          -- 20 号（需 33）
+  place2(g.settleExtra, 0, -64, cw - 60, 40)         -- 分隔点行，20 号
   place2(g.settleOpts, 0, g.settleOptsY, cw - 60, 48)
 end
 
-local function layout(W, H)
+layout = function(W, H)
   CANVAS_W, CANVAS_H = W, H
   local halfW, halfH = W / 2, H / 2
   local panelW = 420
@@ -2647,6 +3100,18 @@ function OnStart()
   print('tpl guid=' .. tplGuid)
   TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
 
+  -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
+  -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。
+  -- 背板必须在**格子之前**建（层序：先建的在下），全模式一张，进局后同样让缝隙变暗。
+  local backPlate = game.InstantiateClientUIControl(tplGuid, root)
+  if backPlate then
+    backPlate.name = 'boardPlate'
+    backPlate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
+    backPlate:SetAnchoredPosition(0, 0)
+    backPlate.imageColor = C(255, 9, 12, 20)
+    g.plate = backPlate
+  end
+
   g.cells = {}
   for i = 1, COLS * ROWS do
     local c = firstCell
@@ -2667,7 +3132,9 @@ function OnStart()
   print('cellCount=' .. #g.cells)
 
   -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
-  local FRAME_COL = C(255, 76, 194, 255)
+  -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
+  -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
+  local FRAME_COL = C(255, 58, 76, 108)
   local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
   g.frames = {}
   -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
@@ -2869,7 +3336,8 @@ function OnStart()
       local selCard, selBar = find('menuCard' .. i), find('menuBar' .. i)
       if selCard then tryCall(selCard, 'SetSizeDelta', 374, 114) end
       if selBar then tryCall(selBar, 'SetSizeDelta', 10, 114) end
-      destroyMenuCards()
+      destroyMenuCards()                 -- 只销卡片；展台留到 enterMode（防 0.5s 动画窗露出裸棋盘）
+      MS.focusLock(i, mname)             -- 展台标题实例变模式名大字（框高同步放到 100，64 号需 96.8）
       pendingMode, pendingT = mname, 0
       setText(topBanner, MODE_TITLE[mname] or mname)
       trySet(topBanner, 'fontColor', MODE_INFO[i].color)
@@ -3140,7 +3608,14 @@ function OnUpdate(dt)
     if pendingMode then
       pendingT = pendingT + d
       local size = math.min(64, 26 + math.floor(pendingT * 90))
-      trySet(topBanner, 'fontSize', size)
+      if MS.big then
+        if size ~= MS.pendingSize then      -- 展台标题实例演模式名（服务端横幅被墙压住）
+          MS.pendingSize = size
+          trySet(MS.big, 'fontSize', size)
+        end
+      else
+        trySet(topBanner, 'fontSize', size) -- 无展台兜底
+      end
       if pendingT >= 0.5 then
         pendingMode = nil
         trySet(topBanner, 'fontSize', 34)
@@ -3150,18 +3625,15 @@ function OnUpdate(dt)
       end
       return
     end
-    -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
+    -- 入场演出：标题 26→40 渐大（topBanner 被展台标题盖住，这两行保留作无展台兜底）
+    -- + 底部分段提示条动效（v2.4 ①：3 段轮播/呼吸，见 MS.tick）
     introT = introT + d
     local size = math.min(40, 26 + math.floor(introT * 12))
     if size ~= introFont then
       introFont = size
       trySet(topBanner, 'fontSize', size)
     end
-    local pulse = 22 + math.floor(2 * (0.5 + 0.5 * math.sin(introT * 5)))
-    if pulse ~= introPulse then
-      introPulse = pulse
-      trySet(botBanner, 'fontSize', pulse)
-    end
+    MS.tick()
     autoTick(d)   -- AI 自演：选位→旋转→逐格横移→硬降→消行→下一块，玩家按键即交还控制
     -- v2.1 C：AI 消行的分数弹跳（前半 26 号放大、后半回 20；框高 40 按 26×1.45+4=41.7 微超但
     -- trySet 只在帧内短暂生效且 hud 框实测容差足够——真机/网页上「AI 在得分」一眼可见）

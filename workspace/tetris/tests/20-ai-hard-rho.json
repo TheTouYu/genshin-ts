@@ -27,9 +27,9 @@
     {
       "at": 235,
       "kind": "log",
-      "contains": "rho=0.34 pieces=100",
+      "contains": "rho=0.35 pieces=100",
       "source": "client"
     }
   ],
-  "note": "T5 验收：固定种子高难度档 100 块 ρ≥0.30（v2-plan §三 T5）。v2.1 性能修复后 evalNext 四主项（含 bump）实测 rho=0.34@100（曲线 0.33~0.35 稳定，好于修复前三主项的 0.22 与原全项版的 0.30）。"
+  "note": "v2.4 BCTS【论文】Thiery&Scherrer 2009 8 特征 1-ply（docs/v2-ai-design.md §三）：hard 档实测 rho=0.35@100（曲线 0.35~0.39，stack 2~7 极平，150s 零 demo reset——旧 El-Tetris 2-ply 版 60 块必 reset）。截图 docs/preview-bcts-hard-mid.png（n=70 rho=0.39 时刻）。"
 }
