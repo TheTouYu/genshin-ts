@@ -60,8 +60,14 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const nxt = f.localVariable('vec3')
   const phase = f.localVariable('int')
 
+  // 开局暖机（用户 2026-10-27）：游戏还在建图/建实体，此时 teleport 与判定都无意义。
+  // 用 tick 近似时间：15/s 时 75 拍 ≈ 5s；掉到 7.5/s 时 ≈ 10s（"至少 5 秒"，宁可长一点）。
   f.doubleBranch(
-    f.lessThanOrEqualTo(tick, 8n),
+    f.lessThanOrEqualTo(tick, 75n),
+    () => {},
+    () => {
+  f.doubleBranch(
+    f.lessThanOrEqualTo(tick, 83n),
     () => {
       // —— E3 地形：只测一档（空中 +3），另两档 +0.2 / −2 在 8~16 / 16~24 拍 ——
       phase.set(0n)
@@ -69,21 +75,21 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     },
     () => {
       f.doubleBranch(
-        f.lessThanOrEqualTo(tick, 16n),
+        f.lessThanOrEqualTo(tick, 91n),
         () => {
           phase.set(0n)
           nxt.set(f.create3dVector(6.0, 0.2, 6.0))
         },
         () => {
           f.doubleBranch(
-            f.lessThanOrEqualTo(tick, 24n),
+            f.lessThanOrEqualTo(tick, 99n),
             () => {
               phase.set(0n)
               nxt.set(f.create3dVector(6.0, -2.0, 6.0))
             },
             () => {
               f.doubleBranch(
-                f.lessThanOrEqualTo(tick, 48n),
+                f.lessThanOrEqualTo(tick, 123n),
                 () => {
                   // —— E1 隧穿：以**玩家实际位置**为中心，从 pz−10 沿 +X 掠过（y=玩家+0.9）——
                   phase.set(1n)
@@ -93,7 +99,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 },
                 () => {
                   f.doubleBranch(
-                    f.lessThanOrEqualTo(tick, 80n),
+                    f.lessThanOrEqualTo(tick, 155n),
                     () => {
                       // —— E4 射线：朝玩家方向投 20m（层=场景）；命中则贴到命中点 ——
                       phase.set(2n)
@@ -183,8 +189,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // E3 每档末读回高度差
   const atEnd = f.logicalOrOperation(
-    f.logicalOrOperation(f.equal(tick, 8n), f.equal(tick, 16n)),
-    f.equal(tick, 24n)
+    f.logicalOrOperation(f.equal(tick, 83n), f.equal(tick, 91n)),
+    f.equal(tick, 99n)
   )
   f.doubleBranch(
     f.logicalAndOperation(f.equal(phase.value, 0n), atEnd),
@@ -204,15 +210,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   f.setSkillVariable(S_PREVY, parts.yComponent)
   f.setSkillVariable(S_PREVZ, parts.zComponent)
 
+    }
+  )
+
   // 每 8 拍回传
   const atReport = f.logicalOrOperation(
     f.logicalOrOperation(
-      f.logicalOrOperation(f.equal(tick, 8n), f.equal(tick, 16n)),
-      f.logicalOrOperation(f.equal(tick, 24n), f.equal(tick, 32n))
+      f.logicalOrOperation(f.equal(tick, 83n), f.equal(tick, 91n)),
+      f.logicalOrOperation(f.equal(tick, 99n), f.equal(tick, 107n))
     ),
     f.logicalOrOperation(
-      f.logicalOrOperation(f.equal(tick, 40n), f.equal(tick, 48n)),
-      f.logicalOrOperation(f.equal(tick, 56n), f.equal(tick, 64n))
+      f.logicalOrOperation(f.equal(tick, 115n), f.equal(tick, 123n)),
+      f.logicalOrOperation(f.equal(tick, 131n), f.equal(tick, 139n))
     )
   )
   f.doubleBranch(
