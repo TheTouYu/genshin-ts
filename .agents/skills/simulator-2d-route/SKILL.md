@@ -62,6 +62,7 @@ description: 千星模拟器「2D 界面 + Lua」生产线——把 UI 控件与
 - 交付物是**能在真机跑的游戏**（Lua + 存档/GIA），HTML 只是体验沟通件。
 - **索引变更纪律**：GIA 导入会重映射客户端控件索引 → 按 `controlGuidChanges` 走：改存档脚本源码 + 相关 Lua 引用（语义引用，不盲替同值数字）→ 核验后才 `acknowledgeControlGuidChanges` → 保存 → 重启试玩回归。
 - 真机导入、脚本映射/挂载、真实索引校准、脚本目录绑定 → 见 `device-playtest-loop` 与 `git`/交付说明；**复制到磁盘 ≠ 真机已加载新代码**。
+- **增量改 lua 的零导入直写**（地图已有脚本挂载时，别让用户手动导入/实机脚本同步）：`gsts assets:scripts mounts` 查执行中的脚本 guid → `assets:scripts update --guid <执行中> --source-file lua/main.lua --gil <图> --map-id <id> --write`（f5 内嵌+external+Temp 三同步）；完整判据见 `lua-2d-ui-game-build` §10.3。
 
 ## 角色分工（与我方技能/上游插件技能）
 
