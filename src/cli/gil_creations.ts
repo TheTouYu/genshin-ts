@@ -375,6 +375,10 @@ export type CreationConfigUpdate =
       ignorePublicCd?: boolean
     }
   | {
+      kind: 'remove-skill'
+      index: number
+    }
+  | {
       kind: 'bind-skill'
       index: number
       configId: number
@@ -647,7 +651,12 @@ export function updateCreationConfig(
     const managerFields = parse(bodyField.value as Uint8Array)
     if (!managerFields) throw new Error('[error] malformed skill manager body')
     const indices = managerFields.map((f, i) => ({ f, i })).filter((x) => x.f.number === 1 && x.f.wire === 2)
-    if (update.kind === 'add-skill') {
+    if (update.kind === 'remove-skill') {
+      const target = indices[update.index - 1]
+      if (!target) throw new Error(`[error] 技能序号 ${update.index} 不存在（当前 ${indices.length} 条）`)
+      managerFields.splice(target.i, 1)
+      detail = `skill#${update.index} removed（剩 ${indices.length - 1} 条）`
+    } else if (update.kind === 'add-skill') {
       // 单一源：条目编码统一走 buildSkillEntry（序号=max+1、f8 仅首条、名字 f12）
       const maxIndex = indices.reduce((acc, x) => {
         const inner = parse(x.f.value as Uint8Array)

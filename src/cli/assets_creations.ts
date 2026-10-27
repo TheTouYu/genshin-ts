@@ -82,7 +82,14 @@ function usage(code = 1): never {
 }
 
 type Args = {
-  command: 'create' | 'export-template' | 'inspect' | 'skill-add' | 'skill-bind' | 'decision-bind'
+  command:
+    | 'create'
+    | 'export-template'
+    | 'inspect'
+    | 'skill-add'
+    | 'skill-bind'
+    | 'skill-remove'
+    | 'decision-bind'
   targetId?: number
   layer?: 'def' | 'instance' | 'entity'
   index?: number
@@ -137,8 +144,8 @@ function parseArgs(argv: readonly string[]): Args {
       commandSet = true
     } else if (a === 'skill') {
       const sub = argv[i + 1]
-      if (sub === 'add' || sub === 'bind') {
-        command = sub === 'add' ? 'skill-add' : 'skill-bind'
+      if (sub === 'add' || sub === 'bind' || sub === 'remove') {
+        command = sub === 'add' ? 'skill-add' : sub === 'remove' ? 'skill-remove' : 'skill-bind'
         commandSet = true
         i += 1
       } else usage()
@@ -186,7 +193,13 @@ function parseArgs(argv: readonly string[]): Args {
     throw new Error('[error] export-template requires a valid --def <id>')
   }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  if (command === 'inspect' || command === 'skill-add' || command === 'skill-bind' || command === 'decision-bind') {
+  if (
+    command === 'inspect' ||
+    command === 'skill-add' ||
+    command === 'skill-bind' ||
+    command === 'skill-remove' ||
+    command === 'decision-bind'
+  ) {
     if (targetId === undefined) throw new Error('[error] --target <造物记录 id> is required')
   }
   if (command === 'skill-bind' && (index === undefined || configId === undefined)) {
@@ -264,11 +277,18 @@ async function execute(argv: readonly string[], cfg: GstsConfig | undefined): Pr
     return
   }
 
-  if (args.command === 'skill-add' || args.command === 'skill-bind' || args.command === 'decision-bind') {
+  if (
+    args.command === 'skill-add' ||
+    args.command === 'skill-bind' ||
+    args.command === 'skill-remove' ||
+    args.command === 'decision-bind'
+  ) {
     const update: CreationConfigUpdate =
       args.command === 'decision-bind'
         ? { kind: 'bind-decision', graphId: args.graphId! }
-        : args.command === 'skill-add'
+        : args.command === 'skill-remove'
+          ? { kind: 'remove-skill', index: args.index! }
+          : args.command === 'skill-add'
           ? {
               kind: 'add-skill',
               name: args.name,
