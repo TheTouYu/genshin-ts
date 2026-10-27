@@ -103,10 +103,10 @@ const KICK_LOB_LIFT = 7.0
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
   const tick = chanIncr(f, SLOT_TICK)
 
-  // ———— 玩家位置 ————
-  const players = f.getListOfPlayerEntitiesOnTheField()
-  const p0 = f.getCorrespondingValueFromList(0n, players)
-  const pP = f.split3dVector(f.getEntityLocation(p0))
+  // ———— 玩家位置：从载体实体变量读（服务端 kitRender 每拍写 fb_px/fb_pz）————
+  // 不用 getListOfPlayerEntitiesOnTheField：那是玩家控制器实体，读位置恒 0（2026-10-17 定谳）。
+  const pPx = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fbvx').asType('float')
+  const pPz = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fbvz').asType('float')
 
   // ———— 输入：fb_seq（有没有新输入）+ fb_key（哪一种踢法）————
   const carrier = f.queryEntityByGuid(CARRIER_GUID)
@@ -159,9 +159,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 玩家速度前馈（位置差分，>8m/s 视为瞬移置 0）————
   const vpVec = f.create3dVector(
-    f.division(f.subtraction(pP.xComponent, f.querySkillVariableValue(S_PPX)), DT),
+    f.division(f.subtraction(pPx, f.querySkillVariableValue(S_PPX)), DT),
     0.0,
-    f.division(f.subtraction(pP.zComponent, f.querySkillVariableValue(S_PPZ)), DT)
+    f.division(f.subtraction(pPz, f.querySkillVariableValue(S_PPZ)), DT)
   )
   const vp = f.split3dVector(vpVec)
   const vpOK = f.logicalAndOperation(
@@ -179,16 +179,16 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       ffz.set(0.0)
     }
   )
-  f.setSkillVariable(S_PPX, pP.xComponent)
-  f.setSkillVariable(S_PPZ, pP.zComponent)
+  f.setSkillVariable(S_PPX, pPx)
+  f.setSkillVariable(S_PPZ, pPz)
 
   // ———— 初始化：球放玩家前方 1.5m，静止 ————
   f.doubleBranch(
     f.lessThan(inited.value, 0.5),
     () => {
-      bx.set(pP.xComponent)
-      by.set(f.addition(pP.yComponent, BALL_R))
-      bz.set(f.addition(pP.zComponent, 1.5))
+      bx.set(pPx)
+      by.set(f.addition(GROUND_Y, CENTER_Y)) // 地面基准用场地表面，不用玩家 y（玩家 origin ≈ 地面 +1.92m）
+      bz.set(f.addition(pPz, 1.5))
       vx.set(0.0)
       vy.set(0.0)
       vz.set(0.0)
@@ -202,8 +202,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   )
 
   // 玩家→球水平单位向量（1e-4 保护：重合时方向退化，踢球失效但不炸）
-  const dx = f.subtraction(bx.value, pP.xComponent)
-  const dz = f.subtraction(bz.value, pP.zComponent)
+  const dx = f.subtraction(bx.value, pPx)
+  const dz = f.subtraction(bz.value, pPz)
   const horizLen = f.addition(f._3dVectorModuloOperation(f.create3dVector(dx, 0.0, dz)), 0.0001)
   const dirX = f.division(dx, horizLen)
   const dirZ = f.division(dz, horizLen)
@@ -213,9 +213,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     warm,
     () => {
       // 暖机：球贴玩家前方跟随，速度清零
-      bx.set(pP.xComponent)
-      by.set(f.addition(pP.yComponent, BALL_R))
-      bz.set(f.addition(pP.zComponent, 1.5))
+      bx.set(pPx)
+      by.set(f.addition(GROUND_Y, CENTER_Y))
+      bz.set(f.addition(pPz, 1.5))
       vx.set(0.0)
       vy.set(0.0)
       vz.set(0.0)
@@ -224,7 +224,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {
       // ———— ① 动作分发（P0：有球=射门/传球，无球=抢断/解围/停球）————
       const ballToPlayer = f._3dVectorModuloOperation(
-        f.create3dVector(f.subtraction(bx.value, pP.xComponent), 0.0, f.subtraction(bz.value, pP.zComponent))
+        f.create3dVector(f.subtraction(bx.value, pPx), 0.0, f.subtraction(bz.value, pPz))
       )
       const speedAct = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
       const hasBall = f.logicalAndOperation(f.lessThan(ballToPlayer, DRIBBLE_R), f.lessThan(speedAct, 8.0))
@@ -346,12 +346,12 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const speed0 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
       const onGround = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.03))
       const onGroundAfter = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.03))
-      const tx = f.addition(pP.xComponent, f.multiplication(dirX, DRIBBLE_AHEAD))
-      const tz = f.addition(pP.zComponent, f.multiplication(dirZ, DRIBBLE_AHEAD))
+      const tx = f.addition(pPx, f.multiplication(dirX, DRIBBLE_AHEAD))
+      const tz = f.addition(pPz, f.multiplication(dirZ, DRIBBLE_AHEAD))
       const ddx = f.subtraction(tx, bx.value)
       const ddz = f.subtraction(tz, bz.value)
       const distTarget = f._3dVectorModuloOperation(
-        f.create3dVector(ddx, f.subtraction(f.addition(pP.yComponent, BALL_R), by.value), ddz)
+        f.create3dVector(ddx, f.subtraction(f.addition(GROUND_Y, CENTER_Y), by.value), ddz)
       )
       const dribble = f.logicalAndOperation(
         f.logicalNotOperation(kickNow),
@@ -380,8 +380,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
       // ———— ②b 拦截（自动，无需按键）：球以 >6m/s 撞进 0.9m 且朝我飞来 ⇒ 沿法线反弹 ————
       const relLen = f.addition(ballToPlayer, 0.0001)
-      const nX = f.division(f.subtraction(bx.value, pP.xComponent), relLen)
-      const nZ = f.division(f.subtraction(bz.value, pP.zComponent), relLen)
+      const nX = f.division(f.subtraction(bx.value, pPx), relLen)
+      const nZ = f.division(f.subtraction(bz.value, pPz), relLen)
       const vDotN = f.addition(f.multiplication(vx.value, nX), f.multiplication(vz.value, nZ))
       const hitBody = f.logicalAndOperation(
         f.greaterThan(speed0, 6.0),
@@ -500,9 +500,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
         () => {
-          bx.set(f.addition(pP.xComponent, f.multiplication(dirX, 1.5)))
-          by.set(f.addition(pP.yComponent, CENTER_Y))
-          bz.set(f.addition(pP.zComponent, f.multiplication(dirZ, 1.5)))
+          bx.set(f.addition(pPx, f.multiplication(dirX, 1.5)))
+          by.set(f.addition(0.0, CENTER_Y))
+          bz.set(f.addition(pPz, f.multiplication(dirZ, 1.5)))
           vx.set(0.0)
           vy.set(0.0)
           vz.set(0.0)
@@ -619,7 +619,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   //   一旦玩家位置读回异常就会浮到地面）。⇒ 现在用**常量坐标**，不依赖任何读回值。
   // 频率读数（2026-10-27 18:13 试玩日志）：389 条 kitLoop / 53s ≈ 7.3/s，停在地下不影响施放频率。
   f.complexCreationTeleport(
-    f.create3dVector(pP.xComponent, CARRIER_Y, pP.zComponent),
+    f.create3dVector(pPx, CARRIER_Y, pPz),
     f.create3dVector(0.0, 0.0, 0.0)
   )
 

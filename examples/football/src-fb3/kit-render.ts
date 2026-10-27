@@ -21,6 +21,7 @@ import { KitSignal } from './signals.js'
 
 const GRAPH_ID = 1073741828
 const BALL_GUID = 1077936135n // 地图里的「足球」实体（元件 def 1077936138，scale 0.25）
+const CARRIER_GUID = 1082130445n // 打手丘丘人：算力载体，客户端从它的自定义变量读输入与玩家位置
 const DEVICE = 'fb_phys' // 线性运动器名（同名重复添加即替换）
 const SPIN_DEVICE = 'fb_spin' // 旋转运动器名
 const TELEPORT_DIST = 5.0 // 超过此距离改用瞬时定点运动器
@@ -42,11 +43,24 @@ g
       f.equal(evt.params.tag, 'B'),
       () => {
         const ball = f.queryEntityByGuid(BALL_GUID)
+        // —— 把真实角色位置回传给客户端（客户端 20008 白名单没有「取玩家角色」节点）——
+        // 服务端：玩家控制器 → 其当前角色实体 → 位置
+        const carrier = f.queryEntityByGuid(CARRIER_GUID)
+        const playerGuid = f.getPlayerGuidByPlayerId(1n)
+        const ch = f.queryEntityByGuid(playerGuid)
+        const pLoc = f.getEntityLocationAndRotation(ch).location
+        const ps = f.split3dVector(pLoc)
+        f.setCustomVariable(carrier, 'fbvx', ps.xComponent, false)
+        f.setCustomVariable(carrier, 'fbvz', ps.zComponent, false)
         const pos = evt.params.pos
         const vel = evt.params.vel
         const spin = evt.params.spin
         const loc = f.getEntityLocationAndRotation(ball).location
-        const dist = f._3dVectorModuloOperation(f._3dVectorSubtraction(pos, loc))
+        // 用位置误差算速度（老 v5 fbDrive 的做法）：实体会自动追到目标点，
+        // 不会因为物理速度≈0（带球/静止）而卡在出生点。
+        const delta = f._3dVectorSubtraction(pos, loc)
+        const dist = f._3dVectorModuloOperation(delta)
+        const velErr = f._3dVectorZoom(delta, f.division(1.0, DT))
 
         f.doubleBranch(
           f.greaterThan(dist, TELEPORT_DIST),
@@ -64,7 +78,7 @@ g
             )
           },
           () => {
-            f.addUniformBasicLinearMotionDevice(ball, DEVICE, DT, vel)
+            f.addUniformBasicLinearMotionDevice(ball, DEVICE, DT, velErr)
           }
         )
 
