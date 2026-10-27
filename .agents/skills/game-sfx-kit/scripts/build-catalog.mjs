@@ -18,6 +18,7 @@
 //     （--check：只比对磁盘现状与本次生成结果，不写盘，退出码 0=一致 / 1=有差异）
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { Buffer } from 'node:buffer'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -111,7 +112,8 @@ const json = opts.pretty
 if (opts.check) {
   const cur = existsSync(opts.out) ? readFileSync(opts.out, 'utf8') : ''
   const same = cur.replace(/\s+$/g, '') === json.replace(/\s+$/g, '')
-  console.log(`[build-catalog] --check ${same ? 'SAME' : 'DIFF'} 磁盘=${cur.length}B 生成=${json.length}B`)
+  console.log(`[build-catalog] --check ${same ? 'SAME' : 'DIFF'} 磁盘=${Buffer.byteLength(cur)}B` +
+    ` 生成=${Buffer.byteLength(json)}B（字符 ${json.length}）`)
   process.exit(same ? 0 : 1)
 }
 
@@ -120,4 +122,4 @@ console.log(`[build-catalog] 写盘 ${opts.out}`)
 console.log(`  条数 ${stats.total}（data.json 全量 ${dataTotal}，其中无名 ${stats.missingNameInData}）`)
 console.log(`  有名 ${stats.named} / 无名回落 ${stats.unnamed} / 缺时长 ${stats.durMissing}`)
 console.log(`  类目 ${Object.entries(stats.byCat).map(([k, v]) => `${k}=${v}`).join(' ')}`)
-console.log(`  体积 ${json.length} B`)
+console.log(`  体积 ${Buffer.byteLength(json)} B（字符 ${json.length}）`)
