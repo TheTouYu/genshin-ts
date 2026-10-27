@@ -28,7 +28,7 @@
       "kind": "control",
       "name": "keyA",
       "field": "text",
-      "equals": "P1：W 旋转 · G 暂存　·　P1 按任意键准备"
+      "equals": "P1：W 旋转 · G 暂存"
     },
     {
       "at": 1.6,
@@ -42,7 +42,7 @@
       "kind": "control",
       "name": "keyB",
       "field": "text",
-      "equals": "P2：← → 移动 · ↓ 软降 · X 直落　·　P2 按你的键准备"
+      "equals": "P2：← → 移动 · ↓ 软降 · X 直落"
     },
     {
       "at": 1.6,

@@ -1,7 +1,7 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "26 pvp 双人键位分区：方向键/X 归 P2=G[2]，WASD/Space 归 P1=G[1]，互不串扰",
+  "name": "26 pvp 双 ready+键位分区：双方确认→倒计时→P2 方向键操作 G[2]",
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [

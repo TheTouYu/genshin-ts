@@ -226,12 +226,16 @@ local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
 local TK = { state = 'play', t = 0 }
+-- v2.6 ①：进局底栏常驻操作提示（横幅事件短暂借位，bannerTimer 归零即恢复；结算时清空）
+local PERSIST_TIP = ''
+local showPersistTip                   -- 前向声明（实现见 enterMode 前）
 -- v2.2 ③：模式终局标志——双屏任一盘 gameOver 即置位：冻结两盘（输入/重力/AI 全停，
 -- OnUpdate 只推结算动画），胜负走全屏结算层，R=回菜单复位。casual 不置位（v1 语义不变）。
 local MODE_OVER = false
 -- v2.1 ①：双人/对抗模式开局引导态（guideStage=3）——phase 'keys'（键位说明，任意键确认）
 -- → 'count'（3-2-1 倒计时，每 1s，topBanner 大字）→ guideStage=1 开局。casual 不经此态（旧用例直进）。
-local GK = { phase = 'keys', t = 0, count = 3 }
+local GK = { phase = 'keys', t = 0, count = 3, p1ready = false, p2ready = false }
+local CNT = nil   -- v2.5 ① 倒计时大字实例（120 号屏幕正中+每秒 sin 弹跳）
 local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
 -- T6b ai-battle 出块镜像队列：主盘自然出块 push，AI 盘 piece 空时立即喂 / doLock 后拉（保序）。
 -- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
@@ -1349,7 +1353,8 @@ local function startIfWaiting()
     local keys2b = (MODE ~= 'coop')
       and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
       or 'P2：← → 移动 · ↓ 软降 · X 直落'
-    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 按任意键准备')
+    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
+    GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
     setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
     -- （服务端 textbox 永远在运行时棋盘格之下，出图 v23-pvp-guide.png 可见被格子切一半）。
@@ -1378,6 +1383,7 @@ local function startIfWaiting()
   g.combo, g.maxCombo, g.b2b = 0, 0, false
   renderHud()
   setText(hint, '堆满一行即消除')
+  if MODE == 'casual' then showPersistTip() end   -- v2.6 ① casual 常驻提示
   print('mode=' .. MODE)                -- T6：进局模式（菜单选择或默认休闲）
   print('guide stage=1')
 end
@@ -1421,6 +1427,7 @@ showGameOver = function(overTitle)
   end
   bannerTimer = 0
   g.settleOpen = false
+  setText(botBanner, '')               -- v2.6 ① 结算撤常驻
   print('guide gameover score=' .. g.score .. ' lines=' .. g.lines)
   -- 懒创建：第一次结算才建这一层（建的时候棋盘格早就存在 ⇒ 天然在它上面）
   if not g.settleReady and not g.settleBuildTried then
@@ -1435,7 +1442,7 @@ showGameOver = function(overTitle)
     setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　　落块 ' .. g.pieceCount .. '　　等级 ' .. g.level)
     -- v2.4 ②：明细行先做成分隔点（Q 键的结算明细会覆盖这一行）
     setText(g.settleExtra, '·  ·  ·  ·  ·  ·  ·')
-    setText(g.settleOpts, '[R] 再来一局　　[Q] 结算明细')
+    setText(g.settleOpts, '[R] 再来一局　[V] 回主页　[Q] 结算明细')
     trySet(g.settleTitle, 'fontSize', 44)
     g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
@@ -1472,7 +1479,7 @@ showGameOver = function(overTitle)
   trySet(botBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C(255, 214, 232, 246))
   setText(botBanner, '本局 ' .. g.score .. ' 分　消行 ' .. g.lines .. ' 行'
-    .. '　　[R] 再来一局　　[Q] 结算')
+    .. '　　[R] 再来一局　[V] 回主页　[Q] 结算')
   setText(hint, '')
 end
 
@@ -2018,6 +2025,29 @@ local function buildHelpLayer()
   end
   print('guide help on n=' .. #HL)
 end
+-- ===== v2.5 ① 倒计时大字（120 号屏幕正中+每秒缩放弹跳）=====
+local function destroyCountBig()
+  if CNT then
+    pcall(function() game.DestroyClientUIControl(CNT) end)
+    CNT = nil
+  end
+end
+local function buildCountBig(txt)
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then return nil end
+  destroyCountBig()
+  local c = game.InstantiateClientUIControl(TPL_TEXT, root)
+  if c then
+    c.name = 'countBig'
+    c.text = txt
+    c.fontSize = 120
+    trySet(c, 'fontColor', THEME.textMain)
+    c:SetSizeDelta(500, 190)
+    c:SetAnchoredPosition(0, 0)
+  end
+  return c
+end
+
 toggleHelp = function()
   if helpOpen then
     helpOpen = false
@@ -2145,12 +2175,9 @@ MS.build = function()
     MS.hint[i] = MS.addText('menuHint' .. i, MS.hintText[i], segX[i], lineY, segW[i], 50, 26, MS.CYAN)
   end
   MS.segX = segX
-  MS.sweepX = segX[1]
-  MS.sweep = MS.addCell('menuSweep', MS.sweepX, lineY - 21, 130, 3, C(170, 118, 214, 255))
+  -- v2.6 ③：滑动下划线/侧箭头撤除（保留分隔点）
   MS.addCell('menuDot1', -148, lineY, 6, 6, C(150, 118, 214, 255))
   MS.addCell('menuDot2', 148, lineY, 6, 6, C(150, 118, 214, 255))
-  MS.arrow[1] = MS.addCell('menuArrowL', -430, lineY, 12, 12, MS.CYAN)
-  MS.arrow[2] = MS.addCell('menuArrowR', 430, lineY, 12, 12, MS.CYAN)
   print('menu stage n=' .. #MS.parts)
   return true
 end
@@ -2194,48 +2221,20 @@ end
 -- 底栏动效：4 阶段循环（0/1/2=高亮对应段，3=整条亮一口），段内 alpha 呼吸，箭头呼吸+外扩。
 -- 只在值真的变化时写控件（和 introFont/introPulse 同一套防抖思路，省每帧写）。
 MS.tick = function()
+  -- v2.6 ③：轮播/下划线/箭头全撤（用户否决）——回退整条单一呼吸（26↔28 号+亮度呼吸）。
   if #MS.parts == 0 or MS.focus then return end
   local t = introT
-  local seg = math.floor(t / 0.75) % 4
-  local breathe = 0.5 + 0.5 * math.sin(t * 2.6)
-  for i = 1, 3 do
-    local ctl = MS.hint[i]
-    if ctl then
-      local on = (seg == 3) or (seg == i - 1)
-      local size = on and 30 or 26
-      local alpha = on and 255 or math.floor(105 + 55 * breathe)
-      local k = size * 1000 + alpha
-      if MS.hintKey[i] ~= k then
-        MS.hintKey[i] = k
+  local breathe = 0.5 + 0.5 * math.sin(t * 2.2)
+  local size = 26 + math.floor(2 * breathe + 0.5)
+  local alpha = math.floor(150 + 70 * breathe)
+  local k = size * 1000 + alpha
+  if MS.hintKey[1] ~= k then
+    MS.hintKey[1] = k
+    for i = 1, 3 do
+      local ctl = MS.hint[i]
+      if ctl then
         trySet(ctl, 'fontSize', size)
-        trySet(ctl, 'fontColor', C(alpha, on and 118 or 148, on and 214 or 163, on and 255 or 184))
-      end
-    end
-  end
-  -- 滑动下划线：跟随当前高亮段（3 段时平滑滑过去；整条亮的那一段留在中间）
-  if MS.sweep and MS.segX then
-    local target = MS.segX[(seg < 3) and (seg + 1) or 2]
-    local nx = MS.sweepX + (target - MS.sweepX) * 0.18
-    if math.abs(nx - MS.sweepX) > 0.6 then
-      MS.sweepX = nx
-      tryCall(MS.sweep, 'SetAnchoredPosition', math.floor(nx), MS.lineY - 21)
-    elseif MS.sweepX ~= target then
-      MS.sweepX = target
-      tryCall(MS.sweep, 'SetAnchoredPosition', target, MS.lineY - 21)
-    end
-    local sa = math.floor(90 + 90 * (0.5 + 0.5 * math.sin(t * 3.1)))
-    MS.sweep.imageColor = C(sa, 118, 214, 255)
-  end
-  local ph = 0.5 + 0.5 * math.sin(t * 4.2)
-  local a, off = math.floor(60 + 150 * ph), math.floor(2 + 5 * ph)
-  for i = 1, 2 do
-    local ctl = MS.arrow[i]
-    if ctl then
-      local k = a * 100 + off
-      if MS.arrowKey[i] ~= k then
-        MS.arrowKey[i] = k
-        ctl.imageColor = C(a, 118, 214, 255)
-        tryCall(ctl, 'SetAnchoredPosition', (i == 1 and -1 or 1) * (430 + off), MS.lineY)
+        trySet(ctl, 'fontColor', C(alpha, 148, 163, 184))
       end
     end
   end
@@ -2565,6 +2564,18 @@ local function layoutDual()
   setText(keyB, '')
   setText(keyC, '')
   print('layout dual')
+end
+
+-- v2.6 ①：按模式生成常驻提示并显示（20 号次文字色，单行不动）
+showPersistTip = function()
+  PERSIST_TIP = (MODE == 'pvp')
+    and 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存　｜　P2：方向键 · X 直落 · F 暂存'
+    or (MODE == 'coop')
+      and 'P1：W 旋转 · G 暂存　｜　P2：← → 移动 · ↓ 软降 · X 直落　（共盘抗 AI）'
+    or '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明'
+  trySet(botBanner, 'fontSize', 20)
+  trySet(botBanner, 'fontColor', C(255, 148, 163, 184))
+  setText(botBanner, PERSIST_TIP)
 end
 
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
@@ -3347,12 +3358,21 @@ function OnStart()
     return function()
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
-        GK.phase, GK.t = 'count', 0
-        setText(topBanner, '3')
-        trySet(topBanner, 'fontSize', 64)
-        setText(botBanner, '')
-        if G[2] then setText(hint, '') end
-        print('guide count 3')
+        -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
+        if P2_KEYS[keyName] then GK.p2ready = true
+        else GK.p1ready = true end
+        if MODE == 'ai-battle' then GK.p2ready = true end
+        if GK.p1ready then setText(keyA, 'P1 准备好了 ✓') end
+        if GK.p2ready and MODE ~= 'ai-battle' then setText(keyB, 'P2 准备好了 ✓') end
+        print('guide ready ' .. (P2_KEYS[keyName] and 'p2' or 'p1'))
+        if GK.p1ready and GK.p2ready then
+          GK.phase, GK.t = 'count', 0
+          setText(topBanner, '')
+          setText(botBanner, '')
+          destroyCountBig()
+          CNT = buildCountBig('3')
+          print('guide count 3')
+        end
         return
       end
       if guideStage == 2 or guideStage == 3 then return end
@@ -3434,6 +3454,14 @@ function OnStart()
     RHO.pieces, RHO.lines = 0, 0
     print('demo level=' .. lv2.name)
     demoLoopReset()
+  end)
+  -- v2.6 ④：V = 结算后回主页（CraftspersonKey22；所有模式结算通用出口）
+  listen('KeyboardCraftspersonKey22Down', function()
+    if guideStage ~= 1 then return end
+    if g.gameOver or MODE_OVER then
+      print('menu back V')
+      exitToMenu()
+    end
   end)
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
@@ -3574,12 +3602,18 @@ function OnStart()
   local anyKeyStart = function()
     if guideStage == 0 then startIfWaiting() end
     if guideStage == 3 and GK.phase == 'keys' then
-      GK.phase, GK.t = 'count', 0
-      setText(topBanner, '3')
-      trySet(topBanner, 'fontSize', 64)
-      setText(botBanner, '')
-      if G[2] then setText(hint, '') end
-      print('guide count 3')
+      GK.p1ready = true
+      if MODE == 'ai-battle' then GK.p2ready = true end
+      setText(keyA, 'P1 准备好了 ✓')
+      print('guide ready p1')
+      if GK.p1ready and GK.p2ready then
+        GK.phase, GK.t = 'count', 0
+        setText(topBanner, '')
+        setText(botBanner, '')
+        destroyCountBig()
+        CNT = buildCountBig('3')
+        print('guide count 3')
+      end
     end
   end
   for i = 1, 43 do
@@ -3681,8 +3715,13 @@ function OnUpdate(dt)
     bannerTimer = bannerTimer - d
     if bannerTimer <= 0 then
       bannerTimer = 0
-      setText(botBanner, '')
       setText(hint, '')
+      if guideStage == 1 and PERSIST_TIP ~= '' then   -- v2.6 ① 恢复常驻
+        trySet(botBanner, 'fontSize', 20)
+        setText(botBanner, PERSIST_TIP)
+      else
+        setText(botBanner, '')
+      end
     end
   end
   if guideStage == 0 then
@@ -3731,15 +3770,16 @@ function OnUpdate(dt)
     -- v2.1 ① 引导态：keys=键位说明（任意键确认）→ count=3-2-1 倒计时 → 开局。全冻结。
     GK.t = GK.t + d
     if GK.phase == 'count' then
-      local size = math.min(64, 40 + math.floor(GK.t * 48))
-      trySet(topBanner, 'fontSize', size)
+      if CNT then
+        trySet(CNT, 'fontSize', 120 + math.floor(26 * math.sin(GK.t * math.pi)))
+      end
       if GK.t >= 1 then
         GK.t = 0
         GK.count = GK.count - 1
         if GK.count <= 0 then
           guideStage = 1
           GK.phase = 'keys'
-          trySet(topBanner, 'fontSize', 34)
+          destroyCountBig()
           setText(topBanner, '')
           setText(botBanner, '')
           -- v2.2 ①：引导结束，keyA/keyB 从盘下说明位复位回战况位（layout 全量+双屏重摆）
@@ -3748,11 +3788,12 @@ function OnUpdate(dt)
             layoutDual()
           end
           renderHud()
+          showPersistTip()             -- v2.6 ① 双屏常驻提示
           print('guide start')
           print('guide stage=1')
           return
         end
-        setText(topBanner, tostring(GK.count))
+        if CNT then CNT.text = tostring(GK.count) end
         print('guide count ' .. GK.count)
       end
     end
