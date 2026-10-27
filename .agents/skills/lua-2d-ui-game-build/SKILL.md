@@ -367,7 +367,9 @@ gsts assets:scripts update --guid <执行中的> --source-file <注入版.lua> \
 |---|---|---|---|---|---|
 | 1 | `SetVisible(false)` 隐藏运行时实例 | 生效 | **不生效**（仍在可见层） | 懒创建 + 销毁，不用隐藏 | D581、D582 |
 | 2 | `DestroyClientUIControl` | 生效 | **生效** | 浮层唯一可靠的收尾手段 | D582 |
-| 3 | 容器模板实例化 | 可 | 仅**编辑器新建**的可；GIA 导入产出的容器组 nil | donor 用编辑器新建的；失败退化横幅 | D582（推翻 D578） |
+| 3 | 容器模板实例化 | 可 | **GIA 导入产出的容器模板也能实例化**（tetris v2.2 真机实锤 `settle build ok n=8 via=container`；D582 的「GIA 容器 nil」结论按存档区分不成立） | 双形态探测照留（探测失败退化横幅），但别一刀切判死 | D639（修正 D582） |
+| 3b | `SetVisible` 实参个数 | 宽松（收 2/3 参） | **严格计数**：`bad argument count to 'SetVisible' (2 expected, got 3)`——`ctl[method](ctl, a, b)` 里的尾 nil 也算第 3 实参 | 统一入口按非 nil 实参个数分发调用 | D639 |
+| 3c | `horizontalAlignment`/`verticalAlignment` 赋值形态 | 字符串 `'Middle'` 可用 | **只收枚举**：`TextHorizontalAlignment expected, got string`——字符串直传全 fail（pcall 吞掉无日志级别告警，文字默认 Top/Left 乱位/裁切） | 赋值前 `Enum.TextHorizontalAlignment[值]` 映射，无 Enum 表回落字符串（双形态探测） | D639 |
 | 4 | 客户端模板 guid | authoring 值 1073742105 | 导入后重编号 1073741849 | `TEMPLATE_GUIDS` 候选逐个试 | D566 |
 | 5 | image 的 A 通道（渐变/淡入淡出） | 生效 | **未验证**（可能被忽略） | 渐暗只走 textbox `fontColor` alpha | D581 |
 | 6 | 音频历史 `rt.audioHistory` | 可读（runner 层） | 无此通道 | 音频只在模拟器 runner 验；真机靠人耳 | D589 |
@@ -422,6 +424,7 @@ gsts assets:scripts update --guid <执行中的> --source-file <注入版.lua> \
 | 某个控件整块不显示、无报错 | §5.1 框高 `h ≥ 1.45×size+4` |
 | 文案尾部少字 / 显示成别的字 | §5.2 宽度裁尾 |
 | 文字顶格被切 | §5.3 显式 `verticalAlignment=Middle` |
+| 真机文字位置乱/被裁/`?` | §11 行 3c（对齐赋值要枚举，字符串直传被 pcall 吞）+ 日志 grep `ui fail` |
 | 颜色断言对不上 | §5.3 `imageColor` 有符号 int32 |
 | 画面空一大片 | §5.3 满幅三栏（不靠放大棋盘） |
 | 改了 lua 但行为没变 / 用例莫名全绿 | §4 判据 1（build 先于 runner） |
