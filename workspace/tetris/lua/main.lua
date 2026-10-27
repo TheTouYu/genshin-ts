@@ -87,7 +87,6 @@ local NUM = {
   -- `too many local variables (limit is 200)`）：
   --   name = 槽内块名（nil=空槽）；bag = 入槽时块所属袋序（换出块日志沿用原袋序）
   --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
-  ST = { name = nil, bag = 0, can = true },
 
   -- ===== T5 AI 难度档（docs/v2-ai-design.md §四；数值依据标注见该文档）=====
   -- lv: 1=轻松(demo-easy) 2=标准(demo-normal) 3=高难(demo-hard)；默认 2（casual 演出观感不变）。
@@ -125,9 +124,6 @@ local NUM = {
   --   LD  = { t = -1|秒, resets = 0 }   锁定延迟计时（t<0 未激活；重力触底启动，玩家移动/旋转重置）
   --   DAS = { dir = -1|0|1, t = 0, arr = 0 }   方向键按住状态（dir=0 松开）
   --   lastRot = true|false    最后一次成功动作是否为旋转（T-spin 判定前置；移动置 false）
-  LD  = { t = -1, resets = 0 },
-  DAS = { dir = 0, t = 0, arr = 0 },
-  lastRot = false,
   -- T8 键位表（表化 listen 区，T6 双屏输入路由留口：条目加 player 字段即可分区路由）：
   --   key = Down 枚举名；up = 对应 Up 枚举名（DAS 需要松开事件）；action 见 dispatchPlayer
   KEYMAP = {
@@ -230,6 +226,11 @@ local function newInst()
   t.settleOpen = false
   t.shakeT, t.shakeDur, t.shakeAmp, t.shakePhase = 0, 0, 0, 0
   t.boardOX = 0                         -- 棋盘 x 偏移（单屏=0 居中；双屏 G[1]=-320 / G[2]=+320，T6b-2）
+  -- T6c：每盘独立输入状态（原挂 NUM 的每盘状态搬实例——pvp 双人各自 DAS/LD/Hold 互不干扰）
+  t.ld = { t = -1, resets = 0 }         -- 锁定延迟（T8）
+  t.das = { dir = 0, t = 0, arr = 0 }   -- DAS/ARR（T8）
+  t.st = { name = nil, bag = 0, can = true }  -- Hold 槽（T3）
+  t.lastRot = false                     -- T-spin 判定前置（T8）
   t.AI = newAIState()
   return t
 end
@@ -820,13 +821,13 @@ local function renderNext()
   -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
   if g.preview[9] then
     for i = 9, 12 do g.preview[i].imageColor = COL_BG end
-    if NUM.ST.name then
-      local sh = SHAPES[NUM.ST.name]
+    if g.st.name then
+      local sh = SHAPES[g.st.name]
       for i = 1, 4 do
         local ctl = g.preview[8 + i]
         local r, c = sh.cells[i][1], sh.cells[i][2]
         ctl:SetAnchoredPosition(-RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
-        ctl.imageColor = NUM.ST.can and sh.color or dimColor(sh.color, 1)
+        ctl.imageColor = g.st.can and sh.color or dimColor(sh.color, 1)
       end
     end
   end
@@ -836,7 +837,7 @@ renderHud = function()
   -- T6b-2 双屏：G[2]（AI/对家盘）战况写右栏 keyA-C（服务端单份控件征用，零新建）；
   -- G[1] 保持 hud 主行（前缀 P1）。
   if g ~= G[1] then
-    setText(keyA, 'AI 盘')
+    setText(keyA, MODE == 'pvp' and 'P2 盘' or 'AI 盘')
     setText(keyB, '得分 ' .. g.score .. '　消行 ' .. g.lines)
     setText(keyC, '等级 ' .. g.level)
     renderNext()
@@ -896,7 +897,7 @@ spawn = function(overrideName, overrideBag)
   }
   print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. g.piece.x .. ' y=' .. g.piece.y
     .. (overrideName and ' holdswap=1' or ''))
-  NUM.LD.t, NUM.LD.resets, NUM.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
+  g.ld.t, g.ld.resets, g.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
   if collides(g.piece.cells, g.piece.x, g.piece.y) then
     g.gameOver = true
     print('gameover score=' .. g.score)
@@ -908,7 +909,7 @@ spawn = function(overrideName, overrideBag)
   -- T6b ai-battle 出块镜像队列（同源同序，裁决④）：主盘自然出块 push；AI 盘 piece 空时立即喂、
   -- AI 盘 doLock 后拉。队列保序 ⇒ 任意节奏不覆盖不丢块；AI 盘快过主盘时 piece=nil 空转等待。
   -- 跨实例交互铁律（设计书 §1.8 Step3 ②）：切实例前保存 g → 操作 → 还原。
-  if MODE == 'ai-battle' and g == G[1] and not overrideName then
+  if G[2] and g == G[1] and not overrideName then
     MIRRORQ[#MIRRORQ + 1] = { name = name, bag = nameBag }
     if G[2] and not G[2].gameOver and not G[2].piece then feedMirror() end
   end
@@ -1003,9 +1004,9 @@ end
 
 doLock = function()
   -- T8 T-spin 判定（在写入盘面前做——角占用看的是锁定前盘面+本块无关）：
-  -- 3 角规则=T 块 + 最后动作是旋转（NUM.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
+  -- 3 角规则=T 块 + 最后动作是旋转（g.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
   local isTspin = false
-  if g.piece.name == 'T' and NUM.lastRot then
+  if g.piece.name == 'T' and g.lastRot then
     local corners = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
     local occ = 0
     for i = 1, 4 do
@@ -1030,10 +1031,10 @@ doLock = function()
   end
   g.pieceCount = g.pieceCount + 1
   print('lock ' .. g.piece.name .. ' cells=' .. table.concat(landed, ','))
-  NUM.ST.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
-  NUM.LD.t, NUM.LD.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
-  NUM.lastRot = false
-  NUM.DAS.t, NUM.DAS.arr = 0, 0       -- T8：DAS 计时归零重算（按住方向跨块继续，见 tick）
+  g.st.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
+  g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
+  g.lastRot = false
+  g.das.t, g.das.arr = 0, 0       -- T8：DAS 计时归零重算（按住方向跨块继续，见 tick）
   local cleared = clearLines()
   if isTspin then
     -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
@@ -1065,7 +1066,7 @@ doLock = function()
   end
   if not g.gameOver then
     -- T6b：AI 盘不自己取块——拉镜像队列（空则 piece=nil 空转，等主盘下一次出块喂）。
-    if MODE == 'ai-battle' and g ~= G[1] then
+    if G[2] and g ~= G[1] then
       feedMirror()
     else
       spawn()   -- spawn 内部 renderPiece() 会重画棋盘+新方块
@@ -1088,8 +1089,8 @@ local function stepDown(manual)
   else
     if manual then
       doLock()
-    elseif NUM.LD.t < 0 then
-      NUM.LD.t = 0               -- 重力触底：启动锁定延迟计时（tick 里推进，到时锁定）
+    elseif g.ld.t < 0 then
+      g.ld.t = 0               -- 重力触底：启动锁定延迟计时（tick 里推进，到时锁定）
       print('ldstart')            -- 观测锚：延迟计时的启动点（用例 17 断言）
     end
   end
@@ -1104,11 +1105,11 @@ local function moveBy(dx)
   renderPiece()
   print('move x=' .. g.piece.x)
   sfx(SFX.move)
-  NUM.lastRot = false
-  if NUM.LD.t >= 0 then
-    if NUM.LD.resets < NUM.LD_RESETS then
-      NUM.LD.resets = NUM.LD.resets + 1
-      NUM.LD.t = 0                 -- 重置计时（上限内）
+  g.lastRot = false
+  if g.ld.t >= 0 then
+    if g.ld.resets < NUM.LD_RESETS then
+      g.ld.resets = g.ld.resets + 1
+      g.ld.t = 0                 -- 重置计时（上限内）
     else
       doLock()                     -- 超过重置上限：强制锁定（Guideline 15 次上限）
       return true
@@ -1134,11 +1135,11 @@ local function rotate()
     print('rotate ' .. g.piece.name)
     sfx(SFX.rotate)
     renderPiece()
-    NUM.lastRot = true
-    if NUM.LD.t >= 0 then
-      if NUM.LD.resets < NUM.LD_RESETS then
-        NUM.LD.resets = NUM.LD.resets + 1
-        NUM.LD.t = 0
+    g.lastRot = true
+    if g.ld.t >= 0 then
+      if g.ld.resets < NUM.LD_RESETS then
+        g.ld.resets = g.ld.resets + 1
+        g.ld.t = 0
       else
         doLock()
       end
@@ -1150,7 +1151,7 @@ end
 -- 实现内联在 OnStart 键位监听（listen(NUM.HOLD_KEY, ...)）里——main 函数 200 个 local 已满，
 -- 连 local function doHold 都加不进去（实测 lua5.3 报 too many local variables at :1646）；
 -- 闭包体内的 local 独立计数不受 main 上限约束。
--- canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
+-- canHold 闸（g.st.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
 
 local function newGame()
@@ -1172,9 +1173,9 @@ local function newGame()
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
   g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
-  NUM.ST.name, NUM.ST.bag, NUM.ST.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
+  g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
   -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
-  if MODE == 'ai-battle' and g ~= G[1] then
+  if G[2] and g == G[2] then
     renderHud()
     return
   end
@@ -1233,14 +1234,17 @@ end
 -- 位置全部在棋盘之外（顶部/底部横幅）：运行时 InstantiateClientUIControl 造的格子层级高于
 -- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
 showGameOver = function()
-  -- T6b ai-battle 胜负收口：AI 盘（G[2]）顶满=玩家胜——横幅+停摆，不弹第二结算层（首版数据层）；
-  -- 主盘（G[1]）顶满=玩家败——走原结算页，另打 lose 日志。
-  if MODE == 'ai-battle' and G[2] and g == G[2] then
-    setText(topBanner, 'AI 盘顶满 · 你赢了！')
+  -- T6b/c/d 双屏胜负收口：G[2]（AI 盘/对家盘）顶满=玩家侧胜——横幅+停摆，不弹第二结算层（首版）；
+  -- 主盘（G[1]）顶满=玩家侧败——走原结算页，另打 lose 日志。
+  if G[2] and g == G[2] then
+    local winText = (MODE == 'pvp' and 'P2 盘顶满 · P1 胜！')
+      or (MODE == 'coop' and 'AI 盘顶满 · 合作成功！')
+      or 'AI 盘顶满 · 你赢了！'
+    setText(topBanner, winText)
     print('battle win')                  -- v2-plan T6 验收锚
     return
   end
-  if MODE == 'ai-battle' and g == G[1] then
+  if G[2] and g == G[1] then
     print('battle lose')                 -- v2-plan T6 验收锚（结算页照常弹）
   end
   bannerTimer = 0
@@ -1593,14 +1597,14 @@ end
 -- T5：Hold 换块的唯一实现（玩家 G 键与 AI 自演共用一套，lead 指示"AI 复用此语义，别另写一套"）。
 -- 挂 NUM 表函数而不是 local function——main 函数 200 个 local 已满（D612/D616 两次实测爆）。
 NUM.doHold = function()
-  if g.gameOver or not g.piece or not NUM.ST.can then return false end
-  NUM.ST.can = false
+  if g.gameOver or not g.piece or not g.st.can then return false end
+  g.st.can = false
   local cur, curBag = g.piece.name, g.nextBag
   local outName, outBag
-  if NUM.ST.name then
-    outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
+  if g.st.name then
+    outName, outBag = g.st.name, g.st.bag   -- 槽内有块：换出
   end
-  NUM.ST.name, NUM.ST.bag = cur, curBag or 0
+  g.st.name, g.st.bag = cur, curBag or 0
   print('hold in=' .. cur .. ' out=' .. (outName or '-'))
   sfx(SFX.rotate)
   if outName then
@@ -1749,21 +1753,23 @@ local function layoutDual()
 end
 
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
+-- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；三种双屏（ai-battle/pvp/coop）
+-- 统一建 G[2]（pvp=玩家 2 盘各走各账；ai-battle/coop=AI 盘 autoDriving 走 AI 账）+镜像出块（公平）。
 local function enterMode()
-  if MODE == 'ai-battle' then
-    NUM.AI_LEVEL = 3                      -- lead 拍板：ai-battle=hard（casual 接管走默认 normal）
+  if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
+    if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
     G[2] = newInst()
     ACTIVE = { 1, 2 }
     MIRRORQ = {}                          -- 清镜像队列（复局防串）
     local save = g
     g = G[2]
-    g.autoDriving = true                  -- AI 盘账本走 AI 账（T4 语义：音效出声、best 不收）
-    newGame()                             -- 建板+状态复位；G[2] 不取块（newGame 内 ai-battle 分支）
+    g.autoDriving = (MODE ~= 'pvp')       -- AI 盘账本走 AI 账（T4 语义）；pvp 双玩家盘各自计分
+    newGame()                             -- 建板+状态复位；G[2] 不取块（newGame 内双屏分支）
     g = G[1]
     newGame()                             -- 主盘同起点重开（丢自演半盘）；首块 spawn→push→喂 G[2]
     local okBuild = buildBoardControls(G[2])
     if okBuild then layoutDual() else print('p2 build fail') end
-    print('p2 inst ai-battle hard')       -- 双屏日志 p2 前缀
+    print('p2 inst ' .. MODE)             -- 双屏日志 p2 前缀
     g = save
   else
     G[2] = nil
@@ -1966,8 +1972,8 @@ local function aiTickCore(dt, onOver)
       g.AI.search.holdChecked = true
       -- T5 hold 第三分支（hard 档）：换出块在当前盘面的 1-ply 最优 > 留守 2-ply 值 + 0.3 才换
       -- （复用 NUM.doHold 同一执行路径——lead 指示别另写一套换块逻辑）
-      if lv.hold > 0 and NUM.ST.can then
-        local altS = SHAPES[NUM.ST.name or g.nextName or 'T']
+      if lv.hold > 0 and g.st.can then
+        local altS = SHAPES[g.st.name or g.nextName or 'T']
         local cells = altS.cells
         local bestAlt = nil
         for _ = 1, 4 do
@@ -2404,50 +2410,80 @@ function OnStart()
     end
     TK.t = 0
   end
-  local function act(fn)
+  -- T6c/d 键位路由（lead 铁律①：事件回调先设 g 再执行动作）：
+  --   pvp：方向键(38/39/36/37)/X(Drop)/F(Interact) 归 P2=G[2]，WASD/Space/G 归 P1=G[1]（§3.3 定版）
+  --   coop：全部键归共盘 G[1]（P1 旋转手=W/G，P2 行动手=←→↓/X），越权键由 coopAllowed 过滤
+  --   casual/ai-battle：全部归 G[1]
+  local P2_KEYS = {
+    KeyboardCraftspersonKey38Down = true, KeyboardCraftspersonKey39Down = true,
+    KeyboardCraftspersonKey36Down = true, KeyboardCraftspersonKey37Down = true,
+    KeyboardDropKeyDown = true, KeyboardInteractKeyDown = true,
+  }
+  local function routePlayer(keyName)
+    if MODE == 'pvp' and P2_KEYS[keyName] and G[2] then return G[2] end
+    return G[1]
+  end
+  -- coop 分工过滤（裁决① 用户方案）：P1=旋转手（只 rot/hold），P2=行动手（只 left/right/soft/hard）
+  local function coopAllowed(keyName, action)
+    if MODE ~= 'coop' then return true end
+    local isP1Key = not P2_KEYS[keyName]
+    if isP1Key then return action == 'rot' or action == 'hold'
+    else return action == 'left' or action == 'right' or action == 'soft' or action == 'hard' end
+  end
+  local function act(keyName, fn)
     return function()
       startIfWaiting()
       if guideStage == 2 then return end
+      g = routePlayer(keyName)          -- 铁律①：回调内先绑定目标实例
       playerTouched()
       fn()
     end
   end
 
-  -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
-  -- T6 双屏输入路由：表项加 player 字段后 dispatch 按 player 分发即可，不再散改 listen）
-  for _, m in ipairs(NUM.KEYMAP) do
-    listen(m.key, act(function()
-      if m.action == 'left' then
-        NUM.DAS.dir, NUM.DAS.t, NUM.DAS.arr = -1, 0, 0   -- T8 DAS：记按住方向
-        moveBy(-1)
-      elseif m.action == 'right' then
-        NUM.DAS.dir, NUM.DAS.t, NUM.DAS.arr = 1, 0, 0
-        moveBy(1)
-      elseif m.action == 'rot' then
-        rotate()
-      elseif m.action == 'soft' then
-        stepDown(true)                                     -- 软降计分；触底即时锁（玩家主动落）
-      elseif m.action == 'hold' then
-        NUM.doHold()                                       -- T5 抽取的共用换块语义（AI 与玩家同源）
-      elseif m.action == 'hard' then
-        if g.gameOver or not g.piece then return end
-        local dropped = 0
-        while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
-          g.piece.y = g.piece.y + 1
-          dropped = dropped + 1
-        end
-        print('harddrop rows=' .. dropped .. ' y=' .. g.piece.y)
-        g.score = g.score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
-        doLock()
+  -- 动作执行体（KEYMAP 与 P2 补充键共用；g 已由 act 路由到位）
+  local function doPlay(action, keyName)
+    if not coopAllowed(keyName, action) then return end   -- coop 越权键无效（裁决①）
+    if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
+    if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
+    if action == 'left' then
+      g.das.dir, g.das.t, g.das.arr = -1, 0, 0
+      moveBy(-1)
+    elseif action == 'right' then
+      g.das.dir, g.das.t, g.das.arr = 1, 0, 0
+      moveBy(1)
+    elseif action == 'rot' then
+      rotate()
+    elseif action == 'soft' then
+      stepDown(true)
+    elseif action == 'hold' then
+      NUM.doHold()
+    elseif action == 'hard' then
+      if g.gameOver or not g.piece then return end
+      local dropped = 0
+      while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
+        g.piece.y = g.piece.y + 1
+        dropped = dropped + 1
       end
-    end))
+      print('harddrop rows=' .. dropped .. ' y=' .. g.piece.y)
+      g.score = g.score + dropped * NUM.HARD
+      doLock()
+    end
+  end
+  -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
+  -- T6 双屏输入路由：act(keyName, fn) 内按 MODE 路由到目标实例，不再散改 listen）
+  for _, m in ipairs(NUM.KEYMAP) do
+    listen(m.key, act(m.key, function() doPlay(m.action, m.key) end))
     if m.up then
-      listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个）
-        if m.action == 'left' and NUM.DAS.dir == -1 then NUM.DAS.dir = 0 end
-        if m.action == 'right' and NUM.DAS.dir == 1 then NUM.DAS.dir = 0 end
+      listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个；T6：清目标实例）
+        if MODE == 'pvp' then g = routePlayer(m.key) end
+        if m.action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
+        if m.action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
       end)
     end
   end
+  -- T6c pvp：P2 硬降 X（Drop）/Hold F（Interact）——v1 KEYMAP 未含，补两条（经同一路由/过滤/日志）
+  listen('KeyboardDropKeyDown', act('KeyboardDropKeyDown', function() doPlay('hard', 'KeyboardDropKeyDown') end))
+  listen('KeyboardInteractKeyDown', act('KeyboardInteractKeyDown', function() doPlay('hold', 'KeyboardInteractKeyDown') end))
   -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
   -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）。
   -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。选择后 enterMode 配实例，再开局。
@@ -2524,7 +2560,7 @@ function OnStart()
   end)
   -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
-  listen('KeyboardCharacterSkill4KeyDown', act(function()
+  listen('KeyboardCharacterSkill4KeyDown', act('KeyboardCharacterSkill4KeyDown', function()
     for rr = ROWS - 1, ROWS do
       for c = 1, COLS do g.board[rr][c] = COL_BLUE end
     end
@@ -2639,23 +2675,23 @@ local function tickInstance(d)
   if g.gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
   if guideStage == 1 and not g.gameOver then g.elapsed = g.elapsed + d end
   -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
-  if NUM.LD.t >= 0 and not g.gameOver then
-    NUM.LD.t = NUM.LD.t + d
-    if NUM.LD.t >= NUM.LD_DELAY then
-      NUM.LD.t = -1
+  if g.ld.t >= 0 and not g.gameOver then
+    g.ld.t = g.ld.t + d
+    if g.ld.t >= NUM.LD_DELAY then
+      g.ld.t = -1
       if g.piece and collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
         doLock()          -- 缓冲到时且仍触底：锁定
       end
     end
   end
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
-  if NUM.DAS.dir ~= 0 and not g.gameOver then
-    NUM.DAS.t = NUM.DAS.t + d
-    if NUM.DAS.t >= NUM.DAS_DELAY then
-      NUM.DAS.arr = NUM.DAS.arr + d
-      while NUM.DAS.arr >= NUM.ARR_RATE do
-        NUM.DAS.arr = NUM.DAS.arr - NUM.ARR_RATE
-        moveBy(NUM.DAS.dir)
+  if g.das.dir ~= 0 and not g.gameOver then
+    g.das.t = g.das.t + d
+    if g.das.t >= NUM.DAS_DELAY then
+      g.das.arr = g.das.arr + d
+      while g.das.arr >= NUM.ARR_RATE do
+        g.das.arr = g.das.arr - NUM.ARR_RATE
+        moveBy(g.das.dir)
       end
     end
   end
@@ -2724,7 +2760,7 @@ function OnUpdate(dt)
   for i = 1, #ACTIVE do
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
     -- T6b：AI 盘驱动（i==2）——作用于 G[2]（闭包 g 已切）；盘死即停（胜负在 showGameOver 收口）
-    if MODE == 'ai-battle' and i == 2 then
+    if (MODE == 'ai-battle' or MODE == 'coop') and i == 2 then
       aiTickCore(d, 'stop')
     end
     tickInstance(d)

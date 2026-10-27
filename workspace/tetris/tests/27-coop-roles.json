@@ -1,0 +1,27 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "27 coop 旋转手+行动手：P1 W 旋转/G Hold，P2 ←→↓/X 行动，日志 coop act=* p=*",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey4Down" },
+    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey4Up" },
+    { "t": 0.8, "kind": "key", "typeName": "KeyboardMoveForwardKeyDown" },
+    { "t": 0.82, "kind": "key", "typeName": "KeyboardMoveForwardKeyUp" },
+    { "t": 1.2, "kind": "key", "typeName": "KeyboardCraftspersonKey14Down" },
+    { "t": 1.22, "kind": "key", "typeName": "KeyboardCraftspersonKey14Up" },
+    { "t": 1.6, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
+    { "t": 1.62, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
+    { "t": 2.0, "kind": "key", "typeName": "KeyboardDropKeyDown" },
+    { "t": 2.02, "kind": "key", "typeName": "KeyboardDropKeyUp" }
+  ],
+  "asserts": [
+    { "at": 0.6, "kind": "log", "contains": "mode=coop", "source": "client" },
+    { "at": 0.6, "kind": "log", "contains": "p2 inst coop", "source": "client" },
+    { "at": 1.1, "kind": "log", "contains": "coop act=rot p=1", "source": "client" },
+    { "at": 1.5, "kind": "log", "contains": "coop act=hold p=1", "source": "client" },
+    { "at": 1.9, "kind": "log", "contains": "coop act=left p=2", "source": "client" },
+    { "at": 2.5, "kind": "log", "contains": "coop act=hard p=2", "source": "client" }
+  ]
+}

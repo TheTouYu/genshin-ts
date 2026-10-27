@@ -46,7 +46,7 @@
     {
       "at": 0.5,
       "kind": "log",
-      "contains": "p2 inst ai-battle hard",
+      "contains": "p2 inst ai-battle",
       "source": "client"
     },
     {
