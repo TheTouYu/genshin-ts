@@ -1,0 +1,40 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "21 AI 轻松档消除率（easy ρ∈0.10~0.18，100 块固定种子）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 1,
+      "kind": "key",
+      "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2,
+      "kind": "log",
+      "contains": "demo level=easy",
+      "source": "client"
+    },
+    {
+      "at": 295,
+      "kind": "log",
+      "contains": "demo auto n=100",
+      "source": "client"
+    },
+    {
+      "at": 295,
+      "kind": "log",
+      "contains": "rho=0.15 pieces=100",
+      "source": "client"
+    }
+  ],
+  "note": "T5 验收：低难度档 ρ 0.10~0.18（v2-plan §三 T5）。t=1/t=1.5 两次切档键 normal→hard→easy（demo level=easy 日志在 hard 之后）。easy 决策=1-ply + 15% 失误注入（top-5 按分加权）+ 拟人修正全开（nudge 30%/竖I贴墙特判/W_WALL——演出观感'像人'）。实测 rho=0.15@100（带内）。pMistake 25% 时曾低到 0.08（出带），15%+top5 校准回带（实验记录 docs/v2-ai-design.md §四）。参数再改动时本断言值需同步更新。"
+}

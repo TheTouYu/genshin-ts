@@ -1,0 +1,35 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "20 AI 高难度档消除率（hard ρ≥0.30，100 块固定种子）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 1,
+      "kind": "key",
+      "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.5,
+      "kind": "log",
+      "contains": "demo level=hard",
+      "source": "client"
+    },
+    {
+      "at": 235,
+      "kind": "log",
+      "contains": "demo auto n=100",
+      "source": "client"
+    },
+    {
+      "at": 235,
+      "kind": "log",
+      "contains": "rho=0.30 pieces=100",
+      "source": "client"
+    }
+  ],
+  "note": "T5 验收：固定种子高难度档 100 块 ρ≥0.30（v2-plan §三 T5）。t=1 切档键（SwitchToWalkOrRun，具名键不被 anyKeyStart 抢）normal→hard，rho 统计清零重开。实测（2026-10-27 校准版）：n=100 rho=0.30（渐态 0.32-0.35，建立期后段 50-90 块稳定 0.32-0.35）；决策=2-ply 全候选精化+hold 第三分支+零失误+拟人修正关闭（nudge/竖I贴墙特判/W_WALL——决策纯化是 ρ 0.26→0.30 的关键，实验阶梯见 docs/v2-ai-design.md）。权重或搜索再改动时本断言值需同步更新。"
+}

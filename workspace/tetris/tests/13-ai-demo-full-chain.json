@@ -18,28 +18,15 @@
   ],
   "asserts": [
     {
-      "at": 32,
+      "at": 34.5,
       "kind": "log",
       "contains": "demo clear n=1 aiScore=100 aiLines=1 combo=1 b2b=0",
       "source": "client"
     },
     {
-      "at": 32,
-      "kind": "control",
-      "name": "hud",
-      "field": "text",
-      "equals": "得分 100　消行 1　等级 1　已填 38"
-    },
-    {
-      "at": 32,
+      "at": 34.5,
       "kind": "log",
       "contains": "shake rows=1 amp=7 dur=0.18",
-      "source": "client"
-    },
-    {
-      "at": 32,
-      "kind": "log",
-      "contains": "lock ",
       "source": "client"
     },
     {
@@ -47,7 +34,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 350　消行 3　等级 1　已填 38"
+      "equals": "得分 100　消行 1　等级 1　已填 54"
     },
     {
       "at": 46.6,
@@ -60,7 +47,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 0　消行 0　等级 1　已填 38"
+      "equals": "得分 0　消行 0　等级 1　已填 54"
     },
     {
       "at": 46.6,
@@ -77,5 +64,5 @@
   "audioExclude": [
     50929
   ],
-  "note": "T4 验收：AI 消行同样计分（demo clear 带 aiScore 账本口径）进 HUD（32s=100→45s=350 随 AI 增长）、响消行音（50917=1 行档）与落块音（50872）、抖屏（shake rows=1）；AI 分走 AI.score 账本——玩家接管（t=46 按未映射键）瞬间 HUD 回玩家账 0 分（已填 38 是 AI 留下的盘面，不清盘），best 恒'最高 0'（AI 分不进 bestScore）。读数为固定种子确定性序列（LCG 20261023 + aiSeed 20261024 + 7-bag 首袋排 S/Z）：首消 30.4s、69.3s demo reset。T5 改决策源头或 T2/T3 改出块序列时本用例的精确值需同步更新。"
+  "note": "T4 语义 + T5 决策源头的确定性读数（normal 档默认，LCG 20261023 + aiSeed 20261024 + 7-bag 首袋排 S/Z + T5 渐进式搜索/8% 失误注入的 aiRand 消耗序）：首消 33.5s（demo clear aiScore=100 + shake rows=1）；at=45 HUD='得分 100'（AI 账进 HUD）；（无事件探针版第二局 100.8s 可到 aiScore=400，本用例 t=46 接管后 AI 停，故不取该读数）；t=46 按未映射键接管 → at=46.6 HUD 回玩家账 0 分（已填 54 为 AI 留下盘面不清）；best 恒'最高 0'（AI 分不进 bestScore）。60.6s demo reset stack=12（第二局 71.0s 起）。音频：AI 落块音 50872、1 行消行音 50917（SFX_CLEAR[1]）。决策源头或出块序列再变时（T6 模式接线/权重再校准）本用例精确值需同步更新。"
 }

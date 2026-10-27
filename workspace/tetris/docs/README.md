@@ -58,6 +58,12 @@
   自演（stage0）额外：`demo clear n=<行> aiScore=<分> aiLines=<行> combo=<n> b2b=<0|1>`（AI 账本口径，T4）——
   T4 起 AI 落块/消行与玩家走同一条链路（lock/piece/clear 日志同格式、落块音/消行音/抖屏照播），
   分数进 `AI.score` 账本：HUD 在 stage0 显示 AI 账（玩家接管瞬间回玩家账 0 分），`best` 只收玩家账。
+  T5 难度分级额外：`demo auto n=<块> avg=<s> stack=<高> rho=<消除率> pieces=<块>`（每 10 块）、
+  `demo rho=<率> pieces=<n> lines=<n>`（demo reset 时累计读数）、`demo level=easy|normal|hard`
+  （切档键 SwitchToWalkOrRun 循环三档，切档清 rho 重开演示；具名键不被 anyKeyStart 抢）。
+  三档实测（固定种子 100 块）：easy ρ=0.15（1-ply+15% 失误+拟人修正全开）、normal ~0.13、
+  **hard ρ=0.30**（2-ply 全候选精化+hold 分支+零失误+决策纯化——nudge/竖I贴墙特判/W_WALL 关闭）。
+  设计与校准实验阶梯：docs/v2-ai-design.md。
 
 ### 4.1 音效与抖屏（2026-10-25）
 

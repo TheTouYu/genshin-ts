@@ -89,6 +89,31 @@ local NUM = {
   --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
   ST = { name = nil, bag = 0, can = true },
 
+  -- ===== T5 AI 难度档（docs/v2-ai-design.md §四；数值依据标注见该文档）=====
+  -- lv: 1=轻松(demo-easy) 2=标准(demo-normal) 3=高难(demo-hard)；默认 2（casual 演出观感不变）。
+  -- 调试切档键 = SwitchToWalkOrRun（具名键不在工匠 1-43 池，不会被 anyKeyStart 抢走）。
+  -- 字段：ply=搜索层数；hold=是否考虑 Hold 换块；pMistake=失误注入概率（%）；
+  --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
+  --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
+  AI_LEVEL = 2,
+  AI_LEVELS = {
+    { name = 'easy',   ply = 1, hold = 0, pMistake = 15, topK = 5, nudgePct = 30,
+      pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
+      obsMin = 0.30, targetLo = 2.6, targetHi = 4.0 },
+    { name = 'normal', ply = 2, hold = 0, pMistake = 8, topK = 3, nudgePct = 30,
+      pieceMin = 1.5, pieceMax = 3.2, moveMin = 0.08, moveMax = 0.25,
+      obsMin = 0.30, targetLo = 1.8, targetHi = 3.2 },
+    { name = 'hard',   ply = 2, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+      pieceMin = 0.9, pieceMax = 2.2, moveMin = 0.06, moveMax = 0.18,
+      obsMin = 0.55, targetLo = 1.0, targetHi = 2.2 },
+  },
+  -- T5 评估特征补强（Dellacherie；与 El-Tetris 四权重同表共存，docs/v2-ai-design.md §三）：
+  -- rowtrans/coltrans = 行/列内 空实 边界数；wellsum = 井深累加 d*(d-1)/2（浅井轻罚）。
+  -- 【T5 校准定论】Dellacherie 补充特征在 El-Tetris 权重系内为负贡献（对照实验 A/B/D，
+  -- docs/v2-ai-design.md §三）：A=全 0 基线 ρ0.24 > B=landing(-0.30) 0.22 ≈ D=小系数 0.22。
+  -- 特征计算代码保留（rowtrans/coltrans/wellsum/landing），权重 0=等效 El-Tetris 四项。
+  W_ROWTRANS = 0.0, W_COLTRANS = 0.0, W_WELLSUM = 0.0, W_LANDING = 0.0,
+
   -- ===== T8 进阶操作（数值出处 v2-plan §三 T8；只作用于玩家输入路径——
   -- AI 的 aiDrop 即时锁定、AI 横移走自身节奏，不受下面任何参数影响）=====
   LD_DELAY   = 0.5,    -- 锁定延迟：重力触底后的缓冲秒数
@@ -885,6 +910,7 @@ clearLines = function()
     local gain = base * level + comboBonus
     if autoDriving then AI.score = AI.score + gain else score = score + gain end
     if autoDriving then AI.lines = AI.lines + cleared else lines = lines + cleared end
+    if autoDriving then AI.rhoLines = AI.rhoLines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
     local levelBefore = level
     level = lines // NUM.LEVEL_UP_LINES + 1
     if level > NUM.LEVEL_CAP then level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
@@ -1072,29 +1098,6 @@ end
 -- canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
 
--- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
--- T8 起收成 NUM.doHold 表函数（200-local 满，local function 加不进）：玩家 G 键与 AI（T5 起）
--- 共用同一套换块语义。canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；
--- 空槽首换=当前块入槽+bag 自然出下一块；换出块不消耗 bag 队列（spawn override 路径）。
-NUM.doHold = function()
-  if gameOver or not piece or not NUM.ST.can then return false end
-  NUM.ST.can = false
-  local cur, curBag = piece.name, nextBag
-  local outName, outBag
-  if NUM.ST.name then
-    outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
-  end
-  NUM.ST.name, NUM.ST.bag = cur, curBag or 0
-  print('hold in=' .. cur .. ' out=' .. (outName or '-'))
-  sfx(SFX.rotate)
-  if outName then
-    spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
-  else
-    spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
-  end
-  return true
-end
-
 local function newGame()
   board = {}
   for r = 1, ROWS do
@@ -1229,13 +1232,13 @@ end
 --  ① 选位像人：贴墙奖励（tie-breaker 量级）+ 禁止在中间挖 1 宽深井（竖 I 不许塞中间）；
 --  ② 执行像人：观察 → 分段横移（1~2 格一停）→ 途中偶尔小落 → 到位犹豫 / 再看一眼 →
 --     最后 50% 软降逐格落 / 50% 硬降，全程打 `demo pace` / `demo act` 日志。
-local AI_OBSERVE_MIN, AI_OBSERVE_MAX = 0.25, 0.70   -- 算完之后先看清局面（完全不动）
-local AI_MOVE_MIN, AI_MOVE_MAX = 0.08, 0.25         -- 两次横移之间
+local AI_OBSERVE_MAX = 0.70                         -- 观察上限（下限 obsMin 是档位参数，见 NUM.AI_LEVELS）
 local AI_ROT_MIN, AI_ROT_MAX = 0.15, 0.25           -- 旋转本身
 local AI_ROTGAP_MIN, AI_ROTGAP_MAX = 0.10, 0.20     -- 两次旋转之间
 local AI_HOVER_MIN, AI_HOVER_MAX = 0.20, 0.40       -- 落定前"再看一眼"
 local AI_SOFT_MIN, AI_SOFT_MAX = 0.06, 0.12         -- 软降一格
-local AI_PIECE_MIN = 1.5                            -- 单块总时长下限（上限 3.5 由 planTiming 的预算 + 3.4s 兜底守住）
+-- T5：单块时长带 pieceMin/Max、横移间隔带 moveMin/Max、观察下限 obsMin、目标带 targetLo/Hi
+-- 全部改读 NUM.AI_LEVELS 档位参数（docs/v2-ai-design.md §四）；上面五个不分档的保留 local。
 local AI_RESET_ROWS = 12                            -- 堆到这么高就清盘重开
 local W_WALL, W_WELL = 0.06, 0.9                    -- 贴墙奖励 / 深井惩罚系数
 local WELL_DEPTH = 3                                -- 1 列宽凹槽多深才算"深井"
@@ -1328,6 +1331,34 @@ local function evalBoard(cells, x)
     if d < 0 then d = -d end
     bump = bump + d
   end
+  -- T5 Dellacherie 特征（docs/v2-ai-design.md §三）：行/列转移（消行后棋盘上的空实边界数）
+  local rowtrans, coltrans = 0, 0
+  for r = 1, floorRows do
+    local prev = true                       -- 行扫描左边界视为实心（标准口径）
+    for c = 1, COLS do
+      local cur = solidFinal(r, c)
+      if cur ~= prev then rowtrans = rowtrans + 1 end
+      prev = cur
+    end
+    if not prev then rowtrans = rowtrans + 1 end  -- 右边界收尾（空→实边界）
+  end
+  for c = 1, COLS do
+    local prev = false                      -- 列扫描顶视为空
+    for r = 1, floorRows do
+      local cur = solidFinal(r, c)
+      if cur ~= prev then coltrans = coltrans + 1 end
+      prev = cur
+    end
+    if not prev then coltrans = coltrans + 1 end  -- 列底视为实（空列收尾 +1）
+  end
+  -- 井深累加（所有 1 宽凹槽，含浅井：d*(d-1)/2 浅井轻罚；墙边空列不算——竖 I 贴墙合法）
+  local wellsum = 0
+  for c = 2, COLS - 1 do
+    local nb = heights[c - 1]
+    if heights[c + 1] < nb then nb = heights[c + 1] end
+    local d = nb - heights[c]
+    if d >= 2 then wellsum = wellsum + d * (d - 1) / 2 end
+  end
   -- 深井：只数"被两边夹住"的 1 列宽凹槽（墙边的空列不算井——竖 I 贴墙是允许且鼓励的）
   local wells = 0
   for c = 2, COLS - 1 do
@@ -1348,8 +1379,13 @@ local function evalBoard(cells, x)
   for c = 1, COLS do
     if heights[c] > top then top = heights[c] end
   end
+  local landing = ROWS - y                                 -- 落点高度（0=贴底，越大越高）——Dellacherie 首特征
+  -- 【实验C 结论】动态消行奖励（高堆放大 W_LINE）实测不改决策——高堆时刻消行候选本就是 best，已删。
+  local wWall = W_WALL
+  if NUM.AI_LEVEL >= 3 then wWall = 0 end   -- hard 档关拟人贴墙奖励（决策纯化，实验 F：ρ 0.26→0.30）
   return W_AGG * agg + W_LINE * complete + W_HOLE * holes + W_BUMP * bump
-    - W_WALL * wallDist - wells, top, complete
+    + NUM.W_ROWTRANS * rowtrans + NUM.W_COLTRANS * coltrans + NUM.W_WELLSUM * wellsum
+    + NUM.W_LANDING * landing - wWall * wallDist - wells, top, complete
 end
 
 -- 选位：4 朝向 × 每个合法列，三层优先级（能消行且不超高 > 不超高 > 清盘）；
@@ -1400,7 +1436,7 @@ local function aiChoose()
   if not best then return { reset = true } end
   -- 竖 I 特别容易"立在中间"显得假 ⇒ 贴墙候选只要不比最优差 1.2 分就改放墙边
   -- （左右都能放时先比平不平，一样平则取左墙——用户口径"优先最左"）
-  if piece.name == 'I' then
+  if piece.name == 'I' and NUM.AI_LEVEL < 3 then   -- hard 档跳过拟人贴墙特判（纯分数决策）
     local wallBest
     for _, c in ipairs(cands) do
       if c.h <= AI_RESET_ROWS and (c.x == 1 or c.x == COLS - 1) and c.score >= best.score - 1.2 then
@@ -1425,7 +1461,20 @@ local function aiChoose()
   probe = cells
   landingY = 1
   while landingY < ROWS and not collides(probe, best.x, landingY + 1) do landingY = landingY + 1 end
-  return { rot = best.rot - 1, x = best.x, landingY = landingY }
+  -- T5：候选表按分降序（安全位 h<=AI_RESET_ROWS）——供失误注入（topK 池）与
+  -- 2-ply 精化（top-12 重排）使用；1-ply best 仍按上面三层优先级+贴墙规则选出（保底不变）。
+  local sorted = {}
+  for _, c in ipairs(cands) do
+    if c.h <= AI_RESET_ROWS then sorted[#sorted + 1] = c end
+  end
+  table.sort(sorted, function(a, b)
+    if a.score ~= b.score then return a.score > b.score end
+    if a.wall ~= b.wall then return a.wall < b.wall end
+    if a.from ~= b.from then return a.from < b.from end
+    return a.x < b.x
+  end)
+  return { rot = best.rot - 1, x = best.x, landingY = landingY,
+    best1 = best, sorted = sorted }
 end
 
 -- 把方案编成"人手动作序列"（每步自带时长；随机化都在这里定下来，执行只按序列走）
@@ -1446,7 +1495,8 @@ local function buildQueue(plan)
   while remaining > 0 do
     local step = aiRand(2)                       -- 1 或 2 格
     if step > remaining then step = remaining end
-    local gap = aiRange(AI_MOVE_MIN, AI_MOVE_MAX)
+    local mlv = NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
+    local gap = aiRange(mlv.moveMin, mlv.moveMax)
     q[#q + 1] = { kind = 'move', cells = step, dir = dir, wait = gap, gap = gap }
     moved = moved + step
     remaining = remaining - step
@@ -1468,6 +1518,27 @@ local function buildQueue(plan)
   return q, { cells = totalCells, softRows = softRows, hover = hover, rot = plan.rot, landingY = plan.landingY }
 end
 
+-- T5：Hold 换块的唯一实现（玩家 G 键与 AI 自演共用一套，lead 指示"AI 复用此语义，别另写一套"）。
+-- 挂 NUM 表函数而不是 local function——main 函数 200 个 local 已满（D612/D616 两次实测爆）。
+NUM.doHold = function()
+  if gameOver or not piece or not NUM.ST.can then return false end
+  NUM.ST.can = false
+  local cur, curBag = piece.name, nextBag
+  local outName, outBag
+  if NUM.ST.name then
+    outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
+  end
+  NUM.ST.name, NUM.ST.bag = cur, curBag or 0
+  print('hold in=' .. cur .. ' out=' .. (outName or '-'))
+  sfx(SFX.rotate)
+  if outName then
+    spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
+  else
+    spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
+  end
+  return true
+end
+
 -- 清盘重开（演示循环用）：不弹结算页，横幅与入场动画复位
 local function demoLoopReset()
   autoDriving = true
@@ -1482,7 +1553,8 @@ local function demoLoopReset()
   trySet(botBanner, 'fontColor', C_ACCENT2)
   trySet(botBanner, 'fontSize', 22)
   AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.dur = 'thinking', 0, nil, 1, nil, 0
-  AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+  AI.search = nil
+  AI.wait = aiRange((NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]).obsMin, AI_OBSERVE_MAX)
 end
 
 -- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
@@ -1500,6 +1572,7 @@ local function aiDrop()
     return
   end
   AI.count = AI.count + 1
+  AI.rhoPieces = AI.rhoPieces + 1
   AI.sumSec = AI.sumSec + AI.dur
   -- 一块一条节奏日志：从这行能看出"确实分段执行了"
   local p = AI.pace or {}
@@ -1516,10 +1589,13 @@ local function aiDrop()
   AI.dur = 0
   if AI.count % 10 == 0 then
     print('demo auto n=' .. AI.count .. ' avg=' .. aiFmt(AI.sumSec / AI.count)
-      .. 's stack=' .. stackHeight())
+      .. 's stack=' .. stackHeight() .. ' rho=' .. aiFmt(AI.rhoLines / math.max(AI.rhoPieces, 1))
+      .. ' pieces=' .. AI.rhoPieces)
   end
   local h = stackHeight()
   if gameOver or h >= AI_RESET_ROWS then
+    print('demo rho=' .. aiFmt(AI.rhoLines / math.max(AI.rhoPieces, 1))
+      .. ' pieces=' .. AI.rhoPieces .. ' lines=' .. AI.rhoLines)
     print('demo reset stack=' .. h)
     demoLoopReset()
   end
@@ -1527,7 +1603,10 @@ end
 
 AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
   count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
-  score = 0, lines = 0 }   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）
+  score = 0, lines = 0,
+  rhoPieces = 0, rhoLines = 0,   -- T5 ρ 统计（跨局累计：demo reset/玩家接管不清，切档清零）
+  search = nil,                  -- T5 渐进式搜索状态（plan/idx/best2/bestScore/done/holdChecked）
+}   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）
 
 -- 每个 OnUpdate 调一次：thinking（观察）→ acting（旋转/横移/小落，逐段计时）
 -- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
@@ -1538,9 +1617,10 @@ autoTick = function(dt)
     return
   end
   if not piece or not board then return end
-  if AI.piece and AI.piece ~= piece then          -- 方块换了（清盘/重开）
-    AI.phase, AI.t, AI.queue, AI.qi, AI.piece = 'thinking', 0, nil, 1, nil
-    AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+  local lv = NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
+  if AI.piece and AI.piece ~= piece then          -- 方块换了（清盘/重开/Hold 换块）
+    AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', 0, nil, 1, nil, nil
+    AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
   AI.t = AI.t + dt
   AI.dur = AI.dur + dt
@@ -1550,8 +1630,74 @@ autoTick = function(dt)
     AI.t = 0
   end
   if ph == 'thinking' then
-    -- 进入思考的**那一刻**就把方案与整段时长算好：这样才能把"观察"补到单块 >= 1.5s
-    if not AI.queue then
+    -- T5 渐进式搜索（docs/v2-ai-design.md §二）：第一帧 1-ply 全集 = 保底方案 + 候选表；
+    -- ply>=2 档在观察期分帧精化 top-12（每帧 2 候选 × ~34 下一块落点 ≈ 68 evalBoard ≈ 8ms
+    -- 真机预算）；完成或超时（obsMin+0.10s）收敛——超时用当前最优，1-ply 保底永不缺席。
+    -- 搜索期间临时把 board 指向模拟棋盘（切片内同步完成，无渲染穿插，安全）。
+    local function refineSearch()
+      local S = AI.search
+      local top = S.plan.sorted
+      local n = #top                                    -- 【E2】全候选精化（top-12→全部；34×34≈17帧<0.55s 观察窗）
+      local nextS = SHAPES[nextName or 'T']
+      local savedBoard = board
+      local k = S.idx
+      local budget = 2
+      while k <= n and budget > 0 do
+        local cand = top[k]
+        local sim = {}
+        for r = 1, ROWS do
+          local row = {}
+          for c = 1, COLS do row[c] = board[r][c] end
+          sim[r] = row
+        end
+        local cells = piece.cells
+        for _ = 1, cand.rot - 1 do cells = rotateCells(cells, piece.n or 4) end
+        local y = 1
+        while y < ROWS and not collides(cells, cand.x, y + 1) do y = y + 1 end
+        for i = 1, 4 do
+          local br, bc = y + cells[i][1] - 1, cand.x + cells[i][2] - 1
+          if br >= 1 and br <= ROWS then sim[br][bc] = 1 end
+        end
+        local r = ROWS
+        while r >= 1 do
+          local full = true
+          for c = 1, COLS do if sim[r][c] == 0 then full = false end end
+          if full then
+            table.remove(sim, r)
+            local row = {}
+            for c = 1, COLS do row[c] = 0 end
+            table.insert(sim, 1, row)
+          else
+            r = r - 1
+          end
+        end
+        board = sim
+        local ncells = nextS.cells
+        local bestNext = nil
+        for _ = 1, 4 do
+          local nwmax = 1
+          for i = 1, 4 do
+            if ncells[i][2] > nwmax then nwmax = ncells[i][2] end
+          end
+          for nx = 1, COLS - nwmax + 1 do
+            local sc = evalBoard(ncells, nx)
+            if sc and (not bestNext or sc > bestNext) then bestNext = sc end
+          end
+          ncells = rotateCells(ncells, nextS.n)
+        end
+        board = savedBoard
+        cand.score2 = cand.score + (bestNext or -5)   -- 2-ply 值 = 1-ply 分 + 下一层最优回应
+        if not S.bestScore or cand.score2 > S.bestScore then
+          S.bestScore, S.best2 = cand.score2, cand
+        end
+        k = k + 1
+        budget = budget - 1
+      end
+      S.idx = k
+      if k > n then S.done = true end
+    end
+    if not AI.queue and not AI.search then
+      -- 首帧：1-ply 全集（保底）
       local plan = aiChoose()
       if plan and plan.reset then
         print('demo reset plan=too-high')
@@ -1559,17 +1705,83 @@ autoTick = function(dt)
         return
       end
       if not plan then
-        AI.wait = aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+        AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
         AI.t = 0
         return
       end
-      local q, info = buildQueue(plan)
-      AI.queue, AI.info, AI.qi = q, info, 1
+      AI.search = { plan = plan, idx = 1, best2 = nil, bestScore = nil,
+        done = (lv.ply < 2) or (#plan.sorted < 2), holdChecked = false, doHoldAfter = false }
       AI.piece = piece
       AI.dur = 0
+      AI.t = 0
+      AI.wait = lv.obsMin + 0.10
+      return
+    end
+    if AI.search and not AI.search.done then
+      refineSearch()
+      if not AI.search.done then
+        if AI.t < lv.obsMin + 0.10 then return end
+        AI.search.done = true          -- 超时收敛：用当前已精化最优（保底仍在）
+      end
+    end
+    if AI.search and not AI.search.holdChecked then
+      AI.search.holdChecked = true
+      -- T5 hold 第三分支（hard 档）：换出块在当前盘面的 1-ply 最优 > 留守 2-ply 值 + 0.3 才换
+      -- （复用 NUM.doHold 同一执行路径——lead 指示别另写一套换块逻辑）
+      if lv.hold > 0 and NUM.ST.can then
+        local altS = SHAPES[NUM.ST.name or nextName or 'T']
+        local cells = altS.cells
+        local bestAlt = nil
+        for _ = 1, 4 do
+          local wmax = 1
+          for i = 1, 4 do if cells[i][2] > wmax then wmax = cells[i][2] end end
+          for ax = 1, COLS - wmax + 1 do
+            local sc, h = evalBoard(cells, ax)
+            if sc and h <= AI_RESET_ROWS and (not bestAlt or sc > bestAlt) then bestAlt = sc end
+          end
+          cells = rotateCells(cells, altS.n)
+        end
+        local stay = AI.search.plan.best1.score   -- 同口径 1-ply vs 1-ply（2-ply 值含负向回应分，恒偏小）
+        if bestAlt and bestAlt > stay + 1.5 then
+          AI.search.doHoldAfter = true
+        end
+      end
+      if AI.search.doHoldAfter then
+        AI.search = nil
+        NUM.doHold()                   -- 换块；下一帧由换块守卫重新进入 thinking
+        return
+      end
+    end
+    if not AI.queue then
+      -- 定稿：2-ply 最优（超时退 1-ply best）→ 失误注入（topK 池按分加权）→ buildQueue（拟人外壳不变）
+      local S = AI.search
+      local final = S.plan.best1
+      if S.best2 and S.done then final = S.best2 end
+      if lv.pMistake > 0 and #S.plan.sorted > 1 and aiRand(100) <= lv.pMistake then
+        local pool = {}
+        for i = 2, math.min(lv.topK, #S.plan.sorted) do pool[#pool + 1] = S.plan.sorted[i] end
+        if #pool > 0 then
+          local minS = S.plan.sorted[#S.plan.sorted].score
+          local sum = 0
+          for _, c in ipairs(pool) do sum = sum + math.max(c.score - minS + 0.01, 0.01) end
+          local r = aiRand(1000) / 1000 * sum
+          local acc = 0
+          for _, c in ipairs(pool) do
+            acc = acc + math.max(c.score - minS + 0.01, 0.01)
+            if r <= acc then final = c; break end
+          end
+        end
+      end
+      local probe = piece.cells
+      for _ = 1, final.rot - 1 do probe = rotateCells(probe, piece.n or 4) end
+      local ly = 1
+      while ly < ROWS and not collides(probe, final.x, ly + 1) do ly = ly + 1 end
+      local plan = { rot = final.rot - 1, x = final.x, landingY = ly }
+      local q, info = buildQueue(plan)
+      AI.queue, AI.info, AI.qi = q, info, 1
       local rest = 0
       for _, a in ipairs(q) do rest = rest + (a.wait or 0) end
-      local target = aiRange(1.8, 3.2)
+      local target = aiRange(lv.targetLo, lv.targetHi)
       AI.softPer = 0
       local dropKind = 'hard'
       if aiRand(100) <= 50 then dropKind = 'soft' end
@@ -1583,19 +1795,19 @@ autoTick = function(dt)
         AI.softPer = per
         dropTime = rows * per
       end
-      -- 观察时长 = 目标总时长 - 其余各段；夹在 0.25~1.2s（够长才像"人在看"）
-      -- 兜底：软降 + 长距离 + 多动作会让整块超过 3.4s ⇒ 这一块改成硬降（人也常常直接按到底）
-      if dropKind == 'soft' and (rest + dropTime + AI_OBSERVE_MIN) > 3.4 then
+      -- 观察时长 = 目标总时长 - 其余各段；下限 obsMin（高难 0.55 覆盖精化帧数）、上限 1.2s
+      -- 兜底：软降 + 长距离 + 多动作会让整块超过 pieceMax+0.2 ⇒ 这一块改成硬降（人也常常直接按到底）
+      if dropKind == 'soft' and (rest + dropTime + lv.obsMin) > lv.pieceMax + 0.2 then
         dropKind, dropTime, AI.softPer = 'hard', 0, 0
       end
       local think = target - rest - dropTime
-      if think < AI_OBSERVE_MIN then think = AI_OBSERVE_MIN end
+      if think < lv.obsMin then think = lv.obsMin end
       if think > 1.2 then think = 1.2 end
       AI.wait = think
       AI.t = 0
       AI.pace = { think = think, rot = info.rot, cells = info.cells,
         gaps = 0, sumGap = 0, soft = info.softRows, hover = info.hover, drop = dropKind }
-      -- 计划日志：看到"这块是什么方块、打算放哪一列、软降还是硬降"
+      -- 计划日志：看到"这块是什么方块、打算放哪一列、软降还是硬降"（形状不变，T4 口径）
       print('demo plan name=' .. tostring(piece.name) .. ' from=' .. piece.x
         .. ' target=' .. plan.x .. ' rot=' .. plan.rot .. ' drop=' .. dropKind)
       return
@@ -1613,7 +1825,7 @@ autoTick = function(dt)
       AI.dropped = 0
       AI.fallTimer = 0
       if AI.pace.drop == 'soft' then
-        AI.nudge = (aiRand(100) <= 30)        -- 软降途中 30% 顺手横调 1 格
+        AI.nudge = (aiRand(100) <= lv.nudgePct)   -- 软降途中顺手横调 1 格（hard 档 0%：落点不被噪声破坏）
         AI.nudgeAt = aiRand(3)
       end
       print('demo act drop=' .. AI.pace.drop)
@@ -1698,18 +1910,18 @@ autoTick = function(dt)
         end
       end
       if not canFall then
-        -- 落地后若这块太快（< 1.5s），落定前再停一下（像人抬手前确认一下）
-        if AI.dur < AI_PIECE_MIN then return end
+        -- 落地后若这块太快（< 档位 pieceMin），落定前再停一下（像人抬手前确认一下）
+        if AI.dur < lv.pieceMin then return end
         aiDrop()
-        AI.phase, AI.queue, AI.qi, AI.piece = 'thinking', nil, 1, nil
-        AI.t, AI.wait = 0, aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+        AI.phase, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', nil, 1, nil, nil
+        AI.t, AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
       end
       return
     end
-    if AI.dur < AI_PIECE_MIN then return end     -- 太快就再停一下（同软降）
+    if AI.dur < lv.pieceMin then return end       -- 太快就再停一下（同软降）
     aiDrop()                                     -- 硬降
-    AI.phase, AI.queue, AI.qi, AI.piece = 'thinking', nil, 1, nil
-    AI.t, AI.wait = 0, aiRange(AI_OBSERVE_MIN, AI_OBSERVE_MAX)
+    AI.phase, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', nil, 1, nil, nil
+    AI.t, AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
 end
 
@@ -1957,7 +2169,7 @@ function OnStart()
       elseif m.action == 'soft' then
         stepDown(true)                                     -- 软降计分；触底即时锁（玩家主动落）
       elseif m.action == 'hold' then
-        NUM.doHold()                                       -- 换块语义（T5 起 AI 与玩家同源）
+        NUM.doHold()                                       -- T5 抽取的共用换块语义（AI 与玩家同源）
       elseif m.action == 'hard' then
         if gameOver or not piece then return end
         local dropped = 0
@@ -1978,6 +2190,14 @@ function OnStart()
     end
   end
   -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
+  listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
+    if guideStage ~= 0 then return end
+    NUM.AI_LEVEL = NUM.AI_LEVEL % 3 + 1
+    local lv2 = NUM.AI_LEVELS[NUM.AI_LEVEL]
+    AI.rhoPieces, AI.rhoLines = 0, 0
+    print('demo level=' .. lv2.name)
+    demoLoopReset()
+  end)
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
