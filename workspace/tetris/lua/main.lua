@@ -37,7 +37,7 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
   音效 只在"动作真的发生"时播一条（移动/旋转/落地/消行/结束），全走 pcall；
        id 见 SFX 表 —— 全部是内置音效库 20001 组的小整数（语义待听感确认）
   抖屏 消行时把 200 格 + 4 条外框按同一偏移量整体平移，0.18~0.28s 指数衰减，
-       行数越多越强；只在 shakeT > 0 的帧写坐标，抖完复位一次（基准坐标创建时存下来）
+       行数越多越强；只在 g.shakeT > 0 的帧写坐标，抖完复位一次（基准坐标创建时存下来）
 =========================================================================]]
 
 local COLS, ROWS    = 10, 20
@@ -181,15 +181,44 @@ end
 -- 「任意连续 7 块含全 7 种」同样不成立——袋尾 k 块与下袋头 7-k 块可能重叠。
 -- 首袋排除 S/Z 开局（Guideline 惯例，防开局即井）：若洗出的队头是 S/Z，与袋内第一个非 S/Z 交换。
 -- 每局 newGame 重洗（bagSeq 归零 ⇒ 「newgame 后前 14 块」恒定，与上一局消耗无关；LCG 种子延续，第二局序列 ≠ 第一局）。
-local bagQ = {}      -- 待发队列（队头先出），元素 { name = 块名, bag = 所属袋序 }
-local bagSeq = 0     -- 已洗出的袋数（出块日志 bag=<袋序>）
+-- T0 实例化（v2）：每盘独立状态全部收进实例表 G[i]（平铺字段），g=当前实例引用。
+-- 闭包共享 g 的 upvalue 绑定 ⇒ 双屏循环 `for i=1,2 do g=G[i] ... end` 即让全部函数作用于当前盘，
+-- 仅跨实例交互（垃圾行/胜负判定）需显式传实例。全局保留：root/服务端单份控件/入场演出/常量/随机源。
+local G = {}                             -- 游戏实例表：G[1]=主实例；双屏模式 G[2]=第二盘
+local g                                  -- 当前实例引用（=G[1]；双屏循环重绑定）
+local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
+
+-- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
+local function newInst()
+  local t = {}
+  t.cellBX, t.cellBY, t.frameBX, t.frameBY = {}, {}, {}, {}
+  t.bagQ, t.bagSeq = {}, 0
+  t.autoDriving = false
+  t.elapsed = 0
+  t.settleReady = false
+  t.settleBuildTried = false
+  t.settleOn, t.settleT, t.settleDone = false, 0, false
+  t.settleFade = -1
+  t.settleSize = 44
+  t.settleTitleY, t.settleOptsY = 150, -150
+  t.settleTitleOff, t.settleOptsOff = 420, -420
+  t.dimRatio, t.dimApplied = 0, -1
+  t.pieceCount = 0
+  t.combo, t.maxCombo, t.b2b = 0, 0, false
+  t.settleOpen = false
+  t.shakeT, t.shakeDur, t.shakeAmp, t.shakePhase = 0, 0, 0, 0
+  return t
+end
+G[1] = newInst()
+g = G[1]
+
 local function refillBag()
   local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
   for i = #t, 2, -1 do                 -- Fisher-Yates：6 次 rand()，保证确定性与均匀性
     local j = rand(i)
     t[i], t[j] = t[j], t[i]
   end
-  if bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
+  if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
     for i = 2, #t do
       if t[i] ~= 'S' and t[i] ~= 'Z' then
         t[1], t[i] = t[i], t[1]
@@ -197,63 +226,40 @@ local function refillBag()
       end
     end
   end
-  bagSeq = bagSeq + 1
-  for i = 1, #t do bagQ[#bagQ + 1] = { name = t[i], bag = bagSeq } end
+  g.bagSeq = g.bagSeq + 1
+  for i = 1, #t do g.bagQ[#g.bagQ + 1] = { name = t[i], bag = g.bagSeq } end
 end
 local function takeFromBag()
-  if #bagQ == 0 then refillBag() end
-  local e = table.remove(bagQ, 1)
+  if #g.bagQ == 0 then refillBag() end
+  local e = table.remove(g.bagQ, 1)
   return e.name, e.bag
 end
 
--- 前向声明（局部化，避免污染全局表）
-local root, cells, preview, frames
--- 抖动基准坐标（唯一真源）：创建时按格位/框位存下来，抖屏按 base+offset 写、抖完写回 base。
--- 必须声明在 applyShake 之前（Lua 的 local 只对它之后的代码生效，写在后面会被当全局 nil）。
-local cellBX, cellBY, frameBX, frameBY = {}, {}, {}, {}
+-- 前向声明（局部化，避免污染全局表）：控件句柄类里，棋盘四件（cells/preview/frames/抖动基准）
+-- 已收进实例表 g；服务端单份控件（title/hud/.../横幅）全局保留——双屏共用一份，双屏 per-player
+-- HUD 走客户端实例化（v2 设计书 §1.4）。
+local root
 local title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner
-local board, piece, nextName, nextBag
-local score, lines, level, bestScore
-local gameOver, tickCount, acc
-local guideStage, bannerTimer, taughtLock, taughtClear
-local flashT, introT, overlay
+local guideStage, bannerTimer           -- 全局流程阶段（0=AI 演出/1=游戏/2=键位表）与全局横幅计时
+local introT, overlay
 local introFont, introPulse
-local autoDriving = false   -- true = 本次落子由入场 AI 驱动（T4 后只用于：教学提示/教学横幅抑制 + AI 账本分流）
--- AI 局账本（T4）挂在 AI 表（AI.score / AI.lines，见「AI 自演」段初始化）：入场自演的分数/消行数，
--- 与玩家账 score/lines 分开；玩家接管不清 AI 账（两套账本），best 只记玩家账。
--- 不另开 local——main 函数 200 个 local 已满（T1 加 bagQ/bagSeq 后临界）。
-local elapsed = 0           -- 本局用时（结算明细用）
-local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行时实例化，层级高于棋盘格）
-local settleReady = false   -- 结算层当前是否存活（按需创建、重开即销毁）
-local settleBuildTried = false  -- 这一局试过创建没有（避免每帧重试；销毁时复位）
-local settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts
--- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
--- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
--- 注意必须声明在**上面 10 个 settle 变量之后**：写在前面会把后面那些当全局（nil），成员数恒为 2（踩过）。
-local function settleMembers()
-  return { settleScrim, settleCard, settleBorder, settleTitle,
-           settleScore, settleBest, settleInfo, settleExtra, settleOpts }
-end
-local settleOn, settleT, settleDone = false, 0, false
-local settleFade = -1       -- 遮罩/面板淡入进度（0..1，只在变化够大时写 UI）
-local settleSize = 44       -- 标题当前字号（脉冲 44→48→44）
-local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用
-local settleTitleY, settleOptsY = 150, -150        -- 标题 / 选项的落位
-local settleTitleOff, settleOptsOff = 420, -420     -- 滑入起点（屏幕外）
-local dimRatio, dimApplied = 0, -1                  -- 兜底压暗（结算层不可用时才用）
+local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
 local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
-local AI                    -- 入场自演状态机（定义见「AI 自演」段）
-local pieceCount = 0        -- 本局已落方块数（结算明细用）
-local combo, maxCombo, b2b = 0, 0, false   -- 本局连击计数 / 最高连击 / 上一次是四消（B2B）
-local settleOpen = false    -- 结算明细是否展开（Q 切换）
-local RIGHT_CX = 410
+local bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
 local showGameOver, updateBest
 local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
+-- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
+-- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
+-- 成员全部收进实例表 g（T0）；双屏时每盘各自的结算层。
+local function settleMembers()
+  return { g.settleScrim, g.settleCard, g.settleBorder, g.settleTitle,
+           g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts }
+end
 
 local function cellIndex(r, c) return (r - 1) * COLS + c end
 
 local function paint(r, c, color)
-  local ctl = cells[cellIndex(r, c)]
+  local ctl = g.cells[cellIndex(r, c)]
   if ctl then ctl.imageColor = color end
 end
 
@@ -323,29 +329,28 @@ end
 local SHAKE_DUR = { 0.18, 0.20, 0.23, 0.28 }        -- 1/2/3/4 行
 local SHAKE_AMP = { 7, 10, 13, 17 }                 -- 像素；PITCH=30 ⇒ 4 行约半格
 local SHAKE_FREQ = 2 * math.pi * 9                  -- 9Hz：0.2s 内约 2 个周期
-local shakeT, shakeDur, shakeAmp, shakePhase = 0, 0, 0, 0
 local function applyShake(ox, oy)
-  for i = 1, #cells do
-    local c = cells[i]
-    if c then tryCall(c, 'SetAnchoredPosition', cellBX[i] + ox, cellBY[i] + oy) end
+  for i = 1, #g.cells do
+    local c = g.cells[i]
+    if c then tryCall(c, 'SetAnchoredPosition', g.cellBX[i] + ox, g.cellBY[i] + oy) end
   end
-  if not frames then return end
+  if not g.frames then return end
   for i = 1, 4 do
-    local f = frames[i]
-    if f then tryCall(f, 'SetAnchoredPosition', frameBX[i] + ox, frameBY[i] + oy) end
+    local f = g.frames[i]
+    if f then tryCall(f, 'SetAnchoredPosition', g.frameBX[i] + ox, g.frameBY[i] + oy) end
   end
 end
 -- reset=true 连坐标一起复位（抖完 / 重开 / layout 重排时用）
 local function stopShake(reset)
-  if reset and (shakeT > 0 or shakePhase > 0) then applyShake(0, 0) end
-  shakeT, shakePhase = 0, 0
+  if reset and (g.shakeT > 0 or g.shakePhase > 0) then applyShake(0, 0) end
+  g.shakeT, g.shakePhase = 0, 0
 end
 local function startShake(rows)
   if rows < 1 then return end
   if rows > 4 then rows = 4 end
-  shakeDur, shakeAmp = SHAKE_DUR[rows], SHAKE_AMP[rows]
-  shakeT, shakePhase = shakeDur, 0
-  print('shake rows=' .. rows .. ' amp=' .. shakeAmp .. ' dur=' .. shakeDur)
+  g.shakeDur, g.shakeAmp = SHAKE_DUR[rows], SHAKE_AMP[rows]
+  g.shakeT, g.shakePhase = g.shakeDur, 0
+  print('shake rows=' .. rows .. ' amp=' .. g.shakeAmp .. ' dur=' .. g.shakeDur)
 end
 
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
@@ -455,7 +460,7 @@ end
 -- 销毁整层：SetVisible(false) 在真机不保险（实测重开后结算页还在），所以重开就真销毁。
 -- 逐个 pcall：真机某个控件销毁抛错不能中断后面（同 OnStart 的护栏思路）。
 settleDestroy = function()
-  if not (settleReady or settleLayer or settleTitle) then return end
+  if not (g.settleReady or g.settleLayer or g.settleTitle) then return end
   local n = 0
   local members = settleMembers()
   for i = 1, 9 do
@@ -465,14 +470,14 @@ settleDestroy = function()
       if ok then n = n + 1 end
     end
   end
-  if settleLayer then
-    local ok = pcall(function() game.DestroyClientUIControl(settleLayer) end)
+  if g.settleLayer then
+    local ok = pcall(function() game.DestroyClientUIControl(g.settleLayer) end)
     if ok then n = n + 1 end
   end
-  settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
-  settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
-  settleReady, settleBuildTried = false, false
-  settleOn, settleT, settleDone, settleFade = false, 0, false, -1
+  g.settleLayer, g.settleScrim, g.settleCard, g.settleBorder = nil, nil, nil, nil
+  g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts = nil, nil, nil, nil, nil, nil
+  g.settleReady, g.settleBuildTried = false, false
+  g.settleOn, g.settleT, g.settleDone, g.settleFade = false, 0, false, -1
   print('settle destroy n=' .. n)
 end
 
@@ -581,7 +586,7 @@ local function buildSettleLayer()
   local textGuid                       -- 文字模板 guid（容器里文字不够时补行用）
   local sl = {}                        -- 六个文字槽位，按顺序分配
   if container then
-    settleLayer = container
+    g.settleLayer = container
     -- 先按现在这套模板的名字取（模拟器 settle / 早期真机容器）
     sl[1] = findIn(container, SETTLE_KEY_NAMES.title)
     sl[2] = findIn(container, SETTLE_KEY_NAMES.score)
@@ -594,7 +599,7 @@ local function buildSettleLayer()
       for i = 1, 6 do
         if not sl[i] and cls.text[i] then sl[i] = cls.text[i] end
       end
-      if cls.image[1] then settleCard = cls.image[1] end
+      if cls.image[1] then g.settleCard = cls.image[1] end
     end
     print('settle via=container kids=' .. ((cls and (#cls.image + #cls.text + #cls.container)) or 0)
       .. ' img=' .. ((cls and #cls.image) or 0) .. ' text=' .. ((cls and #cls.text) or 0)
@@ -627,49 +632,49 @@ local function buildSettleLayer()
     if ok2 and c then sl[1] = c end
     print('settle container-textbox replaced (placeholder removed)')
   end
-  settleTitle, settleScore, settleBest = sl[1], sl[2], sl[3]
-  settleInfo, settleExtra, settleOpts = sl[4], sl[5], sl[6]
+  g.settleTitle, g.settleScore, g.settleBest = sl[1], sl[2], sl[3]
+  g.settleInfo, g.settleExtra, g.settleOpts = sl[4], sl[5], sl[6]
   -- 遮罩：cell image（两宿主都能实例化）；它必须画在**所有东西下面** ⇒ 造完挪到根的第一个子节点
-  if settleTitle then
-    settleScrim = instInto(TPL_GUIDS.cell, root, nil)
-    tryCall(settleScrim, 'SetAsFirstSibling')
+  if g.settleTitle then
+    g.settleScrim = instInto(TPL_GUIDS.cell, root, nil)
+    tryCall(g.settleScrim, 'SetAsFirstSibling')
   end
   -- 面板底：容器自带图片就用它，否则用 cell 现造一块
-  if settleTitle and not settleCard then settleCard = instInto(TPL_GUIDS.cell, root, nil) end
-  if not settleLayer and settleCard then tryCall(settleCard, 'SetAsFirstSibling') end
-  if not (settleTitle and settleOpts) then
+  if g.settleTitle and not g.settleCard then g.settleCard = instInto(TPL_GUIDS.cell, root, nil) end
+  if not g.settleLayer and g.settleCard then tryCall(g.settleCard, 'SetAsFirstSibling') end
+  if not (g.settleTitle and g.settleOpts) then
     -- 全部候选都不可实例化 ⇒ 清掉半成品，让 showGameOver 走布局横幅
     local members = settleMembers()
     for i = 1, 9 do
       if members[i] then pcall(function() game.DestroyClientUIControl(members[i]) end) end
     end
-    if settleLayer then pcall(function() game.DestroyClientUIControl(settleLayer) end) end
-    settleLayer, settleScrim, settleCard, settleBorder = nil, nil, nil, nil
-    settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts = nil, nil, nil, nil, nil, nil
-    settleReady = false
+    if g.settleLayer then pcall(function() game.DestroyClientUIControl(g.settleLayer) end) end
+    g.settleLayer, g.settleScrim, g.settleCard, g.settleBorder = nil, nil, nil, nil
+    g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts = nil, nil, nil, nil, nil, nil
+    g.settleReady = false
     print('settle layer=none  (所有候选模板都不可实例化 ⇒ 退化为布局横幅结算)')
     return
   end
-  settleReady = true
-  local okKids, kids = pcall(function() return (settleLayer or root):GetChildren() end)
+  g.settleReady = true
+  local okKids, kids = pcall(function() return (g.settleLayer or root):GetChildren() end)
   print('settle layer ok children=' .. ((okKids and type(kids) == 'table') and #kids or 0)
-    .. ' title=' .. (settleTitle and 'y' or 'n') .. ' score=' .. (settleScore and 'y' or 'n')
-    .. ' best=' .. (settleBest and 'y' or 'n') .. ' info=' .. (settleInfo and 'y' or 'n')
-    .. ' opts=' .. (settleOpts and 'y' or 'n')
-    .. ' scrim=' .. (settleScrim and 'y' or 'n') .. ' card=' .. (settleCard and 'y' or 'n'))
+    .. ' title=' .. (g.settleTitle and 'y' or 'n') .. ' score=' .. (g.settleScore and 'y' or 'n')
+    .. ' best=' .. (g.settleBest and 'y' or 'n') .. ' info=' .. (g.settleInfo and 'y' or 'n')
+    .. ' opts=' .. (g.settleOpts and 'y' or 'n')
+    .. ' scrim=' .. (g.settleScrim and 'y' or 'n') .. ' card=' .. (g.settleCard and 'y' or 'n'))
   -- 样式显式写死（真机模板是上一轮导入的旧值，不能依赖 authoring）
-  for _, ctl in ipairs({ settleTitle, settleScore, settleBest, settleInfo, settleExtra, settleOpts }) do
+  for _, ctl in ipairs({ g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts }) do
     -- 这 6 个在下面要么都取到、要么整层判失败，用 ipairs 无风险
     trySet(ctl, 'horizontalAlignment', 'Middle')
     trySet(ctl, 'verticalAlignment', 'Middle')
     trySet(ctl, 'bgColor', C(0, 0, 0, 0))
   end
-  trySet(settleTitle, 'fontSize', 44)
-  trySet(settleScore, 'fontSize', 30)
-  trySet(settleBest, 'fontSize', 24)
-  trySet(settleInfo, 'fontSize', 22)
-  trySet(settleExtra, 'fontSize', 22)
-  trySet(settleOpts, 'fontSize', 28)
+  trySet(g.settleTitle, 'fontSize', 44)
+  trySet(g.settleScore, 'fontSize', 30)
+  trySet(g.settleBest, 'fontSize', 24)
+  trySet(g.settleInfo, 'fontSize', 22)
+  trySet(g.settleExtra, 'fontSize', 22)
+  trySet(g.settleOpts, 'fontSize', 28)
   settleSetColors(0)
   -- 懒创建：层刚建好就直接进入动画起点（不隐藏，也不留"隐藏态"给真机去误解）
   local n = 0
@@ -677,36 +682,36 @@ local function buildSettleLayer()
   for i = 1, 9 do
     if members[i] then n = n + 1 end
   end
-  print('settle build ok n=' .. n .. ' via=' .. (settleLayer and 'container' or 'textbox'))
+  print('settle build ok n=' .. n .. ' via=' .. (g.settleLayer and 'container' or 'textbox'))
   layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
 end
 
 -- 结算层文字颜色（alpha 随面板淡入；a 是 0..255）
 settleSetColors = function(a)
   local dimA = math.floor(a * 0.72)
-  trySet(settleTitle, 'fontColor', C(a, 255, 77, 77))
-  trySet(settleScore, 'fontColor', C(a, 255, 194, 76))
-  trySet(settleBest, 'fontColor', C(a, 232, 236, 244))
-  trySet(settleInfo, 'fontColor', C(dimA, 214, 232, 246))
-  trySet(settleExtra, 'fontColor', C(dimA, 214, 232, 246))
-  trySet(settleOpts, 'fontColor', C(a, 232, 236, 244))
+  trySet(g.settleTitle, 'fontColor', C(a, 255, 77, 77))
+  trySet(g.settleScore, 'fontColor', C(a, 255, 194, 76))
+  trySet(g.settleBest, 'fontColor', C(a, 232, 236, 244))
+  trySet(g.settleInfo, 'fontColor', C(dimA, 214, 232, 246))
+  trySet(g.settleExtra, 'fontColor', C(dimA, 214, 232, 246))
+  trySet(g.settleOpts, 'fontColor', C(a, 232, 236, 244))
 end
 
 -- 结算动画（0→0.9s 四段）：①0→0.45s 遮罩/面板淡入（棋盘被压到 45% 亮度）
 -- ②0.15s 起标题自上滑入（0.35s ease-out）③0.35s 起选项自下滑入 ④0.55s 起标题脉冲 44→48→44
 local function settleTick(d)
-  if not settleOn or settleDone then return end
-  settleT = settleT + d
-  local t = settleT
+  if not g.settleOn or g.settleDone then return end
+  g.settleT = g.settleT + d
+  local t = g.settleT
   local r1 = t / 0.45
   if r1 > 1 then r1 = 1 end
-  if math.abs(r1 - settleFade) >= 0.05 or (r1 >= 1 and settleFade < 1) then
-    settleFade = r1
+  if math.abs(r1 - g.settleFade) >= 0.05 or (r1 >= 1 and g.settleFade < 1) then
+    g.settleFade = r1
     settleSetColors(math.floor(255 * r1))     -- 只动文字颜色 alpha（真机验证过的通道）
-    if not settleReady then
+    if not g.settleReady then
       -- 兜底（没有结算层）：压暗棋盘本身
-      dimRatio = 0.45 * r1
-      dimApplied = r1
+      g.dimRatio = 0.45 * r1
+      g.dimApplied = r1
       renderAll()
     end
   end
@@ -717,25 +722,25 @@ local function settleTick(d)
   end
   local p2 = e((t - 0.15) / 0.35)
   if p2 > 0 then
-    tryCall(settleTitle, 'SetAnchoredPosition', 0, settleTitleOff + (settleTitleY - settleTitleOff) * p2)
+    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff + (g.settleTitleY - g.settleTitleOff) * p2)
   end
   local p3 = e((t - 0.35) / 0.35)
   if p3 > 0 then
-    tryCall(settleOpts, 'SetAnchoredPosition', 0, settleOptsOff + (settleOptsY - settleOptsOff) * p3)
+    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff + (g.settleOptsY - g.settleOptsOff) * p3)
   end
   local p4 = (t - 0.55) / 0.3
   if p4 > 0 and p4 < 1 then
     local size = 44 + math.floor(4 * math.sin(math.pi * p4) + 0.5)
-    if size ~= settleSize then settleSize = size trySet(settleTitle, 'fontSize', size) end
-  elseif p4 >= 1 and settleSize ~= 44 then
-    settleSize = 44
-    trySet(settleTitle, 'fontSize', 44)
+    if size ~= g.settleSize then g.settleSize = size trySet(g.settleTitle, 'fontSize', size) end
+  elseif p4 >= 1 and g.settleSize ~= 44 then
+    g.settleSize = 44
+    trySet(g.settleTitle, 'fontSize', 44)
   end
   if t >= 0.9 then
-    settleDone = true
-    tryCall(settleTitle, 'SetAnchoredPosition', 0, settleTitleY)
-    tryCall(settleOpts, 'SetAnchoredPosition', 0, settleOptsY)
-    trySet(settleTitle, 'fontSize', 44)
+    g.settleDone = true
+    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleY)
+    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsY)
+    trySet(g.settleTitle, 'fontSize', 44)
     print('settle anim done')
   end
 end
@@ -754,44 +759,44 @@ end
 renderAll = function()
   for r = 1, ROWS do
     for c = 1, COLS do
-      local v = board[r][c]
+      local v = g.board[r][c]
       if v == 0 then paint(r, c, COL_EMPTY)
-      elseif dimRatio > 0 then paint(r, c, dimColor(v, dimRatio))
+      elseif g.dimRatio > 0 then paint(r, c, dimColor(v, g.dimRatio))
       else paint(r, c, v) end
     end
   end
 end
 
 local function renderNext()
-  if not preview or not preview[5] then return end
-  for i = 1, 8 do preview[i].imageColor = COL_BG end
-  if gameOver or not nextName then return end
-  local s = SHAPES[nextName]
+  if not g.preview or not g.preview[5] then return end
+  for i = 1, 8 do g.preview[i].imageColor = COL_BG end
+  if g.gameOver or not g.nextName then return end
+  local s = SHAPES[g.nextName]
   for i = 1, 4 do
-    local ctl = preview[i]
+    local ctl = g.preview[i]
     local r, c = s.cells[i][1], s.cells[i][2]
     ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
     ctl.imageColor = s.color
   end
   -- T2：第二块预览 = bagQ 队头（下下块）。缩 14px、55% 亮度、排第一块下方（中心 y=78）。
   -- bagQ 只读不取——渲染永不改出块序列（refill 只发生在 takeFromBag 内）。
-  local e2 = bagQ[1]
+  local e2 = g.bagQ[1]
   if e2 then
     local s2 = SHAPES[e2.name]
     for i = 1, 4 do
-      local ctl = preview[4 + i]
+      local ctl = g.preview[4 + i]
       local r, c = s2.cells[i][1], s2.cells[i][2]
       ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 14, 78 + (2.5 - r) * 14)
       ctl.imageColor = dimColor(s2.color, 1)
     end
   end
   -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
-  if preview[9] then
-    for i = 9, 12 do preview[i].imageColor = COL_BG end
+  if g.preview[9] then
+    for i = 9, 12 do g.preview[i].imageColor = COL_BG end
     if NUM.ST.name then
       local sh = SHAPES[NUM.ST.name]
       for i = 1, 4 do
-        local ctl = preview[8 + i]
+        local ctl = g.preview[8 + i]
         local r, c = sh.cells[i][1], sh.cells[i][2]
         ctl:SetAnchoredPosition(-RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
         ctl.imageColor = NUM.ST.can and sh.color or dimColor(sh.color, 1)
@@ -804,13 +809,13 @@ renderHud = function()
   local oc = 0
   for r = 1, ROWS do
     for c = 1, COLS do
-      if board[r][c] ~= 0 then oc = oc + 1 end
+      if g.board[r][c] ~= 0 then oc = oc + 1 end
     end
   end
   -- T4：stage0 = 入场 AI 自演，HUD 显示 AI 局账本（分数随 AI 消行增长）；接管后显示玩家账
-  local s, l = score, lines
-  if guideStage == 0 then s, l = AI.score, AI.lines end
-  setText(hud, '得分 ' .. s .. '　消行 ' .. l .. '　等级 ' .. level
+  local s, l = g.score, g.lines
+  if guideStage == 0 then s, l = g.AI.score, g.AI.lines end
+  setText(hud, '得分 ' .. s .. '　消行 ' .. l .. '　等级 ' .. g.level
     .. '　已填 ' .. oc)
   setText(hudNext, '下一个')
   setText(best, '最高 ' .. bestScore)
@@ -819,12 +824,12 @@ end
 
 renderPiece = function()
   renderAll()
-  if gameOver or not piece then return end
+  if g.gameOver or not g.piece then return end
   for i = 1, 4 do
-    local br = piece.y + piece.cells[i][1] - 1
-    local bc = piece.x + piece.cells[i][2] - 1
+    local br = g.piece.y + g.piece.cells[i][1] - 1
+    local bc = g.piece.x + g.piece.cells[i][2] - 1
     if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      paint(br, bc, piece.color)
+      paint(br, bc, g.piece.color)
     end
   end
 end
@@ -834,7 +839,7 @@ collides = function(cs, px, py)
     local br = py + cs[i][1] - 1
     local bc = px + cs[i][2] - 1
     if bc < 1 or bc > COLS or br > ROWS then return true end
-    if br >= 1 and board[br][bc] ~= 0 then return true end
+    if br >= 1 and g.board[br][bc] ~= 0 then return true end
   end
   return false
 end
@@ -842,26 +847,26 @@ end
 spawn = function(overrideName, overrideBag)
   -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序，
   -- 日志加 holdswap=1 尾标供用例区分自然出块与槽换出块）；自然出块（无参）才 takeFromBag。
-  local name = overrideName or nextName or 'T'
-  local nameBag = overrideBag or nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
-  if not overrideName then nextName, nextBag = takeFromBag() end
+  local name = overrideName or g.nextName or 'T'
+  local nameBag = overrideBag or g.nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
+  if not overrideName then g.nextName, g.nextBag = takeFromBag() end
   local s = SHAPES[name]
-  piece = {
+  g.piece = {
     name = name, n = s.n, color = s.color,
     cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },
               { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },
     x = (COLS - s.n) // 2 + 1,
     y = 1,
   }
-  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y
+  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. g.piece.x .. ' y=' .. g.piece.y
     .. (overrideName and ' holdswap=1' or ''))
   NUM.LD.t, NUM.LD.resets, NUM.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
-  if collides(piece.cells, piece.x, piece.y) then
-    gameOver = true
-    print('gameover score=' .. score)
+  if collides(g.piece.cells, g.piece.x, g.piece.y) then
+    g.gameOver = true
+    print('gameover score=' .. g.score)
     sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
     -- 入场自演顶死时不写最高分：bestScore 是玩家账（与 P0 同一口径，docs §7.1）
-    if not autoDriving then updateBest() end
+    if not g.autoDriving then updateBest() end
     showGameOver()
   end
   renderPiece()
@@ -874,13 +879,13 @@ clearLines = function()
   while r >= 1 do
     local full = true
     for c = 1, COLS do
-      if board[r][c] == 0 then full = false end
+      if g.board[r][c] == 0 then full = false end
     end
     if full then
-      table.remove(board, r)
+      table.remove(g.board, r)
       local row = {}
       for c = 1, COLS do row[c] = 0 end
-      table.insert(board, 1, row)
+      table.insert(g.board, 1, row)
       cleared = cleared + 1
       -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次
     else
@@ -891,44 +896,44 @@ clearLines = function()
     -- 视觉反馈：整盘已落方块闪白（按行数分档：1 行 0.10s → 4 行 0.22s，恒短于抖屏时长）
     for r2 = 1, ROWS do
       for c2 = 1, COLS do
-        if board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
+        if g.board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
       end
     end
-    flashT = NUM.FLASH[cleared] or NUM.FLASH[4]
+    g.flashT = NUM.FLASH[cleared] or NUM.FLASH[4]
     -- 计分（docs/数值策划.md §2）：基础分 × 等级 + 连击加成；四消连击（B2B）基础分再 ×1.5。
     -- 连击口径：连续"有消行的锁定"计数，combo=1 是第一次，≥2 才给加成；没消行的锁定归零（见 doLock）
-    combo = combo + 1
-    if combo > maxCombo then maxCombo = combo end
+    g.combo = g.combo + 1
+    if g.combo > g.maxCombo then g.maxCombo = g.combo end
     local base = NUM.SCORE[cleared]
-    local b2bApplied = (cleared == 4 and b2b)     -- 这一次是否吃到 ×1.5（日志里 b2b=1 表示吃到了）
+    local b2bApplied = (cleared == 4 and g.b2b)     -- 这一次是否吃到 ×1.5（日志里 b2b=1 表示吃到了）
     if b2bApplied then base = base * NUM.B2B_NUM // NUM.B2B_DEN end   -- 800 → 1200
-    b2b = (cleared == 4)
+    g.b2b = (cleared == 4)
     local comboBonus = 0
-    if combo >= 2 then comboBonus = NUM.COMBO * (combo - 1) * level end
+    if g.combo >= 2 then comboBonus = NUM.COMBO * (g.combo - 1) * g.level end
     -- T4 两套账本：AI 自演的分进 aiScore（玩家接管不清、best 不收）；玩家分进 score。
     -- 连击/B2B 状态共享，但 startIfWaiting/newGame 都归零 ⇒ AI 的连击不会漏进玩家局。
-    local gain = base * level + comboBonus
-    if autoDriving then AI.score = AI.score + gain else score = score + gain end
-    if autoDriving then AI.lines = AI.lines + cleared else lines = lines + cleared end
-    if autoDriving then AI.rhoLines = AI.rhoLines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
-    local levelBefore = level
-    level = lines // NUM.LEVEL_UP_LINES + 1
-    if level > NUM.LEVEL_CAP then level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
+    local gain = base * g.level + comboBonus
+    if g.autoDriving then g.AI.score = g.AI.score + gain else g.score = g.score + gain end
+    if g.autoDriving then g.AI.lines = g.AI.lines + cleared else g.lines = g.lines + cleared end
+    if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
+    local levelBefore = g.level
+    g.level = g.lines // NUM.LEVEL_UP_LINES + 1
+    if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
     -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
     -- T4：AI 自演同样出声、同样抖屏——统一走这一条链路，不再有静音旁路
     sfx(SFX_CLEAR[cleared], true)
     startShake(cleared)
-    if autoDriving then
-      print('demo clear n=' .. cleared .. ' aiScore=' .. AI.score .. ' aiLines=' .. AI.lines
-        .. ' combo=' .. combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
+    if g.autoDriving then
+      print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
+        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
     else
-      print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines
-        .. ' combo=' .. combo .. ' b2b=' .. (b2bApplied and 1 or 0))
+      print('clear n=' .. cleared .. ' score=' .. g.score .. ' lines=' .. g.lines
+        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
     end
     -- 首次消行：由简入深——把"分值表"这项进阶信息押到玩家已经会消行之后
     -- （入场 AI 自演期间的消行不算，否则玩家真正上手时这条引导已经被吃掉）
-    if not taughtClear and not autoDriving then
-      taughtClear = true
+    if not g.taughtClear and not g.autoDriving then
+      g.taughtClear = true
       setText(hint, '一次消 4 行 +800')
       setText(botBanner, '空格 直落到底')
       bannerTimer = 4.0
@@ -936,17 +941,17 @@ clearLines = function()
     end
     -- 升级 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
     -- 优先级：升级 > 连击；已有横幅在播时让位（bannerTimer > 0 不抢）
-    if not autoDriving and bannerTimer <= 0 then
-      if level > levelBefore then
-        setText(botBanner, level >= NUM.LEVEL_CAP and ('等级 ' .. level .. '　已满速')
-                                           or ('等级 ' .. level .. '　速度提升'))
+    if not g.autoDriving and bannerTimer <= 0 then
+      if g.level > levelBefore then
+        setText(botBanner, g.level >= NUM.LEVEL_CAP and ('等级 ' .. g.level .. '　已满速')
+                                           or ('等级 ' .. g.level .. '　速度提升'))
         bannerTimer = NUM.LEVEL_TIP
         sfx(SFX.level, true)          -- 升级音（force：与其他音效同帧也不吞）
-        print('tip level=' .. level)
-      elseif combo >= 2 then
-        setText(botBanner, '连击 ×' .. combo)
+        print('tip level=' .. g.level)
+      elseif g.combo >= 2 then
+        setText(botBanner, '连击 ×' .. g.combo)
         bannerTimer = NUM.COMBO_TIP
-        print('tip combo=' .. combo)
+        print('tip combo=' .. g.combo)
       end
     end
   end
@@ -957,31 +962,31 @@ doLock = function()
   -- T8 T-spin 判定（在写入盘面前做——角占用看的是锁定前盘面+本块无关）：
   -- 3 角规则=T 块 + 最后动作是旋转（NUM.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
   local isTspin = false
-  if piece.name == 'T' and NUM.lastRot then
+  if g.piece.name == 'T' and NUM.lastRot then
     local corners = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
     local occ = 0
     for i = 1, 4 do
-      local cr = piece.y + corners[i][1] - 1
-      local cc = piece.x + corners[i][2] - 1
-      if cr < 1 or cr > ROWS or cc < 1 or cc > COLS or board[cr][cc] ~= 0 then occ = occ + 1 end
+      local cr = g.piece.y + corners[i][1] - 1
+      local cc = g.piece.x + corners[i][2] - 1
+      if cr < 1 or cr > ROWS or cc < 1 or cc > COLS or g.board[cr][cc] ~= 0 then occ = occ + 1 end
     end
     if occ >= 3 then isTspin = true end
   end
   for i = 1, 4 do
-    local br = piece.y + piece.cells[i][1] - 1
-    local bc = piece.x + piece.cells[i][2] - 1
+    local br = g.piece.y + g.piece.cells[i][1] - 1
+    local bc = g.piece.x + g.piece.cells[i][2] - 1
     if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      board[br][bc] = piece.color
+      g.board[br][bc] = g.piece.color
     end
   end
   local landed = {}
   for i = 1, 4 do
-    local br = piece.y + piece.cells[i][1] - 1
-    local bc = piece.x + piece.cells[i][2] - 1
+    local br = g.piece.y + g.piece.cells[i][1] - 1
+    local bc = g.piece.x + g.piece.cells[i][2] - 1
     if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end
   end
-  pieceCount = pieceCount + 1
-  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
+  g.pieceCount = g.pieceCount + 1
+  print('lock ' .. g.piece.name .. ' cells=' .. table.concat(landed, ','))
   NUM.ST.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
   NUM.LD.t, NUM.LD.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
   NUM.lastRot = false
@@ -990,32 +995,32 @@ doLock = function()
   if isTspin then
     -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
     -- 分流玩家/AI 账本（与 clearLines 同口径：autoDriving 时入 AI.score）。
-    local bonus = NUM.TSPIN_BONUS * cleared * level
+    local bonus = NUM.TSPIN_BONUS * cleared * g.level
     if bonus > 0 then
-      if autoDriving then AI.score = AI.score + bonus else score = score + bonus end
+      if g.autoDriving then g.AI.score = g.AI.score + bonus else g.score = g.score + bonus end
     end
     print('tspin corners>=3 lines=' .. cleared .. ' bonus=' .. bonus)
     sfx(SFX.tspin, true)
-    if not autoDriving then
+    if not g.autoDriving then
       bannerTimer = NUM.COMBO_TIP
       setText(botBanner, 'T-SPIN ' .. (cleared > 0 and (cleared .. ' 消 +' .. bonus) or '!'))
     end
   end
   if cleared == 0 then
-    combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
-    b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
+    g.combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
+    g.b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
   end
   -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
   -- T4：AI 自演的落块同样播（消行音/落地音统一链路，AI 不再静音）
   if cleared == 0 then sfx(SFX.lock, true) end   -- T8 改 force：DAS 连移音与锁定可能同帧，锁
                                                  -- 定是节点性反馈，不让帧闸吞（消行/升级同例）
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
-  if not taughtLock and not autoDriving then
-    taughtLock = true
+  if not g.taughtLock and not g.autoDriving then
+    g.taughtLock = true
     bannerTimer = 2.5
     print('guide lock-tip')
   end
-  if not gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块
+  if not g.gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块
   renderHud()
 end
 
@@ -1024,12 +1029,12 @@ end
 -- T8 锁定延迟：重力触底不再立即 doLock——启动 NUM.LD 计时（0.5s 缓冲，玩家移动/旋转可重置，
 -- 上限 15 次）；软降/硬降是玩家主动落，触底即时锁定（保持旧手感）。AI 走 aiDrop 直锁，不经这里。
 local function stepDown(manual)
-  if gameOver or not piece then return end
-  if not collides(piece.cells, piece.x, piece.y + 1) then
-    piece.y = piece.y + 1
-    if manual then score = score + NUM.SOFT end
+  if g.gameOver or not g.piece then return end
+  if not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
+    g.piece.y = g.piece.y + 1
+    if manual then g.score = g.score + NUM.SOFT end
     renderPiece()
-    print('fall y=' .. piece.y)
+    print('fall y=' .. g.piece.y)
   else
     if manual then
       doLock()
@@ -1043,11 +1048,11 @@ end
 -- 左右移动：键位（箭头 / WASD / 手机热区 / DAS 自动连移）共用一条路径 —— 成功才播移动音。
 -- T8：成功移动重置锁定延迟（未超上限）；同时清 lastRot（T-spin 判定要求"最后动作是旋转"）。
 local function moveBy(dx)
-  if gameOver or not piece then return false end
-  if collides(piece.cells, piece.x + dx, piece.y) then return false end
-  piece.x = piece.x + dx
+  if g.gameOver or not g.piece then return false end
+  if collides(g.piece.cells, g.piece.x + dx, g.piece.y) then return false end
+  g.piece.x = g.piece.x + dx
   renderPiece()
-  print('move x=' .. piece.x)
+  print('move x=' .. g.piece.x)
   sfx(SFX.move)
   NUM.lastRot = false
   if NUM.LD.t >= 0 then
@@ -1072,11 +1077,11 @@ local function rotateCells(cells, n)
 end
 
 local function rotate()
-  if gameOver or not piece then return end
-  local nc = rotateCells(piece.cells, piece.n)
-  if not collides(nc, piece.x, piece.y) then
-    piece.cells = nc
-    print('rotate ' .. piece.name)
+  if g.gameOver or not g.piece then return end
+  local nc = rotateCells(g.piece.cells, g.piece.n)
+  if not collides(nc, g.piece.x, g.piece.y) then
+    g.piece.cells = nc
+    print('rotate ' .. g.piece.name)
     sfx(SFX.rotate)
     renderPiece()
     NUM.lastRot = true
@@ -1099,29 +1104,29 @@ end
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
 
 local function newGame()
-  board = {}
+  g.board = {}
   for r = 1, ROWS do
     local row = {}
     for c = 1, COLS do row[c] = 0 end
-    board[r] = row
+    g.board[r] = row
   end
-  score, lines, level = 0, 0, 1
-  AI.score, AI.lines = 0, 0   -- AI 局账本同样重开归零（demo reset / 玩家 R 都是"新一局"）
-  pieceCount = 0
-  combo, maxCombo, b2b = 0, 0, false
-  elapsed = 0
-  gameOver, tickCount, acc = false, 0, 0
+  g.score, g.lines, g.level = 0, 0, 1
+  g.AI.score, g.AI.lines = 0, 0   -- AI 局账本同样重开归零（demo reset / 玩家 R 都是"新一局"）
+  g.pieceCount = 0
+  g.combo, g.maxCombo, g.b2b = 0, 0, false
+  g.elapsed = 0
+  g.gameOver, g.tickCount, g.acc = false, 0, 0
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
-  settleOn, settleT, settleDone, settleFade, settleSize = false, 0, false, -1, 44
-  dimRatio, dimApplied = 0, -1
+  g.settleOn, g.settleT, g.settleDone, g.settleFade, g.settleSize = false, 0, false, -1, 44
+  g.dimRatio, g.dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
-  bagQ, bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
+  g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
   NUM.ST.name, NUM.ST.bag, NUM.ST.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
-  nextName, nextBag = takeFromBag()   -- 第一块
+  g.nextName, g.nextBag = takeFromBag()   -- 第一块
   spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
-  if not autoDriving then print('newgame') end
+  if not g.autoDriving then print('newgame') end
 end
 
 --------------------------------------------------------------------------------
@@ -1146,9 +1151,9 @@ local function startIfWaiting()
   -- P0/T4：玩家账本从 0 开始。AI 自演的分已走 aiScore 账（clearLines 分流），这里归零 score
   -- 是双保险（防未来某条 AI 路径漏改）；aiScore/aiLines 不动——玩家接管**不清 AI 局成绩**（模式语义）。
   -- 连击/B2B/落块数是共享局内状态，接管即归零 ⇒ AI 的连击不会带进玩家局。
-  score, lines, level = 0, 0, 1
-  pieceCount = 0
-  combo, maxCombo, b2b = 0, 0, false
+  g.score, g.lines, g.level = 0, 0, 1
+  g.pieceCount = 0
+  g.combo, g.maxCombo, g.b2b = 0, 0, false
   renderHud()
   setText(hint, '堆满一行即消除')
   print('guide stage=1')
@@ -1172,36 +1177,36 @@ end
 -- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
 showGameOver = function()
   bannerTimer = 0
-  settleOpen = false
-  print('guide gameover score=' .. score .. ' lines=' .. lines)
+  g.settleOpen = false
+  print('guide gameover score=' .. g.score .. ' lines=' .. g.lines)
   -- 懒创建：第一次结算才建这一层（建的时候棋盘格早就存在 ⇒ 天然在它上面）
-  if not settleReady and not settleBuildTried then
-    settleBuildTried = true
+  if not g.settleReady and not g.settleBuildTried then
+    g.settleBuildTried = true
     buildSettleLayer()
   end
-  if settleReady then
+  if g.settleReady then
     -- 结算层：先把文字写好，位置由 settleTick 从屏幕外滑入（0→0.9s 四段动画）
-    setText(settleTitle, '游戏结束')
-    setText(settleScore, '本局 ' .. score .. ' 分')
-    setText(settleBest, '最高 ' .. bestScore)
-    setText(settleInfo, '消行 ' .. lines .. ' 行　落块 ' .. pieceCount .. '　等级 ' .. level)
-    setText(settleExtra, '')
-    setText(settleOpts, '[R] 再来一局　　[Q] 结算')
-    trySet(settleTitle, 'fontSize', 44)
-    settleSize, settleT, settleFade, settleDone, settleOn = 44, 0, -1, false, true
+    setText(g.settleTitle, '游戏结束')
+    setText(g.settleScore, '本局 ' .. g.score .. ' 分')
+    setText(g.settleBest, '最高 ' .. bestScore)
+    setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　落块 ' .. g.pieceCount .. '　等级 ' .. g.level)
+    setText(g.settleExtra, '')
+    setText(g.settleOpts, '[R] 再来一局　　[Q] 结算')
+    trySet(g.settleTitle, 'fontSize', 44)
+    g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
     -- 所以"渐暗"只靠文字 fontColor 的 A 通道渐入（这条通道在真机是一直在用的）。
-    if settleScrim then trySet(settleScrim, 'imageColor', C(140, 0, 0, 0)) end
-    if settleCard then trySet(settleCard, 'imageColor', C(232, 20, 24, 34)) end
-    if settleBorder then trySet(settleBorder, 'imageColor', C(120, 76, 194, 255)) end
+    if g.settleScrim then trySet(g.settleScrim, 'imageColor', C(140, 0, 0, 0)) end
+    if g.settleCard then trySet(g.settleCard, 'imageColor', C(232, 20, 24, 34)) end
+    if g.settleBorder then trySet(g.settleBorder, 'imageColor', C(120, 76, 194, 255)) end
     settleSetColors(0)
-    tryCall(settleTitle, 'SetAnchoredPosition', 0, settleTitleOff)
-    tryCall(settleOpts, 'SetAnchoredPosition', 0, settleOptsOff)
+    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff)
+    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff)
     local members = settleMembers()
     for i = 1, 9 do
       tryCall(members[i], 'SetVisible', true)
     end
-    tryCall(settleExtra, 'SetVisible', false)
+    tryCall(g.settleExtra, 'SetVisible', false)
     -- 布局横幅不参与结算（避免与结算层重复信息）
     setText(topBanner, '') setText(botBanner, '') setText(hint, '')
     renderAll()
@@ -1217,13 +1222,13 @@ showGameOver = function()
   -- 底部一行：成绩 + 两个选项；26 号 → 需 >= 41.7（layout 给 48）
   trySet(botBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C(255, 214, 232, 246))
-  setText(botBanner, '本局 ' .. score .. ' 分　消行 ' .. lines .. ' 行'
+  setText(botBanner, '本局 ' .. g.score .. ' 分　消行 ' .. g.lines .. ' 行'
     .. '　　[R] 再来一局　　[Q] 结算')
   setText(hint, '')
 end
 
 updateBest = function()
-  if score > bestScore then bestScore = score end
+  if g.score > bestScore then bestScore = g.score end
 end
 
 --------------------------------------------------------------------------------
@@ -1256,7 +1261,7 @@ local function aiFmt(x) return string.format('%.2f', x) end
 local function stackHeight()
   for r = 1, ROWS do
     for c = 1, COLS do
-      if board[r][c] ~= 0 then return ROWS - r + 1 end
+      if g.board[r][c] ~= 0 then return ROWS - r + 1 end
     end
   end
   return 0
@@ -1280,7 +1285,7 @@ local function evalBoard(cells, x)
   end
   local solid = function(r, c)
     if r < 1 or r > ROWS or c < 1 or c > COLS then return false end
-    return occ[(r - 1) * COLS + c] == true or board[r][c] ~= 0
+    return occ[(r - 1) * COLS + c] == true or g.board[r][c] ~= 0
   end
   -- 先认满行（消掉），再用「消行后的棋盘」算高度/洞/崎岖
   local keep = {}
@@ -1391,11 +1396,11 @@ end
 -- 选位：4 朝向 × 每个合法列，三层优先级（能消行且不超高 > 不超高 > 清盘）；
 -- 同分先取离墙更近的列（像人贴着边放），再取离当前列更近的，最后取更靠左的。
 local function aiChoose()
-  if not piece then return nil end
+  if not g.piece then return nil end
   local cands = {}
-  local cells = piece.cells
+  local cells = g.piece.cells
   -- 旋转盒边长必须用 piece.n（O=2 / T,S,Z,J,L=3 / I=4），不能用 #cells（恒等于 4）
-  local boxN = piece.n or 4
+  local boxN = g.piece.n or 4
   for rot = 1, 4 do
     local wmax = 1
     for i = 1, 4 do
@@ -1410,7 +1415,7 @@ local function aiChoose()
         if rightDist < wallDist then wallDist = rightDist end
         cands[#cands + 1] = {
           rot = rot, x = x, score = sc, h = h, clear = complete,
-          wall = wallDist, from = math.abs(x - piece.x),
+          wall = wallDist, from = math.abs(x - g.piece.x),
         }
       end
     end
@@ -1436,7 +1441,7 @@ local function aiChoose()
   if not best then return { reset = true } end
   -- 竖 I 特别容易"立在中间"显得假 ⇒ 贴墙候选只要不比最优差 1.2 分就改放墙边
   -- （左右都能放时先比平不平，一样平则取左墙——用户口径"优先最左"）
-  if piece.name == 'I' and NUM.AI_LEVEL < 3 then   -- hard 档跳过拟人贴墙特判（纯分数决策）
+  if g.piece.name == 'I' and NUM.AI_LEVEL < 3 then   -- hard 档跳过拟人贴墙特判（纯分数决策）
     local wallBest
     for _, c in ipairs(cands) do
       if c.h <= AI_RESET_ROWS and (c.x == 1 or c.x == COLS - 1) and c.score >= best.score - 1.2 then
@@ -1456,7 +1461,7 @@ local function aiChoose()
   -- 落点行（软降要按格数摊时间）
   local landingY = 1
   local probe = cells
-  cells = piece.cells
+  cells = g.piece.cells
   for _ = 1, best.rot - 1 do cells = rotateCells(cells, boxN) end
   probe = cells
   landingY = 1
@@ -1483,9 +1488,9 @@ end
 -- 40% 再看一眼 0.2~0.4s
 local function buildQueue(plan)
   local q = {}
-  local totalCells = math.abs(plan.x - piece.x)
+  local totalCells = math.abs(plan.x - g.piece.x)
   local dir = 1
-  if plan.x < piece.x then dir = -1 end
+  if plan.x < g.piece.x then dir = -1 end
   for _ = 1, plan.rot do
     q[#q + 1] = { kind = 'rot', wait = aiRange(AI_ROT_MIN, AI_ROT_MAX) + aiRange(AI_ROTGAP_MIN, AI_ROTGAP_MAX) }
   end
@@ -1521,9 +1526,9 @@ end
 -- T5：Hold 换块的唯一实现（玩家 G 键与 AI 自演共用一套，lead 指示"AI 复用此语义，别另写一套"）。
 -- 挂 NUM 表函数而不是 local function——main 函数 200 个 local 已满（D612/D616 两次实测爆）。
 NUM.doHold = function()
-  if gameOver or not piece or not NUM.ST.can then return false end
+  if g.gameOver or not g.piece or not NUM.ST.can then return false end
   NUM.ST.can = false
-  local cur, curBag = piece.name, nextBag
+  local cur, curBag = g.piece.name, g.nextBag
   local outName, outBag
   if NUM.ST.name then
     outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
@@ -1541,9 +1546,9 @@ end
 
 -- 清盘重开（演示循环用）：不弹结算页，横幅与入场动画复位
 local function demoLoopReset()
-  autoDriving = true
+  g.autoDriving = true
   newGame()
-  autoDriving = false
+  g.autoDriving = false
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
@@ -1552,30 +1557,30 @@ local function demoLoopReset()
   trySet(topBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C_ACCENT2)
   trySet(botBanner, 'fontSize', 22)
-  AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.dur = 'thinking', 0, nil, 1, nil, 0
-  AI.search = nil
-  AI.wait = aiRange((NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]).obsMin, AI_OBSERVE_MAX)
+  g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.dur = 'thinking', 0, nil, 1, nil, 0
+  g.AI.search = nil
+  g.AI.wait = aiRange((NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]).obsMin, AI_OBSERVE_MAX)
 end
 
 -- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
 local function aiDrop()
   local guard = 0
-  while guard < ROWS + 4 and not collides(piece.cells, piece.x, piece.y + 1) do
-    piece.y = piece.y + 1
+  while guard < ROWS + 4 and not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
+    g.piece.y = g.piece.y + 1
     guard = guard + 1
   end
-  autoDriving = true
+  g.autoDriving = true
   local ok, err = pcall(doLock)
-  autoDriving = false
+  g.autoDriving = false
   if not ok then
     print('demo lock error :: ' .. tostring(err))
     return
   end
-  AI.count = AI.count + 1
-  AI.rhoPieces = AI.rhoPieces + 1
-  AI.sumSec = AI.sumSec + AI.dur
+  g.AI.count = g.AI.count + 1
+  RHO.pieces = RHO.pieces + 1
+  g.AI.sumSec = g.AI.sumSec + g.AI.dur
   -- 一块一条节奏日志：从这行能看出"确实分段执行了"
-  local p = AI.pace or {}
+  local p = g.AI.pace or {}
   local gaps = p.gaps or 0
   local avgGap = 0
   if gaps > 0 then avgGap = (p.sumGap or 0) / gaps end
@@ -1585,23 +1590,23 @@ local function aiDrop()
     .. ' soft=' .. (p.soft or 0)
     .. ' hover=' .. aiFmt(p.hover or 0)
     .. ' drop=' .. tostring(p.drop or 'hard')
-    .. ' total=' .. aiFmt(AI.dur))
-  AI.dur = 0
-  if AI.count % 10 == 0 then
-    print('demo auto n=' .. AI.count .. ' avg=' .. aiFmt(AI.sumSec / AI.count)
-      .. 's stack=' .. stackHeight() .. ' rho=' .. aiFmt(AI.rhoLines / math.max(AI.rhoPieces, 1))
-      .. ' pieces=' .. AI.rhoPieces)
+    .. ' total=' .. aiFmt(g.AI.dur))
+  g.AI.dur = 0
+  if g.AI.count % 10 == 0 then
+    print('demo auto n=' .. g.AI.count .. ' avg=' .. aiFmt(g.AI.sumSec / g.AI.count)
+      .. 's stack=' .. stackHeight() .. ' rho=' .. aiFmt(RHO.lines / math.max(RHO.pieces, 1))
+      .. ' pieces=' .. RHO.pieces)
   end
   local h = stackHeight()
-  if gameOver or h >= AI_RESET_ROWS then
-    print('demo rho=' .. aiFmt(AI.rhoLines / math.max(AI.rhoPieces, 1))
-      .. ' pieces=' .. AI.rhoPieces .. ' lines=' .. AI.rhoLines)
+  if g.gameOver or h >= AI_RESET_ROWS then
+    print('demo rho=' .. aiFmt(RHO.lines / math.max(RHO.pieces, 1))
+      .. ' pieces=' .. RHO.pieces .. ' lines=' .. RHO.lines)
     print('demo reset stack=' .. h)
     demoLoopReset()
   end
 end
 
-AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
+g.AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
   count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
   score = 0, lines = 0,
   rhoPieces = 0, rhoLines = 0,   -- T5 ρ 统计（跨局累计：demo reset/玩家接管不清，切档清零）
@@ -1612,22 +1617,22 @@ AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
 -- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
 autoTick = function(dt)
   if guideStage ~= 0 then return end
-  if gameOver then
+  if g.gameOver then
     demoLoopReset()
     return
   end
-  if not piece or not board then return end
+  if not g.piece or not g.board then return end
   local lv = NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
-  if AI.piece and AI.piece ~= piece then          -- 方块换了（清盘/重开/Hold 换块）
-    AI.phase, AI.t, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', 0, nil, 1, nil, nil
-    AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
+  if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
+    g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
+    g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
-  AI.t = AI.t + dt
-  AI.dur = AI.dur + dt
-  local ph = AI.phase
+  g.AI.t = g.AI.t + dt
+  g.AI.dur = g.AI.dur + dt
+  local ph = g.AI.phase
   local function nextAction()
-    AI.qi = AI.qi + 1
-    AI.t = 0
+    g.AI.qi = g.AI.qi + 1
+    g.AI.t = 0
   end
   if ph == 'thinking' then
     -- T5 渐进式搜索（docs/v2-ai-design.md §二）：第一帧 1-ply 全集 = 保底方案 + 候选表；
@@ -1635,11 +1640,11 @@ autoTick = function(dt)
     -- 真机预算）；完成或超时（obsMin+0.10s）收敛——超时用当前最优，1-ply 保底永不缺席。
     -- 搜索期间临时把 board 指向模拟棋盘（切片内同步完成，无渲染穿插，安全）。
     local function refineSearch()
-      local S = AI.search
+      local S = g.AI.search
       local top = S.plan.sorted
       local n = #top                                    -- 【E2】全候选精化（top-12→全部；34×34≈17帧<0.55s 观察窗）
-      local nextS = SHAPES[nextName or 'T']
-      local savedBoard = board
+      local nextS = SHAPES[g.nextName or 'T']
+      local savedBoard = g.board
       local k = S.idx
       local budget = 2
       while k <= n and budget > 0 do
@@ -1647,11 +1652,11 @@ autoTick = function(dt)
         local sim = {}
         for r = 1, ROWS do
           local row = {}
-          for c = 1, COLS do row[c] = board[r][c] end
+          for c = 1, COLS do row[c] = g.board[r][c] end
           sim[r] = row
         end
-        local cells = piece.cells
-        for _ = 1, cand.rot - 1 do cells = rotateCells(cells, piece.n or 4) end
+        local cells = g.piece.cells
+        for _ = 1, cand.rot - 1 do cells = rotateCells(cells, g.piece.n or 4) end
         local y = 1
         while y < ROWS and not collides(cells, cand.x, y + 1) do y = y + 1 end
         for i = 1, 4 do
@@ -1671,7 +1676,7 @@ autoTick = function(dt)
             r = r - 1
           end
         end
-        board = sim
+        g.board = sim
         local ncells = nextS.cells
         local bestNext = nil
         for _ = 1, 4 do
@@ -1685,7 +1690,7 @@ autoTick = function(dt)
           end
           ncells = rotateCells(ncells, nextS.n)
         end
-        board = savedBoard
+        g.board = savedBoard
         cand.score2 = cand.score + (bestNext or -5)   -- 2-ply 值 = 1-ply 分 + 下一层最优回应
         if not S.bestScore or cand.score2 > S.bestScore then
           S.bestScore, S.best2 = cand.score2, cand
@@ -1696,7 +1701,7 @@ autoTick = function(dt)
       S.idx = k
       if k > n then S.done = true end
     end
-    if not AI.queue and not AI.search then
+    if not g.AI.queue and not g.AI.search then
       -- 首帧：1-ply 全集（保底）
       local plan = aiChoose()
       if plan and plan.reset then
@@ -1705,31 +1710,31 @@ autoTick = function(dt)
         return
       end
       if not plan then
-        AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
-        AI.t = 0
+        g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
+        g.AI.t = 0
         return
       end
-      AI.search = { plan = plan, idx = 1, best2 = nil, bestScore = nil,
+      g.AI.search = { plan = plan, idx = 1, best2 = nil, bestScore = nil,
         done = (lv.ply < 2) or (#plan.sorted < 2), holdChecked = false, doHoldAfter = false }
-      AI.piece = piece
-      AI.dur = 0
-      AI.t = 0
-      AI.wait = lv.obsMin + 0.10
+      g.AI.piece = g.piece
+      g.AI.dur = 0
+      g.AI.t = 0
+      g.AI.wait = lv.obsMin + 0.10
       return
     end
-    if AI.search and not AI.search.done then
+    if g.AI.search and not g.AI.search.done then
       refineSearch()
-      if not AI.search.done then
-        if AI.t < lv.obsMin + 0.10 then return end
-        AI.search.done = true          -- 超时收敛：用当前已精化最优（保底仍在）
+      if not g.AI.search.done then
+        if g.AI.t < lv.obsMin + 0.10 then return end
+        g.AI.search.done = true          -- 超时收敛：用当前已精化最优（保底仍在）
       end
     end
-    if AI.search and not AI.search.holdChecked then
-      AI.search.holdChecked = true
+    if g.AI.search and not g.AI.search.holdChecked then
+      g.AI.search.holdChecked = true
       -- T5 hold 第三分支（hard 档）：换出块在当前盘面的 1-ply 最优 > 留守 2-ply 值 + 0.3 才换
       -- （复用 NUM.doHold 同一执行路径——lead 指示别另写一套换块逻辑）
       if lv.hold > 0 and NUM.ST.can then
-        local altS = SHAPES[NUM.ST.name or nextName or 'T']
+        local altS = SHAPES[NUM.ST.name or g.nextName or 'T']
         local cells = altS.cells
         local bestAlt = nil
         for _ = 1, 4 do
@@ -1741,20 +1746,20 @@ autoTick = function(dt)
           end
           cells = rotateCells(cells, altS.n)
         end
-        local stay = AI.search.plan.best1.score   -- 同口径 1-ply vs 1-ply（2-ply 值含负向回应分，恒偏小）
+        local stay = g.AI.search.plan.best1.score   -- 同口径 1-ply vs 1-ply（2-ply 值含负向回应分，恒偏小）
         if bestAlt and bestAlt > stay + 1.5 then
-          AI.search.doHoldAfter = true
+          g.AI.search.doHoldAfter = true
         end
       end
-      if AI.search.doHoldAfter then
-        AI.search = nil
+      if g.AI.search.doHoldAfter then
+        g.AI.search = nil
         NUM.doHold()                   -- 换块；下一帧由换块守卫重新进入 thinking
         return
       end
     end
-    if not AI.queue then
+    if not g.AI.queue then
       -- 定稿：2-ply 最优（超时退 1-ply best）→ 失误注入（topK 池按分加权）→ buildQueue（拟人外壳不变）
-      local S = AI.search
+      local S = g.AI.search
       local final = S.plan.best1
       if S.best2 and S.done then final = S.best2 end
       if lv.pMistake > 0 and #S.plan.sorted > 1 and aiRand(100) <= lv.pMistake then
@@ -1772,92 +1777,92 @@ autoTick = function(dt)
           end
         end
       end
-      local probe = piece.cells
-      for _ = 1, final.rot - 1 do probe = rotateCells(probe, piece.n or 4) end
+      local probe = g.piece.cells
+      for _ = 1, final.rot - 1 do probe = rotateCells(probe, g.piece.n or 4) end
       local ly = 1
       while ly < ROWS and not collides(probe, final.x, ly + 1) do ly = ly + 1 end
       local plan = { rot = final.rot - 1, x = final.x, landingY = ly }
       local q, info = buildQueue(plan)
-      AI.queue, AI.info, AI.qi = q, info, 1
+      g.AI.queue, g.AI.info, g.AI.qi = q, info, 1
       local rest = 0
       for _, a in ipairs(q) do rest = rest + (a.wait or 0) end
       local target = aiRange(lv.targetLo, lv.targetHi)
-      AI.softPer = 0
+      g.AI.softPer = 0
       local dropKind = 'hard'
       if aiRand(100) <= 50 then dropKind = 'soft' end
-      local rows = (info.landingY or piece.y) - piece.y
+      local rows = (info.landingY or g.piece.y) - g.piece.y
       if rows < 1 then rows = 1 end
       local dropTime = 0
       if dropKind == 'soft' then
         local per = (target - rest) / rows
         if per < AI_SOFT_MIN then per = AI_SOFT_MIN end
         if per > AI_SOFT_MAX then per = AI_SOFT_MAX end
-        AI.softPer = per
+        g.AI.softPer = per
         dropTime = rows * per
       end
       -- 观察时长 = 目标总时长 - 其余各段；下限 obsMin（高难 0.55 覆盖精化帧数）、上限 1.2s
       -- 兜底：软降 + 长距离 + 多动作会让整块超过 pieceMax+0.2 ⇒ 这一块改成硬降（人也常常直接按到底）
       if dropKind == 'soft' and (rest + dropTime + lv.obsMin) > lv.pieceMax + 0.2 then
-        dropKind, dropTime, AI.softPer = 'hard', 0, 0
+        dropKind, dropTime, g.AI.softPer = 'hard', 0, 0
       end
       local think = target - rest - dropTime
       if think < lv.obsMin then think = lv.obsMin end
       if think > 1.2 then think = 1.2 end
-      AI.wait = think
-      AI.t = 0
-      AI.pace = { think = think, rot = info.rot, cells = info.cells,
+      g.AI.wait = think
+      g.AI.t = 0
+      g.AI.pace = { think = think, rot = info.rot, cells = info.cells,
         gaps = 0, sumGap = 0, soft = info.softRows, hover = info.hover, drop = dropKind }
       -- 计划日志：看到"这块是什么方块、打算放哪一列、软降还是硬降"（形状不变，T4 口径）
-      print('demo plan name=' .. tostring(piece.name) .. ' from=' .. piece.x
+      print('demo plan name=' .. tostring(g.piece.name) .. ' from=' .. g.piece.x
         .. ' target=' .. plan.x .. ' rot=' .. plan.rot .. ' drop=' .. dropKind)
       return
     end
-    if AI.t < AI.wait then return end
-    AI.t = 0
-    AI.phase = 'acting'
+    if g.AI.t < g.AI.wait then return end
+    g.AI.t = 0
+    g.AI.phase = 'acting'
     return
   end
   if ph == 'acting' then
-    local a = AI.queue and AI.queue[AI.qi]
+    local a = g.AI.queue and g.AI.queue[g.AI.qi]
     if not a then
       -- 序列走完：软降 / 硬降
-      AI.phase, AI.t = 'dropping', 0
-      AI.dropped = 0
-      AI.fallTimer = 0
-      if AI.pace.drop == 'soft' then
-        AI.nudge = (aiRand(100) <= lv.nudgePct)   -- 软降途中顺手横调 1 格（hard 档 0%：落点不被噪声破坏）
-        AI.nudgeAt = aiRand(3)
+      g.AI.phase, g.AI.t = 'dropping', 0
+      g.AI.dropped = 0
+      g.AI.fallTimer = 0
+      if g.AI.pace.drop == 'soft' then
+        g.AI.nudge = (aiRand(100) <= lv.nudgePct)   -- 软降途中顺手横调 1 格（hard 档 0%：落点不被噪声破坏）
+        g.AI.nudgeAt = aiRand(3)
       end
-      print('demo act drop=' .. AI.pace.drop)
+      print('demo act drop=' .. g.AI.pace.drop)
       return
     end
     if a.kind == 'rot' then
       if not a.done then
         a.done = true
-        local nc = rotateCells(piece.cells, piece.n)
-        if not collides(nc, piece.x, piece.y) then
-          piece.cells = nc
+        local nc = rotateCells(g.piece.cells, g.piece.n)
+        if not collides(nc, g.piece.x, g.piece.y) then
+          g.piece.cells = nc
           renderPiece()
         end
-        print('demo act rot x=' .. piece.x)
+        print('demo act rot x=' .. g.piece.x)
       end
-      if AI.t >= a.wait then nextAction() end
+      if g.AI.t >= a.wait then nextAction() end
       return
     end
     if a.kind == 'move' then
       if not a.done then
         a.done = true
         for _ = 1, a.cells do
-          if not collides(piece.cells, piece.x + a.dir, piece.y) then
-            piece.x = piece.x + a.dir
+          if not collides(g.piece.cells, g.piece.x + a.dir, g.piece.y) then
+            g.piece.x = g.piece.x + a.dir
           end
         end
         renderPiece()
-        AI.pace.gaps = AI.pace.gaps + 1
-        AI.pace.sumGap = AI.pace.sumGap + (a.gap or 0)
-        print('demo act move x=' .. piece.x)
+        g.AI.pace.gaps = g.AI.pace.gaps + 1
+        g.AI.pace.sumGap = g.AI.pace.sumGap + (a.gap or 0)
+        print('demo act move x=' .. g.piece.x)
       end
-      if AI.t >= a.wait then nextAction() end
+      if g.AI.t >= a.wait then nextAction() end
       return
     end
     if a.kind == 'soft' then
@@ -1870,12 +1875,12 @@ autoTick = function(dt)
         a.timer = (a.timer or 0) - dt
         if a.timer <= 0 then
           a.timer = a.per
-          if not collides(piece.cells, piece.x, piece.y + 1) then
-            piece.y = piece.y + 1
+          if not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
+            g.piece.y = g.piece.y + 1
             renderPiece()
           end
           a.left = a.left - 1
-          if a.left == 0 then print('demo act soft y=' .. piece.y) end
+          if a.left == 0 then print('demo act soft y=' .. g.piece.y) end
         end
         return
       end
@@ -1885,25 +1890,25 @@ autoTick = function(dt)
     end
     if a.kind == 'hover' then
       if not a.done then a.done = true print('demo act hover ' .. aiFmt(a.wait)) end
-      if AI.t >= a.wait then nextAction() end
+      if g.AI.t >= a.wait then nextAction() end
       return
     end
   end
   if ph == 'dropping' then
-    if AI.pace.drop == 'soft' then
-      local canFall = not collides(piece.cells, piece.x, piece.y + 1)
+    if g.AI.pace.drop == 'soft' then
+      local canFall = not collides(g.piece.cells, g.piece.x, g.piece.y + 1)
       if canFall then
-        AI.fallTimer = (AI.fallTimer or 0) - dt
-        if AI.fallTimer <= 0 then
-          AI.fallTimer = AI.softPer
-          piece.y = piece.y + 1
-          AI.dropped = (AI.dropped or 0) + 1
-          if AI.nudge and AI.dropped == AI.nudgeAt then
+        g.AI.fallTimer = (g.AI.fallTimer or 0) - dt
+        if g.AI.fallTimer <= 0 then
+          g.AI.fallTimer = g.AI.softPer
+          g.piece.y = g.piece.y + 1
+          g.AI.dropped = (g.AI.dropped or 0) + 1
+          if g.AI.nudge and g.AI.dropped == g.AI.nudgeAt then
             local d = 1
-            if piece.x > COLS / 2 then d = -1 end
-            if not collides(piece.cells, piece.x + d, piece.y) then
-              piece.x = piece.x + d
-              print('demo act nudge x=' .. piece.x)
+            if g.piece.x > COLS / 2 then d = -1 end
+            if not collides(g.piece.cells, g.piece.x + d, g.piece.y) then
+              g.piece.x = g.piece.x + d
+              print('demo act nudge x=' .. g.piece.x)
             end
           end
           renderPiece()
@@ -1911,17 +1916,17 @@ autoTick = function(dt)
       end
       if not canFall then
         -- 落地后若这块太快（< 档位 pieceMin），落定前再停一下（像人抬手前确认一下）
-        if AI.dur < lv.pieceMin then return end
+        if g.AI.dur < lv.pieceMin then return end
         aiDrop()
-        AI.phase, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', nil, 1, nil, nil
-        AI.t, AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+        g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
+        g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
       end
       return
     end
-    if AI.dur < lv.pieceMin then return end       -- 太快就再停一下（同软降）
+    if g.AI.dur < lv.pieceMin then return end       -- 太快就再停一下（同软降）
     aiDrop()                                     -- 硬降
-    AI.phase, AI.queue, AI.qi, AI.piece, AI.search = 'thinking', nil, 1, nil, nil
-    AI.t, AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+    g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
+    g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
 end
 
@@ -1941,17 +1946,17 @@ layoutSettle = function(W, H)
   local cw = W - 240
   if cw > 780 then cw = 780 end
   local ch = 400
-  place2(settleScrim, 0, 0, W + 60, H + 60)        -- 全屏遮罩
-  place2(settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
-  place2(settleCard, 0, 0, cw, ch)                 -- 面板底
-  settleTitleY, settleOptsY = 140, -136
-  settleTitleOff, settleOptsOff = halfH + 80, -(halfH + 80)
-  place2(settleTitle, 0, settleTitleY, cw - 60, 80)
-  place2(settleScore, 0, 72, cw - 60, 52)
-  place2(settleBest, 0, 20, cw - 60, 44)
-  place2(settleInfo, 0, -28, cw - 60, 40)
-  place2(settleExtra, 0, -66, cw - 60, 40)
-  place2(settleOpts, 0, settleOptsY, cw - 60, 48)
+  place2(g.settleScrim, 0, 0, W + 60, H + 60)        -- 全屏遮罩
+  place2(g.settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
+  place2(g.settleCard, 0, 0, cw, ch)                 -- 面板底
+  g.settleTitleY, g.settleOptsY = 140, -136
+  g.settleTitleOff, g.settleOptsOff = halfH + 80, -(halfH + 80)
+  place2(g.settleTitle, 0, g.settleTitleY, cw - 60, 80)
+  place2(g.settleScore, 0, 72, cw - 60, 52)
+  place2(g.settleBest, 0, 20, cw - 60, 44)
+  place2(g.settleInfo, 0, -28, cw - 60, 40)
+  place2(g.settleExtra, 0, -66, cw - 60, 40)
+  place2(g.settleOpts, 0, g.settleOptsY, cw - 60, 48)
 end
 
 local function layout(W, H)
@@ -1999,9 +2004,9 @@ local function layout(W, H)
   -- 底行：结算 26 号（需 41.7）、入场呼吸 22~23 号 ⇒ 给 48
   place(botBanner, 0, -(halfH - 28), W - 180, 48)
 
-  if settleReady then layoutSettle(W, H) end
+  if g.settleReady then layoutSettle(W, H) end
   -- 抖动状态必须能被 layout 覆盖后复位：重排后基准坐标仍是创建时那套，直接停抖并写回基准
-  if shakeT > 0 then stopShake(true) end
+  if g.shakeT > 0 then stopShake(true) end
 end
 
 --------------------------------------------------------------------------------
@@ -2037,7 +2042,7 @@ function OnStart()
   end
   print('tpl guid=' .. tplGuid)
 
-  cells = {}
+  g.cells = {}
   for i = 1, COLS * ROWS do
     local c = firstCell
     firstCell = nil
@@ -2047,19 +2052,19 @@ function OnStart()
     local row = (i - 1) // COLS
     c.name = 'cell' .. i
     -- 基准坐标存下来（抖屏用；不再各处重算字面量）
-    cellBX[i] = (col - 4.5) * PITCH
-    cellBY[i] = (9.5 - row) * PITCH
+    g.cellBX[i] = (col - 4.5) * PITCH
+    g.cellBY[i] = (9.5 - row) * PITCH
     c:SetSizeDelta(CELL, CELL)
-    c:SetAnchoredPosition(cellBX[i], cellBY[i])
+    c:SetAnchoredPosition(g.cellBX[i], g.cellBY[i])
     c.imageColor = COL_EMPTY
-    cells[i] = c
+    g.cells[i] = c
   end
-  print('cellCount=' .. #cells)
+  print('cellCount=' .. #g.cells)
 
   -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
   local FRAME_COL = C(255, 76, 194, 255)
   local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
-  frames = {}
+  g.frames = {}
   -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
   local frameX = boardEdgeW + 1                      -- 150
   local frameY = 9.5 * PITCH + CELL / 2 + 1          -- 300
@@ -2074,12 +2079,12 @@ function OnStart()
     if fr then
       local sp = specs[i]
       fr.name = 'frame' .. i
-      frameBX[i], frameBY[i] = sp[1], sp[2]
+      g.frameBX[i], g.frameBY[i] = sp[1], sp[2]
       fr:SetSizeDelta(sp[3], sp[4])
-      fr:SetAnchoredPosition(frameBX[i], frameBY[i])
+      fr:SetAnchoredPosition(g.frameBX[i], g.frameBY[i])
       fr.imageColor = FRAME_COL
     end
-    frames[i] = fr
+    g.frames[i] = fr
   end
 
   -- 结算不用中间遮罩：运行时实例的层级高于服务端文字，遮罩会把结算文字盖掉（实测）
@@ -2088,7 +2093,7 @@ function OnStart()
 
   -- NEXT 预览：第一块 4 格（18px）；T2 第二块 4 格（14px 缩略、55% 亮度，renderNext 排第一块下方）
   -- T3 Hold 槽复用本表：preview[9..12] = hold1-4（18px，左栏镜像位；不另开 local——200 上限已满）
-  preview = {}
+  g.preview = {}
   for i = 1, 12 do
     local c = game.InstantiateClientUIControl(tplGuid, root)
     if c then
@@ -2098,7 +2103,7 @@ function OnStart()
         i <= 4 and 175 or i <= 8 and 100 or 175)
       c.imageColor = COL_BG
     end
-    preview[i] = c
+    g.preview[i] = c
   end
 
   -- 结算层**不在 OnStart 建**（2026-10-25 真机：常驻 + SetVisible(false) 不保险 ⇒ 开局白屏、
@@ -2111,8 +2116,8 @@ function OnStart()
   if not okLayout then print('layout error :: ' .. tostring(errLayout)) end
 
   -- 引导初始态：等玩家按第一个键（重力暂停，画面静止好读）
-  guideStage, bannerTimer, taughtLock, taughtClear = 0, 0, false, false
-  flashT, introT, introFont, introPulse = 0, 0, 24, 22   -- introFont/Pulse = 上次写进控件的值（变了才写）
+  guideStage, bannerTimer, g.taughtLock, g.taughtClear = 0, 0, false, false
+  g.flashT, introT, introFont, introPulse = 0, 0, 24, 22   -- introFont/Pulse = 上次写进控件的值（变了才写）
   bestScore = 0
   setText(title, '')
   for _, c in ipairs({ best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', false) end
@@ -2171,14 +2176,14 @@ function OnStart()
       elseif m.action == 'hold' then
         NUM.doHold()                                       -- T5 抽取的共用换块语义（AI 与玩家同源）
       elseif m.action == 'hard' then
-        if gameOver or not piece then return end
+        if g.gameOver or not g.piece then return end
         local dropped = 0
-        while not collides(piece.cells, piece.x, piece.y + 1) do
-          piece.y = piece.y + 1
+        while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
+          g.piece.y = g.piece.y + 1
           dropped = dropped + 1
         end
-        print('harddrop rows=' .. dropped .. ' y=' .. piece.y)
-        score = score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
+        print('harddrop rows=' .. dropped .. ' y=' .. g.piece.y)
+        g.score = g.score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
         doLock()
       end
     end))
@@ -2194,7 +2199,7 @@ function OnStart()
     if guideStage ~= 0 then return end
     NUM.AI_LEVEL = NUM.AI_LEVEL % 3 + 1
     local lv2 = NUM.AI_LEVELS[NUM.AI_LEVEL]
-    AI.rhoPieces, AI.rhoLines = 0, 0
+    RHO.pieces, RHO.lines = 0, 0
     print('demo level=' .. lv2.name)
     demoLoopReset()
   end)
@@ -2213,29 +2218,29 @@ function OnStart()
   -- Q：结算明细（结算态才有意义）。明细走左栏 hint（棋盘外，不会被实例格子盖住）
   listen('KeyboardCharacterSkill2KeyDown', function()
     startIfWaiting()
-    if not gameOver then return end
+    if not g.gameOver then return end
     -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
     if sendSettleSignal() then return end
     -- ② 本机 Lua 无信号通道时的退路：原来的「结算明细」开关
-    settleOpen = not settleOpen
-    local mins = math.floor(elapsed / 60)
-    local secs = math.floor(elapsed % 60)
+    settleOpen = not g.settleOpen
+    local mins = math.floor(g.elapsed / 60)
+    local secs = math.floor(g.elapsed % 60)
     local rate = 0
-    if pieceCount > 0 then rate = math.floor(lines * 100 / pieceCount) end
-    local detail = '等级 ' .. level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
-      .. '　消行率 ' .. rate .. '%　最高连击 ' .. maxCombo
-    if settleOpen then
-      if settleReady then
-        setText(settleExtra, detail)
-        tryCall(settleExtra, 'SetVisible', true)
+    if g.pieceCount > 0 then rate = math.floor(g.lines * 100 / g.pieceCount) end
+    local detail = '等级 ' .. g.level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
+      .. '　消行率 ' .. rate .. '%　最高连击 ' .. g.maxCombo
+    if g.settleOpen then
+      if g.settleReady then
+        setText(g.settleExtra, detail)
+        tryCall(g.settleExtra, 'SetVisible', true)
       else
-        setText(hint, '本局落块 ' .. pieceCount .. '　消行 ' .. lines .. '　最高 ' .. bestScore)
+        setText(hint, '本局落块 ' .. g.pieceCount .. '　消行 ' .. g.lines .. '　最高 ' .. bestScore)
       end
       print('settle detail on')
     else
-      if settleReady then
-        setText(settleExtra, '')
-        tryCall(settleExtra, 'SetVisible', false)
+      if g.settleReady then
+        setText(g.settleExtra, '')
+        tryCall(g.settleExtra, 'SetVisible', false)
       else
         setText(hint, '')
       end
@@ -2250,7 +2255,7 @@ function OnStart()
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
   listen('KeyboardCharacterSkill4KeyDown', act(function()
     for rr = ROWS - 1, ROWS do
-      for c = 1, COLS do board[rr][c] = COL_BLUE end
+      for c = 1, COLS do g.board[rr][c] = COL_BLUE end
     end
     print('debug-fill')
     renderAll()
@@ -2279,9 +2284,9 @@ function OnStart()
       btnC = function() if guideStage ~= 2 then stepDown(true) end end,
       btnD = function() if guideStage ~= 2 then rotate() end end,
       btnE = function()
-        if guideStage == 2 or gameOver or not piece then return end
-        while not collides(piece.cells, piece.x, piece.y + 1) do piece.y = piece.y + 1 end
-        print('touchdrop y=' .. piece.y)
+        if guideStage == 2 or g.gameOver or not g.piece then return end
+        while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do g.piece.y = g.piece.y + 1 end
+        print('touchdrop y=' .. g.piece.y)
         doLock()
       end,
       btnF = function()
@@ -2339,22 +2344,22 @@ function OnUpdate(dt)
   if d <= 0 then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
   -- 抖屏：只在 shakeT > 0 的帧写坐标；到点复位一次后就不再碰任何控件
-  if shakeT > 0 then
-    shakePhase = shakePhase + d
-    shakeT = shakeT - d
-    if shakeT <= 0 then
-      shakeT, shakePhase = 0, 0
+  if g.shakeT > 0 then
+    g.shakePhase = g.shakePhase + d
+    g.shakeT = g.shakeT - d
+    if g.shakeT <= 0 then
+      g.shakeT, g.shakePhase = 0, 0
       applyShake(0, 0)
       print('shake end')
     else
-      local u = 1 - shakeT / shakeDur                        -- 0（刚触发）→ 1（结束）
+      local u = 1 - g.shakeT / g.shakeDur                        -- 0（刚触发）→ 1（结束）
       local decay = math.exp(-3 * u)                         -- 指数衰减
-      local ox = shakeAmp * decay * math.sin(shakePhase * SHAKE_FREQ)
-      local oy = shakeAmp * decay * math.cos(shakePhase * SHAKE_FREQ * 1.3)
+      local ox = g.shakeAmp * decay * math.sin(g.shakePhase * SHAKE_FREQ)
+      local oy = g.shakeAmp * decay * math.cos(g.shakePhase * SHAKE_FREQ * 1.3)
       applyShake(ox, oy)
     end
   end
-  if bannerTimer > 0 and not gameOver then
+  if bannerTimer > 0 and not g.gameOver then
     bannerTimer = bannerTimer - d
     if bannerTimer <= 0 then
       bannerTimer = 0
@@ -2362,12 +2367,12 @@ function OnUpdate(dt)
       setText(hint, '')
     end
   end
-  if flashT > 0 then
-    flashT = flashT - d
-    if flashT <= 0 then flashT = 0 renderAll() end
+  if g.flashT > 0 then
+    g.flashT = g.flashT - d
+    if g.flashT <= 0 then g.flashT = 0 renderAll() end
   end
-  if gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
-  if guideStage == 1 and not gameOver then elapsed = elapsed + d end
+  if g.gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
+  if guideStage == 1 and not g.gameOver then g.elapsed = g.elapsed + d end
   if guideStage == 0 then
     -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
     introT = introT + d
@@ -2386,17 +2391,17 @@ function OnUpdate(dt)
   end
   if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
   -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
-  if NUM.LD.t >= 0 and not gameOver then
+  if NUM.LD.t >= 0 and not g.gameOver then
     NUM.LD.t = NUM.LD.t + d
     if NUM.LD.t >= NUM.LD_DELAY then
       NUM.LD.t = -1
-      if piece and collides(piece.cells, piece.x, piece.y + 1) then
+      if g.piece and collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
         doLock()          -- 缓冲到时且仍触底：锁定
       end
     end
   end
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
-  if NUM.DAS.dir ~= 0 and not gameOver then
+  if NUM.DAS.dir ~= 0 and not g.gameOver then
     NUM.DAS.t = NUM.DAS.t + d
     if NUM.DAS.t >= NUM.DAS_DELAY then
       NUM.DAS.arr = NUM.DAS.arr + d
@@ -2406,15 +2411,15 @@ function OnUpdate(dt)
       end
     end
   end
-  acc = acc + d
+  g.acc = g.acc + d
   local guard = 0
-  while acc >= STEP and guard < 8 do
-    acc = acc - STEP
+  while g.acc >= STEP and guard < 8 do
+    g.acc = g.acc - STEP
     guard = guard + 1
-    tickCount = tickCount + 1
+    g.tickCount = g.tickCount + 1
     -- 下落间隔随等级变化（SPEED_TICKS，docs §3）：level 已封顶 LEVEL_CAP，表项必存在
-    local perTicks = NUM.SPEED[level] or NUM.SPEED[NUM.LEVEL_CAP]
-    if not gameOver and tickCount % perTicks == 0 then
+    local perTicks = NUM.SPEED[g.level] or NUM.SPEED[NUM.LEVEL_CAP]
+    if not g.gameOver and g.tickCount % perTicks == 0 then
       stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
     end
   end
