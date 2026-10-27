@@ -306,11 +306,16 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   `OnStart` 第一条写 HUD 文案 + `print('[tag] onstart')`，**单独跑一轮看到字或日志**才算活着；
   一轮试玩里没有 `onstart` 打印 ⇒ 停止叠加玩法逻辑，先修宿主（容器 active/可见 → 挂载点层级 → 编辑器是否重开地图）。
   完整三步门见 `lua-2d-ui-game-build` §6.5。
-- 🔴 **UI 编辑会吃掉挂载（2026-10-27 实测定谳）**：先挂脚本、再对容器做 `assets:ui create/update`
-  （尤其 `update <容器组> --position/--size`）之后，`assets:scripts mounts` 可能变 0、**容器节点记录整条消失**
-  （子控件被挂到容器组上，脚本再无宿主）。⇒ **顺序：先把 UI 控件建改完 → 最后 `assets:scripts mount` →
-  复核 `mounts` 非空 + 树里节点在**；对容器组不要用 `update --position/--size`（实测写没节点+6 子控件，
-  靠 `.gsts/backups` 回滚）。
+- 🔴 **UI 与挂载的顺序纪律（2026-10-27 实测）**：先挂脚本、再对**容器组**做 `assets:ui create/update`，
+  之后 `assets:scripts mounts` 可能变 0、**容器节点记录整条消失**（子控件被挂到容器组上，脚本再无宿主）。
+  ⇒ **顺序：先把 UI 控件建改完 → 最后 `assets:scripts mount` → 复核 `mounts` 非空 + 树里节点在**。
+  用 `update` 给几何时的差别（同日实测）：打**容器节点** `--position/--size` 安全（子树与挂载都在）；
+  打**容器组**会连同节点和子控件一起写没（靠 `.gsts/backups` 回滚）。
+- ✅ **HUD 首选形态 = 服务端 textbox（一条龙，无需导入）**：`assets:ui create --type textbox --on layout:<布局ID>
+  --id <id> --name <名> --position x,y --size w,h` 建记录 → `assets:ui update <id> --content "<文案>"`
+  把静态文案写进记录（`props.text` 可回读）⇒ **即使 Lua 不跑，屏上也有字**。Lua 侧用
+  `script.object` 向上走到布局根 → `root:GetChild('<名>')` → `c.text = ...`（tetris 已验证的寻址路）。
+  注意 `create` 一次不能同时给 `--text`（本轮实测报错要求 create 默认形态再 update 配置）。
 - 挂载宿主只认**容器节点**（容器组 f502=23 无 f74 槽，CLI fail-closed）；`--output` 候选模式**不写**
   `external_lua_file` 副本，只有 `--write` 才落盘（排查 `external=MISSING` 时先看用没用 `--output`）。
 
