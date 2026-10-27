@@ -101,3 +101,43 @@ CLI `gsts assets:creations inspect / skill add·bind / decision bind` + `assets:
 E3（地形对球位置的影响）三个探针，再写物理内核。
 已核实的硬约束：`creation_skill` 无 `getPlayerMovementInput`（意图只能位置差分）、无 `squareRootFunction`
 （用 `_3dVectorModuloOperation` 代替）、拍频上限 15Hz 由 AI 客户端决定。
+
+## 现状读数（2026-10-27 17:5x，本轮：物理内核 v2 + 丘丘人算力中心）
+
+**地图 1073741827「真实足球v3」**：`save == temp == 78b50f7f…`，455,086 B，`gil-header-check` 0 问题；
+本轮所有写入均有 `.gsts/backups`。提交 `feb2551a`（v2 内核）/ `eea2e0b8`（v1 + Lua 桥）。
+
+### 架构（正统路线：客户端算 → 服务端施运动器）
+
+```
+Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
+  → 信号 fb_input(key,state)（send=1610612747/monitor=748/server=749/clientScript=739）
+  → 服务端 kitListen(1073741826, 36n) 挂丘丘人：key>0 才自增 fb_seq，并写 fb_key
+  → 客户端 kitLoop(1082130436, 316n) 跑在打手丘丘人 1082130445 上：六态物理内核
+      每拍发 kit_state(tag=B, tick, pos, vel, spin, state=mode)
+  → 服务端 kitRender(1073741828, 28n) 挂真足球 1077936135：
+      线性运动器补间（位移<5m）/ 瞬时定点（≥5m）+ 旋转运动器滚转（世界轴→局部轴 YXZ）
+```
+
+### 物理内核 v2 参数（dt=0.1333，按 7.5Hz 标定）
+
+六态：Airborne/Bouncing/Sliding/Rolling/Rest/DribbleControlled；重力 9.8、反弹 0.5、触地切向摩擦 0.82、
+空气阻力 0.995/拍、滚动摩擦 0.985/拍、自旋衰减 0.985/拍（触地 ×0.85）、马格努斯 K=0.03、限速 18、
+地面 y=−4.25（草地顶 −4.5 + 球半高 0.25）、球半径 0.25。
+三踢法：key1 轻射 10+1.2 / key2 重射 16+2.0+侧旋 10（弧线）/ key3 高吊 7+7.0。
+带球：2.4m 内 + 球速 <8 ⇒ v=0.45v+0.55vdes，vdes=(目标−球)×8 + 玩家速度前馈（位置差分，>8 视为瞬移）。
+
+### 已清理（用户令：移除多余造物/技能/节点图）
+
+- 删图：kitProbe 1082130440、kitBall 1082130439、zaowu{Status,Skill,Decision} 1082130433/434/435、
+  zaowuListen 1073741825、空图 kit_follow 1073741827（共 7 张，均有 delete-graph 备份）。
+  现役图仅 5 张：kitLoop / kitStatus / kitDecision / kitListen / kitRender。
+- 水史莱姆 1082130442：技能条目已删（skills=0）、实体挪到 (0,−60,0) 当备胎（CLI 无实体删除命令）。
+- 遗留：3 个无人引用的技能配置（1191182338/339/340，**CLI 无删除命令**）；足球上旧 tabBar 组件(type17)仍在。
+
+### 断点（下一轮从这里接）
+
+1. **真机确认丘丘人是否施放**（本轮最大未知）：若日志有 `kitLoop` 记录 ⇒ 15Hz 载体成立，可删史莱姆；
+   若 0 条 ⇒ 一行命令回滚（`assets:creations skill add --target 1082130442 --skill-config 1191182338 --cd 0.03 --ignore-public-cd --write`）。
+2. 真机确认 Lua 三键链路（`[fb-in] onstart` / `listen … via enum|string` / `key …` + 服务端 `fb-key`）。
+3. 真机确认运动器渲染观感（线性补间是否平滑、滚转是否可见、大跳变是否用瞬时定点）。
