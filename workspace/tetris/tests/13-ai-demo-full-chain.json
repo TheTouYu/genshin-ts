@@ -1,0 +1,81 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "13 AI 自演完整链路（计分/HUD/消行音/抖屏；best 不收 AI 分）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 46,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 46,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 32,
+      "kind": "log",
+      "contains": "demo clear n=1 aiScore=100 aiLines=1 combo=1 b2b=0",
+      "source": "client"
+    },
+    {
+      "at": 32,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "得分 100　消行 1　等级 1　已填 38"
+    },
+    {
+      "at": 32,
+      "kind": "log",
+      "contains": "shake rows=1 amp=7 dur=0.18",
+      "source": "client"
+    },
+    {
+      "at": 32,
+      "kind": "log",
+      "contains": "lock ",
+      "source": "client"
+    },
+    {
+      "at": 45,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "得分 350　消行 3　等级 1　已填 38"
+    },
+    {
+      "at": 46.6,
+      "kind": "log",
+      "contains": "guide stage=1",
+      "source": "client"
+    },
+    {
+      "at": 46.6,
+      "kind": "control",
+      "name": "hud",
+      "field": "text",
+      "equals": "得分 0　消行 0　等级 1　已填 38"
+    },
+    {
+      "at": 46.6,
+      "kind": "control",
+      "name": "best",
+      "field": "text",
+      "equals": "最高 0"
+    }
+  ],
+  "audioExpect": [
+    50917,
+    50872
+  ],
+  "audioExclude": [
+    50929
+  ],
+  "note": "T4 验收：AI 消行同样计分（demo clear 带 aiScore 账本口径）进 HUD（32s=100→45s=350 随 AI 增长）、响消行音（50917=1 行档）与落块音（50872）、抖屏（shake rows=1）；AI 分走 AI.score 账本——玩家接管（t=46 按未映射键）瞬间 HUD 回玩家账 0 分（已填 38 是 AI 留下的盘面，不清盘），best 恒'最高 0'（AI 分不进 bestScore）。读数为固定种子确定性序列（LCG 20261023 + aiSeed 20261024 + 7-bag 首袋排 S/Z）：首消 30.4s、69.3s demo reset。T5 改决策源头或 T2/T3 改出块序列时本用例的精确值需同步更新。"
+}

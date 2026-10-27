@@ -55,6 +55,9 @@
 - **日志（用例断言用）**：`cellCount=200` / `piece=<名> x=<列> y=<行>` / `fall y=` / `move x=` /
   `rotate <名>` / `harddrop rows= y=` / `lock <名> cells=<落格下标>` / `clear n= score= lines=` / `gameover score=` / `newgame` /
   `shake rows=<n> amp=<px> dur=<s>`（消行起抖）/ `shake end`（抖完复位）。
+  自演（stage0）额外：`demo clear n=<行> aiScore=<分> aiLines=<行> combo=<n> b2b=<0|1>`（AI 账本口径，T4）——
+  T4 起 AI 落块/消行与玩家走同一条链路（lock/piece/clear 日志同格式、落块音/消行音/抖屏照播），
+  分数进 `AI.score` 账本：HUD 在 stage0 显示 AI 账（玩家接管瞬间回玩家账 0 分），`best` 只收玩家账。
 
 ### 4.1 音效与抖屏（2026-10-25）
 
@@ -289,6 +292,10 @@ npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
 - 最后一格 **50% 软降逐格落**（每格 0.06~0.12s，途中 30% 概率横调 1 格）/ **50% 硬降**；单块总时长 **1.5~3.5s**
 - 日志：每块一条 `demo pace think=… rot=… move=N*GAP soft=… hover=… drop=soft|hard total=…`，
   每个动作一条 `demo act rot|move|soft|drop|nudge|hover`，另有 `demo plan name=… from=… target=…`。
+- **T4（2026-10-27）AI 不再静音**：消行音/落块音/抖屏/连击/B2B 对自演同样生效（同一条 clearLines/doLock 链路，
+  `piece=`/`lock` 日志同玩家格式）；`autoDriving` 只保留教学提示与教学横幅的抑制（入场演出横幅不被抢）。
+  分数记 `AI.score`/`AI.lines`（挂 AI 表）：stage0 的 HUD 显示 AI 账，玩家接管瞬间回玩家账 0 分且**不清 AI 账**，
+  `bestScore` 只收玩家账（`updateBest` 的 autoDriving 守卫保留）。
 
 **实测（300s 连续自演，种子固定可复现）**
 - 单块时长：min **1.57s** / p25 2.20 / 中位 **2.57** / p75 2.97 / max **3.50**，平均 **2.58s**；软降占比 53%

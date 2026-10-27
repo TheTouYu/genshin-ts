@@ -155,7 +155,10 @@ local gameOver, tickCount, acc
 local guideStage, bannerTimer, taughtLock, taughtClear
 local flashT, introT, overlay
 local introFont, introPulse
-local autoDriving = false   -- true = 本次落子由入场 AI 驱动（抑制教学提示与高频日志）
+local autoDriving = false   -- true = 本次落子由入场 AI 驱动（T4 后只用于：教学提示/教学横幅抑制 + AI 账本分流）
+-- AI 局账本（T4）挂在 AI 表（AI.score / AI.lines，见「AI 自演」段初始化）：入场自演的分数/消行数，
+-- 与玩家账 score/lines 分开；玩家接管不清 AI 账（两套账本），best 只记玩家账。
+-- 不另开 local——main 函数 200 个 local 已满（T1 加 bagQ/bagSeq 后临界）。
 local elapsed = 0           -- 本局用时（结算明细用）
 local settleLayer, settleScrim, settleCard, settleBorder   -- 结算层（运行时实例化，层级高于棋盘格）
 local settleReady = false   -- 结算层当前是否存活（按需创建、重开即销毁）
@@ -221,14 +224,17 @@ end
 --   ② `sfxFrame == frameSeq` 保证**同一帧最多播一条**（真机一帧内可能连来两个动作）；
 --   ③ 全走 pcall —— 真机缺这个 API 时一处抛错会中断整段 OnStart（2026-10-24 踩过）。
 --------------------------------------------------------------------------------
+-- 音效 id：由 sfx-web 挑选器（用户听感调整）导出，2026-10-27
+-- 名称出处：.scratch/sfx/sfx-library-full-20261027.md（GUI 采集 1196 条）
 local SFX = {
-  move   = 20007,   -- 0.249s（最短）  ⇒ 左右移动 / 手机热区轻点
-  rotate = 20008,   -- 0.300s（次短）  ⇒ 旋转
-  lock   = 20004,   -- 0.459s          ⇒ 落地
-  over   = 20006,   -- 1.030s（最长）  ⇒ 游戏结束（"低沉"待听感确认）
+  move   = 50884,   -- 按钮点击_轻_卡通_03 (0.151s)
+  rotate = 50883,   -- 按钮点击_轻_卡通_02 (0.151s)
+  lock   = 50872,   -- 按钮点击_重_通用_01 (1.024s)
+  over   = 50929,   -- 提示性UI_轻_整理背包 (0.978s)
+  level  = 40001,   -- 战斗_治疗_回复_01 (1.653s) ← 升级音
 }
 -- 消行按行数换 id：四档互不相同 ⇒ 1 行与 4 行听得出差别（音高关系未确认）
-local SFX_CLEAR = { 20001, 20002, 20003, 20005 }   -- 0.870 / 0.557 / 0.731 / 0.880s
+local SFX_CLEAR = { 50917, 40001, 40022, 40054 }   -- 0.785 / 1.653 / 1.064 / 2.000s
 local SFX_MUTE = false      -- 调试开关：true 全静音
 local sfxFrame = -1         -- 上一次播声的帧号（同一帧最多一条）
 local frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
@@ -712,7 +718,10 @@ renderHud = function()
       if board[r][c] ~= 0 then oc = oc + 1 end
     end
   end
-  setText(hud, '得分 ' .. score .. '　消行 ' .. lines .. '　等级 ' .. level
+  -- T4：stage0 = 入场 AI 自演，HUD 显示 AI 局账本（分数随 AI 消行增长）；接管后显示玩家账
+  local s, l = score, lines
+  if guideStage == 0 then s, l = AI.score, AI.lines end
+  setText(hud, '得分 ' .. s .. '　消行 ' .. l .. '　等级 ' .. level
     .. '　已填 ' .. oc)
   setText(hudNext, '下一个')
   setText(best, '最高 ' .. bestScore)
@@ -753,9 +762,7 @@ spawn = function()
     x = (COLS - s.n) // 2 + 1,
     y = 1,
   }
-  if not autoDriving then
-    print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
-  end
+  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
     print('gameover score=' .. score)
@@ -805,17 +812,21 @@ clearLines = function()
     b2b = (cleared == 4)
     local comboBonus = 0
     if combo >= 2 then comboBonus = NUM.COMBO * (combo - 1) * level end
-    score = score + base * level + comboBonus
-    lines = lines + cleared
+    -- T4 两套账本：AI 自演的分进 aiScore（玩家接管不清、best 不收）；玩家分进 score。
+    -- 连击/B2B 状态共享，但 startIfWaiting/newGame 都归零 ⇒ AI 的连击不会漏进玩家局。
+    local gain = base * level + comboBonus
+    if autoDriving then AI.score = AI.score + gain else score = score + gain end
+    if autoDriving then AI.lines = AI.lines + cleared else lines = lines + cleared end
     local levelBefore = level
     level = lines // NUM.LEVEL_UP_LINES + 1
     if level > NUM.LEVEL_CAP then level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
     -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
-    -- 入场自演期间只抖不出声（与"抑制教学提示/高频日志"同一套口径）
-    if not autoDriving then sfx(SFX_CLEAR[cleared], true) end
+    -- T4：AI 自演同样出声、同样抖屏——统一走这一条链路，不再有静音旁路
+    sfx(SFX_CLEAR[cleared], true)
     startShake(cleared)
     if autoDriving then
-      print('demo clear n=' .. cleared .. ' lines=' .. lines)   -- 自演也在消行（心跳级日志）
+      print('demo clear n=' .. cleared .. ' aiScore=' .. AI.score .. ' aiLines=' .. AI.lines
+        .. ' combo=' .. combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
     else
       print('clear n=' .. cleared .. ' score=' .. score .. ' lines=' .. lines
         .. ' combo=' .. combo .. ' b2b=' .. (b2bApplied and 1 or 0))
@@ -836,6 +847,7 @@ clearLines = function()
         setText(botBanner, level >= NUM.LEVEL_CAP and ('等级 ' .. level .. '　已满速')
                                            or ('等级 ' .. level .. '　速度提升'))
         bannerTimer = NUM.LEVEL_TIP
+        sfx(SFX.level, true)          -- 升级音（force：与其他音效同帧也不吞）
         print('tip level=' .. level)
       elseif combo >= 2 then
         setText(botBanner, '连击 ×' .. combo)
@@ -862,16 +874,15 @@ doLock = function()
     if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end
   end
   pieceCount = pieceCount + 1
-  if not autoDriving then
-    print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
-  end
+  print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
   local cleared = clearLines()
   if cleared == 0 then
     combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
     b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
   end
   -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
-  if cleared == 0 and not autoDriving then sfx(SFX.lock) end
+  -- T4：AI 自演的落块同样播（消行音/落地音统一链路，AI 不再静音）
+  if cleared == 0 then sfx(SFX.lock) end
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
   if not taughtLock and not autoDriving then
     taughtLock = true
@@ -934,6 +945,7 @@ local function newGame()
     board[r] = row
   end
   score, lines, level = 0, 0, 1
+  AI.score, AI.lines = 0, 0   -- AI 局账本同样重开归零（demo reset / 玩家 R 都是"新一局"）
   pieceCount = 0
   combo, maxCombo, b2b = 0, 0, false
   elapsed = 0
@@ -969,9 +981,9 @@ local function startIfWaiting()
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
-  -- P0（docs/数值策划.md §7-P0）：入场 AI 自演期间的分数/行数/落块数/连击**不计入玩家账**。
-  -- 自演真的会消行（clearLines 里没有 autoDriving 守卫），不在这里归零的话玩家接管瞬间
-  -- HUD 可能不是 0 分、结算"消行率"会被 AI 的块拉低。归零法比在 clearLines 里加守卫更稳。
+  -- P0/T4：玩家账本从 0 开始。AI 自演的分已走 aiScore 账（clearLines 分流），这里归零 score
+  -- 是双保险（防未来某条 AI 路径漏改）；aiScore/aiLines 不动——玩家接管**不清 AI 局成绩**（模式语义）。
+  -- 连击/B2B/落块数是共享局内状态，接管即归零 ⇒ AI 的连击不会带进玩家局。
   score, lines, level = 0, 0, 1
   pieceCount = 0
   combo, maxCombo, b2b = 0, 0, false
@@ -1355,7 +1367,8 @@ local function aiDrop()
 end
 
 AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
-  count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2 }
+  count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
+  score = 0, lines = 0 }   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）
 
 -- 每个 OnUpdate 调一次：thinking（观察）→ acting（旋转/横移/小落，逐段计时）
 -- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
@@ -1729,7 +1742,9 @@ function OnStart()
   flashT, introT, introFont, introPulse = 0, 0, 24, 22   -- introFont/Pulse = 上次写进控件的值（变了才写）
   bestScore = 0
   setText(title, '')
-  for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', false) end
+  for _, c in ipairs({ best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', false) end
+  -- T4：入场自演也亮 HUD（AI 战况可见：得分随 AI 消行增长）；best/hint 仍藏到玩家接管
+  tryCall(hud, 'SetVisible', true)
   tryCall(title, 'SetVisible', false)
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
