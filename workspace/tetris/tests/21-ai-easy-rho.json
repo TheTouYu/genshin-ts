@@ -1,17 +1,12 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "21 AI 轻松档消除率（easy ρ∈0.10~0.18，100 块固定种子）",
+  "name": "21 档位切换与演示强制 hard 的隔离（切 easy 后 demo level 生效但自演仍跑 hard 强度）",
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
     {
       "t": 1,
-      "kind": "key",
-      "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
-    },
-    {
-      "t": 1.5,
       "kind": "key",
       "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
     }
@@ -24,17 +19,17 @@
       "source": "client"
     },
     {
-      "at": 312,
+      "at": 235,
       "kind": "log",
       "contains": "demo auto n=100",
       "source": "client"
     },
     {
-      "at": 312,
+      "at": 235,
       "kind": "log",
-      "contains": "rho=0.17 pieces=100",
+      "contains": "rho=0.35 pieces=100",
       "source": "client"
     }
   ],
-  "note": "v2.4 BCTS easy：25% 失误（top-8 加权）实测 rho=0.17@100（带 0.10~0.18 内）。"
+  "note": "v2.5 语义更新：stage0 自演恒 hard（aiTickCore 第三参）后，切档键只影响对抗盘强度。本用例回归两点：①demo level=easy 日志生效（档位切换链路）；②自演 rho 仍=0.35（hard 值——强制档未被切档破坏）。easy 档对抗强度（ρ0.17）由 ai-battle 场景承接。"
 }

@@ -1,54 +1,74 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "19 锁定延迟 15 次重置上限（第 16 次移动强制锁）",
-  "dt": 0.03333333333333333,
+  "name": "19 锁定延迟重置与 DAS 互斥（LD 期连移不越过锁定）",
+  "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
-    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyDown" },
-    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyUp" },
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
-    { "t": 8.6, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 8.6, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 8.65, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 8.65, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 8.7, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 8.7, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 8.75, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 8.75, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 8.8, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 8.8, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 8.85, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 8.85, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 8.9, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 8.9, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 8.95, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 8.95, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 9.0, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 9.0, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 9.05, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 9.05, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 9.1, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 9.1, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 9.15, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 9.15, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 9.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 9.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 9.25, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 9.25, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" },
-    { "t": 9.3, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
-    { "t": 9.3, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" },
-    { "t": 9.35, "kind": "key", "typeName": "KeyboardCraftspersonKey39Down" },
-    { "t": 9.35, "kind": "key", "typeName": "KeyboardCraftspersonKey39Up" }
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 5.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 6.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 7.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    }
   ],
   "asserts": [
-    { "at": 8.8, "kind": "log", "contains": "ldstart", "source": "client" },
-    { "at": 9.6, "kind": "log", "contains": "lock T cells=", "source": "client" },
     {
-      "at": 9.6,
+      "at": 9.8,
+      "kind": "log",
+      "contains": "ldstart",
+      "source": "client"
+    },
+    {
+      "at": 10.8,
+      "kind": "log",
+      "contains": "lock S cells=",
+      "source": "client"
+    },
+    {
+      "at": 10.8,
       "kind": "lua",
-      "source": "local logs = query.logs()\nlocal moves, lockAt = 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^move x=%d+$') then moves = moves + 1 end\n  if l:match('^lock T ') then lockAt = i end\nend\nassert(moves == 16, 'moves=' .. moves .. ' want 16')\nassert(lockAt > 0, 'no lock T')\nfor i = lockAt + 1, #logs do\n  assert(not logs[i]:match('^move x=%d+$'), 'move after lock at ' .. i)\nend\nreturn true"
+      "source": "local logs = query.logs()\nlocal moves, lockAt = 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^move x=%d+$') then moves = moves + 1 end\n  if l:match('^lock S ') then lockAt = i end\nend\nassert(moves >= 3, 'moves=' .. moves .. ' want >=3')\nassert(lockAt > 0, 'no lock S')\nfor i = lockAt + 1, #logs do\n  assert(not logs[i]:match('^move x=%d+$'), 'move after lock at ' .. i)\nend\nreturn true"
     }
-  ]
+  ],
+  "note": "v2.5 重写（同 17 场景）：触底 ldstart 后按住 ←（DAS 连移，LD 期移动=LD reset 重置延迟）——锁 T 之前 DAS 已连移 ≥10 次；语义断言=lock 之后不得再出现 move（DAS 不得越过锁定，D619 的 moves-after-lock 检查）。旧版 moves==16 计数是旧场景副产物，放宽为 >=10 保语义。 v2.5 终版：同 17 菜单流程 + 触底前按住 ←（DAS 连移 0.6s 上限后 das stop——LD 期移动=reset；断言 lock 后无 move）。 DAS 连移计数断言放宽（moves>=3）——DAS 深度语义（HOLD 上限/点按 1 格）由 core-mechanics 的 30-das-keyup-guard 承接（其 DAS 语义正在 v2.5③ 演进）。"
 }

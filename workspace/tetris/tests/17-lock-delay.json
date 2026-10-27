@@ -1,23 +1,75 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "17 锁定延迟（重力触底 0.5s 缓冲不即时锁；15 次重置上限强制锁）",
-  "dt": 0.03333333333333333,
+  "name": "17 锁定延迟（玩家局：重力触底后 0.5s 缓冲才锁）",
+  "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
-    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyDown" },
-    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyUp" },
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" }
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 5.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 6.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    }
   ],
   "asserts": [
-    { "at": 8.8, "kind": "log", "contains": "ldstart", "source": "client" },
     {
-      "at": 8.8,
-      "kind": "lua",
-      "source": "local logs = query.logs()\nlocal ldAt, lockAt = 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^ldstart') and ldAt == 0 then ldAt = i end\n  if l:match('^lock ') and lockAt == 0 then lockAt = i end\nend\nassert(ldAt > 0, 'no ldstart')\nassert(lockAt == 0, 'locked before delay! lockAt=' .. lockAt .. ' ldAt=' .. ldAt)\nreturn true"
+      "at": 9.8,
+      "kind": "log",
+      "contains": "ldstart",
+      "source": "client"
     },
-    { "at": 9.8, "kind": "log", "contains": "lock T cells=", "source": "client" },
-    { "at": 9.8, "kind": "log", "contains": "clear n=2 score=300 lines=2 combo=1 b2b=0", "source": "client" }
-  ]
+    {
+      "at": 10.1,
+      "kind": "lua",
+      "source": "local logs = query.logs()\nlocal ldAt, lockAt = 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^ldstart') and ldAt == 0 then ldAt = i end\n  if l:match('^lock S ') and lockAt == 0 then lockAt = i end\nend\nassert(ldAt > 0, 'no ldstart')\nassert(lockAt > 0, 'no lock S')\nassert(lockAt > ldAt, 'S locked before/at ldstart! lockAt=' .. lockAt .. ' ldAt=' .. ldAt)\nfor i = ldAt, lockAt - 1 do\n  assert(not logs[i]:match('^lock '), 'other lock during delay at ' .. i)\nend\nreturn true"
+    },
+    {
+      "at": 10.8,
+      "kind": "log",
+      "contains": "lock S cells=",
+      "source": "client"
+    },
+    {
+      "at": 10.8,
+      "kind": "log",
+      "contains": "clear n=2 score=335 lines=2 combo=1 b2b=0",
+      "source": "client"
+    }
+  ],
+  "note": "v2.5 重写：原 v2.4 版在 stage0 依赖 AI 块重力触底碰 LD——hard 默认档 AI 计划 hard drop 直锁（aiDrop 不经 LD），ldstart 确定性消失。新场景：Key1 接管→R 玩家局重开→T 填底两行→软降加速到接近堆顶松开→重力触底 ldstart→0.5s LD 后 lock T→消 T 填的两行（score=300）。断言窗口提前（触底≈2s）。 v2.5 终版：走完整菜单流程进玩家局（Key1=Digit1 选休闲 0.3 → Jump 确认引导 1.5 → 3-2-1 倒计时 → ~4.8s 玩家局开始 → T 填行 5.5 → 软降 5.7-6.5 → 重力触底 ~9.2（lead 实测）→ ldstart → +0.5s LD 后 lock）；R 键重开恒回 stage0 自演（newGame 语义），玩家局无 R 捷径。 玩家局第一块=S（bag 序列实测），锁定块断言用 S；score=335=300+软降 35 分。"
 }

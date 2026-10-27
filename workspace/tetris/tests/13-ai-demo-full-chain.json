@@ -34,7 +34,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 100　消行 1　等级 1　已填 58"
+      "equals": "得分 950　消行 9　等级 1　已填 6"
     },
     {
       "at": 46.6,
@@ -47,7 +47,7 @@
       "kind": "control",
       "name": "hud",
       "field": "text",
-      "equals": "得分 0　消行 0　等级 1　已填 58"
+      "equals": "得分 0　消行 0　等级 1　已填 6"
     },
     {
       "at": 46.6,
@@ -64,5 +64,5 @@
   "audioExclude": [
     50929
   ],
-  "note": "v2.4 BCTS 重做后（1-ply 论文权重，docs/v2-ai-design.md §三）：normal 档首消 29.8s（n=1 aiScore=100，at=34.5 断言不变）；at=45 HUD 已填 58；72.6s demo reset（normal 8% 失误档）。音频不变（50872 落块/50917 单行消）。"
+  "note": "v2.5：默认档改 hard 且 stage0 自演恒 hard（aiTickCore 第三参强制，演示即最强）——首消提前到 7.7s，45s 内消 9 行、盘面已填 6（极净）；hold 音 50883 出现（hard hold 生效实证）。"
 }

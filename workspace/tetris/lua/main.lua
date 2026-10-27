@@ -97,7 +97,7 @@ local NUM = {
   -- 字段：ply=搜索层数；hold=是否考虑 Hold 换块；pMistake=失误注入概率（%）；
   --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
   --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
-  AI_LEVEL = 2,
+  AI_LEVEL = 3,   -- v2.5：默认 hard（演示即最强——用户第 N 次追问 AI 水平后 lead 裁决；normal 的 8% 失误曾让标题页自演像不会打）
   -- BCTS 权重【论文】Thiery & Scherrer 2009 §4（交叉熵优化原值，照抄不手调）
   BW = { LH = -12.63, ER = 6.60, RT = -9.22, CT = -19.77,
          HO = -13.08, CW = -10.49, HD = -1.61, RH = -24.04 },
@@ -126,7 +126,9 @@ local NUM = {
   LD_RESETS  = 15,     -- 锁定延迟重置上限（移动/旋转成功各计一次，超限强制锁定）
   DAS_DELAY  = 0.25,   -- DAS：按住 ←/→ 多少秒后开始自动连移
   ARR_RATE   = 0.05,   -- ARR：DAS 触发后自动连移的间隔秒数
-  DAS_CAP    = 12,     -- v2.1：连续自动连移步数上限（网页 keyup 丢失兜底；正常 DAS 到墙 9 格内停涨）
+  DAS_HOLD   = 0.6,    -- v2.6：DAS 持续上限秒数（ARR 激活后超过即强制停）——根治「按一下走到底」：
+                        -- 网页旧构建 keyup 转发丢失/焦点转移时 dir 残留，时间上限让 lua 层不依赖 Up 自愈；
+                        -- 真机/正常网页 Up 正常到达时提前清 dir，永不触及此上限（用户无感）
   TSPIN_BONUS = 400,   -- T-spin 加成：bonus = TSPIN_BONUS × 消行数 × level（0 行无分只提示）
   -- T8 运行态（挂表，200-local 约束）：
   --   LD  = { t = -1|秒, resets = 0 }   锁定延迟计时（t<0 未激活；重力触底启动，玩家移动/旋转重置）
@@ -268,7 +270,7 @@ local function newInst()
   t.boardOX = 0                         -- 棋盘 x 偏移（单屏=0 居中；双屏 G[1]=-320 / G[2]=+320，T6b-2）
   -- T6c：每盘独立输入状态（原挂 NUM 的每盘状态搬实例——pvp 双人各自 DAS/LD/Hold 互不干扰）
   t.ld = { t = -1, resets = 0 }         -- 锁定延迟（T8）
-  t.das = { dir = 0, t = 0, arr = 0, steps = 0 }  -- DAS/ARR（T8；v2.1 steps=连续自动连移步数，达 DAS_CAP 强制停——网页 keyup 丢失兜底）
+  t.das = { dir = 0, t = 0, arr = 0, hold = 0 }  -- DAS/ARR（T8；v2.6 hold=ARR 已持续秒数，达 DAS_HOLD 强制停——Up 丢失自愈）
   t.st = { name = nil, bag = 0, can = true }  -- Hold 槽（T3）
   t.lastRot = false                     -- T-spin 判定前置（T8）
   t.AI = newAIState()
@@ -1153,7 +1155,7 @@ doLock = function()
   g.st.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
   g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
   g.lastRot = false
-  g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。steps 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
+  g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。hold 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
   local cleared = clearLines()
   if isTspin then
     -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
@@ -2239,61 +2241,89 @@ MS.tick = function()
   end
 end
 
--- v2.3 ①：左右两列各两卡（避开中央 330 宽棋盘投影区）——左列 x=-420（1 休闲/2 AI 对抗），
--- 右列 x=+420（3 双人/4 合作），列内 y=+80/-80；卡 360×110。
--- v2.3 ② 卡片结构（深空霓虹）：深色卡底 #1A2438 + 左缘 6px 模式色标条 + 模式名 30 号主文字
--- + 特色句 15 号次文字——主色只在色标条/选中态出现，不再整卡铺色。副标题 18 号次文字色。
-local MC_CARD = { { -420, 104 }, { -420, -104 }, { 420, 104 }, { 420, -104 } }
-buildMenuCards = function()
-  if not TPL_CELL then return false end
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('menu cards no text tpl') return false end
-  destroyMenuCards()
-  -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），卡片后建 ⇒ 卡片压在墙上面
-  local okStage, errStage = pcall(MS.build)
-  if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
-  for i, info in ipairs(MODE_INFO) do
-    local cx, cy = MC_CARD[i][1], MC_CARD[i][2]
-    -- v2.4 ① 卡片层次：卡底（略提亮，压在深空墙上要浮起来）+ 左缘 8px 色标条 + 顶部 2px 发丝线
-    -- + 模式名 32 号主文字 + 特色句 16 号次文字。发丝线走 MS.parts（不属于 17 实例卡片组）。
-    local bg = game.InstantiateClientUIControl(TPL_CELL, root)
-    if bg then
-      bg.name = 'menuCard' .. i
-      bg:SetSizeDelta(360, 110)
-      bg:SetAnchoredPosition(cx, cy)
-      bg.imageColor = THEME.card
-      MC[#MC + 1] = bg
+-- ===== v2.5 ① 标题页四模式选择（重设计）=============================================
+-- 用户否掉 v2.4 的四张深蓝卡片（原话「那四个款太丑了，我不喜欢那个风格」）⇒ 整块重做。
+-- 用户偏好线索（本轮任务书）：偏克制/大字/不花哨；喜欢「字体放大脉冲」胜过复杂动效。
+-- 三版候选各自出图（docs/v25-a/b/c.png），选定版写进 MENU_STYLE：
+--   A 主机列表：去容器，只剩「色点 + 模式名大字 + 特色句 + 细下划线」，选中项下划线亮起+字放大
+--   B 形状图标：三格色块拼俄罗斯方块母题 + 模式名，选中项底部一句详情（无卡片无边框）
+--   C 整行高亮条：每模式一条 420×92 的模式色暗条（12%），字左对齐，选中整条提亮——最接近被否的卡片
+local MENU_STYLE = 'B'
+local MC_ROW = { { -420, 104 }, { -420, -104 }, { 420, 104 }, { 420, -104 } }
+-- 图标三格朝向（B 用）：L / T / S 三种块组
+local MC_ICON = {
+  { { 0, 11 }, { 0, -11 }, { 22, -11 } },
+  { { 0, 11 }, { -11, -11 }, { 11, -11 } },
+  { { -11, 11 }, { 11, 11 }, { -11, -11 } },
+}
+local function mcCell(name, x, y, w, h, color)
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
+  if not ok or not c then return nil end
+  c.name = name
+  c:SetSizeDelta(w, h)
+  c:SetAnchoredPosition(x, y)
+  c.imageColor = color
+  MC[#MC + 1] = c
+  return c
+end
+local function mcText(name, text, x, y, w, h, size, color, align)
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+  if not ok or not c then return nil end
+  c.name = name
+  c.text = text
+  trySet(c, 'fontSize', size)
+  trySet(c, 'fontColor', color)
+  trySet(c, 'bgColor', C(0, 0, 0, 0))
+  trySet(c, 'horizontalAlignment', align or 'Middle')
+  trySet(c, 'verticalAlignment', 'Middle')
+  trySet(c, 'enableOutline', true)
+  trySet(c, 'outlineColor', C(150, 0, 0, 0))
+  c:SetSizeDelta(w, h)
+  c:SetAnchoredPosition(x, y)
+  MC[#MC + 1] = c
+  return c
+end
+-- 模式色拆 RGB（纯色标/下划线/图标用）
+local function mcRGB(color, a)
+  return C(a or 255, (color // 65536) % 256, (color // 256) % 256, color % 256)
+end
+MS.modes = function()
+  MS.sel = {}
+  if MENU_STYLE == 'A' then
+    -- A：去容器 —— 色点 + 34 号模式名 + 15 号特色句 + 2px 细下划线（选中=下划线亮起+字脉冲到 38）
+    for i, info in ipairs(MODE_INFO) do
+      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
+      mcCell('menuDot' .. i, cx - 152, cy + 24, 10, 10, info.color)
+      MS.sel[i] = {
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 6, cy + 18, 344, 62, 34, THEME.textMain),
+        bar = mcCell('menuBar' .. i, cx, cy - 12, 300, 2, mcRGB(info.color, 96)),
+      }
+      mcText('menuDesc' .. i, info.desc, cx + 6, cy - 36, 344, 32, 15, C(225, 152, 166, 190))
     end
-    local bar = game.InstantiateClientUIControl(TPL_CELL, root)
-    if bar then
-      bar.name = 'menuBar' .. i
-      bar:SetSizeDelta(8, 110)
-      bar:SetAnchoredPosition(cx - 176, cy)
-      bar.imageColor = info.color
-      MC[#MC + 1] = bar
+  elseif MENU_STYLE == 'B' then
+    -- B：三格色块拼「方块母题」+ 34 号模式名（左对齐），底部一行显示选中模式的特色句
+    for i, info in ipairs(MODE_INFO) do
+      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
+      local ix, iy = cx - 128, cy + 2
+      for j = 1, 3 do
+        local o = MC_ICON[i][j]
+        mcCell('menuIcon' .. i .. '_' .. j, ix + o[1], iy + o[2], 22, 22, mcRGB(info.color, 235))
+      end
+      MS.sel[i] = {
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 24, cy + 2, 300, 62, 34, THEME.textMain, 'Left'),
+        icon = { ix = ix, iy = iy, color = info.color },
+      }
     end
-    MS.hairline(i, cx, cy, info.color)
-    local t1 = game.InstantiateClientUIControl(TPL_TEXT, root)
-    if t1 then
-      t1.name = 'menuTitle' .. i
-      t1.text = info.key .. '  ' .. info.name
-      t1.fontSize = 32
-      trySet(t1, 'fontColor', THEME.textMain)
-      trySet(t1, 'bgColor', C(0, 0, 0, 0))
-      t1:SetSizeDelta(330, 52)      -- 32 号硬判据 32*1.45+4 = 50.4 ⇒ 给 52（50 会整行不画）
-      t1:SetAnchoredPosition(cx + 8, cy + 21)
-      MC[#MC + 1] = t1
-    end
-    local t2 = game.InstantiateClientUIControl(TPL_TEXT, root)
-    if t2 then
-      t2.name = 'menuDesc' .. i
-      t2.text = info.desc
-      t2.fontSize = 16
-      trySet(t2, 'fontColor', C(255, 170, 184, 204))
-      trySet(t2, 'bgColor', C(0, 0, 0, 0))
-      t2:SetSizeDelta(330, 34)
-      t2:SetAnchoredPosition(cx + 8, cy - 23)
-      MC[#MC + 1] = t2
+    MS.detail = mcText('menuDetail', MODE_INFO[1].desc, 0, -232, 760, 34, 18, C(230, 168, 182, 210))
+  else
+    -- C：整行模式色暗条（12% alpha）+ 左对齐 34 号模式名 + 15 号特色句（选中整条提亮）
+    for i, info in ipairs(MODE_INFO) do
+      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
+      MS.sel[i] = {
+        row = mcCell('menuCard' .. i, cx, cy, 424, 96, mcRGB(info.color, 30)),
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx - 34, cy + 16, 320, 62, 34, THEME.textMain, 'Left'),
+      }
+      mcText('menuDesc' .. i, info.desc, cx - 34, cy - 24, 320, 30, 14, C(210, 150, 164, 188), 'Left')
     end
   end
   local sub = game.InstantiateClientUIControl(TPL_TEXT, root)
@@ -2305,12 +2335,48 @@ buildMenuCards = function()
     trySet(sub, 'fontColor', C(196, 148, 163, 184))
     trySet(sub, 'horizontalAlignment', 'Left')
     trySet(sub, 'bgColor', C(0, 0, 0, 0))
-    -- v2.4 ①：从棋盘投影区（y=238，压在格子正中）挪到左上角做 edition 标签
     sub:SetSizeDelta(390, 34)
     sub:SetAnchoredPosition(-(W / 2 - 210), H / 2 - 30)
     MC[#MC + 1] = sub
   end
-  print('menu cards n=' .. #MC)
+end
+-- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：只用「字放大 + 色标亮起」两种朴素反馈
+MS.select = function(i)
+  local info = MODE_INFO[i]
+  local sel = MS.sel and MS.sel[i]
+  if not info or not sel then return end
+  if sel.title then
+    trySet(sel.title, 'fontSize', 40)                    -- 34 → 40（框 62 < 40*1.45+4=62 恰好）
+    trySet(sel.title, 'fontColor', mcRGB(info.color))
+  end
+  if sel.bar then
+    tryCall(sel.bar, 'SetSizeDelta', 360, 4)
+    trySet(sel.bar, 'imageColor', mcRGB(info.color))
+  end
+  if sel.row then
+    tryCall(sel.row, 'SetSizeDelta', 436, 104)
+    trySet(sel.row, 'imageColor', mcRGB(info.color, 78))
+  end
+  if sel.icon then
+    for j = 1, 3 do
+      local o = MC_ICON[i][j]
+      local c = find('menuIcon' .. i .. '_' .. j)
+      if c then tryCall(c, 'SetSizeDelta', 26, 26) tryCall(c, 'SetAnchoredPosition', sel.icon.ix + o[1], sel.icon.iy + o[2]) end
+    end
+  end
+  if MS.detail then trySet(MS.detail, 'fontColor', mcRGB(info.color)) setText(MS.detail, info.desc) end
+end
+buildMenuCards = function()
+  if not TPL_CELL then return false end
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then print('menu cards no text tpl') return false end
+  destroyMenuCards()
+  -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），模式选择区后建 ⇒ 压在墙上面
+  local okStage, errStage = pcall(MS.build)
+  if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
+  local okModes, errModes = pcall(MS.modes)             -- v2.5 ①：四模式选择区（三版候选之一）
+  if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
+  print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
   return true
 end
 
@@ -2661,13 +2727,15 @@ NUM.evalNext = function(cells, x)
   return W_AGG * agg + W_LINE * nf + W_HOLE * holes + W_BUMP * bump, nil, nf
 end
 
-local function aiTickCore(dt, onOver)
+-- v2.5：lvIdx=强制档位（演示/接管场景传 3=hard——AI 代打要展示最强/帮玩家续命，不故意失误；
+-- ai-battle 对抗盘不传=用玩家选的难度档做对抗强度）。NUM.AI_LEVEL 仍是玩家侧难度语义。
+local function aiTickCore(dt, onOver, lvIdx)
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
     return false
   end
   if not g.piece or not g.board then return false end
-  local lv = NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
+  local lv = NUM.AI_LEVELS[lvIdx or NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
   if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
     g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
     g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
@@ -2979,7 +3047,7 @@ end
 -- stage0 入场自演入口（守卫版）：休闲接管/双屏 AI 走 OnUpdate/T6 入口直接调 aiTickCore
 autoTick = function(dt)
   if guideStage ~= 0 then return end
-  aiTickCore(dt, 'demo')
+  aiTickCore(dt, 'demo', 3)          -- v2.5：stage0 自演=演示，恒 hard（最强摆位）
 end
 
 --------------------------------------------------------------------------------
@@ -3286,10 +3354,10 @@ function OnStart()
     if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
     if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
     if action == 'left' then
-      g.das.dir, g.das.t, g.das.arr, g.das.steps = -1, 0, 0, 0
+      g.das.dir, g.das.t, g.das.arr, g.das.hold = -1, 0, 0, 0
       moveBy(-1)
     elseif action == 'right' then
-      g.das.dir, g.das.t, g.das.arr, g.das.steps = 1, 0, 0, 0
+      g.das.dir, g.das.t, g.das.arr, g.das.hold = 1, 0, 0, 0
       moveBy(1)
     elseif action == 'rot' then
       rotate()
@@ -3335,9 +3403,7 @@ function OnStart()
       print('mode=' .. MODE)
       -- v2.1 ②：销卡 → 模式名大字动画窗 0.5s → enterMode 开局（OnUpdate stage0 段驱动）
       -- v2.3 ② 选中态：销卡前选中卡放大 1.04 + 色标条加宽（街机感反馈）
-      local selCard, selBar = find('menuCard' .. i), find('menuBar' .. i)
-      if selCard then tryCall(selCard, 'SetSizeDelta', 374, 114) end
-      if selBar then tryCall(selBar, 'SetSizeDelta', 10, 114) end
+      MS.select(i)                       -- v2.5 ①：选中反馈（字放大 + 色标亮起，见 MS.select）
       destroyMenuCards()                 -- 只销卡片；展台留到 enterMode（防 0.5s 动画窗露出裸棋盘）
       MS.focusLock(i, mname)             -- 展台标题实例变模式名大字（框高同步放到 100，64 号需 96.8）
       pendingMode, pendingT = mname, 0
@@ -3558,22 +3624,22 @@ local function tickInstance(d)
     end
   end
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
-  -- v2.1 兜底：网页 keyup 转发丢失/乱序会让 dir 永不清零⇒方块自己左右移动（用户实测反馈②）。
-  -- 防御=连续自动连移步数（das.steps）达 DAS_CAP 强制清 dir——正常 DAS 到墙（9 格内）后
-  -- moveBy 失败不计步，只有「Up 丢失 + 块跨行移动」才会累计过 12；用户松手重按即恢复。
+  -- v2.6 根治「按一下走到底」：网页旧构建 keyup 转发丢失（或焦点转移吞 keyup）会让 dir 永不清零，
+  -- 点按也触发完整 DAS+ARR 连走。时间上限（DAS_HOLD）取代 v2.1 的步数上限：ARR 激活累计 hold，
+  -- 达 0.6s 强制清 dir——lua 层不依赖 Up 事件自愈；真机/新版网页 Up 正常时提前清、永不触及上限
+  --（0.6s ≈ 按住滑墙 12 格的正常用时，有意识按住的用户最多在墙边多走半秒即停，重按恢复）。
   if g.das.dir ~= 0 and not g.gameOver then
     g.das.t = g.das.t + d
     if g.das.t >= NUM.DAS_DELAY then
+      g.das.hold = g.das.hold + d
       g.das.arr = g.das.arr + d
       while g.das.arr >= NUM.ARR_RATE and g.das.dir ~= 0 do
         g.das.arr = g.das.arr - NUM.ARR_RATE
-        if moveBy(g.das.dir) then
-          g.das.steps = g.das.steps + 1
-          if g.das.steps >= NUM.DAS_CAP then
-            g.das.dir = 0            -- 连移上限：强制停（Up 丢失兜底；正常到墙时 steps 早已停涨）
-            print('das cap=' .. NUM.DAS_CAP .. ' (keyup lost?)')
-          end
-        end
+        moveBy(g.das.dir)
+      end
+      if g.das.hold >= NUM.DAS_HOLD then
+        g.das.dir = 0               -- 持续上限：强制停（Up 丢失自愈；正常按住最多损失 0.6s 后的重按）
+        print('das stop reason=timeout hold=' .. string.format('%.2f', g.das.hold))
       end
     end
   end
@@ -3693,7 +3759,7 @@ function OnUpdate(dt)
       print('takeover ai')             -- v2-plan T6 验收锚
     end
     if TK.state == 'ai' then
-      aiTickCore(d, 'stop')            -- 接管驱动：盘死即停（走玩家结算），不 reset 玩家的局
+      aiTickCore(d, 'stop', 3)         -- v2.5：接管=AI 代打续命，恒 hard（不故意失误）
     end
   end
   -- v2.2 ③：模式终局——冻结两盘（重力/DAS/AI 全停），只推终局方的结算层动画。

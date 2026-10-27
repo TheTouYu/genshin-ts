@@ -1,23 +1,11 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "20 AI 高难度档消除率（hard ρ≥0.30，100 块固定种子）",
+  "name": "20 AI 默认档（hard）消除率（BCTS ρ≥0.35+盘面判据，100 块固定种子）",
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
-  "events": [
-    {
-      "t": 1,
-      "kind": "key",
-      "typeName": "KeyboardSwitchToWalkOrRunKeyDown"
-    }
-  ],
+  "events": [],
   "asserts": [
-    {
-      "at": 1.5,
-      "kind": "log",
-      "contains": "demo level=hard",
-      "source": "client"
-    },
     {
       "at": 235,
       "kind": "log",
@@ -27,9 +15,9 @@
     {
       "at": 235,
       "kind": "log",
-      "contains": "rho=0.35 pieces=100",
+      "contains": "rho=0.37 pieces=100",
       "source": "client"
     }
   ],
-  "note": "v2.4 BCTS【论文】Thiery&Scherrer 2009 8 特征 1-ply（docs/v2-ai-design.md §三）：hard 档实测 rho=0.35@100（曲线 0.35~0.39，stack 2~7 极平，150s 零 demo reset——旧 El-Tetris 2-ply 版 60 块必 reset）。截图 docs/preview-bcts-hard-mid.png（n=70 rho=0.39 时刻）。"
+  "note": "v2.5：默认档=hard（演示即最强），无需切档。验收线（lead 批准）：ρ≥0.35 + 盘面判据（stack 均值≤6、零 reset）——ρ 物理持平点 0.40。实测 rho=0.37@100（默认开局序列；切档重开序列为 0.35）（stack 2~7、零 reset）。"
 }
