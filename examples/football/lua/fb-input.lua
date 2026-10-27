@@ -38,6 +38,44 @@ fb-input.lua —— 真实足球 v3 · 客户端 Lua 输入桥
 
 local SIGNAL = 'fb_input'
 
+
+-- ===== HUD：证明脚本在跑、并把键位说清楚（用户 2026-10-27：「一个按钮都看不到」）=====
+-- 控件名必须与地图里 4 个 client-textbox 一致（1073741847..850，挂在容器节点 1073741846 下）：
+--   hud_title / hud_k1 / hud_k2 / hud_k3
+-- 写文本=字段赋值（官方运行时 textbox 无 SetText，D229 实证），全部 pcall。
+local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3' }
+local hudRef = {}
+
+local function getCtl(name)
+  if hudRef[name] ~= nil then return hudRef[name] end
+  local ok, child = pcall(function() return script.object:GetChild(name) end)
+  if ok and child ~= nil then
+    hudRef[name] = child
+    return child
+  end
+  print('[fb-in] hud-miss ' .. name)
+  return nil
+end
+
+local function setText(name, value)
+  local c = getCtl(name)
+  if c == nil then return end
+  local ok, err = pcall(function() c.text = value end)
+  if not ok then print('[fb-in] hud-err ' .. name .. ' ' .. tostring(err)) end
+end
+
+local function setupHud()
+  setText(HUD.title, '⚽ 物理内核 v2 · 按键即射')
+  setText(HUD.k1, '【普攻键】轻射  10m/s')
+  setText(HUD.k2, '【技能1键】重射  16m/s + 弧线')
+  setText(HUD.k3, '【跳跃键】高吊  7m/s + 上抛')
+  print('[fb-in] hud-ok')
+end
+
+local function setStatus(label)
+  setText(HUD.title, '⚽ 已触发：' .. label)
+end
+
 -- 键表：label 同时用于拼枚举名（'Keyboard' .. label .. 'Down'）、日志标识与信号 keyId。
 -- 第一轮只挂**三个基础键**做物理技术验证（用户 2026-10-27：先几个基础按键就够）。
 -- 想加键就往这张表里加一行（label 必须是 Enum.KeyEventType 里真实存在的键名池成员）。
@@ -66,6 +104,7 @@ end
 local function makeHandler(label, id)
   return function()
     print('[fb-in] key ' .. label)
+    setStatus(label)
     send(id, 1)
     return true    -- 吃掉事件，不继续向更内层控件传递
   end
@@ -112,6 +151,7 @@ end
 
 function OnStart()
   print('[fb-in] onstart')
+  setupHud()   -- 先点亮 HUD：这一步成功即证明脚本真的在跑（比信号更早、更直观）
   -- 心跳：先证明「脚本确实在跑 + fb_input 信号链通」，再谈按键（顺序即诊断分层）
   send(0, 0)
   -- 逐个注册：任一键失败都不影响后续（pcall 在 listen 内部逐条兜住）

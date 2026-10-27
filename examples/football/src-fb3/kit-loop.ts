@@ -71,6 +71,10 @@ const DRIBBLE_GAIN = 8.0
 const DRIBBLE_BLEND = 0.55
 const PLAYER_SPEED_CAP = 8.0
 const WARMUP_TICKS = 75n // 开局建图期不做物理
+// 载体停放点（地图最下方，空模型支撑层；常量，不读任何实体位置）
+const CARRIER_X = 0.0
+const CARRIER_Y = -12.0
+const CARRIER_Z = 0.0
 
 // 踢法：[水平速度, 上挑, 自旋Y]
 const KICK_LIGHT_SPD = 10.0
@@ -400,10 +404,12 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   f.setSkillVariable(S_WZ, wz.value)
   f.setSkillVariable(S_MODE, f.dataTypeConversion(mode.value, 'float'))
 
-  // ———— 载体自身藏到玩家脚下地下（只当算力中心，不参与显示）————
-  // 距离节流实测：飞离 10m ⇒ 施放掉到 1~3/s；藏正下方 1.8m ⇒ 距离 ~1.8m，频率不受影响
+  // ———— 载体停到地图最下方的固定点（只当算力中心，永不入镜）————
+  // 用户 2026-10-27：y 必须固定死、不许出现在草地上（此前用「玩家 y−1.8」求相对高度，
+  //   一旦玩家位置读回异常就会浮到地面）。⇒ 现在用**常量坐标**，不依赖任何读回值。
+  // 频率读数（2026-10-27 18:13 试玩日志）：389 条 kitLoop / 53s ≈ 7.3/s，停在地下不影响施放频率。
   f.complexCreationTeleport(
-    f.create3dVector(pP.xComponent, f.subtraction(pP.yComponent, 1.8), pP.zComponent),
+    f.create3dVector(CARRIER_X, CARRIER_Y, CARRIER_Z),
     f.create3dVector(0.0, 0.0, 0.0)
   )
 
