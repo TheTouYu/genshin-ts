@@ -183,6 +183,16 @@ folderId 58/typeValue 6600，1915 差分证据同构验证）→ 复杂造物 4 
     判据：日志有 `[ok] <name>.json`（体积 >1KB）且 `GIA 全部生成完成（N 个）` 且 N≥1。
     自证样板：`examples/client-kit/`（门禁 `scripts/check-client-kit.sh`）。
 
+11. **取玩家真实位置：玩家实体 → 子实体列表 → 角色实体（2026-10-27 用户指路 + 官方元数据核实）**：
+    - `getListOfPlayerEntitiesOnTheField()` 取到的是**玩家实体**；`getEntityLocation(玩家实体)` 在 beyond
+      常读出 ≈0（不是真位置）。
+    - **可用路径**：`getSubEntityList(玩家实体)`（官方「获取子实体列表」`get_sub_entity_list`，角色是挂在玩家实体下的
+      子实体）→ 取 `[0]` = **角色实体** → `getEntityLocation(角色实体)` = 真实坐标。
+    - **不可用**：`getActiveCharacterOfSpecifiedPlayer`（官方说明「仅经典模式可用」）、`getPlayerSCharacterList`
+      —— 两者在 **creation_skill 的 beyond 模式编译期直接报** `CLIENT_NODE_UNAVAILABLE ... is not available in beyond mode`。
+      查证入口：`src/definitions/client_method_modes.ts` 的 `CLIENT_NODE_TYPES_BY_SUB_TYPE_AND_MODE`（生成表）与
+      `resources/client_node_metadata.json`（官方节点元数据，含每个节点支持的 graphType/subType）。
+
 ## 四、客户端↔服务端通信手段矩阵
 
 | 方向 | 手段 | 状态 | 备注 |
