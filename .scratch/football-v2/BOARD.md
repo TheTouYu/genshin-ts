@@ -1,6 +1,6 @@
 # 足球重建 v2 · 推进看板（football-v2）
 
-> doc-type: S · status: active · updated: 2026-09-05
+> doc-type: S · status: active · updated: 2026-10-27
 > **工程推进唯一入口**：新会话先读本板 → 找「当前前沿」票 → 读 `issues/` 对应票文件干活。
 > 规则：一票一文件；完成 = 勾 checkbox + 票移入已完成划掉区 + PROGRESS 记轮次 + 精确 commit。
 > 做完的划掉、没做的继续——本板永远反映真实状态，禁止在板外另立进度。
@@ -10,7 +10,7 @@
 > **环境已换**：WSL2 → Arch（wine 独立游戏路径，GSTS_LOCALLOW_DIR=anime-game-launcher prefix 下
 > LocalLow）。旧存档不可达，**足球地图 1073741908 在新存档不存在**（仅近空图 1073741825，
 > 子目录式布局——gil_paths 兼容缺口已修：O-2026-09-30-01 CLOSED（8e00f8a））。用户裁决：从空节点图重建（票 24）。
-> HEAD：`7dd4c86f`（足球 v3 B 批球资产已落盘 + CLI 实体组件解码器补 type12）
+> HEAD：`b07864f7`（P0 技能第一轮：客户端物理内核 421 节点 + Lua 5 键双绑定 + 真足球服务端运动器）
 > 在飞：**票 25 v3 从零重构（当前票）——A 场地 ✅、B 球与入口 🔨**：地图 **1073741827** 双址
 > SHA `a3533a98`（352086B）＝球 def **1077936138**「足球_1」（222 图元 + basicMotion/tabBar
 > 9 选项 r=5/hitDetection）+ 实体 **1077936135**（222 aux，pos [-0.634,0.25,-1.96] scale 0.25，
