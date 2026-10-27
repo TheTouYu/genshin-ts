@@ -2940,6 +2940,7 @@ def serve():
     global _last_activity
     # 进程内 XShm/ctypes 从 os.environ 读 DISPLAY/XAUTHORITY：服务启动自愈一次
     # （2026-10-22 重启后 XAUTHORITY 变成新文件名，守护里的旧值必须能被重新解析）
+    t_boot = time.time()
     ys_env.apply()
     srv, sock_owned = _acquire_server_socket()
     # 预热：① 建 CUDA context；② 把 ys-state 判据模块 import 进来（首请求不再付 ~200ms）
@@ -2963,7 +2964,10 @@ def serve():
         # 2026-10-21 反馈轮：只预热 1 个锚点不够——模板 PNG 是逐个加载的，
         # 首次 world 的 state 段实测 795.8ms；全量预热后应回到 ~35ms。
         _batch_on(I, jobs)
-        print(f"[ys-lookd] 判态热路径预热完成（{len(jobs)} 锚点 profile 已加载）", flush=True)
+        # 必须带耗时：socket activation 下这段**挡在 accept 之前**，客户端冷启动等多久全看它
+        # （2026-10-27 实测同一份代码 1.0s / 2.4s / 18.4s，差在 GPU 争用与页缓存）
+        print(f"[ys-lookd] 判态热路径预热完成（{len(jobs)} 锚点 profile 已加载，"
+              f"{round((time.time()-t_boot)*1000)}ms）", flush=True)
     except Exception as e:
         print(f"[ys-lookd] 判据模块加载失败（state/probe 命令不可用）: "
               f"{type(e).__name__}: {e}", flush=True)
@@ -3019,7 +3023,7 @@ def serve():
             pass
     _th.Thread(target=_warm_ocr, daemon=True, name="warm-ocr").start()
     _th.Thread(target=_warm_perception, daemon=True, name="warm-perception").start()
-    print(f"[ys-lookd] listening {SOCK}", flush=True)
+    print(f"[ys-lookd] listening {SOCK}（就绪 {round((time.time()-t_boot)*1000)}ms）", flush=True)
     # accept 设超时：否则 recv 阻塞时**没有任何机会**执行闲置检查（超时释放就永远不触发）。
     # 30s 一轮足够准（阈值是 600s 量级），又不会空转耗 CPU。
     srv.settimeout(_ACCEPT_TICK)

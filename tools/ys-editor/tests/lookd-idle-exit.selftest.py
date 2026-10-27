@@ -114,6 +114,7 @@ def main():
     if os.path.exists(sock3):
         os.unlink(sock3)
     proc = spawn(sock3)
+    call(sock3, {"cmd": "ping"})          # 先确认 accept 循环已就绪，别把冷启动时间算进断言
     t0 = time.time()
     r = call(sock3, {"cmd": "_sleep", "ms": 4000}, timeout=20)
     dt = time.time() - t0
@@ -122,7 +123,7 @@ def main():
     say("T3", ok3,
         "阈值 3s 时 4s handler 仍拿完整回包 dt=%.2fs resp=%s 请求期间存活=%s"
         % (dt, (r or {}).get("slept_ms"), alive_after))
-    t_exit = wait_exit(proc, 20)
+    t_exit = wait_exit(proc, 40)          # 40s：请求结束后还有 3s 阈值 + tick，机器忙时留足余量
     say("T3b", t_exit is not None, "在途请求结束后仍按闲置退出：%.1fs 后退出" % (t_exit or -1))
     try:
         proc.stdout.close()
