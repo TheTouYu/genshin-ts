@@ -3007,7 +3007,9 @@ layoutSettle = function(W, H)
   place2(g.settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
   place2(g.settleCard, 0, 0, cw, ch)                 -- 面板底
   g.settleTitleY, g.settleOptsY = 140, -136
-  g.settleTitleOff, g.settleOptsOff = halfH + 80, -(halfH + 80)
+  -- v2.4 ②：滑入起点从「屏幕外」改到「面板边缘内」——面板现在是不透明卡，
+  -- 从 -440 滑上来会在面板外飘 0.35s（出图 v23-settle-anim.png 可见正文悬在棋盘上）
+  g.settleTitleOff, g.settleOptsOff = 192, -192
   place2(g.settleTitle, 0, g.settleTitleY, cw - 60, 80)
   place2(g.settleScore, 0, 66, cw - 60, 56)          -- 34 号（需 53.3）
   place2(g.settleBest, 0, 16, cw - 60, 44)           -- 24 号（需 38.8）
