@@ -1,0 +1,480 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "22 T-spin 前置链路（初始局固定序列取 T+旋转+软降锁定；无 3 角场景不误报 tspin——精确 T-spin 布局待专项迭代）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey14Down"
+    },
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey14Up"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.4,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Down"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Up"
+    },
+    {
+      "t": 0.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Down"
+    },
+    {
+      "t": 0.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Up"
+    },
+    {
+      "t": 0.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Down"
+    },
+    {
+      "t": 0.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Up"
+    },
+    {
+      "t": 0.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Down"
+    },
+    {
+      "t": 0.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey39Up"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey36Down"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey36Up"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 1.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 1.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 1.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 1.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 1.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 1.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 2.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 2.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 3.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 3.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.0,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.1,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.7,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    },
+    {
+      "t": 4.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Down"
+    },
+    {
+      "t": 4.9,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey37Up"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.3,
+      "kind": "log",
+      "contains": "hold in=L out=-",
+      "source": "client"
+    },
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "bag=1 piece=T x=4 y=1",
+      "source": "client"
+    },
+    {
+      "at": 1.05,
+      "kind": "log",
+      "contains": "rotate T",
+      "source": "client"
+    },
+    {
+      "at": 5.6,
+      "kind": "log",
+      "contains": "lock T cells=",
+      "source": "client"
+    },
+    {
+      "at": 5.6,
+      "kind": "lua",
+      "source": "local logs = query.logs()\nfor _, l in ipairs(logs) do\n  assert(not l:match('^tspin'), 'tspin 误报: ' .. l)\nend\nassert(true)\nreturn true"
+    }
+  ]
+}

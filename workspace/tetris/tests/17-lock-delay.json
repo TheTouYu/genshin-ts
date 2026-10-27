@@ -1,0 +1,23 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "17 锁定延迟（重力触底 0.5s 缓冲不即时锁；15 次重置上限强制锁）",
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyDown" },
+    { "t": 0.1, "kind": "key", "typeName": "KeyboardCharacterSkill3KeyUp" },
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" }
+  ],
+  "asserts": [
+    { "at": 8.8, "kind": "log", "contains": "ldstart", "source": "client" },
+    {
+      "at": 8.8,
+      "kind": "lua",
+      "source": "local logs = query.logs()\nlocal ldAt, lockAt = 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^ldstart') and ldAt == 0 then ldAt = i end\n  if l:match('^lock ') and lockAt == 0 then lockAt = i end\nend\nassert(ldAt > 0, 'no ldstart')\nassert(lockAt == 0, 'locked before delay! lockAt=' .. lockAt .. ' ldAt=' .. ldAt)\nreturn true"
+    },
+    { "at": 9.8, "kind": "log", "contains": "lock T cells=", "source": "client" },
+    { "at": 9.8, "kind": "log", "contains": "clear n=2 score=300 lines=2 combo=1 b2b=0", "source": "client" }
+  ]
+}

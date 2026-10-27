@@ -1,0 +1,19 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "18 DAS/ARR（按住 ← 0.25s 后 0.05s 间隔自动连移，撞墙即停，松开即停）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Down" },
+    { "t": 1.2, "kind": "key", "typeName": "KeyboardCraftspersonKey38Up" }
+  ],
+  "asserts": [
+    { "at": 0.3, "kind": "log", "contains": "move x=3", "source": "client" },
+    {
+      "at": 1.5,
+      "kind": "lua",
+      "source": "local logs = query.logs()\nlocal moves = {}\nfor _, l in ipairs(logs) do\n  local x = l:match('^move x=(%d+)$')\n  if x then moves[#moves + 1] = tonumber(x) end\nend\nassert(#moves >= 3, 'moves=' .. #moves .. '（DAS 未触发连移）')\nassert(#moves <= 4, 'moves=' .. #moves .. '（连移未在撞墙/松开时停止）')\nassert(moves[#moves] == 1, 'last move x=' .. tostring(moves[#moves]) .. '（应停在左墙 x=1）')\nreturn true"
+    }
+  ]
+}

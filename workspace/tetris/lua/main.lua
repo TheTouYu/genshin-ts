@@ -88,6 +88,35 @@ local NUM = {
   --   name = 槽内块名（nil=空槽）；bag = 入槽时块所属袋序（换出块日志沿用原袋序）
   --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
   ST = { name = nil, bag = 0, can = true },
+
+  -- ===== T8 进阶操作（数值出处 v2-plan §三 T8；只作用于玩家输入路径——
+  -- AI 的 aiDrop 即时锁定、AI 横移走自身节奏，不受下面任何参数影响）=====
+  LD_DELAY   = 0.5,    -- 锁定延迟：重力触底后的缓冲秒数
+  LD_RESETS  = 15,     -- 锁定延迟重置上限（移动/旋转成功各计一次，超限强制锁定）
+  DAS_DELAY  = 0.25,   -- DAS：按住 ←/→ 多少秒后开始自动连移
+  ARR_RATE   = 0.05,   -- ARR：DAS 触发后自动连移的间隔秒数
+  TSPIN_BONUS = 400,   -- T-spin 加成：bonus = TSPIN_BONUS × 消行数 × level（0 行无分只提示）
+  -- T8 运行态（挂表，200-local 约束）：
+  --   LD  = { t = -1|秒, resets = 0 }   锁定延迟计时（t<0 未激活；重力触底启动，玩家移动/旋转重置）
+  --   DAS = { dir = -1|0|1, t = 0, arr = 0 }   方向键按住状态（dir=0 松开）
+  --   lastRot = true|false    最后一次成功动作是否为旋转（T-spin 判定前置；移动置 false）
+  LD  = { t = -1, resets = 0 },
+  DAS = { dir = 0, t = 0, arr = 0 },
+  lastRot = false,
+  -- T8 键位表（表化 listen 区，T6 双屏输入路由留口：条目加 player 字段即可分区路由）：
+  --   key = Down 枚举名；up = 对应 Up 枚举名（DAS 需要松开事件）；action 见 dispatchPlayer
+  KEYMAP = {
+    { key = 'KeyboardCraftspersonKey38Down',  up = 'KeyboardCraftspersonKey38Up',   action = 'left'  },
+    { key = 'KeyboardCraftspersonKey39Down',  up = 'KeyboardCraftspersonKey39Up',   action = 'right' },
+    { key = 'KeyboardCraftspersonKey36Down',  action = 'rot'  },
+    { key = 'KeyboardCraftspersonKey37Down',  action = 'soft' },
+    { key = 'KeyboardMoveLeftKeyDown',        up = 'KeyboardMoveLeftKeyUp',         action = 'left'  },
+    { key = 'KeyboardMoveRightKeyDown',       up = 'KeyboardMoveRightKeyUp',        action = 'right' },
+    { key = 'KeyboardMoveForwardKeyDown',     action = 'rot'  },
+    { key = 'KeyboardMoveBackwardKeyDown',    action = 'soft' },
+    { key = 'KeyboardJumpKeyDown',            action = 'hard' },
+    { key = 'KeyboardCraftspersonKey14Down',  action = 'hold' },   -- G（与 HOLD_KEY 同键）
+  },
 }
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
@@ -241,6 +270,7 @@ local SFX = {
   lock   = 50872,   -- 按钮点击_重_通用_01 (1.024s)
   over   = 50929,   -- 提示性UI_轻_整理背包 (0.978s)
   level  = 40001,   -- 战斗_治疗_回复_01 (1.653s) ← 升级音
+  tspin  = 50924,   -- 拍照分享 (1.418s) ← T-spin 专属正反馈（T8）
 }
 -- 消行按行数换 id：四档互不相同 ⇒ 1 行与 4 行听得出差别（音高关系未确认）
 local SFX_CLEAR = { 50917, 40001, 40022, 40054 }   -- 0.785 / 1.653 / 1.064 / 2.000s
@@ -800,6 +830,7 @@ spawn = function(overrideName, overrideBag)
   }
   print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y
     .. (overrideName and ' holdswap=1' or ''))
+  NUM.LD.t, NUM.LD.resets, NUM.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
     print('gameover score=' .. score)
@@ -897,6 +928,19 @@ clearLines = function()
 end
 
 doLock = function()
+  -- T8 T-spin 判定（在写入盘面前做——角占用看的是锁定前盘面+本块无关）：
+  -- 3 角规则=T 块 + 最后动作是旋转（NUM.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
+  local isTspin = false
+  if piece.name == 'T' and NUM.lastRot then
+    local corners = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
+    local occ = 0
+    for i = 1, 4 do
+      local cr = piece.y + corners[i][1] - 1
+      local cc = piece.x + corners[i][2] - 1
+      if cr < 1 or cr > ROWS or cc < 1 or cc > COLS or board[cr][cc] ~= 0 then occ = occ + 1 end
+    end
+    if occ >= 3 then isTspin = true end
+  end
   for i = 1, 4 do
     local br = piece.y + piece.cells[i][1] - 1
     local bc = piece.x + piece.cells[i][2] - 1
@@ -913,14 +957,32 @@ doLock = function()
   pieceCount = pieceCount + 1
   print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
   NUM.ST.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
+  NUM.LD.t, NUM.LD.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
+  NUM.lastRot = false
+  NUM.DAS.t, NUM.DAS.arr = 0, 0       -- T8：DAS 计时归零重算（按住方向跨块继续，见 tick）
   local cleared = clearLines()
+  if isTspin then
+    -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
+    -- 分流玩家/AI 账本（与 clearLines 同口径：autoDriving 时入 AI.score）。
+    local bonus = NUM.TSPIN_BONUS * cleared * level
+    if bonus > 0 then
+      if autoDriving then AI.score = AI.score + bonus else score = score + bonus end
+    end
+    print('tspin corners>=3 lines=' .. cleared .. ' bonus=' .. bonus)
+    sfx(SFX.tspin, true)
+    if not autoDriving then
+      bannerTimer = NUM.COMBO_TIP
+      setText(botBanner, 'T-SPIN ' .. (cleared > 0 and (cleared .. ' 消 +' .. bonus) or '!'))
+    end
+  end
   if cleared == 0 then
     combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
     b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
   end
   -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
   -- T4：AI 自演的落块同样播（消行音/落地音统一链路，AI 不再静音）
-  if cleared == 0 then sfx(SFX.lock) end
+  if cleared == 0 then sfx(SFX.lock, true) end   -- T8 改 force：DAS 连移音与锁定可能同帧，锁
+                                                 -- 定是节点性反馈，不让帧闸吞（消行/升级同例）
   -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
   if not taughtLock and not autoDriving then
     taughtLock = true
@@ -933,6 +995,8 @@ end
 
 -- 下落一格。manual=true 表示玩家自己按的（↓ / S / 手机↓）：成功下落才给软降分。
 -- 重力调用必须传 false —— 否则重力会白送软降分（docs/数值策划.md §7-P6 的坑）。
+-- T8 锁定延迟：重力触底不再立即 doLock——启动 NUM.LD 计时（0.5s 缓冲，玩家移动/旋转可重置，
+-- 上限 15 次）；软降/硬降是玩家主动落，触底即时锁定（保持旧手感）。AI 走 aiDrop 直锁，不经这里。
 local function stepDown(manual)
   if gameOver or not piece then return end
   if not collides(piece.cells, piece.x, piece.y + 1) then
@@ -941,11 +1005,17 @@ local function stepDown(manual)
     renderPiece()
     print('fall y=' .. piece.y)
   else
-    doLock()
+    if manual then
+      doLock()
+    elseif NUM.LD.t < 0 then
+      NUM.LD.t = 0               -- 重力触底：启动锁定延迟计时（tick 里推进，到时锁定）
+      print('ldstart')            -- 观测锚：延迟计时的启动点（用例 17 断言）
+    end
   end
 end
 
--- 左右移动：键位（箭头 / WASD / 手机热区）共用一条路径 —— 成功才播移动音。
+-- 左右移动：键位（箭头 / WASD / 手机热区 / DAS 自动连移）共用一条路径 —— 成功才播移动音。
+-- T8：成功移动重置锁定延迟（未超上限）；同时清 lastRot（T-spin 判定要求"最后动作是旋转"）。
 local function moveBy(dx)
   if gameOver or not piece then return false end
   if collides(piece.cells, piece.x + dx, piece.y) then return false end
@@ -953,11 +1023,22 @@ local function moveBy(dx)
   renderPiece()
   print('move x=' .. piece.x)
   sfx(SFX.move)
+  NUM.lastRot = false
+  if NUM.LD.t >= 0 then
+    if NUM.LD.resets < NUM.LD_RESETS then
+      NUM.LD.resets = NUM.LD.resets + 1
+      NUM.LD.t = 0                 -- 重置计时（上限内）
+    else
+      doLock()                     -- 超过重置上限：强制锁定（Guideline 15 次上限）
+      return true
+    end
+  end
   return true
 end
 
 -- 顺时针 90°：(r,c) → (c, n+1-r)，盒内 1-based（n = 包围盒边长）。
 -- rotate() 与入场 AI 共用同一份转法，避免两处不一致。
+-- T8：成功旋转置 lastRot（T-spin 判定前置）+ 重置锁定延迟（同 moveBy 上限语义）。
 local function rotateCells(cells, n)
   local out = {}
   for i = 1, 4 do out[i] = { cells[i][2], n + 1 - cells[i][1] } end
@@ -972,6 +1053,15 @@ local function rotate()
     print('rotate ' .. piece.name)
     sfx(SFX.rotate)
     renderPiece()
+    NUM.lastRot = true
+    if NUM.LD.t >= 0 then
+      if NUM.LD.resets < NUM.LD_RESETS then
+        NUM.LD.resets = NUM.LD.resets + 1
+        NUM.LD.t = 0
+      else
+        doLock()
+      end
+    end
   end
 end
 
@@ -981,6 +1071,29 @@ end
 -- 闭包体内的 local 独立计数不受 main 上限约束。
 -- canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
+
+-- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
+-- T8 起收成 NUM.doHold 表函数（200-local 满，local function 加不进）：玩家 G 键与 AI（T5 起）
+-- 共用同一套换块语义。canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；
+-- 空槽首换=当前块入槽+bag 自然出下一块；换出块不消耗 bag 队列（spawn override 路径）。
+NUM.doHold = function()
+  if gameOver or not piece or not NUM.ST.can then return false end
+  NUM.ST.can = false
+  local cur, curBag = piece.name, nextBag
+  local outName, outBag
+  if NUM.ST.name then
+    outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
+  end
+  NUM.ST.name, NUM.ST.bag = cur, curBag or 0
+  print('hold in=' .. cur .. ' out=' .. (outName or '-'))
+  sfx(SFX.rotate)
+  if outName then
+    spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
+  else
+    spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
+  end
+  return true
+end
 
 local function newGame()
   board = {}
@@ -1829,43 +1942,42 @@ function OnStart()
     end
   end
 
-  listen('KeyboardCraftspersonKey38Down', act(function() moveBy(-1) end))   -- ←
-  listen('KeyboardCraftspersonKey39Down', act(function() moveBy(1) end))    -- →
-  listen('KeyboardCraftspersonKey36Down', act(rotate))     -- ↑
-  listen('KeyboardCraftspersonKey37Down', act(function() stepDown(true) end))   -- ↓（软降计分）
-  listen(NUM.HOLD_KEY, act(function()            -- G 暂存（工匠槽 14）；实现见上方 T3 注释
-    if gameOver or not piece or not NUM.ST.can then return end
-    NUM.ST.can = false
-    local cur, curBag = piece.name, nextBag
-    local outName, outBag
-    if NUM.ST.name then
-      outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
+  -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
+  -- T6 双屏输入路由：表项加 player 字段后 dispatch 按 player 分发即可，不再散改 listen）
+  for _, m in ipairs(NUM.KEYMAP) do
+    listen(m.key, act(function()
+      if m.action == 'left' then
+        NUM.DAS.dir, NUM.DAS.t, NUM.DAS.arr = -1, 0, 0   -- T8 DAS：记按住方向
+        moveBy(-1)
+      elseif m.action == 'right' then
+        NUM.DAS.dir, NUM.DAS.t, NUM.DAS.arr = 1, 0, 0
+        moveBy(1)
+      elseif m.action == 'rot' then
+        rotate()
+      elseif m.action == 'soft' then
+        stepDown(true)                                     -- 软降计分；触底即时锁（玩家主动落）
+      elseif m.action == 'hold' then
+        NUM.doHold()                                       -- 换块语义（T5 起 AI 与玩家同源）
+      elseif m.action == 'hard' then
+        if gameOver or not piece then return end
+        local dropped = 0
+        while not collides(piece.cells, piece.x, piece.y + 1) do
+          piece.y = piece.y + 1
+          dropped = dropped + 1
+        end
+        print('harddrop rows=' .. dropped .. ' y=' .. piece.y)
+        score = score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
+        doLock()
+      end
+    end))
+    if m.up then
+      listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个）
+        if m.action == 'left' and NUM.DAS.dir == -1 then NUM.DAS.dir = 0 end
+        if m.action == 'right' and NUM.DAS.dir == 1 then NUM.DAS.dir = 0 end
+      end)
     end
-    NUM.ST.name, NUM.ST.bag = cur, curBag or 0
-    print('hold in=' .. cur .. ' out=' .. (outName or '-'))
-    sfx(SFX.rotate)
-    if outName then
-      spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
-    else
-      spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
-    end
-  end))
-  listen('KeyboardJumpKeyDown', act(function()             -- Space
-    if gameOver or not piece then return end
-    local dropped = 0
-    while not collides(piece.cells, piece.x, piece.y + 1) do
-      piece.y = piece.y + 1
-      dropped = dropped + 1
-    end
-    print('harddrop rows=' .. dropped .. ' y=' .. piece.y)
-    score = score + dropped * NUM.HARD          -- 硬降计分（每格 2 分，docs §2.2）
-    doLock()
-  end))
-  -- WASD（真机常用；具名键 MoveLeft/Right/Forward/Backward）
-  listen('KeyboardMoveLeftKeyDown', act(function() moveBy(-1) end))    -- A
-  listen('KeyboardMoveRightKeyDown', act(function() moveBy(1) end))     -- D
-  listen('KeyboardMoveForwardKeyDown', act(rotate))         -- W
-  listen('KeyboardMoveBackwardKeyDown', act(function() stepDown(true) end))  -- S（软降计分）
+  end
+  -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
@@ -2053,6 +2165,27 @@ function OnUpdate(dt)
     return
   end
   if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
+  -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
+  if NUM.LD.t >= 0 and not gameOver then
+    NUM.LD.t = NUM.LD.t + d
+    if NUM.LD.t >= NUM.LD_DELAY then
+      NUM.LD.t = -1
+      if piece and collides(piece.cells, piece.x, piece.y + 1) then
+        doLock()          -- 缓冲到时且仍触底：锁定
+      end
+    end
+  end
+  -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
+  if NUM.DAS.dir ~= 0 and not gameOver then
+    NUM.DAS.t = NUM.DAS.t + d
+    if NUM.DAS.t >= NUM.DAS_DELAY then
+      NUM.DAS.arr = NUM.DAS.arr + d
+      while NUM.DAS.arr >= NUM.ARR_RATE do
+        NUM.DAS.arr = NUM.DAS.arr - NUM.ARR_RATE
+        moveBy(NUM.DAS.dir)
+      end
+    end
+  end
   acc = acc + d
   local guard = 0
   while acc >= STEP and guard < 8 do
