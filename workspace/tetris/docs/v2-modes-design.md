@@ -173,6 +173,7 @@ playing(user)：autoDriving=false，AI 队列丢弃（AI.queue=nil 重置 thinki
 - **字母 C 物理键不存在于任何键池**（CraftspersonKey 无 C、具名无 C）→ T3 Hold 的「C 键」计划在模拟器不可用，候选改 X(F=Drop? 否，X=Drop)/F(Interact)/G/U/ShiftRight。
 - 字母可用池：U Z Y G H I O P J K L V（工匠槽）+ W A S D E Q R T F X（具名）= 22 个字母键。
 - keydown 是 canvas 单焦点全局流（无 per-player 事件）→ 双人=同键盘分区路由，无系统层冲突。
+- **用例 JSON 的 typeName 必须逐字写完整枚举名**（如 `KeyboardJumpKeyDown`，JumpKey 是一个词）——playRunCase 对无效键名**静默丢弃零报错**，拼错的键全部被吞而探针看似跑通；判定法=日志查 `guide stage=1`（玩家接管标记，没有它你发的一切键都没生效，看到的是 AI 自演）（【实证】core-mechanics D613，T6 双人键位用例直接适用）。
 - 模拟器枚举 Keyboard* 与真机枚举可能不同（v1 listen() 已做「枚举优先字符串回落」，说明真机确实差异过）→ 本表标注【实证·模拟器】，真机复验归 lead（T9）。
 
 ### 3.3 P1/P2 双套不冲突候选（【推断】基于【实证】映射表；coop 列=裁决① 定版）

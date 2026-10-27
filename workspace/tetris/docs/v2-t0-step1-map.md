@@ -189,6 +189,12 @@ cd /home/h/genshin-ts/workspace/tetris && \
 
 ## 五、窗口开启日核对脚本（重跑拿最新行号）
 
+**窗口开启预案（吸收 core-mechanics D613 的 commit 拆分流程，T1 已验证一轮）**：
+
+1. 前置：lead 确认 core-mechanics/ai-driver 的在途改动已各自 commit（T2/T3 合完），工作树只剩本轮改动；若仍有队友未提交混合改动，走 D613 流程（备份到 /tmp **私有前缀** /tmp/modes-*——裸名会被队友覆盖实测发生过 → 分步 git checkout 回 HEAD，dsh-guard 拦整条 bash 需确认备份后 `# --guard-force` 放行 → 我的改动走 edit 重放 → 验证 → 精确暂存 commit → cp 恢复队友改动 → 重 build → 全量重验）。
+2. 重跑下方脚本拿最新行号；若队友窗口前又合入新状态变量（bagQ 类），先补进 §一 表再动刀。
+3. 每批完成即精确暂存 commit（`git add workspace/tetris/lua/main.lua workspace/tetris/tetris.save.json`——runner 会改写存档内嵌副本，两个文件一起提）。
+
 ```bash
 cd /home/h/genshin-ts/workspace/tetris
 # 1) A 组残留检查：Step1 收尾后应为 0（B 组合法变量除外）
@@ -201,4 +207,4 @@ done
 lua5.3 -e 'assert(loadfile("lua/main.lua"))' && node qxqy/build.mjs && node qxqy/runner.mjs
 ```
 
-预期：所有 A 组变量 local 声明清零、runner 12/12。若并行队友在窗口前又合入新状态变量（bagQ 类），先补进 §一 表再动刀。
+预期：所有 A 组变量 local 声明清零、runner 全用例 PASS（当前基线 14/14，窗口前以最新数为准）。
