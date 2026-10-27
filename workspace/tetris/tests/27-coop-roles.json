@@ -26,42 +26,52 @@
       "typeName": "KeyboardMoveForwardKeyUp"
     },
     {
-      "t": 5.5,
-      "kind": "key",
-      "typeName": "KeyboardMoveForwardKeyDown"
-    },
-    {
-      "t": 5.52,
-      "kind": "key",
-      "typeName": "KeyboardMoveForwardKeyUp"
-    },
-    {
-      "t": 6.0,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Down"
-    },
-    {
-      "t": 6.02,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Up"
-    },
-    {
-      "t": 6.5,
+      "t": 1.8,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Down"
     },
     {
-      "t": 6.52,
+      "t": 1.82,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Up"
     },
     {
-      "t": 7.0,
+      "t": 5.8,
+      "kind": "key",
+      "typeName": "KeyboardMoveForwardKeyDown"
+    },
+    {
+      "t": 5.82,
+      "kind": "key",
+      "typeName": "KeyboardMoveForwardKeyUp"
+    },
+    {
+      "t": 6.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey14Down"
+    },
+    {
+      "t": 6.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey14Up"
+    },
+    {
+      "t": 6.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    },
+    {
+      "t": 6.82,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Up"
+    },
+    {
+      "t": 7.3,
       "kind": "key",
       "typeName": "KeyboardDropKeyDown"
     },
     {
-      "t": 7.02,
+      "t": 7.32,
       "kind": "key",
       "typeName": "KeyboardDropKeyUp"
     }
@@ -86,31 +96,37 @@
       "source": "client"
     },
     {
-      "at": 5.0,
+      "at": 2.2,
+      "kind": "log",
+      "contains": "guide count 3",
+      "source": "client"
+    },
+    {
+      "at": 5.3,
       "kind": "log",
       "contains": "guide start",
       "source": "client"
     },
     {
-      "at": 6.0,
+      "at": 6.3,
       "kind": "log",
       "contains": "coop act=rot p=1",
       "source": "client"
     },
     {
-      "at": 6.4,
+      "at": 6.7,
       "kind": "log",
       "contains": "coop act=hold p=1",
       "source": "client"
     },
     {
-      "at": 6.9,
+      "at": 7.2,
       "kind": "log",
       "contains": "coop act=left p=2",
       "source": "client"
     },
     {
-      "at": 7.5,
+      "at": 7.8,
       "kind": "log",
       "contains": "coop act=hard p=2",
       "source": "client"

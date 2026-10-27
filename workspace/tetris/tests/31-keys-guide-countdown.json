@@ -24,6 +24,16 @@
       "t": 1.52,
       "kind": "key",
       "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 1.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    },
+    {
+      "t": 1.82,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Up"
     }
   ],
   "asserts": [
@@ -34,45 +44,50 @@
       "source": "client"
     },
     {
-      "at": 1.4,
-      "kind": "control",
-      "name": "keyA",
-      "field": "text",
-      "equals": "P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存"
+      "at": 1.7,
+      "kind": "log",
+      "contains": "guide ready p1",
+      "source": "client"
     },
     {
-      "at": 1.8,
+      "at": 2.1,
+      "kind": "log",
+      "contains": "guide ready p2",
+      "source": "client"
+    },
+    {
+      "at": 2.2,
       "kind": "log",
       "contains": "guide count 3",
       "source": "client"
     },
     {
-      "at": 2.8,
+      "at": 2.2,
+      "kind": "control",
+      "name": "countBig",
+      "field": "text",
+      "equals": "3"
+    },
+    {
+      "at": 3.2,
       "kind": "log",
       "contains": "guide count 2",
       "source": "client"
     },
     {
-      "at": 3.8,
+      "at": 4.2,
       "kind": "log",
       "contains": "guide count 1",
       "source": "client"
     },
     {
-      "at": 3.8,
-      "kind": "control",
-      "name": "topBanner",
-      "field": "text",
-      "equals": "1"
-    },
-    {
-      "at": 4.9,
+      "at": 5.2,
       "kind": "log",
       "contains": "guide start",
       "source": "client"
     },
     {
-      "at": 5.0,
+      "at": 5.3,
       "kind": "log",
       "contains": "guide stage=1",
       "source": "client"

@@ -18,40 +18,50 @@
     {
       "t": 1.5,
       "kind": "key",
-      "typeName": "KeyboardCraftspersonKey38Down"
+      "typeName": "KeyboardJumpKeyDown"
     },
     {
       "t": 1.52,
       "kind": "key",
-      "typeName": "KeyboardCraftspersonKey38Up"
+      "typeName": "KeyboardJumpKeyUp"
     },
     {
-      "t": 5.5,
+      "t": 1.8,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Down"
     },
     {
-      "t": 5.52,
+      "t": 1.82,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Up"
     },
     {
-      "t": 6.2,
+      "t": 5.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    },
+    {
+      "t": 5.82,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Up"
+    },
+    {
+      "t": 6.5,
       "kind": "key",
       "typeName": "KeyboardDropKeyDown"
     },
     {
-      "t": 6.22,
+      "t": 6.52,
       "kind": "key",
       "typeName": "KeyboardDropKeyUp"
     },
     {
-      "t": 7.0,
+      "t": 7.3,
       "kind": "key",
       "typeName": "KeyboardMoveLeftKeyDown"
     },
     {
-      "t": 7.02,
+      "t": 7.32,
       "kind": "key",
       "typeName": "KeyboardMoveLeftKeyUp"
     }
@@ -76,31 +86,31 @@
       "source": "client"
     },
     {
-      "at": 1.8,
+      "at": 2.2,
       "kind": "log",
       "contains": "guide count 3",
       "source": "client"
     },
     {
-      "at": 5.0,
+      "at": 5.3,
       "kind": "log",
       "contains": "guide start",
       "source": "client"
     },
     {
-      "at": 6.0,
+      "at": 6.3,
       "kind": "log",
       "contains": "p2 act=left",
       "source": "client"
     },
     {
-      "at": 6.6,
+      "at": 6.9,
       "kind": "log",
       "contains": "p2 act=hard",
       "source": "client"
     },
     {
-      "at": 7.4,
+      "at": 7.7,
       "kind": "log",
       "contains": "move x=",
       "source": "client"
