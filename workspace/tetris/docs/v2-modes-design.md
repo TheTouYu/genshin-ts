@@ -243,18 +243,20 @@ playing(user)：autoDriving=false，AI 队列丢弃（AI.queue=nil 重置 thinki
 
 ## 六、待裁决点汇总（交 lead → 用户）
 
-| # | 问题 | 建议默认 | 影响面 |
-|---|---|---|---|
-| ① | coop 分工：方案 A（操作轴）vs B（方块归属）vs A'（定时轮换） | A | T6 coop 全部 |
-| ② | casual 局中 AI 接管：静音与否 + 「AI 代打中」横幅常驻？ | 不静音+横幅常驻 | T6 casual（需拆 g.silent 与 autoDriving 语义） |
-| ③ | 双屏 per-player HUD 用客户端实例化文字（§1.4 方案）确认；真机 400+ 控件实例上限待验 | 确认，波 3 模拟器先行 | T0 Step3 |
-| ④ | ai-battle「同 bag」语义：同源同序共享队列 vs 各自独立 7-bag | 同源同序 | T6 ai-battle 公平性 |
-| ⑤ | casual 局中接管期间 AI 打出的分是否计入玩家账 | 计入（同一 score，不清零） | T6 casual 结算口径 |
-| ⑥ | pvp/ai-battle 的 bestScore：双实例各自记 vs 共享一条最高 | 共享一条（简化） | 结算层文案 |
-| ⑦ | P2 硬降键：X(Drop) vs RightCtrl vs RightShift | X | 键位表（§3.3） |
-| ⑧ | 垃圾行洞位：纯随机 vs 边缘加权 | 首版纯随机 | T7 |
-| ⑨ | 双屏模式 v2 首版是否砍手机端（isMobile 时双屏禁用回落 casual） | 砍，回落 casual | T6 入口 |
-| ⑩ | 垃圾行音效：复用 SFX_CLEAR vs 新挑 id（docs/音效资产目录.md） | 实施时挑新 id | T7（波 3 定） |
+**裁决状态（2026-10-27 lead 评审回执）**：②③④⑥⑦⑧⑩ 已由 lead 拍板（依据用户原话/硬约束）；①⑤⑨ 已交用户裁决，先按建议值做设计，用户否决再改，**不阻塞波 2/3 的 T0/casual/ai-battle/pvp 部分**。
+
+| # | 问题 | 建议默认 | 影响面 | 状态 |
+|---|---|---|---|---|
+| ① | coop 分工：方案 A（操作轴）vs B（方块归属）vs A'（定时轮换） | A | T6 coop 全部 | 交用户裁决中（先按 A 设计） |
+| ② | casual 局中 AI 接管：静音与否 + 「AI 代打中」横幅常驻？ | 不静音+横幅常驻 | T6 casual（需拆 g.silent 与 autoDriving 语义） | **已裁决：不静音+横幅**——依据用户原话「音效和记分等反馈都不能少」（v2-plan §一 点4）；g.silent 语义拆分照本文档设计做 |
+| ③ | 双屏 per-player HUD 用客户端实例化文字（§1.4 方案）确认；真机 400+ 控件实例上限待验 | 确认，波 3 模拟器先行 | T0 Step3 | **已裁决：走客户端实例化**——服务端 textbox 单份是硬约束无他路；真机 400+ 控件上限记入 T9 真机验证清单 |
+| ④ | ai-battle「同 bag」语义：同源同序共享队列 vs 各自独立 7-bag | 同源同序 | T6 ai-battle 公平性 | **已裁决：同源同序共享**——公平对抗是用户点 6「比拼谁坚持到最后」的前提 |
+| ⑤ | casual 局中接管期间 AI 打出的分是否计入玩家账 | 计入（同一 score，不清零） | T6 casual 结算口径 | 交用户裁决中（先按计入设计） |
+| ⑥ | pvp/ai-battle 的 bestScore：双实例各自记 vs 共享一条最高 | 共享一条（简化） | 结算层文案 | **已裁决：共享一条** |
+| ⑦ | P2 硬降键：X(Drop) vs RightCtrl vs RightShift | X | 键位表（§3.3） | **已裁决：X(Drop)** |
+| ⑧ | 垃圾行洞位：纯随机 vs 边缘加权 | 首版纯随机 | T7 | **已裁决：首版纯随机** |
+| ⑨ | 双屏模式 v2 首版是否砍手机端（isMobile 时双屏禁用回落 casual） | 砍，回落 casual | T6 入口 | 交用户裁决中（先按砍设计） |
+| ⑩ | 垃圾行音效：复用 SFX_CLEAR vs 新挑 id（docs/音效资产目录.md） | 实施时挑新 id | T7（波 3 定） | **已裁决：波 3 实施时挑** |
 
 ---
 
