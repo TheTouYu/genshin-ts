@@ -1,7 +1,7 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "30 DAS keyup 丢失兜底（←Down 无 Up 跨 6 块：ARR 连移累计 12 步强制停 + das cap 日志）",
+  "name": "30 DAS 持续上限自愈（←Down 无 Up：ARR 0.6s 后强制停 + das stop reason=timeout；根治点按连走）",
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
@@ -9,79 +9,19 @@
       "t": 0.2,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Down"
-    },
-    {
-      "t": 1.0,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 1.0,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 1.9,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 1.9,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 2.8,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 2.8,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 3.7,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 3.7,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 4.6,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 4.6,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 5.5,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 5.5,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
     }
   ],
   "asserts": [
     {
-      "at": 6.8,
+      "at": 1.5,
       "kind": "log",
-      "contains": "das cap=12",
+      "contains": "das stop reason=timeout",
       "source": "client"
     },
     {
-      "at": 6.8,
+      "at": 1.5,
       "kind": "lua",
-      "source": "local logs = query.logs()\nlocal moves, capAt, lastMove = 0, 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^move x=%d+$') then moves = moves + 1; lastMove = i end\n  if l:match('^das cap=') then capAt = i end\nend\nassert(capAt > 0, 'no das cap log, moves=' .. moves)\nassert(moves <= 13, 'moves=' .. moves .. ' over cap')\nassert(lastMove < capAt, 'move after cap at ' .. lastMove .. '>=' .. capAt)\nreturn true"
+      "source": "local logs = query.logs()\nlocal moves, stopAt, lastMove = 0, 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^move x=%d+$') then moves = moves + 1; lastMove = i end\n  if l:match('^das stop reason=timeout') then stopAt = i end\nend\nassert(stopAt > 0, 'no timeout log, moves=' .. moves)\nassert(lastMove < stopAt, 'move after timeout stop')\nreturn true"
     }
   ]
 }
