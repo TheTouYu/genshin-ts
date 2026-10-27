@@ -74,12 +74,40 @@ local SIGNAL = 'fb_input'
 -- 控件名必须与地图里 4 个 client-textbox 一致（1073741847..850，挂在容器节点 1073741846 下）：
 --   hud_title / hud_k1..hud_k5（控件 1073741847..852）
 -- 写文本=字段赋值（官方运行时 textbox 无 SetText，D229 实证），全部 pcall。
-local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3', k4 = 'hud_k4', k5 = 'hud_k5', k6 = 'hud_k6' }
+-- 控件名必须与地图里 7 个**服务端 textbox** 一致（布局 默认布局，id 1073741854..860）：
+--   hud_title / hud_k1..hud_k6
+-- 寻址方式抄 tetris（跑通过的路）：script.object 向上走到布局根，再 root:GetChild(name)。
+-- 写文本=字段赋值（官方运行时 textbox 无 SetText），全部 pcall。
+local HUD = {
+  title = 'hud_title',
+  k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3',
+  k4 = 'hud_k4', k5 = 'hud_k5', k6 = 'hud_k6',
+}
+local hudRoot = nil
 local hudRef = {}
+
+local function resolveRoot()
+  if hudRoot ~= nil then return hudRoot end
+  local ok, obj = pcall(function() return script.object end)
+  if not ok or obj == nil then
+    print('[fb-in] err host nil')
+    return nil
+  end
+  local cur = obj
+  for _ = 1, 10 do
+    local okp, parent = pcall(function() return cur:GetParent() end)
+    if not okp or parent == nil then break end
+    cur = parent
+  end
+  hudRoot = cur
+  return hudRoot
+end
 
 local function getCtl(name)
   if hudRef[name] ~= nil then return hudRef[name] end
-  local ok, child = pcall(function() return script.object:GetChild(name) end)
+  local root = resolveRoot()
+  if root == nil then return nil end
+  local ok, child = pcall(function() return root:GetChild(name) end)
   if ok and child ~= nil then
     hudRef[name] = child
     return child
@@ -97,12 +125,12 @@ end
 
 local function setupHud()
   setText(HUD.title, '⚽ P0 技能 · 有球/无球双态')
-  setText(HUD.k1, '【普攻】有球 推射 / 无球 抢断')
-  setText(HUD.k2, '【技能1】有球 抽射(侧旋) / 无球 解围')
-  setText(HUD.k3, '【跳跃】有球 吊射 / 无球 停球')
-  setText(HUD.k4, '【冲刺】有球 短传（地滚）')
-  setText(HUD.k5, '【交互】有球 弧线球（左右交替）')
-  setText(HUD.k6, '【丢弃】把球放回你正前方（测试用）')
+  setText(HUD.k1, '【普攻/1】有球推射 · 无球抢断')
+  setText(HUD.k2, '【技能1/2】有球抽射(侧旋) · 无球解围')
+  setText(HUD.k3, '【跳跃/3】有球吊射 · 无球停球')
+  setText(HUD.k4, '【冲刺/4】短传（地滚）')
+  setText(HUD.k5, '【交互/5】弧线球（左右交替）')
+  setText(HUD.k6, '【丢弃/6】把球放回你正前方')
   print('[fb-in] hud-ok')
 end
 
