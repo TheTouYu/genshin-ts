@@ -17,12 +17,16 @@ import http.server
 import json
 import os
 import socketserver
+import sys
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PROFILES = os.path.join(ROOT, 'profiles.json')
 CHOICE = os.path.join(ROOT, 'choice.json')
-PORT = 8099
+# 端口：默认 8100。
+# ⚠️ 8099 已被 dsh-memo-river 的本地嵌入服务占用（scripts/local-embed/server.py 的 --port 默认 8099，
+#    2026-10-27 13:26 起常驻），别再抢；要换端口用 `SFX_WEB_PORT=8123 python3 serve.py` 或 `python3 serve.py 8123`。
+PORT = int(os.environ.get('SFX_WEB_PORT') or (sys.argv[1] if len(sys.argv) > 1 else 8100))
 
 # 内置 seed：只在 profiles.json 缺失时使用（两个内置 profile；结构通用，tetris 只是其中一个）
 SEED = {
@@ -279,6 +283,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     socketserver.TCPServer.allow_reuse_address = True
     load_state()  # 启动即归一落盘一次（旧文件迁移在这里发生）
-    with socketserver.TCPServer(('127.0.0.1', PORT), Handler) as httpd:
+    try:
+        httpd = socketserver.TCPServer(('127.0.0.1', PORT), Handler)
+    except OSError as e:
+        print(f'[sfx-web] 端口 {PORT} 不可用（{e}）。换一个：`SFX_WEB_PORT=8123 python3 serve.py`', flush=True)
+        raise SystemExit(2)
+    with httpd:
         print(f'[sfx-web] serving on http://127.0.0.1:{PORT}  (profiles.json + choice.json)', flush=True)
         httpd.serve_forever()

@@ -8,14 +8,19 @@
 
 ```bash
 cd workspace/tetris/sfx-web
-python3 serve.py                      # 前台；或 setsid nohup python3 serve.py > /tmp/sfx-web-8099.log 2>&1 &
-# 打开 http://127.0.0.1:8099
+python3 serve.py                      # 前台；或 setsid nohup python3 serve.py > /tmp/sfx-web-8100.log 2>&1 &
+# 打开 http://127.0.0.1:8100
+# 换端口：SFX_WEB_PORT=8123 python3 serve.py   （e2e 侧 SFX_WEB_URL=http://127.0.0.1:8123/ node e2e.mjs）
 
 # 停/重启：**按端口杀**，不要用 pkill -f（会自匹配到当前 shell 的 pkill 命令行）
-lsof -ti:8099 | xargs -r kill
+lsof -ti:8100 | xargs -r kill
 ```
 
-判定：`ss -ltnp | grep 8099` 有 LISTEN；`curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8099/` = 200。
+判定：`ss -ltnp | grep 8100` 有 LISTEN；`curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8100/` = 200。
+
+> ⚠️ **别用 8099**：`dsh-memo-river` 的本地嵌入服务（`scripts/local-embed/server.py --port` 默认 **8099**，
+> 2026-10-27 13:26 起常驻）占着它——那台服务是记忆河流的向量后端，抢它的端口等于断别人的嵌入。
+> 本服务因此默认 8100。
 改 `index.html`/`catalog.json` 只需刷新页面；改 `serve.py` **必须重启**。
 
 ## 2. 五个动作（UI）
@@ -87,11 +92,11 @@ profile 管理：`新建 / 复制 / 重命名 / 删除`（删除要输入 `DELET
 
 ```bash
 # ① v2 完整状态（页面自己用的形态）
-curl -sS -X POST -H 'Content-Type: application/json' -d @profiles.json http://127.0.0.1:8099/save
+curl -sS -X POST -H 'Content-Type: application/json' -d @profiles.json http://127.0.0.1:8100/save
 # ② v2 映射形态
-curl -sS -X POST -d '{"profiles":{"my-game":{"name":"我的游戏","slots":{"click":"50880"}}}}' http://127.0.0.1:8099/save
+curl -sS -X POST -d '{"profiles":{"my-game":{"name":"我的游戏","slots":{"click":"50880"}}}}' http://127.0.0.1:8100/save
 # ③ 旧格式（只更新 tetris 的槽位，别的 profile 原样保留）
-curl -sS -X POST -d '{"slots":{"move":{"id":"50884","note":"x"}},"selected":"move"}' http://127.0.0.1:8099/save
+curl -sS -X POST -d '{"slots":{"move":{"id":"50884","note":"x"}},"selected":"move"}' http://127.0.0.1:8100/save
 ```
 
 返回 `{"ok":true,"saved":[profiles.json,choice.json],"active":…,"profiles":[…],"slots":N,"at":…}`。
@@ -100,7 +105,7 @@ curl -sS -X POST -d '{"slots":{"move":{"id":"50884","note":"x"}},"selected":"mov
 
 ```bash
 cd workspace/tetris/sfx-web
-python3 serve.py &                                     # 8099
+python3 serve.py &                                     # 8100
 node e2e.mjs                                            # 27 条断言，退出码 0 = 全绿
 ```
 

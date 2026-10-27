@@ -1,12 +1,15 @@
 // sfx-web 多 profile 端到端验证（headless Chromium + CDP，零第三方依赖：node 26 内置 WebSocket）
-// 跑法：先 `python3 serve.py`（8099），再 `node e2e.mjs`。全绿退出码 0，任一断言失败退出码 1。
+// 跑法：先 `python3 serve.py`（默认 8100），再 `node e2e.mjs`。全绿退出码 0，任一断言失败退出码 1。
+// 换端口：SFX_WEB_PORT=8123 python3 serve.py & SFX_WEB_URL=http://127.0.0.1:8123/ node e2e.mjs
 // 判据：每一步断言失败即打印 FAIL 并以 exit 1 结束；全绿打印 PASS n/n。
 import { spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const URL_PAGE = 'http://127.0.0.1:8099/'
+// 端口与服务保持一致（缺省 8100；8099 已被 dsh-memo-river 的本地嵌入服务占用）
+const BASE = process.env.SFX_WEB_URL || 'http://127.0.0.1:8100/'
+const URL_PAGE = BASE
 const STATE_PATH = join(dirname(fileURLToPath(import.meta.url)), 'profiles.json')
 let pass = 0, fail = 0
 const ok = (name, cond, extra = '') => {
