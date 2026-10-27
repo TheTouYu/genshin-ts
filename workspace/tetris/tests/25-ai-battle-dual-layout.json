@@ -16,12 +16,22 @@
       "typeName": "KeyboardCraftspersonKey2Up"
     },
     {
-      "t": 3.0,
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.52,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 5.0,
       "kind": "key",
       "typeName": "KeyboardCharacterSkill3KeyDown"
     },
     {
-      "t": 3.02,
+      "t": 5.02,
       "kind": "key",
       "typeName": "KeyboardCharacterSkill3KeyUp"
     }
@@ -54,26 +64,26 @@
       "equals": -455
     },
     {
-      "at": 2.0,
+      "at": 1.8,
       "kind": "control",
       "name": "keyA",
       "field": "text",
       "equals": "AI 盘"
     },
     {
-      "at": 3.5,
+      "at": 5.4,
       "kind": "log",
       "contains": "p2 destroy n=204",
       "source": "client"
     },
     {
-      "at": 3.5,
+      "at": 5.4,
       "kind": "log",
       "contains": "mode menu",
       "source": "client"
     },
     {
-      "at": 3.7,
+      "at": 5.6,
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionX",

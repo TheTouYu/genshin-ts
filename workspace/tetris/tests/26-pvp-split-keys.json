@@ -16,69 +16,91 @@
       "typeName": "KeyboardCraftspersonKey3Up"
     },
     {
-      "t": 1.3,
+      "t": 1.5,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Down"
     },
     {
-      "t": 1.32,
+      "t": 1.52,
       "kind": "key",
       "typeName": "KeyboardCraftspersonKey38Up"
     },
     {
-      "t": 1.7,
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Down"
+    },
+    {
+      "t": 5.52,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey38Up"
+    },
+    {
+      "t": 6.2,
       "kind": "key",
       "typeName": "KeyboardDropKeyDown"
     },
     {
-      "t": 1.72,
+      "t": 6.22,
       "kind": "key",
       "typeName": "KeyboardDropKeyUp"
     },
     {
-      "t": 2.1,
+      "t": 7.0,
       "kind": "key",
       "typeName": "KeyboardMoveLeftKeyDown"
     },
     {
-      "t": 2.12,
+      "t": 7.02,
       "kind": "key",
       "typeName": "KeyboardMoveLeftKeyUp"
     }
   ],
   "asserts": [
     {
-      "at": 1.1,
+      "at": 0.5,
       "kind": "log",
       "contains": "mode=pvp",
       "source": "client"
     },
     {
-      "at": 1.1,
+      "at": 1.2,
       "kind": "log",
       "contains": "p2 inst pvp",
       "source": "client"
     },
     {
-      "at": 1.1,
+      "at": 1.4,
       "kind": "log",
-      "contains": "layout dual",
+      "contains": "guide keys pvp",
       "source": "client"
     },
     {
-      "at": 1.6,
+      "at": 1.8,
+      "kind": "log",
+      "contains": "guide count 3",
+      "source": "client"
+    },
+    {
+      "at": 5.0,
+      "kind": "log",
+      "contains": "guide start",
+      "source": "client"
+    },
+    {
+      "at": 6.0,
       "kind": "log",
       "contains": "p2 act=left",
       "source": "client"
     },
     {
-      "at": 2.0,
+      "at": 6.6,
       "kind": "log",
       "contains": "p2 act=hard",
       "source": "client"
     },
     {
-      "at": 2.5,
+      "at": 7.4,
       "kind": "log",
       "contains": "move x=",
       "source": "client"

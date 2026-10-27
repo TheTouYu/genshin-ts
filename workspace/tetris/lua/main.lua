@@ -98,6 +98,7 @@ local NUM = {
   --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
   --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
   AI_LEVEL = 2,
+  nxFull = { 0, 0, 0, 0 },   -- T5 性能修复：evalNext 满行行号 scratch（模块级复用，零分配热路径）
   AI_LEVELS = {
     { name = 'easy',   ply = 1, hold = 0, pMistake = 15, topK = 5, nudgePct = 30,
       pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
@@ -195,6 +196,10 @@ local MODE = 'casual'
 -- pendingMode/pendingT = 按 Digit 后的模式名大字动画窗（0.5s，introT 渐变手法），窗后 enterMode 开局。
 local MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
 local pendingMode, pendingT = nil, 0
+-- v2.1 ③：H 游戏说明层（stage0 按 H 开/关；任意键=先关层不开局）
+local HL = {}                          -- 说明层实例表（暗底×1 + 文字条×10）
+local helpOpen = false
+local toggleHelp                       -- 前向声明（实现见 UI 段；startIfWaiting/H 键都在更早处调用）
 local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
 local MODE_INFO = {
   { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 24, 98, 118) },
@@ -207,6 +212,9 @@ local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
 local TK = { state = 'play', t = 0 }
+-- v2.1 ①：双人/对抗模式开局引导态（guideStage=3）——phase 'keys'（键位说明，任意键确认）
+-- → 'count'（3-2-1 倒计时，每 1s，topBanner 大字）→ guideStage=1 开局。casual 不经此态（旧用例直进）。
+local GK = { phase = 'keys', t = 0, count = 3 }
 local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
 -- T6b ai-battle 出块镜像队列：主盘自然出块 push，AI 盘 piece 空时立即喂 / doLock 后拉（保序）。
 -- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
@@ -860,7 +868,7 @@ renderHud = function()
   if g ~= G[1] then
     setText(keyA, MODE == 'pvp' and 'P2 盘' or 'AI 盘')
     setText(keyB, '得分 ' .. g.score .. '　消行 ' .. g.lines)
-    setText(keyC, '等级 ' .. g.level)
+    setText(keyC, '等级 ' .. g.level .. '　落块 ' .. g.pieceCount)   -- v2.1 ④：对家战况加块数
     renderNext()
     return
   end
@@ -1227,6 +1235,7 @@ end
 local function startIfWaiting()
   if guideStage ~= 0 then return end
   if pendingMode then return end       -- v2.1 ②：模式名动画窗独占（0.5s），任意键不打断
+  if helpOpen then toggleHelp() return end   -- v2.1 ③：说明层开着时任意键=先关层不开局
   guideStage = 1
   pendingMode = nil                    -- v2.1 ②：任何开局路径都清动画窗状态
   destroyMenuCards()                   -- v2.1 ②：开局销毁菜单卡片（任意键直开时卡片也要撤）
@@ -1237,6 +1246,23 @@ local function startIfWaiting()
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
   TK.state, TK.t = 'play', 0            -- T6a：进局即玩家态（菜单选模式/任意键开始同路径）
+  -- v2.1 ①：双人/对抗模式先入引导态（键位说明+任意键+3-2-1），casual 保持直进（旧用例语义）。
+  if MODE ~= 'casual' then
+    guideStage = 3
+    GK.phase, GK.t, GK.count = 'keys', 0, 3
+    local keys2 = (MODE == 'coop')
+      and '合作：P1 W 旋转 · G 暂存 ｜ P2 ←→ 移动 · ↓ 软降 · X 直落'
+      or 'P1 A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
+    local keys2b = (MODE ~= 'coop')
+      and 'P2 ← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
+      or '两人共盘对抗 AI：姿态 P1 定，落点 P2 定'
+    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 按任意键准备')
+    setText(botBanner, keys2)
+    setText(hint, keys2b)
+    tryCall(hint, 'SetVisible', true)
+    print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
+    return
+  end
   -- P0/T4：玩家账本从 0 开始。AI 自演的分已走 aiScore 账（clearLines 分流），这里归零 score
   -- 是双保险（防未来某条 AI 路径漏改）；aiScore/aiLines 不动——玩家接管**不清 AI 局成绩**（模式语义）。
   -- 连击/B2B/落块数是共享局内状态，接管即归零 ⇒ AI 的连击不会带进玩家局。
@@ -1273,6 +1299,7 @@ showGameOver = function()
       or (MODE == 'coop' and 'AI 盘顶满 · 合作成功！')
       or 'AI 盘顶满 · 你赢了！'
     setText(topBanner, winText)
+    setText(botBanner, '按 R 回菜单 · 再选模式')   -- v2.1 ④：胜负后给出路（结算页只有 [R]再来一局）
     print('battle win')                  -- v2-plan T6 验收锚
     return
   end
@@ -1439,25 +1466,30 @@ local function evalBoard(cells, x)
     if d < 0 then d = -d end
     bump = bump + d
   end
-  -- T5 Dellacherie 特征（docs/v2-ai-design.md §三）：行/列转移（消行后棋盘上的空实边界数）
+  -- T5 Dellacherie 特征（docs/v2-ai-design.md §三）：行/列转移（消行后棋盘上的空实边界数）。
+  -- 性能短路（v2.1 修复「卡的要死」）：三特征每次 evalBoard 各全盘扫（~400 次 solidFinal
+  -- 闭包调用 × ~34 候选/帧），而校准定论权重=0（负贡献）——算完乘 0 扔掉。
+  -- 权重全 0 时跳过全部扫描；将来启用任一特征（权重≠0）才付这笔钱。
   local rowtrans, coltrans = 0, 0
-  for r = 1, floorRows do
-    local prev = true                       -- 行扫描左边界视为实心（标准口径）
-    for c = 1, COLS do
-      local cur = solidFinal(r, c)
-      if cur ~= prev then rowtrans = rowtrans + 1 end
-      prev = cur
-    end
-    if not prev then rowtrans = rowtrans + 1 end  -- 右边界收尾（空→实边界）
-  end
-  for c = 1, COLS do
-    local prev = false                      -- 列扫描顶视为空
+  if NUM.W_ROWTRANS ~= 0 or NUM.W_COLTRANS ~= 0 or NUM.W_WELLSUM ~= 0 then
     for r = 1, floorRows do
-      local cur = solidFinal(r, c)
-      if cur ~= prev then coltrans = coltrans + 1 end
-      prev = cur
+      local prev = true                       -- 行扫描左边界视为实心（标准口径）
+      for c = 1, COLS do
+        local cur = solidFinal(r, c)
+        if cur ~= prev then rowtrans = rowtrans + 1 end
+        prev = cur
+      end
+      if not prev then rowtrans = rowtrans + 1 end  -- 右边界收尾（空→实边界）
     end
-    if not prev then coltrans = coltrans + 1 end  -- 列底视为实（空列收尾 +1）
+    for c = 1, COLS do
+      local prev = false                      -- 列扫描顶视为空
+      for r = 1, floorRows do
+        local cur = solidFinal(r, c)
+        if cur ~= prev then coltrans = coltrans + 1 end
+        prev = cur
+      end
+      if not prev then coltrans = coltrans + 1 end  -- 列底视为实（空列收尾 +1）
+    end
   end
   -- 井深累加（所有 1 宽凹槽，含浅井：d*(d-1)/2 浅井轻罚；墙边空列不算——竖 I 贴墙合法）
   local wellsum = 0
@@ -1716,7 +1748,67 @@ end
 -- 横排 4 卡（x=±390/±130，y=0），每卡 = cell 模板色块 260×120（暗色底）+ 2 条 settle 文字
 -- （模式名 26 号白字 / 特色句 16 号浅字；框高按 h≥1.45×fontSize+4 给 48/32）。
 -- 别加新模板（task-12 约束）：色块复用 TPL_CELL、文字复用 settleText 模板，全运行时实例化。
-local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存）
+local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存；说明层共用）
+-- ===== v2.1 ③ 游戏说明层（H 开关，stage0 专属）=====
+-- 复用卡片组同款模板技术（cell 暗底 + settleText 文字条），不加新模板。
+-- 框高判据：标题 30 号→52；行 20 号→40。开层时任意键=关层（不开局，防误触）。
+local HELP_LINES = {
+  { '游戏说明 · 再按 H 或任意键返回', 30, 52, 292 },
+  { '操作：← → 移动 · ↓ 软降 · ↑ 旋转 · 空格 直落 · G 暂存', 20, 40, 232 },
+  { '　　　（双人 P2：方向键 + X 直落 + F 暂存）', 18, 36, 192 },
+  { '计分：1/2/3/4 消 = 100/300/500/800 × 等级', 20, 40, 148 },
+  { '连击：连续消行每链 +50×(链-1)×等级 · 连四消 ×1.5', 20, 40, 104 },
+  { 'T-spin：T 块三角落定 + 400×行×等级 · 专属音效', 20, 40, 60 },
+  { '模式：休闲=AI 陪练随时接管 · AI 对抗=hard 决战', 20, 40, 16 },
+  { '　　　双人=同屏 PK · 合作=旋转手+行动手一盘抗 AI', 18, 36, -24 },
+  { '垃圾行：2/3/4 消送对方 1/2/4 行（连四消再 +1）', 20, 40, -68 },
+  { '进阶：触底后有 0.5s 可救 · 按住方向自动连移', 20, 40, -112 },
+}
+local function destroyHelpLayer()
+  local n = 0
+  for i = 1, #HL do
+    local ok = pcall(function() game.DestroyClientUIControl(HL[i]) end)
+    if ok then n = n + 1 end
+  end
+  HL = {}
+  if n > 0 then print('guide help off n=' .. n) end
+end
+local function buildHelpLayer()
+  if not TPL_CELL then return end
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then return end
+  destroyHelpLayer()
+  local bg = game.InstantiateClientUIControl(TPL_CELL, root)
+  if bg then
+    bg.name = 'helpBg'
+    bg:SetSizeDelta(1240, 680)
+    bg:SetAnchoredPosition(0, 0)
+    bg.imageColor = C(255, 12, 14, 20)
+    HL[#HL + 1] = bg
+  end
+  for i, line in ipairs(HELP_LINES) do
+    local h = game.InstantiateClientUIControl(TPL_TEXT, root)
+    if h then
+      h.name = 'helpLine' .. i
+      h.text = line[1]
+      h.fontSize = line[2]
+      h:SetSizeDelta(1200, line[3])
+      h:SetAnchoredPosition(0, line[4])
+      HL[#HL + 1] = h
+    end
+  end
+  print('guide help on n=' .. #HL)
+end
+toggleHelp = function()
+  if helpOpen then
+    helpOpen = false
+    destroyHelpLayer()
+  else
+    helpOpen = true
+    buildHelpLayer()
+  end
+end
+
 destroyMenuCards = function()
   local n = 0
   for i = 1, #MC do
@@ -1974,6 +2066,65 @@ end
 -- onOver='demo'：盘死→demoLoopReset（stage0 自演语义）；
 -- onOver='stop'：盘死→停 AI 驱动走各自结算（casual 接管/对战语义）。返回 false=已停/无盘。
 -- 隔离调子（lead 拍板，T8 起）：aiDrop 直调 doLock，不经锁定延迟路径——AI 节奏与玩家手感互不影响。
+-- T5 性能修复（v2.1「卡的要死」）：第二层评估专用 evalNext——零表分配的「落-评-撤」。
+-- 探针二分定谳（X2/X4b，交替对照）：原第二层复用 evalBoard，每次调用建 occ/solid/keep/
+-- solidFinal/heights 共 5 个对象，JS-Lua 解释器（JS 对象分配+GC）下精化帧连续 68 次/帧
+-- 触发 GC 抖动，实测精化帧 26.6ms（拷贝+消行仅 0.3ms，大头全在枚举）——T5 把整体
+-- mean 从 v1 的 0.34ms 拉到 9.55ms（+35 倍）。evalNext 只算 El-Tetris 三主项
+-- （agg/holes/complete）：第二层是排序信号不是最终决策，拟人项（wallDist/well）与
+-- bump 在第一层 evalBoard 仍全量参与。落 4 格→评→撤销，scratch（NUM.nxFull）复用，
+-- 热路径零分配。实测修复后整体 mean 回 0.33ms（v1 量级）。
+NUM.evalNext = function(cells, x)
+  if collides(cells, x, 1) then return nil end
+  local y = 1
+  while y < ROWS and not collides(cells, x, y + 1) do y = y + 1 end
+  local b = g.board
+  local w1, w2, w3, w4 = 0, 0, 0, 0     -- 落格坐标打包 br*32+bc（ROWS<=20,COLS<=10 安全）
+  for i = 1, 4 do
+    local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
+    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
+      local p = br * 32 + bc
+      if w1 == 0 then w1 = p elseif w2 == 0 then w2 = p elseif w3 == 0 then w3 = p else w4 = p end
+      b[br][bc] = 1
+    end
+  end
+  local nxFull = NUM.nxFull
+  local nf = 0
+  for r = 1, ROWS do                     -- 满行检测（不物理删行——撤销时一并还原）
+    local row = b[r]
+    local full = true
+    for c = 1, COLS do
+      if row[c] == 0 then full = false break end
+    end
+    if full then nf = nf + 1 nxFull[nf] = r end
+  end
+  local agg, holes = 0, 0
+  for c = 1, COLS do                     -- heights/holes：满行视作已消（跳过）
+    local h, seen = 0, false
+    for r = 1, ROWS do
+      local occ = b[r][c] ~= 0
+      if occ then
+        local skip = false
+        for fi = 1, nf do if nxFull[fi] == r then skip = true break end end
+        if not skip then
+          if h == 0 then h = ROWS - r + 1 end
+          seen = true
+        end
+      elseif seen then
+        local skip = false
+        for fi = 1, nf do if nxFull[fi] == r then skip = true break end end
+        if not skip then holes = holes + 1 end
+      end
+    end
+    agg = agg + h
+  end
+  if w1 ~= 0 then b[w1 // 32][w1 % 32] = 0 end    -- 撤销 4 格
+  if w2 ~= 0 then b[w2 // 32][w2 % 32] = 0 end
+  if w3 ~= 0 then b[w3 // 32][w3 % 32] = 0 end
+  if w4 ~= 0 then b[w4 // 32][w4 % 32] = 0 end
+  return W_AGG * agg + W_LINE * nf + W_HOLE * holes, nil, nf
+end
+
 local function aiTickCore(dt, onOver)
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
@@ -2043,7 +2194,7 @@ local function aiTickCore(dt, onOver)
             if ncells[i][2] > nwmax then nwmax = ncells[i][2] end
           end
           for nx = 1, COLS - nwmax + 1 do
-            local sc = evalBoard(ncells, nx)
+            local sc = NUM.evalNext(ncells, nx)
             if sc and (not bestNext or sc > bestNext) then bestNext = sc end
           end
           ncells = rotateCells(ncells, nextS.n)
@@ -2555,7 +2706,16 @@ function OnStart()
   local function act(keyName, fn)
     return function()
       startIfWaiting()
-      if guideStage == 2 then return end
+      if guideStage == 3 and GK.phase == 'keys' then
+        GK.phase, GK.t = 'count', 0
+        setText(topBanner, '3')
+        trySet(topBanner, 'fontSize', 64)
+        setText(botBanner, '')
+        if G[2] then setText(hint, '') end
+        print('guide count 3')
+        return
+      end
+      if guideStage == 2 or guideStage == 3 then return end
       g = routePlayer(keyName)          -- 铁律①：回调内先绑定目标实例
       playerTouched()
       fn()
@@ -2634,6 +2794,11 @@ function OnStart()
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
+    -- v2.1 ①：引导态的 R=直接回菜单（还没开局，重开无意义）
+    if guideStage == 3 and MODE ~= 'casual' then
+      exitToMenu()
+      return
+    end
     -- T6b：非 casual 模式的 R=回标题菜单（模式可重选）；casual 保持 v1 就地重开语义
     if MODE ~= 'casual' and guideStage == 1 then
       exitToMenu()
@@ -2680,7 +2845,11 @@ function OnStart()
       print('settle detail off')
     end
   end)
-  listen('KeyboardCharacterSkill1KeyDown', function()       -- H 键位表
+  listen('KeyboardCharacterSkill1KeyDown', function()       -- H：stage0=游戏说明层 / 局内=键位表
+    if guideStage == 0 then
+      toggleHelp()
+      return
+    end
     startIfWaiting()
     toggleKeymap()
   end)
@@ -2760,6 +2929,14 @@ function OnStart()
   local mapped = { [1] = true, [2] = true, [3] = true, [4] = true, [36] = true, [37] = true, [38] = true, [39] = true }
   local anyKeyStart = function()
     if guideStage == 0 then startIfWaiting() end
+    if guideStage == 3 and GK.phase == 'keys' then
+      GK.phase, GK.t = 'count', 0
+      setText(topBanner, '3')
+      trySet(topBanner, 'fontSize', 64)
+      setText(botBanner, '')
+      if G[2] then setText(hint, '') end
+      print('guide count 3')
+    end
   end
   for i = 1, 43 do
     if not mapped[i] then
@@ -2794,7 +2971,7 @@ local function tickInstance(d)
       applyShake(ox, oy)
     end
   end
-  if g.flashT > 0 then
+  if g.flashT and g.flashT > 0 then   -- nil 守卫（v2.1）：v1 nil 初值 + G[2] 开局即 tick，防每帧炸断 OnUpdate
     g.flashT = g.flashT - d
     if g.flashT <= 0 then g.flashT = 0 renderAll() end
   end
@@ -2892,6 +3069,33 @@ function OnUpdate(dt)
       g.AI.fx = g.AI.fx - d
       trySet(hud, 'fontSize', g.AI.fx > 0.25 and 26 or 20)
       if g.AI.fx <= 0 then g.AI.fx = 0 trySet(hud, 'fontSize', 20) end
+    end
+    return
+  end
+  if guideStage == 3 then
+    -- v2.1 ① 引导态：keys=键位说明（任意键确认）→ count=3-2-1 倒计时 → 开局。全冻结。
+    GK.t = GK.t + d
+    if GK.phase == 'count' then
+      local size = math.min(64, 40 + math.floor(GK.t * 48))
+      trySet(topBanner, 'fontSize', size)
+      if GK.t >= 1 then
+        GK.t = 0
+        GK.count = GK.count - 1
+        if GK.count <= 0 then
+          guideStage = 1
+          GK.phase = 'keys'
+          trySet(topBanner, 'fontSize', 34)
+          setText(topBanner, '')
+          setText(botBanner, '')
+          if G[2] then tryCall(hint, 'SetVisible', false) end
+          renderHud()
+          print('guide start')
+          print('guide stage=1')
+          return
+        end
+        setText(topBanner, tostring(GK.count))
+        print('guide count ' .. GK.count)
+      end
     end
     return
   end

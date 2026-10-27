@@ -16,22 +16,32 @@
       "typeName": "KeyboardCraftspersonKey2Up"
     },
     {
-      "t": 1.2,
-      "kind": "key",
-      "typeName": "KeyboardCharacterSkill4KeyDown"
-    },
-    {
-      "t": 1.22,
-      "kind": "key",
-      "typeName": "KeyboardCharacterSkill4KeyUp"
-    },
-    {
-      "t": 1.6,
+      "t": 1.5,
       "kind": "key",
       "typeName": "KeyboardJumpKeyDown"
     },
     {
-      "t": 1.62,
+      "t": 1.52,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 5.5,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 5.52,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 6.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 6.02,
       "kind": "key",
       "typeName": "KeyboardJumpKeyUp"
     }
@@ -44,7 +54,13 @@
       "source": "client"
     },
     {
-      "at": 2.2,
+      "at": 5.2,
+      "kind": "log",
+      "contains": "guide start",
+      "source": "client"
+    },
+    {
+      "at": 6.6,
       "kind": "log",
       "contains": "garbage n=1",
       "source": "client"

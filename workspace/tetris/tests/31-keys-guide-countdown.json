@@ -1,0 +1,81 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "31 v2.1 双模式开局引导：键位说明→任意键确认→3-2-1 逐秒倒计时→开局",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey3Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey3Up"
+    },
+    {
+      "t": 1.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.52,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.4,
+      "kind": "log",
+      "contains": "guide keys pvp",
+      "source": "client"
+    },
+    {
+      "at": 1.4,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "text",
+      "equals": "P1 A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存"
+    },
+    {
+      "at": 1.8,
+      "kind": "log",
+      "contains": "guide count 3",
+      "source": "client"
+    },
+    {
+      "at": 2.8,
+      "kind": "log",
+      "contains": "guide count 2",
+      "source": "client"
+    },
+    {
+      "at": 3.8,
+      "kind": "log",
+      "contains": "guide count 1",
+      "source": "client"
+    },
+    {
+      "at": 3.8,
+      "kind": "control",
+      "name": "topBanner",
+      "field": "text",
+      "equals": "1"
+    },
+    {
+      "at": 4.9,
+      "kind": "log",
+      "contains": "guide start",
+      "source": "client"
+    },
+    {
+      "at": 5.0,
+      "kind": "log",
+      "contains": "guide stage=1",
+      "source": "client"
+    }
+  ]
+}

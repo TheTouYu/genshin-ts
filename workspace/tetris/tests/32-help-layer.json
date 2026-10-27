@@ -1,0 +1,73 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "32 v2.1 H 游戏说明层：开层 11 实例/文案/任意键只关层不开局/再按键开局",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill1KeyDown"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill1KeyUp"
+    },
+    {
+      "t": 2.0,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 2.02,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    },
+    {
+      "t": 2.6,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 2.62,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "guide help on n=11",
+      "source": "client"
+    },
+    {
+      "at": 0.6,
+      "kind": "control",
+      "name": "helpLine1",
+      "field": "text",
+      "equals": "游戏说明 · 再按 H 或任意键返回"
+    },
+    {
+      "at": 0.6,
+      "kind": "control",
+      "name": "helpLine4",
+      "field": "text",
+      "equals": "计分：1/2/3/4 消 = 100/300/500/800 × 等级"
+    },
+    {
+      "at": 2.3,
+      "kind": "log",
+      "contains": "guide help off n=11",
+      "source": "client"
+    },
+    {
+      "at": 3.0,
+      "kind": "log",
+      "contains": "guide stage=1",
+      "source": "client"
+    }
+  ]
+}
