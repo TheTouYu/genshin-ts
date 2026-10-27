@@ -1,3 +1,34 @@
+-- 注册一个 Down 监听：候选枚举名逐个试（枚举优先、字符串回落），任何失败只打印不抛出。
+local function listen(entry)
+  local handler = makeHandler(entry.hint, entry.id)
+  local hostOk, host = pcall(function() return script.object end)
+  if not hostOk or host == nil then
+    print('[fb-in] err host ' .. tostring(host) .. ' (key ' .. entry.id .. ')')
+    return false
+  end
+  for _, enumName in ipairs(entry.names) do
+    -- 路 1：枚举值（真机唯一可用形态）
+    local ok, err = pcall(function()
+      local ev = Enum.KeyEventType[enumName]
+      if ev == nil then error('Enum.KeyEventType.' .. enumName .. ' is nil') end
+      host:AddKeyEventListener(ev, handler)
+    end)
+    if ok then
+      print('[fb-in] listen ' .. enumName .. ' via enum')
+      return true
+    end
+    -- 路 2：字符串（模拟器形态；真机会抛 KeyEventType expected, got string）
+    local ok2 = pcall(function() host:AddKeyEventListener(enumName, handler) end)
+    if ok2 then
+      print('[fb-in] listen ' .. enumName .. ' via string')
+      return true
+    end
+    print('[fb-in] miss ' .. enumName .. ' enum=' .. tostring(err))
+  end
+  print('[fb-in] err listen key ' .. entry.id .. ' (all names failed)')
+  return false
+end
+
 --[[==========================================================================
 fb-input.lua —— 真实足球 v3 · 客户端 Lua 输入桥
 ----------------------------------------------------------------------------
@@ -41,9 +72,9 @@ local SIGNAL = 'fb_input'
 
 -- ===== HUD：证明脚本在跑、并把键位说清楚（用户 2026-10-27：「一个按钮都看不到」）=====
 -- 控件名必须与地图里 4 个 client-textbox 一致（1073741847..850，挂在容器节点 1073741846 下）：
---   hud_title / hud_k1 / hud_k2 / hud_k3
+--   hud_title / hud_k1..hud_k5（控件 1073741847..852）
 -- 写文本=字段赋值（官方运行时 textbox 无 SetText，D229 实证），全部 pcall。
-local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3' }
+local HUD = { title = 'hud_title', k1 = 'hud_k1', k2 = 'hud_k2', k3 = 'hud_k3', k4 = 'hud_k4', k5 = 'hud_k5' }
 local hudRef = {}
 
 local function getCtl(name)
@@ -65,10 +96,12 @@ local function setText(name, value)
 end
 
 local function setupHud()
-  setText(HUD.title, '⚽ 物理内核 v2 · 按键即射')
-  setText(HUD.k1, '【普攻键】轻射  10m/s')
-  setText(HUD.k2, '【技能1键】重射  16m/s + 弧线')
-  setText(HUD.k3, '【跳跃键】高吊  7m/s + 上抛')
+  setText(HUD.title, '⚽ P0 技能 · 有球/无球双态')
+  setText(HUD.k1, '【普攻】有球 推射 / 无球 抢断')
+  setText(HUD.k2, '【技能1】有球 抽射(侧旋) / 无球 解围')
+  setText(HUD.k3, '【跳跃】有球 吊射 / 无球 停球')
+  setText(HUD.k4, '【冲刺】有球 短传（地滚）')
+  setText(HUD.k5, '【交互】有球 弧线球（左右交替）')
   print('[fb-in] hud-ok')
 end
 
@@ -76,13 +109,15 @@ local function setStatus(label)
   setText(HUD.title, '⚽ 已触发：' .. label)
 end
 
--- 键表：label 同时用于拼枚举名（'Keyboard' .. label .. 'Down'）、日志标识与信号 keyId。
--- 第一轮只挂**三个基础键**做物理技术验证（用户 2026-10-27：先几个基础按键就够）。
--- 想加键就往这张表里加一行（label 必须是 Enum.KeyEventType 里真实存在的键名池成员）。
+-- 键表：id = 发给服务端的 keyId（1..5），names = 候选枚举名，hint = HUD 上给玩家看的物理键。
 local KEYS = {
-  { label = 'NormalAttackKey',    id = 1 }, -- 普攻（键鼠左键 / J 一类）
-  { label = 'CharacterSkill1Key', id = 2 }, -- 角色技能 1（E 一类）
-  { label = 'JumpKey',            id = 3 }, -- 跳跃（空格一类）
+  -- names = 候选枚举名（按顺序试，第一个成功的胜出）。动作键是角色键（可能被游戏本体吃掉），
+  -- 工匠键 CraftspersonKey1..5 是千星沙箱自己的可编程键，一定存在 ⇒ 做成两手准备。
+  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, hint = '普攻/鼠左 或 1' },
+  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, hint = '技能1/E 或 2' },
+  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, hint = '跳跃/空格 或 3' },
+  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, hint = '冲刺/Shift 或 4' },
+  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, hint = '交互/F 或 5' },
 }
 
 -- 发一条 fb_input(keyId, state)。整段 pcall：信号名没登记/信号对象形态变化都不许中断调用方。
@@ -101,10 +136,10 @@ local function send(keyId, state)
 end
 
 -- 每个键一个回调闭包：按下才打印（高频路径本来就只有玩家真按的时候才走）。
-local function makeHandler(label, id)
+local function makeHandler(hint, id)
   return function()
-    print('[fb-in] key ' .. label)
-    setStatus(label)
+    print('[fb-in] key ' .. tostring(id))
+    setStatus(hint)
     send(id, 1)
     return true    -- 吃掉事件，不继续向更内层控件传递
   end
@@ -156,7 +191,7 @@ function OnStart()
   send(0, 0)
   -- 逐个注册：任一键失败都不影响后续（pcall 在 listen 内部逐条兜住）
   for _, k in ipairs(KEYS) do
-    listen(k.label, k.id)
+    listen(k)
   end
 end
 

@@ -45,6 +45,7 @@ const S_INIT = 1207959561n // 初始化标记（0=未初始化）
 const S_LASTSEQ = 1207959564n // 已消费的输入序号（= 服务器 fb_seq）
 const S_PPX = 1207959563n // 上拍玩家 x（差分算玩家速度）
 const S_PPZ = 1207959566n // 上拍玩家 z
+const S_COOLDOWN = 1207959568n // 抢断/解围后的带球抑制截止拍（tick < 它 ⇒ 球不吸附）
 
 // ———— 输入源：服务器图 kitListen 挂在丘丘人实体上，fb_seq/fb_key 写在那儿 ————
 const CARRIER_GUID = 1082130445n
@@ -208,43 +209,121 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       mode.set(4n)
     },
     () => {
-      // ———— ① 踢球：按 fb_key 选踢法（1 轻射 / 2 重射 / 3 高吊）————
+      // ———— ① 动作分发（P0：有球=射门/传球，无球=抢断/解围/停球）————
+      const ballToPlayer = f._3dVectorModuloOperation(
+        f.create3dVector(f.subtraction(bx.value, pP.xComponent), 0.0, f.subtraction(bz.value, pP.zComponent))
+      )
+      const speedAct = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      const hasBall = f.logicalAndOperation(f.lessThan(ballToPlayer, DRIBBLE_R), f.lessThan(speedAct, 8.0))
+      const cooldownNow = f.dataTypeConversion(f.querySkillVariableValue(S_COOLDOWN), 'int')
+      const canDribbleAfterTackle = f.greaterThanOrEqualTo(tick, cooldownNow)
+
       f.doubleBranch(
         kickNow,
         () => {
           f.doubleBranch(
-            f.equal(keyRaw, 2n),
+            hasBall,
             () => {
-              vx.set(f.multiplication(dirX, KICK_HEAVY_SPD))
-              vz.set(f.multiplication(dirZ, KICK_HEAVY_SPD))
-              vy.set(KICK_HEAVY_LIFT)
-              wx.set(0.0)
-              wy.set(KICK_HEAVY_SPIN)
-              wz.set(0.0)
-            },
-            () => {
+              // ——— 有球：五个键 = 五种出球 ———
+              f.doubleBranch(
+                f.equal(keyRaw, 1n),
+                () => {
+                  vx.set(f.multiplication(dirX, 10.0))
+                  vz.set(f.multiplication(dirZ, 10.0))
+                  vy.set(1.2)
+                  wy.set(0.0)
+                },
+                () => {}
+              )
+              f.doubleBranch(
+                f.equal(keyRaw, 2n),
+                () => {
+                  vx.set(f.multiplication(dirX, 16.0))
+                  vz.set(f.multiplication(dirZ, 16.0))
+                  vy.set(2.0)
+                  wy.set(10.0)
+                },
+                () => {}
+              )
               f.doubleBranch(
                 f.equal(keyRaw, 3n),
                 () => {
-                  vx.set(f.multiplication(dirX, KICK_LOB_SPD))
-                  vz.set(f.multiplication(dirZ, KICK_LOB_SPD))
-                  vy.set(KICK_LOB_LIFT)
-                  wx.set(0.0)
+                  vx.set(f.multiplication(dirX, 7.0))
+                  vz.set(f.multiplication(dirZ, 7.0))
+                  vy.set(7.0)
                   wy.set(0.0)
-                  wz.set(0.0)
                 },
+                () => {}
+              )
+              f.doubleBranch(
+                f.equal(keyRaw, 4n),
                 () => {
-                  vx.set(f.multiplication(dirX, KICK_LIGHT_SPD))
-                  vz.set(f.multiplication(dirZ, KICK_LIGHT_SPD))
-                  vy.set(KICK_LIGHT_LIFT)
-                  wx.set(0.0)
+                  vx.set(f.multiplication(dirX, 12.0))
+                  vz.set(f.multiplication(dirZ, 12.0))
+                  vy.set(0.3)
                   wy.set(0.0)
-                  wz.set(0.0)
-                }
+                },
+                () => {}
+              )
+              f.doubleBranch(
+                f.equal(keyRaw, 5n),
+                () => {
+                  // 弧线球：侧旋左右交替（按拍号奇偶）
+                  const mod2 = f.dataTypeConversion(f.division(f.dataTypeConversion(tick, 'float'), 2.0), 'int')
+                  const odd = f.equal(f.multiplication(mod2, 2n), tick)
+                  const sign = f.localVariable('float')
+                  f.doubleBranch(odd, () => { sign.set(1.0) }, () => { sign.set(-1.0) })
+                  vx.set(f.multiplication(dirX, 14.0))
+                  vz.set(f.multiplication(dirZ, 14.0))
+                  vy.set(1.5)
+                  wy.set(f.multiplication(sign.value, 14.0))
+                },
+                () => {}
+              )
+              mode.set(0n)
+            },
+            () => {
+              // ——— 无球：抢断 / 解围 / 停球 ———
+              f.doubleBranch(
+                f.logicalAndOperation(f.equal(keyRaw, 1n), f.lessThan(ballToPlayer, 2.5)),
+                () => {
+                  vx.set(f.multiplication(dirX, 7.0))
+                  vz.set(f.multiplication(dirZ, 7.0))
+                  vy.set(1.5)
+                  wy.set(0.0)
+                  f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
+                  mode.set(0n)
+                },
+                () => {}
+              )
+              f.doubleBranch(
+                f.logicalAndOperation(f.equal(keyRaw, 2n), f.lessThan(ballToPlayer, 3.0)),
+                () => {
+                  vx.set(f.multiplication(dirX, 20.0))
+                  vz.set(f.multiplication(dirZ, 20.0))
+                  vy.set(4.0)
+                  wy.set(0.0)
+                  f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
+                  mode.set(0n)
+                },
+                () => {}
+              )
+              f.doubleBranch(
+                f.logicalAndOperation(
+                  f.equal(keyRaw, 3n),
+                  f.logicalAndOperation(f.lessThan(ballToPlayer, 2.5), f.greaterThan(speedAct, 6.0))
+                ),
+                () => {
+                  vx.set(f.multiplication(vx.value, 0.12))
+                  vz.set(f.multiplication(vz.value, 0.12))
+                  vy.set(0.0)
+                  wy.set(0.0)
+                  mode.set(4n)
+                },
+                () => {}
               )
             }
           )
-          mode.set(0n)
           f.setSkillVariable(S_LASTSEQ, f.dataTypeConversion(drv.value, 'float'))
         },
         () => {}
@@ -263,7 +342,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
       const dribble = f.logicalAndOperation(
         f.logicalNotOperation(kickNow),
-        f.logicalAndOperation(f.lessThan(distTarget, DRIBBLE_R), f.lessThan(speed0, 8.0))
+        f.logicalAndOperation(
+          canDribbleAfterTackle,
+          f.logicalAndOperation(f.lessThan(distTarget, DRIBBLE_R), f.lessThan(speed0, 8.0))
+        )
       )
       f.doubleBranch(
         dribble,
@@ -279,6 +361,27 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           wy.set(0.0)
           wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
           mode.set(5n)
+        },
+        () => {}
+      )
+
+      // ———— ②b 拦截（自动，无需按键）：球以 >6m/s 撞进 0.9m 且朝我飞来 ⇒ 沿法线反弹 ————
+      const relLen = f.addition(ballToPlayer, 0.0001)
+      const nX = f.division(f.subtraction(bx.value, pP.xComponent), relLen)
+      const nZ = f.division(f.subtraction(bz.value, pP.zComponent), relLen)
+      const vDotN = f.addition(f.multiplication(vx.value, nX), f.multiplication(vz.value, nZ))
+      const hitBody = f.logicalAndOperation(
+        f.greaterThan(speed0, 6.0),
+        f.logicalAndOperation(f.lessThan(ballToPlayer, 0.9), f.lessThan(vDotN, 0.0))
+      )
+      f.doubleBranch(
+        f.logicalAndOperation(f.logicalNotOperation(dribble), hitBody),
+        () => {
+          // v' = v − 1.6·(v·n)·n，再整体 0.7 衰减（身体挡球，不是满弹）
+          vx.set(f.multiplication(f.subtraction(vx.value, f.multiplication(f.multiplication(vDotN, 1.6), nX)), 0.7))
+          vz.set(f.multiplication(f.subtraction(vz.value, f.multiplication(f.multiplication(vDotN, 1.6), nZ)), 0.7))
+          vy.set(f.multiplication(vy.value, 0.7))
+          mode.set(1n)
         },
         () => {}
       )

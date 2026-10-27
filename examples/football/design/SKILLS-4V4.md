@@ -2,6 +2,9 @@
 
 > doc-type: D · status: 待裁决 · updated: 2026-10-27
 > 作者=主线代理 · 读者=用户（裁决哪些进 P0）+ 后续实现者
+> **2026-10-27 P0 第一轮已实现（客户端图 421 节点 / Lua 5 键）**：A1 带球、A2 停球、B1 短传、
+> C1 推射、C2 抽射(侧旋)、C3 吊射、C4 弧线(左右交替)、D1 抢断(带 0.5s 吸附抑制)、D2 拦截(自动反弹)、D4 解围；
+> **E1 换人未做**（要服务端切控制权 + 相机，属多人层）。键位见下表「键位映射」。
 > 本文只做**技能面设计**与实现通道判断，不含最终数值平衡（数值随真机手感迭代）。
 > 现行技术底座：客户端造物（打手丘丘人 1082130445）算物理 → 信号 → 服务端 `kitRender` 给真足球
 > 1077936135 施运动器；输入走 Lua `fb-input.lua` → `fb_input(key,state)` → 服务端写入 `fb_seq/fb_key`。
@@ -113,6 +116,17 @@ P2（可选，趣味向）：B5 回做 / B6 花式 / E3 表情。
 | 不能移动玩家自身 | D3 | 服务端给玩家挂运动器（**当前未验证**） |
 | 没有门将角色 | D5 D6 | 角色绑定 + 判定窗口状态机 |
 | 没有队伍/角色切换 | E1 E2 E4 | 服务端队伍表 + 切换信号 |
+
+## 4.5 键位映射（P0 第一轮实装，Lua 双绑定：动作键优先，工匠键兜底）
+
+| keyId | 动作键 | 工匠兜底键 | 有球 | 无球 |
+|---|---|---|---|---|
+| 1 | 普攻/鼠标左键 (`KeyboardNormalAttackKeyDown`) | `KeyboardCraftspersonKey1Down` | 推射 10m/s | 抢断（2.5m 内，7m/s + 0.5s 不吸附） |
+| 2 | 技能1/E (`KeyboardCharacterSkill1KeyDown`) | `KeyboardCraftspersonKey2Down` | 抽射 16m/s + 侧旋 10 | 解围（3m 内，20m/s） |
+| 3 | 跳跃/空格 (`KeyboardJumpKeyDown`) | `KeyboardCraftspersonKey3Down` | 吊射 7m/s + 上抛 7 | 停球（掐掉 88% 速度） |
+| 4 | 冲刺/Shift (`KeyboardSprintKeyDown`) | `KeyboardCraftspersonKey4Down` | 短传 12m/s 地滚 | — |
+| 5 | 交互/F (`KeyboardInteractKeyDown`) | `KeyboardCraftspersonKey5Down` | 弧线球 14m/s + 侧旋 ±14（左右交替） | — |
+| 自动 | — | — | — | 拦截：球 >6m/s 撞进 0.9m 且朝我飞来 ⇒ 沿法线反弹 |
 
 ## 5. 4v4 必须先拍的三个多人问题（技能设计绕不过）
 
