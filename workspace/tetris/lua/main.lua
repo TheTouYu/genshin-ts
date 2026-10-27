@@ -517,12 +517,7 @@ local UI_STYLE = {
 local function applyStyle(name, ctl)
   local st = UI_STYLE[name]
   if not ctl or not st then return end
-  if st.font then
-    -- v2.6：字号随画布 scale（大画布字不显小）；SC=1 时 floor+0.5 还原原值（用例零影响）
-    local f = math.floor(st.font * (NUM.SC or 1) + 0.5)
-    if f < 12 then f = 12 end
-    trySet(ctl, 'fontSize', f)
-  end
+  if st.font then trySet(ctl, 'fontSize', st.font) end
   if st.color then trySet(ctl, 'fontColor', st.color) end
   if st.bg then trySet(ctl, 'bgColor', st.bg) end
   if st.align then trySet(ctl, 'horizontalAlignment', st.align) end
@@ -2481,8 +2476,6 @@ end
 local function placeBoard(inst, ox)
   local save = g
   g = inst
-  -- v2.6：盘心偏移随画布 scale（1600 下 ±280 不缩会让两盘重叠——盘宽随 PITCH 已放大）
-  ox = math.floor(ox * (NUM.SC or 1) + 0.5)
   g.boardOX = ox
   if g.cells then
     for i = 1, #g.cells do
@@ -3180,17 +3173,6 @@ function OnStart()
 
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
-  -- v2.6 画布自适应：以 1280×720 为基准等比缩放。pc-16-9=1600×900 → SC=1.25（用户主画布）；
-  -- mobile-16-9=1280×720 → SC=1（34 用例零影响）。CELL/GAP/PITCH 在实例化前重赋
-  -- （local upvalue 语义：placeBoard/layout/抖屏基准 cellBX/BY 全部自动跟随缩放）。
-  local SC = math.min(W / 1280, H / 720)
-  if SC < 0.5 then SC = 0.5 end
-  if SC > 2 then SC = 2 end
-  NUM.SC = SC
-  CELL = math.floor(CELL * SC + 0.5)
-  GAP = math.max(1, math.floor(GAP * SC + 0.5))
-  PITCH = CELL + GAP
-  print('scale=' .. string.format('%.3f', SC) .. ' cell=' .. CELL)
 
   -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
   local isMobile = true
