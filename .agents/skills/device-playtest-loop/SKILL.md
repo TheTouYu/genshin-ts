@@ -400,6 +400,7 @@ xdotool getmouselocation        # 看它报的 window: 字段
 | **`ys-safe-rm`** | 安全删文件 | realpath 解析 + 拒未展开 glob/`$` + 保护 `/`、家目录、仓库根、cwd 及其祖先、`.git`、系统目录；目录必须 `-r` |
 | **`ys-slot-check`** | **执行域自检**（槽内/槽外能力对账） | 20~24ms；`--in-slot/--outside` 断言域、`--lint '<cmd>'` 动作前审（`ABS-STALE`/`CLIP-NO-DISPLAY`/`SELFKILL`）、`--need cap,...` 前置闸门；期望写在 `domain.json` |
 | **`ys-env.sh`** | 源出桌面环境变量（`DISPLAY`/`XAUTHORITY`/`YDOTOOL_SOCKET`） | 每个 `ys-*` 脚本开头都会 source。**槽内/槽外是两套环境**：槽外设的剪贴板进不了槽（见「受控槽内的环境边界」）；手跑命令前先 `. tools/ys-editor/ys-env.sh`，否则 `xdotool`/`xclip` 报 `DISPLAY is empty` |
+| **`ys-list-collect`** | **折叠类目列表全量采集器**（内置两层续期/前台断言/索引连号校验/原子增量落盘） | `--category <类> --prefix <索引前缀> --drag 260 --task <task>`；必须在槽内跑 |
 | **`ys-gates`** | **六门槛唯一验收器**（能力层过没过，一条命令给读数） | `./tools/ys-gates` 退出码 0 只在全 PASS（1=有 FAIL / 2=有 BLOCKED）；六条=①判定回归 ②假成功 ③性能 ④证据 ⑤单一源 ⑥操作目录；**不重实现任何判据**，只聚合；契约 `docs/maintenance/gui-gate-contract-2026-10-17.md` |
 | **`ys-wait`** | **谓词等待**（禁裸 sleep 的执行体） | `ys-wait --until '<命令>' --expect <值> --timeout N --poll 0.3`；命令失败/超时即非零退出并打印最后读数（别用 `sleep N` 冒充同步） |
 | **`ys-nav`** | 状态驱动的编辑器导航 | 判据全部委托 `ys-state`（本文件无坐标/阈值）；替代旧的 `ys-ui-state`(11.2s)/`ys-map where`(13.5s) 慢路径 |
@@ -1105,3 +1106,4 @@ ys-capture status | jq .state.audit                    # stale_events / verdict 
 
 **别做**：把「画面没变」直接解释成「游戏没反应」；也不要再给采集脚本加固定等待来"绕开"停滞。
 | 2026-10-26 | **窗口优先 + 帧可信（开工三问）**：`ys-capture latest` 只给守护那一窗（默认原神），编辑器任务必须 `grab --target editor`；`crc/content.id` 变化 ≠ 画面有效（MangoHud 计时器让冻结帧也"在变"）；实测 0x1000003 两帧差 0.1%（冻结）、0x2200008 静默静止（正常）。文档加"开工三问"并把 `grab --target` 写进工具地图与采集配方 |
+| 2026-10-27 | 新增「长任务/批量采集的工程纪律」六条（两层续期 / 前台断言 / 原子写+配额 / 真假到底 / OCR 漏行先看图 / 可续跑）+ 工具 `ys-list-collect`；实测全库 1196 条（六类零缺号） |
