@@ -21,6 +21,7 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
   ArrowUp/W     -> KeyboardCraftspersonKey36Down / KeyboardMoveForwardKeyDown 顺时针旋转
   ArrowDown/S   -> KeyboardCraftspersonKey37Down / KeyboardMoveBackwardKeyDown 软降
   Space         -> KeyboardJumpKey            硬降
+  G             -> KeyboardCraftspersonKey14  Hold 暂存（工匠槽 14；模拟器键池无字母 C，见 key-bindings.js）
   R             -> KeyboardCharacterSkill3Key 重开
   Q             -> KeyboardCharacterSkill2Key 真结算（发服务端信号 tetris_settle → 官方结算页）
   H             -> KeyboardCharacterSkill1Key 键位表（暂停开关；真机若不认则无害，右栏常驻键位卡兜底）
@@ -80,6 +81,13 @@ local NUM = {
   FLASH          = { 0.10, 0.13, 0.17, 0.22 },  -- 消行闪白时长（1/2/3/4 行；恒 < 抖屏时长，docs §5.1）
   LEVEL_TIP      = 1.2,     -- 升级提示持续秒数（docs §5.3）
   COMBO_TIP      = 0.8,     -- 连击提示持续秒数（docs §5.4）
+  HOLD_KEY       = 'KeyboardCraftspersonKey14Down',  -- T3 Hold 键=G（工匠槽 14；模拟器键池无字母 C，
+                    -- 见 studio/play/key-bindings.js craftCodes[14]='KeyG'；双屏 P1 侧 Hold 同用 G）
+  -- T3 Hold 槽状态（子表挂 NUM——main 函数 200 个 local 已满，实测加 1 个 local 即爆
+  -- `too many local variables (limit is 200)`）：
+  --   name = 槽内块名（nil=空槽）；bag = 入槽时块所属袋序（换出块日志沿用原袋序）
+  --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
+  ST = { name = nil, bag = 0, can = true },
 }
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
@@ -722,6 +730,19 @@ local function renderNext()
       ctl.imageColor = dimColor(s2.color, 1)
     end
   end
+  -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
+  if preview[9] then
+    for i = 9, 12 do preview[i].imageColor = COL_BG end
+    if NUM.ST.name then
+      local sh = SHAPES[NUM.ST.name]
+      for i = 1, 4 do
+        local ctl = preview[8 + i]
+        local r, c = sh.cells[i][1], sh.cells[i][2]
+        ctl:SetAnchoredPosition(-RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
+        ctl.imageColor = NUM.ST.can and sh.color or dimColor(sh.color, 1)
+      end
+    end
+  end
 end
 
 renderHud = function()
@@ -763,10 +784,12 @@ collides = function(cs, px, py)
   return false
 end
 
-spawn = function()
-  local name = nextName or 'T'
-  local nameBag = nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
-  nextName, nextBag = takeFromBag()
+spawn = function(overrideName, overrideBag)
+  -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序，
+  -- 日志加 holdswap=1 尾标供用例区分自然出块与槽换出块）；自然出块（无参）才 takeFromBag。
+  local name = overrideName or nextName or 'T'
+  local nameBag = overrideBag or nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
+  if not overrideName then nextName, nextBag = takeFromBag() end
   local s = SHAPES[name]
   piece = {
     name = name, n = s.n, color = s.color,
@@ -775,7 +798,8 @@ spawn = function()
     x = (COLS - s.n) // 2 + 1,
     y = 1,
   }
-  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
+  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y
+    .. (overrideName and ' holdswap=1' or ''))
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
     print('gameover score=' .. score)
@@ -888,6 +912,7 @@ doLock = function()
   end
   pieceCount = pieceCount + 1
   print('lock ' .. piece.name .. ' cells=' .. table.concat(landed, ','))
+  NUM.ST.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
   local cleared = clearLines()
   if cleared == 0 then
     combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
@@ -950,6 +975,13 @@ local function rotate()
   end
 end
 
+-- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
+-- 实现内联在 OnStart 键位监听（listen(NUM.HOLD_KEY, ...)）里——main 函数 200 个 local 已满，
+-- 连 local function doHold 都加不进去（实测 lua5.3 报 too many local variables at :1646）；
+-- 闭包体内的 local 独立计数不受 main 上限约束。
+-- canHold 闸（NUM.ST.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
+-- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
+
 local function newGame()
   board = {}
   for r = 1, ROWS do
@@ -969,6 +1001,7 @@ local function newGame()
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
   bagQ, bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
+  NUM.ST.name, NUM.ST.bag, NUM.ST.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
   nextName, nextBag = takeFromBag()   -- 第一块
   spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
@@ -981,7 +1014,7 @@ end
 
 local function showKeymap()
   -- 单行，走 1100px 宽的横幅（textbox 是否支持 \n 换行未验证，不赌）
-  setText(botBanner, '← → 移动　　↑ 旋转　　↓ 落下　　空格 直落　　R 重开')
+  setText(botBanner, '← → 移动　　↑ 旋转　　↓ 落下　　空格 直落　　G 暂存　　R 重开')
   setText(hint, 'H 继续游戏')
 end
 
@@ -1729,13 +1762,15 @@ function OnStart()
   overlay = nil
 
   -- NEXT 预览：第一块 4 格（18px）；T2 第二块 4 格（14px 缩略、55% 亮度，renderNext 排第一块下方）
+  -- T3 Hold 槽复用本表：preview[9..12] = hold1-4（18px，左栏镜像位；不另开 local——200 上限已满）
   preview = {}
-  for i = 1, 8 do
+  for i = 1, 12 do
     local c = game.InstantiateClientUIControl(tplGuid, root)
     if c then
-      c.name = 'next' .. i
-      c:SetSizeDelta(i <= 4 and 18 or 14, i <= 4 and 18 or 14)
-      c:SetAnchoredPosition(400, i <= 4 and 175 or 100)
+      c.name = i <= 8 and ('next' .. i) or ('hold' .. i - 8)
+      c:SetSizeDelta(i <= 4 and 18 or i <= 8 and 14 or 18, i <= 4 and 18 or i <= 8 and 14 or 18)
+      c:SetAnchoredPosition(i <= 4 and 400 or i <= 8 and 400 or -400,
+        i <= 4 and 175 or i <= 8 and 100 or 175)
       c.imageColor = COL_BG
     end
     preview[i] = c
@@ -1798,6 +1833,23 @@ function OnStart()
   listen('KeyboardCraftspersonKey39Down', act(function() moveBy(1) end))    -- →
   listen('KeyboardCraftspersonKey36Down', act(rotate))     -- ↑
   listen('KeyboardCraftspersonKey37Down', act(function() stepDown(true) end))   -- ↓（软降计分）
+  listen(NUM.HOLD_KEY, act(function()            -- G 暂存（工匠槽 14）；实现见上方 T3 注释
+    if gameOver or not piece or not NUM.ST.can then return end
+    NUM.ST.can = false
+    local cur, curBag = piece.name, nextBag
+    local outName, outBag
+    if NUM.ST.name then
+      outName, outBag = NUM.ST.name, NUM.ST.bag   -- 槽内有块：换出
+    end
+    NUM.ST.name, NUM.ST.bag = cur, curBag or 0
+    print('hold in=' .. cur .. ' out=' .. (outName or '-'))
+    sfx(SFX.rotate)
+    if outName then
+      spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
+    else
+      spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
+    end
+  end))
   listen('KeyboardJumpKeyDown', act(function()             -- Space
     if gameOver or not piece then return end
     local dropped = 0
