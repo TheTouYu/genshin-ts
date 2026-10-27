@@ -1,0 +1,59 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "34 垃圾行顶推不判负（AI 盘收 9 轮垃圾仍活着——修复「结束判定提早」）",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey2Down" },
+    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey2Up" },
+    { "t": 1.5, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 1.52, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 6.0, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 6.02, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 6.5, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 6.52, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 7.4, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 7.42, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 7.9, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 7.92, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 8.8, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 8.82, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 9.3, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 9.32, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 10.2, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 10.22, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 10.7, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 10.72, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 11.6, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 11.62, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 12.1, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 12.12, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 13.0, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 13.02, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 13.5, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 13.52, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 14.4, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 14.42, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 14.9, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 14.92, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 15.8, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 15.82, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyUp" },
+    { "t": 16.3, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 16.32, "kind": "key", "typeName": "KeyboardJumpKeyUp" }
+  ],
+  "asserts": [
+    {
+      "at": 22,
+      "kind": "log",
+      "contains": "garbage n=",
+      "source": "client"
+    },
+    {
+      "at": 22,
+      "kind": "lua",
+      "source": "local logs = query.logs()\nlocal garb, go = 0, 0\nfor _, l in ipairs(logs) do\n  if l:match('^garbage n=') then garb = garb + 1 end\n  if l:match('gameover') or l:match('mode over') then go = go + 1 end\nend\nassert(garb >= 5, 'garbage rounds=' .. garb .. ' want >=5')\nassert(go == 0, 'gameover/mode over appeared: ' .. go .. ' —— garbage topout must NOT end game (v2.6 fix)')\nreturn true"
+    }
+  ],
+  "note": "v2.6 判负修复回归（用户「AI 操控时结束判定提早，实际还能玩」）：玩家 T 填行+硬降循环 8 轮（每轮 2 消送 AI 盘 1 行垃圾，实测 garbage ×9）——AI 盘活动块被反复上顶，但修复后（raiseGarbage 不再立即判负）整局零 gameover/mode over。真 topout（spawn 碰撞）仍判负的回归面由既有 06-gameover-restart 承接（spawn 判定 v1 起未动）。"
+}

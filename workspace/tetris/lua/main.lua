@@ -1955,11 +1955,10 @@ raiseGarbage = function(target, n)
     while g.piece.y > 1 and collides(g.piece.cells, g.piece.x, g.piece.y) do
       g.piece.y = g.piece.y - 1
     end
-    if collides(g.piece.cells, g.piece.x, g.piece.y) then
-      g.gameOver = true
-      print('gameover score=' .. g.score)
-      showGameOver()
-    end
+    -- v2.6 判负修复（用户「AI 操控时结束判定提早，实际还能玩」）：垃圾行顶推后不再立即判负——
+    -- 旧判定只查当前块所在列（垃圾行 hole 列明明有空间也死）且非标准（标准 topout=新块
+    -- spawn 不可放，不是活动块被顶）。被顶碰撞/嵌入的块交给 LD 锁定延迟路径：重力 tick 发现
+    -- 触底即启动 0.5s 延迟，玩家可横移自救；真正无路可走时锁定 → 下一块走标准 spawn 判定兜底。
   end
   renderAll()
   renderPiece()
