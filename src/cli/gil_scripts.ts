@@ -50,9 +50,22 @@ function registryContainerFields(payload: Uint8Array): WireField[] | null {
   if (!registry) return null
   const direct = parseWireMessage(registry.value as Uint8Array)
   if (!direct) throw new Error('[error] malformed script registry container (f50)')
-  if (direct.some((f) => f.number === 1 && f.wire === 2)) return direct
+  // 判据按「是不是旧三层形态」，不按「有没有条目」：编辑器保存过、但从未导入过脚本的图，
+  // 顶层 f50 内容就是**空容器** `{f2:1}`（2026-10-27 真图 1073741827 实证）。
+  // 旧写法见不到 f1 条目就去找内层 f50 → 对空登记表误报 `wrapper has no inner f50`，
+  // 让 register/list 在这类真图上完全无法自举（连「新建登记表」都走不到）。
+  // 非旧三层形态时按容器本体返回；但内容只认容器两种字段（f1 条目 / f2 尾标记），
+  // 其它形态仍 fail-closed，避免把「别的语义的 f50」当登记表写坏。
   const inner = direct.find((f) => f.number === SCRIPT_REGISTRY_FIELD && f.wire === 2)
-  if (!inner) throw new Error('[error] script registry wrapper has no inner f50')
+  if (!inner) {
+    const looksLikeContainer = direct.every(
+      (f) => (f.number === 1 && f.wire === 2) || (f.number === 2 && f.wire === 0)
+    )
+    if (!looksLikeContainer) {
+      throw new Error('[error] script registry wrapper has no inner f50')
+    }
+    return direct
+  }
   const container = parseWireMessage(inner.value as Uint8Array)
   if (!container) throw new Error('[error] malformed script registry container')
   return container

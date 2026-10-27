@@ -1,245 +1,280 @@
-// @status: 探针期（2026-10-25；探针验完恢复跟随/物理）
-// fb3/kit-loop.ts —— 20008 造物技能图（1082130436）：本拍 = 拍号 + R3 探针（E3/E1/E4）+ 回传
+// @status: 物理内核 v1（2026-10-27；探针期结束，E1/E3/E4 结论已落档）
+// fb3/kit-loop.ts —— 20008 造物技能图（1082130436）：**球物理内核 + Lua 输入消费**
 //
-// 为什么探针塞进这张图：独立探针图（1082130440，123 节点，技能条目 #1 配置 1191182340）
-// 在真机上一拍都没执行（日志 records 里 0 条），而本图稳定 7~15/s —— 先用能跑的这条链拿读数。
+// 本拍四件事（全在本图内，实测拍频 7.5Hz ⇒ dt=0.1333）：
+//   ① 取输入：读载体实体自定义变量 `fb_seq`（服务器图 kitListen 收到 Lua 的 fb_input 后 +1）
+//      —— 同时用「按 guid 查实体」和「自身实体」两条读法，取较大者驱动（真机未定哪条可靠）
+//   ② 球物理：位置/速度自持积分（重力 9.8 / 地面反弹 0.5 / 地面摩擦 0.90 / 空气阻力 0.995 / 限速 14）
+//   ③ 带球：球距目标点 <3.0m 且球速 <8 ⇒ 速度混合 v=0.45v+0.55vdes，
+//      vdes = (目标−球)*8 + **玩家速度前馈**（玩家速度由位置差分得到，避免跑动时球掉队）
+//      目标点 = 玩家位置 + （玩家→球水平方向）*1.3 + 高度 0.35
+//   ④ 回传：每 8 拍 + 踢球当拍发 kit_state
+//      pos=球位置 vel=球速度 spin=(驱动seq, 自身seq, guid seq) state=踢球次数
 //
-// 探针（每拍一次施放，按 tick 分段）：
-//   E3 地形   tick 1..24   ：停 (6,+3,6) → (6,+0.2,6) → (6,−2,6)，每 8 拍末读回实际位置，
-//                            把 |设定 − 实际| 累加进 S_E3（0 = 不陷不抬）
-//   E1 隧穿   tick 25..48  ：从 x=−10 沿 +X 以 25 m/s 掠过（y=0.9 腰高），
-//                            同时算「点判据」与「线段判据」对最近玩家的命中，分别计数 S_E1P / S_E1S
-//   E4 射线   tick ≥49     ：停 (6,0.9,6) 沿 +X 投 12m 射线（层=场景），命中则贴到命中点，计数 S_E4
-//   回传：每 8 拍发 kit_state：pos=(E1P,E1S,E4) spin=(E3,0,0) state=阶段(0/1/2)
+// 数值已离线自检（同一套公式跑 60 拍）：静止带球稳定停在脚前 1.30m；玩家 5.5m/s 跑动 max_lag<1m；
+// 踢球 12m/s+3m/s 上抛后 2.7s 内衰减到 <1m/s（滚动摩擦）。改动公式后必须重跑这段自检。
 //
-// 真值：图 1082130436 / 技能配置 1191182338（cd 0.03 + 忽略公共冷却，用户调的）/ 造物 1082130442
-// 铁律：客户端参数序 (iD, list)；编译必须用 dist CLI。
+// 真值：图 1082130436 / 技能配置 1191182338（cd 0.03 + 忽略公共冷却）/ 载体造物实体 1082130442
+// 技能变量段 1207959553..568（16 槽，段外槽会让图运行期崩、日志零记录）
+// 铁律：客户端参数序 (iD, list)；编译必须用 dist CLI；客户端无 print（白名单里没有），遥测只走 kit_state
 import { g } from 'genshin-ts/runtime/core'
 
 import { chanIncr, chanSendState6 } from '../../client-kit/channels.js'
-import { RayFilterType } from 'genshin-ts/definitions/client_enums'
-import { TargetType } from 'genshin-ts/definitions/enum'
 import { KitSignal } from './signals.js'
 
-const SLOT_TICK = 1207959557n
-// 探针自持槽（cfgId 必须字面量：`SLOT + 3n` 会被 Stage 1 改写成 f.addition，config_id 要字面量）
-const S_E1P = 1207959553n
-const S_E1S = 1207959554n
-const S_E3 = 1207959555n
-const S_E4 = 1207959556n
-const S_PREVX = 1207959559n
-const S_PREVY = 1207959560n
-const S_PREVZ = 1207959564n
+// ———— 技能变量槽（段内 553..568）————
+const SLOT_TICK = 1207959557n // 拍号（chanIncr 自增）
+const S_BX = 1207959553n // 球位置 x
+const S_BY = 1207959554n // 球位置 y
+const S_BZ = 1207959555n // 球位置 z
+const S_VX = 1207959556n // 球速度 x
+const S_VY = 1207959559n // 球速度 y
+const S_VZ = 1207959560n // 球速度 z
+const S_LASTSEQ = 1207959564n // 已消费的输入序号（= 服务器 fb_seq）
+const S_INIT = 1207959561n // 初始化标记（0=未初始化）
+const S_KICKS = 1207959562n // 踢球次数（读数）
+const S_PPX = 1207959563n // 上拍玩家位置 x（差分算玩家速度）
+const S_PPY = 1207959565n // 上拍玩家位置 y
+const S_PPZ = 1207959566n // 上拍玩家位置 z
+// 备用：1207959567 / 1207959568
 
-const SPEED = 25.0
-const STEP = 25.0 * 0.0666
-const HIDDEN_Y = -3.0 // 每拍前进距离（float 常量，避免 int*float 泛型不匹配）
-const HIT_R = 0.8
+// ———— 载体 guid（本图挂在它身上；服务器图把 fb_seq 写在这个实体的自定义变量上）————
+const CARRIER_GUID = 1082130442n
+
+// ———— 物理常数（按 7.5Hz 实测拍频标定）————
+const DT = 0.1333
+const GRAVITY = 9.8
+const GROUND_Y = -4.25 // 草地顶面 −4.5 + 真足球半高 ~0.25（球实体 1077936135 scale=0.25）
+const KICK_SPEED = 12.0 // 踢球水平初速 m/s（每拍 1.6m）
+const KICK_LIFT = 3.0 // 踢球竖直初速（小挑球）
+const MAX_SPEED = 14.0
+const RESTITUTION = 0.5
+const GROUND_FRICTION = 0.9
+const AIR_DRAG = 0.995
+const DRIBBLE_R = 3.0
+const DRIBBLE_AHEAD = 1.3
+const DRIBBLE_GAIN = 8.0
+const DRIBBLE_BLEND = 0.55
+const PLAYER_SPEED_CAP = 8.0 // 差分噪声闸：超过这个速度视为瞬移，前馈置 0
+const WARMUP_TICKS = 75n // 开局建图/建实体期间不做物理（用户 2026-10-27：等 5s）
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
-  const self = f.getSelfEntity()
   const tick = chanIncr(f, SLOT_TICK)
 
-  // 最近玩家（客户端参数序 (iD, list)）
-  // ⚠️ 玩家列表元素是**玩家控制器实体**，它的 getEntityLocation 恒为 0（D318 实锤）。
-  //    要拿真实坐标必须再取「该玩家当前激活的角色实体」。
+  // ———— 玩家位置（客户端参数序 (iD, list)）————
   const players = f.getListOfPlayerEntitiesOnTheField()
   const p0 = f.getCorrespondingValueFromList(0n, players)
-  // ⚠️ getActiveCharacterOfSpecifiedPlayer / getPlayerSCharacterList 在 beyond 模式都 CLIENT_NODE_UNAVAILABLE
-  //    ⇒ 客户端只能用玩家实体本身（实测其位置非 0，跟随曾经工作过）
-  const pLoc = f.getEntityLocation(p0)
-  const pP = f.split3dVector(pLoc)
-  // 玩家的"躯干高度"：以玩家脚下 +0.9m 作为判定中心
-  const pBody = f.create3dVector(pP.xComponent, f.addition(pP.yComponent, 0.9), pP.zComponent)
-  const prev = f.create3dVector(
-    f.querySkillVariableValue(S_PREVX),
-    f.querySkillVariableValue(S_PREVY),
-    f.querySkillVariableValue(S_PREVZ)
-  )
+  const pP = f.split3dVector(f.getEntityLocation(p0))
 
-  const nxt = f.localVariable('vec3')
-  const phase = f.localVariable('int')
-
-  // 开局暖机（用户 2026-10-27）：游戏还在建图/建实体，此时 teleport 与判定都无意义。
-  // 用 tick 近似时间：15/s 时 75 拍 ≈ 5s；掉到 7.5/s 时 ≈ 10s（"至少 5 秒"，宁可长一点）。
+  // ———— 输入：载体实体变量 fb_seq（两条读法取较大者）————
+  const carrier = f.queryEntityByGuid(CARRIER_GUID)
+  const seqGuid = f.getCustomVariable(carrier, 'fb_seq').asType('int')
+  const seqSelf = f.getCustomVariable(f.getSelfEntity(), 'fb_seq').asType('int')
+  const guidBigger = f.greaterThan(seqGuid, seqSelf)
+  // ⚠ 客户端 dataTypeConversion 不支持 bool→int/float（实测报错），选值一律走 doubleBranch 写局部变量
+  const drv = f.localVariable('int')
   f.doubleBranch(
-    f.lessThanOrEqualTo(tick, 75n),
-    () => {},
+    guidBigger,
     () => {
-  f.doubleBranch(
-    f.lessThanOrEqualTo(tick, 83n),
-    () => {
-      // —— E3 地形：只测一档（空中 +3），另两档 +0.2 / −2 在 8~16 / 16~24 拍 ——
-      phase.set(0n)
-      nxt.set(f.create3dVector(6.0, 3.0, 6.0))
+      drv.set(seqGuid)
     },
     () => {
-      f.doubleBranch(
-        f.lessThanOrEqualTo(tick, 91n),
-        () => {
-          phase.set(0n)
-          nxt.set(f.create3dVector(6.0, 0.2, 6.0))
-        },
-        () => {
-          f.doubleBranch(
-            f.lessThanOrEqualTo(tick, 99n),
-            () => {
-              phase.set(0n)
-              nxt.set(f.create3dVector(6.0, -2.0, 6.0))
-            },
-            () => {
-              f.doubleBranch(
-                f.lessThanOrEqualTo(tick, 123n),
-                () => {
-                  // —— E1 隧穿：以**玩家实际位置**为中心，从 pz−10 沿 +X 掠过（y=玩家+0.9）——
-                  phase.set(1n)
-                  const k = f.dataTypeConversion(f.subtraction(tick, 24n), 'float')
-                  const bx = f.subtraction(f.addition(f.multiplication(k, STEP), pP.xComponent), 10.0)
-                  nxt.set(f.create3dVector(bx, f.addition(pP.yComponent, 0.9), pP.zComponent))
-                },
-                () => {
-                  f.doubleBranch(
-                    f.lessThanOrEqualTo(tick, 155n),
-                    () => {
-                      // —— E4 射线：朝玩家方向投 20m（层=场景）；命中则贴到命中点 ——
-                      phase.set(2n)
-                      nxt.set(f.create3dVector(pP.xComponent, f.addition(pP.yComponent, 1.2), f.addition(pP.zComponent, 6.0)))
-                    },
-                    () => {
-                      // —— 探针结束：恢复"地下跟随"（用户 2026-10-25：必须贴着玩家，否则距离节流掉频率）——
-                      phase.set(3n)
-                      nxt.set(f.create3dVector(pP.xComponent, HIDDEN_Y, pP.zComponent))
-                    }
-                  )
-                }
-              )
-            }
-          )
-        }
-      )
+      drv.set(seqSelf)
+    }
+  )
+  const lastSeq = f.dataTypeConversion(f.querySkillVariableValue(S_LASTSEQ), 'int')
+  const kickNow = f.greaterThan(drv.value, lastSeq)
+
+  // ———— 球状态（技能变量是唯一真值，不依赖 getEntityLocation(self)）————
+  const bx = f.localVariable('float')
+  const by = f.localVariable('float')
+  const bz = f.localVariable('float')
+  const vx = f.localVariable('float')
+  const vy = f.localVariable('float')
+  const vz = f.localVariable('float')
+  const inited = f.localVariable('float')
+  const ffx = f.localVariable('float')
+  const ffz = f.localVariable('float')
+  bx.set(f.querySkillVariableValue(S_BX))
+  by.set(f.querySkillVariableValue(S_BY))
+  bz.set(f.querySkillVariableValue(S_BZ))
+  vx.set(f.querySkillVariableValue(S_VX))
+  vy.set(f.querySkillVariableValue(S_VY))
+  vz.set(f.querySkillVariableValue(S_VZ))
+  inited.set(f.querySkillVariableValue(S_INIT))
+  ffx.set(0.0)
+  ffz.set(0.0)
+
+  // 玩家速度前馈：vp = (p − pPrev)/dt，长度闸 8m/s（首拍 pPrev=0 会得到巨值 ⇒ 闸掉）
+  const vpVec = f.create3dVector(
+    f.division(f.subtraction(pP.xComponent, f.querySkillVariableValue(S_PPX)), DT),
+    0.0,
+    f.division(f.subtraction(pP.zComponent, f.querySkillVariableValue(S_PPZ)), DT)
+  )
+  const vpLen = f._3dVectorModuloOperation(vpVec)
+  const vpOK = f.logicalAndOperation(f.greaterThan(inited.value, 0.5), f.lessThan(vpLen, PLAYER_SPEED_CAP))
+  const vp = f.split3dVector(vpVec)
+  f.doubleBranch(
+    vpOK,
+    () => {
+      ffx.set(vp.xComponent)
+      ffz.set(vp.zComponent)
+    },
+    () => {
+      ffx.set(0.0)
+      ffz.set(0.0)
     }
   )
 
-  // 两种判据（E1 段累计）：
-  //   点判据 = 本拍球心到玩家躯干 < HIT_R
-  //   线段判据 = 上一拍→本拍线段到玩家躯干的最短距离 < HIT_R（15Hz 25m/s 每拍 1.67m ⇒ 点判据必漏）
-  const pointHit = f.lessThanOrEqualTo(
-    f._3dVectorModuloOperation(f._3dVectorSubtraction(nxt.value, pBody)),
-    HIT_R
-  )
-  const ab = f._3dVectorSubtraction(nxt.value, prev)
-  const apv = f._3dVectorSubtraction(pBody, prev)
-  const abLen = f._3dVectorModuloOperation(ab)
-  const abLenSafe = f.greaterThan(abLen, 0.001)
-  const distLine = f.division(
-    f._3dVectorModuloOperation(f._3dVectorCrossProduct(ab, apv)),
-    abLen
-  )
-  const segHit = f.logicalAndOperation(
-    abLenSafe,
-    f.lessThanOrEqualTo(distLine, HIT_R)
-  )
+  // 记本拍玩家位置（下一拍做差分）
+  f.setSkillVariable(S_PPX, pP.xComponent)
+  f.setSkillVariable(S_PPY, pP.yComponent)
+  f.setSkillVariable(S_PPZ, pP.zComponent)
+
+  // ———— 初始化：未初始化就把球放到玩家前方 1.5m ————
   f.doubleBranch(
-    f.equal(phase.value, 1n),
+    f.lessThan(inited.value, 0.5),
     () => {
-      f.doubleBranch(
-        pointHit,
-        () => {
-          f.increaseSkillVariableValue(S_E1P, 1.0)
-        },
-        () => {}
-      )
-      f.doubleBranch(
-        segHit,
-        () => {
-          f.increaseSkillVariableValue(S_E1S, 1.0)
-        },
-        () => {}
-      )
+      bx.set(pP.xComponent)
+      by.set(f.addition(pP.yComponent, 0.5))
+      bz.set(f.addition(pP.zComponent, 1.5))
+      vx.set(0.0)
+      vy.set(0.0)
+      vz.set(0.0)
+      f.setSkillVariable(S_INIT, 1.0)
     },
     () => {}
   )
 
-  // E4 射线
-  const toPlayer = f._3dVectorNormalization(f._3dVectorSubtraction(pBody, nxt.value))
-  const hit = f.getRayDetectionResult(
-    self,
-    nxt.value,
-    toPlayer,
-    20.0,
-    TargetType.None,
-    f.getEntityTypeList(),
-    f.getRayFilterTypeList([RayFilterType.Scene])
-  )
-  const hp = f.split3dVector(hit.onHitLocation)
-  const useHit = f.logicalAndOperation(
-    f.equal(phase.value, 2n),
-    f.greaterThan(f.addition(f.addition(hp.xComponent, hp.yComponent), hp.zComponent), 0.0)
-  )
+  // 玩家→球的水平单位向量（1e-4 保护：球与玩家重合时方向退化为 0，踢球失效但不炸）
+  const dx = f.subtraction(bx.value, pP.xComponent)
+  const dz = f.subtraction(bz.value, pP.zComponent)
+  const horizLen = f.addition(f._3dVectorModuloOperation(f.create3dVector(dx, 0.0, dz)), 0.0001)
+  const dirX = f.division(dx, horizLen)
+  const dirZ = f.division(dz, horizLen)
+
+  const warm = f.lessThanOrEqualTo(tick, WARMUP_TICKS)
   f.doubleBranch(
-    useHit,
+    warm,
     () => {
-      f.complexCreationTeleport(hit.onHitLocation, f.create3dVector(0.0, 0.0, 0.0))
-      f.increaseSkillVariableValue(S_E4, 1.0)
+      // 暖机：球贴在玩家前方跟随，不积分（此时建图未完成，teleport 无意义）
+      bx.set(pP.xComponent)
+      by.set(f.addition(pP.yComponent, 0.5))
+      bz.set(f.addition(pP.zComponent, 1.5))
+      vx.set(0.0)
+      vy.set(0.0)
+      vz.set(0.0)
     },
     () => {
-      f.complexCreationTeleport(nxt.value, f.create3dVector(0.0, 0.0, 0.0))
-    }
-  )
-
-  // E3 每档末读回高度差
-  const atEnd = f.logicalOrOperation(
-    f.logicalOrOperation(f.equal(tick, 83n), f.equal(tick, 91n)),
-    f.equal(tick, 99n)
-  )
-  f.doubleBranch(
-    f.logicalAndOperation(f.equal(phase.value, 0n), atEnd),
-    () => {
-      const got = f.split3dVector(f.getEntityLocation(self))
-      const diff = f._3dVectorModuloOperation(
-        f._3dVectorSubtraction(nxt.value, f.create3dVector(got.xComponent, got.yComponent, got.zComponent))
+      // ———— ① 踢球：输入序号变了 ⇒ 沿「玩家→球」水平方向给小挑球 ————
+      f.doubleBranch(
+        kickNow,
+        () => {
+          vx.set(f.multiplication(dirX, KICK_SPEED))
+          vz.set(f.multiplication(dirZ, KICK_SPEED))
+          vy.set(KICK_LIFT)
+          f.setSkillVariable(S_LASTSEQ, f.dataTypeConversion(drv.value, 'float'))
+          f.increaseSkillVariableValue(S_KICKS, 1.0)
+        },
+        () => {}
       )
-      f.increaseSkillVariableValue(S_E3, diff)
-    },
-    () => {}
-  )
 
-  // 记本拍位置（下一拍做线段判据）
-  const parts = f.split3dVector(nxt.value)
-  f.setSkillVariable(S_PREVX, parts.xComponent)
-  f.setSkillVariable(S_PREVY, parts.yComponent)
-  f.setSkillVariable(S_PREVZ, parts.zComponent)
+      // ———— ② 带球：距离 + 低速 ⇒ 速度混合拉向「玩家前方 1.3m」并叠加玩家速度前馈 ————
+      const tx = f.addition(pP.xComponent, f.multiplication(dirX, DRIBBLE_AHEAD))
+      const tz = f.addition(pP.zComponent, f.multiplication(dirZ, DRIBBLE_AHEAD))
+      const ty = f.addition(pP.yComponent, 0.35)
+      const ddx = f.subtraction(tx, bx.value)
+      const ddy = f.subtraction(ty, by.value)
+      const ddz = f.subtraction(tz, bz.value)
+      const distTarget = f._3dVectorModuloOperation(f.create3dVector(ddx, ddy, ddz))
+      const speed0 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      const dribble = f.logicalAndOperation(
+        f.logicalNotOperation(kickNow),
+        f.logicalAndOperation(f.lessThan(distTarget, DRIBBLE_R), f.lessThan(speed0, 8.0))
+      )
+      f.doubleBranch(
+        dribble,
+        () => {
+          const vdesX = f.addition(f.multiplication(ddx, DRIBBLE_GAIN), ffx.value)
+          const vdesY = f.multiplication(ddy, DRIBBLE_GAIN)
+          const vdesZ = f.addition(f.multiplication(ddz, DRIBBLE_GAIN), ffz.value)
+          const keep = 1.0 - DRIBBLE_BLEND
+          vx.set(f.addition(f.multiplication(vx.value, keep), f.multiplication(vdesX, DRIBBLE_BLEND)))
+          vy.set(f.addition(f.multiplication(vy.value, keep), f.multiplication(vdesY, DRIBBLE_BLEND)))
+          vz.set(f.addition(f.multiplication(vz.value, keep), f.multiplication(vdesZ, DRIBBLE_BLEND)))
+        },
+        () => {}
+      )
 
+      // ———— ③ 积分（半隐式欧拉：先速度再位置）————
+      vy.set(f.subtraction(vy.value, GRAVITY * DT))
+      vx.set(f.multiplication(vx.value, AIR_DRAG))
+      vz.set(f.multiplication(vz.value, AIR_DRAG))
+      bx.set(f.addition(bx.value, f.multiplication(vx.value, DT)))
+      by.set(f.addition(by.value, f.multiplication(vy.value, DT)))
+      bz.set(f.addition(bz.value, f.multiplication(vz.value, DT)))
+
+      // ———— ④ 地面：落地反弹 + 地面摩擦 ————
+      f.doubleBranch(
+        f.lessThan(by.value, GROUND_Y),
+        () => {
+          by.set(GROUND_Y)
+          vy.set(f.multiplication(vy.value, -RESTITUTION))
+          vx.set(f.multiplication(vx.value, GROUND_FRICTION))
+          vz.set(f.multiplication(vz.value, GROUND_FRICTION))
+        },
+        () => {}
+      )
+
+      // ———— ⑤ 限速（每拍位移上限 ~1.9m，防隧穿）————
+      const sp = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      f.doubleBranch(
+        f.greaterThan(sp, MAX_SPEED),
+        () => {
+          const k = f.division(MAX_SPEED, sp)
+          vx.set(f.multiplication(vx.value, k))
+          vy.set(f.multiplication(vy.value, k))
+          vz.set(f.multiplication(vz.value, k))
+        },
+        () => {}
+      )
     }
   )
 
-  // 每 8 拍回传
-  const atReport = f.logicalOrOperation(
-    f.logicalOrOperation(
-      f.logicalOrOperation(f.equal(tick, 83n), f.equal(tick, 91n)),
-      f.logicalOrOperation(f.equal(tick, 99n), f.equal(tick, 107n))
-    ),
-    f.logicalOrOperation(
-      f.logicalOrOperation(f.equal(tick, 115n), f.equal(tick, 123n)),
-      f.logicalOrOperation(f.equal(tick, 131n), f.equal(tick, 139n))
-    )
+  // ———— 写回自持槽（跨施放保持）————
+  f.setSkillVariable(S_BX, bx.value)
+  f.setSkillVariable(S_BY, by.value)
+  f.setSkillVariable(S_BZ, bz.value)
+  f.setSkillVariable(S_VX, vx.value)
+  f.setSkillVariable(S_VY, vy.value)
+  f.setSkillVariable(S_VZ, vz.value)
+
+  // ———— 载体自身藏到玩家脚下地下（只当算力中心，不再当球）————
+  // 距离节流实测：飞离 10m ⇒ 施放掉到 1~3/s；藏在玩家正下方 1.8m ⇒ 距离 ~1.8m，频率不受影响。
+  f.complexCreationTeleport(
+    f.create3dVector(pP.xComponent, f.subtraction(pP.yComponent, 1.8), pP.zComponent),
+    f.create3dVector(0.0, 0.0, 0.0)
   )
+
+  // ———— 回传：**每拍一条**（服务端 kitRender 每拍用一条驱运动器，两拍之间由匀速设备补间）————
+  // 载荷：pos=球位置 vel=球速度 spin=(拍长 dur, 自身 seq, guid seq) state=踢球次数
+  const kicksI = f.dataTypeConversion(f.querySkillVariableValue(S_KICKS), 'int')
   f.doubleBranch(
-    atReport,
+    f.logicalOrOperation(f.equal(tick, tick), kickNow),
     () => {
       chanSendState6(
         f,
         KitSignal.kit_state,
-        'P',
+        'B',
         tick,
+        f.create3dVector(bx.value, by.value, bz.value),
+        f.create3dVector(vx.value, vy.value, vz.value),
         f.create3dVector(
-          f.querySkillVariableValue(S_E1P),
-          f.querySkillVariableValue(S_E1S),
-          f.querySkillVariableValue(S_E4)
+          DT,
+          f.dataTypeConversion(seqSelf, 'float'),
+          f.dataTypeConversion(seqGuid, 'float')
         ),
-        f.create3dVector(pP.xComponent, pP.zComponent, f.querySkillVariableValue(S_E3)),
-        f.create3dVector(0.0, 0.0, 0.0),
-        phase.value
+        kicksI
       )
     },
     () => {}

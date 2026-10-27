@@ -66,5 +66,27 @@ const graph = g
       () => {}
     )
   })
+  // ——— Lua 输入桥（2026-10-27）：客户端 Lua 脚本 fb-input.lua → fb_input(key,state) ———
+  // 职责只有一件：把「真按键」变成客户端 20008 图能读到的**实体自定义变量**（服务端写、客户端读）。
+  //   fb_seq 自增（客户端比较序号判新输入，天然去重、不怕丢中间票）
+  //   fb_key / fb_state 保真最后一条票的内容
+  // ⚠ 心跳票（key=0，脚本 OnStart 发一次证明整链通）**不得**自增 fb_seq，否则客户端会当成一次真按键（假踢球）。
+  .onSignal(KitSignal.fb_input, (evt: any, f: any) => {
+    const owner = f.getSelfEntity()
+    const key = evt.params.key
+    f.doubleBranch(
+      f.greaterThan(key, 0n),
+      () => {
+        const seq = f.addition(f.getCustomVariable(owner, 'fb_seq').asType('int'), 1n)
+        f.setCustomVariable(owner, 'fb_seq', seq, false)
+        f.setCustomVariable(owner, 'fb_key', key, false)
+        f.setCustomVariable(owner, 'fb_state', evt.params.state, false)
+        print('fb-key')
+      },
+      () => {
+        print('fb-heartbeat')
+      }
+    )
+  })
 
 export default graph

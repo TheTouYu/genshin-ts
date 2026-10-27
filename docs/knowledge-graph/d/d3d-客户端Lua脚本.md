@@ -107,6 +107,8 @@
 - 顶层唯一 `f50`(wire2) → **单层 f50 包装** → 容器 `{f1: 条目(可重复), f2: 1}`；条目 = `{f1: guid varint, f2: name, f3: file_path, f5: source}`。
 - 编辑器导入 GIA 时三改写：guid 重编号（GIA 内 1073742105 → 槽内 1073741825）、`file_path` 自动补 `default_import_file/` 前缀、**源码全文内联**保存。
 - **重复导入去重铁律**：guid+1、name 加数字尾（main→main2）、path 加 `_1`（main.lua→main_1.lua）；导入同时把源码提取到 `<槽目录>/external_lua_file/<file_path>`（UTF-8 BOM + 全文）——外部文件提取=导入自动行为。
+- **空登记表就是空容器 `{f2: 1}`**（无 f1 条目）：编辑器保存过、但从未导入过脚本的图（真图 1073741827 实证）就是这一形态。
+  CLI 曾按「有没有 f1 条目」判形态，对这种空表误报 `script registry wrapper has no inner f50`，导致 register/list 在这类真图上**连自举都走不到**；2026-10-27 修（`src/cli/gil_scripts.ts` `registryContainerFields`，判据改为「有没有内层 f50」），回归 `tests/gil_scripts_empty_registry.ts`。
 - 编辑器会删除 `maps:create` 骨架里的 init 标记 `f34`；不要依赖它长期存在。
 
 ### 10.2 挂载（脚本 → 宿主控件）
@@ -118,6 +120,8 @@
   - 挂载条目 = `b21f 08 0a06 08 <5B script guid varint>`（11B）＝ `f502{f1{f1:guid}}`；
   - 可重复挂载（容器模板挂 main+main2 = 22B 两连）。
 - **宿主范围**：挂载槽出现在**容器类节点**（真图 host 名：容器节点 / 探针层）；普通控件（如文本框）无槽 → 官方工作流本来就是「脚本挂容器」，CLI 对无槽宿主 fail-closed 报错。
+- **容器组 vs 容器节点（真图 1073741827 实证，2026-10-27）**：`assets:ui create --type client-container` 产出两件——容器组（`f502=23`）+ 容器节点（`f502=86`），**f74 槽只挂在容器节点上**；对容器组 mount 报 `host N has no mount slot (f74)`，容器节点直接可挂。
+  空槽载荷 = 3B `a81f01`（f501 varint=1 前缀，零条目），**donor 快照自带** → 新建容器无需编辑器「挂一次再解挂」的来回；挂载后载荷 3B→14B（追加一条 11B 条目）。
 - **D268 曾记「三处」（树节点槽 / f503-f505 内嵌 / 顶层 root74 镜像）**：2026-10-23 现行真图（46336B）只存在树节点槽（f505 组件链内 f74），顶层无 root74；CLI 写回严格镜像编辑器本文件形态（树节点槽），往返 sha 全等。
 
 ### 10.3 CLI（`gsts assets:scripts`，src/cli/assets_scripts.ts + gil_scripts.ts）
