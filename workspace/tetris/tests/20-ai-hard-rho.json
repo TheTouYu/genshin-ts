@@ -27,9 +27,9 @@
     {
       "at": 235,
       "kind": "log",
-      "contains": "rho=0.30 pieces=100",
+      "contains": "rho=0.34 pieces=100",
       "source": "client"
     }
   ],
-  "note": "T5 验收：固定种子高难度档 100 块 ρ≥0.30（v2-plan §三 T5）。t=1 切档键（SwitchToWalkOrRun，具名键不被 anyKeyStart 抢）normal→hard，rho 统计清零重开。实测（2026-10-27 校准版）：n=100 rho=0.30（渐态 0.32-0.35，建立期后段 50-90 块稳定 0.32-0.35）；决策=2-ply 全候选精化+hold 第三分支+零失误+拟人修正关闭（nudge/竖I贴墙特判/W_WALL——决策纯化是 ρ 0.26→0.30 的关键，实验阶梯见 docs/v2-ai-design.md）。权重或搜索再改动时本断言值需同步更新。"
+  "note": "T5 验收：固定种子高难度档 100 块 ρ≥0.30（v2-plan §三 T5）。v2.1 性能修复后 evalNext 四主项（含 bump）实测 rho=0.34@100（曲线 0.33~0.35 稳定，好于修复前三主项的 0.22 与原全项版的 0.30）。"
 }

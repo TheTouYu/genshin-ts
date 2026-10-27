@@ -98,7 +98,7 @@ local NUM = {
   --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
   --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
   AI_LEVEL = 2,
-  nxFull = { 0, 0, 0, 0 },   -- T5 性能修复：evalNext 满行行号 scratch（模块级复用，零分配热路径）
+  nxFull = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- T5 性能修复：evalNext scratch（1-4 满行行号；11-20 各列高度）
   AI_LEVELS = {
     { name = 'easy',   ply = 1, hold = 0, pMistake = 15, topK = 5, nudgePct = 30,
       pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
@@ -2099,7 +2099,8 @@ NUM.evalNext = function(cells, x)
     if full then nf = nf + 1 nxFull[nf] = r end
   end
   local agg, holes = 0, 0
-  for c = 1, COLS do                     -- heights/holes：满行视作已消（跳过）
+  local nxH = NUM.nxFull                  -- 借同一 scratch 表的后段存每列高（11..20，nf<=4 不冲突）
+  for c = 1, COLS do                      -- heights/holes：满行视作已消（跳过）
     local h, seen = 0, false
     for r = 1, ROWS do
       local occ = b[r][c] ~= 0
@@ -2117,12 +2118,19 @@ NUM.evalNext = function(cells, x)
       end
     end
     agg = agg + h
+    nxH[10 + c] = h
+  end
+  local bump = 0                          -- El-Tetris 第四主项（三主项版 ρ 0.30→0.22 的回归修复）
+  for c = 1, COLS - 1 do
+    local d = nxH[10 + c] - nxH[11 + c]
+    if d < 0 then d = -d end
+    bump = bump + d
   end
   if w1 ~= 0 then b[w1 // 32][w1 % 32] = 0 end    -- 撤销 4 格
   if w2 ~= 0 then b[w2 // 32][w2 % 32] = 0 end
   if w3 ~= 0 then b[w3 // 32][w3 % 32] = 0 end
   if w4 ~= 0 then b[w4 // 32][w4 % 32] = 0 end
-  return W_AGG * agg + W_LINE * nf + W_HOLE * holes, nil, nf
+  return W_AGG * agg + W_LINE * nf + W_HOLE * holes + W_BUMP * bump, nil, nf
 end
 
 local function aiTickCore(dt, onOver)
