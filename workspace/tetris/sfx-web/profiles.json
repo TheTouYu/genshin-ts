@@ -1,0 +1,131 @@
+{
+  "version": 2,
+  "active": "tetris",
+  "profiles": [
+    {
+      "id": "tetris",
+      "name": "俄罗斯方块（tetris）",
+      "luaName": "SFX",
+      "slots": [
+        {
+          "key": "move",
+          "label": "左右移动",
+          "id": "50884",
+          "note": "按钮点击_轻_通用_01",
+          "luaKey": "move",
+          "budget": "move"
+        },
+        {
+          "key": "rotate",
+          "label": "旋转",
+          "id": "50883",
+          "note": "按钮点击_中_通用_01",
+          "luaKey": "rotate",
+          "budget": "move"
+        },
+        {
+          "key": "lock",
+          "label": "落地锁定",
+          "id": "50872",
+          "note": "按钮点击_重_通用_01",
+          "luaKey": "lock",
+          "budget": "lock"
+        },
+        {
+          "key": "clear1",
+          "label": "消 1 行",
+          "id": "50917",
+          "note": "提示性UI_重_制作完成",
+          "budget": "clear"
+        },
+        {
+          "key": "clear2",
+          "label": "消 2 行",
+          "id": "40001",
+          "note": "切换_轻_提升_01",
+          "budget": "clear"
+        },
+        {
+          "key": "clear3",
+          "label": "消 3 行",
+          "id": "40022",
+          "note": "提示性UI_轻_删除",
+          "budget": "clear"
+        },
+        {
+          "key": "clear4",
+          "label": "消 4 行",
+          "id": "40054",
+          "note": "提示性UI_重_结束_01",
+          "budget": "clear"
+        },
+        {
+          "key": "over",
+          "label": "游戏结束",
+          "id": "50929",
+          "note": "提示性UI_重_结束_02",
+          "luaKey": "over",
+          "budget": "over"
+        },
+        {
+          "key": "levelup",
+          "label": "升级",
+          "id": "40001",
+          "note": "提示性UI_重_制作完成",
+          "luaKey": "level",
+          "budget": "clear"
+        }
+      ]
+    },
+    {
+      "id": "generic-ui",
+      "name": "通用界面音（generic-ui）",
+      "luaName": "SFX_UI",
+      "slots": [
+        {
+          "key": "click",
+          "label": "点击",
+          "id": "50880",
+          "note": "按钮点击_重_卡通_06",
+          "budget": "move"
+        },
+        {
+          "key": "hover",
+          "label": "悬停",
+          "id": "50870",
+          "note": "按钮点击_重_卡通_06",
+          "budget": "move"
+        },
+        {
+          "key": "confirm",
+          "label": "确认",
+          "id": "50915",
+          "note": "确认按钮_重",
+          "budget": "lock"
+        },
+        {
+          "key": "cancel",
+          "label": "取消",
+          "id": "50862",
+          "note": "取消按钮_重",
+          "budget": "move"
+        },
+        {
+          "key": "error",
+          "label": "错误",
+          "id": "50934",
+          "note": "提示性UI_中_错误_02",
+          "budget": "over"
+        },
+        {
+          "key": "success",
+          "label": "成功",
+          "id": "50917",
+          "note": "确认按钮_中",
+          "budget": "clear"
+        }
+      ]
+    }
+  ],
+  "at": "2026-10-27T05:26:06.123Z"
+}

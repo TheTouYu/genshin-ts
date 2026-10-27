@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>音效挑选器（多 profile）</title>
+<style>
+  :root{--bg:#0f1319;--panel:#171d26;--panel2:#1d2531;--line:#2a3441;--text:#dbe4f0;--dim:#7d8b9e;--acc:#4fc3f7;--acc2:#ffd54f;--ok:#66bb6a;--warn:#ff8a65;--bad:#ef5350}
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,"Segoe UI",Roboto,"Noto Sans CJK SC",sans-serif;background:var(--bg);color:var(--text)}
+  header{padding:10px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header h1{font-size:15px;margin:0;font-weight:600;white-space:nowrap}
+  header .hint{color:var(--dim);font-size:12px}
+  select,input[type=text]{background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:5px 8px;font-size:13px}
+  select:focus,input:focus{outline:none;border-color:var(--acc)}
+  main{display:grid;grid-template-columns:minmax(380px,36%) 1fr;height:calc(100vh - 105px)}
+  @media(max-width:960px){main{grid-template-columns:1fr;height:auto}}
+  #slots{border-right:1px solid var(--line);overflow:auto;padding:12px}
+  #slots h2,#lib h2{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin:4px 0 10px}
+  #budgetBar{font-size:12px;color:var(--dim);margin:0 0 10px;padding:6px 8px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+  #budgetBar b{color:var(--acc2)}
+  .slot{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px;cursor:pointer;transition:border-color .12s,background .12s}
+  .slot:hover{border-color:#3d4b5c}
+  .slot.sel{border-color:var(--acc);background:var(--panel2);box-shadow:0 0 0 1px var(--acc) inset}
+  .slot .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .slot .ev{font-weight:600;color:var(--acc2)}
+  .slot .lua{color:var(--dim);font-size:11px;font-family:ui-monospace,monospace}
+  .slot .cur{margin-top:3px;color:var(--text);font-size:13px;word-break:break-all}
+  .slot .cur .id{color:var(--acc);font-variant-numeric:tabular-nums}
+  .slot .cur .d{color:var(--dim);font-size:12px;font-variant-numeric:tabular-nums;margin-left:6px}
+  .slot .ops{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
+  button:hover{border-color:var(--acc);color:var(--acc)}
+  button.pri{background:#123;border-color:#1d4f63;color:var(--acc)}
+  button.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .tag{font-size:11px;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+  .tag.warn{border-color:var(--warn);color:var(--warn)}
+  .tag.ok{border-color:var(--ok);color:var(--ok)}
+  #lib{display:flex;flex-direction:column;overflow:hidden}
+  #bar{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  #q{flex:1;min-width:180px;background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px}
+  #q:focus{outline:none;border-color:var(--acc)}
+  .chip{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);cursor:pointer;white-space:nowrap}
+  .chip.on{background:#123;border-color:#1d4f63;color:var(--acc)}
+  #list{overflow:auto;flex:1}
+  .row{display:grid;grid-template-columns:64px 1fr 76px 62px 76px;gap:8px;align-items:center;padding:6px 12px;border-bottom:1px solid #1b2330;cursor:pointer}
+  .row:hover{background:var(--panel)}
+  .row.playing{background:#14303b}
+  .row.off .dur{color:var(--warn)}
+  .row .id{color:var(--acc);font-variant-numeric:tabular-nums;font-size:12px}
+  .row .nm{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .nm.unnamed{color:var(--dim);font-style:italic}
+  .row .cat{color:var(--dim);font-size:11px}
+  .row .dur{color:var(--dim);font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
+  dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:860px;width:92vw;padding:0}
+  dialog::backdrop{background:#000a}
+  dialog .dh{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  dialog textarea{width:100%;height:320px;background:#0c1016;color:#cfe;border:0;padding:14px 16px;font:12px/1.6 ui-monospace,monospace;resize:vertical}
+  dialog .df{padding:10px 16px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line);flex-wrap:wrap}
+  dialog .body{padding:14px 16px}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1b3a2a;border:1px solid var(--ok);color:#b9f6ca;padding:8px 16px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none;font-size:13px;z-index:9}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>音效挑选器</h1>
+  <select id="profSel" title="切换 profile（每个 profile 独立保存）"></select>
+  <button id="profNew">新建</button>
+  <button id="profDup">复制</button>
+  <button id="profRename">重命名</button>
+  <button id="profDel" class="danger">删除</button>
+  <span style="flex:1"></span>
+  <span id="savehint" class="hint">—</span>
+  <button id="playAll">试听全部槽位</button>
+  <button id="submit">提交选择给 AI</button>
+  <button class="pri" id="export">导出配置</button>
+</header>
+<main>
+  <section id="slots">
+    <h2 id="slotsTitle">游戏事件</h2>
+    <div id="budgetBar">选中一个槽位后显示它的时长预算</div>
+    <div id="slotList"></div>
+    <button id="slotAdd" style="width:100%;margin-top:4px">＋ 加槽位</button>
+  </section>
+  <section id="lib">
+    <div id="bar">
+      <input id="q" placeholder="搜名称或 id，例如「点击」「结束」「50919」">
+      <span id="chips"></span>
+    </div>
+    <div id="list"></div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<dialog id="dlg">
+  <div class="dh">
+    <b id="dlgTitle">导出</b>
+    <span style="flex:1"></span>
+    <label class="hint" for="luaName">表名</label>
+    <input id="luaName" type="text" size="12" spellcheck="false">
+    <button id="dlgClose">关闭</button>
+  </div>
+  <textarea id="dlgText" spellcheck="false"></textarea>
+  <div class="df">
+    <button id="dlgLua">Lua 表</button>
+    <button id="dlgJson">JSON</button>
+    <button id="dlgDownload">下载</button>
+    <button id="dlgCopy" class="pri">复制到剪贴板</button>
+  </div>
+</dialog>
+
+<dialog id="ask">
+  <div class="dh"><b id="askTitle">输入</b></div>
+  <div class="body">
+    <div id="askHint" class="hint" style="margin-bottom:8px"></div>
+    <input id="askInput" type="text" style="width:100%" spellcheck="false">
+  </div>
+  <div class="df"><button id="askCancel">取消</button><button id="askOk" class="pri">确定</button></div>
+</dialog>
+
+<script>
+const AUDIO = 'https://oss.070077.xyz/audio/';
+const LS_KEY = 'sfx-web-state-v2';
+const API_STATE = '/state', API_SAVE = '/save';
+// 时长预算（与技能 game-sfx-kit §3.1 一致）
+const BUDGET = {
+  move:  {lo: 0.05, hi: 0.18, txt: '50~180ms',  why: '移动/旋转/悬停：高频动作，超过 200ms 会连成一片'},
+  lock:  {lo: 0.30, hi: 1.00, txt: '300ms~1s',  why: '落地/锁定/点击确认：1s 以上会盖住下一个动作'},
+  clear: {lo: 0.50, hi: 2.00, txt: '0.5~2s',    why: '消行/奖励/成功：低于 0.5s 像点击，高于 2s 会盖住下一手'},
+  over:  {lo: 0.00, hi: 1.00, txt: '≤1s',       why: '结束/失败：结算页同帧播，长音效会拖到尾'},
+};
+const BUDGET_BY_KEY = {
+  move: 'move', rotate: 'move', hover: 'move', click: 'move', tap: 'move', cancel: 'move',
+  lock: 'lock', drop: 'lock', confirm: 'lock', select: 'lock',
+  clear: 'clear', levelup: 'clear', level: 'clear', reward: 'clear', success: 'clear', win: 'clear',
+  over: 'over', error: 'over', fail: 'over', gameover: 'over', death: 'over',
+};
+
+let state = null, catalog = [], byId = {}, selSlot = null, catFilter = '全部', q = '', saveTimer = null;
+
+const $ = s => document.querySelector(s);
+const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1600); };
+const activeProfile = () => state.profiles.find(p => p.id === state.active) || state.profiles[0];
+const dur = id => (byId[id] ? byId[id].dur : null);
+const fmtDur = d => (d == null ? '—' : (d < 1 ? (d * 1000).toFixed(0) + 'ms' : d.toFixed(2) + 's'));
+const budgetOf = slot => slot && (BUDGET[slot.budget] ? slot.budget : BUDGET_BY_KEY[slot.key] || (/^clear\d+$/i.test(slot.key) ? 'clear' : null));
+
+// ---------- 状态持久化：内存 → localStorage（立即）→ 服务端 /save（防抖） ----------
+function persistLocal() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function markDirty(msg) {
+  persistLocal();
+  $('#savehint').textContent = '未同步…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveNow(false), 350);
+  if (msg) toast(msg);
+}
+async function saveNow(explicit) {
+  clearTimeout(saveTimer);
+  try {
+    const r = await fetch(API_SAVE, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(state)});
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    $('#savehint').textContent = `已保存 · ${j.profiles.length} 个 profile · ${new Date().toLocaleTimeString('zh-CN')}`;
+    if (explicit) toast('已提交：AI 现在能读到 profiles.json / choice.json');
+    return true;
+  } catch (e) {
+    $('#savehint').textContent = '离线（仅本浏览器）';
+    if (explicit) toast('提交失败：' + e.message);
+    return false;
+  }
+}
+
+// ---------- 渲染 ----------
+function renderProfileSelect() {
+  $('#profSel').innerHTML = state.profiles.map(p =>
+    `<option value="${p.id}" ${p.id === state.active ? 'selected' : ''}>${p.name}（${p.slots.length} 槽）</option>`).join('');
+}
+
+function renderSlots() {
+  const p = activeProfile();
+  $('#slotsTitle').textContent = `游戏事件（${p.slots.length} 个槽位 · ${p.id}）`;
+  if (!selSlot && p.slots.length) selSlot = p.slots[0].key;
+  const bb = $('#budgetBar');
+  const bs = budgetOf(p.slots.find(s => s.key === selSlot));
+  bb.innerHTML = bs
+    ? `槽位 <b>${selSlot}</b> 预算 <b>${BUDGET[bs].txt}</b> · ${BUDGET[bs].why}`
+    : `槽位 <b>${selSlot || '—'}</b> 未标预算（列表不做过期提示）`;
+  $('#slotList').innerHTML = p.slots.map(s => {
+    const meta = byId[s.id];
+    const nm = meta ? meta.name : (s.note || '（未选）');
+    const d = meta ? meta.dur : null;
+    const bs2 = budgetOf(s);
+    const fit = bs2 && d != null ? (d >= BUDGET[bs2].lo && d <= BUDGET[bs2].hi) : null;
+    const badge = bs2 && fit !== null
+      ? `<span class="tag ${fit ? 'ok' : 'warn'}" title="预算 ${BUDGET[bs2].txt}">${fit ? '预算内' : '超出预算'}</span>` : '';
+    return `<div class="slot ${selSlot === s.key ? 'sel' : ''}" data-k="${s.key}">
+      <div class="top"><span class="ev">${s.label || s.key}</span>
+        <span><span class="lua">${s.luaKey || s.key}</span> <span class="tag">${s.key}</span></span></div>
+      <div class="cur"><span class="id">${s.id || '—'}</span> · ${nm}${d != null ? `<span class="d">${fmtDur(d)}</span>` : ''} ${badge}</div>
+      <div class="ops">
+        <button data-play="${s.id}">试听</button>
+        <button data-clear="${s.key}">清空</button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="hint" style="padding:8px">这个 profile 还没有槽位——点下面「＋ 加槽位」，或从别的 profile 复制。</div>`;
+  $('#slotList').querySelectorAll('.slot').forEach(el => el.addEventListener('click', e => {
+    const k = el.dataset.k;
+    if (e.target.dataset.play) { play(e.target.dataset.play); return; }
+    if (e.target.dataset.clear) {
+      const s = activeProfile().slots.find(x => x.key === k);
+      s.id = ''; s.note = ''; renderSlots(); markDirty(`已清空 ${k}`); return;
+    }
+    selSlot = k; renderSlots(); renderList();
+  }));
+}
+
+function renderChips() {
+  const cats = ['全部', ...new Set(catalog.map(r => r.cat))];
+  if (!cats.includes(catFilter)) catFilter = '全部';
+  $('#chips').innerHTML = cats.map(c => `<span class="chip ${catFilter === c ? 'on' : ''}" data-c="${c}">${c}</span>`).join(' ');
+  $('#chips').querySelectorAll('.chip').forEach(el =>
+    el.addEventListener('click', () => { catFilter = el.dataset.c; renderChips(); renderList(); }));
+}
+
+function filtered() {
+  const kw = q.trim().toLowerCase();
+  return catalog.filter(r =>
+    (catFilter === '全部' || r.cat === catFilter) &&
+    (!kw || r.name.toLowerCase().includes(kw) || r.id.includes(kw)));
+}
+
+function renderList() {
+  const rows = filtered();
+  const shown = rows.slice(0, 600);
+  const bs = budgetOf(activeProfile().slots.find(s => s.key === selSlot));
+  const bw = bs ? BUDGET[bs] : null;
+  $('#list').innerHTML = shown.map(r => {
+    const off = bw && r.dur != null && (r.dur < bw.lo || r.dur > bw.hi);
+    return `<div class="row ${off ? 'off' : ''}" data-id="${r.id}">
+      <span class="id">${r.id}</span>
+      <span class="nm ${r.named ? '' : 'unnamed'}" title="${r.name}">${r.name}</span>
+      <span class="cat">${r.cat || ''}</span>
+      <span class="dur" title="${off ? '超出当前槽位预算 ' + bw.txt : ''}">${fmtDur(r.dur)}</span>
+      <span><button data-use="${r.id}">用这个</button></span>
+    </div>`;
+  }).join('');
+  $('#list').querySelectorAll('.row').forEach(el => el.addEventListener('click', e => {
+    const id = el.dataset.id;
+    if (e.target.dataset.use) { assign(id); return; }
+    play(id);
+    $('#list').querySelectorAll('.row.playing').forEach(x => x.classList.remove('playing'));
+    el.classList.add('playing');
+  }));
+  const inWin = bw ? rows.filter(r => r.dur != null && r.dur >= bw.lo && r.dur <= bw.hi).length : null;
+  toast(`匹配 ${rows.length} 条${rows.length > 600 ? '（显示前 600）' : ''}` +
+        (bw ? ` · 预算 ${bw.txt} 内 ${inWin} 条` : ''));
+}
+
+// ---------- 试听 ----------
+let audio = new Audio();
+audio.preload = 'none';
+function play(id) {
+  if (!id) { toast('这个槽位还没有 id'); return; }
+  try {
+    audio.pause();
+    audio = new Audio(AUDIO + id + '.mp3');
+    audio.volume = 0.9;
+    audio.play().catch(e => toast('播放失败：' + e.message));
+  } catch (e) { toast('播放失败：' + e.message); }
+}
+
+function assign(id) {
+  const p = activeProfile();
+  const s = p.slots.find(x => x.key === selSlot) || p.slots[0];
+  if (!s) { toast('先加一个槽位'); return; }
+  s.id = id; s.note = byId[id] ? byId[id].name : '';
+  selSlot = s.key;
+  renderSlots(); renderList();
+  markDirty(`已把 ${id} 设给「${s.label || s.key}」`);
+}
+
+// ---------- 导出 ----------
+function groupKey(key) {
+  const m = /^([A-Za-z_]+?)(\d+)$/.exec(key);
+  return m ? {prefix: m[1].toUpperCase(), n: Number(m[2])} : null;
+}
+function luaTable(profile, base) {
+  base = (base || 'SFX').replace(/[^A-Za-z0-9_]/g, '') || 'SFX';
+  const flat = [], groups = new Map();
+  for (const s of profile.slots) {
+    const g = groupKey(s.key);
+    if (g) {
+      if (!groups.has(g.prefix)) groups.set(g.prefix, []);
+      groups.get(g.prefix).push({n: g.n, s});
+    } else flat.push(s);
+  }
+  const now = new Date().toLocaleString('zh-CN');
+  let out = `-- 音效 id（sfx-web 导出 · profile=${profile.id} · ${now}）\n`;
+  out += `-- 时长来源：官方 data.json；名字来源：中文名库。语义未试听的条目请自行标注「占位」。\n`;
+  out += `local ${base} = {\n`;
+  const width = Math.max(...flat.map(s => (s.luaKey || s.key).length), 0);
+  for (const s of flat) {
+    const k = (s.luaKey || s.key).padEnd(width);
+    const d = dur(s.id);
+    const nm = (s.id && byId[s.id] ? byId[s.id].name : '') || s.note || '';
+    const note = [nm, d != null ? `(${fmtDur(d)})` : ''].filter(Boolean).join(' ');
+    out += s.id ? `  ${k} = ${s.id},${note ? '   -- ' + note : ''}\n`
+                : `  -- ${k} = （未选）\n`;
+  }
+  out += '}\n';
+  for (const [prefix, arr] of groups) {
+    arr.sort((a, b) => a.n - b.n);
+    const name = `${base}_${prefix}`;
+    const items = arr.map(x => x.s.id ? x.s.id : 'nil').join(', ');
+    out += `\nlocal ${name} = { ${items} }   -- ${arr.map(x => `${x.n}:${x.s.label || x.s.id || '未选'}`).join('  ')}\n`;
+  }
+  return out;
+}
+
+// ---------- profile 操作 ----------
+function slug(s) {
+  const base = String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return base || 'profile-' + Date.now().toString(36);
+}
+function uniqueId(want) {
+  let id = slug(want), i = 2;
+  while (state.profiles.some(p => p.id === id)) id = slug(want) + '-' + i++;
+  return id;
+}
+let askOk = null;
+function ask(title, hint, value, onOk) {
+  $('#askTitle').textContent = title;
+  $('#askHint').textContent = hint || '';
+  $('#askInput').value = value || '';
+  askOk = onOk;
+  $('#ask').showModal();
+  setTimeout(() => $('#askInput').select(), 30);
+}
+$('#askCancel').addEventListener('click', () => $('#ask').close());
+$('#askOk').addEventListener('click', () => {
+  const v = $('#askInput').value.trim();
+  $('#ask').close();
+  if (v && askOk) askOk(v);
+});
+$('#askInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#askOk').click(); });
+
+$('#profSel').addEventListener('change', e => {
+  state.active = e.target.value;
+  selSlot = null;
+  renderProfileSelect(); renderSlots(); renderList();
+  markDirty(`已切到 profile：${e.target.value}`);
+});
+$('#profNew').addEventListener('click', () => ask('新建 profile', '输入 profile 名称（id 自动生成）', '', name => {
+  const p = {id: uniqueId(name), name, luaName: 'SFX', slots: []};
+  state.profiles.push(p);
+  state.active = p.id; selSlot = null;
+  renderProfileSelect(); renderSlots(); renderList();
+  markDirty('已新建 profile');
+}));
+$('#profDup').addEventListener('click', () => {
+  const src = activeProfile();
+  const id = uniqueId(src.id + '-copy');
+  const p = JSON.parse(JSON.stringify(src));
+  p.id = id; p.name = src.name + ' 副本';
+  state.profiles.push(p);
+  state.active = p.id; selSlot = null;
+  renderProfileSelect(); renderSlots(); renderList();
+  markDirty(`已复制为 ${id}`);
+});
+$('#profRename').addEventListener('click', () => {
+  const p = activeProfile();
+  ask('重命名 profile', `当前 id=${p.id}（id 不变，只改显示名）`, p.name, name => {
+    p.name = name;
+    renderProfileSelect(); renderSlots();
+    markDirty('已重命名');
+  });
+});
+$('#profDel').addEventListener('click', () => {
+  if (state.profiles.length <= 1) { toast('至少要留一个 profile'); return; }
+  const p = activeProfile();
+  ask('删除 profile', `将删除「${p.name}」（${p.slots.length} 个槽位），输入 DELETE 确认`, '', v => {
+    if (v !== 'DELETE') { toast('已取消（未输入 DELETE）'); return; }
+    state.profiles = state.profiles.filter(x => x.id !== p.id);
+    state.active = state.profiles[0].id; selSlot = null;
+    renderProfileSelect(); renderSlots(); renderList();
+    markDirty('已删除 profile');
+  });
+});
+$('#slotAdd').addEventListener('click', () => ask('加槽位', '格式：key 或 key,显示名 —— 例如 click,点击；key 决定导出的 Lua 字段名', '', v => {
+  const [k0, label] = v.split(',').map(x => x.trim());
+  const key = slug(k0).replace(/-/g, '_');
+  const p = activeProfile();
+  if (p.slots.some(s => s.key === key)) { toast(`槽位 ${key} 已存在`); return; }
+  p.slots.push({key, label: label || key, id: '', note: ''});
+  selSlot = key;
+  renderSlots(); renderList();
+  markDirty(`已加槽位 ${key}`);
+}));
+
+// ---------- 导出对话框 ----------
+function openExport(mode) {
+  const p = activeProfile();
+  $('#luaName').value = p.luaName || 'SFX';
+  $('#dlgTitle').textContent = `导出 · ${p.name}（${p.id}）`;
+  $('#dlgText').value = mode === 'json' ? JSON.stringify(state, null, 2) : luaTable(p, $('#luaName').value);
+  $('#dlg').showModal();
+}
+$('#export').addEventListener('click', () => openExport('lua'));
+$('#dlgLua').addEventListener('click', () => openExport('lua'));
+$('#dlgJson').addEventListener('click', () => openExport('json'));
+$('#dlgClose').addEventListener('click', () => $('#dlg').close());
+$('#luaName').addEventListener('input', e => {
+  const p = activeProfile();
+  p.luaName = e.target.value.trim() || 'SFX';
+  $('#dlgText').value = luaTable(p, p.luaName);
+  markDirty();
+});
+$('#dlgCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('#dlgText').value); toast('已复制'); }
+  catch (e) { $('#dlgText').select(); toast('请手动 Ctrl+C'); }
+});
+$('#dlgDownload').addEventListener('click', () => {
+  const p = activeProfile();
+  const isJson = $('#dlgText').value.trim().startsWith('{');
+  const blob = new Blob([$('#dlgText').value], {type: 'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `sfx-${p.id}.${isJson ? 'json' : 'lua'}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$('#playAll').addEventListener('click', () => {
+  const ids = activeProfile().slots.map(s => s.id).filter(Boolean);
+  if (!ids.length) { toast('没有可试听的槽位'); return; }
+  let i = 0;
+  const next = () => { if (i >= ids.length) return; play(ids[i++]); audio.onended = next; };
+  next();
+});
+$('#submit').addEventListener('click', () => saveNow(true));
+$('#q').addEventListener('input', e => { q = e.target.value; renderList(); });
+
+// ---------- 启动 ----------
+async function boot() {
+  try {
+    const r = await fetch(API_STATE, {cache: 'no-store'});
+    state = await r.json();
+    $('#savehint').textContent = '已从服务端载入';
+  } catch (e) {
+    try { state = JSON.parse(localStorage.getItem(LS_KEY)); } catch (e2) { state = null; }
+    $('#savehint').textContent = state ? '离线（本浏览器缓存）' : '离线且无缓存';
+  }
+  if (!state || !Array.isArray(state.profiles) || !state.profiles.length) {
+    state = {version: 2, active: 'tetris', profiles: [{id: 'tetris', name: '俄罗斯方块', luaName: 'SFX', slots: []}]};
+  }
+  try {
+    const r = await fetch('catalog.json', {cache: 'no-store'});
+    catalog = await r.json();
+    catalog.forEach(x => byId[x.id] = x);
+  } catch (e) { catalog = []; toast('catalog.json 载入失败：' + e.message); }
+  renderProfileSelect(); renderChips(); renderSlots(); renderList();
+}
+window.SFXWEB = {
+  get state() { return state; },
+  active: () => (state ? state.active : null),
+  save: () => saveNow(true),
+  lua: (base) => luaTable(activeProfile(), base),
+  catalogSize: () => catalog.length,
+};
+boot();
+</script>
+</body>
+</html>

@@ -82,6 +82,7 @@
 | Composite/GIA 文档导航 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | **千星模拟器 2D UI+Lua 路线**（UI/Lua/runCase） | `simulator-2d-route` + 插件技能 `qxqy-simulator`（已装）。上游七步工作流技能（qxqy-game-studio，反引号内含 kebab 会被体检当技能引用，故不写反引号）**本机未安装**，需要时先装插件 |
+| 2D 小游戏 / 3D 界面层（HUD·结算·浮层·引导） | `lua-2d-ui-game-build`（阶段门；工具细节走 `simulator-2d-route`） |
 | 项目记忆／领域知识路由 | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
 | 图片素材生成（SVG/CSS） | `image-svg-builder` / `image-css-builder` |
