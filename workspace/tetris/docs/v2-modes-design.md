@@ -93,6 +93,8 @@ v1 几何（【源码】:1544-1592）：棋盘 280×560（PITCH 网格），单�
 - **Step 3 双实例化**：newGame(i)/输入 dispatch/结算独立/第二套控件懒建。v1 用例仍全绿（单屏路径不变）；新增双屏 smoke 用例（p1/p2 前缀日志）进 runner（波 3 配合 T6 验收）。
 - 风险表：Step1 引用点漏改=运行期 nil（lua5.3 语法检查抓不到，runner 抓）；**结算层 9 槽 for 遍历**在收表时保持数字下标语义，禁顺手改 ipairs（【源码】注释明示踩过）。
 - **额外收益（200-local 上限解药）**：main.lua 的 200 个 local 上限已满（ai-driver T4 实测 `too many local variables (limit is 200)`，解法见其 D612——新状态一律挂表）。Step1 收表**删 58 个 A 组 local 声明、只新增 G/g 两个**，净释放 ~56 个名额——T6/T7/T8 的新状态（MODE/KEYMAP/garbage 计数等）有地方放了。这是 T0 必须先行的又一硬理由。
+- **Step2 裁定（lead 2026-10-27 批准，替代原「37 函数参数化」）**：闭包共享 `g` upvalue 绑定——双屏 `for i=1,#ACTIVE do g=ACTIVE[i]; tickInstance(d) end` 循环重绑即让全部函数切换实例；仅跨实例交互函数（T7 raiseGarbage）显式收目标实例。理由：串行 tick 循环下正确性有保证、改动面大幅缩小、Step1 已实证全绿，比参数化原案回归风险低。
+- **Step3 两条铁律（lead 2026-10-27）**：①**事件回调先设 g**——按键回调是事件驱动（不在实例循环里），触发时 g 是上次循环留下的值，dispatch 里必须先 `g = G[player]` 再执行动作，双屏键位路由的每条回调都要过这一步；②**跨实例交互 save/restore**——p1 消行给 p2 送垃圾（T7 raiseGarbage）时函数入口保存当前 g → 切目标实例 → 操作 → 还原，防「送完垃圾后续语句操作了对方的盘」。
 
 ---
 

@@ -186,6 +186,7 @@ end
 -- 仅跨实例交互（垃圾行/胜负判定）需显式传实例。全局保留：root/服务端单份控件/入场演出/常量/随机源。
 local G = {}                             -- 游戏实例表：G[1]=主实例；双屏模式 G[2]=第二盘
 local g                                  -- 当前实例引用（=G[1]；双屏循环重绑定）
+local ACTIVE = { 1 }                     -- 激活实例下标表：单屏={1}；双屏={1,2}（T6 模式入口设置）
 local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
 
 -- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
@@ -2339,10 +2340,11 @@ function OnStart()
 end
 
 
-function OnUpdate(dt)
-  local d = tonumber(dt) or 0
-  if d <= 0 then return end
-  frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
+-- 单盘状态推进（T0 Step3：抖屏/闪白/结算动画/用时/锁定延迟/DAS/重力）。
+-- OnUpdate 对 ACTIVE 每实例调用一次；内部全部经 g（闭包共享 upvalue）作用于当前盘。
+-- 铁律（v2 设计书 §1.8 Step3）：事件回调先 `g = G[player]` 再执行动作；
+-- 跨实例交互（T7 垃圾行）入口保存 g → 切目标 → 操作 → 还原。
+local function tickInstance(d)
   -- 抖屏：只在 shakeT > 0 的帧写坐标；到点复位一次后就不再碰任何控件
   if g.shakeT > 0 then
     g.shakePhase = g.shakePhase + d
@@ -2359,37 +2361,12 @@ function OnUpdate(dt)
       applyShake(ox, oy)
     end
   end
-  if bannerTimer > 0 and not g.gameOver then
-    bannerTimer = bannerTimer - d
-    if bannerTimer <= 0 then
-      bannerTimer = 0
-      setText(botBanner, '')
-      setText(hint, '')
-    end
-  end
   if g.flashT > 0 then
     g.flashT = g.flashT - d
     if g.flashT <= 0 then g.flashT = 0 renderAll() end
   end
   if g.gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
   if guideStage == 1 and not g.gameOver then g.elapsed = g.elapsed + d end
-  if guideStage == 0 then
-    -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
-    introT = introT + d
-    local size = math.min(40, 26 + math.floor(introT * 12))
-    if size ~= introFont then
-      introFont = size
-      trySet(topBanner, 'fontSize', size)
-    end
-    local pulse = 22 + math.floor(2 * (0.5 + 0.5 * math.sin(introT * 5)))
-    if pulse ~= introPulse then
-      introPulse = pulse
-      trySet(botBanner, 'fontSize', pulse)
-    end
-    autoTick(d)   -- AI 自演：选位→旋转→逐格横移→硬降→消行→下一块，玩家按键即交还控制
-    return
-  end
-  if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
   -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
   if NUM.LD.t >= 0 and not g.gameOver then
     NUM.LD.t = NUM.LD.t + d
@@ -2422,6 +2399,42 @@ function OnUpdate(dt)
     if not g.gameOver and g.tickCount % perTicks == 0 then
       stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
     end
+  end
+end
+
+function OnUpdate(dt)
+  local d = tonumber(dt) or 0
+  if d <= 0 then return end
+  frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
+  g = G[1]                         -- 主流程段（横幅/演出/自演）作用于主盘（v1 语义）
+  if bannerTimer > 0 and not g.gameOver then
+    bannerTimer = bannerTimer - d
+    if bannerTimer <= 0 then
+      bannerTimer = 0
+      setText(botBanner, '')
+      setText(hint, '')
+    end
+  end
+  if guideStage == 0 then
+    -- 入场演出：标题 26→40 渐大 + 底部提示呼吸（框高 72 按 46 号算过，40 号不会被裁）
+    introT = introT + d
+    local size = math.min(40, 26 + math.floor(introT * 12))
+    if size ~= introFont then
+      introFont = size
+      trySet(topBanner, 'fontSize', size)
+    end
+    local pulse = 22 + math.floor(2 * (0.5 + 0.5 * math.sin(introT * 5)))
+    if pulse ~= introPulse then
+      introPulse = pulse
+      trySet(botBanner, 'fontSize', pulse)
+    end
+    autoTick(d)   -- AI 自演：选位→旋转→逐格横移→硬降→消行→下一块，玩家按键即交还控制
+    return
+  end
+  if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
+  for i = 1, #ACTIVE do
+    g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
+    tickInstance(d)
   end
 end
 
