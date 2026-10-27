@@ -322,6 +322,24 @@ settle destroy n=10                                 ← 按 R 后必须出现
 
 ### 10.3 部署与导入后核对
 
+**首选路线：零导入直写（2026-10-27 定案，tetris v2 实测）**——改完 lua 后不让用户碰编辑器导入/实机脚本同步，CLI 一步到胃：
+
+```bash
+# ① 查游戏实际执行哪条脚本（挂载指向 ≠ deploy 写的那条！tetris 实测：活跃容器挂 main_2，而 deploy.mjs 只写 main_1 的 external ⇒ 白写）
+gsts assets:scripts mounts --gil <图.gil>          # 看 host=<活跃容器节点> 的 script guid
+# ② 把新 lua 直写进执行中的脚本（f5 内嵌 source + external + Temp 三同步 + 自动备份，一条龙）
+gsts assets:scripts update --guid <执行中的> --source-file lua/main.lua \
+  --gil <图.gil> --map-id <id> --write            # --map-id 必带，否则 temp-sync=skipped（编辑器读 Temp！）
+# ③ 验收：sha256sum 双址一致（Save_Level/<id>.gil == Temp/<id>.gil）+ gil-guard 对比写前备份
+#    （guard 若报悬空，先对备份跑同一检查——存量悬空是历史状态编辑器一直接受，只要「写前写后同样 FAIL」即本次未引入）
+```
+
+- 用户侧操作 = **打开地图直接试玩**，零导入零同步（模板/控件首次部署才走 GIA 导入，增量改 lua 一律走本路线）。
+- 写盘前提：确认编辑器/游戏没开着该图（开着=内存版会在离开时覆盖写盘，D314）；用户开着时先请其切出，写完再切回。
+- 多条脚本记录的图（main/main_1/main_2 并存是常态——历次导入各留一条）：把执行中的与易被切回的都 update 到同一内容，消除歧义。
+
+**备用路线：GIA 导入（首次部署/模板变更时）**
+
 - `node qxqy/deploy.mjs`：重建 + 复制 GIA 到 `Beyond_Local_Export` + 写地图 `external_lua_file`；`--calibrate` 先读真机 GIL 实际 guid 写进 `TPL_GUIDS` 再重建。
 - 导入后核对三件事（`README.md` §10.8）：
   1. 模板 guid 是否又变（变了加到 `TEMPLATE_GUIDS` 首位）；
