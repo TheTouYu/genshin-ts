@@ -188,7 +188,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     f.lessThan(inited.value, 0.5),
     () => {
       bx.set(pPx)
-      by.set(f.addition(GROUND_Y, CENTER_Y)) // 地面基准用场地表面，不用玩家 y（玩家 origin ≈ 地面 +1.92m）
+      by.set(GROUND_Y) // 地面基准用场地表面，不用玩家 y（玩家 origin ≈ 地面 +1.92m）
       bz.set(f.addition(pPz, 1.5))
       vx.set(0.0)
       vy.set(0.0)
@@ -215,7 +215,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {
       // 暖机：球贴玩家前方跟随，速度清零
       bx.set(pPx)
-      by.set(f.addition(GROUND_Y, CENTER_Y))
+      by.set(GROUND_Y)
       bz.set(f.addition(pPz, 1.5))
       vx.set(0.0)
       vy.set(0.0)
@@ -352,7 +352,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const ddx = f.subtraction(tx, bx.value)
       const ddz = f.subtraction(tz, bz.value)
       const distTarget = f._3dVectorModuloOperation(
-        f.create3dVector(ddx, f.subtraction(f.addition(GROUND_Y, CENTER_Y), by.value), ddz)
+        f.create3dVector(ddx, f.subtraction(GROUND_Y, by.value), ddz)
       )
       const dribble = f.logicalAndOperation(
         f.logicalNotOperation(kickNow),
