@@ -396,6 +396,11 @@ def cmd_claim(a):
     cur["released"] = False
     cur["last_action_ts"] = now
     cur["holding_until"] = now + max(0.0, hold)
+    # 2026-10-27 修（长任务被中途还屏的真因）：claim 原来只刷 holding_until，
+    # **不延长 expires** ⇒ 槽的 TTL 一到，guard 的到期层就 SESSION_EXPIRED 把屏幕还回去
+    # （实测 10:24:39 SESSION_EXPIRED → active 变 0x200003，后续动作全打在 firefox 上）。
+    # 续期语义 = 占用多久就活多久。
+    cur["expires"] = max(float(cur.get("expires") or 0), now + max(0.0, hold) + 120)
     cur["reacquires"] = int(cur.get("reacquires") or 0) + 1
     cur["claim"] = {"at": now, "by": a.reason or "raise", "hold_s": hold, "was_released": was_released}
     save(cur)
