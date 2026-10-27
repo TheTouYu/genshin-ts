@@ -54,14 +54,14 @@
       "kind": "control",
       "name": "p2cell1",
       "field": "anchoredPositionX",
-      "equals": 145
+      "equals": 179
     },
     {
       "at": 1.1,
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionX",
-      "equals": -415
+      "equals": -521
     },
     {
       "at": 5.2,
@@ -87,7 +87,8 @@
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionX",
-      "equals": -135
+      "equals": -171
     }
-  ]
+  ],
+  "note": " v2.6 画布 scale：pc-16-9(1600×900) SC=1.25 坐标随 PITCH/盘心偏移放大（145→179、-415→-521、-135→-171）；mobile-16-9 下 SC=1 断言不变。"
 }
