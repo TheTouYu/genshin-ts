@@ -187,6 +187,13 @@ end
 local G = {}                             -- 游戏实例表：G[1]=主实例；双屏模式 G[2]=第二盘
 local g                                  -- 当前实例引用（=G[1]；双屏循环重绑定）
 local ACTIVE = { 1 }                     -- 激活实例下标表：单屏={1}；双屏={1,2}（T6 模式入口设置）
+-- T6 四模式：casual=休闲（默认，AI 自演+玩家接管+局中 5s 无操作 AI 代打）|
+-- ai-battle=双屏 AI 对战 | pvp=双屏双人 | coop=双人合作对抗 AI（旋转手+行动手，裁决①）
+local MODE = 'casual'
+-- casual 局中接管状态机（v2-plan §三 T6）：'play'（玩家操作）→5s 无操作→'hint'（提示 2s）
+-- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
+-- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
+local TK = { state = 'play', t = 0 }
 local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
 
 -- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
@@ -1149,6 +1156,7 @@ local function startIfWaiting()
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
+  TK.state, TK.t = 'play', 0            -- T6a：进局即玩家态（菜单选模式/任意键开始同路径）
   -- P0/T4：玩家账本从 0 开始。AI 自演的分已走 aiScore 账（clearLines 分流），这里归零 score
   -- 是双保险（防未来某条 AI 路径漏改）；aiScore/aiLines 不动——玩家接管**不清 AI 局成绩**（模式语义）。
   -- 连击/B2B/落块数是共享局内状态，接管即归零 ⇒ AI 的连击不会带进玩家局。
@@ -1157,6 +1165,7 @@ local function startIfWaiting()
   g.combo, g.maxCombo, g.b2b = 0, 0, false
   renderHud()
   setText(hint, '堆满一行即消除')
+  print('mode=' .. MODE)                -- T6：进局模式（菜单选择或默认休闲）
   print('guide stage=1')
 end
 
@@ -1553,7 +1562,7 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, '按任意键开始')
+  setText(botBanner, '[1]休闲 [2]AI对战 [3]双人 [4]合作　·　任意键=休闲')
   trySet(topBanner, 'fontColor', C_GOLD2)
   trySet(topBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C_ACCENT2)
@@ -1616,13 +1625,17 @@ g.AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil
 
 -- 每个 OnUpdate 调一次：thinking（观察）→ acting（旋转/横移/小落，逐段计时）
 -- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
-autoTick = function(dt)
-  if guideStage ~= 0 then return end
+-- AI 驱动核心（T6a 从 autoTick 抽出）：作用于当前 g，**无 guideStage 守卫**——
+-- stage0 自演 / casual 局中接管 / T6b 双屏 AI 盘共用这一条链路。
+-- onOver='demo'：盘死→demoLoopReset（stage0 自演语义）；
+-- onOver='stop'：盘死→停 AI 驱动走各自结算（casual 接管/对战语义）。返回 false=已停/无盘。
+-- 隔离调子（lead 拍板，T8 起）：aiDrop 直调 doLock，不经锁定延迟路径——AI 节奏与玩家手感互不影响。
+local function aiTickCore(dt, onOver)
   if g.gameOver then
-    demoLoopReset()
-    return
+    if onOver == 'demo' then demoLoopReset() end
+    return false
   end
-  if not g.piece or not g.board then return end
+  if not g.piece or not g.board then return false end
   local lv = NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
   if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
     g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
@@ -1707,8 +1720,8 @@ autoTick = function(dt)
       local plan = aiChoose()
       if plan and plan.reset then
         print('demo reset plan=too-high')
-        demoLoopReset()
-        return
+        if onOver == 'demo' then demoLoopReset() end   -- 接管期间（stop）不 reset 玩家的局，停驱动即可
+        return false
       end
       if not plan then
         g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
@@ -1929,6 +1942,13 @@ autoTick = function(dt)
     g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
     g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
+  return true
+end
+
+-- stage0 入场自演入口（守卫版）：休闲接管/双屏 AI 走 OnUpdate/T6 入口直接调 aiTickCore
+autoTick = function(dt)
+  if guideStage ~= 0 then return end
+  aiTickCore(dt, 'demo')
 end
 
 --------------------------------------------------------------------------------
@@ -2127,7 +2147,7 @@ function OnStart()
   tryCall(title, 'SetVisible', false)
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, '按任意键开始')
+  setText(botBanner, '[1]休闲 [2]AI对战 [3]双人 [4]合作　·　任意键=休闲')
 
   -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
   -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
@@ -2152,10 +2172,23 @@ function OnStart()
 
   -- 每个动作前先 startIfWaiting()：入场态按的第一个键既开始游戏也执行该动作
   -- （不吞键，用例与手感一致）；stage 2 键位表期间除 H/R 外全部忽略。
+  -- T6a casual 接管打点：玩家任何游戏键=「玩家在场」——接管中则交还（横幅+日志），计时归零。
+  local function playerTouched()
+    if TK.state == 'ai' then
+      TK.state = 'play'
+      setText(topBanner, '')
+      print('takeover back')           -- 玩家任意键交还（v2-plan T6 验收锚）
+    elseif TK.state == 'hint' then
+      TK.state = 'play'
+      setText(topBanner, '')
+    end
+    TK.t = 0
+  end
   local function act(fn)
     return function()
       startIfWaiting()
       if guideStage == 2 then return end
+      playerTouched()
       fn()
     end
   end
@@ -2196,6 +2229,15 @@ function OnStart()
     end
   end
   -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
+  -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）
+  for i, mname in ipairs({ 'casual', 'ai-battle', 'pvp', 'coop' }) do
+    listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
+      if guideStage ~= 0 then return end
+      MODE = mname
+      print('mode=' .. MODE)
+      startIfWaiting()
+    end)
+  end
   listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
     if guideStage ~= 0 then return end
     NUM.AI_LEVEL = NUM.AI_LEVEL % 3 + 1
@@ -2432,6 +2474,24 @@ function OnUpdate(dt)
     return
   end
   if guideStage ~= 1 then return end   -- 等待开始 / 键位表 都不跑重力
+  -- T6a casual 局中接管（v2-plan §三 T6 / 设计书 §2.2）：idle 检测=任意游戏键（act 打点归零）。
+  -- play→5s 无操作→hint（提示 2s）→ai（AI 代打续算不清零，分数继续入玩家账=裁决⑤）→任意键交还。
+  -- 只在 casual；其他模式本波无接管语义。
+  if MODE == 'casual' and not g.gameOver then
+    TK.t = TK.t + d
+    if TK.state == 'play' and TK.t >= 5 then
+      TK.state, TK.t = 'hint', 0
+      setText(topBanner, '即将由 AI 代打…')
+      print('takeover hint')           -- v2-plan T6 验收锚
+    elseif TK.state == 'hint' and TK.t >= 2 then
+      TK.state, TK.t = 'ai', 0
+      setText(topBanner, 'AI 代打中 · 按任意键交还')
+      print('takeover ai')             -- v2-plan T6 验收锚
+    end
+    if TK.state == 'ai' then
+      aiTickCore(d, 'stop')            -- 接管驱动：盘死即停（走玩家结算），不 reset 玩家的局
+    end
+  end
   for i = 1, #ACTIVE do
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
     tickInstance(d)
