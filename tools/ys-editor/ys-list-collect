@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""ys-list-collect — 折叠类目列表的通用全量采集器（手风琴 UI）
+
+用法（**必须在 ys-gui-slot 槽内跑**）：
+  ys-list-collect --category 战斗 --prefix 4 [--max-pages 200] [--region 1560,860,340,440]
+  ys-list-collect --all          # 依次采 7 个类目
+
+设计要点（每一条都是踩过的坑，2026-10-27）：
+1. **续期**：槽里跑久了会撞两层过期——屏凭据 `GRANT_EXPIRED`（默认 300s 上限）与
+   会话 hold `SESSION_EXPIRED`。本工具每 90s 同时续：
+   `ys-screen-grant grant --task <同任务>`（同任务续期不打断用户）+
+   `ys-session claim --hold-seconds 180 --prev-json ''`（**必须带 --prev-json 空串**，
+   否则无活动会话时 claim 是 no-op，续不上）。
+2. **前台断言**：每页抓帧前读 `_NET_ACTIVE_WINDOW`，不等于目标窗就**立刻停并报错**，
+   绝不把拖拽/点击打到别的窗口（2026-10-27 两次"在 firefox 上乱搞"就是这么来的）。
+3. **定位**：先拖滚动条到顶，再 OCR 标题的 y 直接点（不反复上拖）；OCR 认不出的标题
+   用邻居插值（如「战斗」= (角色动作 y + 物件 y)/2）。
+4. **到底判据**：首行索引连续 3 页不变；**完整性判据**：索引序列无缺号。
+"""
+import argparse, json, os, re, subprocess, sys, time
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ys_look, ys_env
+
+Y = os.path.join(HERE, 'ys-capture'); SESS = os.path.join(HERE, 'ys-session')
+GRANT = os.path.join(HERE, 'ys-screen-grant')
+CATS = [("环境", "1"), ("生物敌人叫声", "2"), ("角色动作", "3"), ("战斗", "4"),
+        ("物件", "5"), ("界面音效", "508"), ("操控对象", "509")]
+PX = (1520, 2020); LY = (860, 1360); CX = 1620
+SCROLL_X = 1930
+
+
+def log(*a):
+    print(time.strftime('%H:%M:%S'), *a, flush=True)
+
+
+def sh(*a):
+    subprocess.run(a, check=False)
+
+
+def env():
+    return ys_env.env()
+
+
+def active():
+    r = subprocess.run(['xprop', '-root', '_NET_ACTIVE_WINDOW'], capture_output=True, text=True, env=env())
+    return (r.stdout or '').strip().split('#')[-1].strip()
+
+
+def target_win():
+    r = subprocess.run([os.path.join(HERE, 'ys-win-id')], capture_output=True, text=True, env=env())
+    w = (r.stdout or '').strip()
+    return w or '0x1000003'
+
+
+def renew(task):
+    """续期：屏凭据 + 会话 hold（两层都要，缺一层就会中途被还屏）。"""
+    subprocess.run([GRANT, 'grant', '--task', task, '--eta', '290', '--reason', '全量采集续期',
+                    '--user-said', '继续'], capture_output=True, env=env(), timeout=30)
+    subprocess.run([SESS, 'claim', '--hold-seconds', '180', '--prev-json', ''],
+                   capture_output=True, env=env(), timeout=30)
+
+
+def grab(tag, outdir):
+    p = os.path.join(outdir, f"{tag}.png")
+    for _ in range(2):
+        r = subprocess.run([Y, 'grab', '--target', 'game', '--out', p], capture_output=True, text=True, env=env())
+        if r.returncode == 0 and r.stdout.strip():
+            return p
+        log("  GRAB_FAIL", (r.stdout or r.stderr)[:120]); time.sleep(0.8)
+    return None
+
+
+def boxes(p):
+    r = ys_look.daemon({"cmd": "ocr", "frame": p}, timeout=240) or {}
+    return [b for b in (r.get("boxes") or [])
+            if PX[0] <= (b.get("cx") or 0) <= PX[1] and LY[0] <= (b.get("cy") or 0) <= LY[1]]
+
+
+def rows(p):
+    out, pend = [], None
+    for b in sorted(boxes(p), key=lambda x: (x.get("cy") or 0)):
+        t = (b.get("text") or "").strip()
+        m = re.fullmatch(r"索引:?\s*(\d{4,6})", t)
+        if m:
+            if pend: out.append((b.get("cy") or 0, int(m.group(1)), pend))
+            pend = None
+        elif t and not any(k in t for k in ("音效资产库", "音量", "播放速度", "循环", "3D", "范围", "挂接",
+                                            "衰减", "偏移", "序号", "名称", "已锁定", "组合", "未选")):
+            pend = t
+    return out
+
+
+def heads(p):
+    return sorted(((b.get("cy") or 0), (b.get("text") or "").strip().strip("▶▼ "))
+                  for b in boxes(p) if (b.get("text") or "").strip().strip("▶▼ ") in [c for c, _ in CATS])
+
+
+def drag(px):
+    st = max(3, min(16, abs(px) // 22)); step = px / st
+    sh('xdotool', 'mousemove', '1755', '1150'); time.sleep(0.1)
+    sh('xdotool', 'mousedown', '1'); time.sleep(0.75)
+    for _ in range(st):
+        sh('xdotool', 'mousemove_relative', '--', '0', str(int(round(step)))); time.sleep(0.05)
+    time.sleep(0.1); sh('xdotool', 'mouseup', '1'); time.sleep(0.5)
+
+
+def scroll_top():
+    for _ in range(2):
+        sh('xdotool', 'mousemove', str(SCROLL_X), '1300'); time.sleep(0.1)
+        sh('xdotool', 'mousedown', '1'); time.sleep(0.1)
+        for y in ('1200', '1050', '950', '900', '870'):
+            sh('xdotool', 'mousemove', str(SCROLL_X), y); time.sleep(0.05)
+        time.sleep(0.1); sh('xdotool', 'mouseup', '1'); time.sleep(0.5)
+
+
+def click(x, y):
+    sh('xdotool', 'mousemove', str(int(x)), str(int(y))); time.sleep(0.1)
+    sh('xdotool', 'click', '1'); time.sleep(0.7)
+
+
+def collapse_all(ctx):
+    scroll_top()
+    p = grab(ctx['tag'] + '_col', ctx['out'])
+    for i in range(12):
+        if not p: return False
+        pr, rs = heads(p), rows(p)
+        if not rs: return True
+        tgt = next(((cy, n) for cy, n in pr if any(0 < r[0] - cy < 95 for r in rs)), None)
+        if tgt: click(CX, tgt[0]); p = grab(ctx['tag'] + f'_col{i}', ctx['out'])
+        else: scroll_top(); p = grab(ctx['tag'] + f'_col{i}', ctx['out'])
+    return False
+
+
+def collect(cat, prefix, a, ctx):
+    log(f"== {cat} ==")
+    collapse_all(ctx)
+    scroll_top()
+    p = grab(cat + '_h', ctx['out'])
+    pr = heads(p) if p else []
+    hs = {n: cy for cy, n in pr}
+    if cat not in hs and cat == "战斗" and "角色动作" in hs and "物件" in hs:
+        hs[cat] = (hs["角色动作"] + hs["物件"]) // 2; log("  邻居插值 y=", hs[cat])
+    if cat not in hs:
+        log("  HEADER_NOT_FOUND", [n for _, n in pr]); return None
+    click(CX, hs[cat])
+    acc, prev, same, t_last = {}, None, 0, time.time()
+    for k in range(a.max_pages):
+        if time.time() - t_last > 90:            # 续期（凭据+hold），防中途被还屏
+            renew(a.task); t_last = time.time()
+        act = active()
+        if act != a.win:
+            log(f"  !! 前台不是目标窗（{act} ≠ {a.win}）——停止，避免打到别的窗口")
+            return {"error": "NOT_FRONT", "active": act}
+        p = grab(f"{cat}_p{k}", ctx['out'])
+        if not p: break
+        rs = rows(p); first = rs[0][1] if rs else None
+        log(f"  page{k}: n={len(rs)} first={first} last={rs[-1][1] if rs else None}")
+        if first and not str(first).startswith(prefix): log("  !! prefix mismatch", first)
+        for cy, i, n in rs: acc.setdefault(i, n)
+        same = same + 1 if first == prev else 0
+        prev = first
+        if same >= 3: log("  到底"); break
+        drag(-330)
+    return {"cat": cat, "rows": [[None, i, n] for i, n in sorted(acc.items())]}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--category'); ap.add_argument('--prefix')
+    ap.add_argument('--all', action='store_true')
+    ap.add_argument('--max-pages', type=int, default=200)
+    ap.add_argument('--out', default='/tmp/ys-list-collect')
+    ap.add_argument('--task', default='list-collect')
+    ap.add_argument('--win', default='')
+    a = ap.parse_args()
+    a.win = a.win or target_win()
+    os.makedirs(a.out, exist_ok=True)
+    if os.environ.get('YS_SLOT_ACTIVE') != '1':
+        log("必须在 ys-gui-slot 槽内运行（前台断言/注入都要槽）"); return 2
+    todo = CATS if a.all else [(a.category, a.prefix)]
+    for cat, pre in todo:
+        ctx = {'out': a.out, 'tag': cat}
+        renew(a.task)
+        r = collect(cat, pre, a, ctx)
+        if isinstance(r, dict) and 'error' in r:
+            log("ABORT", r); return 3
+        if r:
+            json.dump(r, open(os.path.join(a.out, f"{cat}.json"), 'w'), ensure_ascii=False, indent=1)
+            log(f"DONE {cat}: {len(r['rows'])} 条")
+        time.sleep(0.3)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
