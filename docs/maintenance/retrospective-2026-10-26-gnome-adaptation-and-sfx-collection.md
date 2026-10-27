@@ -82,3 +82,24 @@
   `dsh-session-history`（HITS 行 / 读全部用户消息）。
 - **数据**：`.scratch/sfx/sfx-library-20261026.md`（70 条）。
 - **文档**：本篇。
+
+## 七、复盘当场修掉的四条（"复盘不是写文档"）
+
+复盘跑 `tools/failure-ledger check --fast` 时暴露 `gate_fail=3`，顺着查下去修了 4 条（提交 `f3000de5`）：
+
+| # | 现象 | 真因 | 修法 |
+|---|---|---|---|
+| 1 | `ys-guards` G-WHITELIST 红 | `ys-lease` 的 `kbd_return` 用白名单投影输出，未知字段静默蒸发 | 传全量 dict |
+| 2 | `ys-guards` G-FOCUS-RETURN 红 | `ys-do.sh()` 直接返回 subprocess 结果、不检查退出码 | 显式记录 `_LAST_RC["rc"]` |
+| 3 | `ys-guards` G-SLEEP 红 | `ys-fakedeath-ab` 固定 `sleep 5` | 拆成 10×0.5s（语义不变） |
+| 4 | `win-attrib` 24/25（**我本轮引入的回归**） | `ys-atop` 显式标题无条件清 `YS_WIN_CLASS` ⇒ `--json 原神` 子串命中「原神**编辑器**」⇒ `ys-observe` 在 NOT_FOUND fixture 上返回 rc=0/atop:true | 只对**非默认标题**清 class；`ys_attrib` 标题匹配改**先精确后子串** |
+
+修后：`win-attrib` **25/25 全绿**、`tools/ys-guards` 三条规则 PASS、
+`tools/failure-ledger check --fast` → **`gates=39 gate_fail=0 unproven=0 fake_inject=0 verdict=PASS`**（114.7s）。
+
+## 八、账本变化
+
+- 复盘前：总数 88 / 有防线 79 / **真债 9**
+- 新增 3 条（本轮无机械防线的失败）：`F-20261026-89`（crc 变化冒充"帧新"）、
+  `F-20261026-90`（固定 y 点折叠标题）、`F-20261026-91`（抓帧 stderr 被 `/dev/null` 吞掉）
+- 复盘后：总数 **91** / 有防线 79 / **真债 12**（三条都已写明"该变成什么门禁"）
