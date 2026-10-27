@@ -39,7 +39,8 @@
 | `[gui-agi]` | `./tools/failure-ledger check`（全量） | 空闲 550s / 游戏在跑 700s | 改动后未复跑 |
 | `[gui-agi]` | `worldsvc-selftest` | **123/123**，24.5s（注入用例 1.66s） | 2026-10-22 |
 | `[gui-agi]` | `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
-| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`） | **17/17 PASS，9.0s**（模拟器 2.2.1 上复跑仍 17/17） | 2026-10-24 11:4x |
+| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/tetris`，v2 主战工程） | **12/12 PASS，2.2s**（v2 开工基线；三队友并行波1） | 2026-10-27 15:3x |
+| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`，等用户导入） | 17/17 PASS（上一活跃工程，冻结态） | 2026-10-24 11:4x |
 | `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
 
@@ -54,7 +55,7 @@ dsh-game-mode.timer        active (waiting)
 dsh-sentinel.service       failed（10-23 00:00 status=1；手动 `--dry` rc=0 无输出 → 失败点未定位，见 05-open O-2026-10-23-5）
 模拟器 web 127.0.0.1:4173   LISTEN，pid 621774（属于 `sim-2d` 线；工作区 /home/h/qxqy-workspace 是 counter-demo，不是本游戏）
 GPU                        1897 / 6144 MiB
-git                        HEAD 1f43f0e1（`sim-2d` 线刚落的复盘提交）；与 origin/feat/composite-and-project-knowledge 差 2 ahead / 0 behind
+git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此后队友提交持续推进，接手前先 git log 核对）
 工作树                     `.scratch/gui-perf/selftest/*` 一批 M（与本轮无关，别误提交）
 ```
 
@@ -70,6 +71,7 @@ git                        HEAD 1f43f0e1（`sim-2d` 线刚落的复盘提交）�
 
 | commit | 线 | 内容 |
 |---|---|---|
+| `33ea9db6` | sim-2d | tetris v2：8 点反馈任务拆分文档（T0-T9+四波次+协作纪律），组建三队友团队 |
 | `1f43f0e1` | sim-2d | 复盘：模拟器 demo→真机落地（8 错谱系/3 根因）+ gil-guard 检查器与门禁 + 两条技能新节 |
 | `2bb8dbf1` | sim-2d | 档案：模拟器升 2.2.1，补「spawn 隔离故游戏侧无需更新」与 4173 重启 |
 | `6743bc1f` | football | 档案补主线锚：手感基线=地图「足球_2」；造物子档加「上级目标与层级」 |

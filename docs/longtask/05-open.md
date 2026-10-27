@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**每次收尾核对一遍**；解决了的移到底部"已关闭"并写证据）
 > 来源：用户诉求核对 + 复盘文档 + 门禁读数
-> 最近校验：2026-10-24（多线改造：每条标线 id；新增 `[sim-2d]` 一条自相矛盾的口径）
+> 最近校验：2026-10-27（新增 [sim-2d] tetris v2 八点反馈条目；关闭 O-2026-10-24-8）
 > 编号规则：`O-YYYY-MM-DD-n`；关闭时保留编号与证据
 > **线 id**：`[football]` / `[sim-2d]` / `[gui-agi]` / `[global]`（跨线或基础设施）。只关自己那条线的条目。
 
@@ -21,6 +21,7 @@
 | O-2026-10-23-2 | `[sim-2d]` | 「现在缺素材」 | 🔄 13/13 图元拟合已制 | 待补：敌机 8 型（路线 A）、UI 面立绘/星带背景/面板底（路线 B，需先在真机确认自建图能否被图片控件选中）、音效 `473/982/529.mp3` 试听 |
 | O-2026-10-23-3 | `[sim-2d]` | 图鉴/特性进度原来是 localStorage，现在是同局 META，**跨会话不保留** | ⬜ 未做 | 改关卡变量；进真机后才有意义 |
 | O-2026-10-24-7 | `[football]` | 用户 2026-08-30：「远远不及足球_2 即不通过」 | ⬜ 未测 | 手感对照一次都没做过；能力层闭环不算（`dossiers/football-v3.md` §一） |
+| O-2026-10-27-1 | `[sim-2d]` | tetris v2 **八点反馈**（原话逐字见 `workspace/tetris/docs/v2-plan.md` §一）：出块保底/双预览/Hold/AI 通用链路/AI 增强+难度/四模式/对抗因素/进阶操作 | 🔄 波1 进行中 | 任务板 task-1..10；三队友 core-mechanics(T1)/ai-driver(T4)/modes-arch(T0设计)；待裁决点由 modes-arch 设计文档汇总后问用户 |
 
 ## A2. 造物线（2026-10-24 收尾带来的开放项；全属 `[football]`）
 
@@ -52,7 +53,6 @@
 | O-2026-10-22-18 | `[gui-agi]` | OCR 单会话显存无上限（arena 可涨到 694 MiB/会话） | 与游戏共存时被撑大、挤兑 | ocr-vram 提案 `kSameAsRequested` + `gpu_mem_limit=512MiB`（−24%）；**待验收后定默认** |
 | O-2026-10-22-19 | `[gui-agi]` | A 段（原神在跑）**改后** OCR 读数缺失 | 无法回答"优化在真实负载下值多少" | 下次开游戏补测，不混报 |
 | O-2026-10-23-5 | `[global]` | `dsh-sentinel.service` **failed**（10-23 00:00 status=1）；手动 `--dry` rc=0 且无输出 | 每日自检静默失效 | 先看 `journalctl --user -u dsh-sentinel` 与 `~/.cache/dsh-sentinel.*` |
-| O-2026-10-24-8 | `[sim-2d]` | `dossiers/simulator-2d.md` **自相矛盾**：§三 写「交付包已在导入目录」，§四.1 仍写「没进导入目录」 | 接手者按 §四 会重做已完成的 P1 | 该线收尾时删/改 §四.1（本线不改别线档案） |
 
 ## C. 待用户拍板
 
@@ -81,6 +81,7 @@
 
 | 编号 | 结论 | 证据 |
 |---|---|---|
+| O-2026-10-24-8 | simulator-2d.md §四.1 矛盾已修：改为「整合包 GIA 已进导入目录且清成唯一一个（见 §三），待用户执行 P1」 | 2026-10-27 本线收尾改 `docs/longtask/dossiers/simulator-2d.md` §四.1，与 §三 读数一致 |
 | O-2026-10-24-6 | **多线并行改造落地**：新增 `LINES.md`（线表/进门协议/共享资源仲裁/收尾规则），`INDEX.md` §二 删除"单一活动分支"，`03-state.md` 改为共享面 + 标线 id 的分节，`05-open.md` 每条标线，足球线建 `dossiers/football-v3.md`，技能 `longtask-dossier` 与体检器同步支持多线 | 提交 `9ed58de3`/`e259b0cd`；`longtask_check.py --dir docs/longtask` = PASS，`--selftest` = PASS（6 类注入各被抓到）；**已接主链**：`scripts/doc_health.py` 在暂存区含 `docs/longtask/` 时自动跑该体检（pre-commit 拦得住），实测注入"状态词表破坏"→ doc_health FAIL + rc=1 |
 | O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 |
 | O-2026-10-22-10 | act 借屏竞态已修：动作前 `ys-session focus`（hold 8s）+ 抬窗后按 TTL 有界重试（≤2 次）；`ys-session focus` 快速路径验真实栈顶 | 真机 dry-run `focus_raise={ok:true,raised:true,ms:2907}`；离线 `selftest.py` 123/123 |
