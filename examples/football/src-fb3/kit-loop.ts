@@ -71,10 +71,13 @@ const DRIBBLE_GAIN = 8.0
 const DRIBBLE_BLEND = 0.55
 const PLAYER_SPEED_CAP = 8.0
 const WARMUP_TICKS = 75n // 开局建图期不做物理
-// 载体停放点（地图最下方，空模型支撑层；常量，不读任何实体位置）
-const CARRIER_X = 0.0
-const CARRIER_Y = -12.0
-const CARRIER_Z = 0.0
+// 载体停放策略：**x/z 跟随玩家 + y 固定在支撑空模型内部**
+//   · 距离节流是硬事实（用户多次强调，2026-10-27 再次纠正）：造物离玩家越远，技能施放越慢
+//     （实测：贴人 7~8/s，飞离 10m 掉到 1~3/s）⇒ **必须跟随**，这也是当初做"跟随瞬移"的原因。
+//   · y 不能读玩家位置求相对值（读回异常会浮到草地上，用户当场发现两次）⇒ 用常量。
+//   · 常量取「草地地基」空模型 1077936161 的内部：实体 pos y=−5.5、scale y=1 ⇒ 占据 y∈[−5.5,−4.5]，
+//     顶面 −4.5 就是草地表面。取 −5.1 = 顶面下 0.4m：有实体支撑、被地形遮住、离玩家 ≤1m 不掉频。
+const CARRIER_Y = -5.1
 
 // 踢法：[水平速度, 上挑, 自旋Y]
 const KICK_LIGHT_SPD = 10.0
@@ -409,7 +412,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   //   一旦玩家位置读回异常就会浮到地面）。⇒ 现在用**常量坐标**，不依赖任何读回值。
   // 频率读数（2026-10-27 18:13 试玩日志）：389 条 kitLoop / 53s ≈ 7.3/s，停在地下不影响施放频率。
   f.complexCreationTeleport(
-    f.create3dVector(CARRIER_X, CARRIER_Y, CARRIER_Z),
+    f.create3dVector(pP.xComponent, CARRIER_Y, pP.zComponent),
     f.create3dVector(0.0, 0.0, 0.0)
   )
 
