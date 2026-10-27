@@ -121,9 +121,9 @@ def drag(px):
     time.sleep(0.1); sh('xdotool', 'mouseup', '1'); time.sleep(0.5)
 
 
-def scroll_top():
-    for _ in range(2):
-        sh('xdotool', 'mousemove', str(SCROLL_X), '1300'); time.sleep(0.1)
+def scroll_top(times=3):
+    for _ in range(times):
+        sh('xdotool', 'mousemove', str(SCROLL_X), '1330'); time.sleep(0.1)
         sh('xdotool', 'mousedown', '1'); time.sleep(0.1)
         for y in ('1200', '1050', '950', '900', '870'):
             sh('xdotool', 'mousemove', str(SCROLL_X), y); time.sleep(0.05)
@@ -158,6 +158,9 @@ def collect(cat, prefix, a, ctx):
     if cat not in hs and cat == "战斗" and "角色动作" in hs and "物件" in hs:
         hs[cat] = (hs["角色动作"] + hs["物件"]) // 2; log("  邻居插值 y=", hs[cat])
     if cat not in hs:
+        scroll_top(4); p = grab(cat + '_h3', ctx['out'])
+        pr = heads(p) if p else []; hs = {n: cy for cy, n in pr}
+    if cat not in hs:
         log("  HEADER_NOT_FOUND", [n for _, n in pr]); return None
     click(CX, hs[cat])
     acc, prev, same, t_last = {}, None, 0, time.time()
@@ -180,8 +183,12 @@ def collect(cat, prefix, a, ctx):
             for _z, i, n in old.get("rows") or []: acc.setdefault(i, n)
         except Exception:
             pass
-        json.dump({"cat": cat, "rows": [[None, i, n] for i, n in sorted(acc.items())], "last": first},
-                  open(os.path.join(a.out, f"{cat}.json"), 'w'), ensure_ascii=False)
+        # 原子写：槽超时被 kill 时半截 JSON 会损坏（2026-10-27 物件类 146 条因此读不出来）
+        _p = os.path.join(a.out, f"{cat}.json")
+        with open(_p + '.tmp', 'w', encoding='utf-8') as _fh:
+            json.dump({"cat": cat, "rows": [[None, i, n] for i, n in sorted(acc.items())], "last": first},
+                      _fh, ensure_ascii=False)
+        os.replace(_p + '.tmp', _p)
         same = same + 1 if first == prev else 0
         prev = first
         if same >= 3: log("  到底"); break
