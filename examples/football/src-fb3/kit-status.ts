@@ -7,5 +7,5 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.creationStatus({ id: 1082130437, name: '_GSTS_kitStatus' }).on('start1', (_evt: any, f: any) => {
-  f.executeSkill(true, 2n) // 造物技能第 2 条 = kit_loop技能(1191182338)
+  f.executeSkill(true, 1n) // 造物技能第 1 条（丘丘人=1191182341 / 史莱姆=1191182338，两者都只挂 1 条）
 })
