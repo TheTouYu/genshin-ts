@@ -74,4 +74,58 @@ check('名字按 UTF-8 落 f12', () => {
   assert.ok(Buffer.from(bytes).includes(Buffer.from('技能_3', 'utf8')))
 })
 
+// —— 2026-10-27 差分：CD（f2/f4 双写）与「忽略公共冷却」（f8）——
+// 证据：.scratch/editor-incremental-evidence/2026-10-27-skillentry/（before 444c9893 → after 482554eb）
+// 编辑器字节（f3 参数块内层）：技能_2(0.03)=15 8fc2f53c 25 8fc2f53c 3001 3801 4001
+//                             技能_3(0.05)=15 cdcc4c3d 25 cdcc4c3d 3001 3801 4001
+function paramsHex(entryHex: string): string {
+  const buf = Buffer.from(entryHex, 'hex')
+  let i = 0
+  const readVarint = (): number => {
+    let out = 0
+    let shift = 0
+    while (true) {
+      const b = buf[i++]
+      out |= (b & 0x7f) << shift
+      if (!(b & 0x80)) return out
+      shift += 7
+    }
+  }
+  while (i < buf.length) {
+    const tag = readVarint()
+    const field = tag >> 3
+    const wire = tag & 7
+    if (wire === 0) {
+      readVarint()
+      continue
+    }
+    if (wire !== 2) throw new Error(`unexpected wire ${wire}`)
+    const len = readVarint()
+    const value = buf.subarray(i, i + len)
+    i += len
+    if (field === 3) return value.toString('hex')
+  }
+  throw new Error('no f3')
+}
+
+check('CD=0.03 且勾忽略公共冷却 → 与编辑器逐字节一致（f2/f4 双写 + f8）', () => {
+  const hex = Buffer.from(buildSkillEntry({ index: 2, configId: 1191182338, name: '技能_2', cdSeconds: 0.03, ignorePublicCd: true })).toString('hex')
+  assert.equal(paramsHex(hex), '158fc2f53c258fc2f53c300138014001')
+})
+
+check('CD=0.05 且勾忽略公共冷却 → 与编辑器逐字节一致', () => {
+  const hex = Buffer.from(buildSkillEntry({ index: 3, configId: 1191182339, name: '技能_3', cdSeconds: 0.05, ignorePublicCd: true })).toString('hex')
+  assert.equal(paramsHex(hex), '15cdcc4c3d25cdcc4c3d300138014001')
+})
+
+check('未设 CD → 只有 f6/f7（编辑器未改 CD 的形态）', () => {
+  const hex = Buffer.from(buildSkillEntry({ index: 1, configId: 1191182337, name: '技能_1', ignorePublicCd: true })).toString('hex')
+  assert.equal(paramsHex(hex), '300138014001')
+})
+
+check('CD=0 等价于未设（不写 f2/f4）', () => {
+  const hex = Buffer.from(buildSkillEntry({ index: 1, configId: 1191182337, name: 'x', cdSeconds: 0 })).toString('hex')
+  assert.equal(paramsHex(hex), '30013801')
+})
+
 console.log(`\n造物技能条目回归：${passed} 项通过${process.exitCode ? '（有失败）' : ''}`)

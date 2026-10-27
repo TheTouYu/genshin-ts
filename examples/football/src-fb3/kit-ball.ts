@@ -8,5 +8,7 @@ import { g } from 'genshin-ts/runtime/core'
 
 g.creationSkill({ id: 1082130439, name: '_GSTS_kitBall' }).on('start', (_evt: any, f: any) => {
   // 占位：不读、不写、不位移（避免与 kit-loop 抢同一造物的 teleport）
-  f.increaseSkillVariableValue(1207959577n, 1.0)
+  // ⚠️ 这里原先用 1207959577：不在本图技能变量段（1207959553..568）内 ⇒ 运行期越界，
+  //    整张图在第一行就崩，日志零记录（2026-10-27 定位）。改成段内 1207959565。
+  f.increaseSkillVariableValue(1207959565n, 1.0)
 })

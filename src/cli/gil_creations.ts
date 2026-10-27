@@ -542,21 +542,23 @@ function readF32(field: WireField | undefined): number | undefined {
   return typeof value === 'number' ? value : undefined
 }
 
-/** 编辑器新建技能条目时的默认 CD 参数（实测 `f1=1 f2=3 f3=1 f4=3 f6=1 f7=1`）。 */
-const DEFAULT_SKILL_CD = [1, 3, 1, 3]
-
+/**
+ * 技能条目的 `f3` 参数块（2026-10-27 差分闭合，编辑器字节为准）：
+ *   · CD 未设 / 0  ⇒ `{f6=1, f7=1}`
+ *   · CD = X > 0   ⇒ `{f2=f32(X), f4=f32(X), f6=1, f7=1}`（编辑器把同一个值同时写进 f2 与 f4，f1/f3 省略）
+ *   · 勾「忽略公共冷却」⇒ 末尾追加 `f8=1`
+ * 证据：技能_2(0.03) = `15 8fc2f53c 25 8fc2f53c 3001 3801 4001`；
+ *       技能_3(0.05) = `15 cdcc4c3d 25 cdcc4c3d 3001 3801 4001`（.scratch/editor-incremental-evidence/2026-10-27-skillentry/）
+ */
 function buildSkillParams(opts: { cdSeconds?: number; ignorePublicCd?: boolean }): WireField[] {
   const out: WireField[] = []
-  if (opts.cdSeconds === undefined) {
-    DEFAULT_SKILL_CD.forEach((v, i) => out.push({ ...f32(v), number: i + 1 }))
-  } else if (opts.cdSeconds !== 0) {
-    throw new Error(
-      '[error] 只支持 --cd 0（省略四个 f32，实测形态）或省略 --cd（沿用编辑器默认 1/3/1/3）；' +
-        '其它 CD 值的字段语义未闭合，先做一轮编辑器差分再放开'
-    )
+  if (opts.cdSeconds !== undefined && opts.cdSeconds > 0) {
+    out.push({ ...f32(opts.cdSeconds), number: 2 })
+    out.push({ ...f32(opts.cdSeconds), number: 4 })
   }
   out.push({ number: 6, wire: 0, value: 1 })
   out.push({ number: 7, wire: 0, value: 1 })
+  if (opts.ignorePublicCd) out.push({ number: 8, wire: 0, value: 1 })
   return out
 }
 
@@ -580,10 +582,8 @@ export function buildSkillEntry(opts: {
         : [{ number: 1, wire: 0, value: 1 }]
     )
   })
-  const params = buildSkillParams({ cdSeconds: opts.cdSeconds })
-  // f8 = 「忽略公共冷却」开关：**勾了就写，与是否首条无关**。
-  // （2026-10-24 二次差分证伪了"只有首条带 f8"：用户给第 2 条勾上后，字节里第 2 条也出现 `4001`）
-  if (opts.ignorePublicCd) params.push({ number: 8, wire: 0, value: 1 })
+  // f8（忽略公共冷却）由 buildSkillParams 统一处理：勾了就写，与是否首条无关
+  const params = buildSkillParams({ cdSeconds: opts.cdSeconds, ignorePublicCd: opts.ignorePublicCd })
   fields.push({ number: 3, wire: 2, value: emit(params) })
   fields.push({ number: 12, wire: 2, value: new TextEncoder().encode(opts.name) })
   fields.unshift({ number: 1, wire: 0, value: opts.index })

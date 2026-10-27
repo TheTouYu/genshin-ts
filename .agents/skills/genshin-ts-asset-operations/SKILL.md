@@ -265,7 +265,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - `gsts assets:skill-config create --id <必填> --name <名> --template 普通技能|36|自定义技能|6|自定义造物|28 --skill-type 瞬发|普通 [--graph-id <图ID,...>] [--output <候选>|--write]`
   - 模板×释放类型支持矩阵：36/6 全组合；28 仅瞬发（固定模型 10005001 遗迹守卫 + root20 1970→2955B 联动，多造物技能共用容器合法）
   - 瞬发绑定 = body f5（轨道点 1073741825+7×顺序）；普通绑定 = 事件轨道打点（36=3001 单打点/6=1001..1007 三打点，限 1 图）
-  - 技能配置 ID 分配规则未闭合 → `--id` 必填；普通释放多图绑定/28+普通 绑定 fail closed
+  - 技能配置 ID 分配规则未闭合 → `--id` 必填；普通释放多图绑定/28+普通 绑定 fail closed。**技能条目编码（2026-10-27 差分闭合）**：`f3` 参数块 = CD 未设/0 → `{f6=1,f7=1}`；CD=X>0 → `{f2=f32(X), f4=f32(X), f6=1, f7=1}`（同一值双写，f1/f3 省略）；勾「忽略公共冷却」→ 末尾 `f8=1`。`skill add|bind` 现已支持 `--cd <秒>` 与 `--ignore-public-cd`，回归 `tests/gil_creations_skill_entry_test.ts` 9 项逐字节对齐编辑器。
 - `gsts assets:skill-config list [--gil <map>] [--json]` + `npx tsx tools/list-gil-skill-configs.ts <map.gil>` 独立回读
 - 写回流程同通用安全写回（候选 → 回读 → 安全门 → --write → 备份 → 重载编辑器）
 - **施放链开发前挂载验证先行（2026-08-31 魔方 cast 链选错技能实证，强制）**：任何
