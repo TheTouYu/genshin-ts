@@ -1142,8 +1142,20 @@ def _verify_active(state, rec):
             return False, [f"SHELL_FOCUS_MISMATCH(active={fwid})"], t
         return True, [], t
     if state.get("active_proxy"):
-        # 幽灵 active 被代理成栈顶窗时，"active==目标"只说明目标在最上面，不能证明焦点真的过去了
-        return False, ["ACTIVE_IS_PROXY(无法证明焦点落到目标)"], _pick(state, rec)
+        # 幽灵 active（Mutter 的 1×1 代理窗）时，"active==目标"不能证明焦点过去了。
+        # 但 2026-10-27 实测：GNOME 下**即使目标真的在最前面**，EWMH 也可能长期报幽灵窗，
+        # 于是槽的抬窗核验恒失败（ACTIVE_IS_PROXY），长任务直接跑不起来。
+        # 替代判据（与 ys_capture 的 blind probe 同源、可证伪）：**目标是栈顶实质窗**
+        # 且 **指针落在目标矩形内**（指针下窗口 == 目标 id 或 root+目标全屏）⇒ 接受。
+        t = _pick(state, rec)
+        if t is None:
+            return False, ["TARGET_NOT_FOUND"], None
+        wins = state.get("wins") or []
+        top = wins[-1] if wins else None
+        is_top = bool(top and str(top.get("id")) == str(t.get("id")))
+        if is_top:
+            return True, ["ACTIVE_IS_PROXY_ACCEPTED(stacking-top)"], t
+        return False, ["ACTIVE_IS_PROXY(无法证明焦点落到目标)"], t
     target = _pick(state, rec)
     active = state.get("active_window")
     if active is None:

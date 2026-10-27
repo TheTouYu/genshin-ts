@@ -48,8 +48,13 @@ def active():
 
 
 def target_win():
-    r = subprocess.run([os.path.join(HERE, 'ys-win-id')], capture_output=True, text=True, env=env())
-    w = (r.stdout or '').strip()
+    """干活窗 = **游戏窗**（千星编辑器在它里面）——不能用 `ys-win-id` 的默认值，
+    那个默认给沙箱编辑器窗 0x2200008（2026-10-27 前台断言因此误报）。"""
+    try:
+        import ys_win
+        w = ys_win.resolve(prefer_sandbox=False) or ''
+    except Exception:
+        w = ''
     return w or '0x1000003'
 
 
@@ -71,10 +76,21 @@ def grab(tag, outdir):
     return None
 
 
+CROP = (1540, 740, 520, 720)   # 面板区域：只这一块送 OCR（整帧送是 3–4 倍慢）
+
+
 def boxes(p):
-    r = ys_look.daemon({"cmd": "ocr", "frame": p}, timeout=240) or {}
-    return [b for b in (r.get("boxes") or [])
-            if PX[0] <= (b.get("cx") or 0) <= PX[1] and LY[0] <= (b.get("cy") or 0) <= LY[1]]
+    from PIL import Image
+    cp = p.replace('.png', '_c.png')
+    Image.open(p).crop((CROP[0], CROP[1], CROP[0] + CROP[2], CROP[1] + CROP[3])).save(cp)
+    r = ys_look.daemon({"cmd": "ocr", "frame": cp}, timeout=240) or {}
+    ox, oy = CROP[0], CROP[1]
+    out = []
+    for b in (r.get("boxes") or []):
+        cx = (b.get("cx") or 0) + ox; cy = (b.get("cy") or 0) + oy
+        if PX[0] <= cx <= PX[1] and LY[0] <= cy <= LY[1]:
+            out.append(dict(b, cx=cx, cy=cy))
+    return out
 
 
 def rows(p):
@@ -158,10 +174,18 @@ def collect(cat, prefix, a, ctx):
         log(f"  page{k}: n={len(rs)} first={first} last={rs[-1][1] if rs else None}")
         if first and not str(first).startswith(prefix): log("  !! prefix mismatch", first)
         for cy, i, n in rs: acc.setdefault(i, n)
+        # 增量落盘：槽可能到期/被打断，每页都保住已有数据（2026-10-27 战斗跑到 40331 丢失的教训）
+        try:
+            old = json.load(open(os.path.join(a.out, f"{cat}.json")))
+            for _z, i, n in old.get("rows") or []: acc.setdefault(i, n)
+        except Exception:
+            pass
+        json.dump({"cat": cat, "rows": [[None, i, n] for i, n in sorted(acc.items())], "last": first},
+                  open(os.path.join(a.out, f"{cat}.json"), 'w'), ensure_ascii=False)
         same = same + 1 if first == prev else 0
         prev = first
         if same >= 3: log("  到底"); break
-        drag(-330)
+        drag(-a.drag)
     return {"cat": cat, "rows": [[None, i, n] for i, n in sorted(acc.items())]}
 
 
@@ -170,6 +194,7 @@ def main():
     ap.add_argument('--category'); ap.add_argument('--prefix')
     ap.add_argument('--all', action='store_true')
     ap.add_argument('--max-pages', type=int, default=200)
+    ap.add_argument('--drag', type=int, default=280, help='每页拖拽像素（越小重叠越多、缺号越少）')
     ap.add_argument('--out', default='/tmp/ys-list-collect')
     ap.add_argument('--task', default='list-collect')
     ap.add_argument('--win', default='')
