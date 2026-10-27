@@ -195,6 +195,19 @@ local MODE = 'casual'
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
 local TK = { state = 'play', t = 0 }
 local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，不随 newGame/实例切换清零）
+-- T6b ai-battle 出块镜像队列：主盘自然出块 push，AI 盘 piece 空时立即喂 / doLock 后拉（保序）。
+-- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
+local MIRRORQ = {}
+local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
+
+-- AI 状态机初值（每实例一份；T6b 起从文件级一次性构造搬进 newInst——G[2] 也要有自己的 AI 表）
+local function newAIState()
+  return { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
+    count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
+    score = 0, lines = 0,
+    search = nil,   -- T5 渐进式搜索状态（plan/idx/best2/bestScore/done/holdChecked）
+  }   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）；ρ 统计在全局 RHO
+end
 
 -- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
 local function newInst()
@@ -215,6 +228,7 @@ local function newInst()
   t.combo, t.maxCombo, t.b2b = 0, 0, false
   t.settleOpen = false
   t.shakeT, t.shakeDur, t.shakeAmp, t.shakePhase = 0, 0, 0, 0
+  t.AI = newAIState()
   return t
 end
 G[1] = newInst()
@@ -267,6 +281,7 @@ end
 local function cellIndex(r, c) return (r - 1) * COLS + c end
 
 local function paint(r, c, color)
+  if not g.cells then return end   -- G[2] 数据层阶段无棋盘控件（T6b-2 建控件后走全路径）
   local ctl = g.cells[cellIndex(r, c)]
   if ctl then ctl.imageColor = color end
 end
@@ -338,6 +353,7 @@ local SHAKE_DUR = { 0.18, 0.20, 0.23, 0.28 }        -- 1/2/3/4 行
 local SHAKE_AMP = { 7, 10, 13, 17 }                 -- 像素；PITCH=30 ⇒ 4 行约半格
 local SHAKE_FREQ = 2 * math.pi * 9                  -- 9Hz：0.2s 内约 2 个周期
 local function applyShake(ox, oy)
+  if not g.cells then return end        -- G[2] 数据层阶段无棋盘控件（T6b-2 建控件后自然走全路径）
   for i = 1, #g.cells do
     local c = g.cells[i]
     if c then tryCall(c, 'SetAnchoredPosition', g.cellBX[i] + ox, g.cellBY[i] + oy) end
@@ -877,6 +893,13 @@ spawn = function(overrideName, overrideBag)
     if not g.autoDriving then updateBest() end
     showGameOver()
   end
+  -- T6b ai-battle 出块镜像队列（同源同序，裁决④）：主盘自然出块 push；AI 盘 piece 空时立即喂、
+  -- AI 盘 doLock 后拉。队列保序 ⇒ 任意节奏不覆盖不丢块；AI 盘快过主盘时 piece=nil 空转等待。
+  -- 跨实例交互铁律（设计书 §1.8 Step3 ②）：切实例前保存 g → 操作 → 还原。
+  if MODE == 'ai-battle' and g == G[1] and not overrideName then
+    MIRRORQ[#MIRRORQ + 1] = { name = name, bag = nameBag }
+    if G[2] and not G[2].gameOver and not G[2].piece then feedMirror() end
+  end
   renderPiece()
   renderHud()
 end
@@ -1028,7 +1051,14 @@ doLock = function()
     bannerTimer = 2.5
     print('guide lock-tip')
   end
-  if not g.gameOver then spawn() end   -- spawn 内部 renderPiece() 会重画棋盘+新方块
+  if not g.gameOver then
+    -- T6b：AI 盘不自己取块——拉镜像队列（空则 piece=nil 空转，等主盘下一次出块喂）。
+    if MODE == 'ai-battle' and g ~= G[1] then
+      feedMirror()
+    else
+      spawn()   -- spawn 内部 renderPiece() 会重画棋盘+新方块
+    end
+  end
   renderHud()
 end
 
@@ -1131,6 +1161,11 @@ local function newGame()
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
   g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
   NUM.ST.name, NUM.ST.bag, NUM.ST.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
+  -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
+  if MODE == 'ai-battle' and g ~= G[1] then
+    renderHud()
+    return
+  end
   g.nextName, g.nextBag = takeFromBag()   -- 第一块
   spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
@@ -1186,6 +1221,16 @@ end
 -- 位置全部在棋盘之外（顶部/底部横幅）：运行时 InstantiateClientUIControl 造的格子层级高于
 -- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
 showGameOver = function()
+  -- T6b ai-battle 胜负收口：AI 盘（G[2]）顶满=玩家胜——横幅+停摆，不弹第二结算层（首版数据层）；
+  -- 主盘（G[1]）顶满=玩家败——走原结算页，另打 lose 日志。
+  if MODE == 'ai-battle' and G[2] and g == G[2] then
+    setText(topBanner, 'AI 盘顶满 · 你赢了！')
+    print('battle win')                  -- v2-plan T6 验收锚
+    return
+  end
+  if MODE == 'ai-battle' and g == G[1] then
+    print('battle lose')                 -- v2-plan T6 验收锚（结算页照常弹）
+  end
   bannerTimer = 0
   g.settleOpen = false
   print('guide gameover score=' .. g.score .. ' lines=' .. g.lines)
@@ -1572,6 +1617,54 @@ local function demoLoopReset()
   g.AI.wait = aiRange((NUM.AI_LEVELS[NUM.AI_LEVEL] or NUM.AI_LEVELS[2]).obsMin, AI_OBSERVE_MAX)
 end
 
+-- T6 模式进出（demoLoopReset 后定义：依赖 newGame/startIfWaiting/settleDestroy/spawn 均已就绪）。
+-- feedMirror 实现：从镜像队列拉一块喂给 AI 盘（override spawn 路径，不消耗 AI 盘的袋）。
+feedMirror = function()
+  local e = table.remove(MIRRORQ, 1)
+  if not e or not G[2] or G[2].gameOver then return end
+  local save = g                             -- 跨实例铁律：保存 → 切目标 → 操作 → 还原
+  g = G[2]
+  spawn(e.name, e.bag)
+  print('p2 mirror name=' .. e.name .. ' bag=' .. e.bag)   -- 双屏日志 p2 前缀（主日志锚不动）
+  g = save
+end
+
+-- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
+local function enterMode()
+  if MODE == 'ai-battle' then
+    NUM.AI_LEVEL = 3                      -- lead 拍板：ai-battle=hard（casual 接管走默认 normal）
+    G[2] = newInst()
+    ACTIVE = { 1, 2 }
+    MIRRORQ = {}                          -- 清镜像队列（复局防串）
+    local save = g
+    g = G[2]
+    g.autoDriving = true                  -- AI 盘账本走 AI 账（T4 语义：音效出声、best 不收）
+    newGame()                             -- 建板+状态复位；G[2] 不取块（newGame 内 ai-battle 分支）
+    g = G[1]
+    newGame()                             -- 主盘同起点重开（丢自演半盘）；首块 spawn→push→喂 G[2]
+    print('p2 inst ai-battle hard')       -- 双屏日志 p2 前缀
+    g = save
+  else
+    G[2] = nil
+    ACTIVE = { 1 }
+  end
+end
+
+-- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
+local function exitToMenu()
+  if G[2] then
+    settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
+    G[2] = nil
+  end
+  ACTIVE = { 1 }
+  MIRRORQ = {}
+  MODE = 'casual'
+  g = G[1]
+  guideStage = 0
+  demoLoopReset()                         -- 复位主盘演出与横幅（含模式菜单文案）
+  print('mode menu')                      -- 回菜单锚
+end
+
 -- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
 local function aiDrop()
   local guard = 0
@@ -1615,13 +1708,7 @@ local function aiDrop()
     demoLoopReset()
   end
 end
-
-g.AI = { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
-  count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
-  score = 0, lines = 0,
-  rhoPieces = 0, rhoLines = 0,   -- T5 ρ 统计（跨局累计：demo reset/玩家接管不清，切档清零）
-  search = nil,                  -- T5 渐进式搜索状态（plan/idx/best2/bestScore/done/holdChecked）
-}   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）
+-- g.AI 初值已随 newInst() 建立（newAIState，T6b：每实例一份 AI 状态机）
 
 -- 每个 OnUpdate 调一次：thinking（观察）→ acting（旋转/横移/小落，逐段计时）
 -- → hovering（再看一眼，在 acting 队列里）→ dropping（软降逐格 或 硬降）→ 下一块
@@ -2229,12 +2316,15 @@ function OnStart()
     end
   end
   -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
-  -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）
+  -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）。
+  -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。选择后 enterMode 配实例，再开局。
   for i, mname in ipairs({ 'casual', 'ai-battle', 'pvp', 'coop' }) do
     listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
       if guideStage ~= 0 then return end
+      if i > 1 and isMobile then return end   -- 双屏砍手机端，回落 casual（裁决⑨）
       MODE = mname
       print('mode=' .. MODE)
+      enterMode()
       startIfWaiting()
     end)
   end
@@ -2249,6 +2339,11 @@ function OnStart()
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
+    -- T6b：非 casual 模式的 R=回标题菜单（模式可重选）；casual 保持 v1 就地重开语义
+    if MODE ~= 'casual' and guideStage == 1 then
+      exitToMenu()
+      return
+    end
     settleDestroy()          -- 双保险：newGame 里还会再调一次（幂等），保证 R 一定销毁结算层
     newGame()
     setText(topBanner, '')
@@ -2366,7 +2461,8 @@ function OnStart()
   end
 
   -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
-  local mapped = { [36] = true, [37] = true, [38] = true, [39] = true }
+  -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
+  local mapped = { [1] = true, [2] = true, [3] = true, [4] = true, [36] = true, [37] = true, [38] = true, [39] = true }
   local anyKeyStart = function()
     if guideStage == 0 then startIfWaiting() end
   end
@@ -2494,6 +2590,10 @@ function OnUpdate(dt)
   end
   for i = 1, #ACTIVE do
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
+    -- T6b：AI 盘驱动（i==2）——作用于 G[2]（闭包 g 已切）；盘死即停（胜负在 showGameOver 收口）
+    if MODE == 'ai-battle' and i == 2 then
+      aiTickCore(d, 'stop')
+    end
     tickInstance(d)
   end
 end

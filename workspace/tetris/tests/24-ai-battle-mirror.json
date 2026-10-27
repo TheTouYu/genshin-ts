@@ -1,0 +1,71 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "24 ai-battle 数据层：Digit2 进局建 AI 盘（hard），镜像同源同序，AI 落块后等主盘",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Up"
+    },
+    {
+      "t": 3.0,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 3.05,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    },
+    {
+      "t": 10.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 10.02,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "mode=ai-battle",
+      "source": "client"
+    },
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "p2 inst ai-battle hard",
+      "source": "client"
+    },
+    {
+      "at": 0.6,
+      "kind": "log",
+      "contains": "p2 mirror name=",
+      "source": "client"
+    },
+    {
+      "at": 9.5,
+      "kind": "log",
+      "contains": "lock ",
+      "source": "client"
+    },
+    {
+      "at": 10.5,
+      "kind": "log",
+      "contains": "harddrop",
+      "source": "client"
+    }
+  ]
+}
