@@ -36,9 +36,9 @@
     {
       "at": 1.4,
       "kind": "control",
-      "name": "botBanner",
+      "name": "keyA",
       "field": "text",
-      "equals": "P1 A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存"
+      "equals": "P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存"
     },
     {
       "at": 1.8,

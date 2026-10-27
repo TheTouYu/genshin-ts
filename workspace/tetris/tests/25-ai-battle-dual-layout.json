@@ -54,17 +54,17 @@
       "kind": "control",
       "name": "p2cell1",
       "field": "anchoredPositionX",
-      "equals": 185
+      "equals": 145
     },
     {
       "at": 1.1,
       "kind": "control",
       "name": "cell1",
       "field": "anchoredPositionX",
-      "equals": -455
+      "equals": -415
     },
     {
-      "at": 1.8,
+      "at": 5.2,
       "kind": "control",
       "name": "keyA",
       "field": "text",

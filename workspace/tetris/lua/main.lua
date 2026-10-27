@@ -212,6 +212,9 @@ local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
 local TK = { state = 'play', t = 0 }
+-- v2.2 ③：模式终局标志——双屏任一盘 gameOver 即置位：冻结两盘（输入/重力/AI 全停，
+-- OnUpdate 只推结算动画），胜负走全屏结算层，R=回菜单复位。casual 不置位（v1 语义不变）。
+local MODE_OVER = false
 -- v2.1 ①：双人/对抗模式开局引导态（guideStage=3）——phase 'keys'（键位说明，任意键确认）
 -- → 'count'（3-2-1 倒计时，每 1s，topBanner 大字）→ guideStage=1 开局。casual 不经此态（旧用例直进）。
 local GK = { phase = 'keys', t = 0, count = 3 }
@@ -325,13 +328,31 @@ local function noteFail(tag, err)
 end
 local function trySet(ctl, key, value)
   if not ctl then return false end
+  -- 真机适配（v2.2）：对齐字段真机要枚举不收字符串（真机日志 `bad argument #2
+  -- (TextHorizontalAlignment expected, got string)`——模拟器两形态都收）。先映射枚举，
+  -- 无 Enum 表回落字符串。
+  if (key == 'horizontalAlignment' or key == 'verticalAlignment') and type(value) == 'string' then
+    local enums = (type(Enum) == 'table')
+      and ((key == 'horizontalAlignment' and Enum.TextHorizontalAlignment) or Enum.TextVerticalAlignment)
+      or nil
+    if enums and enums[value] ~= nil then value = enums[value] end
+  end
   local ok, err = pcall(function() ctl[key] = value end)
   if not ok then noteFail(tostring(key), err) return false end
   return true
 end
 local function tryCall(ctl, method, a, b)
   if not ctl then return false end
-  local ok, err = pcall(function() ctl[method](ctl, a, b) end)
+  -- 真机适配（v2.2）：方法签名严格——SetVisible 真机 2 expected got 3（尾 nil 实参也计数）。
+  -- 按实参个数分发：b/a 为 nil 不传。模拟器宽松两形态都过。
+  local ok, err
+  if b ~= nil then
+    ok, err = pcall(function() ctl[method](ctl, a, b) end)
+  elseif a ~= nil then
+    ok, err = pcall(function() ctl[method](ctl, a) end)
+  else
+    ok, err = pcall(function() ctl[method](ctl) end)
+  end
   if not ok then noteFail(tostring(method), err) return false end
   return true
 end
@@ -1247,19 +1268,28 @@ local function startIfWaiting()
   if overlay then tryCall(overlay, 'SetVisible', false) end
   TK.state, TK.t = 'play', 0            -- T6a：进局即玩家态（菜单选模式/任意键开始同路径）
   -- v2.1 ①：双人/对抗模式先入引导态（键位说明+任意键+3-2-1），casual 保持直进（旧用例语义）。
+  -- v2.2 ①：键位说明分列两盘正下方（P1 左 keyA / P2 右 keyB，y=-318 棋盘外区域——
+  -- 不再横跨棋盘被格子压住；服务端 textbox 层级低于运行时棋盘格，文案必须放棋盘投影区之外）。
   if MODE ~= 'casual' then
     guideStage = 3
     GK.phase, GK.t, GK.count = 'keys', 0, 3
     local keys2 = (MODE == 'coop')
-      and '合作：P1 W 旋转 · G 暂存 ｜ P2 ←→ 移动 · ↓ 软降 · X 直落'
-      or 'P1 A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
+      and 'P1：W 旋转 · G 暂存'
+      or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
     local keys2b = (MODE ~= 'coop')
-      and 'P2 ← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
-      or '两人共盘对抗 AI：姿态 P1 定，落点 P2 定'
+      and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
+      or 'P2：← → 移动 · ↓ 软降 · X 直落'
     setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 按任意键准备')
-    setText(botBanner, keys2)
-    setText(hint, keys2b)
-    tryCall(hint, 'SetVisible', true)
+    setText(botBanner, '')
+    trySet(keyA, 'fontSize', 20)
+    tryCall(keyA, 'SetSizeDelta', 520, 40)
+    tryCall(keyA, 'SetAnchoredPosition', -280, -318)
+    setText(keyA, keys2)
+    trySet(keyB, 'fontSize', 20)
+    tryCall(keyB, 'SetSizeDelta', 520, 40)
+    tryCall(keyB, 'SetAnchoredPosition', 280, -318)
+    setText(keyB, keys2b)
+    setText(hint, '')
     print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
     return
   end
@@ -1291,20 +1321,26 @@ end
 -- 结算页：棋盘暗场 + 顶部大字 + 底部「成绩 + 两个选项」。
 -- 位置全部在棋盘之外（顶部/底部横幅）：运行时 InstantiateClientUIControl 造的格子层级高于
 -- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
-showGameOver = function()
-  -- T6b/c/d 双屏胜负收口：G[2]（AI 盘/对家盘）顶满=玩家侧胜——横幅+停摆，不弹第二结算层（首版）；
-  -- 主盘（G[1]）顶满=玩家侧败——走原结算页，另打 lose 日志。
+showGameOver = function(overTitle)
+  -- v2.2 ②③：双屏任一盘死=模式终局——胜负走**全屏结算层**（复用 v1 主路径，标题带胜负文案），
+  -- 置 MODE_OVER 冻结两盘（输入/重力/AI 全停，OnUpdate 只推结算动画）。casual 不置位。
+  -- 结算层懒创建槽在 G[1]——对家盘（G[2]）死时切回主实例挂层，主盘标记终局以走结算渲染。
   if G[2] and g == G[2] then
-    local winText = (MODE == 'pvp' and 'P2 盘顶满 · P1 胜！')
-      or (MODE == 'coop' and 'AI 盘顶满 · 合作成功！')
-      or 'AI 盘顶满 · 你赢了！'
-    setText(topBanner, winText)
-    setText(botBanner, '按 R 回菜单 · 再选模式')   -- v2.1 ④：胜负后给出路（结算页只有 [R]再来一局）
+    MODE_OVER = true
+    local winText = (MODE == 'pvp' and 'P1 胜！')
+      or (MODE == 'coop' and '合作成功！')
+      or '你赢了！'
     print('battle win')                  -- v2-plan T6 验收锚
+    local save = g
+    g = G[1]
+    G[1].gameOver = true                 -- 主盘终局：重力/输入已由 MODE_OVER 冻结，这里只走结算渲染
+    showGameOver(winText)
+    g = save
     return
   end
   if G[2] and g == G[1] then
-    print('battle lose')                 -- v2-plan T6 验收锚（结算页照常弹）
+    MODE_OVER = true
+    print('battle lose')                 -- v2-plan T6 验收锚（结算页照常弹，标题保持「游戏结束」）
   end
   bannerTimer = 0
   g.settleOpen = false
@@ -1316,7 +1352,7 @@ showGameOver = function()
   end
   if g.settleReady then
     -- 结算层：先把文字写好，位置由 settleTick 从屏幕外滑入（0→0.9s 四段动画）
-    setText(g.settleTitle, '游戏结束')
+    setText(g.settleTitle, overTitle or '游戏结束')
     setText(g.settleScore, '本局 ' .. g.score .. ' 分')
     setText(g.settleBest, '最高 ' .. bestScore)
     setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　落块 ' .. g.pieceCount .. '　等级 ' .. g.level)
@@ -1348,7 +1384,7 @@ showGameOver = function()
   -- 为什么不是更大：棋盘顶框在屏幕 y=59，上方净空只有 59px，40 号居中后墨迹 16..56 恰好不压框
   trySet(topBanner, 'fontSize', 40)
   trySet(topBanner, 'fontColor', C(255, 255, 96, 96))
-  setText(topBanner, '游戏结束')
+  setText(topBanner, overTitle or '游戏结束')
   -- 底部一行：成绩 + 两个选项；26 号 → 需 >= 41.7（layout 给 48）
   trySet(botBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C(255, 214, 232, 246))
@@ -1941,22 +1977,22 @@ end
 -- 双屏布局：G[1] 棋盘移左（-320）、G[2] 移右（+320）；G[1] preview 重排（next 上移棋盘上方两排、
 -- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
 local function layoutDual()
-  placeBoard(G[1], -320)
+  placeBoard(G[1], -280)
   if G[1].preview then
     for i = 1, 4 do   -- next1-4（当前块 4 格，18px）：棋盘上方一排
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -320 + (i - 2.5) * 22, 318)
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -280 + (i - 2.5) * 22, 318)
     end
     for i = 5, 8 do   -- next5-8（第二块，14px）：再上一排
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -320 + (i - 6.5) * 18, 338)
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -280 + (i - 6.5) * 18, 338)
     end
     for i = 9, 12 do  -- hold1-4：左栏竖排（x=-550）
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -550, 175 - (i - 9) * 22)
+      tryCall(G[1].preview[i], 'SetAnchoredPosition', -600, 175 - (i - 9) * 22)
     end
   end
   tryCall(title, 'SetVisible', false)
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
-  placeBoard(G[2], 320)
+  placeBoard(G[2], 280)
   setText(keyA, 'AI 盘')
   setText(keyB, '')
   setText(keyC, '')
@@ -1990,6 +2026,7 @@ end
 
 -- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
 local function exitToMenu()
+  MODE_OVER = false                    -- v2.2 ③：终局标志复位（R 回菜单）
   if G[2] then
     settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
     destroyBoardControls(G[2])            -- 销毁 p2 棋盘控件（防 430 上限累积）
@@ -2724,6 +2761,7 @@ function OnStart()
         return
       end
       if guideStage == 2 or guideStage == 3 then return end
+      if MODE_OVER then return end       -- v2.2 ③：模式终局后冻结双方输入（R 回菜单走独立监听）
       g = routePlayer(keyName)          -- 铁律①：回调内先绑定目标实例
       playerTouched()
       fn()
@@ -3095,7 +3133,11 @@ function OnUpdate(dt)
           trySet(topBanner, 'fontSize', 34)
           setText(topBanner, '')
           setText(botBanner, '')
-          if G[2] then tryCall(hint, 'SetVisible', false) end
+          -- v2.2 ①：引导结束，keyA/keyB 从盘下说明位复位回战况位（layout 全量+双屏重摆）
+          if G[2] and CANVAS_W and CANVAS_H then
+            pcall(layout, CANVAS_W, CANVAS_H)
+            layoutDual()
+          end
           renderHud()
           print('guide start')
           print('guide stage=1')
@@ -3125,6 +3167,14 @@ function OnUpdate(dt)
     if TK.state == 'ai' then
       aiTickCore(d, 'stop')            -- 接管驱动：盘死即停（走玩家结算），不 reset 玩家的局
     end
+  end
+  -- v2.2 ③：模式终局——冻结两盘（重力/DAS/AI 全停），只推终局方的结算层动画。
+  if MODE_OVER then
+    for i = 1, #ACTIVE do
+      g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
+      if g.gameOver then settleTick(d) end
+    end
+    return
   end
   for i = 1, #ACTIVE do
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]

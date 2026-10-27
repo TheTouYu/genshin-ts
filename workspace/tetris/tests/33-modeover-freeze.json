@@ -1,0 +1,18 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "33 v2.2 双屏引导分列（coop 变体）：P1/P2 键位各在盘下 keyA/keyB",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey4Down" },
+    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey4Up" }
+  ],
+  "asserts": [
+    { "at": 1.4, "kind": "log", "contains": "guide keys coop", "source": "client" },
+    { "at": 1.6, "kind": "control", "name": "keyA", "field": "text", "equals": "P1：W 旋转 · G 暂存" },
+    { "at": 1.6, "kind": "control", "name": "keyA", "field": "anchoredPositionX", "equals": -280 },
+    { "at": 1.6, "kind": "control", "name": "keyB", "field": "text", "equals": "P2：← → 移动 · ↓ 软降 · X 直落" },
+    { "at": 1.6, "kind": "control", "name": "keyB", "field": "anchoredPositionX", "equals": 280 }
+  ]
+}
