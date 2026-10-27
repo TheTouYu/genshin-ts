@@ -201,11 +201,20 @@ local HL = {}                          -- 说明层实例表（暗底×1 + 文�
 local helpOpen = false
 local toggleHelp                       -- 前向声明（实现见 UI 段；startIfWaiting/H 键都在更早处调用）
 local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
+-- v2.3 ②：深空霓虹街机主题（lead 定调色板——统一饱和度只在色标/描边/选中态用，卡片底一律深色）
+local THEME = {
+  bgDeep  = C(255, 11, 16, 24),     -- #0B1018 最深底
+  panel   = C(255, 18, 26, 40),     -- #121A28 面板底
+  card    = C(255, 26, 36, 56),     -- #1A2438 卡片底
+  textMain = C(255, 241, 245, 249), -- #F1F5F9 主文字
+  textSub  = C(255, 148, 163, 184), -- #94A3B8 次文字
+  selectEdge = C(255, 226, 232, 240), -- #E2E8F0 选中描边
+}
 local MODE_INFO = {
-  { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 24, 98, 118) },
-  { key = '2', name = 'AI 对抗', desc = '与 hard 档 AI 决战', color = C(255, 128, 32, 42) },
-  { key = '3', name = '双人对战', desc = '同屏 PK · 互送垃圾行', color = C(255, 96, 48, 128) },
-  { key = '4', name = '双人合作', desc = '旋转手+行动手 · 共盘抗 AI', color = C(255, 32, 110, 64) },
+  { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 45, 212, 191) },   -- #2DD4BF 青绿
+  { key = '2', name = 'AI 对抗', desc = '与 hard 档 AI 决战', color = C(255, 244, 63, 94) },      -- #F43F5E 玫红
+  { key = '3', name = '双人对战', desc = '同屏 PK · 互送垃圾行', color = C(255, 168, 85, 247) }, -- #A855F7 紫
+  { key = '4', name = '双人合作', desc = '旋转手+行动手 · 共盘抗 AI', color = C(255, 245, 158, 11) }, -- #F59E0B 琥珀
 }
 local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双人对战', coop = '双人合作' }
 -- casual 局中接管状态机（v2-plan §三 T6）：'play'（玩家操作）→5s 无操作→'hint'（提示 2s）
@@ -1266,6 +1275,12 @@ local function startIfWaiting()
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
+  -- v2.3 ④：进局解除标题页棋盘压暗（casual 接管不 newGame，newGame 的复位段够不着这里）
+  if g.dimRatio > 0 then
+    g.dimRatio, g.dimApplied = 0, -1
+    renderAll()
+    renderPiece()
+  end
   TK.state, TK.t = 'play', 0            -- T6a：进局即玩家态（菜单选模式/任意键开始同路径）
   -- v2.1 ①：双人/对抗模式先入引导态（键位说明+任意键+3-2-1），casual 保持直进（旧用例语义）。
   -- v2.2 ①：键位说明分列两盘正下方（P1 左 keyA / P2 右 keyB，y=-318 棋盘外区域——
@@ -1720,6 +1735,9 @@ local function demoLoopReset()
   g.autoDriving = true
   newGame()
   g.autoDriving = false
+  g.dimRatio, g.dimApplied = 0.45, -1   -- v2.3 ④：回标题页保持棋盘弱化
+  renderAll()
+  renderPiece()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
@@ -1854,39 +1872,64 @@ destroyMenuCards = function()
   MC = {}
   if n > 0 then print('menu cards destroy n=' .. n) end
 end
+-- v2.3 ①：左右两列各两卡（避开中央 330 宽棋盘投影区）——左列 x=-420（1 休闲/2 AI 对抗），
+-- 右列 x=+420（3 双人/4 合作），列内 y=+80/-80；卡 360×110。
+-- v2.3 ② 卡片结构（深空霓虹）：深色卡底 #1A2438 + 左缘 6px 模式色标条 + 模式名 30 号主文字
+-- + 特色句 15 号次文字——主色只在色标条/选中态出现，不再整卡铺色。副标题 18 号次文字色。
+local MC_CARD = { { -420, 80 }, { -420, -80 }, { 420, 80 }, { 420, -80 } }
 buildMenuCards = function()
   if not TPL_CELL then return false end
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
   if not TPL_TEXT then print('menu cards no text tpl') return false end
   destroyMenuCards()
-  local xs = { -390, -130, 130, 390 }
   for i, info in ipairs(MODE_INFO) do
-    local bx = game.InstantiateClientUIControl(TPL_CELL, root)
-    if bx then
-      bx.name = 'menuCard' .. i
-      bx:SetSizeDelta(248, 120)
-      bx:SetAnchoredPosition(xs[i], 0)
-      bx.imageColor = info.color
-      MC[#MC + 1] = bx
+    local cx, cy = MC_CARD[i][1], MC_CARD[i][2]
+    local bg = game.InstantiateClientUIControl(TPL_CELL, root)
+    if bg then
+      bg.name = 'menuCard' .. i
+      bg:SetSizeDelta(360, 110)
+      bg:SetAnchoredPosition(cx, cy)
+      bg.imageColor = THEME.card
+      MC[#MC + 1] = bg
+    end
+    local bar = game.InstantiateClientUIControl(TPL_CELL, root)
+    if bar then
+      bar.name = 'menuBar' .. i
+      bar:SetSizeDelta(6, 110)
+      bar:SetAnchoredPosition(cx - 177, cy)
+      bar.imageColor = info.color
+      MC[#MC + 1] = bar
     end
     local t1 = game.InstantiateClientUIControl(TPL_TEXT, root)
     if t1 then
       t1.name = 'menuTitle' .. i
       t1.text = info.key .. '  ' .. info.name
-      t1.fontSize = 26
-      t1:SetSizeDelta(232, 48)
-      t1:SetAnchoredPosition(xs[i], 26)
+      t1.fontSize = 30
+      trySet(t1, 'fontColor', THEME.textMain)
+      t1:SetSizeDelta(330, 48)
+      t1:SetAnchoredPosition(cx + 6, cy + 22)
       MC[#MC + 1] = t1
     end
     local t2 = game.InstantiateClientUIControl(TPL_TEXT, root)
     if t2 then
       t2.name = 'menuDesc' .. i
       t2.text = info.desc
-      t2.fontSize = 16
-      t2:SetSizeDelta(232, 32)
-      t2:SetAnchoredPosition(xs[i], -26)
+      t2.fontSize = 15
+      trySet(t2, 'fontColor', THEME.textSub)
+      t2:SetSizeDelta(330, 32)
+      t2:SetAnchoredPosition(cx + 6, cy - 22)
       MC[#MC + 1] = t2
     end
+  end
+  local sub = game.InstantiateClientUIControl(TPL_TEXT, root)
+  if sub then
+    sub.name = 'menuSub'
+    sub.text = 'DEEP SPACE NEON · 四模式街机'
+    sub.fontSize = 18
+    trySet(sub, 'fontColor', THEME.textSub)
+    sub:SetSizeDelta(480, 36)
+    sub:SetAnchoredPosition(0, 238)
+    MC[#MC + 1] = sub
   end
   print('menu cards n=' .. #MC)
   return true
@@ -2822,6 +2865,10 @@ function OnStart()
       MODE = mname
       print('mode=' .. MODE)
       -- v2.1 ②：销卡 → 模式名大字动画窗 0.5s → enterMode 开局（OnUpdate stage0 段驱动）
+      -- v2.3 ② 选中态：销卡前选中卡放大 1.04 + 色标条加宽（街机感反馈）
+      local selCard, selBar = find('menuCard' .. i), find('menuBar' .. i)
+      if selCard then tryCall(selCard, 'SetSizeDelta', 374, 114) end
+      if selBar then tryCall(selBar, 'SetSizeDelta', 10, 114) end
       destroyMenuCards()
       pendingMode, pendingT = mname, 0
       setText(topBanner, MODE_TITLE[mname] or mname)
@@ -2993,6 +3040,13 @@ function OnStart()
   -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）
   local okNew, errNew = pcall(newGame)
   if not okNew then print('newGame error :: ' .. tostring(errNew)) end
+  -- v2.3 ④：标题页棋盘弱化——复用结算压暗通道（dimRatio 0.45），卡片成视觉主体；
+  -- startIfWaiting / demoLoopReset 进局时复位 0。renderAll 后必须补 renderPiece
+  -- （renderAll 只画已锁块，会把活动块 4 格擦成空色——v2.2 前就有此语义，单独调用时别忘）。
+  g.dimRatio, g.dimApplied = 0.45, -1
+  renderAll()
+  renderPiece()
+  print('menu dim board')
 end
 
 
