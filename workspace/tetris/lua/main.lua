@@ -112,13 +112,44 @@ local function rand(n)
   return (seed // 65536) % n + 1
 end
 
+-- 7-bag 出块（T1，替换纯随机 nextName = BAG[rand(#BAG)]）：
+-- 每袋 I,O,T,S,Z,J,L 各一、袋内 Fisher-Yates 洗牌（继续用上面 LCG，种子不变 ⇒ 序列可复现）；
+-- 保底语义：任意连续 12 块必含全部 7 种（12 块窗口跨至多 3 袋，必含一个完整袋；
+-- 注意「任意连续 7 块含全 7 种」不成立——袋尾 k 块与下袋头 7-k 块可能重叠）。
+-- 首袋排除 S/Z 开局（Guideline 惯例，防开局即井）：若洗出的队头是 S/Z，与袋内第一个非 S/Z 交换。
+-- 每局 newGame 重洗（bagSeq 归零 ⇒ 「newgame 后前 14 块」恒定，与上一局消耗无关；LCG 种子延续，第二局序列 ≠ 第一局）。
+local bagQ = {}      -- 待发队列（队头先出），元素 { name = 块名, bag = 所属袋序 }
+local bagSeq = 0     -- 已洗出的袋数（出块日志 bag=<袋序>）
+local function refillBag()
+  local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
+  for i = #t, 2, -1 do                 -- Fisher-Yates：6 次 rand()，保证确定性与均匀性
+    local j = rand(i)
+    t[i], t[j] = t[j], t[i]
+  end
+  if bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
+    for i = 2, #t do
+      if t[i] ~= 'S' and t[i] ~= 'Z' then
+        t[1], t[i] = t[i], t[1]
+        break
+      end
+    end
+  end
+  bagSeq = bagSeq + 1
+  for i = 1, #t do bagQ[#bagQ + 1] = { name = t[i], bag = bagSeq } end
+end
+local function takeFromBag()
+  if #bagQ == 0 then refillBag() end
+  local e = table.remove(bagQ, 1)
+  return e.name, e.bag
+end
+
 -- 前向声明（局部化，避免污染全局表）
 local root, cells, preview, frames
 -- 抖动基准坐标（唯一真源）：创建时按格位/框位存下来，抖屏按 base+offset 写、抖完写回 base。
 -- 必须声明在 applyShake 之前（Lua 的 local 只对它之后的代码生效，写在后面会被当全局 nil）。
 local cellBX, cellBY, frameBX, frameBY = {}, {}, {}, {}
 local title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner
-local board, piece, nextName
+local board, piece, nextName, nextBag
 local score, lines, level, bestScore
 local gameOver, tickCount, acc
 local guideStage, bannerTimer, taughtLock, taughtClear
@@ -712,7 +743,8 @@ end
 
 spawn = function()
   local name = nextName or 'T'
-  nextName = BAG[rand(#BAG)]
+  local nameBag = nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
+  nextName, nextBag = takeFromBag()
   local s = SHAPES[name]
   piece = {
     name = name, n = s.n, color = s.color,
@@ -722,7 +754,7 @@ spawn = function()
     y = 1,
   }
   if not autoDriving then
-    print('piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
+    print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. piece.x .. ' y=' .. piece.y)
   end
   if collides(piece.cells, piece.x, piece.y) then
     gameOver = true
@@ -911,8 +943,9 @@ local function newGame()
   dimRatio, dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
-  nextName = BAG[rand(#BAG)]
-  spawn()                            -- spawn 内部 renderPiece() 已重画整盘+方块
+  bagQ, bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
+  nextName, nextBag = takeFromBag()   -- 第一块
+  spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
   renderHud()
   if not autoDriving then print('newgame') end
 end

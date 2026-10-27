@@ -30,13 +30,13 @@
     {
       "at": 0.25,
       "kind": "log",
-      "contains": "rotate Z",
+      "contains": "rotate L",
       "source": "client"
     },
     {
       "at": 0.5,
       "kind": "log",
-      "contains": "lock Z cells=176,186,185,195",
+      "contains": "lock L cells=196,175,185,195",
       "source": "client"
     },
     {
@@ -51,14 +51,14 @@
       "kind": "control",
       "name": "cell195",
       "field": "imageColor",
-      "equals": -1028006
+      "equals": -679876
     },
     {
       "at": 0.5,
       "kind": "control",
-      "name": "cell176",
+      "name": "cell196",
       "field": "imageColor",
-      "equals": -1028006
+      "equals": -679876
     },
     {
       "at": 0.5,

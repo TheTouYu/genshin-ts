@@ -102,9 +102,9 @@
     {
       "at": 0.2,
       "kind": "control",
-      "name": "cell4",
+      "name": "cell6",
       "field": "imageColor",
-      "equals": -1028006
+      "equals": -679876
     }
   ]
 }

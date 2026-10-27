@@ -37,7 +37,7 @@
     {
       "at": 0.35,
       "kind": "log",
-      "contains": "move x=3",
+      "contains": "move x=4",
       "source": "client"
     },
     {
