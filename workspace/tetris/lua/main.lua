@@ -2243,15 +2243,15 @@ end
 
 -- ===== v2.5 ① 标题页四模式选择（重设计）=============================================
 -- 用户否掉 v2.4 的四张深蓝卡片（原话「那四个款太丑了，我不喜欢那个风格」）⇒ 整块重做。
--- 用户偏好线索（本轮任务书）：偏克制/大字/不花哨；喜欢「字体放大脉冲」胜过复杂动效。
--- 三版候选各自出图（docs/v25-a/b/c.png），选定版写进 MENU_STYLE：
---   A 主机列表：去容器，只剩「色点 + 模式名大字 + 特色句 + 细下划线」，选中项下划线亮起+字放大
---   B 形状图标：三格色块拼俄罗斯方块母题 + 模式名，选中项底部一句详情（无卡片无边框）
---   C 整行高亮条：每模式一条 420×92 的模式色暗条（12%），字左对齐，选中整条提亮——最接近被否的卡片
-local MENU_STYLE = 'B'
+-- 用户偏好线索（任务书）：偏克制/大字/不花哨；喜欢「字体放大脉冲」胜过复杂动效。
+-- 定稿 = A（主机列表）：无容器、无边框、无底色 —— 每项 = 左缘 5×44 模式色细柱 + 38 号模式名
+-- （左对齐）+ 15 号特色句；选中项「整行高亮 + 字放大到 44」，其余三项淡出，屏幕正中再演模式名大字。
+-- 另两版留在代码里可切（各自有出图 docs/v25-b.png / docs/v25-c.png，仅作对照，不进交付）：
+--   B 形状图标：三格色块拼俄罗斯方块母题 + 模式名，未选中/选中都没容器
+--   C 整行高亮条：模式色 12% 暗条 + 左对齐字（最接近被否的卡片形态，仅作比对基线）
+local MENU_STYLE = 'A'
 local MC_ROW = { { -420, 104 }, { -420, -104 }, { 420, 104 }, { 420, -104 } }
--- 图标三格朝向（B 用）：L / T / S 三种块组
-local MC_ICON = {
+local MC_ICON = {                      -- B 用：三格朝向 L / T / S
   { { 0, 11 }, { 0, -11 }, { 22, -11 } },
   { { 0, 11 }, { -11, -11 }, { 11, -11 } },
   { { -11, 11 }, { 11, 11 }, { -11, -11 } },
@@ -2283,25 +2283,25 @@ local function mcText(name, text, x, y, w, h, size, color, align)
   MC[#MC + 1] = c
   return c
 end
--- 模式色拆 RGB（纯色标/下划线/图标用）
 local function mcRGB(color, a)
   return C(a or 255, (color // 65536) % 256, (color // 256) % 256, color % 256)
 end
 MS.modes = function()
   MS.sel = {}
   if MENU_STYLE == 'A' then
-    -- A：去容器 —— 色点 + 34 号模式名 + 15 号特色句 + 2px 细下划线（选中=下划线亮起+字脉冲到 38）
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
-      mcCell('menuDot' .. i, cx - 152, cy + 24, 10, 10, info.color)
+      local leftX = cx + 30                      -- 列内统一左缘（不贴画布边）
+      mcCell('menuTick' .. i, leftX - 186, cy - 2, 5, 44, info.color)
       MS.sel[i] = {
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 6, cy + 18, 344, 62, 34, THEME.textMain),
-        bar = mcCell('menuBar' .. i, cx, cy - 12, 300, 2, mcRGB(info.color, 96)),
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name,
+          leftX, cy + 18, 330, 70, 38, THEME.textMain, 'Left'),
+        desc = mcText('menuDesc' .. i, info.desc,
+          leftX, cy - 30, 330, 32, 15, C(225, 152, 166, 190), 'Left'),
       }
-      mcText('menuDesc' .. i, info.desc, cx + 6, cy - 36, 344, 32, 15, C(225, 152, 166, 190))
     end
+    MS.selRow = mcCell('menuSelRow', 0, 0, 420, 104, C(0, 0, 0, 0))   -- 选中整行高亮（初始全透明）
   elseif MENU_STYLE == 'B' then
-    -- B：三格色块拼「方块母题」+ 34 号模式名（左对齐），底部一行显示选中模式的特色句
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
       local ix, iy = cx - 128, cy + 2
@@ -2310,18 +2310,17 @@ MS.modes = function()
         mcCell('menuIcon' .. i .. '_' .. j, ix + o[1], iy + o[2], 22, 22, mcRGB(info.color, 235))
       end
       MS.sel[i] = {
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 24, cy + 2, 300, 62, 34, THEME.textMain, 'Left'),
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 96, cy + 2, 340, 70, 38, THEME.textMain, 'Left'),
         icon = { ix = ix, iy = iy, color = info.color },
       }
     end
     MS.detail = mcText('menuDetail', MODE_INFO[1].desc, 0, -232, 760, 34, 18, C(230, 168, 182, 210))
   else
-    -- C：整行模式色暗条（12% alpha）+ 左对齐 34 号模式名 + 15 号特色句（选中整条提亮）
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
       MS.sel[i] = {
         row = mcCell('menuCard' .. i, cx, cy, 424, 96, mcRGB(info.color, 30)),
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx - 34, cy + 16, 320, 62, 34, THEME.textMain, 'Left'),
+        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx - 34, cy + 16, 320, 70, 38, THEME.textMain, 'Left'),
       }
       mcText('menuDesc' .. i, info.desc, cx - 34, cy - 24, 320, 30, 14, C(210, 150, 164, 188), 'Left')
     end
@@ -2340,22 +2339,38 @@ MS.modes = function()
     MC[#MC + 1] = sub
   end
 end
--- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：只用「字放大 + 色标亮起」两种朴素反馈
+-- 未选中的三项淡出（按下 Digit 后到进局前那 0.5s：留下被选中的一项 + 屏幕正中模式名大字）
+MS.dimOthers = function(keep)
+  for j = 1, #MODE_INFO do
+    if j ~= keep then
+      local t, d = find('menuTitle' .. j), find('menuDesc' .. j)
+      local k = find('menuTick' .. j)
+      if t then trySet(t, 'fontColor', C(0, 241, 245, 249)) trySet(t, 'outlineColor', C(0, 0, 0, 0)) end
+      if d then trySet(d, 'fontColor', C(0, 152, 166, 190)) trySet(d, 'outlineColor', C(0, 0, 0, 0)) end
+      if k then k.imageColor = C(0, 0, 0, 0) end
+    end
+  end
+end
+-- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：只用「字放大 + 左柱加粗 + 整行高亮」朴素反馈
 MS.select = function(i)
   local info = MODE_INFO[i]
   local sel = MS.sel and MS.sel[i]
   if not info or not sel then return end
   if sel.title then
-    trySet(sel.title, 'fontSize', 40)                    -- 34 → 40（框 62 < 40*1.45+4=62 恰好）
+    trySet(sel.title, 'fontSize', 44)                  -- 38 → 44（框 70 ≥ 44*1.45+4=68）
     trySet(sel.title, 'fontColor', mcRGB(info.color))
   end
-  if sel.bar then
-    tryCall(sel.bar, 'SetSizeDelta', 360, 4)
-    trySet(sel.bar, 'imageColor', mcRGB(info.color))
-  end
+  if sel.desc then trySet(sel.desc, 'fontColor', C(255, 210, 220, 236)) end
+  local tick = find('menuTick' .. i)
+  if tick then tryCall(tick, 'SetSizeDelta', 8, 56) end
   if sel.row then
     tryCall(sel.row, 'SetSizeDelta', 436, 104)
     trySet(sel.row, 'imageColor', mcRGB(info.color, 78))
+  end
+  if MS.selRow then                                    -- 整行高亮（半透明模式色，压在字下面）
+    tryCall(MS.selRow, 'SetSizeDelta', 416, 108)
+    tryCall(MS.selRow, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
+    trySet(MS.selRow, 'imageColor', mcRGB(info.color, 46))
   end
   if sel.icon then
     for j = 1, 3 do
@@ -2374,7 +2389,7 @@ buildMenuCards = function()
   -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），模式选择区后建 ⇒ 压在墙上面
   local okStage, errStage = pcall(MS.build)
   if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
-  local okModes, errModes = pcall(MS.modes)             -- v2.5 ①：四模式选择区（三版候选之一）
+  local okModes, errModes = pcall(MS.modes)             -- v2.5 ①：四模式选择区
   if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
   print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
   return true
@@ -3403,8 +3418,8 @@ function OnStart()
       print('mode=' .. MODE)
       -- v2.1 ②：销卡 → 模式名大字动画窗 0.5s → enterMode 开局（OnUpdate stage0 段驱动）
       -- v2.3 ② 选中态：销卡前选中卡放大 1.04 + 色标条加宽（街机感反馈）
-      MS.select(i)                       -- v2.5 ①：选中反馈（字放大 + 色标亮起，见 MS.select）
-      destroyMenuCards()                 -- 只销卡片；展台留到 enterMode（防 0.5s 动画窗露出裸棋盘）
+      MS.select(i)                       -- v2.5 ①：选中反馈（字放大 + 左柱加粗 + 整行高亮）
+      MS.dimOthers(i)                    -- 其余三项淡出；销卡交给 startIfWaiting（0.5s 窗内还看得见选中项）                 -- 只销卡片；展台留到 enterMode（防 0.5s 动画窗露出裸棋盘）
       MS.focusLock(i, mname)             -- 展台标题实例变模式名大字（框高同步放到 100，64 号需 96.8）
       pendingMode, pendingT = mname, 0
       setText(topBanner, MODE_TITLE[mname] or mname)

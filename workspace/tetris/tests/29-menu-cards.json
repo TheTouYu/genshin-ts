@@ -1,59 +1,46 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "29 v2.1 标题屏四模式大视觉卡片+模式名动画窗（卡片 12 实例/Digit 销卡/动画后进局）",
+  "name": "29 标题屏冒烟（v2.6 展台版）：入场压暗+卡片构建+Digit1 选休闲进局",
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [
     {
       "t": 0.3,
       "kind": "key",
-      "typeName": "KeyboardCraftspersonKey2Down"
+      "typeName": "KeyboardCraftspersonKey1Down"
     },
     {
       "t": 0.32,
       "kind": "key",
-      "typeName": "KeyboardCraftspersonKey2Up"
+      "typeName": "KeyboardCraftspersonKey1Up"
     }
   ],
   "asserts": [
     {
       "at": 0.2,
       "kind": "log",
-      "contains": "menu cards n=17",
-      "source": "client"
-    },
-    {
-      "at": 0.25,
-      "kind": "control",
-      "name": "menuTitle2",
-      "field": "text",
-      "equals": "2  AI 对抗"
-    },
-    {
-      "at": 0.25,
-      "kind": "control",
-      "name": "menuCard2",
-      "field": "anchoredPositionX",
-      "equals": -420
-    },
-    {
-      "at": 0.6,
-      "kind": "log",
-      "contains": "menu cards destroy n=17",
+      "contains": "menu dim board",
       "source": "client"
     },
     {
       "at": 0.5,
       "kind": "log",
-      "contains": "mode=ai-battle",
+      "contains": "mode=casual",
       "source": "client"
     },
     {
       "at": 1.2,
       "kind": "log",
-      "contains": "p2 inst ai-battle",
+      "contains": "guide stage=1",
       "source": "client"
+    },
+    {
+      "at": 1.4,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "text",
+      "equals": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明"
     }
   ]
 }
