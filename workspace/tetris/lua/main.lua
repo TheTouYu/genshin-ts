@@ -1390,7 +1390,10 @@ local function startIfWaiting()
   MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
   setText(topBanner, '')
   setText(botBanner, '')
-  for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+  -- v3.3 ②：双写位的 textbox 份保持隐藏（实例份在上可见；此前 layout 恢复段把它重新显示=双份叠字）
+  if not HUD_INST.hud then
+    for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+  end
   -- v2.9 ②：实例 HUD 同步单屏位（与 layout 的 textbox 位一致，防 dual/单屏切换后叠两行）
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
   if HUD_INST.hud then
@@ -3122,13 +3125,18 @@ local function layoutDual()
   -- 引导结束/GK 复位都走这里；ikeyA-C 在此必显，防 startIfWaiting 时序漏恢复）
   if HUD_INST.hud then tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true) end
   if HUD_INST.best then tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true) end
-  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 400, -40) tryCall(HUD_INST.keyA, 'SetVisible', true) end
-  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 400, -80) tryCall(HUD_INST.keyB, 'SetVisible', true) end
-  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 400, -120) tryCall(HUD_INST.keyC, 'SetVisible', true) end
+  -- v3.3 修：keyA-C 原 x=400 落在右盘内（1600 画布右盘 x∈[130,430]）+ 宽 640 压盘出界
+  -- 现挪进右栏空区（x=600/宽 330 → 跨 435..765，右边缘留 35px 防裁）
+  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 600, -40) tryCall(HUD_INST.keyA, 'SetVisible', true) end
+  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 600, -80) tryCall(HUD_INST.keyB, 'SetVisible', true) end
+  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 600, -120) tryCall(HUD_INST.keyC, 'SetVisible', true) end
   if hudNext then
     tryCall(hudNext, 'SetSizeDelta', 330, 40)
     tryCall(hudNext, 'SetAnchoredPosition', gutterX, 300)
   end
+  -- v3.3 ④：引导/准备提示（hint）在双屏下上移，避免与底栏常驻操作提示叠字
+  if hint then tryCall(hint, 'SetAnchoredPosition', 0, -(halfH - 96)) tryCall(hint, 'SetSizeDelta', 720, 40) end
+  if HUD_INST.hint then tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 96)) tryCall(HUD_INST.hint, 'SetSizeDelta', 720, 40) end
   HUD_INST.txt(keyA, 'AI 盘')
   HUD_INST.txt(keyB, '')
   HUD_INST.txt(keyC, '')
@@ -3146,18 +3154,45 @@ HUD_INST.build = function()
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
   if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end
   local made = 0
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC' }) do
+  -- v3.2 ①：botBanner/topBanner 也入双写（用户打回：PERSIST_TIP/H 提示/接管文案
+  -- 被 wash 盖住——服务端 textbox 永远在实例层下，凡常驻文字一律实例份）
+  -- v3.3 ②：textbox 份建完即隐藏（此前实例+textbox 双份叠字；断言读 text 字段，不受 visible 影响）
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint' }) do
     local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
     if ok and c then
       c.name = 'i' .. nm
-      trySet(c, 'fontSize', 20)
+      local isBanner = (nm == 'botBanner' or nm == 'topBanner')
+      local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700 or 640)
+      local fs = isBanner and 22 or 20
+      trySet(c, 'fontSize', fs)
       trySet(c, 'fontColor', THEME.textMain)
-      c:SetSizeDelta(640, 40)   -- v2.9 ①：360 装不下 P1/P2 键位串（textLayout.fits=false 半行裁）
+      c:SetSizeDelta(w, math.floor(fs * 1.45 + 8))   -- v2.9 ①/v3.2 ②：宽按最长文案、高按框高判据
       HUD_INST[nm] = c
+      -- v3.3 ③：keyA-C 常驻文案最长 24 全角（PERSIST_TIP 整串），20 号需 ~480px > 框宽
+      -- → 实例份字号降 14（需 336px < 360-4），fits 判据过；textbox 份字号不变（仅断言）
+      if nm == 'keyA' or nm == 'keyB' or nm == 'keyC' then
+        trySet(c, 'fontSize', 14)
+      end
       made = made + 1
     end
   end
-  print('hud inst n=' .. made)
+  -- v3.2 ①：banner 系实例摆到与 textbox 同位（画布上下横幅位；layout 改位时同步调这里）
+  local halfH = (CANVAS_H or 720) / 2
+  if HUD_INST.topBanner then
+    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, halfH - 36)
+    trySet(HUD_INST.topBanner, 'fontSize', 34)
+  end
+  if HUD_INST.botBanner then
+    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 28))
+  end
+  -- v3.3 ②：textbox 份隐藏防双份（实例在上可见；断言只读 text 字段不受影响）
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint' }) do
+    local box = (nm == 'hud' and hud) or (nm == 'best' and best) or (nm == 'keyA' and keyA)
+      or (nm == 'keyB' and keyB) or (nm == 'keyC' and keyC) or (nm == 'botBanner' and botBanner)
+      or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint)
+    if box then tryCall(box, 'SetVisible', false) end
+  end
+  print('hud inst n=' .. made .. ' (textbox hidden)')
 end
 
 -- v2.6 ①：按模式生成常驻提示并显示（20 号次文字色，单行不动）
@@ -4216,7 +4251,7 @@ function OnStart()
     listen(m.key, act(m.key, function() doPlay(m.action, m.key) end))
     if m.up then
       listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个；T6：清目标实例）
-        if MODE == 'pvp' then g = routePlayer(m.key) end
+        g = routePlayer(m.key)   -- v3.3 根修：事件回调必须先路由（ai-battle 下 OnUpdate 循环每帧把 g 留成 G[2]，Up 曾清错实例=玩家盘连移永不停）
         if m.action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
         if m.action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
       end)
