@@ -651,7 +651,10 @@ settleSetColors = function(a)
   trySet(g.settleScore, 'fontColor', C(a, 214, 126, 46))     -- 暖橙分数
   trySet(g.settleBest, 'fontColor', C(a, 62, 74, 99))        -- 墨色最高分
   trySet(g.settleInfo, 'fontColor', C(dimA, 124, 140, 168))
-  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), 158, 174, 198))
+  -- v3.2：明细行现在放本局旁白（轮播 3 条，各有主色）；rgb 由 showGameOver 写进
+  -- g.settleNoteRGB，缺省回落原来的 158/174/198（textDim），alpha 仍随面板淡入。
+  local nr = g.settleNoteRGB or { 158, 174, 198 }
+  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), nr[1], nr[2], nr[3]))
   trySet(g.settleOpts, 'fontColor', C(a, 62, 74, 99))
 end
 
@@ -924,19 +927,31 @@ clearLines = function()
       bannerTimer = 4.0
       print('guide clear-tip')
     end
-    -- 升级 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
-    -- 优先级：升级 > 连击；已有横幅在播时让位（bannerTimer > 0 不抢）
+    -- 升级 / 消行 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
+    -- 优先级：升级 > 四消 > 连击 > 普通消行；已有横幅在播时让位（bannerTimer > 0 不抢）
+    -- v3.2 原神文案：措辞全部来自 CFG.COPY（docs/genshin-copy-design.md §2.3–2.5）；
+    -- 数字（等级/连击/本次得分）仍留在文案里——玩家看的是数值反馈，风味只做前缀/后缀。
     if not g.autoDriving and bannerTimer <= 0 then
+      local CP = CFG.COPY
       if g.level > levelBefore then
-        setText(botBanner, g.level >= NUM.LEVEL_CAP and ('等级 ' .. g.level .. '　已满速')
-                                           or ('等级 ' .. g.level .. '　速度提升'))
+        local rec = CP.level[(g.level >= NUM.LEVEL_CAP) and 2 or 1]
+        setText(botBanner, (rec.text:gsub('{n}', tostring(g.level))))
         bannerTimer = NUM.LEVEL_TIP
         sfx(SFX.level, true)          -- 升级音（force：与其他音效同帧也不吞）
         print('tip level=' .. g.level)
+      elseif cleared == 4 then
+        setText(botBanner, (CP.clear[4].text:gsub('{分}', tostring(gain))))
+        bannerTimer = NUM.LEVEL_TIP
+        print('tip clear=4')
       elseif g.combo >= 2 then
-        setText(botBanner, '连击 ×' .. g.combo)
+        local rec = CP.combo[(g.combo >= 5) and 3 or ((g.combo >= 3) and 2 or 1)]
+        setText(botBanner, (rec.text:gsub('{n}', tostring(g.combo))))
         bannerTimer = NUM.COMBO_TIP
         print('tip combo=' .. g.combo)
+      else
+        setText(botBanner, (CP.clear[cleared].text:gsub('{分}', tostring(gain))))
+        bannerTimer = NUM.COMBO_TIP
+        print('tip clear=' .. cleared)
       end
     end
   end
@@ -1177,12 +1192,17 @@ local function startIfWaiting()
   if MODE ~= 'casual' then
     guideStage = 3
     GK.phase, GK.t, GK.count = 'keys', 0, 3
+    -- v3.1 四-2：ai-battle=单人页——keyA 显示玩家键组（方向键系，非 WASD），keyB 只显示 AI 就绪
     local keys2 = (MODE == 'coop')
       and 'P1：W 旋转 · G 暂存'
-      or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
-    local keys2b = (MODE ~= 'coop')
-      and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
-      or 'P2：← → 移动 · ↓ 软降 · X 直落'
+      or (MODE == 'ai-battle')
+        and '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存'
+        or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
+    local keys2b = (MODE == 'ai-battle')
+      and 'AI 已就绪 · 与你同规则对战'
+      or (MODE ~= 'coop')
+        and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
+        or 'P2：← → 移动 · ↓ 软降 · X 直落'
     setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
     GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
     setText(botBanner, '')
@@ -1207,7 +1227,7 @@ local function startIfWaiting()
     tryCall(hint, 'SetSizeDelta', 700, 40)
     tryCall(hint, 'SetAnchoredPosition', 0, -338)
     setText(hint, (MODE == 'ai-battle') and '按任意键开始对战 · H 帮助'
-      or 'P1 按任意键准备 · P2 按方向键/X 准备 · H 帮助')
+      or 'P1 按任意键准备 · P2 按方向键/X 准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
     tryCall(hint, 'SetVisible', true)
     print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
     return
@@ -1221,6 +1241,14 @@ local function startIfWaiting()
   renderHud()
   setText(hint, '堆满一行即消除')
   if MODE == 'casual' then showPersistTip() end   -- v2.6 ① casual 常驻提示
+  -- v3.2 原神文案：进局第一句话（旅行者入境）。2.8s 后 bannerTimer 到点，OnUpdate 自动落回
+  -- casual 的常驻键位提示（PERSIST_TIP）——所以这里只负责「开场一句」，不占常驻位。
+  local openRec = CFG.COPY.start.casual
+  if MODE == 'casual' and openRec and openRec.live then
+    setText(botBanner, openRec.text)
+    trySet(botBanner, 'fontColor', openRec.color)
+    bannerTimer = 2.8
+  end
   print('mode=' .. MODE)                -- T6：进局模式（菜单选择或默认休闲）
   print('guide stage=1')
 end
@@ -1282,7 +1310,14 @@ showGameOver = function(overTitle)
     setText(g.settleBest, '最高 ' .. bestScore)
     setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　　落块 ' .. g.pieceCount .. '　　等级 ' .. g.level)
     -- v2.4 ②：明细行先做成分隔点（Q 键的结算明细会覆盖这一行）
-    setText(g.settleExtra, '·  ·  ·  ·  ·  ·  ·')
+    -- v3.2 原神文案：改成**本局旁白轮播**（3 条，带本局消行数）——原来这一行只是装饰点，
+    -- 换掉零成本且不占信息位；颜色由 settleSetColors 用 g.settleNoteRGB 上色（随淡入 alpha）。
+    local noteRecs = CFG.COPY.settle
+    g.settleNoteIdx = (g.settleNoteIdx or 0) % #noteRecs + 1
+    local noteRec = noteRecs[g.settleNoteIdx]
+    g.settleNoteRGB = { (noteRec.color // 65536) % 256, (noteRec.color // 256) % 256,
+      noteRec.color % 256 }
+    setText(g.settleExtra, (noteRec.text:gsub('{lines}', tostring(g.lines))))
     setText(g.settleOpts, '[R] 再来一局　[V] 回主页　[Q] 结算明细')
     -- v2.8 ④：结算三键鼠标热区（三态：透明常态/Enter 微亮底/Down 更亮+触发；失败降级键盘）
     if TPL_HIT then
@@ -1300,9 +1335,11 @@ showGameOver = function(overTitle)
           tryCall(z, 'SetAnchoredPosition', a[2], g.settleOptsY or -136)
           -- 三态反馈打在 settleOpts 文案色上（cursor 类无 imageColor——实测 no such field）：
           -- Enter=整条提亮 / Exit=复原 / Down=触发（+日志锚 hot settle <键>）。
-          addCursor(z, 'CursorEnter', function() trySet(g.settleOpts, 'fontColor', THEME.textMain) end)
+          -- v3.1 四：三态音效 + 文案色反馈（Enter/Down 播短音，Exit 静音防连扫噪）
+          addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) trySet(g.settleOpts, 'fontColor', THEME.textMain) end)
           addCursor(z, 'CursorExit', function() trySet(g.settleOpts, 'fontColor', THEME.textSub) end)
           addCursor(z, 'CursorDown', function()
+            sfx(SFX.press, true)
             trySet(g.settleOpts, 'fontColor', THEME.textMain)
             print('hot settle ' .. a[1])
             a[3]()
@@ -1939,10 +1976,9 @@ local function buildHelpLayer()
   cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, THEME.bezel)
   text('helpTitle', '游戏说明 · 全部规则', 0, H / 2 - 46, W - 200, 30, THEME.textMain, 'Middle')
   text('helpSub', '按 H / E / 任意键 返回（局内开页 = 暂停）', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
-  -- 三栏：整栏**居中**（不依赖 Left 对齐的渲染细节——出图 v1 里左栏被推到画布外，只剩行尾）。
-  -- 中等屏 16 号/行距 36；大画布（≥860 高）18 号/44。
+  -- 三栏：整栏**居中**。v3.1 三修：①字号 16→19/18→21（真机模糊=小字号）②行距同步加大。
   local big = H >= 860
-  local fs, pitch = big and 18 or 16, big and 44 or 36
+  local fs, pitch = big and 21 or 19, big and 50 or 42
   local colW = math.floor((W - 120) / 3)
   local top = H / 2 - 118
   local xs = { -(colW * 0.62 + 30), 0, (colW * 0.62 + 30) }
@@ -1957,8 +1993,10 @@ local function buildHelpLayer()
         -- v2.8 ②：'!' 前缀=关键行高亮（键位/数值/模式名用主文字色，其余次文字色）
         local hot = line:sub(1, 1) == '!'
         local body = hot and line:sub(2) or line
+        -- v3.1 三②：高亮行用金强调色（纯 textMain 在浅色帮助底上对比不足=真机看去纯黑白）
+        local hotColor = (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.gold or C(255, 245, 158, 11)
         text('helpLine' .. ci .. '_' .. li, body, x, top - 30 - li * pitch,
-          colW - 40, fs, hot and THEME.textMain or THEME.textSub, 'Middle')
+          colW - 40, fs, hot and hotColor or THEME.textSub, 'Middle')
       end
     end
   end
@@ -2180,6 +2218,12 @@ MS.build = function()
   MS.segX = segX
   MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
   MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
+  -- v3.2 原神文案：标题屏「旅行者手记」轮播位。
+  -- 为什么走实例文字：服务端 textbox 被展台墙（menuWall*）压在下面，标题页文案只能靠实例；
+  -- 为什么放 (x=-420, y=-215)：左列两张模式卡（y=±104，卡高 110）与底部提示条（y=-331）之间
+  -- 是两块画布（1280×720 / 1600×900）都空着的唯一横带，且与左列卡片同列、宽度装得下一行 18 号字。
+  -- 动效在 MS.tick 里（淡入 0.5s → 停 5s → 淡出 0.6s，颜色走 fontColor 的 A 通道=真机已验证通道）。
+  MS.note = MS.addText('menuNote', '', -420, -215, 380, 40, 18, THEME.textSub)
   print('menu stage n=' .. #MS.parts)
   return true
 end
@@ -2238,6 +2282,29 @@ MS.tick = function()
         trySet(ctl, 'fontSize', size)
         trySet(ctl, 'fontColor', C(alpha, 148, 163, 184))
       end
+    end
+  end
+  -- v3.2 原神文案：旅行者手记轮播（6 条，每条 6.1s：入 0.5s → 停 5s → 出 0.6s）。
+  -- 每条自带主色（金/墨/草绿/雷紫/冰蓝/樱粉）；透明度只走 fontColor 的 A 通道 + 上浮 2px，
+  -- 与底部提示条的呼吸同一套防抖：key 不变就不写控件（每帧只做两次整除）。
+  local notes = CFG.COPY and CFG.COPY.title
+  if notes and notes[1] and MS.note then
+    local span = 6.1
+    local n = #notes
+    local idx = math.floor(t / span) % n + 1
+    local ph = t - math.floor(t / span) * span
+    local a = 255
+    if ph < 0.5 then a = math.floor(255 * ph / 0.5)
+    elseif ph > 5.5 then a = math.floor(255 * (span - ph) / 0.6) end
+    if a < 0 then a = 0 elseif a > 255 then a = 255 end
+    local key = idx * 1000 + a
+    if MS.noteKey ~= key then
+      MS.noteKey = key
+      local rec = notes[idx]
+      local cc = rec.color or THEME.textSub
+      trySet(MS.note, 'fontColor', C(a, (cc // 65536) % 256, (cc // 256) % 256, cc % 256))
+      tryCall(MS.note, 'SetAnchoredPosition', -420, -215 + math.floor((255 - a) / 128))
+      pcall(function() MS.note.text = rec.text end)
     end
   end
 end
@@ -2457,9 +2524,10 @@ MS.buildHoverZones = function()
     z.name = 'menuZone' .. i
     tryCall(z, 'SetSizeDelta', 416, 108)
     tryCall(z, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
-    addCursor(z, 'CursorEnter', function() MS.hoverCard(i) end)
+    -- v3.1 四：三态音效（hover 进入播短音；按下播 press；Exit 不响防连扫噪）
+    addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) MS.hoverCard(i) end)
     addCursor(z, 'CursorExit', function() MS.hoverOut(i) end)
-    addCursor(z, 'CursorDown', function() MS.pressCard(i) end)
+    addCursor(z, 'CursorDown', function() sfx(SFX.hover, true) MS.pressCard(i) end)
     addCursor(z, 'CursorUp', function() MS.hoverCard(i) end)
     addCursor(z, 'CursorClick', function()
       if helpOpen then closeHelp() return end
@@ -2475,6 +2543,7 @@ MS.buildHoverZones = function()
     tryCall(zh, 'SetSizeDelta', 260, 56)
     tryCall(zh, 'SetAnchoredPosition', 290, MS.lineY or -332)
     addCursor(zh, 'CursorDown', function()
+      sfx(SFX.hover, true)   -- v3.1 四：按下音
       keyConsumedFrame = frameSeq
       if helpOpen then closeHelp() else toggleHelp() end
     end)
@@ -2728,6 +2797,11 @@ end
 
 -- v2.6 ①：按模式生成常驻提示并显示（20 号次文字色，单行不动）
 showPersistTip = function()
+  -- v3.1 四-2 文字矩阵（模式×文字正确性）：
+  --   casual     = 玩家键组（←→↑↓/空格/G）+H
+  --   ai-battle  = 玩家键组（同 casual，单人对 AI）+H —— 不出现任何 P2 字样
+  --   pvp        = P1（A/D/W/S/空格/G）｜P2（方向键/X/F）
+  --   coop       = P1（W/G）｜P2（←→/↓/X）（共盘）
   PERSIST_TIP = (MODE == 'pvp')
     and 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存　｜　P2：方向键 · X 直落 · F 暂存'
     or (MODE == 'coop')
@@ -3673,6 +3747,15 @@ function OnStart()
     if TK.state == 'ai' then
       TK.state = 'play'
       setText(topBanner, '')
+      trySet(topBanner, 'fontColor', THEME.textMain)
+      -- v3.2 原神文案：交还反馈一句话（底部横幅 0.8s，到点由 OnUpdate 落回常驻键位提示）。
+      -- 只在不抢横幅时写（bannerTimer>0 表示别处正在演升级/消行，别覆盖）。
+      local back = CFG.COPY.takeover.back
+      if back and back.live and bannerTimer <= 0 then
+        setText(botBanner, back.text)
+        trySet(botBanner, 'fontColor', back.color)
+        bannerTimer = NUM.COMBO_TIP
+      end
       print('takeover back')           -- 玩家任意键交还（v2-plan T6 验收锚）
     elseif TK.state == 'hint' then
       TK.state = 'play'
@@ -4224,13 +4307,17 @@ function OnUpdate(dt)
   -- 只在 casual；其他模式本波无接管语义。
   if MODE == 'casual' and not g.gameOver then
     TK.t = TK.t + d
-    if TK.state == 'play' and TK.t >= 5 then
+    -- v3.1 一-2（用户定版）：3s 无操作提示、再 3s 接管；文案走原神世界观——
+    -- 纳西妲（小草神/智慧之神）来帮旅行者（玩家）代打；提示用草绿主色 #7FCF6A。
+    if TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
       TK.state, TK.t = 'hint', 0
-      setText(topBanner, '即将由 AI 代打…')
+      setText(topBanner, '小草神纳西妲正看着你的盘面…再不动手她就要来帮忙啦')
+      trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
       print('takeover hint')           -- v2-plan T6 验收锚
-    elseif TK.state == 'hint' and TK.t >= 2 then
+    elseif TK.state == 'hint' and TK.t >= NUM.TK_HINT_S then
       TK.state, TK.t = 'ai', 0
-      setText(topBanner, 'AI 代打中 · 按任意键交还')
+      setText(topBanner, '纳西妲：交给我吧，旅行者！· 按任意键接手')
+      trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
       print('takeover ai')             -- v2-plan T6 验收锚
     end
     if TK.state == 'ai' then
