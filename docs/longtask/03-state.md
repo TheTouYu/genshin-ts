@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-10-24 11:5x（多线改造：本文件只放**共享面** + 标了线 id 的分节；分线断点见 `LINES.md`）
+> 最近校验：2026-10-28 08:3x（`[sim-2d]` 回归读数更新为 43/43；共享面未变）
 > 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
@@ -39,7 +39,7 @@
 | `[gui-agi]` | `./tools/failure-ledger check`（全量） | 空闲 550s / 游戏在跑 700s | 改动后未复跑 |
 | `[gui-agi]` | `worldsvc-selftest` | **123/123**，24.5s（注入用例 1.66s） | 2026-10-22 |
 | `[gui-agi]` | `./tools/ys-gates` | 六门槛 PASS | 2026-10-17 起 |
-| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/tetris`，v2 主战工程） | **28/28 PASS，291.8s**（波1-3 完成：T0 实例化+T6 四模式+T7 垃圾行；T9 真机导入等用户） | 2026-10-27 19:0x |
+| `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/tetris`，v2 主战工程） | **43/43 PASS，63.7s**（v2.7：用户 10 点反馈 1/2/3/4/5/6/8 修复 + ⑦模式主题 + ⑨config/widgets/audio 三模块拆分；`build.mjs` 导出 4 条脚本映射。**改 lua 必须先 build 再 runner**，否则读的是存档里的旧副本=假绿） | 2026-10-28 08:3x |
 | `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`，等用户导入） | 17/17 PASS（上一活跃工程，冻结态） | 2026-10-24 11:4x |
 | `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |

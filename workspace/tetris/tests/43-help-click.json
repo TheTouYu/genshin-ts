@@ -1,0 +1,77 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "43 v2.7 ④ 底栏「H 游戏说明」热区：鼠标点开规则页、再点关闭（常驻入口，PC 也可点）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.5,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1090,
+   "y": 118
+  },
+  {
+   "t": 0.6,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1090,
+   "y": 118
+  },
+  {
+   "t": 0.7,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1090,
+   "y": 118
+  },
+  {
+   "t": 1.4,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1090,
+   "y": 118
+  },
+  {
+   "t": 1.5,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1090,
+   "y": 118
+  },
+  {
+   "t": 1.6,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1090,
+   "y": 118
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.9,
+   "kind": "log",
+   "contains": "guide help on n=",
+   "source": "client"
+  },
+  {
+   "at": 1.8,
+   "kind": "log",
+   "contains": "guide help closed stage=0",
+   "source": "client"
+  },
+  {
+   "at": 2.2,
+   "kind": "log",
+   "contains": "guide help on n=",
+   "source": "client"
+  },
+  {
+   "at": 2.8,
+   "kind": "log",
+   "contains": "guide help closed stage=0",
+   "source": "client"
+  }
+ ]
+}

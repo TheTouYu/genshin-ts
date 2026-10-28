@@ -2,7 +2,7 @@
 
 > 状态：当前推荐（**并行线之一 `sim-2d`**：2026-10-23 用户重新启用；线表与"谁在推"见 [`../LINES.md`](../LINES.md) §二；此前 10-16 起被 GUI 线挤停）
 > 来源：用户 2026-10-23 本会话首条原话 + 仓库落盘物（`workspace/hmlt-qixia/**`）+ 2026-10-23 17:1x 实测读数
-> 最近校验：**2026-10-24**（模拟器升至 2.2.1 / `cd96d02`，spawn 隔离故游戏侧无需更新；17/17 复跑通过；4173 已重启）
+> 最近校验：**2026-10-28**（tetris v2.7：用户 10 点反馈 1/2/3/4/5/6/8 修复 + ⑦主题背景 + ⑨多 lua 拆分；43/43 用例绿 63.7s）
 > 读法：动手前读 §一（定位）、§三（现状读数）、§五（下一步）；细节按 §六 指针跳，别通读
 
 ---
@@ -26,6 +26,32 @@
 - **团队**：lead（协调/裁决/真机）+ core-mechanics(T1/T2/T3/T8) + ai-driver(T4/T5) + modes-arch(T0/T6/T7)；共享任务板 task-1..10。
 - **开工基线**：`node qxqy/runner.mjs` **12/12 PASS（2.2s）**，`lua/main.lua` 1961 行。
 - **关键架构事实**：全部游戏状态是文件级单例（:116-154）⇒ 双屏模式必须先实例化重构（T0，波2 独占写窗口）；出块=纯 LCG 无 bag（:717/:918）；NEXT 仅一块（next1-4=一格四 cell）；无 Hold；AI=El-Tetris 1-ply+拟人 buildQueue（:1157/:1235）。
+
+## 一点七、2026-10-28 tetris v2.7：用户 10 点反馈的处理（当前断点）
+
+用户原话 10 点（`/longtask-dossier` 触发的那条消息）→ 处理结论与判据见
+`workspace/tetris/docs/README.md` §11（逐条表：根因 / 修法 / 用例编号）。读数：
+
+| 项 | 读数 | 层级 |
+| --- | --- | --- |
+| 回归 | **43/43 用例 PASS 63.7s**（`node qxqy/runner.mjs`） | 行为层（模拟器） |
+| 语法门 | `lua5.3 -e 'assert(loadfile(...))'` 逐文件 OK（main + 3 模块） | 结构层 |
+| 构建 | `node qxqy/build.mjs` → save 355,518 B / GIA 236,363 B / **4 条脚本映射** | 结构层 |
+| 出图 | `docs/v27-title-hover.png`（卡片悬浮态）/`v27-help.png`（规则页三栏）/`v27-theme-casual.png`/`v27-theme-aibattle.png` | 真渲染帧（模拟器） |
+| 真机 | **未验证**：未挂载脚本能否 require / require 前缀 / 重导后挂载是否还在 / cursor Enter-Exit 是否派发 | — |
+
+**六类 bug 的根因（全部实测，不是推断）**：
+1. **①⑧ AI 死亡≠玩家死亡**——三处 AI 专属旁路：`aiChoose` 无安全位 → `{reset=true}`/`nil` 各自 return（块永不落、
+   不判负、不结算、每帧刷 `demo reset plan=too-high`）；`aiDrop` 尾部堆高看门狗**无条件** `demoLoopReset()`
+   （接管中堆高被拽回标题页）；`aiDrop` 无条件 `autoDriving=true`（接管消分进 AI 账、死亡不更新最高分）。
+   修法：顶死照常给输入→硬降→`spawn` 顶死→`showGameOver`→结算层；看门狗仅 `guideStage==0`；
+   账本归属改**盘属性** `g.aiAccount`。
+2. **②③ 同一根因**：V=`CraftspersonKey22` 同时在 43 键「任意键开始」兜底池里 ⇒ `exitToMenu` 置 `guideStage=0`
+   后同一按键继续派发给兜底，标题页刚建好就被开局吃掉。修法：兜底排除 15/22 + 同帧消费标记。
+3. **④ H 真键是 15 号**（`craftCodes[15]='KeyH'`），v1 绑的是 `CharacterSkill1Key`（=物理 E）⇒ 真机按 H 零反应。
+4. **⑥ 点击误重开 = 手机热区 btnA-F 在 PC 也建也挂监听且从未摆位**（旧判断恒假）⇒ 6 个热区叠在画布中心。
+
+**未决（等用户拍板 / 等真机）**：`05-open.md` 的 O-2026-10-28-1/2/3。
 
 ## 二、三方分工（别搞混，三个位置各有主）
 

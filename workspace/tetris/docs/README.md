@@ -35,8 +35,10 @@
 | 合作 `coop` | 双人共左盘对抗右盘 AI：**P1 旋转手**（`W` 旋转 `G` 暂存）+ **P2 行动手**（`←→` 移动 `↓` 软降 `X` 直落），越权键无效 | 人盘顶满=败 / AI 盘顶满=合作成功 |
 
 - 双人/对抗模式开局有**键位引导**（横幅三行：模式名+P1 键位+P2 键位）+ 任意键 → **3-2-1 倒计时**（大字渐变）→ 开局（重力/AI 盘冻结至倒计时结束）。
-- 标题屏 `H` = **全屏游戏说明层**（操作/计分/连击/B2B/T-spin/模式/垃圾行/进阶技巧 10 行，暗底全屏；再按 H 或任意键返回，返回键不开局）。
-- 非休闲模式局内 `R` = 回标题菜单（销毁第二盘 204 个运行时控件防真机上限累积，重建模式卡片）；胜负横幅下方提示「按 R 回菜单」。
+- **规则说明页（v2.7 重做）**：`H`（或 `E`）在**任何阶段**都能开——整页三栏讲全：**操作与按键 / 计分与判定 / 四种模式各自规则**；开页时局内自动暂停，任意键或再按 H 关页（**只关页、不开局**）。标题屏底部常驻「H 游戏说明」入口（也有鼠标可点热区）。
+- **结算页按键（v2.7 语义统一）**：`R` = **同一模式再来一局**（双屏模式会重建对家盘并重新走键位引导→倒计时）；`V` = 回标题页；`Q` = 结算明细/真结算信号。旧行为「非 casual 的 R 回菜单」已废弃（与结算页文案 `[R] 再来一局` 冲突，用户 2026-10-28 反馈⑥）。
+- 非休闲模式**局内**（未结算）`R` 仍是回标题菜单（销毁第二盘 204 个运行时控件防实例上限累积，重建模式卡片）。
+- **鼠标/触屏三态（v2.7 ⑤）**：标题页四模式各有一个透明 cursor 热区（`menuZone1..4`），`CursorEnter/Exit/Down/Up/Click` 驱动「常态 38 号 / 悬浮 40 号+模式色+整行高亮 / 按下 42 号+高亮加深」；点击与键盘 `1-4` 走同一条 `menuSelectMode` 入口。手机按钮热区（`btnA-F`）在 PC 端 `visible=false` 且移出画布（v1 未摆位 ⇒ 点画面中央会命中「重开」）。
 - 手机端双屏回落休闲（`isMobile` 判据，模拟器 mobile 画布实测）；垃圾行音效=送出 40017（投掷飞刀）/受击 20004（重受击），真机人耳确认归 T9 清单⑥。
 
 | 操作 | 物理键 | 引擎事件名 |
@@ -46,8 +48,19 @@
 | 顺时针旋转 | ↑ | `KeyboardCraftspersonKey36Down` |
 | 软降（下一格） | ↓ | `KeyboardCraftspersonKey37Down` |
 | 硬降（落底并锁定） | Space | `KeyboardJumpKeyDown` |
-| 重开 | R | `KeyboardCharacterSkill3KeyDown` |
+| 暂存（Hold） | G | `KeyboardCraftspersonKey14Down` |
+| 重开（结算页 = 同模式再来一局） | R | `KeyboardCharacterSkill3KeyDown` |
+| 回标题页（仅结算态生效） | V | `KeyboardCraftspersonKey22Down` |
+| **规则说明页**（任何阶段可开，局内=暂停） | **H**（E 为别名） | **`KeyboardCraftspersonKey15Down`** + `KeyboardCharacterSkill1KeyDown` |
+| 结算明细 / 真结算信号 | Q | `KeyboardCharacterSkill2KeyDown` |
 | 调试：填满最底两行 | T | `KeyboardCharacterSkill4KeyDown` |
+
+**v2.7 键位硬事实（2026-10-28，用户反馈④的根因）**：真机/网页物理键的映射表是
+`studio/play/key-bindings.js` 的 `craftCodes`（与千星网页同表）——**字母键走工匠槽**：
+`craftCodes[15]='KeyH'` ⇒ 物理 H 发的是 `KeyboardCraftspersonKey15Down`；而
+`KeyboardCharacterSkill1..4Key` 对应物理 **E / Q / R / T**。v1 把 H 绑在 `CharacterSkill1Key`（=物理 E）上，
+所以**真机按 H 永远没反应**，且 H 还落在 43 键「任意键开始」兜底池里 ⇒ 按 H 反而开局。
+现在：H 双键名注册（15 真实键 + CharacterSkill1 别名），并把 15/22 从兜底池排除。
 
 `T` 是给用例用的调试钩子：它只填行、**不消行**；消行必须由下一次锁定经 `doLock → clearLines`
 真实链路触发，所以 `tests/04` 覆盖的是真实消行路径。
@@ -192,13 +205,16 @@ node qxqy/probe-audio.mjs
 
 ```
 workspace/tetris/
-├── lua/main.lua                       游戏逻辑（唯一需要手改的源）
+├── lua/main.lua                       主脚本（挂在服务端容器 n1：生命周期/棋盘/输入/布局/编排）
+├── lua/tetris/config.lua              【模块·未挂载，require】纯数据：数值表/色板/方块/模式表/模式主题/规则页文案
+├── lua/tetris/widgets.lua             【模块】控件工具箱：保护式 trySet/tryCall、光标事件、模板探测
+├── lua/tetris/audio.lua               【模块】音效引擎：id 表 + 同帧帧闸 + 全 pcall
 ├── tetris.save.json                   完整工程存档（importData / createStudio seed 均可加载）
 ├── device-package/tetris-整合包.gia    真机导入包
 ├── qxqy/build.mjs                     从默认工程重建 + 导出存档与 GIA
 ├── qxqy/runner.mjs                    离线跑用例（退出码 0/1）
 ├── qxqy/check-gia.mjs                 GIA / 存档自查
-├── tests/*.json                       6 条用例
+├── tests/*.json                       43 条用例（v2.7）
 └── docs/README.md                     本文件
 ```
 
@@ -360,3 +376,64 @@ npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
 **怎么复现结算页**：网页试玩（`http://127.0.0.1:4173`，工作区存档 `~/qxqy-workspace/tetris.save.json` 由 `deploy.mjs` 同步，改完刷新页面重新打开该存档）
 → 按任意键接管入场自演 → 连按空格（硬降）不消行地往上堆，堆到顶即出结算页；真机同流程（键盘 空格 = JumpKey/硬降，或手机按钮「直落」）。
 离线复现：`node qxqy/shot.mjs` 会自己堆到顶并出 `docs/preview-gameover.png`。
+
+---
+
+## 11. v2.7（2026-10-28）用户 10 点反馈的处理与判据
+
+> 状态：**当前实现**｜已验证层级：结构层（`lua5.3 loadfile` + `node qxqy/build.mjs` + GIA 导出 4 条脚本映射）
+> + 行为层（模拟器 **44/44 用例全绿 56.2s**）+ 交付物自查（`node qxqy/check-gia.mjs` 全绿：1 主脚本 + 3 模块、
+> 存档 importData 只有主脚本带挂载点）+ 出图（`docs/v27-*.png` 四张真渲染帧）；
+> **真机未验证**（见 §11.4）。用户反馈原文编号沿用任务书。
+
+### 11.1 逐条结论
+
+| # | 反馈 | 根因（实测，非推测） | 修法 | 判据（用例） |
+| --- | --- | --- | --- | --- |
+| ①⑧ | AI 代打死亡 ≠ 玩家死亡 | **三处 AI 专属旁路**：`aiChoose` 无安全位 → `{reset=true}`/`nil` 两条路各自 return（块永不落、不判负、不结算，每帧刷 `demo reset plan=too-high`）；`aiDrop` 尾部堆高看门狗**无条件** `demoLoopReset()`（接管中堆高被拽回标题页）；`aiDrop` 无条件 `autoDriving=true`（接管消行分进 AI 账、死亡不更新最高分） | 顶死时照常给输入→硬降→`spawn` 顶死判定→`showGameOver`→结算层（与玩家按空格堆顶同一条链）；看门狗只在 `guideStage==0`；账本归属改成**盘属性** `g.aiAccount` | 40 |
+| ②③ | V 回主页回不到开始页 / 第二次按 1-4 无反应 | **同一根因**：V=`CraftspersonKey22` 同时在 43 键兜底池里，`exitToMenu` 把 `guideStage` 置 0 后同一按键继续派发给兜底 ⇒ 标题页刚建好就被 `startIfWaiting` 吃掉 | 兜底排除表加 15/22 + 同帧消费标记 `keyConsumedFrame` 双保险 | 36 |
+| ④ | H 按钮常驻且按下无反应 | 真机物理 **H = `CraftspersonKey15`**（`craftCodes[15]='KeyH'`），v1 只监听 `CharacterSkill1Key`（=物理 E） | H 双键名（15 + CharacterSkill1 别名）+ 独立整页三栏规则页（任何阶段可开）+ 标题屏底栏「H 游戏说明」常驻且**鼠标可点**（`menuHelpZone`） | 32 / 35 / 43 |
+| ⑤ | 模式卡要悬浮/按下/常态三态 | 模式卡是 image + textbox 实例，**没有**光标事件能力 | 每卡一个透明 cursor 热区（`menuZone1..4`，同级兄弟不是子节点；父链 `showCursor=true`），Enter/Exit/Down/Up/Click 驱动三态样式 | 41 |
+| ⑥ | 结算页 R 不重开、鼠标点一下就重开 | ①R 在非 casual 模式被写成"回菜单"，与结算文案冲突；②手机热区 `btnA-F` 在 PC 端也建也挂监听且**从未摆位**（旧判断恒假）⇒ 6 个热区叠在画布中心，点中央命中 `btnF`=重开 | `restartMatch()`：全模式 R = 同一模式再来一局；热区一律摆位 + PC 端 `visible=false` 且移出画布 + 回调再兜一层 | 37 / 38 / 39 |
+| ⑦ | 四模式各自主题背景 | — | `MODE_THEME` 一张表：画面底色 / 棋盘背板 / 棋盘边框 / 上下强调线，进局按模式套、回标题复位 casual（⚠ 口径见 §11.5） | 42 |
+| ⑨ | 拆功能模块到多个 lua 文件 | 单文件 4100 行贴着 200-local 上限 | `config`/`widgets`/`audio` 三模块（未挂载、require 加载）+ 4 级候选加载器 | 全量 44/44 + `check-gia` |
+
+### 11.2 多文件结构（官方契约，`docs/research/lua-module-contract.md`）
+
+- 一个存档可有多份 Lua 映射；`addScript` **省略 `controlId` = 未挂载**（只注册、可 `require`、不跑生命周期）。
+- 模块 chunk 在 `OnInit` 阶段执行 ⇒ **顶层禁止 `InstantiateClientUIControl`**（必得 nil）、模块里 `script` 是 dummy、
+  必须 `return` 恰好 1 个值。
+- `require` key = 映射路径去掉 `.lua`；真机编辑器会给 `script.path` 补 `default_import_file/` 前缀
+  ⇒ `main.lua` 的 `loadModule` 按 4 级候选（`default_import_file/lua/tetris/` → `lua/tetris/` → `tetris/` → 裸名）
+  逐个 `pcall`，**每条候选的错误原文都打进日志**，成功那级打 `module ok <path>`。
+- 改 Lua 的固定顺序：`lua5.3 -e 'assert(loadfile(...))'`（秒级语法门，**逐文件**跑）→ `node qxqy/build.mjs`
+  → `node qxqy/runner.mjs`。**跳过 build 就是假绿**（runner 读的是存档里内嵌的 Lua 副本）。
+- 现状：`main.lua` 3951 行 + `config 245` + `widgets 146` + `audio 52`。后续可继续按同一套路搬
+  `help / settle / menu / ai` 四块（它们都以 `g` 为共享状态，搬之前需要先把 `g` 收进 CTX 容器，风险最高，放最后）。
+
+### 11.3 两个当场踩到的坑（已注释在代码里，别再踩）
+
+1. **闭包引用「声明在后面的 local」会退化成全局**：注入模块的 `frameOf/styleOf/rootOf` 闭包若引用了
+   后面才 `local` 的变量，运行时读到 nil（实测 `lua/tetris/widgets:94 attempt to index nil (global 'UI_STYLE')`）。
+   修法：被闭包捕获的 `frameSeq` / `keyConsumedFrame` / `UI_STYLE` 必须**前向声明在 wiring 之前**，后置定义改成赋值。
+2. **按「锚点行」切代码块会切坏结构**：表块的收尾 `}` 留在原文件、函数的 `end` 被切掉（本次两处语法错）。
+   切块要用括号配对扫描，切完立刻逐文件 `loadfile`。
+
+### 11.4 真机未验证项（每条都给了判定方法）
+
+| 项 | 判定方法 |
+| --- | --- |
+| 未挂载脚本能否被 `require` | 真机日志出现 `module ok <path>`；若是 `module FAIL`，日志里会带 4 条候选的错误原文 |
+| `require` 路径前缀是否真是 `default_import_file/` | 同上，看 `module ok` 走的是第几级候选 |
+| 重新导入整合包会不会产生重复脚本映射 / 挂载是否还在 | 导入后看脚本资产列表；挂载丢了需手动重挂（`main_2`） |
+| cursor 的 `CursorEnter/Exit` 在真机是否派发 | 鼠标移入模式卡看日志 `menu hover i=` / `menu hover out i=` |
+| `SetAsLastSibling` 是否真能压住标题页实例（说明页层序） | 真机开说明页，看有没有卡片字透出 |
+| 全屏 cursor 热区常驻的副作用（鼠标指针样式） | 目视 |
+
+### 11.5 口径待用户确认的两点
+
+1. **⑦「四种模式各自主题背景」**：当前实现 = **进局后的画面主题**（底色/背板/边框/上下强调线按模式换，回标题复位），
+   改色只需改 `lua/tetris/config.lua` 的 `MODE_THEME` 一张表。若用户本意是「标题页也随模式换主题」或
+   「每种模式配一张背景图」，说一声即可按同一张表扩展。
+2. **②③ 的按键语义**：现在 `V` 只在**结算态**回标题页（局内按 V 无动作，局内回标题仍走 R）。
+   若希望「局内也能按 V 直接回标题」，需要确认（会与 R 的局内回菜单语义重叠）。

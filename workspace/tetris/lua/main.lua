@@ -1827,30 +1827,37 @@ local function buildHelpLayer()
     HL[#HL + 1] = c
     return c
   end
-  -- 暗底（整屏） + 顶部强调条 + 底部细线：纯深色舞台，压在棋盘/卡片实例之上
-  cell('helpBg', 0, 0, W + 20, H + 20, C(252, 8, 11, 18))
+  -- 暗底（整屏） + 顶部强调条 + 底部细线：纯深色舞台，压在棋盘/卡片实例之上。
+  -- ⚠ 层序（2026-10-28 出图实测 v27-help.png v1）：只靠「后建=在上」不可靠——标题页卡片文字会
+  -- 从说明页底色里透出来（幽灵字）。所以建完逐个 SetAsLastSibling 强制置顶（API 在基类方法表里）。
+  cell('helpBg', 0, 0, W + 20, H + 20, C(255, 8, 11, 18))
   cell('helpRule', 0, H / 2 - 78, W - 160, 2, C(190, 74, 95, 138))
   cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, C(150, 74, 95, 138))
   text('helpTitle', '游戏说明 · 全部规则', 0, H / 2 - 46, W - 200, 30, THEME.textMain, 'Middle')
-  text('helpSub', '按 H / 任意键 / 点『关闭』返回', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
-  -- 三栏：中等屏用 16 号；大画布（≥860 高）用 18 号，行距同步
+  text('helpSub', '按 H / E / 任意键 返回（局内开页 = 暂停）', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
+  -- 三栏：整栏**居中**（不依赖 Left 对齐的渲染细节——出图 v1 里左栏被推到画布外，只剩行尾）。
+  -- 中等屏 16 号/行距 36；大画布（≥860 高）18 号/44。
   local big = H >= 860
   local fs, pitch = big and 18 or 16, big and 44 or 36
   local colW = math.floor((W - 120) / 3)
   local top = H / 2 - 118
-  local xs = { -(colW + 20), 0, (colW + 20) }
+  local xs = { -(colW * 0.62 + 30), 0, (colW * 0.62 + 30) }
   for ci, col in ipairs(HELP_COLS) do
     local x = xs[ci]
-    text('helpHead' .. ci, col.title, x - colW / 2 + 20, top, colW - 40, big and 22 or 20,
-      (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textMain)
-    cell('helpHeadBar' .. ci, x - colW / 2 + 8, top, 4, big and 30 or 26,
+    local headColor = (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textMain
+    text('helpHead' .. ci, col.title, x, top, colW - 40, big and 22 or 20, headColor, 'Middle')
+    cell('helpHeadBar' .. ci, x - (colW - 40) / 2 - 14, top, 4, big and 30 or 26,
       (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textSub)
     for li, line in ipairs(col.lines) do
       if line ~= '' then
-        text('helpLine' .. ci .. '_' .. li, line, x - colW / 2 + 20, top - 30 - li * pitch,
-          colW - 40, fs, THEME.textSub)
+        text('helpLine' .. ci .. '_' .. li, line, x, top - 30 - li * pitch,
+          colW - 40, fs, THEME.textSub, 'Middle')
       end
     end
+  end
+  -- 层序强制：整层逐个置顶（后置顶的在上 ⇒ 按创建顺序再置顶一次即可保持「底→字」的顺序）
+  for i = 1, #HL do
+    if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
   end
   print('guide help on n=' .. #HL .. ' page=' .. tostring(helpPage))
 end
@@ -2308,7 +2315,23 @@ MS.buildHoverZones = function()
     MC[#MC + 1] = z
     MS.zones[i] = z
   end
-  print('menu zones n=' .. #MS.zones)
+  -- v2.7 ④ 用户要求「H 按钮常驻」：底栏第三段「H 游戏说明」本身做成可点热区（键盘 H/E 之外的鼠标入口）
+  local okH, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+  if okH and zh then
+    zh.name = 'menuHelpZone'
+    tryCall(zh, 'SetSizeDelta', 260, 56)
+    tryCall(zh, 'SetAnchoredPosition', 290, MS.lineY or -332)
+    addCursor(zh, 'CursorDown', function()
+      keyConsumedFrame = frameSeq
+      if helpOpen then closeHelp() else toggleHelp() end
+    end)
+    MC[#MC + 1] = zh
+    MS.helpZone = zh
+    print('menu help zone=ok')
+  else
+    print('menu help zone=none（仅键盘 H/E 可开说明页）')
+  end
+  print('menu zones n=' .. (#MS.zones + (MS.helpZone and 1 or 0)))
   return true
 end
 -- 键盘 Digit 与鼠标点击共用的选模式入口（v2.7：原逻辑内联在 listen 回调里，抽出来两处复用）

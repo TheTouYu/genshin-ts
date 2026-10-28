@@ -1,28 +1,120 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "32 v2.7 规则说明页：真机 H=CraftspersonKey15 开整页（三栏全部规则/按键/四模式）/任意键只关页不开局/再按键开局",
-  "dt": 0.016666666666666666,
-  "canvasId": "pc-16-9",
-  "events": [
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardCraftspersonKey15Down" },
-    { "t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey15Up" },
-    { "t": 2.0, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 2.02, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" },
-    { "t": 2.6, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 2.62, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" }
-  ],
-  "asserts": [
-    { "at": 0.5, "kind": "log", "contains": "guide help on n=", "source": "client" },
-    { "at": 0.6, "kind": "control", "name": "helpTitle", "field": "text", "equals": "游戏说明 · 全部规则" },
-    { "at": 0.6, "kind": "control", "name": "helpHead1", "field": "text", "equals": "操作 · 按键" },
-    { "at": 0.6, "kind": "control", "name": "helpHead2", "field": "text", "equals": "计分 · 判定" },
-    { "at": 0.6, "kind": "control", "name": "helpHead3", "field": "text", "equals": "四种模式" },
-    { "at": 0.6, "kind": "control", "name": "helpLine1_1", "field": "text", "equals": "← → 移动　↑ 旋转　↓ 软降" },
-    { "at": 0.6, "kind": "control", "name": "helpLine2_1", "field": "text", "equals": "消行 1/2/3/4 行 = 100/300/500/800" },
-    { "at": 0.6, "kind": "control", "name": "helpLine3_1", "field": "text", "equals": "1 休闲 casual" },
-    { "at": 2.3, "kind": "log", "contains": "guide help closed stage=0", "source": "client" },
-    { "at": 2.4, "kind": "log", "contains": "guide help off n=", "source": "client" },
-    { "at": 3.0, "kind": "log", "contains": "guide stage=1", "source": "client" }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "32 v2.7 规则说明页：真机 H=CraftspersonKey15 开整页（三栏全部规则/按键/四模式）/任意键只关页不开局/再按键开局",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Down"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Up"
+  },
+  {
+   "t": 2.0,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 2.02,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  },
+  {
+   "t": 2.6,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 2.62,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "guide help on n=",
+   "source": "client"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpTitle",
+   "field": "text",
+   "equals": "游戏说明 · 全部规则"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpHead1",
+   "field": "text",
+   "equals": "操作 · 按键"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpHead2",
+   "field": "text",
+   "equals": "计分 · 判定"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpHead3",
+   "field": "text",
+   "equals": "四种模式"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpLine1_1",
+   "field": "text",
+   "equals": "← → 移动　↑ 旋转　↓ 软降"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpLine2_1",
+   "field": "text",
+   "equals": "消行 1/2/3/4 行 = 100/300/500/800"
+  },
+  {
+   "at": 0.6,
+   "kind": "control",
+   "name": "helpLine3_1",
+   "field": "text",
+   "equals": "1 休闲 casual"
+  },
+  {
+   "at": 2.3,
+   "kind": "log",
+   "contains": "guide help closed stage=0",
+   "source": "client"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "guide help off n=",
+   "source": "client"
+  },
+  {
+   "at": 3.0,
+   "kind": "log",
+   "contains": "guide stage=1",
+   "source": "client"
+  },
+  {
+   "at": 0.62,
+   "kind": "log",
+   "contains": "menu help zone=ok",
+   "source": "client"
+  }
+ ]
 }
