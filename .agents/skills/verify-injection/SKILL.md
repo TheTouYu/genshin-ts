@@ -129,7 +129,7 @@ EOF
 
 注入后的 `.gil` 用 `tools/list-gil-node-graphs.ts` 找到目标图后，需按
 `nodeGraphMessage.decode` 结构（nodes 在 decode 顶层，`g.nodes`）提取；.gil 路径 =
-`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/<playerId>/Beyond_Local_Save_Level/<mapId>.gil`
+`/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/<playerId>/Beyond_Local_Save_Level/<mapId>.gil`（Arch + Wine prefix；`/mnt/wingames` 是只读旧镜像）
 （本机 playerId=110170759，可用 `gsts maps` 输出确认）。
 
 ## 挂载目标选择（2026-08-14 地图异常教训，必读）
@@ -150,9 +150,7 @@ EOF
 
 0. **注入报 EROFS/read-only file system（2026-08-27 3×3 实锤）**：批量注入输出
    `[error] Injection failed xxx.gia: EROFS: read-only file system`（备份 .gil 时 copyfile 失败）
-   = **游戏目录挂载只读**（WSL `/mnt/c` 可能被挂成 `ro`），不是代码/注入器问题。排查：
-   `mount | grep /mnt/c` 看是否 `ro`；能写则 `sudo mount -o remount,rw /mnt/c`（或环境沙箱
-   放宽文件权限后重试）。先确认可写再跑注入，别反复编译浪费轮次。
+   = **目标目录只读**（`/mnt/wingames` 这类旧镜像会被挂成 `ro`），不是代码/注入器问题。排查：`findmnt /mnt/wingames`；本机真实可写路径是 Wine prefix（见上），CLI 用 `GSTS_LOCALLOW_DIR=…/AppData/LocalLow`、`unset LOCALAPPDATA`。不要对只读镜像执行 remount，改用 prefix 路径。
 1. **编译阶段 inject 的取舍**：非信号 case 不要配 inject——只要 inject 存在（即使
    `--noinject`），编译就会解析目标 gil，`mapId/nodeGraphId` 未回填（=0）时直接报
    `[error] target gil not found: .../0.gil`。**信号 case 例外**：GIA 生成从

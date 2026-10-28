@@ -71,7 +71,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺序走：
 
-0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在 `/mnt/c/Users/<用户>/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（Windows 挂载盘，glob/find home 找不到），Temp 缓存在同级 `../Temp/`。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
+0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在本机 **Wine prefix**：`/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（uid=110170759），Temp 缓存在同级 `../Temp/`；`/mnt/wingames` 是只读旧 Windows 镜像，**不要写**。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
 1. **只读盘点并锁定源 SHA**：`sha256sum <map.gil>`，导出当前相关资源（变量 `--list`、挂载 `assets:mounts list`、UI `assets:ui list`、实体 `assets:entities --format json`），确认目标 ID 空闲、类型/容器正确。ID 分配遵守 `static-gil-model-builder` 的 ID 纪律（新元件/实体 ID 必须 ≥1077936129，且 root4/5/6 双查）。
 1b. **"要用户在编辑器新建 X"前先跑同类盘点（2026-09-04 票 20 E0 实证，省一轮用户动作）**：
    `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>` 只读输出 A) 技能变量配置 ID 哪些在位/

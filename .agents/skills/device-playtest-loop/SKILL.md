@@ -11,6 +11,16 @@ description: 千星真机（编辑器 + 沙箱客户端）试玩与取数的完�
 
 把「人手工去游戏里点一遍、看一眼、记一下」变成**机器可执行的闭环**：
 
+## 本机路径（Arch + Wine prefix，2026-10-28 用户纠正）
+
+- 真实游戏存档在 **Wine prefix**，不在 Windows 盘：
+  `/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/`；
+  地图 `<uid>/Beyond_Local_Save_Level/`、Temp 同级、日志 `<uid>/Beyond_Debug_Log/`（uid=`110170759`）。
+- `/mnt/wingames` 是只读旧镜像（`ntfs3 ro`），看到它不要写；`mount | grep wingames` 可复核。
+- CLI 统一：`export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`，`unset LOCALAPPDATA`。
+- 该技能其余“真机输入/窗口/日志”事实不变；Windows 11 时代的 `/mnt/c` 写法只作历史参考。
+
+
 ```text
 准备（编辑器/沙箱就绪） → 试玩 ys-playtest-start → 注入实验批次（一次拿焦点跑完）
 → 退出 ys-playtest-stop（让 Debug_Log 落盘） → 离线解析 gia_log.py → 反馈 → 下一轮

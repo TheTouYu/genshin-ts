@@ -350,7 +350,9 @@ gsts assets:scripts update --guid <执行中的> --source-file <注入版.lua> \
   1. 模板 guid 是否又变（变了加到 `TEMPLATE_GUIDS` 首位）；
   2. 10 个服务端控件名是否都在（`GetChild` 按名取，名字变了就不显示）；
   3. 真机日志应有：`canvas WxH` / `tpl guid=…` / `cellCount=200` / `listen ok` / `guide stage=1`。
-- 两套路径口径不同（会连着踩两次）：CLI 的 `GSTS_LOCALLOW_DIR` 要 `…/AppData/LocalLow`（源码自己拼 `miHoYo/原神/BeyondLocal`）；`deploy.mjs` 要 `…/LocalLow/miHoYo/原神`（它自己拼 `BeyondLocal`）（D585）。
+- **本机是 Arch + Wine prefix（2026-10-28 用户纠正），不是 Win11**：真实存档根目录 = `/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/`；`/mnt/wingames` 是只读旧镜像，不要写。
+- CLI 口径：`GSTS_LOCALLOW_DIR` 要 `…/AppData/LocalLow`（源码自己拼 `miHoYo/原神/BeyondLocal`）并 `unset LOCALAPPDATA`；`deploy.mjs` 要 `…/LocalLow/miHoYo/原神`（它自己拼 `BeyondLocal`）（D585）。
+- 本机 `flower-tea` 的模板重编号校准用 `qxqy/calibrate-device.sh <mapId> <scriptGuid>`（读模板名 → 重生成 device Lua → update → guard）。
 
 ### 10.4 试玩验收（三栏报告的上游）
 

@@ -18,6 +18,19 @@ description: 千星模拟器「2D 界面 + Lua」生产线——把 UI 控件与
 **选线判据**：能不能在模拟器里证明？能 → 先模拟器（快）；只有模拟器证明不了的（真实输入手感、真机渲染、真机 API 差异、真实负载）→ 真机。
 **UI 与 Lua 的差异**：模拟器预览只给图元 `100001–100006`，其余 imageId 显示缺失框（这是预览限制，**不是 Lua 错误**）。
 
+
+## 本机路径与环境（2026-10-28 用户纠正：Arch，不是 Win11）
+
+- **真实游戏存档在 Wine prefix**（不是 `/mnt/c`，更不是 `/mnt/wingames`）：
+  `/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/`
+  - 地图：`<uid>/Beyond_Local_Save_Level/<mapId>.gil`（或 `<mapId>/<mapId>.gil`），Temp 同级；
+  - 日志：`<uid>/Beyond_Debug_Log/`；本机 uid=`110170759`。
+- `/mnt/wingames` 是**只读的旧 Windows 镜像**，只能读，禁止当写回目标。
+- CLI 口径：`export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`，并 `unset LOCALAPPDATA`（CLI 自己拼 `miHoYo/原神/BeyondLocal`）。
+- **模拟器 Web**：当前由 `node web/server.js --workspace /home/h/qxqy-workspace` 启动，端口 `4173`；存档列表 = 扫描该 workspace 下所有含 `qxqy-simulator-save` 标记的 `.json`，显示 JSON 内 `meta.name`。
+  - **把工程追加到模拟器存档列表**：把工程的 `.save.json` 复制到 `/home/h/qxqy-workspace/<名字>.save.json`，刷新 4173 页面的存档选择器即可；无需重启服务器。
+  - 列表按 mtime 取最新 50 个；隐藏目录/`node_modules`/`dist` 不扫。
+
 ## 入口
 
 | 工具 | 用途 | 要点 |

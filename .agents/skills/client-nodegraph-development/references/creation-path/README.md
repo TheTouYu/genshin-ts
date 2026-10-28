@@ -23,7 +23,7 @@ executeSkill → 造物技能(28+瞬发) → 20008 客户端图 → 信号回传
 
 ### ① 只读盘点（动任何东西之前）
 ```bash
-MAP=$(ls /mnt/c/.../Beyond_Local_Save_Level/<mapId>.gil)
+MAP=$(ls /home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/<mapId>.gil)
 sha256sum "$MAP"; npx tsx tools/list-gil-node-graphs.ts "$MAP"   # 图清单+客户端段 max
 npx tsx tools/list-gil-skill-configs.ts "$MAP"                    # 技能配置
 node bin/gsts.mjs assets:signals inspect --gil "$MAP"             # 信号

@@ -349,7 +349,7 @@ layout lint）。典型问题：API 写法（连线/参数/引脚错、duplicate
   `dump_gil_index` / `explain-gil-node-graph` / `parse-gil-node-graph` 只吃 .gil 地图，对 .gia 报"未找到节点图"。
 - **注入前先备份**：`cp <地图.gil> .gsts/backups/<名>.bak` 并 sha256sum 记录；注入后 sha 变化与候选一致才算成功。
 - **注入环境坑**：注入器备份目录 `~/.genshin-ts/backups` 只读 → 注入命令加 `APPDATA=<项目可写目录>`
-  （如 `.gsts/appdata`）重定向；`/mnt/c` 只读挂载时注入命令需宽权限。
+  （如 `.gsts/appdata`）重定向；**Arch 本机的真实存档在 Wine prefix**（`/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal`），`/mnt/wingames` 是只读旧镜像；CLI 用 `GSTS_LOCALLOW_DIR=…/AppData/LocalLow`、`unset LOCALAPPDATA`。
 - **注入后两件事**：① 读图自检（`explain-gil-node-graph --composite` 验证被调复合 inflows 非空/执行流条数、
   `scan-gil-var-pins` 0 违规）② **Temp 同步**：编辑器活动目录 `.../Temp/` 的同一 .gil 需手动复制，
   否则编辑器显示旧图（2026-08-20 实证：注入命令不自动同步 Temp）。

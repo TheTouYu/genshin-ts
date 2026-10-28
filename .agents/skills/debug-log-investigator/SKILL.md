@@ -96,7 +96,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
      =不可见微弹）——票面验收带（弹跳次数/回高/停稳时长）先做数学可达性检查再进游戏，
      避免把参数不可达当 bug 排查（3101 教训：e=0.7+DT=0.2 数学上限 2 次可见弹跳）。
 
-日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
+日志目录（Arch + Wine prefix）：`/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`（`/mnt/wingames` 是只读旧镜像，别读错）
 
 > **坑（2026-08-31 足球会话实证，先用后信）**：① `frames --contains <文本>` 过滤**不可靠**
 > （3017 会话对 'fly_tick'/'kick_launch'/'Tab' 均命中了不含该文本的记录）——定点检索改用
