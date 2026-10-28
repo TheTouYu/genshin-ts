@@ -120,7 +120,7 @@ local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；star
 -- casual 局中接管状态机（v2-plan §三 T6）：'play'（玩家操作）→5s 无操作→'hint'（提示 2s）
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
-local TK = { state = 'play', t = 0 }
+local TK = { state = 'play', t = 0, prevState = nil }
 -- v2.6 ①：进局底栏常驻操作提示（横幅事件短暂借位，bannerTimer 归零即恢复；结算时清空）
 local PERSIST_TIP = ''
 local showPersistTip                   -- 前向声明（实现见 enterMode 前）
@@ -146,7 +146,7 @@ local menuSelectMode
 local function newAIState()
   return { phase = 'thinking', t = 0, wait = 0.5, queue = nil, qi = 1, piece = nil,
     count = 0, sumSec = 0, dur = 0, pace = nil, info = nil, softPer = 0.08, target = 2.2,
-    score = 0, lines = 0, fx = 0,
+    score = 0, lines = 0, fx = 0, assistLv = 1,
     search = nil,   -- T5 渐进式搜索状态（plan/idx/best2/bestScore/done/holdChecked）
   }   -- score/lines = AI 局账本（T4，clearLines 分流写入；newGame 归零）；ρ 统计在全局 RHO
 end
@@ -4316,7 +4316,22 @@ function OnUpdate(dt)
       print('takeover ai')             -- v2-plan T6 验收锚
     end
     if TK.state == 'ai' then
-      aiTickCore(d, 'stop', 3)         -- v2.5：接管=AI 代打续命，恒 hard（不故意失误）
+      -- v3.1 二-2（用户定版）：AI 代打档位与玩家表现联动——初始 easy（陪练级，玩家≈Lv4 水平），
+      -- 玩家等级涨 AI 跟着涨（Lv5→normal、Lv8→hard），体现「玩家越厉害 AI 辅助越厉害」。
+      -- 映射存 g.AI.assistLv（1/2/3），进 ai 态时算一次+变化时打 ai assist lv= 日志。
+      if TK.state ~= TK.prevState then
+        local lv = 1
+        if g.level >= 8 then lv = 3
+        elseif g.level >= 5 then lv = 2 end
+        if g.AI.assistLv ~= lv then
+          g.AI.assistLv = lv
+          print('ai assist lv=' .. lv)   -- v3.1 二-2 验收锚
+        end
+        TK.prevState = 'ai'
+      end
+      aiTickCore(d, 'stop', g.AI.assistLv or 1)
+    elseif TK.state ~= 'ai' then
+      TK.prevState = nil
     end
   end
   -- v2.2 ③：模式终局——冻结两盘（重力/DAS/AI 全停），只推终局方的结算层动画。
