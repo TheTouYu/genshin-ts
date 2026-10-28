@@ -1,0 +1,10 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "22 4:3 画布",
+  "dt": 0.03333333333333333, "canvasId": "mobile-4-3",
+  "events": [{ "t": 0.5, "kind": "click", "name": "hit_start" }],
+  "asserts": [
+    { "at": 0.2, "kind": "log", "contains": "canvas 1280.0x960.0 scale=1.000", "source": "client" },
+    { "at": 0.2, "kind": "log", "contains": "screen=title", "source": "client" },
+    { "at": 1.1, "kind": "log", "contains": "screen=menu", "source": "client" }
+  ]
+}

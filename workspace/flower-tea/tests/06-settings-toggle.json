@@ -1,0 +1,13 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "06 设置音效开关",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_4" },
+    { "t": 1.5, "kind": "click", "name": "hit_set_sfx" }
+  ],
+  "asserts": [
+    { "at": 1.3, "kind": "log", "contains": "screen=settings items=8", "source": "client" },
+    { "at": 1.8, "kind": "log", "contains": "opt sfx=false", "source": "client" }
+  ]
+}

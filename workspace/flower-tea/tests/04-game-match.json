@@ -1,0 +1,16 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "04 交换相邻茶点并消除计分",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_1" },
+    { "t": 1.4, "kind": "click", "name": "hit_chapter_1" },
+    { "t": 1.9, "kind": "click", "name": "hit_chapter_start" },
+    { "t": 2.6, "kind": "click", "name": "hit_tile_1_1" },
+    { "t": 2.8, "kind": "click", "name": "hit_tile_1_2" }
+  ],
+  "asserts": [
+    { "at": 3.5, "kind": "log", "contains": "match combo=1 count=3 score=180 moves=19", "source": "client" }
+  ],
+  "audioExpect": [50884, 50917]
+}

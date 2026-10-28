@@ -1,0 +1,12 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "09 茶会指南开关",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.5, "kind": "key", "typeName": "KeyboardCraftspersonKey15Down" },
+    { "t": 1.2, "kind": "key", "typeName": "KeyboardCraftspersonKey15Down" }
+  ],
+  "asserts": [
+    { "at": 0.9, "kind": "log", "contains": "overlay=help items=1", "source": "client" },
+    { "at": 1.6, "kind": "log", "contains": "overlay close=help", "source": "client" }
+  ]
+}

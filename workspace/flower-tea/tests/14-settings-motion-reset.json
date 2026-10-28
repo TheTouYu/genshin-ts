@@ -1,0 +1,18 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "14 设置动效/描边/重置",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_4" },
+    { "t": 1.5, "kind": "click", "name": "hit_motion_2" },
+    { "t": 2.3, "kind": "click", "name": "hit_set_outline" },
+    { "t": 2.8, "kind": "click", "name": "hit_settings_reset" },
+    { "t": 3.4, "kind": "click", "name": "hit_confirm_yes" }
+  ],
+  "asserts": [
+    { "at": 1.7, "kind": "log", "contains": "opt motion=2", "source": "client" },
+    { "at": 2.6, "kind": "log", "contains": "opt outline=true", "source": "client" },
+    { "at": 3.2, "kind": "log", "contains": "overlay=confirm", "source": "client" },
+    { "at": 3.8, "kind": "log", "contains": "records reset", "source": "client" }
+  ]
+}

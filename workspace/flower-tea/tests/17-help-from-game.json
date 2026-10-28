@@ -1,0 +1,17 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "17 局内帮助暂停与关闭",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_1" },
+    { "t": 1.4, "kind": "click", "name": "hit_chapter_1" },
+    { "t": 1.9, "kind": "click", "name": "hit_chapter_start" },
+    { "t": 2.6, "kind": "key", "typeName": "KeyboardCraftspersonKey15Down" },
+    { "t": 3.2, "kind": "click", "name": "hit_help_close" }
+  ],
+  "asserts": [
+    { "at": 3.0, "kind": "log", "contains": "overlay=help items=1 controls=", "source": "client" },
+    { "at": 3.0, "kind": "log", "contains": "pause=true", "source": "client" },
+    { "at": 3.7, "kind": "log", "contains": "overlay close=help", "source": "client" }
+  ]
+}

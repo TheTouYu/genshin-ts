@@ -1,0 +1,19 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "08 结算页与再来一杯",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_1" },
+    { "t": 1.4, "kind": "click", "name": "hit_chapter_1" },
+    { "t": 1.9, "kind": "click", "name": "hit_chapter_start" },
+    { "t": 2.6, "kind": "key", "typeName": "KeyboardCharacterSkill4KeyDown" },
+    { "t": 4.0, "kind": "click", "name": "hit_result_1" }
+  ],
+  "asserts": [
+    { "at": 3.1, "kind": "log", "contains": "gameover win=true", "source": "client" },
+    { "at": 3.7, "kind": "log", "contains": "overlay=result", "source": "client" },
+    { "at": 3.7, "kind": "log", "contains": "achievement first_tea", "source": "client" },
+    { "at": 4.7, "kind": "log", "contains": "screen=game", "source": "client" }
+  ],
+  "audioExpect": [40054]
+}

@@ -1,0 +1,10 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "19 PC 1600x900 缩放",
+  "dt": 0.03333333333333333, "canvasId": "pc-16-9",
+  "events": [{ "t": 0.5, "kind": "click", "name": "hit_start" }],
+  "asserts": [
+    { "at": 0.2, "kind": "log", "contains": "canvas 1600.0x900.0 scale=1.250", "source": "client" },
+    { "at": 0.2, "kind": "log", "contains": "screen=title", "source": "client" },
+    { "at": 1.1, "kind": "log", "contains": "screen=menu", "source": "client" }
+  ]
+}

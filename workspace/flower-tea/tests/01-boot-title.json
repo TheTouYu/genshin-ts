@@ -1,0 +1,14 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "01 启动与标题页",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [{ "t": 0.5, "kind": "click", "name": "hit_start" }],
+  "asserts": [
+    { "at": 0.15, "kind": "log", "contains": "[tea] onstart", "source": "client" },
+    { "at": 0.15, "kind": "log", "contains": "screen=title items=5", "source": "client" },
+    { "at": 0.15, "kind": "log", "contains": "probe prim", "source": "client" },
+    { "at": 0.15, "kind": "log", "contains": "probe label", "source": "client" },
+    { "at": 0.15, "kind": "log", "contains": "probe hit", "source": "client" },
+    { "at": 1.1, "kind": "log", "contains": "screen=menu items=5", "source": "client" }
+  ],
+  "audioExpect": [50884]
+}

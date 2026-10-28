@@ -1,0 +1,17 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "05 暂停与继续",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_1" },
+    { "t": 1.4, "kind": "click", "name": "hit_chapter_1" },
+    { "t": 1.9, "kind": "click", "name": "hit_chapter_start" },
+    { "t": 2.6, "kind": "key", "typeName": "KeyboardCharacterSkill2KeyDown" },
+    { "t": 3.0, "kind": "click", "name": "hit_pause_1" }
+  ],
+  "asserts": [
+    { "at": 2.9, "kind": "log", "contains": "overlay=pause items=6", "source": "client" },
+    { "at": 3.5, "kind": "log", "contains": "overlay close=pause", "source": "client" },
+    { "at": 3.5, "kind": "log", "contains": "screen=game", "source": "client" }
+  ]
+}

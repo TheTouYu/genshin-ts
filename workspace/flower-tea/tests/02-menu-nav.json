@@ -1,0 +1,14 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "02 菜单键盘焦点与进入角色页",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "key", "typeName": "KeyboardCraftspersonKey37Down" },
+    { "t": 1.0, "kind": "key", "typeName": "KeyboardJumpKeyDown" }
+  ],
+  "asserts": [
+    { "at": 0.5, "kind": "log", "contains": "screen=menu", "source": "client" },
+    { "at": 1.6, "kind": "log", "contains": "screen=characters items=4", "source": "client" }
+  ],
+  "audioExpect": [50883]
+}

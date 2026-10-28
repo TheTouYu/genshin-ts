@@ -1,0 +1,14 @@
+{
+  "format": "qxqy-autotest", "version": 1, "name": "13 图鉴手账页与返回",
+  "dt": 0.03333333333333333, "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "click", "name": "hit_start" },
+    { "t": 0.8, "kind": "click", "name": "hit_menu_3" },
+    { "t": 1.5, "kind": "click", "name": "hit_gallery_tab_3" },
+    { "t": 2.2, "kind": "click", "name": "hit_back" }
+  ],
+  "asserts": [
+    { "at": 2.0, "kind": "log", "contains": "screen=gallery items=3", "source": "client" },
+    { "at": 2.9, "kind": "log", "contains": "screen=menu", "source": "client" }
+  ]
+}
