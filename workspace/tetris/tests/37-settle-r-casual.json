@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "37 v2.7 结算页 R 重开（casual）：同一模式就地再来一局（旧实现按 R 无感/非 casual 反而回菜单）",
+ "name": "37 v3.3 结算页 R 重开（casual）+ 三选项主次/文案：同一模式就地再来一局（选项改成实例贴片：optT1..3）",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -172,6 +172,33 @@
    "kind": "log",
    "contains": "gameover score=",
    "source": "client"
+  },
+  {
+   "at": 2.1,
+   "kind": "log",
+   "contains": "settle hotzones n=3 v=P",
+   "source": "client"
+  },
+  {
+   "at": 2.1,
+   "kind": "control",
+   "name": "optT1",
+   "field": "text",
+   "equals": "[R] 再来一局"
+  },
+  {
+   "at": 2.1,
+   "kind": "control",
+   "name": "optT2",
+   "field": "text",
+   "equals": "[V] 回主页"
+  },
+  {
+   "at": 2.1,
+   "kind": "control",
+   "name": "optT3",
+   "field": "text",
+   "equals": "[Q] 结算明细"
   },
   {
    "at": 3.4,

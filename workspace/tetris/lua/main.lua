@@ -383,7 +383,8 @@ settleDestroy = function()
   for i = 1, #SETTLE_HOTS do
     pcall(function() game.DestroyClientUIControl(SETTLE_HOTS[i]) end)
   end
-  SETTLE_HOTS = {}                      -- v2.8 ④：结算热区随层销毁
+  SETTLE_HOTS = {}                      -- v2.8 ④：结算热区随层销毁（v3.3 起含三选项贴片/文字）
+  g.optRecs = nil
   if not (g.settleReady or g.settleLayer or g.settleTitle) then return end
   local n = 0
   local members = settleMembers()
@@ -660,6 +661,198 @@ end
 
 -- 结算动画（0→0.9s 四段）：①0→0.45s 遮罩/面板淡入（棋盘被压到 45% 亮度）
 -- ②0.15s 起标题自上滑入（0.35s ease-out）③0.35s 起选项自下滑入 ④0.55s 起标题脉冲 44→48→44
+-- ===== v3.3 结算三选项：主次层级 + 三态（常态/悬停/按下）=============================
+-- 用户 2026-10-28 反馈：「下面明明是三个框，但是高亮样式完全一样，没有区分度，本质上都是没有审美」。
+-- 病根：旧实现把三个选项塞进**同一个服务端 textbox**（一行 '[R] 再来一局　[V] 回主页　[Q] 结算明细'），
+-- 三个透明热区只能整体改这一行字色 ⇒ 三项永远同字号同颜色，悬停还连带闪另外两项。
+-- 改法：选项改成**运行时实例层**的三块贴片（ImageSource 图元），各自独立配色与三态：
+--   ① 主次：再来一局 = 模式色实心胶囊 + 描金外环 + 大一号（最想点的路）；
+--           回主页 = 白底 + 描金细边 + 墨字；结算明细 = 纯文字 + 次字色（它给信息，不是行动）。
+--   ② 三态：常态 → 悬停整体提亮（向白 22%）→ 按下整体压深（向墨 20%）并下沉 3px。
+--   ③ 服务端 settleOpts 保留但隐藏（层序铁律：实例层在 textbox 之上，不隐藏会重影）。
+-- 版式 variant（CFG.SETTLE_OPT）：P = 主按钮大 + 两个小（落地）/ E = 等宽三胶囊（对比稿）。
+MS.opts = function(cy)
+  -- 文字模板可能还没探过（结算层用容器路径时不会写 TPL_TEXT）⇒ 这里补探，否则选项只有贴片没有字
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  local cfg = CFG.SETTLE_OPT or {}
+  local mt = MODE_THEME[MODE] or MODE_THEME.casual
+  local accent = (mt and mt.accent) or THEME.textMain
+  local deep = (mt and mt.frame) or THEME.textMain
+  local variant = (cfg.variant or 'P'):upper()
+  local geoms
+  if variant == 'E' then
+    geoms = { { -226, 208, 56 }, { 0, 208, 56 }, { 226, 208, 56 } }
+  else
+    geoms = { { -184, 252, 64 }, { 56, 174, 52 }, { 250, 176, 44 } }
+  end
+  local acts = { R = 'restart', V = 'backHome', Q = 'detail' }
+  local WHITE = C(255, 255, 255, 255)
+  local CARD = THEME.card or C(255, 255, 255, 255)
+  local GOLD = THEME.gold
+  local INK, SUB = THEME.textMain, THEME.textSub
+  -- 颜色混调：k>0 向白靠（提亮），k<0 向墨靠（压深）
+  local function mix(c, k)
+    if k == 0 then return c end
+    local a = c // 16777216
+    local r0, g0, b0 = (c // 65536) % 256, (c // 256) % 256, c % 256
+    local tt = (k > 0) and 255 or 16
+    local kk = k < 0 and -k or k
+    local function ch(v)
+      local n = math.floor(v + (tt - v) * kk + 0.5)
+      if n < 0 then n = 0 end
+      if n > 255 then n = 255 end
+      return n
+    end
+    return C(a, ch(r0), ch(g0), ch(b0))
+  end
+  local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
+  local function mk(name)
+    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
+    if not ok or not c then return nil end
+    c.name = name
+    SETTLE_HOTS[#SETTLE_HOTS + 1] = c
+    return c
+  end
+  local function piece(name, img, x, y, w, h, col)
+    local c = mk(name)
+    if not c then return nil end
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+    if img then
+      local done = false
+      if enumIS and enumIS.StaticReference ~= nil then
+        done = pcall(function() c:SetImage(enumIS.StaticReference, img) end)
+      end
+      if not done then pcall(function() c:SetImage('StaticReference', img) end) end
+    end
+    trySet(c, 'imageColor', col)
+    return c
+  end
+  local items, made = {}, 0
+  for i, it in ipairs(cfg.items or {}) do
+    local g0 = geoms[i] or geoms[#geoms]
+    local x, y, w, h = g0[1], (cy or -136) - 16, g0[2], g0[3]
+    local rank = it.rank or i
+    local kind = (rank == 1) and 'fill' or ((rank == 2) and 'line' or 'flat')
+    local rec = { key = it.key, parts = {}, x = x, y = y, w = w, h = h, kind = kind, rank = rank }
+    local function addPill(tag, pw, ph, col)
+      local r = ph / 2
+      local ix, iy = pw - 2 * r, ph - 2 * r
+      if ix < 1 then ix = 1 end
+      if iy < 1 then iy = 1 end
+      local role = (tag:find('rim', 1, true) and 'rim') or 'bg'
+      local function put(c, px, py, pwid, phei)
+        if c then rec.parts[#rec.parts + 1] = { c = c, col = col, x = px, y = py, role = role } end
+      end
+      put(piece(tag .. 'p', BG_IMG.rect, x, y, ix, ph, col), x, y)
+      put(piece(tag .. 'q', BG_IMG.rect, x, y, pw, iy, col), x, y)
+      local dx, dy = pw / 2 - r, ph / 2 - r
+      local q = { { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }
+      for qi = 1, 4 do
+        local px, py = x + q[qi][1] * dx, y + q[qi][2] * dy
+        put(piece(tag .. 'r' .. qi, BG_IMG.circle, px, py, 2 * r, 2 * r, col), px, py)
+      end
+    end
+    local ink, size = CARD, 20
+    if kind == 'fill' then
+      addPill('opt' .. i .. 'rim', w + 7, h + 7, GOLD)
+      addPill('opt' .. i .. 'bg', w, h, accent)
+      ink, size = WHITE, (variant == 'P') and 25 or 21
+    elseif kind == 'line' then
+      addPill('opt' .. i .. 'rim', w + 7, h + 7, GOLD)
+      addPill('opt' .. i .. 'bg', w, h, CARD)
+      ink, size = INK, (variant == 'P') and 20 or 21
+    else
+      ink, size = SUB, (variant == 'P') and 18 or 20
+      if variant == 'E' then                      -- 等宽三胶囊：第三枚也给个浅底，但明显更弱
+        addPill('opt' .. i .. 'bg', w, h, C(255, 241, 244, 250))
+        ink = INK
+      end
+    end
+    rec.ink = ink
+    -- 文案：主行动带 [键] 前缀（键盘玩家仍一眼看到键位）
+    local label = '[' .. tostring(it.key) .. '] ' .. tostring(it.label)
+    local tw = w - 8
+    local okT, tc = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+    if okT and tc then
+      tc.name = 'optT' .. i
+      tc.text = label
+      trySet(tc, 'fontSize', size)
+      trySet(tc, 'fontColor', ink)
+      trySet(tc, 'bgColor', C(0, 0, 0, 0))
+      trySet(tc, 'horizontalAlignment', 'Middle')
+      trySet(tc, 'verticalAlignment', 'Middle')
+      trySet(tc, 'enableOutline', true)
+      trySet(tc, 'outlineColor', C(200, 255, 255, 255))
+      tryCall(tc, 'SetSizeDelta', tw, math.floor(size * 1.5 + 6))
+      tryCall(tc, 'SetAnchoredPosition', x, y - 1)
+      SETTLE_HOTS[#SETTLE_HOTS + 1] = tc
+      rec.text, rec.tx, rec.ty = tc, x, y - 1
+    end
+    items[#items + 1] = rec
+  end
+  -- 三态绘制
+  local function paint(rec, st)
+    local dy = (st == 'down') and -3 or 0
+    for _, p in ipairs(rec.parts) do
+      local col = p.col
+      if st ~= 'normal' and p.role ~= 'rim' then
+        if rec.kind == 'fill' then
+          col = mix(p.col, (st == 'down') and -0.26 or -0.13)      -- 实心：悬停加深（白字更清楚）
+        elseif rec.kind == 'line' then
+          col = mix(accent, (st == 'down') and 0.60 or 0.78)       -- 白胶囊：悬停染模式浅色
+        end
+      elseif st ~= 'normal' and p.role == 'rim' then
+        col = mix(p.col, (st == 'down') and -0.34 or 0.10)         -- 金边：悬停略亮 / 按下压深
+      end
+      trySet(p.c, 'imageColor', col)
+      tryCall(p.c, 'SetAnchoredPosition', p.x, p.y + dy)
+    end
+    if rec.text then
+      local sc = rec.ink
+      if rec.kind == 'flat' then
+        -- 纯文字项：三态打在字色上（常态次色 → 悬停主色 → 按下强调色）
+        if st == 'hover' then sc = INK elseif st == 'down' then sc = deep end
+        local kk = (st == 'hover') and 0.18 or ((st == 'down') and -0.12 or 0)
+        if st == 'normal' then sc = SUB else sc = mix(sc, kk) end
+      else
+        sc = mix(rec.ink, (st == 'hover') and 0.10 or ((st == 'down') and -0.12 or 0))
+      end
+      trySet(rec.text, 'fontColor', sc)
+      tryCall(rec.text, 'SetAnchoredPosition', rec.tx, rec.ty + dy)
+    end
+  end
+  -- 热区（cursor 只做命中；视觉三态全在贴片/文字上——image 类控件没有 AddCursorEventListener）
+  if TPL_HIT then
+    for i, rec in ipairs(items) do
+      local okz, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+      if okz and z then
+        local it = (cfg.items or {})[i] or {}
+        z.name = 'hotSettle' .. tostring(it.key)
+        tryCall(z, 'SetSizeDelta', rec.w + 12, rec.h + 12)
+        tryCall(z, 'SetAnchoredPosition', rec.x, rec.y)
+        addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) paint(rec, 'hover') end)
+        addCursor(z, 'CursorExit', function() paint(rec, 'normal') end)
+        addCursor(z, 'CursorUp', function() paint(rec, 'hover') end)
+        addCursor(z, 'CursorDown', function()
+          sfx(SFX.press, true)
+          paint(rec, 'down')
+          print('hot settle ' .. tostring(it.key))
+          local fn = SETTLE_ACT[acts[it.key] or '']
+          if fn then fn() end
+        end)
+        SETTLE_HOTS[#SETTLE_HOTS + 1] = z
+        made = made + 1
+      end
+    end
+  end
+  g.optRecs = items
+  -- 服务端 textbox 那条「[R] 再来一局　[V] 回主页　[Q] 结算明细」必须清空：
+  -- 真机 SetVisible(false) 对运行时实例不生效（D581 实证），只有清空文字在两宿主都干净。
+  if #items > 0 then setText(g.settleOpts, '') end
+  print('settle hotzones n=' .. made .. ' v=' .. variant)
+  return #items
+end
 local function settleTick(d)
   if not g.settleOn or g.settleDone then return end
   g.settleT = g.settleT + d
@@ -1352,39 +1545,8 @@ showGameOver = function(overTitle)
       noteRec.color % 256 }
     setText(g.settleExtra, (noteRec.text:gsub('{lines}', tostring(g.lines))))
     setText(g.settleOpts, '[R] 再来一局　[V] 回主页　[Q] 结算明细')
-    -- v2.8 ④：结算三键鼠标热区（三态：透明常态/Enter 微亮底/Down 更亮+触发；失败降级键盘）
-    if TPL_HIT then
-      local acts = {
-        { 'R', -226, function() SETTLE_ACT.restart() end },
-        { 'V', 0, function() SETTLE_ACT.backHome() end },
-        { 'Q', 226, function() SETTLE_ACT.detail() end },
-      }
-      local made = 0
-      for _, a in ipairs(acts) do
-        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-        if ok and z then
-          z.name = 'hotSettle' .. a[1]
-          tryCall(z, 'SetSizeDelta', 200, 52)
-          tryCall(z, 'SetAnchoredPosition', a[2], g.settleOptsY or -136)
-          -- 三态反馈打在 settleOpts 文案色上（cursor 类无 imageColor——实测 no such field）：
-          -- Enter=整条提亮 / Exit=复原 / Down=触发（+日志锚 hot settle <键>）。
-          -- v3.1 四：三态音效 + 文案色反馈（Enter/Down 播短音，Exit 静音防连扫噪）
-          addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) trySet(g.settleOpts, 'fontColor', THEME.textMain) end)
-          addCursor(z, 'CursorExit', function() trySet(g.settleOpts, 'fontColor', THEME.textSub) end)
-          addCursor(z, 'CursorDown', function()
-            sfx(SFX.press, true)
-            trySet(g.settleOpts, 'fontColor', THEME.textMain)
-            print('hot settle ' .. a[1])
-            a[3]()
-          end)
-          SETTLE_HOTS[#SETTLE_HOTS + 1] = z
-          made = made + 1
-        end
-      end
-      print('settle hotzones n=' .. made)
-    else
-      print('settle hotzones none（无 cursor 模板，仅键盘）')
-    end
+    -- v3.3：三个选项改成运行时实例贴片（主次层级 + 三态），见 MS.opts
+    MS.opts(g.settleOptsY or -136)
     trySet(g.settleTitle, 'fontSize', 44)
     g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
@@ -1968,76 +2130,254 @@ local function destroyHelpLayer()
   HL = {}
   if n > 0 then print('guide help off n=' .. n) end
 end
+-- 版式三选一（CFG.HELP.variant）：
+--   A 委托板 —— 左侧通用按键（键帽胶囊）／右侧四张模式委托卡（角色色徽章 + 该模式的键位与胜负）
+--               ／底部「怎么算分」标签行（四角色色做分档色标）／顶部派蒙气泡给阅读顺序
+--   B 旅行手记 —— 摊开两页：左页按键、右页**分值柱状图**（100/300/500/800 柱高即分值），书脊分栏
+--   C 四张委托卡 —— 四张竖卡各自带键位与规则，底部一条「人人都要会的三件事」
+-- 三版共用 CFG.HELP 同一份文案与配色，切版只改一个字段。
 local function buildHelpLayer()
   if not TPL_CELL then print('guide help no cell tpl') return end
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
   if not TPL_TEXT then print('guide help no text tpl') return end
   destroyHelpLayer()
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local function cell(name, x, y, w, h, color)
+  local S = CFG.HELP or {}
+  -- 设计基准 1600×900，按画布等比缩放（两块画布同为 16:9 ⇒ 比例不变，文字框宽同步缩放不会裁字）
+  local s = W / 1600
+  local function u(v) return v * s end
+  local function fs(v)
+    local r = math.floor(v * s + 0.5)
+    if r < 12 then r = 12 end
+    return r
+  end
+  local PANEL = THEME.panel
+  local CARD = C(255, 255, 255, 255)
+  local GOLD, GOLDD = THEME.gold, THEME.goldDeep
+  local INK, SUB = THEME.textMain, THEME.textSub
+  local WHITE = C(255, 255, 255, 255)
+
+  local function inst(name)
     local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
     if not ok or not c then return nil end
     c.name = name
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-    trySet(c, 'imageColor', color)
     HL[#HL + 1] = c
     return c
   end
-  local function text(name, s, x, y, w, size, color, align)
+  local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
+  -- 图元：同一张 cell 模板换 image（100001 矩形 / 100002 圆 / 100003 三角 / 100004 四角星 / 100005 五角星 / 100006 圆环）
+  local function shape(name, sp, x, y, w, h, color, rot)
+    local c = inst(name)
+    if not c then return nil end
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+    local img = BG_IMG[sp]
+    if img then
+      local done = false
+      if enumIS and enumIS.StaticReference ~= nil then
+        done = pcall(function() c:SetImage(enumIS.StaticReference, img) end)
+      end
+      if not done then pcall(function() c:SetImage('StaticReference', img) end) end
+    end
+    trySet(c, 'imageColor', color)
+    if rot and rot ~= 0 then tryCall(c, 'SetLocalRotation', 0, 0, rot) end
+    return c
+  end
+  local function rect(name, x, y, w, h, color)
+    return shape(name, 'rect', u(x), u(y), u(w), u(h), color)
+  end
+  -- 圆角矩形 = 2 块矩形 + 4 个角圆（真机没有圆角矩形图元）。同色不透明 ⇒ 叠合处无接缝。
+  local function rrect(tag, x, y, w, h, r, color)
+    if r > h / 2 then r = h / 2 end
+    if r > w / 2 then r = w / 2 end
+    local ix, iy = w - 2 * r, h - 2 * r
+    if ix < 1 then ix = 1 end
+    if iy < 1 then iy = 1 end
+    rect(tag .. 'a', x, y, ix, h, color)
+    rect(tag .. 'b', x, y, w, iy, color)
+    local dx, dy = w / 2 - r, h / 2 - r
+    shape(tag .. 'c1', 'circle', u(x - dx), u(y - dy), u(2 * r), u(2 * r), color)
+    shape(tag .. 'c2', 'circle', u(x + dx), u(y - dy), u(2 * r), u(2 * r), color)
+    shape(tag .. 'c3', 'circle', u(x - dx), u(y + dy), u(2 * r), u(2 * r), color)
+    shape(tag .. 'c4', 'circle', u(x + dx), u(y + dy), u(2 * r), u(2 * r), color)
+  end
+  -- 文字：框高按 h ≥ fontSize×1.45+4 的硬判据给（1.5+6），宽度不满足会被静默裁尾 ⇒ 调用处给足宽
+  local function text(name, str, x, y, w, size, color, align)
     local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
     if not ok or not c then return nil end
     c.name = name
-    c.text = s
+    c.text = str
     trySet(c, 'fontSize', size)
     trySet(c, 'fontColor', color)
     trySet(c, 'bgColor', C(0, 0, 0, 0))
-    trySet(c, 'horizontalAlignment', align or 'Left')
+    trySet(c, 'horizontalAlignment', align or 'Middle')
     trySet(c, 'verticalAlignment', 'Middle')
     trySet(c, 'enableOutline', true)
-    trySet(c, 'outlineColor', C(150, 0, 0, 0))
-    tryCall(c, 'SetSizeDelta', w, math.floor(size * 1.45 + 6))
-    tryCall(c, 'SetAnchoredPosition', x, y)
+    trySet(c, 'outlineColor', C(205, 255, 255, 255))   -- 浅底用柔白描边；深描边会让字发脏
+    tryCall(c, 'SetSizeDelta', u(w), math.floor(size * 1.5 + 6))
+    tryCall(c, 'SetAnchoredPosition', u(x), u(y))
     HL[#HL + 1] = c
     return c
   end
-  -- 暗底（整屏） + 顶部强调条 + 底部细线：纯深色舞台，压在棋盘/卡片实例之上。
-  -- ⚠ 层序（2026-10-28 出图实测 v27-help.png v1）：只靠「后建=在上」不可靠——标题页卡片文字会
-  -- 从说明页底色里透出来（幽灵字）。所以建完逐个 SetAsLastSibling 强制置顶（API 在基类方法表里）。
-  cell('helpBg', 0, 0, W + 20, H + 20, THEME.helpBg)
-  cell('helpRule', 0, H / 2 - 78, W - 160, 2, THEME.gold)
-  cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, THEME.bezel)
-  text('helpTitle', '游戏说明 · 全部规则', 0, H / 2 - 46, W - 200, 30, THEME.textMain, 'Middle')
-  text('helpSub', '按 H / E / 任意键 返回（局内开页 = 暂停）', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
-  -- 三栏：整栏**居中**。v3.1 三修：①字号 16→19/18→21（真机模糊=小字号）②行距同步加大。
-  local big = H >= 860
-  local fs, pitch = big and 21 or 19, big and 50 or 42
-  local colW = math.floor((W - 120) / 3)
-  local top = H / 2 - 118
-  local xs = { -(colW * 0.62 + 30), 0, (colW * 0.62 + 30) }
-  for ci, col in ipairs(HELP_COLS) do
-    local x = xs[ci]
-    local headColor = (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textMain
-    text('helpHead' .. ci, col.title, x, top, colW - 40, big and 22 or 20, headColor, 'Middle')
-    cell('helpHeadBar' .. ci, x - (colW - 40) / 2 - 14, top, 4, big and 30 or 26,
-      (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textSub)
-    for li, line in ipairs(col.lines) do
-      if line ~= '' then
-        -- v2.8 ②：'!' 前缀=关键行高亮（键位/数值/模式名用主文字色，其余次文字色）
-        local hot = line:sub(1, 1) == '!'
-        local body = hot and line:sub(2) or line
-        -- v3.1 三②：高亮行用金强调色（纯 textMain 在浅色帮助底上对比不足=真机看去纯黑白）
-        local hotColor = (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.gold or C(255, 245, 158, 11)
-        text('helpLine' .. ci .. '_' .. li, body, x, top - 30 - li * pitch,
-          colW - 40, fs, hot and hotColor or THEME.textSub, 'Middle')
+  local function t(name, str, x, y, w, dsize, color, align)
+    return text(name, str, x, y, w, fs(dsize), color, align)
+  end
+  -- 键帽（深墨底 + 白字）：左端从 xl 起排，返回排完后的右沿（设计单位）
+  local function caps(tag, xl, y, list)
+    local x = xl
+    for i, cap in ipairs(list) do
+      local cw = (cap == '空格') and 66 or 38
+      rrect(tag .. i, x + cw / 2, y, cw, 34, 9, INK)
+      text(tag .. 't' .. i, cap, x + cw / 2, y, cw - 4, fs(19), WHITE, 'Middle')
+      x = x + cw + 7
+    end
+    return x
+  end
+
+  -- ── 版式 A：冒险家协会委托板（落地版）────────────────────────────────────────
+  local function buildA()
+    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
+    rrect('helpFrame', 0, 0, 1548, 848, 26, GOLD)          -- 描金外框
+    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))   -- 暖奶油纸面（白卡才浮得起来）
+    shape('helpStar', 'fourstar', u(-716), u(386), u(30), u(30), GOLD)
+    t('helpEyebrow', S.eyebrow, -470, 396, 460, 17, GOLDD, 'Left')
+    t('helpTitle', S.title, -420, 344, 560, 40, INK, 'Left')
+    t('helpSub', S.sub, -420, 304, 560, 19, SUB, 'Left')
+    rect('helpRule', 0, 278, 1400, 2, GOLD)
+    t('helpHint', S.hint, 420, 396, 580, 17, SUB, 'Right')
+    -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
+    rrect('helpBubble', 300, 344, 676, 60, 30, GOLD)
+    rrect('helpBubble2', 300, 344, 668, 52, 26, CARD)
+    t('helpPaimon', S.paimon, 300, 344, 630, 19, INK, 'Middle')
+    -- 左栏：通用按键
+    t('helpKeysTitle', S.keysTitle, -550, 232, 300, 22, INK, 'Left')
+    for i, k in ipairs(S.keys) do
+      local y = 190 - (i - 1) * 56
+      caps('helpCap' .. i .. '_', -700, y, k.caps)
+      t('helpKey' .. i, k.label, -445, y, 280, 21, INK, 'Left')
+    end
+    -- 右侧：四张模式委托卡
+    for i, m in ipairs(S.modes) do
+      local cx, cy = -212 + (i - 1) * 278, 40
+      rrect('helpCard' .. i, cx, cy, 252, 320, 22, m.tint)        -- 角色色浅底
+      rrect('helpCardB' .. i, cx, cy, 244, 312, 19, CARD)         -- 白卡（露出 4px 色边）
+      rrect('helpCardH' .. i, cx, cy + 114, 228, 70, 15, m.tint)  -- 卡头色带
+      shape('helpEmblem' .. i, 'circle', u(cx - 76), u(cy + 114), u(46), u(46), m.color)
+      shape('helpRing' .. i, 'ring', u(cx - 76), u(cy + 114), u(28), u(28), m.deep)
+      t('helpCardK' .. i, m.key, cx - 76, cy + 114, 40, 21, WHITE, 'Middle')
+      t('helpCardN' .. i, m.name, cx + 24, cy + 114, 150, 26, m.deep, 'Middle')
+      for li, line in ipairs(m.lines) do
+        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 40 - (li - 1) * 44, 232, 19, SUB, 'Middle')
+      end
+      rrect('helpWin' .. i, cx, cy - 112, 216, 40, 20, m.tint)
+      t('helpWinT' .. i, m.win, cx, cy - 112, 208, 17, m.deep, 'Middle')
+    end
+    -- 底部：怎么算分（四角色色做 1/2/3/4 消的档位色标）
+    t('helpScoreTitle', S.scoreTitle, -550, -200, 300, 22, INK, 'Left')
+    for row = 1, #S.score do
+      local y = -258 - (row - 1) * 66
+      for col = 1, #S.score[row] do
+        local cx = -534 + (col - 1) * 356
+        local bar = GOLD
+        if row == 1 and S.modes[col] then bar = S.modes[col].color end
+        local fill = CARD
+        if row == 1 and S.modes[col] then fill = S.modes[col].tint end
+        rect('helpChip' .. row .. col, cx, y, 340, 52, fill)
+        rect('helpChipA' .. row .. col, cx - 166, y, 5, 52, bar)
+        t('helpChipT' .. row .. col, S.score[row][col], cx + 6, y, 312, 19, INK, 'Middle')
       end
     end
+    t('helpFoot1', S.foot1, 0, -372, 1500, 18, SUB, 'Middle')
+    t('helpFoot2', S.foot2, 0, -404, 1500, 17, SUB, 'Middle')
   end
-  -- 层序强制：整层逐个置顶（后置顶的在上 ⇒ 按创建顺序再置顶一次即可保持「底→字」的顺序）
+
+  -- ── 版式 B：派蒙的旅行手记（对比稿：分值图形化，两页摊开）────────────────────
+  local function buildB()
+    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, C(255, 250, 244, 252))
+    rrect('helpPageL', -370, -10, 720, 800, 20, CARD)
+    rrect('helpPageR', 370, -10, 720, 800, 20, CARD)
+    rect('helpSpine', 0, -10, 3, 780, GOLD)
+    shape('helpDot1', 'circle', 0, u(120), u(14), u(14), GOLD)
+    shape('helpDot2', 'circle', 0, u(-140), u(14), u(14), GOLD)
+    t('helpTitle', '派蒙的旅行手记', 0, 410, 700, 34, INK, 'Middle')
+    t('helpSub', S.hint, 0, -430, 900, 17, SUB, 'Middle')
+    -- 左页：今天怎么玩
+    t('helpKeysTitle', '今天怎么玩', -370, 330, 600, 26, INK, 'Middle')
+    rect('helpRuleL', -370, 296, 560, 2, GOLD)
+    for i, k in ipairs(S.keys) do
+      local y = 240 - (i - 1) * 74
+      caps('helpCap' .. i .. '_', -620, y, k.caps)
+      t('helpKey' .. i, k.label, -330, y, 300, 22, INK, 'Left')
+    end
+    -- 右页：报酬怎么算（柱高即分值）
+    t('helpScoreTitle', '报酬怎么算', 370, 330, 600, 26, INK, 'Middle')
+    rect('helpRuleR', 370, 296, 560, 2, GOLD)
+    local base = -50                     -- 柱底
+    local hs = { 100, 300, 500, 800 }
+    for i, v in ipairs(hs) do
+      local bx = 155 + (i - 1) * 145
+      local bh = 34 + (v / 800) * 210
+      local mc = S.modes[i] and S.modes[i].color or GOLD
+      rect('helpBar' .. i, bx, base + bh / 2, 92, bh, mc)
+      t('helpBarT' .. i, tostring(v), bx, base + bh + 26, 120, 22, S.modes[i] and S.modes[i].deep or INK, 'Middle')
+    end
+    rect('helpAxis', 370, base, 580, 2, THEME.bezel)
+    t('helpMul', '× 等级（每 10 行 +1，上限 12）', 370, base - 34, 600, 20, INK, 'Middle')
+    t('helpCmb', '连击 +50×链×等级　·　触底 0.5 秒内还能救', 370, base - 76, 600, 19, SUB, 'Middle')
+    t('helpGrb', '垃圾行：2/3/4 消 → 送对方 1/2/4 行', 370, base - 114, 600, 19, SUB, 'Middle')
+    t('helpWin0', '判负：新块出生位置被占满', 370, base - 152, 600, 19, SUB, 'Middle')
+    -- 底部：四模式一人一句
+    for i, m in ipairs(S.modes) do
+      local cx = -540 + (i - 1) * 360
+      shape('helpEmblem' .. i, 'circle', u(cx - 120), u(-330), u(26), u(26), m.color)
+      t('helpCardN' .. i, m.name, cx - 60, -330, 140, 21, m.deep, 'Middle')
+      t('helpCardL' .. i .. '_1', m.win, cx + 90, -330, 240, 18, SUB, 'Middle')
+    end
+  end
+
+  -- ── 版式 C：四位旅伴的委托卡（对比稿：没有左键位栏，键位写在卡里）────────────
+  local function buildC()
+    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
+    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))
+    t('helpTitle', '四位旅伴的委托卡', 0, 392, 900, 34, INK, 'Middle')
+    t('helpSub', S.sub, 0, 350, 900, 18, SUB, 'Middle')
+    for i, m in ipairs(S.modes) do
+      local cx, cy = -540 + (i - 1) * 360, 70
+      rrect('helpCard' .. i, cx, cy, 348, 420, 22, CARD)
+      rrect('helpCardH' .. i, cx, cy + 122, 332, 156, 18, m.color)
+      t('helpCardK' .. i, '[' .. m.key .. ']', cx - 118, cy + 156, 90, 22, WHITE, 'Middle')
+      t('helpCardN' .. i, m.name, cx + 10, cy + 156, 220, 28, WHITE, 'Middle')
+      t('helpCardW' .. i, m.win, cx, cy + 96, 300, 19, WHITE, 'Middle')
+      for li, line in ipairs(m.lines) do
+        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 20 - (li - 1) * 52, 320, 20, INK, 'Middle')
+      end
+      rect('helpCardS' .. i, cx, cy - 118, 300, 2, m.tint)
+      t('helpWinT' .. i, '键位：' .. m.lines[1], cx, cy - 156, 320, 17, m.deep, 'Middle')
+    end
+    -- 底部共用条：与四张卡无关、但每局都要用的算分规则
+    rrect('helpShared', 0, -262, 1440, 168, 18, CARD)
+    t('helpScoreTitle', S.scoreTitle, -600, -204, 300, 20, INK, 'Left')
+    for row = 1, 2 do
+      local y = -204 - row * 40
+      for col = 1, 4 do
+        local cx = -540 + (col - 1) * 340
+        local bar = GOLD
+        if row == 1 and S.modes[col] then bar = S.modes[col].color end
+        rect('helpChipA' .. row .. col, cx - 158, y, 4, 32, bar)
+        t('helpChipT' .. row .. col, S.score[row][col], cx + 4, y, 316, row == 1 and 18 or 17,
+          row == 1 and INK or SUB, 'Middle')
+      end
+    end
+    t('helpFoot2', S.foot2, 0, -368, 1440, 16, SUB, 'Middle')
+  end
+
+  local v = (S.variant or 'A'):upper()
+  if v == 'B' then buildB() elseif v == 'C' then buildC() else buildA() end
+  -- 层序强制：按创建顺序逐个置顶（底→字），压住标题页卡片与服务端 textbox 的残留
   for i = 1, #HL do
     if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
   end
-  print('guide help on n=' .. #HL .. ' page=' .. tostring(helpPage))
+  print('guide help on n=' .. #HL .. ' v=' .. v .. ' page=help')
 end
 -- 关页：恢复开页前的 stage（局内=1 继续，标题页=0 继续演出）
 closeHelp = function()
@@ -2046,13 +2386,6 @@ closeHelp = function()
   destroyHelpLayer()
   if guideStage == 2 then guideStage = helpFromStage or 1 end
   print('guide help closed stage=' .. tostring(guideStage))
-end
-toggleHelp = function()
-  if helpOpen then closeHelp() return end
-  helpFromStage = guideStage
-  helpOpen = true
-  if guideStage == 1 then guideStage = 2 end   -- 局内开页=暂停（沿用 v2.1 键位表的暂停语义）
-  buildHelpLayer()
 end
 -- ===== v2.5 ① 倒计时大字（120 号屏幕正中+每秒缩放弹跳）=====
 local function destroyCountBig()
@@ -2079,9 +2412,8 @@ end
 
 toggleHelp = function()
   if helpOpen then
-    helpOpen = false
-    destroyHelpLayer()
-    print('help off')                    -- v2.8 ② 时停恢复锚
+    closeHelp()                          -- 关页统一走 closeHelp（'guide help closed stage=' + 'guide help off n='）
+    print('help off')                    -- v2.8 ② 时停恢复锚（保留）
   else
     helpOpen = true
     buildHelpLayer()

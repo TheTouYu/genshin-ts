@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "32 v2.7 规则说明页：真机 H=CraftspersonKey15 开整页（三栏全部规则/按键/四模式）/任意键只关页不开局/再按键开局",
+ "name": "32 v3.3 规则说明页（委托板版式）：真机 H=CraftspersonKey15 开整页（按键列/四张委托卡/算分标签行）/任意键只关页不开局/再按键开局",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -48,49 +48,49 @@
    "kind": "control",
    "name": "helpTitle",
    "field": "text",
-   "equals": "游戏说明 · 全部规则"
+   "equals": "旅行者手册"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpHead1",
+   "name": "helpKey1",
    "field": "text",
-   "equals": "操作 · 按键"
+   "equals": "移动"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpHead2",
+   "name": "helpCardN2",
    "field": "text",
-   "equals": "计分 · 判定"
+   "equals": "AI 对抗"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpHead3",
+   "name": "helpCardN3",
    "field": "text",
-   "equals": "四种模式"
+   "equals": "双人对战"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpLine1_1",
+   "name": "helpChipT11",
    "field": "text",
-   "equals": "← → 移动　↑ 旋转　↓ 软降"
+   "equals": "消 1 行 = 100 分"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpLine2_1",
+   "name": "helpChipT21",
    "field": "text",
-   "equals": "消行 1/2/3/4 行 = 100/300/500/800"
+   "equals": "× 等级：每 10 行 +1，上限 12"
   },
   {
    "at": 0.6,
    "kind": "control",
-   "name": "helpLine3_1",
+   "name": "helpCardN1",
    "field": "text",
-   "equals": "1 休闲 casual"
+   "equals": "休闲"
   },
   {
    "at": 2.3,
