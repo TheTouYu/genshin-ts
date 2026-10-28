@@ -70,10 +70,11 @@ local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
 local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
   CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
 local MODE_BG, MODE_BG_POOL = CFG.MODE_BG, CFG.MODE_BG_POOL
+local HUD_INST = {}    -- v2.8 ⑤：HUD 实例双写表（txt/build 挂字段；声明在 renderHud 等全部调用点之前）
 -- 官方内置图元 id（模拟器 studio/constants.js: IMAGE_PRIMITIVES 实证；真机为「六类代理图元」）
 local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 100004,
                  fivestar = 100005, ring = 100006 }
-local bgImageWarned = false
+-- v3.0：main chunk 贴着 200 local 上限（D591）⇒ 背景图元警告位挂在 MS 表上（省 1 个 local）
 
 
 
@@ -107,6 +108,9 @@ local MC = {}                          -- 菜单卡片组实例表（色块×4 +
 local pendingMode, pendingT = nil, 0
 -- v2.1 ③：H 游戏说明层（v2.7 起改成独立整页 + 常驻入口；任意键=先关层不开局）
 local HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
+local SETTLE_HOTS = {}                 -- v2.8 ④：结算三键鼠标热区（settleDestroy 一并销毁）
+-- v2.8 ④：结算三动作挂表（200-local 红线，D612 先例）——实现在 OnStart 赋值，showGameOver 热区引用
+local SETTLE_ACT = {}
 local helpOpen = false
 local helpFromStage = 1                -- 开层前的 guideStage（关层时恢复；说明页期间 2=暂停）
 local helpPage = 1                     -- （保留：单页版恒 1；多页时按 ←/→ 切换）
@@ -235,6 +239,7 @@ local MS = {
   CYAN = THEME.textSub,            -- 提示条文字色（浅底用墨色，不再用霓虹青）
   lineY = -332,
   focus = false,
+  bgWarned = false,
 }
 local DUAL_DECO = {}                  -- 双屏中缝装饰（2 实例；exitToMenu 拆）
 local showGameOver, updateBest
@@ -375,6 +380,10 @@ UI_STYLE = {
 -- 销毁整层：SetVisible(false) 在真机不保险（实测重开后结算页还在），所以重开就真销毁。
 -- 逐个 pcall：真机某个控件销毁抛错不能中断后面（同 OnStart 的护栏思路）。
 settleDestroy = function()
+  for i = 1, #SETTLE_HOTS do
+    pcall(function() game.DestroyClientUIControl(SETTLE_HOTS[i]) end)
+  end
+  SETTLE_HOTS = {}                      -- v2.8 ④：结算热区随层销毁
   if not (g.settleReady or g.settleLayer or g.settleTitle) then return end
   local n = 0
   local members = settleMembers()
@@ -703,6 +712,15 @@ local function dimColor(v, ratio)
   return C(a, rr * k // 100, gg * k // 100, bb * k // 100)
 end
 
+-- v3.0 浅底上的「弱化」= 向奶白靠，而不是压暗（压暗会让糖果色变脏、和纸白底打架）
+MS.fade = function(v, k)
+  local a = v // 16777216
+  local rr, gg, bb = (v // 65536) % 256, (v // 256) % 256, v % 256
+  local m = 1 - k
+  return C(a, math.floor(255 - (255 - rr) * m + 0.5), math.floor(255 - (255 - gg) * m + 0.5),
+    math.floor(255 - (255 - bb) * m + 0.5))
+end
+
 renderAll = function()
   for r = 1, ROWS do
     for c = 1, COLS do
@@ -734,7 +752,7 @@ local function renderNext()
       local ctl = g.preview[4 + i]
       local r, c = s2.cells[i][1], s2.cells[i][2]
       ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 14, 78 + (2.5 - r) * 14)
-      ctl.imageColor = dimColor(s2.color, 1)
+      ctl.imageColor = MS.fade(s2.color, 0.46)          -- v3.0 浅底：淡一档而不是压暗
     end
   end
   -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
@@ -746,7 +764,7 @@ local function renderNext()
         local ctl = g.preview[8 + i]
         local r, c = sh.cells[i][1], sh.cells[i][2]
         ctl:SetAnchoredPosition(-RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
-        ctl.imageColor = g.st.can and sh.color or dimColor(sh.color, 1)
+        ctl.imageColor = g.st.can and sh.color or MS.fade(sh.color, 0.5)   -- 已用掉=淡一档
       end
     end
   end
@@ -756,9 +774,9 @@ renderHud = function()
   -- T6b-2 双屏：G[2]（AI/对家盘）战况写右栏 keyA-C（服务端单份控件征用，零新建）；
   -- G[1] 保持 hud 主行（前缀 P1）。
   if g ~= G[1] then
-    setText(keyA, MODE == 'pvp' and 'P2 盘' or 'AI 盘')
-    setText(keyB, '得分 ' .. g.score .. '　消行 ' .. g.lines)
-    setText(keyC, '等级 ' .. g.level .. '　落块 ' .. g.pieceCount)   -- v2.1 ④：对家战况加块数
+    HUD_INST.txt(keyA, MODE == 'pvp' and 'P2 盘' or 'AI 盘')
+    HUD_INST.txt(keyB, '得分 ' .. g.score .. '　消行 ' .. g.lines)
+    HUD_INST.txt(keyC, '等级 ' .. g.level .. '　落块 ' .. g.pieceCount)   -- v2.1 ④：对家战况加块数
     renderNext()
     return
   end
@@ -771,10 +789,10 @@ renderHud = function()
   -- T4：stage0 = 入场 AI 自演，HUD 显示 AI 局账本（分数随 AI 消行增长）；接管后显示玩家账
   local s, l = g.score, g.lines
   if guideStage == 0 then s, l = g.AI.score, g.AI.lines end
-  setText(hud, '得分 ' .. s .. '　消行 ' .. l .. '　等级 ' .. g.level
+  HUD_INST.txt(hud, '得分 ' .. s .. '　消行 ' .. l .. '　等级 ' .. g.level
     .. '　已填 ' .. oc)
   setText(hudNext, '下一个')
-  setText(best, '最高 ' .. bestScore)
+  HUD_INST.txt(best, '最高 ' .. bestScore)
   renderNext()
 end
 
@@ -1156,19 +1174,19 @@ local function startIfWaiting()
     setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
     -- （服务端 textbox 永远在运行时棋盘格之下，出图 v23-pvp-guide.png 可见被格子切一半）。
-    local seat1 = C(255, 45, 212, 191)
-    local seat2 = (MODE == 'pvp') and C(255, 168, 85, 247)
-      or ((MODE == 'coop') and C(255, 245, 158, 11) or C(255, 244, 63, 94))
+    local seat1 = C(255, 47, 126, 158)                                  -- P1 深冰蓝
+    local seat2 = (MODE == 'pvp') and C(255, 95, 76, 168)                -- 双人：深紫
+      or ((MODE == 'coop') and C(255, 63, 139, 60) or C(255, 192, 78, 124))
     trySet(keyA, 'fontSize', 20)
     trySet(keyA, 'fontColor', seat1)
     tryCall(keyA, 'SetSizeDelta', 520, 40)
     tryCall(keyA, 'SetAnchoredPosition', -280, -338)
-    setText(keyA, keys2)
+    HUD_INST.txt(keyA, keys2)
     trySet(keyB, 'fontSize', 20)
     trySet(keyB, 'fontColor', seat2)
     tryCall(keyB, 'SetSizeDelta', 520, 40)
     tryCall(keyB, 'SetAnchoredPosition', 280, -338)
-    setText(keyB, keys2b)
+    HUD_INST.txt(keyB, keys2b)
     -- v2.8 ①：准备按键说明行（hint 挪两盘中间正下方，避开棋盘投影区）
     trySet(hint, 'fontSize', 20)
     trySet(hint, 'fontColor', THEME.textSub)
@@ -1252,6 +1270,37 @@ showGameOver = function(overTitle)
     -- v2.4 ②：明细行先做成分隔点（Q 键的结算明细会覆盖这一行）
     setText(g.settleExtra, '·  ·  ·  ·  ·  ·  ·')
     setText(g.settleOpts, '[R] 再来一局　[V] 回主页　[Q] 结算明细')
+    -- v2.8 ④：结算三键鼠标热区（三态：透明常态/Enter 微亮底/Down 更亮+触发；失败降级键盘）
+    if TPL_HIT then
+      local acts = {
+        { 'R', -226, function() SETTLE_ACT.restart() end },
+        { 'V', 0, function() SETTLE_ACT.backHome() end },
+        { 'Q', 226, function() SETTLE_ACT.detail() end },
+      }
+      local made = 0
+      for _, a in ipairs(acts) do
+        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+        if ok and z then
+          z.name = 'hotSettle' .. a[1]
+          tryCall(z, 'SetSizeDelta', 200, 52)
+          tryCall(z, 'SetAnchoredPosition', a[2], g.settleOptsY or -136)
+          -- 三态反馈打在 settleOpts 文案色上（cursor 类无 imageColor——实测 no such field）：
+          -- Enter=整条提亮 / Exit=复原 / Down=触发（+日志锚 hot settle <键>）。
+          addCursor(z, 'CursorEnter', function() trySet(g.settleOpts, 'fontColor', THEME.textMain) end)
+          addCursor(z, 'CursorExit', function() trySet(g.settleOpts, 'fontColor', THEME.textSub) end)
+          addCursor(z, 'CursorDown', function()
+            trySet(g.settleOpts, 'fontColor', THEME.textMain)
+            print('hot settle ' .. a[1])
+            a[3]()
+          end)
+          SETTLE_HOTS[#SETTLE_HOTS + 1] = z
+          made = made + 1
+        end
+      end
+      print('settle hotzones n=' .. made)
+    else
+      print('settle hotzones none（无 cursor 模板，仅键盘）')
+    end
     trySet(g.settleTitle, 'fontSize', 44)
     g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
@@ -2003,7 +2052,7 @@ MS.addText = function(name, text, x, y, w, h, size, color, align)
   trySet(c, 'horizontalAlignment', align or 'Middle')
   trySet(c, 'verticalAlignment', 'Middle')
   trySet(c, 'enableOutline', true)
-  trySet(c, 'outlineColor', C(150, 0, 0, 0))
+  trySet(c, 'outlineColor', C(200, 255, 255, 255))   -- v3.0 浅底：浅色描边=柔光，深色描边像脏边
   tryCall(c, 'SetSizeDelta', w, h)
   tryCall(c, 'SetAnchoredPosition', x, y)
   MS.parts[#MS.parts + 1] = c
@@ -2022,7 +2071,7 @@ MS.hairline = function(i, cx, cy, color)
 end
 -- v3.0 预混色：把半透明色「盖在底面上」算成不透明色。
 -- 为什么必须：胶囊/云/花瓣都是多件图元互相重叠拼出来的，半透明叠加会在交界处叠两次 → 看得见接缝。
-local function over(base, c, k)
+MS.over = function(base, c, k)
   local br, bg_, bb = (base // 65536) % 256, (base // 256) % 256, base % 256
   local r, g, b = (c // 65536) % 256, (c // 256) % 256, c % 256
   return C(255, math.floor(br + (r - br) * k + 0.5),
@@ -2098,9 +2147,9 @@ MS.build = function()
   end
   -- ④ 标题横幅：奶油胶囊 + 一条描金细线 + 深金大字（叠在视窗上沿 = 有意为之的缎带）
   local titleSize = (halfH > 400) and 52 or 44
-  local titleY = math.min(winTop + (halfH - winTop) * 0.5 + 4, halfH - 34)
+  local titleY = math.min(winTop + (halfH - winTop) * 0.5 + 2, halfH - 48)
   local bannerH = titleSize + 20
-  MS.addPill('menuBanner', 0, titleY, 580, bannerH, over(MS.WALL, THEME.gold, 0.34))
+  MS.addPill('menuBanner', 0, titleY, 580, bannerH, MS.over(MS.WALL, THEME.gold, 0.34))
   MS.addCell('menuBannerRule', 0, titleY + bannerH / 2 - 3, 240, 3, THEME.goldDeep)
   MS.addCell('menuBannerRule2', 0, titleY - bannerH / 2 + 2, 240, 3, THEME.goldDeep)
   -- 框高硬判据 h >= fontSize*1.45+4（52 号要 79.4；旧写法 +26 在 PC 画布上少 1.4px ⇒ 整行不画）
@@ -2215,7 +2264,7 @@ local function mcText(name, text, x, y, w, h, size, color, align)
   trySet(c, 'horizontalAlignment', align or 'Middle')
   trySet(c, 'verticalAlignment', 'Middle')
   trySet(c, 'enableOutline', true)
-  trySet(c, 'outlineColor', C(150, 0, 0, 0))
+  trySet(c, 'outlineColor', C(190, 255, 255, 255))   -- v3.0 浅底：浅色描边
   c:SetSizeDelta(w, h)
   c:SetAnchoredPosition(x, y)
   MC[#MC + 1] = c
@@ -2232,7 +2281,7 @@ MS.modes = function()
       local leftX = cx + 30                      -- 列内统一左缘（不贴画布边）
       -- v3.0：胶囊卡（圆润）+ 元素宝珠（圆点）+ 星芒（右上），字压在卡上（先建底、后建字）
       local pill = MS.addPill('menuPill' .. i, cx + 10, cy, 400, 100,
-        over(MS.WALL, info.color, 0.17))
+        MS.over(MS.WALL, info.color, 0.17))
       local bead = MS.addShape('menuBead' .. i, { s = 'circle', x = cx - 160, y = cy, w = 22, h = 22, c = info.colorDeep })
       local star = MS.addShape('menuStar' .. i, { s = 'fourstar', x = cx + 178, y = cy, w = 26, h = 26, c = mcRGB(info.color, 150) })
       MS.sel[i] = {
@@ -2312,7 +2361,7 @@ MS.select = function(i)
     trySet(sel.bead, 'imageColor', info.colorDeep)
   end
   if sel.star then trySet(sel.star, 'imageColor', mcRGB(info.color, 230)) end
-  if sel.pill then trySet(sel.pill, 'imageColor', over(MS.WALL, info.color, 0.34)) end
+  if sel.pill then trySet(sel.pill, 'imageColor', MS.over(MS.WALL, info.color, 0.34)) end
   if sel.row then
     tryCall(sel.row, 'SetSizeDelta', 436, 104)
     trySet(sel.row, 'imageColor', mcRGB(info.color, 78))
@@ -2360,7 +2409,7 @@ MS.cardStyle = function(i, state)
     trySet(sel.star, 'imageColor', mcRGB(info.color, hot and 230 or 150))
   end
   if sel.pill then
-    trySet(sel.pill, 'imageColor', over(MS.WALL, info.color, press and 0.42 or (hover and 0.26 or 0.17)))
+    trySet(sel.pill, 'imageColor', MS.over(MS.WALL, info.color, press and 0.42 or (hover and 0.26 or 0.17)))
   end
 end
 MS.hoverCard = function(i)
@@ -2469,7 +2518,7 @@ local function buildBoardControls(inst)
     plate.name = 'p2plate'
     plate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
     plate:SetAnchoredPosition(0, 0)
-    plate.imageColor = MODE_THEME.casual.plate
+    plate.imageColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate   -- v3.0 双屏第二盘也要跟着模式换色
     g.plate = plate
   end
   g.cells = {}
@@ -2488,7 +2537,7 @@ local function buildBoardControls(inst)
   end
   -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
   -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
-  local FRAME_COL = MODE_THEME.casual.frame
+  local FRAME_COL = (MODE_THEME[MODE] or MODE_THEME.casual).frame
   local frameX = 4.5 * PITCH + CELL / 2 + 1
   local frameY = 9.5 * PITCH + CELL / 2 + 1
   g.frames = {}
@@ -2564,10 +2613,11 @@ local function layoutDual()
   placeBoard(G[1], -280)
   -- v2.4 ③ 双屏读图读数（v23-pvp.png）：两侧各 300+px 空区没有归属物，左栏 HUD 压在左盘边上，
   -- 两盘除了位置没有任何席位标识。做法：棋盘框按席位染色 + 左栏战况回归左空区 + 中缝一条细线。
-  local p1c = C(255, 45, 212, 191)                       -- P1 青绿
-  local p2c = C(255, 244, 63, 94)                        -- AI 玫红
-  if MODE == 'pvp' then p2c = C(255, 168, 85, 247) end   -- 双人=紫
-  if MODE == 'coop' then p2c = C(255, 245, 158, 11) end  -- 合作=琥珀
+  -- v3.0 浅底席位色：取四角色色的深色档（原霓虹青/玫红在浅底上太扎眼）
+  local p1c = C(255, 47, 126, 158)                       -- P1 甘雨 深冰蓝
+  local p2c = C(255, 192, 78, 124)                       -- AI 少女 深樱粉
+  if MODE == 'pvp' then p2c = C(255, 95, 76, 168) end    -- 双人对战 = 刻晴 深紫
+  if MODE == 'coop' then p2c = C(255, 63, 139, 60) end   -- 合作 = 纳西妲 深草绿
   for i = 1, 4 do
     if G[1].frames and G[1].frames[i] then G[1].frames[i].imageColor = p1c end
     if G[2] and G[2].frames and G[2].frames[i] then G[2].frames[i].imageColor = p2c end
@@ -2620,14 +2670,45 @@ local function layoutDual()
     tryCall(best, 'SetSizeDelta', 330, 36)
     tryCall(best, 'SetAnchoredPosition', gutterX, 202)
   end
+  -- v2.8 ⑤：实例 HUD 同步到双屏 gutter 位（实例在背景池之上，真机可见的就是它）
+  if HUD_INST.hud then tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) end
+  if HUD_INST.best then tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) end
+  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 400, -40) end
+  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 400, -80) end
+  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 400, -120) end
   if hudNext then
     tryCall(hudNext, 'SetSizeDelta', 330, 40)
     tryCall(hudNext, 'SetAnchoredPosition', gutterX, 300)
   end
-  setText(keyA, 'AI 盘')
-  setText(keyB, '')
-  setText(keyC, '')
+  HUD_INST.txt(keyA, 'AI 盘')
+  HUD_INST.txt(keyB, '')
+  HUD_INST.txt(keyC, '')
   print('layout dual')
+end
+
+-- ===== v2.8 ⑤：HUD 实例双写（背景池 wash 全屏实例盖住服务端 textbox——层序铁律，
+-- 修法=HUD 文字走运行时实例；textbox 份双写保留（断言/降级保底））=====
+HUD_INST.txt = function(box, txt)
+  setText(box, txt)
+  local inst = box and HUD_INST[box.name]
+  if inst then pcall(function() inst.text = txt end) end
+end
+HUD_INST.build = function()
+  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+  if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end
+  local made = 0
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC' }) do
+    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+    if ok and c then
+      c.name = 'i' .. nm
+      trySet(c, 'fontSize', 20)
+      trySet(c, 'fontColor', THEME.textMain)
+      c:SetSizeDelta(360, 40)
+      HUD_INST[nm] = c
+      made = made + 1
+    end
+  end
+  print('hud inst n=' .. made)
 end
 
 -- v2.6 ①：按模式生成常驻提示并显示（20 号次文字色，单行不动）
@@ -2664,8 +2745,8 @@ local function skinBgItem(ctl, spec)
     ok = pcall(function() ctl:SetImage(enumT.StaticReference, img) end)
   end
   if not ok then ok = pcall(function() ctl:SetImage('StaticReference', img) end) end
-  if not ok and not bgImageWarned then
-    bgImageWarned = true
+  if not ok and not MS.bgWarned then
+    MS.bgWarned = true
     print('bg SetImage unavailable（背景退回纯矩形；不影响布局）')
   end
   return true
@@ -3449,7 +3530,7 @@ function OnStart()
     backPlate.name = 'boardPlate'
     backPlate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
     backPlate:SetAnchoredPosition(0, 0)
-    backPlate.imageColor = MODE_THEME.casual.plate
+    backPlate.imageColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate
     g.plate = backPlate
   end
 
@@ -3475,7 +3556,7 @@ function OnStart()
   -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
   -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
   -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
-  local FRAME_COL = MODE_THEME.casual.frame
+  local FRAME_COL = (MODE_THEME[MODE] or MODE_THEME.casual).frame
   local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
   g.frames = {}
   -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
@@ -3543,6 +3624,7 @@ function OnStart()
   setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
+  pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
 
   -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
   -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
@@ -3609,8 +3691,8 @@ function OnStart()
         if P2_KEYS[keyName] then GK.p2ready = true
         else GK.p1ready = true end
         if MODE == 'ai-battle' then GK.p2ready = true end
-        if GK.p1ready then setText(keyA, 'P1 准备好了 ✓') end
-        if GK.p2ready and MODE ~= 'ai-battle' then setText(keyB, 'P2 准备好了 ✓') end
+        if GK.p1ready then HUD_INST.txt(keyA, 'P1 准备好了 ✓') end
+        if GK.p2ready and MODE ~= 'ai-battle' then HUD_INST.txt(keyB, 'P2 准备好了 ✓') end
         setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
           or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))   -- v2.8 ① ready 进度
         print('guide ready ' .. (P2_KEYS[keyName] and 'p2' or 'p1'))
@@ -3699,14 +3781,7 @@ function OnStart()
   -- V 自身也落在 43 键兜底池里（v1「任意键开始」），exitToMenu 把 guideStage 置 0 之后，
   -- 同一个按键事件继续派发给兜底监听 ⇒ 刚建好的标题页立刻被 startIfWaiting 吃掉。
   -- 双保险：① mapped 表排除 22（兜底循环不再注册它）② 同帧消费标记让兜底让位。
-  listen('KeyboardCraftspersonKey22Down', function()
-    if guideStage ~= 1 then return end
-    if g.gameOver or MODE_OVER then
-      keyConsumedFrame = frameSeq
-      print('menu back V')
-      exitToMenu()
-    end
-  end)
+  listen('KeyboardCraftspersonKey22Down', function() SETTLE_ACT.backHome() end)
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
     if helpOpen then closeHelp() return end
     startIfWaiting()
@@ -3769,6 +3844,60 @@ function OnStart()
       print('settle detail off')
     end
   end)
+  -- ===== v2.8 ④：结算三动作（键监听与鼠标热区共用）=====
+  SETTLE_ACT.restart = function()   -- = R 键体（重开/回菜单按模式）
+    startIfWaiting()
+    if guideStage == 2 then guideStage = 1 setText(hint, '') end
+    if MODE ~= 'casual' and guideStage == 1 then
+      exitToMenu()
+      return
+    end
+    settleDestroy()
+    newGame()
+    setText(topBanner, '')
+    setText(botBanner, '')
+    if overlay then tryCall(overlay, 'SetVisible', false) end
+    if CANVAS_W and CANVAS_H then
+      local okRelayout, errRelayout = pcall(layout, CANVAS_W, CANVAS_H)
+      if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
+    end
+  end
+  SETTLE_ACT.backHome = function()  -- = V 键体（含 keyConsumedFrame 防双触，core 修复保留）
+    if guideStage ~= 1 then return end
+    if g.gameOver or MODE_OVER then
+      keyConsumedFrame = frameSeq
+      print('menu back V')
+      exitToMenu()
+    end
+  end
+  SETTLE_ACT.detail = function()    -- = Q 键体核心（明细切换；结算信号优先路径保留在键监听）
+    if not g.gameOver then return end
+    g.settleOpen = not g.settleOpen
+    local mins = math.floor(g.elapsed / 60)
+    local secs = math.floor(g.elapsed % 60)
+    local rate = 0
+    if g.pieceCount > 0 then rate = math.floor(g.lines * 100 / g.pieceCount) end
+    local detail = '等级 ' .. g.level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
+      .. '　消行率 ' .. rate .. '%　最高连击 ' .. g.maxCombo
+    if g.settleOpen then
+      if g.settleReady then
+        setText(g.settleExtra, detail)
+        tryCall(g.settleExtra, 'SetVisible', true)
+      else
+        setText(hint, '本局落块 ' .. g.pieceCount .. '　消行 ' .. g.lines .. '　最高 ' .. bestScore)
+      end
+      print('settle detail on')
+    else
+      if g.settleReady then
+        setText(g.settleExtra, '')
+        tryCall(g.settleExtra, 'SetVisible', false)
+      else
+        setText(hint, '')
+      end
+      print('settle detail off')
+    end
+  end
+
   -- H：全屏游戏说明页（v2.7 用户反馈④：H 要常驻、要能真的按出来、要一页讲全规则）
   -- 真机/网页物理键映射（模拟器 studio/play/key-bindings.js 实证，与千星网页同表）：
   --   H → CraftspersonKey15（craftCodes[15]='KeyH'）；E → CharacterSkill1Key。
@@ -3872,7 +4001,7 @@ function OnStart()
     if guideStage == 3 and GK.phase == 'keys' then
       GK.p1ready = true
       if MODE == 'ai-battle' then GK.p2ready = true end
-      setText(keyA, 'P1 准备好了 ✓')
+      HUD_INST.txt(keyA, 'P1 准备好了 ✓')
       setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！' or '等待 P2 准备…')
       print('guide ready p1')
       if GK.p1ready and GK.p2ready then

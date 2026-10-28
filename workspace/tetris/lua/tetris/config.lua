@@ -125,7 +125,8 @@ local NUM = {
 }
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
-local COL_EMPTY  = C(255, 26, 29, 38)
+-- v3.0 浅底：空格=近白纸面（棋盘缝隙由「背板色」露出来当网格线），预览槽底=浅雾蓝，垃圾行=石板灰
+local COL_EMPTY  = C(255, 252, 253, 255)
 local COL_CYAN   = C(255, 60, 220, 240)
 local COL_YELLOW = C(255, 245, 210, 60)
 local COL_PURPLE = C(255, 170, 80, 240)
@@ -133,8 +134,8 @@ local COL_GREEN  = C(255, 90, 220, 110)
 local COL_RED    = C(255, 240, 80, 90)
 local COL_BLUE   = C(255, 70, 130, 240)
 local COL_ORANGE = C(255, 245, 160, 60)
-local COL_BG     = C(255, 18, 20, 27)
-local COL_GRAY   = C(255, 92, 96, 105)   -- T7 垃圾行方块色（暗灰，区别于七色）
+local COL_BG     = C(255, 232, 241, 250)
+local COL_GRAY   = C(255, 146, 158, 178)  -- T7 垃圾行方块色（石板灰，浅底上仍可辨）
 
 -- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}
 local SHAPES = {
@@ -166,120 +167,94 @@ local function Dot(x, y, d, c) return { s = 'circle', x = x, y = y, w = d, h = d
 local function Ring(x, y, d, c) return { s = 'ring', x = x, y = y, w = d, h = d, c = c } end
 local function Star(x, y, d, c, rot) return { s = 'fourstar', x = x, y = y, w = d, h = d, c = c, rot = rot } end
 local function Tri(x, y, w, h, c, rot) return { s = 'triangle', x = x, y = y, w = w, h = h, c = c, rot = rot } end
+-- 预混：把半透明色盖在底面上算成不透明色（多件重叠拼图形时必须用，否则叠色出接缝）
+local function blend(base, c, k)
+  local br, bgc, bb = (base // 65536) % 256, (base // 256) % 256, base % 256
+  local r, g, b = (c // 65536) % 256, (c // 256) % 256, c % 256
+  return C(255, math.floor(br + (r - br) * k + 0.5), math.floor(bgc + (g - bgc) * k + 0.5),
+    math.floor(bb + (b - bb) * k + 0.5))
+end
 -- 一朵云 = 一条扁矩形 + 两个错位圆（3 图元；云是「清新」最省预算的语汇）
 local function cloud(cx, cy, w, c)
-  local h = math.max(12, math.floor(w * 0.2))
-  return { R(cx, cy, w, h, c), Dot(cx - w * 0.24, cy + h * 0.42, h * 1.7, c),
-           Dot(cx + w * 0.2, cy + h * 0.52, h * 2.1, c) }
+  local h = math.max(14, math.floor(w * 0.24))
+  -- 矩形比两圆窄（0.62w）：两端被圆盖住 ⇒ 轮廓是云，不是「一根横条 + 两个圆」
+  return { R(cx, cy - h * 0.55, w * 0.62, h, c), Dot(cx - w * 0.26, cy + h * 0.18, h * 1.6, c),
+           Dot(cx + w * 0.16, cy + h * 0.36, h * 2.1, c) }
 end
 local function put(dst, list)
   for i = 1, #list do dst[#dst + 1] = list[i] end
   return dst
 end
+local CW = C(255, 255, 255, 255)
 
--- ── 进局背景构图生成器（每种模式 15 条以内；池 18 件 = 底色 1 + 构图 17）────────────────
--- D：清透天空（白奶油底）+ 每模式角色母题（叶 / 雷 / 花瓣 / 雪）
-local function bgD(accent, deep, kind)
-  local t = {}
-  put(t, cloud(-470, 246, 340, C(150, 255, 255, 255)))
-  put(t, cloud(470, -246, 340, C(150, 255, 255, 255)))
-  t[#t + 1] = R(0, 346, 1700, 46, C(110, 255, 255, 255))
-  t[#t + 1] = R(0, -346, 1700, 46, C(110, 255, 255, 255))
-  t[#t + 1] = Ring(0, 0, 520, A(32, accent))                 -- 棋盘后的元素环（只露四边）
-  t[#t + 1] = Dot(-522, 26, 220, A(24, accent))
-  t[#t + 1] = Dot(522, -26, 220, A(20, accent))
-
-  if kind == 'leaf' then                                     -- 纳西妲：叶簇 + 光点
-    t[#t + 1] = Tri(-432, -136, 56, 56, A(150, accent), 42)
-    t[#t + 1] = Tri(-354, -204, 38, 38, A(120, accent), -26)
-    t[#t + 1] = Tri(432, 208, 40, 40, A(110, accent), 150)
-    t[#t + 1] = Dot(424, 132, 16, A(180, deep))
-    t[#t + 1] = Dot(472, 176, 10, A(140, deep))
-    t[#t + 1] = Dot(-470, 150, 12, A(150, deep))
-  elseif kind == 'bolt' then                                 -- 刻晴：雷纹三段 + 星芒
-    t[#t + 1] = R(-424, 148, 104, 8, A(170, deep), 38)
-    t[#t + 1] = R(-380, 96, 104, 8, A(140, deep), -34)
-    t[#t + 1] = R(-424, 44, 104, 8, A(110, deep), 38)
-    t[#t + 1] = Star(424, 168, 52, A(170, accent))
-    t[#t + 1] = Star(468, 224, 26, A(130, accent))
-    t[#t + 1] = Dot(-466, -170, 14, A(150, deep))
-  elseif kind == 'petal' then                                -- 少女：樱花瓣 + 小星
-    t[#t + 1] = R(-430, 168, 30, 15, A(160, accent), 28)
-    t[#t + 1] = R(-372, 226, 24, 12, A(120, accent), -36)
-    t[#t + 1] = R(430, -168, 28, 14, A(150, accent), 44)
-    t[#t + 1] = Star(-460, -210, 30, A(150, deep))
-    t[#t + 1] = Dot(452, 196, 18, A(160, accent))
-    t[#t + 1] = Dot(478, 150, 10, A(120, accent))
-  else                                                       -- 甘雨：雪山 + 冰晶
-    t[#t + 1] = Tri(-430, 150, 82, 74, C(170, 255, 255, 255), 0)
-    t[#t + 1] = Tri(-384, 130, 58, 54, A(150, accent), 0)
-    t[#t + 1] = Tri(430, -150, 82, 74, C(170, 255, 255, 255), 180)
-    t[#t + 1] = Star(452, 190, 46, A(170, accent))
-    t[#t + 1] = Star(-470, -196, 28, A(130, accent))
-    t[#t + 1] = Dot(400, 250, 12, C(140, 255, 255, 255))
+-- ── 进局背景：公共天空骨架（四角云 + 棋盘后的元素环 + 上下云带）+ 每模式母题 ──────────────
+-- 13~14 条图元/模式；云与光斑用**不透明预混色**（多件重叠拼形状，半透明会叠出接缝）。
+local function skyBase(t, base, accent)
+  local cl = blend(base, CW, 0.74)
+  put(t, cloud(-488, 296, 320, cl))            -- 左上云
+  put(t, cloud(488, -296, 320, cl))            -- 右下云
+  t[#t + 1] = Ring(0, 0, 520, A(42, accent))   -- 棋盘后的元素环（只露四边）
+  t[#t + 1] = Ring(0, 0, 700, A(18, accent))
+  t[#t + 1] = R(0, 344, 1760, 44, A(120, CW))  -- 上下云带
+  t[#t + 1] = R(0, -344, 1760, 44, A(120, CW))
+  return t
+end
+-- D（定稿）：清透天空 + 每模式角色母题（叶 / 雷 / 樱瓣 / 雪山），母题只放四角，不压字
+local function bgD(base, accent, deep, kind)
+  local t = skyBase({}, base, accent)
+  if kind == 'leaf' then                       -- 纳西妲：林间光点（三角在浅底上像箭头，改用星芒）
+    t[#t + 1] = Star(-556, 210, 46, A(200, accent))
+    t[#t + 1] = Star(-498, 158, 28, A(160, accent))
+    t[#t + 1] = Dot(-580, -200, 18, A(200, deep))
+    t[#t + 1] = Star(566, 206, 26, A(180, deep))
+  elseif kind == 'bolt' then                   -- 刻晴：雷纹 + 星芒
+    t[#t + 1] = R(-556, 196, 96, 8, A(190, deep), 38)
+    t[#t + 1] = R(-514, 148, 96, 8, A(150, deep), -34)
+    t[#t + 1] = Star(566, 202, 34, A(200, accent))
+    t[#t + 1] = Star(600, 150, 20, A(160, accent))
+  elseif kind == 'petal' then                  -- 少女：樱瓣
+    t[#t + 1] = R(-556, 196, 30, 15, A(200, accent), 28)
+    t[#t + 1] = R(-500, 244, 24, 12, A(160, accent), -36)
+    t[#t + 1] = Star(566, 202, 28, A(190, deep))
+    t[#t + 1] = Dot(600, 150, 14, A(180, accent))
+  else                                         -- 甘雨：雪山 + 冰晶
+    t[#t + 1] = Tri(-560, 196, 92, 84, A(230, CW), 0)
+    t[#t + 1] = Tri(-510, 176, 62, 56, A(210, accent), 0)
+    t[#t + 1] = Star(566, 202, 34, A(200, accent))
+    t[#t + 1] = Star(600, 150, 20, A(160, accent))
   end
   return t
 end
--- A：冰蓝雪山系（清爽白蓝，雪线/冰晶/云带；四模式同族换深浅）
-local function bgA(accent) 
-  local t = {}
-  put(t, cloud(-480, 232, 380, C(160, 255, 255, 255)))
-  put(t, cloud(480, -232, 380, C(160, 255, 255, 255)))
-  t[#t + 1] = Tri(-470, -196, 300, 190, C(150, 236, 248, 255), 0)   -- 远山
-  t[#t + 1] = Tri(470, -196, 320, 200, C(140, 226, 242, 252), 0)
-  t[#t + 1] = Tri(-470, -232, 190, 130, C(120, 205, 232, 248), 0)   -- 近山
-  t[#t + 1] = Tri(470, -232, 210, 140, C(110, 198, 228, 246), 0)
-  t[#t + 1] = Ring(0, 0, 520, A(34, accent))
-  t[#t + 1] = Star(-430, 168, 54, C(160, 255, 255, 255))            -- 雪花
-  t[#t + 1] = Star(430, 168, 40, C(150, 255, 255, 255))
-  t[#t + 1] = Star(-500, 40, 30, C(140, 255, 255, 255))
-  t[#t + 1] = Star(500, 40, 26, C(130, 255, 255, 255))
-  t[#t + 1] = R(0, 346, 1700, 44, C(120, 255, 255, 255))
-  t[#t + 1] = R(0, -346, 1700, 44, C(120, 255, 255, 255))
+-- A（冰蓝雪山）：远山 + 雪花，四模式同族换深浅
+local function bgA(base, accent)
+  local t = skyBase({}, base, accent)
+  t[#t + 1] = Tri(-560, 186, 240, 160, A(215, C(255, 236, 248, 255)), 0)   -- 远山
+  t[#t + 1] = Tri(-560, 150, 150, 104, A(230, C(255, 205, 232, 248)), 0)   -- 近山
+  t[#t + 1] = Star(560, 200, 42, A(210, CW))                                -- 雪花
+  t[#t + 1] = Star(600, 148, 24, A(170, CW))
   return t
 end
--- B：草木晨光（嫩绿 + 奶白，太阳圆 / 叶片 / 光点 / 草浪）
-local function bgB(accent)
-  local t = {}
-  t[#t + 1] = Dot(-430, 216, 150, C(90, 255, 246, 208))             -- 晨光
-  t[#t + 1] = Dot(-430, 216, 96, C(120, 255, 252, 226))
-  put(t, cloud(460, 250, 340, C(150, 255, 255, 255)))
-  t[#t + 1] = R(0, 346, 1700, 40, C(100, 255, 255, 255))
-  t[#t + 1] = R(0, -346, 1700, 40, C(100, 255, 255, 255))
-  t[#t + 1] = Ring(0, 0, 520, A(32, accent))
-  t[#t + 1] = Tri(-420, -170, 66, 66, A(150, accent), 40)            -- 叶
-  t[#t + 1] = Tri(-340, -230, 44, 44, A(110, accent), -30)
-  t[#t + 1] = Tri(420, -170, 66, 66, A(150, accent), -40)
-  t[#t + 1] = Tri(340, -230, 44, 44, A(110, accent), 30)
-  t[#t + 1] = R(-380, -300, 420, 10, A(90, accent), -8)              -- 草浪
-  t[#t + 1] = R(380, -300, 420, 10, A(90, accent), 8)
-  t[#t + 1] = Dot(430, 180, 18, A(170, accent))                      -- 光点
-  t[#t + 1] = Dot(478, 226, 10, A(130, accent))
-  t[#t + 1] = Dot(-470, 130, 12, A(140, accent))
-  t[#t + 1] = R(0, 0, 2, 600, A(24, accent))
+-- B（草木晨光）：晨光圆 + 叶簇 + 草浪
+local function bgB(base, accent)
+  local t = skyBase({}, base, accent)
+  t[#t + 1] = Dot(-556, 206, 132, blend(base, C(255, 246, 208, 96), 0.92))  -- 晨光
+  t[#t + 1] = Tri(-560, 148, 58, 58, A(190, accent), 40)
+  t[#t + 1] = Tri(-500, 200, 38, 38, A(150, accent), -30)
+  t[#t + 1] = R(560, 200, 220, 10, A(150, accent), 14)                     -- 草浪
+  t[#t + 1] = R(560, 150, 200, 10, A(120, accent), -12)
   return t
 end
--- C：紫雷柔光（soft 紫 + 白金，星芒 / 环 / 雷纹）
-local function bgC(accent, gold)
-  local t = {}
-  put(t, cloud(-470, 246, 340, C(140, 255, 255, 255)))
-  put(t, cloud(470, -246, 340, C(140, 255, 255, 255)))
-  t[#t + 1] = Ring(0, 0, 540, A(30, accent))
-  t[#t + 1] = Ring(0, 0, 720, A(18, accent))
-  t[#t + 1] = R(0, 346, 1700, 44, C(110, 255, 255, 255))
-  t[#t + 1] = R(0, -346, 1700, 44, C(110, 255, 255, 255))
-  t[#t + 1] = Star(-430, 168, 58, A(170, gold))                      -- 金星
-  t[#t + 1] = Star(430, 168, 40, A(150, gold))
-  t[#t + 1] = Star(-470, -180, 34, A(140, gold))
-  t[#t + 1] = Star(470, -180, 50, A(160, gold))
-  t[#t + 1] = R(-360, 96, 110, 8, A(150, accent), 34)                -- 雷纹
-  t[#t + 1] = R(-318, 42, 110, 8, A(120, accent), -32)
-  t[#t + 1] = R(360, -96, 110, 8, A(150, accent), 34)
-  t[#t + 1] = R(318, -42, 110, 8, A(120, accent), -32)
+-- C（紫雷柔光）：星芒 + 雷纹
+local function bgC(base, accent, gold)
+  local t = skyBase({}, base, accent)
+  t[#t + 1] = Star(-556, 200, 44, A(220, gold))
+  t[#t + 1] = Star(-500, 152, 26, A(180, gold))
+  t[#t + 1] = R(556, 196, 100, 8, A(190, accent), 36)
+  t[#t + 1] = R(514, 148, 100, 8, A(150, accent), -34)
   return t
 end
 
--- 标题页装饰：把「云（3 图元）」这类子列表展平成一条 spec 流
+-- 标题页装饰：deco 列表里允许嵌入云（3 图元列表），这里展平成一条 spec 流
 local function mkDeco(items)
   local out = {}
   for i = 1, #items do
@@ -357,15 +332,15 @@ local STYLE_B = {
     coop = { bg = C(255, 240, 252, 246), plate = C(255, 218, 240, 224), frame = C(255, 56, 148, 118), accent = C(255, 96, 186, 146) },
   },
   deco = mkDeco({
-    Dot(-450, 196, 160, C(110, 255, 246, 200)),
-    Dot(-450, 196, 104, C(140, 255, 252, 224)),
-    put({}, cloud(470, 226, 340, C(150, 255, 255, 255))),
-    Tri(-430, 120, 68, 68, A(150, B_GREEN), 40),
-    Tri(-352, 56, 44, 44, A(110, B_GREEN), -30),
-    Tri(430, -140, 60, 60, A(150, B_GREEN), -40),
-    R(-420, -300, 420, 10, A(90, B_GREEN), -8),
-    R(420, -300, 420, 10, A(90, B_GREEN), 8),
-    Dot(452, 196, 18, A(170, B_GREEN)),
+    Dot(-450, 236, 160, C(120, 255, 246, 200)),        -- 晨光（左上角）
+    put({}, cloud(470, 250, 360, C(170, 255, 255, 255))),
+    Star(-470, 0, 46, A(170, B_GREEN)),                -- 两列卡片之间的空带
+    Star(470, 0, 38, A(150, B_GREEN)),
+    Tri(-560, -206, 56, 56, A(150, B_GREEN), 40),      -- 叶（左下角，避开胶囊与底栏）
+    Tri(-500, -262, 38, 38, A(110, B_GREEN), -30),
+    Dot(540, -206, 16, A(170, B_GREEN)),
+    R(-600, -300, 300, 10, A(80, B_GREEN), -6),        -- 草浪（贴画布左下角）
+    R(600, -300, 300, 10, A(80, B_GREEN), 6),
   }),
 }
 
@@ -403,11 +378,11 @@ local STYLE_C = {
     put({}, cloud(470, 234, 340, C(140, 255, 255, 255))),
     Star(-430, 150, 60, A(175, C_GOLD)),
     Star(430, 150, 44, A(160, C_GOLD)),
-    Star(-490, 44, 32, A(150, C_GOLD)),
-    Star(490, 44, 26, A(140, C_GOLD)),
-    R(-380, -180, 110, 8, A(150, C_PURPLE), 34),
-    R(-338, -234, 110, 8, A(120, C_PURPLE), -32),
-    R(380, -180, 110, 8, A(150, C_PURPLE), 34),
+    Star(-470, 0, 44, A(175, C_GOLD)),                 -- 两列卡片之间的空带（原来压到卡片上）
+    Star(470, 0, 36, A(150, C_GOLD)),
+    R(-556, -232, 96, 8, A(150, C_PURPLE), 34),       -- 雷纹挪到左下角
+    R(-516, -278, 96, 8, A(120, C_PURPLE), -32),
+    R(556, -232, 96, 8, A(150, C_PURPLE), 34),
   }),
 }
 
@@ -442,46 +417,44 @@ local STYLE_D = {
     coop = { bg = C(255, 238, 249, 255), plate = C(255, 223, 241, 252), frame = C(255, 78, 157, 190), accent = D_ICE },
   },
   deco = mkDeco({
-    put({}, cloud(-470, 230, 360, C(150, 255, 255, 255))),
-    put({}, cloud(470, 230, 360, C(150, 255, 255, 255))),
-    Ring(-420, 0, 460, A(28, D_LEAF)),
-    Ring(420, 0, 460, A(24, D_ICE)),
-    Star(-430, 150, 54, A(160, D_LEAF)),
-    Star(430, 150, 42, A(150, D_BOLT)),
-    Star(-500, 52, 30, A(150, D_PETAL)),
-    Star(500, 52, 26, A(140, D_ICE)),
-    R(-390, -180, 34, 17, A(160, D_PETAL), 28),
-    R(-330, -240, 26, 13, A(120, D_PETAL), -36),
-    R(390, -180, 30, 15, A(150, D_PETAL), 44),
-    Dot(-470, -196, 16, A(160, D_ICE)),
-    Dot(470, -196, 12, A(140, D_LEAF)),
+    -- 云只放四角（卡片区 y∈[-154,154] 必须留空，否则花瓣/星芒会压到字上）
+    cloud(-540, 268, 300, C(170, 255, 255, 255)),
+    cloud(540, -268, 300, C(170, 255, 255, 255)),
+    Dot(-600, -330, 210, A(26, D_LEAF)),          -- 左下柔光斑（推到画布外一半，避免读成「脏斑」）
+    Dot(600, 330, 210, A(22, D_ICE)),             -- 右上柔光斑
+    Star(-470, 0, 48, A(150, D_LEAF)),            -- 两列卡片之间的空带上点缀
+    Star(470, 0, 40, A(140, D_PETAL)),
+    R(-424, 66, 30, 15, A(150, D_PETAL), 24),     -- 花瓣
+    R(424, 74, 26, 13, A(140, D_PETAL), -30),
+    Dot(-516, -186, 14, A(150, D_ICE)),
+    Dot(516, 186, 12, A(130, D_LEAF)),
   }),
 }
 -- 注意 deco 里 `put({}, cloud(...))` 返回 3 条云图元（列表展开在 deco 里是多条 spec）。
 
 STYLE_A.bg = {
-  casual = bgA(A_ICE),
-  ['ai-battle'] = bgA(C(255, 126, 160, 226)),
-  pvp = bgA(C(255, 155, 150, 220)),
-  coop = bgA(C(255, 92, 190, 214)),
+  casual = bgA(STYLE_A.modeTheme.casual.bg, A_ICE),
+  ['ai-battle'] = bgA(STYLE_A.modeTheme['ai-battle'].bg, C(255, 126, 160, 226)),
+  pvp = bgA(STYLE_A.modeTheme.pvp.bg, C(255, 155, 150, 220)),
+  coop = bgA(STYLE_A.modeTheme.coop.bg, C(255, 92, 190, 214)),
 }
 STYLE_B.bg = {
-  casual = bgB(B_GREEN),
-  ['ai-battle'] = bgB(C(255, 168, 198, 72)),
-  pvp = bgB(C(255, 196, 176, 96)),
-  coop = bgB(C(255, 96, 186, 146)),
+  casual = bgB(STYLE_B.modeTheme.casual.bg, B_GREEN),
+  ['ai-battle'] = bgB(STYLE_B.modeTheme['ai-battle'].bg, C(255, 168, 198, 72)),
+  pvp = bgB(STYLE_B.modeTheme.pvp.bg, C(255, 196, 176, 96)),
+  coop = bgB(STYLE_B.modeTheme.coop.bg, C(255, 96, 186, 146)),
 }
 STYLE_C.bg = {
-  casual = bgC(C(255, 140, 190, 214), C_GOLD),
-  ['ai-battle'] = bgC(C(255, 176, 146, 240), C_GOLD),
-  pvp = bgC(C(255, 200, 160, 236), C_GOLD),
-  coop = bgC(C(255, 150, 168, 236), C_GOLD),
+  casual = bgC(STYLE_C.modeTheme.casual.bg, C(255, 140, 190, 214), C_GOLD),
+  ['ai-battle'] = bgC(STYLE_C.modeTheme['ai-battle'].bg, C(255, 176, 146, 240), C_GOLD),
+  pvp = bgC(STYLE_C.modeTheme.pvp.bg, C(255, 200, 160, 236), C_GOLD),
+  coop = bgC(STYLE_C.modeTheme.coop.bg, C(255, 150, 168, 236), C_GOLD),
 }
 STYLE_D.bg = {
-  casual = bgD(D_LEAF, C(255, 63, 139, 60), 'leaf'),
-  ['ai-battle'] = bgD(D_BOLT, C(255, 95, 76, 168), 'bolt'),
-  pvp = bgD(D_PETAL, C(255, 192, 78, 124), 'petal'),
-  coop = bgD(D_ICE, C(255, 47, 126, 158), 'snow'),
+  casual = bgD(STYLE_D.modeTheme.casual.bg, D_LEAF, C(255, 63, 139, 60), 'leaf'),
+  ['ai-battle'] = bgD(STYLE_D.modeTheme['ai-battle'].bg, D_BOLT, C(255, 95, 76, 168), 'bolt'),
+  pvp = bgD(STYLE_D.modeTheme.pvp.bg, D_PETAL, C(255, 192, 78, 124), 'petal'),
+  coop = bgD(STYLE_D.modeTheme.coop.bg, D_ICE, C(255, 47, 126, 158), 'snow'),
 }
 
 local STYLES = { A = STYLE_A, B = STYLE_B, C = STYLE_C, D = STYLE_D }
@@ -494,20 +467,20 @@ local MODE_THEME = STYLE.modeTheme
 
 local HELP_COLS = {
   { title = '操作 · 按键', lines = {
-    '← → 移动　↑ 旋转　↓ 软降',
-    '空格 直落　G 暂存',
-    'R 重开　V 回主页　H 本页',
+    '!← → 移动　↑ 旋转　↓ 软降',
+    '!空格 直落　G 暂存',
+    '!R 重开　V 回主页　H 本页',
     'T 调试填底两行（测试用）',
     '',
-    '双人 P1：A D 移动　W 旋转',
+    '!双人 P1：A D 移动　W 旋转',
     '　　　　S 软降　空格 直落　G 暂存',
-    '双人 P2：← → 移动　↑ 旋转',
+    '!双人 P2：← → 移动　↑ 旋转',
     '　　　　↓ 软降　X 直落　F 暂存',
     '',
-    '合作：P1 = 旋转手（W / G）',
+    '!合作：P1 = 旋转手（W / G）',
     '　　　P2 = 行动手（← → / ↓ / X）',
     '',
-    '标题页：1-4 选模式　任意键=休闲',
+    '!标题页：1-4 选模式　任意键=休闲',
     '触屏：屏幕按钮同键盘',
   } },
   { title = '计分 · 判定', lines = {

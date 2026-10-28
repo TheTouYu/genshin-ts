@@ -62,6 +62,13 @@
       "kind": "log",
       "contains": "p2 bag=",
       "source": "client"
+    },
+    {
+      "at": 6.0,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "text",
+      "equals": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明"
     }
   ]
 }
