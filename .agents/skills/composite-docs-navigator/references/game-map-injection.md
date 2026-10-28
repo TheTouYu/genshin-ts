@@ -19,15 +19,15 @@ Run the project command with the actual config:
 node bin/gsts.mjs maps -c <config>
 ```
 
-If WSL reports multiple LocalLow folders, use the explicit confirmed directory:
+本机是 **Arch + Wine prefix**（2026-10-28 用户纠正），真实存档目录是：
 
 ```bash
-GSTS_LOCALLOW_DIR=/mnt/c/Users/<user>/AppData/LocalLow \
-  node bin/gsts.mjs maps -c <config>
+export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
+unset LOCALAPPDATA
+node bin/gsts.mjs maps -c <config>
 ```
 
-Inject also aborts with `multiple WSL LocalLow folders found` when the env var is
-missing; always set `GSTS_LOCALLOW_DIR` for inject commands on multi-user WSL.
+`/mnt/wingames` 是只读旧 Windows 镜像，不能作为读写目标。若 CLI 报 `multiple LocalLow folders found`，就是因为没有设置 `GSTS_LOCALLOW_DIR`；注入命令一律显式设置。
 
 Treat `[recent]` as a candidate list, not automatic authorization to choose or overwrite a map. Confirm the intended target with the user when more than one candidate exists or the map is newly created.
 
@@ -65,7 +65,7 @@ with `[error] target NodeGraph not found: <id>`; create an empty placeholder gra
 Real working example (2026-08-03, signal composite demo):
 
 ```bash
-GSTS_LOCALLOW_DIR=/mnt/c/Users/touyu/AppData/LocalLow \
+GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow \
   node bin/gsts.mjs -c gsts.signal-demo.config.ts Beyond_Local_Export/gsts-signal-composite-demo.gia
 ```
 

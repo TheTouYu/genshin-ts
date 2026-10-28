@@ -30,8 +30,8 @@ Recover and write down **exact values**, not paraphrases:
 - Numeric IDs: effect IDs, asset IDs, map IDs, node graph IDs, config IDs.
 - TextMap hashes and other hash values.
 - SHA-256 and file sizes.
-- Absolute paths (including Windows `/mnt/c` paths).
-- Exact commands that worked, including `cmd.exe` / dotnet SDK paths.
+- Absolute paths (including Arch/Wine-prefix paths such as `/home/h/.local/share/anime-game-launcher/prefix/...`).
+- Exact commands that worked, including Wine-prefix paths if applicable.
 - Tool outputs that were the evidence for a conclusion.
 - Parameter shapes from GIL diff: e.g., `效果 2120001: {类型10, 类型11}`, `f13.f2=f32(-0.09795895)`.
 - Root/field names from wire analysis: `root15`, `root16`, `f21.f1.f3`, etc.
@@ -251,7 +251,7 @@ If you created a handoff file, use the same detail categories and commit it. Do 
 - [ ] User original wording/names
 - [ ] Exact numeric IDs and hashes
 - [ ] SHA-256 + paths
-- [ ] Working commands (including Windows `cmd.exe` invocation if applicable)
+- [ ] Working commands (including Wine-prefix paths if applicable)
 - [ ] Tool outputs that are evidence
 - [ ] Parameter/wire shapes
 - [ ] Constraints / failed routes
