@@ -4,6 +4,10 @@
 > 一款用千星模拟器「2D UI + Lua」从零搭起来的可爱茶会游戏壳：**完整菜单 + 可交互的茶席 + 一局 7×7 茶点三消**。  
 > 美术全部由六种图元（rect / circle / triangle / fourstar / fivestar / ring）现场拼成，没有外部贴图。
 
+> **本机环境（2026-10-28 用户纠正）**：Arch Linux + Wine prefix，不是 Win11。真实存档在
+> `/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/`；
+> `/mnt/wingames` 是只读旧镜像，不要写。
+
 ![标题页](preview/title.png)
 
 ## 这是什么
@@ -52,6 +56,21 @@
 
 更多截图在 [`docs/preview/`](preview/)：章节详情、角色详情、茶点详情、暂停、确认框、制作名单，以及 1600×900 的整组 `-pc` 版本。
 
+
+## 模拟器里试玩（已追加到存档列表）
+
+工程已复制到模拟器 Web 的工作区，存档名 **花间茶会**：
+
+```bash
+# 重新追加/覆盖（模拟器服务器不需要重启）
+cd /home/h/genshin-ts/workspace/flower-tea
+bash qxqy/install-sim-save.sh
+```
+
+文件：`/home/h/qxqy-workspace/花间茶会.save.json`（132,613 B，`meta.name=花间茶会`）。
+打开 **http://127.0.0.1:4173** → 存档选择器 → 选「花间茶会」；如果页面之前已经开着，**刷新一次**（存档列表是页面加载时拉的）。
+推荐画布：`mobile-16-9`（1280×720）或 `pc-16-9`（1600×900），两套都已跑过 22 条回归和整流程出图。
+
 ## 进入游戏
 
 ### 1. 模拟器（最快，已验证）
@@ -72,7 +91,7 @@ node qxqy/shot.mjs
 node qxqy/shot.mjs pc-16-9
 ```
 
-当前读数：**22/22 用例通过，约 4.7s；两组出图共 40 张，0 errors**。
+当前读数：**22/22 用例通过，约 5s；两组出图共 40 张，0 errors**。
 
 ### 2. 真实地图（已创建，待你在游戏内确认）
 

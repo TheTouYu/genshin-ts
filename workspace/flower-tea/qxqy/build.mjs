@@ -84,7 +84,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const built = buildStudio()
   const s = built.studio
   const save = s.exportData('save')
-  const saveJson = Buffer.from(save.data, 'base64').toString('utf8')
+  const saveRaw = Buffer.from(save.data, 'base64').toString('utf8')
+  const saveObj = JSON.parse(saveRaw)
+  if (!saveObj.meta) saveObj.meta = {}
+  saveObj.meta.name = '花间茶会'
+  saveObj.meta.description = '花间茶会 · 四季茶席与茶点三消'
+  const saveJson = JSON.stringify(saveObj)
   writeFileSync(join(root, 'flower-tea.save.json'), saveJson)
   mkdirSync(join(root, 'device-package'), { recursive: true })
   const gia = s.exportData('gia-combined')
