@@ -69,6 +69,11 @@ local TPL_GUIDS = CFG.TPL_GUIDS
 local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
 local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
   CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
+local MODE_BG, MODE_BG_POOL = CFG.MODE_BG, CFG.MODE_BG_POOL
+-- 官方内置图元 id（模拟器 studio/constants.js: IMAGE_PRIMITIVES 实证；真机为「六类代理图元」）
+local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 100004,
+                 fivestar = 100005, ring = 100006 }
+local bgImageWarned = false
 
 
 
@@ -2552,21 +2557,65 @@ showPersistTip = function()
   setText(botBanner, PERSIST_TIP)
 end
 
--- v2.7 ⑦：套用模式主题（画面底色 / 棋盘背板 / 棋盘边框 / 上下强调线）
--- 调用于 startIfWaiting（进局）与 exitToMenu（回标题=复位 casual），重开时随开局链再走一遍。
--- 双屏模式另由 layoutDual 给两盘分别染座位色（这里先给单屏框色，随后被座位色覆盖，顺序无害）。
+-- v2.7 ⑦ 套用模式主题：**四套不同构图**的背景（用户复评「四种模式要设计四种主题的背景」）
+-- 数据在 lua/tetris/config.lua 的 MODE_BG（每种模式一组图元：rect/circle/triangle/fourstar/ring + 旋转）。
+-- 做法：背景池在 OnStart 一次性建好（必须早于棋盘 ⇒ 压在棋盘之下），换模式只**换肤**不新建实例
+--      （运行中新建的实例会盖住 200 个棋盘格，真机 SetVisible(false) 又靠不住 ⇒ 只能池化）。
+-- SetImage 用枚举形态，失败回落字符串形态；两者都失败就保持 rect（布局仍然自洽，只是没有圆/环）。
+local function skinBgItem(ctl, spec)
+  if not ctl then return false end
+  tryCall(ctl, 'SetSizeDelta', spec.w, spec.h)
+  tryCall(ctl, 'SetAnchoredPosition', spec.x, spec.y)
+  trySet(ctl, 'imageColor', spec.c)
+  -- ⚠ 不能用 tryCall：它按「非 nil 实参个数」分发，最多两个 ⇒ 三个参数会被截成 (0,0)，
+  -- z 变成 undefined 后整个 scene 快照序列化失败（用例报 `undefined at $.tree[0].children[N].localRotationZ`）。
+  if not pcall(function() ctl:SetLocalRotation(0, 0, spec.rot or 0) end) then
+    pcall(function() ctl:SetLocalRotation(0, 0) end)
+  end
+  local img = BG_IMG[spec.s or 'rect'] or BG_IMG.rect
+  local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
+  local ok = false
+  if enumT and enumT.StaticReference ~= nil then
+    ok = pcall(function() ctl:SetImage(enumT.StaticReference, img) end)
+  end
+  if not ok then ok = pcall(function() ctl:SetImage('StaticReference', img) end) end
+  if not ok and not bgImageWarned then
+    bgImageWarned = true
+    print('bg SetImage unavailable（背景退回纯矩形；不影响布局）')
+  end
+  return true
+end
 applyModeTheme = function(mode)
   local t = MODE_THEME[mode] or MODE_THEME.casual
-  local main1 = G[1] or g
-  if main1.bgWash then trySet(main1.bgWash, 'imageColor', t.bg) end
-  local line = C(130, (t.accent // 65536) % 256, (t.accent // 256) % 256, t.accent % 256)
-  if main1.bgTop then trySet(main1.bgTop, 'imageColor', line) end
-  if main1.bgBot then trySet(main1.bgBot, 'imageColor', line) end
+  local specs = MODE_BG[mode] or MODE_BG.casual
+  local pool = (G[1] or g).bgPool
+  local n = 0
+  if pool then
+    -- 池第 1 件 = 整屏底色（所有模式共用一层深底，颜色随模式换）
+    local wash = pool[1]
+    if wash then
+      local W, H = CANVAS_W or 1280, CANVAS_H or 720
+      tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+      tryCall(wash, 'SetAnchoredPosition', 0, 0)
+      trySet(wash, 'imageColor', t.bg)
+    end
+    for i = 1, #pool - 1 do
+      local spec = specs[i]
+      local ctl = pool[i + 1]
+      if spec then
+        if skinBgItem(ctl, spec) then n = n + 1 end
+      elseif ctl then
+        -- 空槽：缩成 1×1 挪出画布（不依赖 visible）
+        tryCall(ctl, 'SetSizeDelta', 1, 1)
+        tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
+      end
+    end
+  end
   if g.plate then trySet(g.plate, 'imageColor', t.plate) end
   for i = 1, 4 do
     if g.frames and g.frames[i] then trySet(g.frames[i], 'imageColor', t.frame) end
   end
-  print('mode theme=' .. tostring(mode))      -- 用例锚
+  print('mode theme=' .. tostring(mode) .. ' bg=' .. n .. '/' .. #specs)   -- 用例锚
 end
 
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
@@ -3282,28 +3331,27 @@ function OnStart()
   hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
   if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
 
-  -- v2.7 ⑦ 模式主题背景（层序：先建的在最下 ⇒ 这三件必须在背板与格子之前建）
-  --   ① bgWash：整屏底色（每模式一套深色调）② ③ 上下各一条模式色强调线。
-  -- 颜色由 applyModeTheme(mode) 在进局/回标题时写入；这里是"存在性 + 初值"。
-  g.bgWash = instInto(TPL_GUIDS.cell, root, nil)
-  if g.bgWash then
-    g.bgWash.name = 'bgWash'
-    tryCall(g.bgWash, 'SetSizeDelta', W + 20, H + 20)
-    tryCall(g.bgWash, 'SetAnchoredPosition', 0, 0)
-    trySet(g.bgWash, 'imageColor', MODE_THEME.casual.bg)
+  -- v2.7 ⑦ 模式主题背景池（层序：先建的在最下 ⇒ 池必须在背板与格子之前建）
+  -- 每模式一套构图（config.lua 的 MODE_BG），池容量 = 最大条目数；换模式只换肤，不新建实例
+  -- （运行中新建会盖住棋盘，真机 SetVisible(false) 藏不住运行时实例）。
+  g.bgPool = {}
+  for i = 1, (MODE_BG_POOL or 16) do
+    local ctl = instInto(TPL_GUIDS.cell, root, nil)
+    if not ctl then break end
+    ctl.name = 'bg' .. i
+    tryCall(ctl, 'SetSizeDelta', 1, 1)
+    tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
+    trySet(ctl, 'imageColor', C(0, 0, 0, 0))
+    g.bgPool[i] = ctl
   end
-  g.bgTop = instInto(TPL_GUIDS.cell, root, nil)
-  g.bgBot = instInto(TPL_GUIDS.cell, root, nil)
-  for _, pair in ipairs({ { g.bgTop, 1 }, { g.bgBot, -1 } }) do
-    local ctl = pair[1]
-    if ctl then
-      ctl.name = pair[2] > 0 and 'bgTop' or 'bgBot'
-      tryCall(ctl, 'SetSizeDelta', W - 40, 6)
-      tryCall(ctl, 'SetAnchoredPosition', 0, pair[2] * (H / 2 - 34))
-      trySet(ctl, 'imageColor', C(130, 45, 212, 191))
-    end
+  -- 整屏底色压在最下（池第 1 件复用为底色：所有模式都先铺一层深底再构图）
+  local wash = g.bgPool[1]
+  if wash then
+    tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+    tryCall(wash, 'SetAnchoredPosition', 0, 0)
+    trySet(wash, 'imageColor', MODE_THEME.casual.bg)
   end
-  print('bg theme layers=' .. tostring(g.bgWash ~= nil) .. tostring(g.bgTop ~= nil) .. tostring(g.bgBot ~= nil))
+  print('bg pool n=' .. #g.bgPool)
 
   -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
   -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。

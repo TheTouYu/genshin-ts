@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "42 v2.7 七模式主题背景：每种模式进场套自己的底色/背板/边框/强调线，回标题复位 casual",
+ "name": "42 v2.7 ⑦ 四模式主题背景：每种模式一套**构图**（休闲柔光带+光圈 / 对抗斜纹+靶环+箭头 / 对战阵营色块+中缝 / 合作同心环+汇聚纹），进局换肤、回标题复位",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -300,25 +300,25 @@
   {
    "at": 0.6,
    "kind": "log",
-   "contains": "bg theme layers",
+   "contains": "bg pool n=",
    "source": "client"
   },
   {
    "at": 2.0,
    "kind": "log",
-   "contains": "mode theme=ai-battle",
+   "contains": "mode theme=ai-battle bg=",
    "source": "client"
   },
   {
    "at": 9.6,
    "kind": "log",
-   "contains": "mode theme=casual",
+   "contains": "mode theme=casual bg=",
    "source": "client"
   },
   {
    "at": 11.6,
    "kind": "log",
-   "contains": "mode theme=casual",
+   "contains": "mode theme=casual bg=",
    "source": "client"
   }
  ]
