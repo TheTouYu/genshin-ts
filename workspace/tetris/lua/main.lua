@@ -228,10 +228,11 @@ local MS = {
   parts = {}, hint = {}, arrow = {},
   hintKey = { -1, -1, -1 }, arrowKey = { -1, -1 },
   hintText = { '1-4 选模式', '任意键 = 休闲', 'H 游戏说明' },
-  WALL = C(255, 8, 11, 18),        -- #080B12 深空墙（A=255：标题页是封闭舞台，不留背景ghost）
-  BEZEL = C(210, 74, 95, 138),    -- #4A5F8A 视窗边框（棋盘框压暗后，屏幕边界靠它）
-  TICK = C(150, 118, 214, 255),    -- 四角括号（青蓝，低对比）
-  CYAN = C(255, 118, 214, 255),    -- 提示条强调色
+  -- v3.0：深空墙 → 清透天空墙（A=255 仍是封闭舞台，不留背景 ghost）
+  WALL = THEME.wall,               -- 天空墙（近白 #F7FCFF）
+  BEZEL = THEME.bezel,             -- 视窗边框：描金浅边（奶油+描金 = 原神 UI 语汇）
+  TICK = THEME.tick,               -- 四角括号（低对比金）
+  CYAN = THEME.textSub,            -- 提示条文字色（浅底用墨色，不再用霓虹青）
   lineY = -332,
   focus = false,
 }
@@ -336,13 +337,14 @@ local hits = {}
 
 -- 文字样式：真机 GIL 里新建的控件没有样式（CLI 只建骨架），全部由 Lua 运行时设置。
 -- 框高判据：h >= fontSize*1.45 + 4（见 docs/README §10.2），尺寸在 layout() 里给。
+-- v3.0 美术改版：整套文字色改为**浅底上的墨色**（变体切换只改 lua/tetris/config.lua 的 THEME）
 local C_TEXT, C_GOLD2, C_ACCENT2, C_DANGER, C_BTN =
-  C(255, 214, 232, 246), C(255, 255, 194, 76), C(255, 118, 214, 255),
-  C(255, 255, 77, 77), C(179, 26, 29, 38)
+  THEME.textMain, THEME.goldDeep, THEME.hint,
+  C(255, 214, 82, 92), THEME.btnBg
 UI_STYLE = {
   title     = { font = 64, color = C_GOLD2,   align = 'Middle' },
-  hud       = { font = 20, color = C_ACCENT2, align = 'Middle' },
-  hudNext   = { font = 22, color = C_ACCENT2, align = 'Middle' },
+  hud       = { font = 20, color = C_TEXT,    align = 'Middle' },   -- v3.0 浅底：HUD 用墨色（原为蓝）
+  hudNext   = { font = 22, color = THEME.textSub, align = 'Middle' },
   best      = { font = 20, color = C_GOLD2,   align = 'Middle' },
   hint      = { font = 22, color = C_ACCENT2, align = 'Middle', valign = 'Middle' },
   keyA      = { font = 22, color = C_TEXT,    align = 'Middle' },
@@ -636,12 +638,12 @@ end
 -- （v2.3 出图里标题/明细都是灰雾，一是层序问题，二是 0.72 折损叠在深底上）
 settleSetColors = function(a)
   local dimA = math.floor(a * 0.82)
-  trySet(g.settleTitle, 'fontColor', C(a, 255, 118, 118))
-  trySet(g.settleScore, 'fontColor', C(a, 255, 205, 92))
-  trySet(g.settleBest, 'fontColor', C(a, 226, 232, 240))
-  trySet(g.settleInfo, 'fontColor', C(dimA, 170, 190, 214))
-  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), 110, 140, 180))
-  trySet(g.settleOpts, 'fontColor', C(a, 232, 236, 244))
+  trySet(g.settleTitle, 'fontColor', C(a, 185, 138, 60))     -- 深金标题
+  trySet(g.settleScore, 'fontColor', C(a, 214, 126, 46))     -- 暖橙分数
+  trySet(g.settleBest, 'fontColor', C(a, 62, 74, 99))        -- 墨色最高分
+  trySet(g.settleInfo, 'fontColor', C(dimA, 124, 140, 168))
+  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), 158, 174, 198))
+  trySet(g.settleOpts, 'fontColor', C(a, 62, 74, 99))
 end
 
 -- 结算动画（0→0.9s 四段）：①0→0.45s 遮罩/面板淡入（棋盘被压到 45% 亮度）
@@ -1255,14 +1257,16 @@ showGameOver = function(overTitle)
     -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
     -- 所以"渐暗"只靠文字 fontColor 的 A 通道渐入（这条通道在真机是一直在用的）。
     -- v2.4 ②：遮罩做成真·全屏（层序上它在棋盘/左右栏之上、面板之下）⇒ 结算时只剩面板世界
-    if g.settleScrim then trySet(g.settleScrim, 'imageColor', C(238, 6, 9, 16)) end
+    -- v3.0：遮罩/面板/描边全部换成清透浅色（奶油面板 + 描金边 + 模式色顶条）
+    local mt = MODE_THEME[MODE] or MODE_THEME.casual
+    if g.settleScrim then trySet(g.settleScrim, 'imageColor', THEME.scrim) end
     if g.settleBars then
-      trySet(g.settleBars[1], 'imageColor', C(235, 255, 82, 110))    -- 顶部强调条（红）
-      trySet(g.settleBars[2], 'imageColor', C(150, 62, 80, 112))     -- 标题下细带
-      trySet(g.settleBars[3], 'imageColor', C(150, 62, 80, 112))     -- 选项上细带
+      trySet(g.settleBars[1], 'imageColor', mt.frame)                -- 顶部强调条（模式色）
+      trySet(g.settleBars[2], 'imageColor', THEME.gold)              -- 标题下细带
+      trySet(g.settleBars[3], 'imageColor', THEME.gold)              -- 选项上细带
     end
-    if g.settleCard then trySet(g.settleCard, 'imageColor', C(246, 25, 33, 50)) end
-    if g.settleBorder then trySet(g.settleBorder, 'imageColor', C(255, 44, 56, 84)) end
+    if g.settleCard then trySet(g.settleCard, 'imageColor', THEME.panel) end
+    if g.settleBorder then trySet(g.settleBorder, 'imageColor', THEME.bezel) end
     settleSetColors(0)
     tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff)
     tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff)
@@ -1696,6 +1700,8 @@ end
 -- T5：Hold 换块的唯一实现（玩家 G 键与 AI 自演共用一套，lead 指示"AI 复用此语义，别另写一套"）。
 -- 挂 NUM 表函数而不是 local function——main 函数 200 个 local 已满（D612/D616 两次实测爆）。
 NUM.doHold = function()
+  -- v2.8 用户定版语义（防滥用）：空槽=纯存入；非空槽=交换且**两块各推进一格**——
+  -- 当前块先 y+1（撞底=直接锁定 hold forced lock，也是代价）；换出块到出生位后立刻再落一格。
   if g.gameOver or not g.piece or not g.st.can then return false end
   g.st.can = false
   local cur, curBag = g.piece.name, g.nextBag
@@ -1703,14 +1709,39 @@ NUM.doHold = function()
   if g.st.name then
     outName, outBag = g.st.name, g.st.bag   -- 槽内有块：换出
   end
-  g.st.name, g.st.bag = cur, curBag or 0
-  print('hold in=' .. cur .. ' out=' .. (outName or '-'))
-  sfx(SFX.rotate)
-  if outName then
-    spawn(outName, outBag)       -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
-  else
+  if not outName then
+    g.st.name, g.st.bag = cur, curBag or 0
+    print('hold in=' .. cur .. ' out=-')
+    sfx(SFX.rotate)
     spawn()                      -- 空槽首换：bag 自然出下一块（nextName 已就位）
+    return true
   end
+  -- 交换场景：当前块推进一格（撞底=强制锁定，交换到此为止——锁定触发的 spawn 出下一块）
+  local curDrop = 0
+  if not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
+    g.piece.y = g.piece.y + 1
+    curDrop = 1
+  end
+  if curDrop == 0 then
+    g.st.name, g.st.bag = nil, 0      -- 槽保留原块？不——用户语义「当前块也下落（锁定）」：
+    g.st.can = true                    -- 强制锁定已付出代价，闸回位；槽不动
+    print('hold forced lock in=' .. cur)
+    sfx(SFX.lock, true)
+    doLock()                           -- 锁定当前块；spawn 的自然新块继续（不取槽）
+    return true
+  end
+  -- 当前块已落一格：存入槽，换出块出生位+立刻再落一格
+  g.st.name, g.st.bag = cur, curBag or 0
+  print('hold swap in=' .. cur .. ' out=' .. outName .. ' cur_drop=1')
+  sfx(SFX.rotate)
+  spawn(outName, outBag)               -- 换出块走 override 路径（不消耗 bag，日志带 holdswap=1）
+  local outDrop = 0
+  if g.piece and not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
+    g.piece.y = g.piece.y + 1
+    outDrop = 1
+    renderPiece()
+  end
+  print('hold swap out_drop=' .. outDrop)
   return true
 end
 
@@ -1840,9 +1871,9 @@ local function buildHelpLayer()
   -- 暗底（整屏） + 顶部强调条 + 底部细线：纯深色舞台，压在棋盘/卡片实例之上。
   -- ⚠ 层序（2026-10-28 出图实测 v27-help.png v1）：只靠「后建=在上」不可靠——标题页卡片文字会
   -- 从说明页底色里透出来（幽灵字）。所以建完逐个 SetAsLastSibling 强制置顶（API 在基类方法表里）。
-  cell('helpBg', 0, 0, W + 20, H + 20, C(255, 8, 11, 18))
-  cell('helpRule', 0, H / 2 - 78, W - 160, 2, C(190, 74, 95, 138))
-  cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, C(150, 74, 95, 138))
+  cell('helpBg', 0, 0, W + 20, H + 20, THEME.helpBg)
+  cell('helpRule', 0, H / 2 - 78, W - 160, 2, THEME.gold)
+  cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, THEME.bezel)
   text('helpTitle', '游戏说明 · 全部规则', 0, H / 2 - 46, W - 200, 30, THEME.textMain, 'Middle')
   text('helpSub', '按 H / E / 任意键 返回（局内开页 = 暂停）', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
   -- 三栏：整栏**居中**（不依赖 Left 对齐的渲染细节——出图 v1 里左栏被推到画布外，只剩行尾）。
@@ -1860,8 +1891,11 @@ local function buildHelpLayer()
       (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textSub)
     for li, line in ipairs(col.lines) do
       if line ~= '' then
-        text('helpLine' .. ci .. '_' .. li, line, x, top - 30 - li * pitch,
-          colW - 40, fs, THEME.textSub, 'Middle')
+        -- v2.8 ②：'!' 前缀=关键行高亮（键位/数值/模式名用主文字色，其余次文字色）
+        local hot = line:sub(1, 1) == '!'
+        local body = hot and line:sub(2) or line
+        text('helpLine' .. ci .. '_' .. li, body, x, top - 30 - li * pitch,
+          colW - 40, fs, hot and THEME.textMain or THEME.textSub, 'Middle')
       end
     end
   end
@@ -1913,9 +1947,11 @@ toggleHelp = function()
   if helpOpen then
     helpOpen = false
     destroyHelpLayer()
+    print('help off')                    -- v2.8 ② 时停恢复锚
   else
     helpOpen = true
     buildHelpLayer()
+    if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
   end
 end
 
@@ -1984,6 +2020,36 @@ MS.hairline = function(i, cx, cy, color)
     MS.hair[i] = { ctl = c, r = r, g = gg, b = b }
   end
 end
+-- v3.0 预混色：把半透明色「盖在底面上」算成不透明色。
+-- 为什么必须：胶囊/云/花瓣都是多件图元互相重叠拼出来的，半透明叠加会在交界处叠两次 → 看得见接缝。
+local function over(base, c, k)
+  local br, bg_, bb = (base // 65536) % 256, (base // 256) % 256, base % 256
+  local r, g, b = (c // 65536) % 256, (c // 256) % 256, c % 256
+  return C(255, math.floor(br + (r - br) * k + 0.5),
+    math.floor(bg_ + (g - bg_) * k + 0.5), math.floor(bb + (b - bb) * k + 0.5))
+end
+-- v3.0 图元形状：与背景池同一套 spec 字段（s/x/y/w/h/c/rot），标题页装饰与胶囊都用它
+MS.addShape = function(name, spec)
+  if not spec then return nil end
+  local c = MS.addCell(name, spec.x, spec.y, spec.w, spec.h, spec.c)
+  if not c then return nil end
+  if spec.rot and spec.rot ~= 0 then pcall(function() c:SetLocalRotation(0, 0, spec.rot) end) end
+  local img = BG_IMG[spec.s or 'rect'] or BG_IMG.rect
+  local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
+  local ok = false
+  if enumT and enumT.StaticReference ~= nil then
+    ok = pcall(function() c:SetImage(enumT.StaticReference, img) end)
+  end
+  if not ok then pcall(function() c:SetImage('StaticReference', img) end) end
+  return c
+end
+-- 胶囊（圆角面板）：矩形 + 两端半圆 = 圆润可爱的主体语汇（真机没有圆角矩形图元）
+MS.addPill = function(name, x, y, w, h, fill)
+  local body = math.max(2, w - h)
+  MS.addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill })
+  MS.addShape(name .. 'L', { s = 'circle', x = x - body / 2, y = y, w = h, h = h, c = fill })
+  MS.addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill })
+end
 MS.destroy = function()
   for i = #MS.parts, 1, -1 do
     if MS.parts[i] then pcall(function() game.DestroyClientUIControl(MS.parts[i]) end) end
@@ -1999,16 +2065,25 @@ MS.build = function()
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
   local halfW, halfH = W / 2, H / 2
   -- 棋盘视窗：正好收到棋盘框外沿（frame 在 ±150 / ±300，背板 306×606）。
-  -- 早先给 174/312/-302 ⇒ 视窗比背板大 3~9px，边缘漏出背景一条亮线（出图实测）。
   local winHalf, winTop, winBot = 151, 301, -301
   local sideW, sideH = halfW - winHalf, winTop - winBot
   local sideCY = (winTop + winBot) / 2
-  -- ① 深空墙：左右上下四块，只留视窗（+8 遮住画布边缘的抗锯齿缝）
+  -- ① 天空墙：左右上下四块，只留视窗（+8 遮住画布边缘的抗锯齿缝）
   MS.addCell('menuWallL', -(winHalf + sideW / 2), sideCY, sideW, sideH, MS.WALL)
   MS.addCell('menuWallR', winHalf + sideW / 2, sideCY, sideW, sideH, MS.WALL)
   MS.addCell('menuWallT', 0, (halfH + winTop) / 2, W + 8, halfH - winTop + 1, MS.WALL)
   MS.addCell('menuWallB', 0, (winBot - halfH) / 2, W + 8, halfH + winBot + 1, MS.WALL)
-  -- ② 视窗边框 + 四角括号
+  -- 顶部/底部云带（比墙深一档的极淡色，给平铺的墙一点空气感）
+  MS.addCell('menuSkyT', 0, halfH - 24, W + 8, 48, THEME.wallAlt)
+  MS.addCell('menuSkyB', 0, -halfH + 20, W + 8, 40, THEME.wallAlt)
+  -- ② 装饰：云 / 星芒 / 花瓣（配色与构图在 config.lua 的 THEME.deco；与背景池同一套 spec）
+  local deco = THEME.deco or {}
+  for i = 1, #deco do MS.addShape('menuDeco' .. i, deco[i]) end
+  -- ③ 视窗内阴影（极淡深蓝，让窗口像一块嵌进天空的屏）+ 描金细边 + 四角括号
+  MS.addCell('menuShadeT', 0, winTop - 10, 2 * winHalf + 30, 20, THEME.shadow)
+  MS.addCell('menuShadeB', 0, winBot + 10, 2 * winHalf + 30, 20, THEME.shadow)
+  MS.addCell('menuShadeL', -winHalf - 10, sideCY, 20, sideH + 8, THEME.shadow)
+  MS.addCell('menuShadeR', winHalf + 10, sideCY, 20, sideH + 8, THEME.shadow)
   MS.addCell('menuBezelT', 0, winTop, 2 * winHalf + 8, 3, MS.BEZEL)
   MS.addCell('menuBezelB', 0, winBot, 2 * winHalf + 8, 3, MS.BEZEL)
   MS.addCell('menuBezelL', -winHalf, sideCY, 3, sideH + 8, MS.BEZEL)
@@ -2021,14 +2096,18 @@ MS.build = function()
       MS.addCell('menuTickV' .. tag, sx * (halfW - 12), sy * (halfH - AR / 2 - 12), AT, AR, MS.TICK)
     end
   end
-  -- ③ 标题（实例版大字）。服务端 topBanner/botBanner 在某些宿主可能压在实例层之上，
-  --    A 置 0 双保险——A 通道是唯一真机验过的通道（D581）。
+  -- ④ 标题横幅：奶油胶囊 + 一条描金细线 + 深金大字（叠在视窗上沿 = 有意为之的缎带）
   local titleSize = (halfH > 400) and 52 or 44
-  local titleY = math.min(winTop + (halfH - winTop) / 2 + 2, halfH - titleSize * 0.62 - 4)
-  MS.big = MS.addText('menuBig', '俄罗斯方块', 0, titleY, 660, titleSize + 26, titleSize, C_GOLD2)
+  local titleY = math.min(winTop + (halfH - winTop) * 0.5 + 4, halfH - 34)
+  local bannerH = titleSize + 20
+  MS.addPill('menuBanner', 0, titleY, 580, bannerH, over(MS.WALL, THEME.gold, 0.34))
+  MS.addCell('menuBannerRule', 0, titleY + bannerH / 2 - 3, 240, 3, THEME.goldDeep)
+  MS.addCell('menuBannerRule2', 0, titleY - bannerH / 2 + 2, 240, 3, THEME.goldDeep)
+  -- 框高硬判据 h >= fontSize*1.45+4（52 号要 79.4；旧写法 +26 在 PC 画布上少 1.4px ⇒ 整行不画）
+  MS.big = MS.addText('menuBig', '俄罗斯方块', 0, titleY, 660, math.floor(titleSize * 1.45 + 12), titleSize, THEME.goldDeep)
   trySet(topBanner, 'fontColor', C(0, 255, 194, 76))
   trySet(botBanner, 'fontColor', C(0, 118, 214, 255))
-  -- ④ 底部分段提示条（3 段 + 2 分隔点 + 2 侧箭头）
+  -- ⑤ 底部分段提示条（3 段 + 2 分隔点）
   local lineY = winBot - 30
   MS.lineY = lineY
   local segX, segW = { -290, 0, 290 }, { 215, 250, 215 }
@@ -2036,9 +2115,8 @@ MS.build = function()
     MS.hint[i] = MS.addText('menuHint' .. i, MS.hintText[i], segX[i], lineY, segW[i], 50, 26, MS.CYAN)
   end
   MS.segX = segX
-  -- v2.6 ③：滑动下划线/侧箭头撤除（保留分隔点）
-  MS.addCell('menuDot1', -148, lineY, 6, 6, C(150, 118, 214, 255))
-  MS.addCell('menuDot2', 148, lineY, 6, 6, C(150, 118, 214, 255))
+  MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
+  MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
   print('menu stage n=' .. #MS.parts)
   return true
 end
@@ -2050,7 +2128,7 @@ MS.focusLock = function(idx, mname)
   local info = MODE_INFO[idx] or MODE_INFO[1]
   if MS.big then
     MS.big.text = MODE_TITLE[mname] or mname or '俄罗斯方块'
-    trySet(MS.big, 'fontColor', info.color)
+    trySet(MS.big, 'fontColor', info.colorDeep)   -- v3.0 浅底：模式大字用深色档
     tryCall(MS.big, 'SetSizeDelta', 720, 100)      -- 64 号要 >=96.8
     tryCall(MS.big, 'SetAnchoredPosition', 0, 0)   -- 屏幕正中（顶部条带放不下 64 号墨迹）
     trySet(MS.big, 'fontSize', 26)
@@ -2152,15 +2230,19 @@ MS.modes = function()
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
       local leftX = cx + 30                      -- 列内统一左缘（不贴画布边）
-      mcCell('menuTick' .. i, leftX - 186, cy - 2, 5, 44, info.color)
+      -- v3.0：胶囊卡（圆润）+ 元素宝珠（圆点）+ 星芒（右上），字压在卡上（先建底、后建字）
+      local pill = MS.addPill('menuPill' .. i, cx + 10, cy, 400, 100,
+        over(MS.WALL, info.color, 0.17))
+      local bead = MS.addShape('menuBead' .. i, { s = 'circle', x = cx - 160, y = cy, w = 22, h = 22, c = info.colorDeep })
+      local star = MS.addShape('menuStar' .. i, { s = 'fourstar', x = cx + 178, y = cy, w = 26, h = 26, c = mcRGB(info.color, 150) })
       MS.sel[i] = {
+        pill = pill, bead = bead, star = star,
         title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name,
           leftX, cy + 18, 330, 70, 38, THEME.textMain, 'Left'),
         desc = mcText('menuDesc' .. i, info.desc,
-          leftX, cy - 30, 330, 32, 15, C(225, 152, 166, 190), 'Left'),
+          leftX, cy - 30, 330, 32, 15, THEME.textSub, 'Left'),
       }
     end
-    MS.selRow = mcCell('menuSelRow', 0, 0, 420, 104, C(0, 0, 0, 0))   -- 选中整行高亮（初始全透明）
   elseif MENU_STYLE == 'B' then
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
@@ -2174,7 +2256,7 @@ MS.modes = function()
         icon = { ix = ix, iy = iy, color = info.color },
       }
     end
-    MS.detail = mcText('menuDetail', MODE_INFO[1].desc, 0, -232, 760, 34, 18, C(230, 168, 182, 210))
+    MS.detail = mcText('menuDetail', MODE_INFO[1].desc, 0, -232, 760, 34, 18, THEME.textSub)
   else
     for i, info in ipairs(MODE_INFO) do
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
@@ -2182,16 +2264,16 @@ MS.modes = function()
         row = mcCell('menuCard' .. i, cx, cy, 424, 96, mcRGB(info.color, 30)),
         title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx - 34, cy + 16, 320, 70, 38, THEME.textMain, 'Left'),
       }
-      mcText('menuDesc' .. i, info.desc, cx - 34, cy - 24, 320, 30, 14, C(210, 150, 164, 188), 'Left')
+      mcText('menuDesc' .. i, info.desc, cx - 34, cy - 24, 320, 30, 14, THEME.textSub, 'Left')
     end
   end
   local sub = game.InstantiateClientUIControl(TPL_TEXT, root)
   if sub then
     local W, H = CANVAS_W or 1280, CANVAS_H or 720
     sub.name = 'menuSub'
-    sub.text = 'DEEP SPACE NEON · 四模式街机'
+    sub.text = 'TEYVAT SKY · 四元素街机'
     sub.fontSize = 16
-    trySet(sub, 'fontColor', C(196, 148, 163, 184))
+    trySet(sub, 'fontColor', THEME.textSub)
     trySet(sub, 'horizontalAlignment', 'Left')
     trySet(sub, 'bgColor', C(0, 0, 0, 0))
     sub:SetSizeDelta(390, 34)
@@ -2199,38 +2281,41 @@ MS.modes = function()
     MC[#MC + 1] = sub
   end
 end
--- 未选中的三项淡出（按下 Digit 后到进局前那 0.5s：留下被选中的一项 + 屏幕正中模式名大字）
+-- 未选中的三项淡出（按下 Digit 后到进局前那 0.5s）：留下被选中的一项 + 屏幕正中模式名大字
 MS.dimOthers = function(keep)
   for j = 1, #MODE_INFO do
     if j ~= keep then
       local t, d = find('menuTitle' .. j), find('menuDesc' .. j)
-      local k = find('menuTick' .. j)
+      local sel = MS.sel and MS.sel[j]
       if t then trySet(t, 'fontColor', C(0, 241, 245, 249)) trySet(t, 'outlineColor', C(0, 0, 0, 0)) end
       if d then trySet(d, 'fontColor', C(0, 152, 166, 190)) trySet(d, 'outlineColor', C(0, 0, 0, 0)) end
-      if k then k.imageColor = C(0, 0, 0, 0) end
+      if sel then
+        if sel.bead then trySet(sel.bead, 'imageColor', C(0, 0, 0, 0)) end
+        if sel.star then trySet(sel.star, 'imageColor', C(0, 0, 0, 0)) end
+        if sel.pill then trySet(sel.pill, 'imageColor', MS.WALL) end
+      end
     end
   end
 end
--- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：只用「字放大 + 左柱加粗 + 整行高亮」朴素反馈
+-- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：字放大 + 卡染深 + 宝珠变大
 MS.select = function(i)
   local info = MODE_INFO[i]
   local sel = MS.sel and MS.sel[i]
   if not info or not sel then return end
   if sel.title then
     trySet(sel.title, 'fontSize', 44)                  -- 38 → 44（框 70 ≥ 44*1.45+4=68）
-    trySet(sel.title, 'fontColor', mcRGB(info.color))
+    trySet(sel.title, 'fontColor', info.colorDeep)
   end
-  if sel.desc then trySet(sel.desc, 'fontColor', C(255, 210, 220, 236)) end
-  local tick = find('menuTick' .. i)
-  if tick then tryCall(tick, 'SetSizeDelta', 8, 56) end
+  if sel.desc then trySet(sel.desc, 'fontColor', THEME.textMain) end
+  if sel.bead then
+    tryCall(sel.bead, 'SetSizeDelta', 30, 30)
+    trySet(sel.bead, 'imageColor', info.colorDeep)
+  end
+  if sel.star then trySet(sel.star, 'imageColor', mcRGB(info.color, 230)) end
+  if sel.pill then trySet(sel.pill, 'imageColor', over(MS.WALL, info.color, 0.34)) end
   if sel.row then
     tryCall(sel.row, 'SetSizeDelta', 436, 104)
     trySet(sel.row, 'imageColor', mcRGB(info.color, 78))
-  end
-  if MS.selRow then                                    -- 整行高亮（半透明模式色，压在字下面）
-    tryCall(MS.selRow, 'SetSizeDelta', 416, 108)
-    tryCall(MS.selRow, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
-    trySet(MS.selRow, 'imageColor', mcRGB(info.color, 46))
   end
   if sel.icon then
     for j = 1, 3 do
@@ -2239,7 +2324,7 @@ MS.select = function(i)
       if c then tryCall(c, 'SetSizeDelta', 26, 26) tryCall(c, 'SetAnchoredPosition', sel.icon.ix + o[1], sel.icon.iy + o[2]) end
     end
   end
-  if MS.detail then trySet(MS.detail, 'fontColor', mcRGB(info.color)) setText(MS.detail, info.desc) end
+  if MS.detail then trySet(MS.detail, 'fontColor', info.colorDeep) setText(MS.detail, info.desc) end
 end
 
 -- ===== v2.7 ⑤ 四模式「常态 / 悬浮 / 按下」三态（用户反馈⑤）=====
@@ -2248,10 +2333,10 @@ end
 --   * 运行期实例可挂，前提是**模板根**就是 cursor 类（本工程 hit 模板，与手机热区同源）；
 --   * 事件门控：父链上必须有 container.showCursor == true（OnStart 里已 `root.showCursor = true`）；
 --   * 命中：image 不接收指针也不下钻子级 ⇒ 热区必须是卡片的**同级兄弟**（不是子节点）。
--- 三态样式（不改布局，只改字号/颜色/色柱/整行高亮）：
---   常态 38 号主文字色、色柱 5×44、无高亮
---   悬浮 40 号 + 模式色、色柱 6×48、整行高亮 α30
---   按下 42 号 + 模式色、色柱 8×56、整行高亮 α62（再按一次才开局=与键盘 Digit 同一条入口）
+-- v3.0 三态（只在胶囊卡上做，不改布局）：
+--   常态 38 号墨色 + 卡染 α46 + 宝珠 22
+--   悬浮 40 号模式深色 + 卡染 α74 + 宝珠 26
+--   按下 42 号模式深色 + 卡染 α110 + 宝珠 30（再按一次才开局 = 与键盘 Digit 同一条入口）
 MS.cardStyle = function(i, state)
   local sel = MS.sel and MS.sel[i]
   local info = MODE_INFO[i]
@@ -2261,26 +2346,21 @@ MS.cardStyle = function(i, state)
   local hot = hover or press
   if sel.title then
     trySet(sel.title, 'fontSize', press and 42 or (hover and 40 or 38))
-    trySet(sel.title, 'fontColor', hot and mcRGB(info.color) or THEME.textMain)
+    trySet(sel.title, 'fontColor', hot and info.colorDeep or THEME.textMain)
   end
   if sel.desc then
-    trySet(sel.desc, 'fontColor', hot and C(255, 214, 226, 240) or C(225, 152, 166, 190))
+    trySet(sel.desc, 'fontColor', hot and THEME.textMain or THEME.textSub)
   end
-  local tick = find('menuTick' .. i)
-  if tick then
-    tryCall(tick, 'SetSizeDelta', press and 8 or (hover and 6 or 5), press and 56 or (hover and 48 or 44))
-    if not hot then trySet(tick, 'imageColor', info.color) end
+  if sel.bead then
+    local d = press and 30 or (hover and 26 or 22)
+    tryCall(sel.bead, 'SetSizeDelta', d, d)
+    trySet(sel.bead, 'imageColor', hot and info.colorDeep or info.color)
   end
-  if MS.selRow then
-    tryCall(MS.selRow, 'SetSizeDelta', 416, 108)
-    tryCall(MS.selRow, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
-    if press then
-      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 62))
-    elseif hover then
-      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 30))
-    else
-      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 0))   -- α0 全透明（实例不能删，只能藏）
-    end
+  if sel.star then
+    trySet(sel.star, 'imageColor', mcRGB(info.color, hot and 230 or 150))
+  end
+  if sel.pill then
+    trySet(sel.pill, 'imageColor', over(MS.WALL, info.color, press and 0.42 or (hover and 0.26 or 0.17)))
   end
 end
 MS.hoverCard = function(i)
@@ -2389,7 +2469,7 @@ local function buildBoardControls(inst)
     plate.name = 'p2plate'
     plate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
     plate:SetAnchoredPosition(0, 0)
-    plate.imageColor = C(255, 9, 12, 20)
+    plate.imageColor = MODE_THEME.casual.plate
     g.plate = plate
   end
   g.cells = {}
@@ -2408,7 +2488,7 @@ local function buildBoardControls(inst)
   end
   -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
   -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
-  local FRAME_COL = C(255, 58, 76, 108)
+  local FRAME_COL = MODE_THEME.casual.frame
   local frameX = 4.5 * PITCH + CELL / 2 + 1
   local frameY = 9.5 * PITCH + CELL / 2 + 1
   g.frames = {}
@@ -2521,12 +2601,12 @@ local function layoutDual()
     local H2 = CANVAS_H or 720
     tryCall(DUAL_DECO[1], 'SetSizeDelta', 2, H2 * 0.66)
     tryCall(DUAL_DECO[1], 'SetAnchoredPosition', 0, 0)
-    trySet(DUAL_DECO[1], 'imageColor', C(120, 118, 214, 255))
+    trySet(DUAL_DECO[1], 'imageColor', THEME.gold)
   end
   if DUAL_DECO[2] then
     tryCall(DUAL_DECO[2], 'SetSizeDelta', 10, 10)
     tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
-    trySet(DUAL_DECO[2], 'imageColor', C(200, 118, 214, 255))
+    trySet(DUAL_DECO[2], 'imageColor', THEME.goldDeep)
   end
   -- 左栏战况归位：hud 原在 x=-(halfW-…)=压在左盘边上；挪进左空区并缩小字号防裁尾
   local halfW = (CANVAS_W or 1280) / 2
@@ -2558,7 +2638,7 @@ showPersistTip = function()
       and 'P1：W 旋转 · G 暂存　｜　P2：← → 移动 · ↓ 软降 · X 直落　（共盘抗 AI）'
     or '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明'
   trySet(botBanner, 'fontSize', 20)
-  trySet(botBanner, 'fontColor', C(255, 148, 163, 184))
+  trySet(botBanner, 'fontColor', THEME.textSub)
   setText(botBanner, PERSIST_TIP)
 end
 
@@ -3369,7 +3449,7 @@ function OnStart()
     backPlate.name = 'boardPlate'
     backPlate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
     backPlate:SetAnchoredPosition(0, 0)
-    backPlate.imageColor = C(255, 9, 12, 20)
+    backPlate.imageColor = MODE_THEME.casual.plate
     g.plate = backPlate
   end
 
@@ -3395,7 +3475,7 @@ function OnStart()
   -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
   -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
   -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
-  local FRAME_COL = C(255, 58, 76, 108)
+  local FRAME_COL = MODE_THEME.casual.frame
   local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
   g.frames = {}
   -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
@@ -3898,6 +3978,8 @@ end
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
+  -- v2.8 ②：局内开帮助=游戏时停（重力/AI/接管计时全停；结算态不冻结）。关闭即恢复。
+  if helpOpen and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
   g = G[1]                         -- 主流程段（横幅/演出/自演）作用于主盘（v1 语义）
   if bannerTimer > 0 and not g.gameOver then

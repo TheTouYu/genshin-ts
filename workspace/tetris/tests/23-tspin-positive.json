@@ -764,13 +764,13 @@
     {
       "at": 7.32,
       "kind": "log",
-      "contains": "clear n=2 score=603 lines=2 combo=1 b2b=0",
+      "contains": "clear n=2 score=600 lines=2 combo=1 b2b=0",
       "source": "client"
     },
     {
       "at": 7.32,
       "kind": "lua",
-      "source": "local logs = query.logs()\nlocal lockAt, clearAt, tspinAt = 0, 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^lock T ') and l:match('cells=166,155,165,175') then lockAt = i end\n  if l:match('^clear n=2 score=603') then clearAt = i end\n  if l:match('^tspin corners>=3 lines=2 bonus=800') then tspinAt = i end\nend\nassert(lockAt > 0 and clearAt > lockAt and tspinAt > clearAt, 'order: lock=' .. lockAt .. ' clear=' .. clearAt .. ' tspin=' .. tspinAt)\nreturn true"
+      "source": "local logs = query.logs()\nlocal lockAt, clearAt, tspinAt = 0, 0, 0\nfor i, l in ipairs(logs) do\n  if l:match('^lock T ') and l:match('cells=166,155,165,175') then lockAt = i end\n  if l:match('^clear n=2 score=600') then clearAt = i end\n  if l:match('^tspin corners>=3 lines=2 bonus=800') then tspinAt = i end\nend\nassert(lockAt > 0 and clearAt > lockAt and tspinAt > clearAt, 'order: lock=' .. lockAt .. ' clear=' .. clearAt .. ' tspin=' .. tspinAt)\nreturn true"
     }
   ],
   "audioExpect": [
