@@ -618,20 +618,13 @@ local COPY = {
     back = { id = 'H3', text = '旅行者归位！', color = D_LEAF, kind = '提示',
       anim = '静态 0.8s→落回常驻键位提示', cond = '接管中按任一游戏键（takeover back）', live = true },
   },
-  -- ⑧ 留表待接（live=false）：接线只需改 live + 在 main.lua 挂对应槽位，文案不用重写
+  -- ⑧ 留表待接（live=false）：接线只需改 live + 在 main.lua 挂对应槽位，文案不用重写。
+  -- S02–S04 在 ② 的 start 槽里（同 live=false），此处不重复登记。
   pending = {
-    { id = 'S02', text = '雷光的对峙 · 三、二、一', color = D_BOLT, kind = '场景',
-      anim = '静态', cond = 'ai-battle 准备段 topBanner', live = false },
-    { id = 'S03', text = '花见坂的樱瓣 · 各落一边', color = D_PETAL, kind = '场景',
-      anim = '静态', cond = 'pvp 准备段 topBanner', live = false },
-    { id = 'S04', text = '雪原上的两双手 · 共守一塔', color = D_ICE, kind = '场景',
-      anim = '静态', cond = 'coop 准备段 topBanner', live = false },
     { id = 'E4', text = '你赢了！蒙德的风把消息吹遍了七国。', color = THEME.goldDeep,
       kind = '场景', anim = '静态（替换结算标题）', cond = '双屏模式胜局 overTitle', live = false },
     { id = 'E5', text = '你倒下了——但提瓦特的星空里永远有你的位置。', color = THEME.textSub,
       kind = '旁白', anim = '淡入', cond = '玩家盘顶满（引用命之座原句）', live = false },
-    { id = 'E6', text = '逐项明细 · 星辰与深渊都记着。', color = THEME.hint, kind = '旁白',
-      anim = '静态', cond = '结算页按 Q', live = false },
     { id = 'G1', text = '四行俱灭 = 元素爆发 · +800', color = THEME.textSub, kind = '提示',
       anim = '静态 4s', cond = '首次消行（!g.taughtClear）', live = false },
     { id = 'G2', text = '把一行填满，地脉就会回应你', color = THEME.textSub, kind = '提示',
@@ -658,10 +651,6 @@ local COPY = {
       anim = '静态', cond = '说明页中栏导语', live = false },
     { id = 'G13', text = '七国各有规矩，选一种上路', color = THEME.textDim, kind = '旁白',
       anim = '静态', cond = '说明页右栏导语', live = false },
-    { id = 'G14', text = '派蒙：喂，旅行者？', color = D_PETAL, kind = '彩蛋',
-      anim = '静态 2s', cond = '局内 20s 无输入（每局一次）', live = false },
-    { id = 'G15', text = '第一步 · 旅行者', color = D_LEAF, kind = '彩蛋',
-      anim = '静态 1.2s', cond = '本局首块落下', live = false },
   },
 }
 M.COPY = COPY
