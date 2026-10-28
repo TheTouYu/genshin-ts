@@ -111,6 +111,10 @@ These word counts are approximate and you can feel free to go longer if needed.
 
 **Key patterns:**
 - Keep SKILL.md under 500 lines; if you're approaching this limit, add an additional layer of hierarchy along with clear pointers about where the model using the skill should go next to follow up.
+- **更硬的体积门（2026-10-28 用户定，本仓实证）**：SKILL.md 目标 **≤150 行 / ≤10KB**；超了立刻拆 `references/`（按主题分文件），SKILL.md 只留「触发词 + 动手前自查清单 + 阶段表/索引 + 环境速查」。**理由**：长单文件有被截断/挤占上下文的风险（用户原话「单个技能文件太长，会导致被截断，从而触发更大的问题」），而写越长越容易越写越杂。
+  - 实证：`lua-2d-ui-game-build` 504 行/44KB → 84 行/7KB + `references/{deploy,ui-layout,runtime,feedback}.md` 四模块（2026-10-28）。
+  - 拆出来的每个 references 文件头部写清「本文件从 SKILL.md 拆出 + 主入口在哪」；主索引给「什么时候打开哪个文件」。
+  - **防忘优先**：把最容易犯错的判据做成 SKILL.md 开头的「动手前 30 秒自查清单」（6-8 条、每条带「忘了会怎样」）——技能的价值在于**让人/模型在动手前过一遍**，不是把知识堆在末尾。
 - Reference files clearly from SKILL.md with guidance on when to read them
 - For large reference files (>300 lines), include a table of contents
 
