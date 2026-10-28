@@ -1145,6 +1145,20 @@ local function startIfWaiting()
   setText(topBanner, '')
   setText(botBanner, '')
   for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+  -- v2.9 ②：实例 HUD 同步单屏位（与 layout 的 textbox 位一致，防 dual/单屏切换后叠两行）
+  -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
+  if HUD_INST.hud then
+    local halfW = (CANVAS_W or 1280) / 2
+    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 40)
+    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), -10)
+    tryCall(HUD_INST.hud, 'SetVisible', true)
+    tryCall(HUD_INST.best, 'SetVisible', true)
+  end
+  if G[2] then
+    tryCall(HUD_INST.keyA, 'SetVisible', true)
+    tryCall(HUD_INST.keyB, 'SetVisible', true)
+    tryCall(HUD_INST.keyC, 'SetVisible', true)
+  end
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
@@ -2670,12 +2684,13 @@ local function layoutDual()
     tryCall(best, 'SetSizeDelta', 330, 36)
     tryCall(best, 'SetAnchoredPosition', gutterX, 202)
   end
-  -- v2.8 ⑤：实例 HUD 同步到双屏 gutter 位（实例在背景池之上，真机可见的就是它）
-  if HUD_INST.hud then tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) end
-  if HUD_INST.best then tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) end
-  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 400, -40) end
-  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 400, -80) end
-  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 400, -120) end
+  -- v2.8 ⑤/v2.9 ②③：实例 HUD 同步双屏 gutter 位 + 恢复显示（layoutDual 是双屏必经路径，
+  -- 引导结束/GK 复位都走这里；ikeyA-C 在此必显，防 startIfWaiting 时序漏恢复）
+  if HUD_INST.hud then tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true) end
+  if HUD_INST.best then tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true) end
+  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 400, -40) tryCall(HUD_INST.keyA, 'SetVisible', true) end
+  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 400, -80) tryCall(HUD_INST.keyB, 'SetVisible', true) end
+  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 400, -120) tryCall(HUD_INST.keyC, 'SetVisible', true) end
   if hudNext then
     tryCall(hudNext, 'SetSizeDelta', 330, 40)
     tryCall(hudNext, 'SetAnchoredPosition', gutterX, 300)
@@ -2703,7 +2718,7 @@ HUD_INST.build = function()
       c.name = 'i' .. nm
       trySet(c, 'fontSize', 20)
       trySet(c, 'fontColor', THEME.textMain)
-      c:SetSizeDelta(360, 40)
+      c:SetSizeDelta(640, 40)   -- v2.9 ①：360 装不下 P1/P2 键位串（textLayout.fits=false 半行裁）
       HUD_INST[nm] = c
       made = made + 1
     end
@@ -3625,6 +3640,10 @@ function OnStart()
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
   pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
+  -- v2.9 ③：标题页藏 HUD 实例（左下角漏「等级 1 已填 0」——stage0 只看展台）
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC' }) do
+    if HUD_INST[nm] then tryCall(HUD_INST[nm], 'SetVisible', false) end
+  end
 
   -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
   -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
