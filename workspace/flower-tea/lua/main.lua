@@ -8,7 +8,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = '1793148471027'
+T.BUILD_ID = '1793230062958'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -247,7 +247,13 @@ T.tryCall = function(ctl, method, a, b)
   if b ~= nil then ok, err = pcall(function() ctl[method](ctl, a, b) end)
   elseif a ~= nil then ok, err = pcall(function() ctl[method](ctl, a) end)
   else ok, err = pcall(function() ctl[method](ctl) end) end
-  if not ok then T.warn('call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
+  if not ok then
+    local msg = tostring(err)
+    -- 屏幕上已销毁的旧动画引用会每帧刷同一条 invalid object；不刷屏，避免日志把主线程拖死
+    if not msg:find('invalid object', 1, true) then
+      T.warn('call ' .. tostring(method) .. ' :: ' .. msg)
+    end
+  end
   return ok
 end
 T.destroy = function(ctl)
@@ -708,6 +714,7 @@ T.openOverlay = function(name, builder, opts)
   local base = {
     items = T.items, hits = T.hits, focus = T.focus, focusFrame = T.focusFrame,
     screen = T.screen, mode = T.mode, controlsStart = #T.controls + 1,
+    tweensStart = #T.tweens + 1, animsStart = #T.anims + 1,
     name = name, pausesGame = opts.pausesGame, onClose = opts.onClose,
   }
   T.overlays[#T.overlays + 1] = base
@@ -735,6 +742,8 @@ T.closeOverlay = function()
     if ctl then pcall(function() game.DestroyClientUIControl(ctl) end) end
     T.controls[i] = nil
   end
+  for i = #T.tweens, o.tweensStart or (#T.tweens + 1), -1 do T.tweens[i] = nil end
+  for i = #T.anims, o.animsStart or (#T.anims + 1), -1 do T.anims[i] = nil end
   T.items, T.hits, T.focus, T.focusFrame = o.items, o.hits, o.focus, o.focusFrame
   T.screen, T.mode = o.screen, o.mode
   T.overlay = T.overlays[#T.overlays] or nil
@@ -2914,8 +2923,9 @@ function OnStart()
     T.probeTemplates()
     T.setSeed(20261028)
     -- 键位注册：枚举优先，字符串回落
-    if type(Enum) == 'table' and Enum.KeyCode then
-      T.keyEnum = Enum.KeyCode
+    -- 真机 AddKeyEventListener 第一参要求 KeyEventType 枚举；Enum.KeyCode 是另一套命名空间
+    if type(Enum) == 'table' and Enum.KeyEventType then
+      T.keyEnum = Enum.KeyEventType
     end
     for raw, action in pairs(T.keyMap) do
       local okKey, errKey

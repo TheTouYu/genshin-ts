@@ -111,8 +111,9 @@ function OnStart()
     T.probeTemplates()
     T.setSeed(20261028)
     -- 键位注册：枚举优先，字符串回落
-    if type(Enum) == 'table' and Enum.KeyCode then
-      T.keyEnum = Enum.KeyCode
+    -- 真机 AddKeyEventListener 第一参要求 KeyEventType 枚举；Enum.KeyCode 是另一套命名空间
+    if type(Enum) == 'table' and Enum.KeyEventType then
+      T.keyEnum = Enum.KeyEventType
     end
     for raw, action in pairs(T.keyMap) do
       local okKey, errKey
