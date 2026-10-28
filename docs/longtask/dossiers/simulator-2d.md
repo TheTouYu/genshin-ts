@@ -37,7 +37,7 @@
 | 回归 | **43/43 用例 PASS 63.7s**（`node qxqy/runner.mjs`） | 行为层（模拟器） |
 | 语法门 | `lua5.3 -e 'assert(loadfile(...))'` 逐文件 OK（main + 3 模块） | 结构层 |
 | 构建 | `node qxqy/build.mjs` → save 355,518 B / GIA 236,363 B / **4 条脚本映射** | 结构层 |
-| 出图 | `docs/v27-title-hover.png`（卡片悬浮态）/`v27-help.png`（规则页三栏）/`v27-theme-casual.png`/`v27-theme-aibattle.png` | 真渲染帧（模拟器） |
+| 出图 | `docs/v27-title-hover.png`（卡片悬浮态）/`v27-help.png`（规则页三栏）/`v28-theme-{casual,aibattle,pvp,coop}.png`（四模式构图背景） | 真渲染帧（模拟器） |
 | 真机 | **未验证**：未挂载脚本能否 require / require 前缀 / 重导后挂载是否还在 / cursor Enter-Exit 是否派发 | — |
 
 **六类 bug 的根因（全部实测，不是推断）**：
@@ -51,7 +51,7 @@
 3. **④ H 真键是 15 号**（`craftCodes[15]='KeyH'`），v1 绑的是 `CharacterSkill1Key`（=物理 E）⇒ 真机按 H 零反应。
 4. **⑥ 点击误重开 = 手机热区 btnA-F 在 PC 也建也挂监听且从未摆位**（旧判断恒假）⇒ 6 个热区叠在画布中心。
 
-**未决（等用户拍板 / 等真机）**：`05-open.md` 的 O-2026-10-28-1/2/3。
+**⑦ 返工记录**：用户复评「四种模式要设计四种主题的背景的。偷懒啦」⇒ 从「换底色」升级为四套构图（内置图元 100001–100006 拼：\n柔光带/靶环/斜纹/阵营色块/同心环/箭头/星点），背景池 16 件在 OnStart 建好、换模式只换肤（commit `2baf1111`）。\n\n**未决（等用户拍板 / 等真机）**：`05-open.md` 的 O-2026-10-28-1/2/3。
 
 ## 二、三方分工（别搞混，三个位置各有主）
 
