@@ -342,6 +342,15 @@ gsts assets:scripts update --guid <执行中的> --source-file <注入版.lua> \
 - 用户侧操作 = **打开地图直接试玩**，零导入零同步（模板/控件首次部署才走 GIA 导入，增量改 lua 一律走本路线）。
 - 写盘前提：确认编辑器/游戏没开着该图（开着=内存版会在离开时覆盖写盘，D314）；用户开着时先请其切出，写完再切回。
 - 多条脚本记录的图（main/main_1/main_2 并存是常态——历次导入各留一条）：把执行中的与易被切回的都 update 到同一内容，消除歧义。
+- **多模块 Lua 的真机部署（2026-10-28 实测：v2.7 单文件拆 4 模块，真机漏部署 = 用户玩到旧版）**：
+  官方口径「脚本资产可建多份映射，**未挂载的只作 require 模块**（不跑生命周期）」；require 路径 = 映射路径去 `.lua`，引擎自动补 `default_import_file/` 前缀。
+  部署清单（缺一条就白部署）：
+  1. `update` 主脚本（挂在宿主上的那条，如 main_2）——二重身 main_1 也同步，防切回；
+  2. **每个模块都要 `register`**（f50 登记 + external 提取 + Temp 同步）：`assets:scripts register --name tetris_<mod> --path lua/<proj>/<mod>.lua --source-file <注入版> --gil <图> --map-id <id> --write`；
+  3. **判据：`assets:scripts list` 的 registryEntries 数 == 主脚本数 + 模块数**（例：2 主 + 3 模块 = 6），且每个模块的 `external=<字节数>` 非 MISSING；
+  4. 模块文件必须落在 `<槽>/external_lua_file/default_import_file/lua/<proj>/`（`ls` 核对文件名）；
+  5. 部署后**必须让用户切出地图再切回**（编辑器/游戏内存版否则仍是旧的）——「CLI 回显全绿 ≠ 真机加载了新代码」。
+  **注入点也可能搬进模块**（v2.7 把 `TPL_GUIDS` 移进 config.lua）：注入版判据要扫**所有模块**（`grep '= { \d\+'`），别只看 main。
 
 **备用路线：GIA 导入（首次部署/模板变更时）**
 
