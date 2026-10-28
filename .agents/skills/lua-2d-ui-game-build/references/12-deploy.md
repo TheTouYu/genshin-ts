@@ -6,6 +6,13 @@
 >
 > 出处：`18-evidence.md` F 组；日志锚点：`hud inst n=` / `module ok` / `tpl guid=` / `registryEntries`。
 
+> **先解决"文件在哪"**（零上下文实测的卡点）：
+> - **地图 `.gil` 路径**：`<LocalLow>/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/<mapId>/<mapId>.gil`
+>   （`<uid>` = 110170759，`<mapId>` 见编辑器标题；**漏掉 uid 这层**会报"没有那个文件"）。
+> - **注入版从哪来**：`node -e "const s=JSON.parse(require('fs').readFileSync('<proj>.save.json','utf8'));require('fs').writeFileSync('/tmp/inject-main.lua', s.assets.scripts[0].source)"`
+>   —— 这就是要喂给 `--source-file` 的**注入版**（源文件原文会白屏，见 §2）。
+> - **试玩服务**：`http://127.0.0.1:4173/editor`（`/play` 直开 404，必须从编辑器点「▷ 试玩 ↗」）。
+
 ## 1. 部署三处（缺一处用户就看不到新版）
 
 | # | 位置 | 谁读它 | 漏了会怎样 |
@@ -49,7 +56,7 @@ gsts assets:scripts update \
 ```
 
 **注入版铁律**：`--source-file` 必须是 **build 产物**（`JSON.parse(save.json).assets.scripts[0].source`），不是源文件原文。
-> 源文件里的 `__GUID_CELL__` 是 build 时注入的占位符；用原文 → 占位符是 `nil` → 表构造 `{nil, 1073741849, …}` 被 `ipairs` 在首项截断 → 候选表空 → 模板探测失败 → `error()` **无声死** → 白屏，日志只打到 `canvas`/`device` 就断。
+> 源文件里的 `__GUID_CELL__` 是 build 时注入的占位符；用原文 → 占位符是 `nil` → 表构造 `{nil, 1073741849, …}` 被 `ipairs` 在首项截断 → 候选表空 → 模板探测失败 → `error()` **无声死** → 白屏，日志只打到**启动链最前面的两行**（`canvas <W>x<H>` 与其后一行设备/画布信息）就断。
 
 **验收判据（必须用数字形态，不能用字符串包含）**：
 ```bash
@@ -85,7 +92,7 @@ grep -E '/cell = \{ [0-9]+/' <注入版.lua>
 
 | 指纹行 | 含义 |
 |---|---|
-| `canvas <W>x<H>` | 画布尺寸探测成功 |
+| `canvas <W>x<H>` | 画布尺寸探测成功（**启动链第一行**；日志只到这里就断 = 之后立刻死了，见 §2 注入版 / `13-device.md` §1） |
 | `tpl guid=<n> / hit=<n>` | 模板探测成功（数字形态，不是占位符） |
 | `cellCount=<n>` | 批量实例化元素数 |
 | `listen ok ×N` | 键位注册数 |
