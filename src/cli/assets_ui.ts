@@ -1092,6 +1092,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
           parentId: resultCC.parentId,
           containerId: resultCC.containerId,
           childId: resultCC.childId,
+          templateGroupId: resultCC.templateGroupId,
+          templateChildId: resultCC.templateChildId,
           donorSource: resultCC.donorSource,
           donorSelfId: resultCC.donorSelfId,
           donorChildId: resultCC.donorChildId
@@ -1102,6 +1104,8 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
         logCC(`parentId=${resultCC.parentId}`)
         logCC(`containerId=${resultCC.containerId}`)
         logCC(`childId=${resultCC.childId}`)
+        logCC(`templateGroupId=${resultCC.templateGroupId}`)
+        logCC(`templateChildId=${resultCC.templateChildId}`)
         logCC(`donor=${resultCC.donorSource} (${resultCC.donorSelfId}+${resultCC.donorChildId})`)
         summaryCC.candidateSha256 = sha256(resultCC.bytes)
         logCC(`candidateSha256=${summaryCC.candidateSha256}`)

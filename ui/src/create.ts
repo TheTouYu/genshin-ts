@@ -34,8 +34,10 @@ import {
 } from '../../src/cli/gil_ui.js'
 import { CREATE_DONORS, createDonor } from './create-donors.js'
 import {
-  CLIENT_CONTAINER_CHILD_DONOR,
-  CLIENT_CONTAINER_GROUP_DONOR
+  CLIENT_CONTAINER_LAYOUT_CHILD_DONOR,
+  CLIENT_CONTAINER_LAYOUT_GROUP_DONOR,
+  CLIENT_CONTAINER_TEMPLATE_CHILD_DONOR,
+  CLIENT_CONTAINER_TEMPLATE_GROUP_DONOR
 } from './create-donors-client-container.js'
 import { CLIENT_CONTROL_DONORS } from './create-donors-client-controls.js'
 import type { UiCreateDonor, UiCreateDonorKind } from './create-donors.js'
@@ -317,6 +319,33 @@ export function allocateControlId(parsed: ParsedRoot9, explicitId?: number): num
     if (!used.has(id)) return id
   }
   return maxUsed + 1
+}
+
+/**
+ * 客户端控件容器专用 ID 段：编辑器保存时会把 2002/2003 等低位分配给
+ * ClientUIRootHierarchyRoot / ClientUIPrototypeHierarchyRoot，并给模板生成
+ * 2004+ 的实例记录。低 ID 容器会被覆盖/剪掉，脚本挂载随之丢失
+ * （2026-10-28 真机实测）。从 2500 起分配，避开这一段动态 ID。
+ */
+export const CLIENT_CONTAINER_SAFE_ID_FLOOR = 1073742500
+
+export function allocateClientContainerId(parsed: ParsedRoot9, explicitId?: number): number {
+  if (explicitId !== undefined) {
+    if (!Number.isSafeInteger(explicitId) || explicitId < CLIENT_CONTAINER_SAFE_ID_FLOOR) {
+      throw new Error(
+        `[error] client-container 的 --id 须 >= ${CLIENT_CONTAINER_SAFE_ID_FLOOR}；` +
+          '低位会被编辑器特殊根/模板实例占用'
+      )
+    }
+    if (collectUsedControlIds(parsed).has(explicitId)) {
+      throw new Error(`[error] --id ${explicitId} 已被占用（记录/索引/引用冲突），请避让或另选`)
+    }
+    return explicitId
+  }
+  const used = collectUsedControlIds(parsed)
+  let id = CLIENT_CONTAINER_SAFE_ID_FLOOR
+  while (used.has(id)) id += 1
+  return id
 }
 
 function encodePackedVarints(values: readonly number[]): Uint8Array {
@@ -638,7 +667,7 @@ function insertRecordOnly(bytes: Uint8Array, record: Uint8Array, afterRecordId?:
 export interface CreateClientContainerOptions {
   /** 只支持布局面（官方约束：客户端控件只能活在容器画布或模板里；容器本体挂布局） */
   surface: { kind: 'layout'; layoutId: number }
-  /** 容器组 ID（缺省=避让分配） */
+  /** 模板组 ID（缺省=从 1073742500 起避让分配） */
   id?: number
   /** 容器组名称（缺省沿用 donor 的「客户端控件容器」） */
   name?: string
@@ -647,20 +676,34 @@ export interface CreateClientContainerOptions {
 export interface CreateClientContainerResult {
   bytes: Uint8Array
   surface: { kind: 'layout'; layoutId: number }
-  /** 布局 ID（= 容器组 f504 父引用） */
+  /** 布局 ID（= 布局实例组 f504 父引用） */
   parentId: number
+  /** 布局实例组 ID（脚本挂到这个节点下的 layout child） */
   containerId: number
   childId: number
+  /** 控件模板区里的模板组/模板节点 ID */
+  templateGroupId: number
+  templateChildId: number
   donorSource: string
   donorSelfId: number
   donorChildId: number
 }
 
+function nextFreeId(used: Set<number>, from: number): number {
+  let id = from
+  while (used.has(id)) id += 1
+  return id
+}
+
 /**
- * 生成「空客户端控件容器」候选（两件套）。
- * 依据（ui-controls.md「布局挂载」节，2026-10-23 hl 差分 CONFIRMED）：
- *   一次编辑器操作 = 容器组记录（f502=23 isGroup，f504=布局，children 指子）+ 容器节点子控件（f502=86）
- *   + 布局 f503 成员列表尾部追加容器组 ID。
+ * 生成「客户端控件容器」候选（模板 + 布局实例，共 4 条记录）。
+ *
+ * 2026-10-28 真机 GIA 导入 + 拖入布局差分（地图 1073741840）：
+ *   真实客户端控件容器 = 模板组 2007 + 模板节点 2008 + 布局实例组 2014 + 布局节点 2015；
+ *   布局实例组通过 f502 引用模板组 2007，节点没有 f504 父字段（由组内 f502 引用）。
+ *   旧 donor 的 1891/1892 只有布局组+节点、没有模板来源，编辑器保存会把 2002/2003
+ *   重解释成特殊根并丢掉挂载（2026-10-28 真机实测）。
+ *
  * 只读：返回整文件候选字节，不写盘。
  */
 export function createClientContainerCandidate(
@@ -674,44 +717,60 @@ export function createClientContainerCandidate(
   if (!layout || layout.kind !== 'layout') throw new Error(`[error] ${layoutId} 不是布局记录`)
   if (!hasMemberList(parsed, layoutId)) throw new Error(`[error] 布局 ${layoutId} 缺少 f503 成员列表`)
 
-  const containerId = allocateControlId(parsed, options.id)
+  const templateGroupDonor = CLIENT_CONTAINER_TEMPLATE_GROUP_DONOR
+  const templateChildDonor = CLIENT_CONTAINER_TEMPLATE_CHILD_DONOR
+  const layoutGroupDonor = CLIENT_CONTAINER_LAYOUT_GROUP_DONOR
+  const layoutChildDonor = CLIENT_CONTAINER_LAYOUT_CHILD_DONOR
+
   const used = collectUsedControlIds(parsed)
-  used.add(containerId)
-  let childId = containerId + 1
-  while (used.has(childId)) childId += 1
+  const templateGroupId = allocateClientContainerId(parsed, options.id)
+  used.add(templateGroupId)
+  const templateChildId = nextFreeId(used, templateGroupId + 1)
+  used.add(templateChildId)
+  const layoutGroupId = nextFreeId(used, templateChildId + 1)
+  used.add(layoutGroupId)
+  const layoutChildId = nextFreeId(used, layoutGroupId + 1)
 
-  const groupDonor = CLIENT_CONTAINER_GROUP_DONOR
-  const childDonor = CLIENT_CONTAINER_CHILD_DONOR
-  const groupMap: Record<number, number> = {
-    [groupDonor.selfId]: containerId,
-    [groupDonor.childId]: childId,
-    [groupDonor.parentId]: layoutId
+  const mapping: Record<number, number> = {
+    [templateGroupDonor.selfId]: templateGroupId,
+    [templateGroupDonor.childId]: templateChildId,
+    [layoutGroupDonor.selfId]: layoutGroupId,
+    [layoutGroupDonor.childId]: layoutChildId,
+    [layoutGroupDonor.parentId]: layoutId
   }
-  let groupRecord: Uint8Array = remapUiRecordVarints(
-    Buffer.from(groupDonor.hex, 'hex'),
-    groupMap
-  )
-  if (options.name !== undefined) groupRecord = setUiControlName(groupRecord, options.name)
-  const childRecord: Uint8Array = remapUiRecordVarints(
-    Buffer.from(childDonor.hex, 'hex'),
-    { [childDonor.selfId]: childId }
-  )
+  if (layoutGroupDonor.templateGroupId !== undefined) {
+    mapping[layoutGroupDonor.templateGroupId] = templateGroupId
+  }
 
-  const withGroup = applySectionChanges(bytes, {
-    record: groupRecord,
-    recordId: containerId,
+  let templateGroup = remapUiRecordVarints(Buffer.from(templateGroupDonor.hex, 'hex'), mapping)
+  let layoutGroup = remapUiRecordVarints(Buffer.from(layoutGroupDonor.hex, 'hex'), mapping)
+  if (options.name !== undefined) {
+    templateGroup = setUiControlName(templateGroup, options.name)
+    layoutGroup = setUiControlName(layoutGroup, options.name)
+  }
+  const templateChild = remapUiRecordVarints(Buffer.from(templateChildDonor.hex, 'hex'), mapping)
+  const layoutChild = remapUiRecordVarints(Buffer.from(layoutChildDonor.hex, 'hex'), mapping)
+
+  let out = insertRecordOnly(bytes, templateGroup)
+  out = insertRecordOnly(out, templateChild)
+  out = applySectionChanges(out, {
+    record: layoutGroup,
+    recordId: layoutGroupId,
     parentId: layoutId
   })
-  const withChild = insertRecordOnly(withGroup, childRecord, containerId)
+  out = insertRecordOnly(out, layoutChild)
+
   return {
-    bytes: withChild,
+    bytes: out,
     surface: options.surface,
     parentId: layoutId,
-    containerId,
-    childId,
-    donorSource: groupDonor.sourceSnapshot,
-    donorSelfId: groupDonor.selfId,
-    donorChildId: groupDonor.childId
+    containerId: layoutGroupId,
+    childId: layoutChildId,
+    templateGroupId,
+    templateChildId,
+    donorSource: layoutGroupDonor.sourceSnapshot,
+    donorSelfId: layoutGroupDonor.selfId,
+    donorChildId: layoutGroupDonor.childId
   }
 }
 
