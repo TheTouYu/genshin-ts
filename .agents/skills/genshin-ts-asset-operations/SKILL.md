@@ -305,7 +305,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   `mounts` 指向容器节点、`external=<字节数>` 都只能证明**结构在位**。真机是否加载执行必须另证：
   `OnStart` 第一条写 HUD 文案 + `print('[tag] onstart')`，**单独跑一轮看到字或日志**才算活着；
   一轮试玩里没有 `onstart` 打印 ⇒ 停止叠加玩法逻辑，先修宿主（容器 active/可见 → 挂载点层级 → 编辑器是否重开地图）。
-  完整三步门见 `lua-2d-ui-game-build` §6.5。
+  完整三步门（结构在位 → 真机加载 → 真机执行）见 `lua-2d-ui-game-build` 的 `12-deploy.md §7`（部署自查）+ `13-device.md §8`（真机首试清单）。
 - 🔴 **UI 与挂载的顺序纪律（2026-10-27 实测）**：先挂脚本、再对**容器组**做 `assets:ui create/update`，
   之后 `assets:scripts mounts` 可能变 0、**容器节点记录整条消失**（子控件被挂到容器组上，脚本再无宿主）。
   ⇒ **顺序：先把 UI 控件建改完 → 最后 `assets:scripts mount` → 复核 `mounts` 非空 + 树里节点在**。
