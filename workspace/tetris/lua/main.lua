@@ -2615,6 +2615,9 @@ applyModeTheme = function(mode)
   for i = 1, 4 do
     if g.frames and g.frames[i] then trySet(g.frames[i], 'imageColor', t.frame) end
   end
+  if #specs > (MODE_BG_POOL or 18) - 1 then
+    print('bg overflow !! specs=' .. #specs .. ' pool=' .. tostring(MODE_BG_POOL))   -- 构图条数超过池容量会静默丢背景
+  end
   print('mode theme=' .. tostring(mode) .. ' bg=' .. n .. '/' .. #specs)   -- 用例锚
 end
 
