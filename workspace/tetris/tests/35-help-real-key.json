@@ -1,0 +1,59 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "35 v2.7 H 真键（CraftspersonKey15='KeyH'）：开页→再按 H 关页→按 1 选休闲进局（E 键为别名）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Down"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Up"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Down"
+  },
+  {
+   "t": 1.22,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Up"
+  },
+  {
+   "t": 1.9,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
+  },
+  {
+   "t": 1.92,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "guide help on n=",
+   "source": "client"
+  },
+  {
+   "at": 1.4,
+   "kind": "log",
+   "contains": "guide help off n=",
+   "source": "client"
+  },
+  {
+   "at": 3.2,
+   "kind": "log",
+   "contains": "guide stage=1",
+   "source": "client"
+  }
+ ]
+}

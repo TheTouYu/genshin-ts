@@ -1,0 +1,238 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "39 v2.7 PC 端鼠标点击不再重开：btnA-F 热区一律摆位且 PC 端隐藏/挪出画布；点完仍在结算态（V 仍生效）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.62,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.72,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.82,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.9,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.92,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.02,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.12,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.62,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.3,
+   "kind": "pointer",
+   "type": "move",
+   "x": 800,
+   "y": 450
+  },
+  {
+   "t": 3.4,
+   "kind": "pointer",
+   "type": "down",
+   "x": 800,
+   "y": 450
+  },
+  {
+   "t": 3.5,
+   "kind": "pointer",
+   "type": "up",
+   "x": 800,
+   "y": 450
+  },
+  {
+   "t": 3.7,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1210,
+   "y": 135
+  },
+  {
+   "t": 3.8,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1210,
+   "y": 135
+  },
+  {
+   "t": 3.9,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1210,
+   "y": 135
+  },
+  {
+   "t": 4.4,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey22Down"
+  },
+  {
+   "t": 4.42,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey22Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.0,
+   "kind": "log",
+   "contains": "hits=6 mobile=false",
+   "source": "client"
+  },
+  {
+   "at": 1.0,
+   "kind": "control",
+   "name": "btnFhit",
+   "field": "visible",
+   "equals": false
+  },
+  {
+   "at": 3.2,
+   "kind": "log",
+   "contains": "settle anim done",
+   "source": "client"
+  },
+  {
+   "at": 4.6,
+   "kind": "log",
+   "contains": "menu back V",
+   "source": "client"
+  }
+ ]
+}

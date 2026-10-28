@@ -201,10 +201,13 @@ local MODE = 'casual'
 -- pendingMode/pendingT = 按 Digit 后的模式名大字动画窗（0.5s，introT 渐变手法），窗后 enterMode 开局。
 local MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
 local pendingMode, pendingT = nil, 0
--- v2.1 ③：H 游戏说明层（stage0 按 H 开/关；任意键=先关层不开局）
-local HL = {}                          -- 说明层实例表（暗底×1 + 文字条×10）
+-- v2.1 ③：H 游戏说明层（v2.7 起改成独立整页 + 常驻入口；任意键=先关层不开局）
+local HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
 local helpOpen = false
+local helpFromStage = 1                -- 开层前的 guideStage（关层时恢复；说明页期间 2=暂停）
+local helpPage = 1                     -- （保留：单页版恒 1；多页时按 ←/→ 切换）
 local toggleHelp                       -- 前向声明（实现见 UI 段；startIfWaiting/H 键都在更早处调用）
+local closeHelp                        -- 前向声明（v2.7：act()/R/V 等按键回调先关页）
 local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
 -- v2.3 ②：深空霓虹街机主题（lead 定调色板——统一饱和度只在色标/描边/选中态用，卡片底一律深色）
 local THEME = {
@@ -242,6 +245,10 @@ local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，
 local MIRRORQ = {}
 local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
 local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘控件复用，T6b-2）
+local TPL_HIT       -- v2.7：cursor（光标检测区）模板 guid —— 标题页四模式三态热区用
+local IS_MOBILE = true   -- OnStart 探测后写入；菜单选择/热区逻辑在模块级函数里也要读它
+-- v2.7 ⑤：标题页模式选择（键盘 Digit 与鼠标点击共用一条入口；实现见菜单段）
+local menuSelectMode
 
 -- AI 状态机初值（每实例一份；T6b 起从文件级一次性构造搬进 newInst——G[2] 也要有自己的 AI 表）
 local function newAIState()
@@ -258,6 +265,9 @@ local function newInst()
   t.cellBX, t.cellBY, t.frameBX, t.frameBY = {}, {}, {}, {}
   t.bagQ, t.bagSeq = {}, 0
   t.autoDriving = false
+  -- v2.7：本盘的账本归属（AI 账 = true）。与 autoDriving 的区别：autoDriving 是"此刻是否走演示通道"
+  -- 的运行时开关（aiDrop 里临时置位），aiAccount 是**盘的属性**（双屏 AI 盘恒 true；pvp 的 P2 盘 false）。
+  t.aiAccount = false
   t.elapsed = 0
   t.settleReady = false
   t.settleBuildTried = false
@@ -392,6 +402,27 @@ local function tryCall(ctl, method, a, b)
   return true
 end
 
+-- 光标事件注册（v2.7 抽出公用）：真机 CursorEventType 要**枚举值**，模拟器接受字符串。
+-- 与按键监听同一套双形态探测（见 OnStart 的 listen）：先枚举，失败回落字符串。
+-- 返回是否注册成功，并在失败时打日志（真机不认某事件也不该中断整段 OnStart）。
+local function addCursor(ctl, kindName, fn)
+  if not ctl then return false end
+  local enumT = (type(Enum) == 'table' and Enum.CursorEventType) or nil
+  local ev = enumT and enumT[kindName] or nil
+  local ok, err
+  if ev ~= nil then
+    ok, err = pcall(function() ctl:AddCursorEventListener(ev, fn) end)
+  end
+  if not ok then
+    ok, err = pcall(function() ctl:AddCursorEventListener(kindName, fn) end)
+  end
+  if not ok then
+    print('cursor listen fail ' .. tostring(kindName) .. ' :: ' .. tostring(err))
+    return false
+  end
+  return true
+end
+
 --------------------------------------------------------------------------------
 -- 音效（2026-10-25）：game.PlayAudio2D(audioId) —— audioId 必须是整数（内置音效库的小整数 id）。
 -- id 都在 20001 组里，时长来自模拟器音频白名单 studio/assets/audio-catalog.js（可离线核对）：
@@ -419,6 +450,10 @@ local SFX_CLEAR = { 50917, 40001, 40022, 40054 }   -- 0.785 / 1.653 / 1.064 / 2.
 local SFX_MUTE = false      -- 调试开关：true 全静音
 local sfxFrame = -1         -- 上一次播声的帧号（同一帧最多一条）
 local frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
+-- v2.7：同帧「按键已被某个动作消费」标记——43 键兜底（anyKeyStart）必须让位给真动作。
+-- 起因（用户反馈②③）：V=CraftspersonKey22 同时注册了「结算回主页」与「任意键开始」两个监听，
+-- exitToMenu 把 guideStage 置 0 后，同一按键继续派发给兜底 ⇒ 标题页刚建好就被开局吃掉。
+local keyConsumedFrame = -1
 local sfxCount = 0          -- 本会话已播条数（探针读数）
 local function sfx(id, force)
   if SFX_MUTE or not id then return false end
@@ -1405,6 +1440,10 @@ end
 -- 位置全部在棋盘之外（顶部/底部横幅）：运行时 InstantiateClientUIControl 造的格子层级高于
 -- 服务端文字，中间放任何大字都会被吃掉（真机硬约束）。
 showGameOver = function(overTitle)
+  -- v2.7（用户反馈①）：无论谁把盘打死（玩家手打 / casual 的 AI 代打 / 对家盘顶满），
+  -- 终局一律先回到玩家态——否则 R 重开后 TK.state 仍是 'ai'，AI 会立刻接管新局，
+  -- 看起来就像「AI 死亡没有走玩家那套流程」。
+  TK.state, TK.t = 'play', 0
   -- v2.2 ②③：双屏任一盘死=模式终局——胜负走**全屏结算层**（复用 v1 主路径，标题带胜负文案），
   -- 置 MODE_OVER 冻结两盘（输入/重力/AI 全停，OnUpdate 只推结算动画）。casual 不置位。
   -- 结算层懒创建槽在 G[1]——对家盘（G[2]）死时切回主实例挂层，主盘标记终局以走结算渲染。
@@ -1810,12 +1849,17 @@ local function aiChoose()
   -- v2.4 纯 BCTS 分数决策：最优=BW 加权分最高（eroded 奖励已内建，不再叠「能消行优先」
   -- 三层规则与竖 I 贴墙特判——两者都会偏离论文校准；同分 tie-break 仍贴墙+近距+靠左）
   local best
+  local anyBest                                  -- v2.7：不看高度上限的最优合法位（顶死兜底用）
   for _, c in ipairs(cands) do
+    if better(c, anyBest) then anyBest = c end
     if c.h <= AI_RESET_ROWS then
       if better(c, best) then best = c end
     end
   end
-  if not best then return { reset = true } end
+  -- v2.7（用户反馈①⑧）：盘面过高不再"拒绝出手"。旧实现 return {reset=true} ⇒ AI 走一条专属旁路：
+  -- 块永不落地、不判负、不结算（实测每帧刷 'demo reset plan=too-high'）。现在把"最高但不超限"的
+  -- 兜底位带出去，由 aiTickCore 硬降落地——之后 spawn 顶死判定与玩家完全同一条链路。
+  if not best then return { reset = true, fallback = anyBest } end
   -- 落点行（软降要按格数摊时间）
   local landingY = 1
   local probe = cells
@@ -1974,20 +2018,65 @@ end
 -- （模式名 26 号白字 / 特色句 16 号浅字；框高按 h≥1.45×fontSize+4 给 48/32）。
 -- 别加新模板（task-12 约束）：色块复用 TPL_CELL、文字复用 settleText 模板，全运行时实例化。
 local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存；说明层共用）
--- ===== v2.1 ③ 游戏说明层（H 开关，stage0 专属）=====
--- 复用卡片组同款模板技术（cell 暗底 + settleText 文字条），不加新模板。
--- 框高判据：标题 30 号→52；行 20 号→40。开层时任意键=关层（不开局，防误触）。
-local HELP_LINES = {
-  { '游戏说明 · 再按 H 或任意键返回', 30, 52, 292 },
-  { '操作：← → 移动 · ↓ 软降 · ↑ 旋转 · 空格 直落 · G 暂存', 20, 40, 232 },
-  { '　　　（双人 P2：方向键 + X 直落 + F 暂存）', 18, 36, 192 },
-  { '计分：1/2/3/4 消 = 100/300/500/800 × 等级', 20, 40, 148 },
-  { '连击：连续消行每链 +50×(链-1)×等级 · 连四消 ×1.5', 20, 40, 104 },
-  { 'T-spin：T 块三角落定 + 400×行×等级 · 专属音效', 20, 40, 60 },
-  { '模式：休闲=AI 陪练随时接管 · AI 对抗=hard 决战', 20, 40, 16 },
-  { '　　　双人=同屏 PK · 合作=旋转手+行动手一盘抗 AI', 18, 36, -24 },
-  { '垃圾行：2/3/4 消送对方 1/2/4 行（连四消再 +1）', 20, 40, -68 },
-  { '进阶：触底后有 0.5s 可救 · 按住方向自动连移', 20, 40, -112 },
+-- ===== v2.7 ④ 独立规则说明页（H 常驻入口；整页三栏讲全：操作/计分判定/四种模式）=====
+-- 用户原话（2026-10-28 反馈④）：「h按钮应该常驻，并且目前按下没有任何反应，h按钮请设计一个独立的页面，
+-- 介绍游戏的全部规则，按键说明，和不同模式下的规则」。
+-- 两处硬修：①**键名错了**——真机/网页物理 H 发的是 CraftspersonKey15（craftCodes[15]='KeyH'），
+-- 而 v1 只监听 CharacterSkill1Key（那是物理 E）⇒ 真机按 H 永远没反应（用例注入虚拟键名，测不出来）。
+-- ②说明层原来是 stage0 专属的 10 行小字，局内/结算页看不到；改成**任何阶段都能开**的整页。
+-- 版式（按画布自适应）：暗底整屏 + 顶部标题 + 三栏（左=操作与按键 / 中=计分与判定 / 右=四种模式）
+-- + 页脚提示。全用运行时实例（cell 暗底 + stext 文字），不加新模板。
+-- 框高判据（D566 实测）：h ≥ fontSize×1.45+4，否则整行静默不画——下面按字号自动算。
+local HELP_COLS = {
+  { title = '操作 · 按键', lines = {
+    '← → 移动　↑ 旋转　↓ 软降',
+    '空格 直落　G 暂存',
+    'R 重开　V 回主页　H 本页',
+    'T 调试填底两行（测试用）',
+    '',
+    '双人 P1：A D 移动　W 旋转',
+    '　　　　S 软降　空格 直落　G 暂存',
+    '双人 P2：← → 移动　↑ 旋转',
+    '　　　　↓ 软降　X 直落　F 暂存',
+    '',
+    '合作：P1 = 旋转手（W / G）',
+    '　　　P2 = 行动手（← → / ↓ / X）',
+    '',
+    '标题页：1-4 选模式　任意键=休闲',
+    '触屏：屏幕按钮同键盘',
+  } },
+  { title = '计分 · 判定', lines = {
+    '消行 1/2/3/4 行 = 100/300/500/800',
+    '　　× 等级（行数÷10+1，上限 12）',
+    '连击：连续消行 +50×(链-1)×等级',
+    'B2B：连续两次四消，基础分 ×1.5',
+    'T-spin：T 块三角落定',
+    '　　+400×消行数×等级',
+    '软降 +1/格　硬降 +2/格',
+    '锁定延迟：触底后 0.5s 可救',
+    '　　（移动/旋转各重置一次，上限 15）',
+    'DAS：按住方向 0.25s 后自动连移',
+    '垃圾行：2/3/4 消送对方 1/2/4 行',
+    '　　连四消再 +1 行（洞位随机）',
+    '判负：新块出生位置已被占满',
+    '　　双屏：任一方顶满即分胜负',
+  } },
+  { title = '四种模式', lines = {
+    '1 休闲 casual',
+    '　AI 陪练，任意键接管；停手 5s',
+    '　提示 2s → AI 代打（分数照记）',
+    '2 AI 对抗 ai-battle',
+    '　双屏、镜像出块、hard 档 AI',
+    '　你消 2/3/4 行送 AI 垃圾行',
+    '　任一方顶满＝分胜负',
+    '3 双人对战 pvp',
+    '　双屏同屏 PK，键位分区（见左栏）',
+    '　互送垃圾行，先顶满者败',
+    '4 双人合作 coop',
+    '　共一左盘抗右盘 AI',
+    '　P1 旋转手 + P2 行动手，越权键无效',
+    '　左盘顶满＝败　AI 盘顶满＝胜',
+  } },
 }
 local function destroyHelpLayer()
   local n = 0
@@ -1999,30 +2088,79 @@ local function destroyHelpLayer()
   if n > 0 then print('guide help off n=' .. n) end
 end
 local function buildHelpLayer()
-  if not TPL_CELL then return end
+  if not TPL_CELL then print('guide help no cell tpl') return end
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then return end
+  if not TPL_TEXT then print('guide help no text tpl') return end
   destroyHelpLayer()
-  local bg = game.InstantiateClientUIControl(TPL_CELL, root)
-  if bg then
-    bg.name = 'helpBg'
-    bg:SetSizeDelta(1240, 680)
-    bg:SetAnchoredPosition(0, 0)
-    bg.imageColor = C(255, 12, 14, 20)
-    HL[#HL + 1] = bg
+  local W, H = CANVAS_W or 1280, CANVAS_H or 720
+  local function cell(name, x, y, w, h, color)
+    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
+    if not ok or not c then return nil end
+    c.name = name
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+    trySet(c, 'imageColor', color)
+    HL[#HL + 1] = c
+    return c
   end
-  for i, line in ipairs(HELP_LINES) do
-    local h = game.InstantiateClientUIControl(TPL_TEXT, root)
-    if h then
-      h.name = 'helpLine' .. i
-      h.text = line[1]
-      h.fontSize = line[2]
-      h:SetSizeDelta(1200, line[3])
-      h:SetAnchoredPosition(0, line[4])
-      HL[#HL + 1] = h
+  local function text(name, s, x, y, w, size, color, align)
+    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+    if not ok or not c then return nil end
+    c.name = name
+    c.text = s
+    trySet(c, 'fontSize', size)
+    trySet(c, 'fontColor', color)
+    trySet(c, 'bgColor', C(0, 0, 0, 0))
+    trySet(c, 'horizontalAlignment', align or 'Left')
+    trySet(c, 'verticalAlignment', 'Middle')
+    trySet(c, 'enableOutline', true)
+    trySet(c, 'outlineColor', C(150, 0, 0, 0))
+    tryCall(c, 'SetSizeDelta', w, math.floor(size * 1.45 + 6))
+    tryCall(c, 'SetAnchoredPosition', x, y)
+    HL[#HL + 1] = c
+    return c
+  end
+  -- 暗底（整屏） + 顶部强调条 + 底部细线：纯深色舞台，压在棋盘/卡片实例之上
+  cell('helpBg', 0, 0, W + 20, H + 20, C(252, 8, 11, 18))
+  cell('helpRule', 0, H / 2 - 78, W - 160, 2, C(190, 74, 95, 138))
+  cell('helpRule2', 0, -H / 2 + 52, W - 160, 2, C(150, 74, 95, 138))
+  text('helpTitle', '游戏说明 · 全部规则', 0, H / 2 - 46, W - 200, 30, THEME.textMain, 'Middle')
+  text('helpSub', '按 H / 任意键 / 点『关闭』返回', 0, -H / 2 + 28, W - 200, 16, THEME.textSub, 'Middle')
+  -- 三栏：中等屏用 16 号；大画布（≥860 高）用 18 号，行距同步
+  local big = H >= 860
+  local fs, pitch = big and 18 or 16, big and 44 or 36
+  local colW = math.floor((W - 120) / 3)
+  local top = H / 2 - 118
+  local xs = { -(colW + 20), 0, (colW + 20) }
+  for ci, col in ipairs(HELP_COLS) do
+    local x = xs[ci]
+    text('helpHead' .. ci, col.title, x - colW / 2 + 20, top, colW - 40, big and 22 or 20,
+      (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textMain)
+    cell('helpHeadBar' .. ci, x - colW / 2 + 8, top, 4, big and 30 or 26,
+      (MODE_INFO[ci] and MODE_INFO[ci].color) or THEME.textSub)
+    for li, line in ipairs(col.lines) do
+      if line ~= '' then
+        text('helpLine' .. ci .. '_' .. li, line, x - colW / 2 + 20, top - 30 - li * pitch,
+          colW - 40, fs, THEME.textSub)
+      end
     end
   end
-  print('guide help on n=' .. #HL)
+  print('guide help on n=' .. #HL .. ' page=' .. tostring(helpPage))
+end
+-- 关页：恢复开页前的 stage（局内=1 继续，标题页=0 继续演出）
+closeHelp = function()
+  if not helpOpen then return end
+  helpOpen = false
+  destroyHelpLayer()
+  if guideStage == 2 then guideStage = helpFromStage or 1 end
+  print('guide help closed stage=' .. tostring(guideStage))
+end
+toggleHelp = function()
+  if helpOpen then closeHelp() return end
+  helpFromStage = guideStage
+  helpOpen = true
+  if guideStage == 1 then guideStage = 2 end   -- 局内开页=暂停（沿用 v2.1 键位表的暂停语义）
+  buildHelpLayer()
 end
 -- ===== v2.5 ① 倒计时大字（120 号屏幕正中+每秒缩放弹跳）=====
 local function destroyCountBig()
@@ -2379,16 +2517,123 @@ MS.select = function(i)
   end
   if MS.detail then trySet(MS.detail, 'fontColor', mcRGB(info.color)) setText(MS.detail, info.desc) end
 end
+
+-- ===== v2.7 ⑤ 四模式「常态 / 悬浮 / 按下」三态（用户反馈⑤）=====
+-- 依据（docs/research/cursor-hover-contract.md，官方 API 文档 + 模拟器源码实证）：
+--   * 只有 cursor（光标检测区）与预设按钮两类控件能挂光标事件；image/textbox 没有该能力；
+--   * 运行期实例可挂，前提是**模板根**就是 cursor 类（本工程 hit 模板，与手机热区同源）；
+--   * 事件门控：父链上必须有 container.showCursor == true（OnStart 里已 `root.showCursor = true`）；
+--   * 命中：image 不接收指针也不下钻子级 ⇒ 热区必须是卡片的**同级兄弟**（不是子节点）。
+-- 三态样式（不改布局，只改字号/颜色/色柱/整行高亮）：
+--   常态 38 号主文字色、色柱 5×44、无高亮
+--   悬浮 40 号 + 模式色、色柱 6×48、整行高亮 α30
+--   按下 42 号 + 模式色、色柱 8×56、整行高亮 α62（再按一次才开局=与键盘 Digit 同一条入口）
+MS.cardStyle = function(i, state)
+  local sel = MS.sel and MS.sel[i]
+  local info = MODE_INFO[i]
+  if not sel or not info then return end
+  local hover = (state == 'hover')
+  local press = (state == 'press')
+  local hot = hover or press
+  if sel.title then
+    trySet(sel.title, 'fontSize', press and 42 or (hover and 40 or 38))
+    trySet(sel.title, 'fontColor', hot and mcRGB(info.color) or THEME.textMain)
+  end
+  if sel.desc then
+    trySet(sel.desc, 'fontColor', hot and C(255, 214, 226, 240) or C(225, 152, 166, 190))
+  end
+  local tick = find('menuTick' .. i)
+  if tick then
+    tryCall(tick, 'SetSizeDelta', press and 8 or (hover and 6 or 5), press and 56 or (hover and 48 or 44))
+    if not hot then trySet(tick, 'imageColor', info.color) end
+  end
+  if MS.selRow then
+    tryCall(MS.selRow, 'SetSizeDelta', 416, 108)
+    tryCall(MS.selRow, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
+    if press then
+      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 62))
+    elseif hover then
+      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 30))
+    else
+      trySet(MS.selRow, 'imageColor', mcRGB(info.color, 0))   -- α0 全透明（实例不能删，只能藏）
+    end
+  end
+end
+MS.hoverCard = function(i)
+  if helpOpen or pendingMode then return end
+  if MS.sel_i and MS.sel_i ~= i then return end   -- 已有选中项时不再抢样式
+  MS.hover_i = i
+  MS.cardStyle(i, 'hover')
+  print('menu hover i=' .. i)
+end
+MS.hoverOut = function(i)
+  if helpOpen or pendingMode then return end
+  if MS.sel_i and MS.sel_i ~= i then return end
+  if MS.hover_i == i then MS.hover_i = nil end
+  if MS.sel_i ~= i then MS.cardStyle(i, 'normal') end
+  print('menu hover out i=' .. i)
+end
+MS.pressCard = function(i)
+  if helpOpen or pendingMode then return end
+  if MS.sel_i and MS.sel_i ~= i then return end
+  MS.press_i = i
+  MS.cardStyle(i, 'press')
+  print('menu press i=' .. i)
+end
+-- 四张卡的透明命中热区（cursor 模板实例，PC 也可用鼠标；移动端 = 触屏点卡）
+MS.buildHoverZones = function()
+  if not TPL_HIT then print('menu zones=none（无 cursor 模板，仅键盘 1-4 可选）') return false end
+  MS.zones = {}
+  for i = 1, #MODE_INFO do
+    local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+    if not ok or not z then print('menu zone fail i=' .. i) return false end
+    z.name = 'menuZone' .. i
+    tryCall(z, 'SetSizeDelta', 416, 108)
+    tryCall(z, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
+    addCursor(z, 'CursorEnter', function() MS.hoverCard(i) end)
+    addCursor(z, 'CursorExit', function() MS.hoverOut(i) end)
+    addCursor(z, 'CursorDown', function() MS.pressCard(i) end)
+    addCursor(z, 'CursorUp', function() MS.hoverCard(i) end)
+    addCursor(z, 'CursorClick', function()
+      if helpOpen then closeHelp() return end
+      menuSelectMode(i)
+    end)
+    MC[#MC + 1] = z
+    MS.zones[i] = z
+  end
+  print('menu zones n=' .. #MS.zones)
+  return true
+end
+-- 键盘 Digit 与鼠标点击共用的选模式入口（v2.7：原逻辑内联在 listen 回调里，抽出来两处复用）
+menuSelectMode = function(i)
+  if guideStage ~= 0 or pendingMode then return end
+  if i > 1 and IS_MOBILE then return end            -- 双屏砍手机端，回落 casual（裁决⑨）
+  local mname = ({ 'casual', 'ai-battle', 'pvp', 'coop' })[i]
+  if not mname then return end
+  MODE = mname
+  MS.sel_i = i
+  print('mode=' .. MODE)                             -- 选模式锚（用例断言）
+  MS.select(i)                                       -- 选中反馈（字放大 + 左柱加粗 + 整行高亮）
+  MS.dimOthers(i)                                    -- 其余三项淡出
+  MS.focusLock(i, mname)                             -- 展台标题变模式名大字（64 号）
+  pendingMode, pendingT = mname, 0                   -- 0.5s 动画窗后 enterMode 开局
+  setText(topBanner, MODE_TITLE[mname] or mname)
+  trySet(topBanner, 'fontColor', MODE_INFO[i].color)
+  setText(botBanner, '')
+end
 buildMenuCards = function()
   if not TPL_CELL then return false end
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
   if not TPL_TEXT then print('menu cards no text tpl') return false end
   destroyMenuCards()
+  MS.sel_i, MS.hover_i, MS.press_i = nil, nil, nil   -- 重建即清选中/悬浮态（复局防串）
   -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），模式选择区后建 ⇒ 压在墙上面
   local okStage, errStage = pcall(MS.build)
   if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
   local okModes, errModes = pcall(MS.modes)             -- v2.5 ①：四模式选择区
   if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
+  local okZone = pcall(MS.buildHoverZones)              -- v2.7 ⑤：三态热区（最后建 = 在最上层）
+  if not okZone then print('menu zones error') end
   print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
   return true
 end
@@ -2588,7 +2833,10 @@ local function enterMode()
     MIRRORQ = {}                          -- 清镜像队列（复局防串）
     local save = g
     g = G[2]
-    g.autoDriving = (MODE ~= 'pvp')       -- AI 盘账本走 AI 账（T4 语义）；pvp 双玩家盘各自计分
+    -- AI 盘账本走 AI 账（T4 语义）；pvp 双玩家盘各自计分。
+    -- v2.7：账本归属写成**盘属性** aiAccount（aiDrop 里按它决定 autoDriving），autoDriving 只作兼容保留。
+    g.autoDriving = (MODE ~= 'pvp')
+    g.aiAccount = (MODE ~= 'pvp')
     newGame()                             -- 建板+状态复位；G[2] 不取块（newGame 内双屏分支）
     g = G[1]
     newGame()                             -- 主盘同起点重开（丢自演半盘）；首块 spawn→push→喂 G[2]
@@ -2633,16 +2881,67 @@ local function exitToMenu()
   print('mode menu')                      -- 回菜单锚
 end
 
--- 硬降到底 + 落子；期间的日志与教学提示全部静音（autoDriving）
+-- restartMatch：结算页 [R] 再来一局 = **同一模式**再开一局（v2.7 用户反馈⑥）。
+-- 旧语义是「非 casual 的 R = 回标题菜单」，与结算页文案「[R] 再来一局」矛盾——
+-- 用户实测「按 R 没重开」，回标题统一走 [V]。这里复用既有链路，不新写一套重开逻辑：
+--   casual：就地 newGame（v1 语义不变）；
+--   双屏三模式：拆对家盘/装饰 → 回 stage0 → enterMode 重建 G[2] → startIfWaiting 进引导倒计时。
+restartMatch = function()
+  local mode = MODE
+  MODE_OVER = false
+  TK.state, TK.t = 'play', 0
+  settleDestroy()
+  if mode == 'casual' then
+    newGame()
+  else
+    for i = 1, #DUAL_DECO do
+      if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
+      DUAL_DECO[i] = nil
+    end
+    if G[2] then
+      settleDestroy()
+      destroyBoardControls(G[2])          -- 防 430 实例上限累积
+      G[2] = nil
+    end
+    ACTIVE = { 1 }
+    MIRRORQ = {}
+    MODE = mode
+    g = G[1]
+    placeBoard(G[1], 0)
+    guideStage = 0
+    newGame()                             -- 主盘重开
+    enterMode()                           -- 重建对家盘 + 双屏布局
+    startIfWaiting()                      -- 进模式开局引导（keys → 3-2-1）
+  end
+  setText(topBanner, '')
+  setText(botBanner, '')
+  if overlay then tryCall(overlay, 'SetVisible', false) end
+  -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
+  if CANVAS_W and CANVAS_H then
+    local okL, errL = pcall(layout, CANVAS_W, CANVAS_H)
+    if not okL then print('relayout error :: ' .. tostring(errL)) end
+  end
+  print('restart mode=' .. mode)
+end
+
+-- 硬降到底 + 落子。账本归属由 aiAutoFlag() 决定（v2.7，用户反馈①⑧）：
+--   stage0 入场自演 / 双屏 AI 盘 = AI 账（autoDriving=true：demo 日志、教学静音、best 不收）；
+--   casual 局中接管 = **玩家账**（autoDriving=false：日志/音效/教学/最高分与玩家亲手操作完全同构）——
+--   这也是设计书裁决⑤「接管续算不清零」的原口径，旧实现无条件置 true ⇒ 接管的消行分跑到 AI 账上，
+--   且死亡时 updateBest 被跳过，和玩家死法不一致。
+local function aiAutoFlag()
+  return (guideStage == 0) or (g.aiAccount == true)
+end
 local function aiDrop()
   local guard = 0
   while guard < ROWS + 4 and not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
     g.piece.y = g.piece.y + 1
     guard = guard + 1
   end
-  g.autoDriving = true
+  local prevAuto = g.autoDriving
+  g.autoDriving = aiAutoFlag()
   local ok, err = pcall(doLock)
-  g.autoDriving = false
+  g.autoDriving = prevAuto
   if not ok then
     print('demo lock error :: ' .. tostring(err))
     return
@@ -2669,7 +2968,10 @@ local function aiDrop()
       .. ' pieces=' .. RHO.pieces)
   end
   local h = stackHeight()
-  if g.gameOver or h >= AI_RESET_ROWS then
+  -- v2.7（用户反馈①⑧）：这段堆高看门狗**只属于 stage0 入场自演**（吸引模式，盘面砸了就重来）。
+  -- 旧实现无条件执行 ⇒ casual 接管/对家盘堆高时也被拽回标题页（demoLoopReset 会把 guideStage 归 0），
+  -- 于是"AI 死了不像玩家死"：没有结算页、直接跳回菜单。接管/对家盘的死亡一律交给 spawn 顶死判定。
+  if guideStage == 0 and (g.gameOver or h >= AI_RESET_ROWS) then
     print('demo rho=' .. aiFmt(RHO.lines / math.max(RHO.pieces, 1))
       .. ' pieces=' .. RHO.pieces .. ' lines=' .. RHO.lines)
     print('demo reset stack=' .. h)
@@ -2842,15 +3144,46 @@ local function aiTickCore(dt, onOver, lvIdx)
     if not g.AI.queue and not g.AI.search then
       -- 首帧：1-ply 全集（保底）
       local plan = aiChoose()
-      if plan and plan.reset then
-        print('demo reset plan=too-high')
-        if onOver == 'demo' then demoLoopReset() end   -- 接管期间（stop）不 reset 玩家的局，停驱动即可
-        return false
-      end
-      if not plan then
-        g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
-        g.AI.t = 0
-        return
+      -- v2.7（用户反馈①⑧）：**AI 的死亡必须与玩家同一条链路**。
+      -- 用户的判定说得很准：「ai 只是模拟玩家进行输入，输入完成之后的全部代码都和玩家是一样的，
+      -- 没有条件分支走专门的逻辑，就不会有 bug」。旧实现在这里分了岔——
+      --   * plan.reset（无安全位）→ 只 demo 自演复位，接管/对家盘直接 return（块永不落、不判负、不结算）
+      --   * plan == nil（连合法位都没有）→ 空等，同样永远不死
+      -- 现在两路都改成「AI 照常给出输入 → 硬降落地 → spawn 顶死判定 → showGameOver → 结算页」，
+      -- 与玩家按空格堆到顶完全一致；只有 stage0 入场自演（不是一局游戏）保留复位循环。
+      local topout = (plan == nil) or (plan.reset == true)
+      if topout then
+        if onOver == 'demo' then
+          print('demo reset plan=too-high')
+          demoLoopReset()
+          return false
+        end
+        -- 顶死前的最后一块：按兜底位（无安全位时的最优合法位）摆一下再硬降；
+        -- 连兜底位都没有时原地硬降——落点即死点，判负交给 spawn。
+        local fb = plan and plan.fallback
+        if fb then
+          local cells = g.piece.cells
+          for _ = 2, (fb.rot or 1) do
+            local nc = rotateCells(cells, g.piece.n or 4)
+            if collides(nc, g.piece.x, g.piece.y) then break end
+            cells = nc
+            g.piece.cells = nc
+          end
+          local dir = ((fb.x or g.piece.x) > g.piece.x) and 1 or -1
+          local guardMv = 0
+          while g.piece.x ~= fb.x and guardMv < COLS do
+            if collides(g.piece.cells, g.piece.x + dir, g.piece.y) then break end
+            g.piece.x = g.piece.x + dir
+            guardMv = guardMv + 1
+          end
+          print('ai topout fallback x=' .. tostring(fb.x) .. ' h=' .. tostring(fb.h))
+        else
+          print('ai topout noplan')
+        end
+        aiDrop()                              -- 与玩家「空格直落」同一条落子路径
+        g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
+        g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+        return true
       end
       g.AI.search = { plan = plan, idx = 1, best2 = nil, bestScore = nil,
         done = (lv.ply < 2) or (#plan.sorted < 2), holdChecked = false, doHoldAfter = false }
@@ -3185,6 +3518,7 @@ function OnStart()
       print('device=unknown（按移动端处理，按钮可见）')
     end
   end
+  IS_MOBILE = isMobile     -- v2.7：菜单选择/热区等模块级函数要读它（local 外提一份）
 
   -- 模板 guid 探测（双宿主）：先 cell（image，无光标事件）再 hit（cursor，有光标事件）
   local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
@@ -3194,6 +3528,11 @@ function OnStart()
   end
   print('tpl guid=' .. tplGuid)
   TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
+  -- v2.7 ⑤：cursor 模板 guid **提前**探测（标题页四模式三态热区要用它建实例，
+  -- 而 buildMenuCards 在本函数中段就跑；原来这段探测在按钮段，太晚）。探针实例复用给手机热区。
+  local hitSeed
+  hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
+  if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
 
   -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
   -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。
@@ -3355,6 +3694,8 @@ function OnStart()
   end
   local function act(keyName, fn)
     return function()
+      -- v2.7：说明页开着时任意游戏键=先关页（不动作、不开局）——关页优先级高于一切玩法动作
+      if helpOpen then closeHelp() return end
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
         -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
@@ -3428,22 +3769,12 @@ function OnStart()
   listen('KeyboardInteractKeyDown', act('KeyboardInteractKeyDown', function() doPlay('hold', 'KeyboardInteractKeyDown') end))
   -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
   -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）。
-  -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。选择后 enterMode 配实例，再开局。
-  for i, mname in ipairs({ 'casual', 'ai-battle', 'pvp', 'coop' }) do
+  -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。
+  -- v2.7 ⑤：选择逻辑抽成 menuSelectMode(i)，与鼠标/触屏点卡（MS.buildHoverZones 的 CursorClick）共用同一条入口。
+  for i = 1, #MODE_INFO do
     listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
-      if guideStage ~= 0 or pendingMode then return end
-      if i > 1 and isMobile then return end   -- 双屏砍手机端，回落 casual（裁决⑨）
-      MODE = mname
-      print('mode=' .. MODE)
-      -- v2.1 ②：销卡 → 模式名大字动画窗 0.5s → enterMode 开局（OnUpdate stage0 段驱动）
-      -- v2.3 ② 选中态：销卡前选中卡放大 1.04 + 色标条加宽（街机感反馈）
-      MS.select(i)                       -- v2.5 ①：选中反馈（字放大 + 左柱加粗 + 整行高亮）
-      MS.dimOthers(i)                    -- 其余三项淡出；销卡交给 startIfWaiting（0.5s 窗内还看得见选中项）                 -- 只销卡片；展台留到 enterMode（防 0.5s 动画窗露出裸棋盘）
-      MS.focusLock(i, mname)             -- 展台标题实例变模式名大字（框高同步放到 100，64 号需 96.8）
-      pendingMode, pendingT = mname, 0
-      setText(topBanner, MODE_TITLE[mname] or mname)
-      trySet(topBanner, 'fontColor', MODE_INFO[i].color)
-      setText(botBanner, '')
+      if keyConsumedFrame == frameSeq then return end
+      menuSelectMode(i)
     end)
   end
   listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
@@ -3455,22 +3786,35 @@ function OnStart()
     demoLoopReset()
   end)
   -- v2.6 ④：V = 结算后回主页（CraftspersonKey22；所有模式结算通用出口）
+  -- v2.7 修用户反馈②③（V 回不到真正的开始页 / 第二次按 1-4 没反应）：
+  -- V 自身也落在 43 键兜底池里（v1「任意键开始」），exitToMenu 把 guideStage 置 0 之后，
+  -- 同一个按键事件继续派发给兜底监听 ⇒ 刚建好的标题页立刻被 startIfWaiting 吃掉。
+  -- 双保险：① mapped 表排除 22（兜底循环不再注册它）② 同帧消费标记让兜底让位。
   listen('KeyboardCraftspersonKey22Down', function()
     if guideStage ~= 1 then return end
     if g.gameOver or MODE_OVER then
+      keyConsumedFrame = frameSeq
       print('menu back V')
       exitToMenu()
     end
   end)
   listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
+    if helpOpen then closeHelp() return end
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
+    -- v2.7（用户反馈⑥）：**结算态 R = 同一模式再开一局**（全模式统一，与结算页文案一致）。
+    -- 旧语义「非 casual 的 R = 回标题菜单」已废弃——回标题统一走 [V]。
+    if guideStage == 1 and (g.gameOver or MODE_OVER) then
+      keyConsumedFrame = frameSeq
+      restartMatch()
+      return
+    end
     -- v2.1 ①：引导态的 R=直接回菜单（还没开局，重开无意义）
     if guideStage == 3 and MODE ~= 'casual' then
       exitToMenu()
       return
     end
-    -- T6b：非 casual 模式的 R=回标题菜单（模式可重选）；casual 保持 v1 就地重开语义
+    -- T6b：非 casual 模式**局内**的 R=回标题菜单（模式可重选）；casual 保持 v1 就地重开语义
     if MODE ~= 'casual' and guideStage == 1 then
       exitToMenu()
       return
@@ -3516,14 +3860,19 @@ function OnStart()
       print('settle detail off')
     end
   end)
-  listen('KeyboardCharacterSkill1KeyDown', function()       -- H：stage0=游戏说明层 / 局内=键位表
-    if guideStage == 0 then
-      toggleHelp()
-      return
-    end
-    startIfWaiting()
-    toggleKeymap()
-  end)
+  -- H：全屏游戏说明页（v2.7 用户反馈④：H 要常驻、要能真的按出来、要一页讲全规则）
+  -- 真机/网页物理键映射（模拟器 studio/play/key-bindings.js 实证，与千星网页同表）：
+  --   H → CraftspersonKey15（craftCodes[15]='KeyH'）；E → CharacterSkill1Key。
+  -- 旧实现只监听 CharacterSkill1KeyDown ⇒ 真机按 H 根本不触发（用例注入的是虚拟键名，测不出来）。
+  -- 两个键名都注册：H=真键，E=别名（键位表已列）。二者任一都可开关说明页。
+  local function onHelpKey()
+    keyConsumedFrame = frameSeq
+    if helpOpen then closeHelp() else toggleHelp() end
+  end
+  listen('KeyboardCraftspersonKey15Down', onHelpKey)
+  listen('KeyboardCharacterSkill1KeyDown', onHelpKey)
+  -- 鼠标/触屏：标题页常驻的「H 规则说明」热区（cursor 实例，PC 也可点）
+  -- 由 buildMenuCards 里的 MS.helpZone 建；回调在 hit 段统一注册（见下 hits 段）
   -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
   listen('KeyboardCharacterSkill4KeyDown', act('KeyboardCharacterSkill4KeyDown', function()
@@ -3535,22 +3884,21 @@ function OnStart()
     renderHud()
   end))
 
-  -- 手机按钮热区：优先用布局里已存在的光标检测区（gsts assets:ui create 建档，无需导入）；
-  -- 取不到时退化为客户端 cursor 模板实例（老路线）。
+  -- 手机按钮热区（v2.7 修用户反馈⑥「鼠标点一下就重开」）：
+  -- 这些 cursor 热区本来是触屏专用，但 v1 在 PC 上也**照建照挂监听且从未摆位**——
+  -- 6 个热区全叠在模板默认位置（画布中心），于是 PC 上点画面中央就命中 btnF=重开。
+  -- 现在：① 一律按按钮坐标摆位 ② PC 端 visible=false + 挪出画布（双保险：真机若忽略 visible 也点不到）
+  -- ③ 结算态点「重开」走 restartMatch（同一模式再来一局，与键盘 R 同语义）。
   local function hitOf(name)
     local c = find(name .. 'hit')
     if c then return c end
     return nil
   end
   local anyHit = hitOf(BUTTONS[1].name)
-  local firstHit, hitGuid
-  if not anyHit then
-    firstHit, hitGuid = probeTemplate(TPL_GUIDS.hit, true)
-  end
+  local firstHit, hitGuid = hitSeed, TPL_HIT    -- v2.7：复用上面提前探测的 cursor 实例与 guid
+  if anyHit then firstHit, hitGuid = nil, nil end
   if anyHit or firstHit then
     if hitGuid then print('hit guid=' .. hitGuid) else print('hit source=layout') end
-    local cursorDown = (type(Enum) == 'table' and Enum.CursorEventType
-      and Enum.CursorEventType.CursorDown) or nil
     local actions = {
       btnA = function() if guideStage ~= 2 then moveBy(-1) end end,
       btnB = function() if guideStage ~= 2 then moveBy(1) end end,
@@ -3563,6 +3911,7 @@ function OnStart()
         doLock()
       end,
       btnF = function()
+        if g.gameOver or MODE_OVER then restartMatch() return end
         if guideStage == 2 then guideStage = 1 setText(hint, '') end
         newGame()
         setText(topBanner, '') setText(botBanner, '')
@@ -3577,28 +3926,39 @@ function OnStart()
       end
       if h then
         h.name = b.name .. 'hit'
-        if h.name ~= b.name .. 'hit' then
-          h:SetSizeDelta(BTN_W, BTN_H)
-          h:SetAnchoredPosition(b.x, b.y)
+        tryCall(h, 'SetSizeDelta', BTN_W, BTN_H)
+        tryCall(h, 'SetAnchoredPosition', b.x, b.y)
+        if not isMobile then
+          tryCall(h, 'SetVisible', false)
+          tryCall(h, 'SetAnchoredPosition', 0, -100000)   -- 画布外：visible 不生效时也不可命中
         end
         local act = actions[b.name]
-        local okReg = pcall(function() h:AddCursorEventListener(cursorDown, function()
+        addCursor(h, 'CursorDown', function()
+          if not isMobile then return end
+          if helpOpen then closeHelp() return end
           startIfWaiting()
           if act then act() end
-        end) end)
-        if not okReg then print('hit listen fail ' .. b.name) end
+        end)
         hits[i] = h
       end
     end
-    print('hits=' .. #hits)
+    print('hits=' .. #hits .. ' mobile=' .. tostring(isMobile))
   else
     print('hits=0 click disabled（真机导入后跑 node qxqy/deploy.mjs --calibrate）')
   end
 
   -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
   -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
-  local mapped = { [1] = true, [2] = true, [3] = true, [4] = true, [36] = true, [37] = true, [38] = true, [39] = true }
+  -- v2.7：15(H)/22(V) 也必须排除——它们各有真动作（说明页 / 回主页），落进兜底会「同一个键既回主页又开局」
+  -- （用户反馈②③的根因；见 keyConsumedFrame 注释）。表由「已绑定动作」派生，别只加数字不写理由。
+  local mapped = {
+    [1] = true, [2] = true, [3] = true, [4] = true,   -- Digit1-4 = 模式选择
+    [15] = true,                                      -- H = 规则说明页（CraftspersonKey15='KeyH'）
+    [22] = true,                                      -- V = 结算后回主页（CraftspersonKey22='KeyV'）
+    [36] = true, [37] = true, [38] = true, [39] = true, -- ↑↓←→ = 旋转/软降/移动
+  }
   local anyKeyStart = function()
+    if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
     if guideStage == 3 and GK.phase == 'keys' then
       GK.p1ready = true

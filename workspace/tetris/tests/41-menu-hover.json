@@ -1,0 +1,83 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "41 v2.7 标题页四模式三态：悬浮 Enter/Exit、按下 CursorDown、点击后选中同一入口（cursor 热区）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.4,
+   "kind": "pointer",
+   "type": "move",
+   "x": 390,
+   "y": 554
+  },
+  {
+   "t": 0.8,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1230,
+   "y": 554
+  },
+  {
+   "t": 1.2,
+   "kind": "pointer",
+   "type": "move",
+   "x": 800,
+   "y": 450
+  },
+  {
+   "t": 1.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 390,
+   "y": 554
+  },
+  {
+   "t": 1.8,
+   "kind": "pointer",
+   "type": "down",
+   "x": 390,
+   "y": 554
+  },
+  {
+   "t": 2.0,
+   "kind": "pointer",
+   "type": "up",
+   "x": 390,
+   "y": 554
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.6,
+   "kind": "log",
+   "contains": "menu hover i=1",
+   "source": "client"
+  },
+  {
+   "at": 1.0,
+   "kind": "log",
+   "contains": "menu hover i=3",
+   "source": "client"
+  },
+  {
+   "at": 1.4,
+   "kind": "log",
+   "contains": "menu hover out i=3",
+   "source": "client"
+  },
+  {
+   "at": 1.9,
+   "kind": "log",
+   "contains": "menu press i=1",
+   "source": "client"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "mode=casual",
+   "source": "client"
+  }
+ ]
+}
