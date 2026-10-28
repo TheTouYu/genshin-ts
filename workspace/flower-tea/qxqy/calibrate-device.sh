@@ -3,7 +3,7 @@
 # 用法: bash qxqy/calibrate-device.sh [mapId] [scriptGuid]
 set -euo pipefail
 MAP_ID="${1:-1073741839}"
-SCRIPT_GUID="${2:-1073741825}"
+SCRIPT_GUID="${2:-1073742100}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GSTS="node /home/h/genshin-ts/dist/src/cli/gsts.js"
 : "${GSTS_LOCALLOW_DIR:=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow}"

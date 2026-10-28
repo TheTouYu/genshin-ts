@@ -103,9 +103,9 @@ node qxqy/shot.mjs pc-16-9
 | 地图文件 | `…/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741839.gil` |
 | Temp | `…/BeyondLocal/110170759/Temp/1073741839.gil` |
 | 模板 | `1073741910` image / `1073741911` textbox / `1073741912` cursor |
-| 脚本 | `1073741825` · `flower_main` · `default_import_file/flower/main.lua` |
-| 宿主 | `1073741901` · 容器节点（布局:默认布局:客户端控件容器#1） |
-| 写后大小 / sha | 145,429 B / `201dc7c167df2b455b2fcd3c31a6c90e7651a1a452595c512c5a307c213b1ab2` |
+| 脚本 | `1073742100` · `flower_main2` · `default_import_file/flower/main_1.lua`（已挂载） |
+| 宿主 | `1073742002` · 容器节点（布局:默认布局:客户端控件容器#2；占位子控件 2003） |
+| 写后大小 / sha | 268,274 B / `00989c88d42b7ce2a8d5526f9c37a79fbbb6f3503dbab567cde3bf12f4d1da27` |
 | Save_Level = Temp | 是，同 sha |
 | `gil-guard.py` | PASS（字段序 / 501 根集 / children 闭合 / Temp 同步） |
 
@@ -198,7 +198,7 @@ flower-tea/
 
 ```bash
 cd /home/h/genshin-ts/workspace/flower-tea
-bash qxqy/calibrate-device.sh 1073741839 1073741825
+bash qxqy/calibrate-device.sh 1073741839 1073742100
 ```
 
 它会按名字读取 `flower_prim/label/hit` 的当前 id、重生成 `device-package/main-device.lua`、更新脚本、跑 `gil-guard`。执行前务必让编辑器离开该地图（编辑器会把内存版写回磁盘）。
@@ -219,7 +219,7 @@ FLOWER_PRIM=1073741910 FLOWER_LABEL=1073741911 FLOWER_HIT=1073741912 \
 export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
 unset LOCALAPPDATA
 node /home/h/genshin-ts/dist/src/cli/gsts.js assets:scripts update \
-  --map-id 1073741839 --guid 1073741825 \
+  --map-id 1073741839 --guid 1073742100 \
   --source-file device-package/main-device.lua --write
 
 # 3) 安全门
