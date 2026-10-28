@@ -664,6 +664,30 @@ function insertRecordOnly(bytes: Uint8Array, record: Uint8Array, afterRecordId?:
   })
 }
 
+function clearScriptMountSlots(record: Uint8Array): Uint8Array {
+  const fields = parseWireMessage(record)
+  if (!fields) return record
+  let changed = false
+  for (const field of fields) {
+    if (field.number === 74 && field.wire === 2) {
+      if ((field.value as Uint8Array).length !== 0) {
+        field.value = new Uint8Array(0)
+        changed = true
+      }
+      continue
+    }
+    if (field.wire !== 2) continue
+    const nested = parseWireMessage(field.value as Uint8Array)
+    if (!nested) continue
+    const next = clearScriptMountSlots(field.value as Uint8Array)
+    if (Buffer.compare(next, field.value as Uint8Array) !== 0) {
+      field.value = next
+      changed = true
+    }
+  }
+  return changed ? emitWireMessage(fields) : record
+}
+
 export interface CreateClientContainerOptions {
   /** 只支持布局面（官方约束：客户端控件只能活在容器画布或模板里；容器本体挂布局） */
   surface: { kind: 'layout'; layoutId: number }
@@ -748,8 +772,14 @@ export function createClientContainerCandidate(
     templateGroup = setUiControlName(templateGroup, options.name)
     layoutGroup = setUiControlName(layoutGroup, options.name)
   }
-  const templateChild = remapUiRecordVarints(Buffer.from(templateChildDonor.hex, 'hex'), mapping)
-  const layoutChild = remapUiRecordVarints(Buffer.from(layoutChildDonor.hex, 'hex'), mapping)
+  const templateChild = clearScriptMountSlots(
+    remapUiRecordVarints(Buffer.from(templateChildDonor.hex, 'hex'), mapping)
+  )
+  const layoutChild = clearScriptMountSlots(
+    remapUiRecordVarints(Buffer.from(layoutChildDonor.hex, 'hex'), mapping)
+  )
+  templateGroup = clearScriptMountSlots(templateGroup)
+  layoutGroup = clearScriptMountSlots(layoutGroup)
 
   let out = insertRecordOnly(bytes, templateGroup)
   out = insertRecordOnly(out, templateChild)
