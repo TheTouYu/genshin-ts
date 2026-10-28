@@ -649,7 +649,7 @@ if __name__ == '__main__':
     if not args: print(__doc__); sys.exit(1)
     if args[0] == 'latest':
         cmd_latest(args[1] if len(args) > 1 else
-                   '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log')
+                   os.path.expanduser('~/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log'))
         sys.exit(0)
     gil = None; rec_filter = None; graph_filter = None; contains = None; compare_path = None; sec_filter = None
     summary = False
