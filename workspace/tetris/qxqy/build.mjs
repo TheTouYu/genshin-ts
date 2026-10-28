@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // 从默认工程出发，用 patch op 组装 Tetris 工程，产出 tetris.save.json 与 device-package GIA。
 // 用法：node qxqy/build.mjs
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createStudio, importGia } from '/home/h/miliastra-beyond-simulator/studio/index.js'
@@ -151,11 +151,19 @@ export function buildStudio() {
     throw new Error('客户端模板缺少 cell/hit/settle/stext：' + JSON.stringify(templates.map((t) => t.name)))
   }
   patch({ op: 'selectAsset', assetType: 'server-control-template' })
-  const lua = readFileSync(join(root, 'lua/main.lua'), 'utf8')
+  // ===== v2.7 ⑨ 多 lua 文件：main.lua 挂 n1，其余模块**不挂载（只建映射）** =====
+  // 契约见 docs/research/lua-module-contract.md：
+  //  * 官方口径「只有建立了映射的 lua 才打包上传」；未挂载脚本在模拟器里只 registerScriptFile
+  //    （可 require、不跑生命周期）；真机侧「未挂载能否 require」是**未验证项**（该文档 ④ U-1）；
+  //  * require key = 映射路径去掉 .lua；真机编辑器给 script.path 补 'default_import_file/' 前缀
+  //    ⇒ main.lua 的 loadModule 按 4 级候选逐一 pcall，并把每条候选的错误原文打进日志；
+  //  * GIA 导出的 file_path 必须带 .lua（codec 会补，这里照样写全）。
+  const substGuids = (text) => text
     .replaceAll('__GUID_CELL__', String(cellGuid))
     .replaceAll('__GUID_HIT__', String(hitGuid))
     .replaceAll('__GUID_SETTLE__', String(settleGuid))
     .replaceAll('__GUID_STEXT__', String(stextGuid))
+  const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))
   patch({
     op: 'addScript',
     path: 'lua/main.lua',
@@ -164,6 +172,21 @@ export function buildStudio() {
     controlId: 'n1',
     controlAsset: 'server-control-template',
   })
+  const moduleDir = join(root, 'lua/tetris')
+  const modules = existsSync(moduleDir)
+    ? readdirSync(moduleDir).filter((f) => f.endsWith('.lua')).sort()
+    : []
+  for (const file of modules) {
+    const name = file.replace(/\.lua$/u, '')
+    patch({
+      op: 'addScript',
+      path: `lua/tetris/${file}`,
+      name: `tetris_${name}`,
+      source: substGuids(readFileSync(join(moduleDir, file), 'utf8')),
+      // 不传 controlId = 未挂载：只注册成 require 模块，不跑 OnInit/OnStart
+    })
+  }
+  console.log('lua modules      :', modules.join(', ') || '(none)')
 
   const snap = s.get()
   const serverRoot = snap.root

@@ -40,139 +40,38 @@ Tetris —— 千星模拟器 2D 路线技术验证 demo（服务端驱动渲染
        行数越多越强；只在 g.shakeT > 0 的帧写坐标，抖完复位一次（基准坐标创建时存下来）
 =========================================================================]]
 
-local COLS, ROWS    = 10, 20
-local CELL, GAP     = 28, 2
-local PITCH         = CELL + GAP
--- 模板 guid 候选表：`__GUID_*__` 由 qxqy/build.mjs 注入本工程的实际值（模拟器恒命中）；
--- 真机导入后编辑器会重新编号，所以把真机已知值也列进来。探测按「能力」判类型，不靠名字：
---   cell = image（无光标事件方法） / hit = cursor（有 AddCursorEventListener）。
--- 真机首次导入 hit 后若仍点不动，跑 `node qxqy/deploy.mjs --calibrate` 自动把新 guid 写进这里。
-local TPL_GUIDS = {
-  cell = { __GUID_CELL__, 1073741849, 1073741854 },
-  hit  = { __GUID_HIT__, 1073741884, 1073741865, 1073741866 },
-  -- 结算层**容器模板**候选：真机地图里的两个容器组 + 它们的容器节点 + 模拟器模板。
-  -- 2026-10-24 真机日志实证：容器组 1073741865 在真机 `InstantiateClientUIControl` 返回 nil
-  -- ⇒ 容器整棵实例化在真机不支持（要么容器不在可实例化表里，要么引擎只认叶子控件），
-  -- 所以下面还有一组 settleText（单控件模板）退路，并把每条候选的探测结果打进日志。
-  -- 2026-10-25 两个实验：容器模板 2210（整棵复用）/ 文字模板 2202（逐个数实例化）
-  settle = { 1073742210, 1073741865, 1073741921, 1073742107 },
-  -- 结算层**单控件（textbox）模板**候选：模拟器 stext + 真机模板区里的 textbox 记录（逐个试）
-  -- 1073742200 = 2026-10-24 用 `gsts assets:ui template clone 1073741935 --id 1073742200 --top-level`
-  -- 新建的**顶层 textbox 模板**（真机容器模板实例化不了，这个才是真机能用的那条）
-  settleText = { 1073742202, 1073742200, 1073741935, 1073741923, 1073741937, 1073741934,
-                 1073741933, 1073741922, __GUID_STEXT__ },
-}
-local STEP          = 1 / 60
 
--- ===== 数值表：唯一来源 docs/数值策划.md §2/§3/§5 —— 调平衡只改这一段 =====
--- 单表而不是 13 个 local：Lua 的 main chunk 有 200 个 local 硬上限，本文件已经贴着上限（实测）。
-local NUM = {
-  LEVEL_UP_LINES = 10,      -- 每 10 行升一级（docs §4.5）
-  LEVEL_CAP      = 12,      -- 等级上限（110 行）：到顶不再加速（docs §3.3）
-  -- 各级"每格下落拍数"（60 拍 = 1 秒）。L1=30 拍 = 0.5s/格，与旧版 GRAVITY_TICKS 一致。
-  -- 节奏：0.500 0.433 0.383 0.333 0.300 0.250 0.233 0.200 0.167 0.150 0.133 0.117 s/格
-  SPEED          = { 30, 26, 23, 20, 18, 15, 14, 12, 10, 9, 8, 7 },
-  SCORE          = { 100, 300, 500, 800 },   -- 1/2/3/4 行基础分（Tetris Guideline 表，docs §2.1）
-  SOFT           = 1,       -- 软降（↓ / S / 手机↓）每格加分（docs §2.2）
-  HARD           = 2,       -- 硬降（空格）每格加分（docs §2.2）
-  COMBO          = 50,      -- 连击加成：COMBO × (combo-1) × level（docs §2.3）
-  B2B_NUM        = 3,       -- Back-to-Back：连续两次四消，基础分 ×1.5（整数化 3/2）
-  B2B_DEN        = 2,
-  FLASH          = { 0.10, 0.13, 0.17, 0.22 },  -- 消行闪白时长（1/2/3/4 行；恒 < 抖屏时长，docs §5.1）
-  LEVEL_TIP      = 1.2,     -- 升级提示持续秒数（docs §5.3）
-  COMBO_TIP      = 0.8,     -- 连击提示持续秒数（docs §5.4）
-  HOLD_KEY       = 'KeyboardCraftspersonKey14Down',  -- T3 Hold 键=G（工匠槽 14；模拟器键池无字母 C，
-                    -- 见 studio/play/key-bindings.js craftCodes[14]='KeyG'；双屏 P1 侧 Hold 同用 G）
-  -- T3 Hold 槽状态（子表挂 NUM——main 函数 200 个 local 已满，实测加 1 个 local 即爆
-  -- `too many local variables (limit is 200)`）：
-  --   name = 槽内块名（nil=空槽）；bag = 入槽时块所属袋序（换出块日志沿用原袋序）
-  --   can  = 本次落子是否还可换块（Guideline：每次落子仅可 Hold 一次，锁定即恢复）
-  -- T7 垃圾行对照表（v2-plan §三）：2/3/4 消 → 1/2/4 行 + 1 洞；B2B 四消再 +1（clearLines 触发）。
-  -- 每盘状态已搬 g.st/g.ld/g.das（T6c）；本表是全局常量。
-  GARBAGE = { [2] = 1, [3] = 2, [4] = 4 },
+-- ===== v2.7 ⑨ 多 lua 文件拆分：模块装载器（契约见 docs/research/lua-module-contract.md）=====
+-- 官方口径：脚本资产可建多份映射，**未挂载的只作 require 模块**（不跑生命周期）；
+-- require 路径 = 映射路径去掉 .lua；真机编辑器会给路径补 'default_import_file/' 前缀。
+-- 所以按 4 级候选逐个 pcall，成功即用，失败把**每条候选的错误原文**打进日志（真机排查唯一线索）。
+local function loadModule(name)
+  local tried = {}
+  local dirs = { 'default_import_file/lua/tetris/', 'lua/tetris/', 'tetris/', '' }
+  for i = 1, #dirs do
+    local p = dirs[i] .. name
+    local ok, mod = pcall(require, p)
+    if ok and mod ~= nil then
+      print('module ok ' .. p)
+      return mod
+    end
+    tried[#tried + 1] = p .. ' → ' .. tostring(mod)
+  end
+  print('module FAIL ' .. name .. ' :: ' .. table.concat(tried, ' | '))
+  return nil
+end
 
-  -- ===== T5 AI 难度档（docs/v2-ai-design.md §四；数值依据标注见该文档）=====
-  -- lv: 1=轻松(demo-easy) 2=标准(demo-normal) 3=高难(demo-hard)；默认 2（casual 演出观感不变）。
-  -- 调试切档键 = SwitchToWalkOrRun（具名键不在工匠 1-43 池，不会被 anyKeyStart 抢走）。
-  -- 字段：ply=搜索层数；hold=是否考虑 Hold 换块；pMistake=失误注入概率（%）；
-  --   topK=失误采样池大小；pieceMin/Max=单块时长带（s）；moveMin/Max=横移间隔带（s）；
-  --   obsMin=观察下限（高难档 0.55 覆盖 2-ply+hold 的 ~29 帧搜索）；targetLo/Hi=单块目标时长带。
-  AI_LEVEL = 3,   -- v2.5：默认 hard（演示即最强——用户第 N 次追问 AI 水平后 lead 裁决；normal 的 8% 失误曾让标题页自演像不会打）
-  -- BCTS 权重【论文】Thiery & Scherrer 2009 §4（交叉熵优化原值，照抄不手调）
-  BW = { LH = -12.63, ER = 6.60, RT = -9.22, CT = -19.77,
-         HO = -13.08, CW = -10.49, HD = -1.61, RH = -24.04 },
-  nxFull = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- T5 性能修复：evalNext scratch（1-4 满行行号；11-20 各列高度）
-  AI_LEVELS = {
-    { name = 'easy',   ply = 1, hold = 0, pMistake = 25, topK = 8, nudgePct = 30,
-      pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
-      obsMin = 0.30, targetLo = 2.6, targetHi = 4.0 },
-    { name = 'normal', ply = 1, hold = 0, pMistake = 8, topK = 3, nudgePct = 30,
-      pieceMin = 1.5, pieceMax = 3.2, moveMin = 0.08, moveMax = 0.25,
-      obsMin = 0.30, targetLo = 1.8, targetHi = 3.2 },
-    { name = 'hard',   ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
-      pieceMin = 0.9, pieceMax = 2.2, moveMin = 0.06, moveMax = 0.18,
-      obsMin = 0.55, targetLo = 1.0, targetHi = 2.2 },
-  },
-  -- T5 评估特征补强（Dellacherie；与 El-Tetris 四权重同表共存，docs/v2-ai-design.md §三）：
-  -- rowtrans/coltrans = 行/列内 空实 边界数；wellsum = 井深累加 d*(d-1)/2（浅井轻罚）。
-  -- 【T5 校准定论】Dellacherie 补充特征在 El-Tetris 权重系内为负贡献（对照实验 A/B/D，
-  -- docs/v2-ai-design.md §三）：A=全 0 基线 ρ0.24 > B=landing(-0.30) 0.22 ≈ D=小系数 0.22。
-  -- 特征计算代码保留（rowtrans/coltrans/wellsum/landing），权重 0=等效 El-Tetris 四项。
-  W_ROWTRANS = 0.0, W_COLTRANS = 0.0, W_WELLSUM = 0.0, W_LANDING = 0.0,
+-- 纯数据模块（数值表/色板/方块/模式表/规则页文案）
+local CFG = loadModule('config')
+if not CFG then error('tetris: 模块 config 装载失败（看 module FAIL 行里的每条候选错误）') end
+local COLS, ROWS, CELL, GAP, PITCH, STEP = CFG.COLS, CFG.ROWS, CFG.CELL, CFG.GAP, CFG.PITCH, CFG.STEP
+local TPL_GUIDS = CFG.TPL_GUIDS
+local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
+local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
+  CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
 
-  -- ===== T8 进阶操作（数值出处 v2-plan §三 T8；只作用于玩家输入路径——
-  -- AI 的 aiDrop 即时锁定、AI 横移走自身节奏，不受下面任何参数影响）=====
-  LD_DELAY   = 0.5,    -- 锁定延迟：重力触底后的缓冲秒数
-  LD_RESETS  = 15,     -- 锁定延迟重置上限（移动/旋转成功各计一次，超限强制锁定）
-  DAS_DELAY  = 0.25,   -- DAS：按住 ←/→ 多少秒后开始自动连移
-  ARR_RATE   = 0.05,   -- ARR：DAS 触发后自动连移的间隔秒数
-  DAS_HOLD   = 0.6,    -- v2.6：DAS 持续上限秒数（ARR 激活后超过即强制停）——根治「按一下走到底」：
-                        -- 网页旧构建 keyup 转发丢失/焦点转移时 dir 残留，时间上限让 lua 层不依赖 Up 自愈；
-                        -- 真机/正常网页 Up 正常到达时提前清 dir，永不触及此上限（用户无感）
-  TSPIN_BONUS = 400,   -- T-spin 加成：bonus = TSPIN_BONUS × 消行数 × level（0 行无分只提示）
-  -- T8 运行态（挂表，200-local 约束）：
-  --   LD  = { t = -1|秒, resets = 0 }   锁定延迟计时（t<0 未激活；重力触底启动，玩家移动/旋转重置）
-  --   DAS = { dir = -1|0|1, t = 0, arr = 0 }   方向键按住状态（dir=0 松开）
-  --   lastRot = true|false    最后一次成功动作是否为旋转（T-spin 判定前置；移动置 false）
-  -- T8 键位表（表化 listen 区，T6 双屏输入路由留口：条目加 player 字段即可分区路由）：
-  --   key = Down 枚举名；up = 对应 Up 枚举名（DAS 需要松开事件）；action 见 dispatchPlayer
-  KEYMAP = {
-    { key = 'KeyboardCraftspersonKey38Down',  up = 'KeyboardCraftspersonKey38Up',   action = 'left'  },
-    { key = 'KeyboardCraftspersonKey39Down',  up = 'KeyboardCraftspersonKey39Up',   action = 'right' },
-    { key = 'KeyboardCraftspersonKey36Down',  action = 'rot'  },
-    { key = 'KeyboardCraftspersonKey37Down',  action = 'soft' },
-    { key = 'KeyboardMoveLeftKeyDown',        up = 'KeyboardMoveLeftKeyUp',         action = 'left'  },
-    { key = 'KeyboardMoveRightKeyDown',       up = 'KeyboardMoveRightKeyUp',        action = 'right' },
-    { key = 'KeyboardMoveForwardKeyDown',     action = 'rot'  },
-    { key = 'KeyboardMoveBackwardKeyDown',    action = 'soft' },
-    { key = 'KeyboardJumpKeyDown',            action = 'hard' },
-    { key = 'KeyboardCraftspersonKey14Down',  action = 'hold' },   -- G（与 HOLD_KEY 同键）
-  },
-}
 
-local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
-local COL_EMPTY  = C(255, 26, 29, 38)
-local COL_CYAN   = C(255, 60, 220, 240)
-local COL_YELLOW = C(255, 245, 210, 60)
-local COL_PURPLE = C(255, 170, 80, 240)
-local COL_GREEN  = C(255, 90, 220, 110)
-local COL_RED    = C(255, 240, 80, 90)
-local COL_BLUE   = C(255, 70, 130, 240)
-local COL_ORANGE = C(255, 245, 160, 60)
-local COL_BG     = C(255, 18, 20, 27)
-local COL_GRAY   = C(255, 92, 96, 105)   -- T7 垃圾行方块色（暗灰，区别于七色）
 
--- 七种方块：n = 包围盒边长，cells = 盒内 1-based {row, col}
-local SHAPES = {
-  I = { n = 4, color = COL_CYAN,   cells = {{2,1},{2,2},{2,3},{2,4}} },
-  O = { n = 2, color = COL_YELLOW, cells = {{1,1},{1,2},{2,1},{2,2}} },
-  T = { n = 3, color = COL_PURPLE, cells = {{1,2},{2,1},{2,2},{2,3}} },
-  S = { n = 3, color = COL_GREEN,  cells = {{1,2},{1,3},{2,1},{2,2}} },
-  Z = { n = 3, color = COL_RED,    cells = {{1,1},{1,2},{2,2},{2,3}} },
-  J = { n = 3, color = COL_BLUE,   cells = {{1,1},{2,1},{2,2},{2,3}} },
-  L = { n = 3, color = COL_ORANGE, cells = {{1,3},{2,1},{2,2},{2,3}} },
-}
-local BAG = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
 
 -- 确定性随机（LCG）：用例可复现，不依赖 os / math.random
 local seed = 20261023
@@ -209,22 +108,6 @@ local helpPage = 1                     -- （保留：单页版恒 1；多页时
 local toggleHelp                       -- 前向声明（实现见 UI 段；startIfWaiting/H 键都在更早处调用）
 local closeHelp                        -- 前向声明（v2.7：act()/R/V 等按键回调先关页）
 local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
--- v2.3 ②：深空霓虹街机主题（lead 定调色板——统一饱和度只在色标/描边/选中态用，卡片底一律深色）
-local THEME = {
-  bgDeep  = C(255, 11, 16, 24),     -- #0B1018 最深底
-  panel   = C(255, 18, 26, 40),     -- #121A28 面板底
-  card    = C(255, 30, 43, 68),     -- #1E2B44 卡片底（v2.4：压在深空墙上要浮起来）
-  textMain = C(255, 241, 245, 249), -- #F1F5F9 主文字
-  textSub  = C(255, 148, 163, 184), -- #94A3B8 次文字
-  selectEdge = C(255, 226, 232, 240), -- #E2E8F0 选中描边
-}
-local MODE_INFO = {
-  { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 45, 212, 191) },   -- #2DD4BF 青绿
-  { key = '2', name = 'AI 对抗', desc = '与 hard 档 AI 决战', color = C(255, 244, 63, 94) },      -- #F43F5E 玫红
-  { key = '3', name = '双人对战', desc = '同屏 PK · 互送垃圾行', color = C(255, 168, 85, 247) }, -- #A855F7 紫
-  { key = '4', name = '双人合作', desc = '旋转手+行动手 · 共盘抗 AI', color = C(255, 245, 158, 11) }, -- #F59E0B 琥珀
-}
-local MODE_TITLE = { casual = '休 闲', ['ai-battle'] = 'AI 对抗', pvp = '双人对战', coop = '双人合作' }
 -- casual 局中接管状态机（v2-plan §三 T6）：'play'（玩家操作）→5s 无操作→'hint'（提示 2s）
 -- →'ai'（AI 代打：aiTickCore 驱动，横幅常驻，分数继续入玩家账=裁决⑤）→任意游戏键→'play'。
 -- 接管不设 autoDriving（分数/音效走玩家路径=裁决②⑤天然满足）；教学抑制不受影响。
@@ -365,106 +248,32 @@ end
 
 -- 保护式写入：真机上某些字段/方法会抛错（模拟器接受），一处抛错会中断整段 OnStart
 -- ⇒ 首次试玩全部按键无响应的根因（2026-10-24，日志停在 cellCount=200）。
-local FAILED = {}
-local function noteFail(tag, err)
-  if FAILED[tag] then return end
-  FAILED[tag] = true
-  print('ui fail ' .. tag .. ' :: ' .. tostring(err))
-end
-local function trySet(ctl, key, value)
-  if not ctl then return false end
-  -- 真机适配（v2.2）：对齐字段真机要枚举不收字符串（真机日志 `bad argument #2
-  -- (TextHorizontalAlignment expected, got string)`——模拟器两形态都收）。先映射枚举，
-  -- 无 Enum 表回落字符串。
-  if (key == 'horizontalAlignment' or key == 'verticalAlignment') and type(value) == 'string' then
-    local enums = (type(Enum) == 'table')
-      and ((key == 'horizontalAlignment' and Enum.TextHorizontalAlignment) or Enum.TextVerticalAlignment)
-      or nil
-    if enums and enums[value] ~= nil then value = enums[value] end
-  end
-  local ok, err = pcall(function() ctl[key] = value end)
-  if not ok then noteFail(tostring(key), err) return false end
-  return true
-end
-local function tryCall(ctl, method, a, b)
-  if not ctl then return false end
-  -- 真机适配（v2.2）：方法签名严格——SetVisible 真机 2 expected got 3（尾 nil 实参也计数）。
-  -- 按实参个数分发：b/a 为 nil 不传。模拟器宽松两形态都过。
-  local ok, err
-  if b ~= nil then
-    ok, err = pcall(function() ctl[method](ctl, a, b) end)
-  elseif a ~= nil then
-    ok, err = pcall(function() ctl[method](ctl, a) end)
-  else
-    ok, err = pcall(function() ctl[method](ctl) end)
-  end
-  if not ok then noteFail(tostring(method), err) return false end
-  return true
-end
 
--- 光标事件注册（v2.7 抽出公用）：真机 CursorEventType 要**枚举值**，模拟器接受字符串。
--- 与按键监听同一套双形态探测（见 OnStart 的 listen）：先枚举，失败回落字符串。
--- 返回是否注册成功，并在失败时打日志（真机不认某事件也不该中断整段 OnStart）。
-local function addCursor(ctl, kindName, fn)
-  if not ctl then return false end
-  local enumT = (type(Enum) == 'table' and Enum.CursorEventType) or nil
-  local ev = enumT and enumT[kindName] or nil
-  local ok, err
-  if ev ~= nil then
-    ok, err = pcall(function() ctl:AddCursorEventListener(ev, fn) end)
-  end
-  if not ok then
-    ok, err = pcall(function() ctl:AddCursorEventListener(kindName, fn) end)
-  end
-  if not ok then
-    print('cursor listen fail ' .. tostring(kindName) .. ' :: ' .. tostring(err))
-    return false
-  end
-  return true
-end
-
---------------------------------------------------------------------------------
--- 音效（2026-10-25）：game.PlayAudio2D(audioId) —— audioId 必须是整数（内置音效库的小整数 id）。
--- id 都在 20001 组里，时长来自模拟器音频白名单 studio/assets/audio-catalog.js（可离线核对）：
---   **音色语义未确认**（音效库只给时长、不给名字），换音只改下面这张表。
--- 纪律：
---   ① 只在"动作真的发生"时播（移动/旋转成功、锁定、消行、结束），不在每帧播；
---   ② `sfxFrame == frameSeq` 保证**同一帧最多播一条**（真机一帧内可能连来两个动作）；
---   ③ 全走 pcall —— 真机缺这个 API 时一处抛错会中断整段 OnStart（2026-10-24 踩过）。
---------------------------------------------------------------------------------
--- 音效 id：由 sfx-web 挑选器（用户听感调整）导出，2026-10-27
--- 名称出处：.scratch/sfx/sfx-library-full-20261027.md（GUI 采集 1196 条）
-local SFX = {
-  move   = 50884,   -- 按钮点击_轻_卡通_03 (0.151s)
-  rotate = 50883,   -- 按钮点击_轻_卡通_02 (0.151s)
-  lock   = 50872,   -- 按钮点击_重_通用_01 (1.024s)
-  over   = 50929,   -- 提示性UI_轻_整理背包 (0.978s)
-  level  = 40001,   -- 战斗_治疗_回复_01 (1.653s) ← 升级音
-  tspin  = 50924,   -- 拍照分享 (1.418s) ← T-spin 专属正反馈（T8）
-  -- T7 垃圾行（裁决⑩：波 3 实施时挑；真机人耳确认归 T9 清单⑥）
-  garbageSend = 40017,   -- 战斗_远程攻击_投掷_飞刀_01 (1.161s) ← 送出（攻方反馈）
-  garbageRecv = 20004,   -- 动物叫声_鬼兜虫_重受击_01 (0.459s) ← 受击（被打方警报）
-}
--- 消行按行数换 id：四档互不相同 ⇒ 1 行与 4 行听得出差别（音高关系未确认）
-local SFX_CLEAR = { 50917, 40001, 40022, 40054 }   -- 0.785 / 1.653 / 1.064 / 2.000s
-local SFX_MUTE = false      -- 调试开关：true 全静音
-local sfxFrame = -1         -- 上一次播声的帧号（同一帧最多一条）
+-- 帧号与同帧消费标记（v2.7）：按键回调与 OnUpdate 共用同一帧号；见下方 sfx 帧闸与 anyKeyStart 兜底。
+-- 注意：这两个 local 与 UI_STYLE 必须声明在模块 wiring **之前**——注入进模块的闭包
+-- （frameOf / styleOf）是词法的，引用「声明在后面的 local」会退化成全局变量，运行时读到 nil
+-- （2026-10-28 实测：lua/tetris/widgets:94 attempt to index a nil value (global 'UI_STYLE')）。
 local frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
--- v2.7：同帧「按键已被某个动作消费」标记——43 键兜底（anyKeyStart）必须让位给真动作。
--- 起因（用户反馈②③）：V=CraftspersonKey22 同时注册了「结算回主页」与「任意键开始」两个监听，
--- exitToMenu 把 guideStage 置 0 后，同一按键继续派发给兜底 ⇒ 标题页刚建好就被开局吃掉。
-local keyConsumedFrame = -1
-local sfxCount = 0          -- 本会话已播条数（探针读数）
-local function sfx(id, force)
-  if SFX_MUTE or not id then return false end
-  -- frameSeq == 0 表示 OnUpdate 还一次没跑（真机上若不派发就别把音全吞了）⇒ 此时不做帧闸
-  if not force and frameSeq > 0 and sfxFrame == frameSeq then return false end
-  sfxFrame = frameSeq
-  local ok, err = pcall(function() game.PlayAudio2D(id) end)
-  if not ok then noteFail('PlayAudio2D', err) return false end
-  sfxCount = sfxCount + 1
-  return true
-end
+local keyConsumedFrame = -1 -- 同帧「按键已被某个动作消费」标记（43 键兜底必须让位给真动作）
+local UI_STYLE              -- 文字样式表（真机新建控件没有样式，全部由 Lua 运行时写）；定义见本文件后面
+
+-- ===== v2.7 ⑨ 控件工具箱 + 音效引擎（实现见 lua/tetris/widgets.lua / audio.lua）=====
+local UI = loadModule('widgets')
+if not UI then error('tetris: 模块 widgets 装载失败') end
+local WIDGETS = UI.new({
+  game = game,
+  rootOf = function() return root end,
+  styleOf = function() return UI_STYLE end,     -- 惰性：UI_STYLE 在本文件更后面才定义
+})
+local noteFail, trySet, tryCall, addCursor = WIDGETS.noteFail, WIDGETS.trySet, WIDGETS.tryCall, WIDGETS.addCursor
+local find, setText, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
+local probeTemplate, instInto, findIn = WIDGETS.probeTemplate, WIDGETS.instInto, WIDGETS.findIn
+local AUDIO = loadModule('audio')
+if not AUDIO then error('tetris: 模块 audio 装载失败') end
+local AUDIO_ENGINE = AUDIO.new({ game = game, frameOf = function() return frameSeq end })
+local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.play
+
+
 
 --------------------------------------------------------------------------------
 -- 抖屏（2026-10-25）：2D UI 没有相机 ⇒ 抖屏 = 把所有视觉元素按同一偏移量整体平移。
@@ -502,16 +311,6 @@ local function startShake(rows)
 end
 
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
-local function find(name)
-  if not root then return nil end
-  local ok, ctl = pcall(function() return root:GetChild(name) end)
-  if ok then return ctl end
-  return nil
-end
-
-local function setText(ctl, value)
-  if ctl then trySet(ctl, 'text', value) end
-end
 
 -- 手机按钮：标签是服务端 textbox（bgColor 当底），点击热区是客户端 cursor 实例（透明，叠在上面）
 local BUTTONS = {
@@ -531,7 +330,7 @@ local hits = {}
 local C_TEXT, C_GOLD2, C_ACCENT2, C_DANGER, C_BTN =
   C(255, 214, 232, 246), C(255, 255, 194, 76), C(255, 118, 214, 255),
   C(255, 255, 77, 77), C(179, 26, 29, 38)
-local UI_STYLE = {
+UI_STYLE = {
   title     = { font = 64, color = C_GOLD2,   align = 'Middle' },
   hud       = { font = 20, color = C_ACCENT2, align = 'Middle' },
   hudNext   = { font = 22, color = C_ACCENT2, align = 'Middle' },
@@ -549,29 +348,7 @@ local UI_STYLE = {
   btnE = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
   btnF = { font = 22, color = C_TEXT, align = 'Middle', valign = 'Middle', bg = C_BTN },
 }
-local function applyStyle(name, ctl)
-  local st = UI_STYLE[name]
-  if not ctl or not st then return end
-  if st.font then trySet(ctl, 'fontSize', st.font) end
-  if st.color then trySet(ctl, 'fontColor', st.color) end
-  if st.bg then trySet(ctl, 'bgColor', st.bg) end
-  if st.align then trySet(ctl, 'horizontalAlignment', st.align) end
-  if st.valign then trySet(ctl, 'verticalAlignment', st.valign) end
-end
 
--- 按候选 guid 探测模板：needCursor=true 要求该控件具备光标事件方法（cursor/button）
-local function probeTemplate(candidates, needCursor)
-  for _, g in ipairs(candidates) do
-    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
-    if ok and ctl then
-      local okFn, fn = pcall(function() return ctl.AddCursorEventListener end)
-      local isCursor = okFn and type(fn) == 'function'
-      if isCursor == needCursor then return ctl, g end
-      pcall(function() game.DestroyClientUIControl(ctl) end)
-    end
-  end
-  return nil, nil
-end
 
 --------------------------------------------------------------------------------
 -- 结算层（2026-10-24 第三轮）：整套结算界面是**运行时实例化出来的一层**，不复用布局横幅。
@@ -583,27 +360,6 @@ end
 --      真机模板 = 地图里已有的「控件模板:客户端控件容器_1」（子控件名 title/hud/best/hint/botBanner）
 --      ⇒ 取控件一律走「候选名列表」，两宿主同一份代码。
 --------------------------------------------------------------------------------
-local function instInto(candidates, parent, needCursor)
-  for _, g in ipairs(candidates) do
-    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, parent) end)
-    if ok and ctl then
-      if needCursor == nil then return ctl end
-      local okFn, fn = pcall(function() return ctl.AddCursorEventListener end)
-      if (okFn and type(fn) == 'function') == needCursor then return ctl end
-      pcall(function() game.DestroyClientUIControl(ctl) end)
-    end
-  end
-  return nil
-end
-
-local function findIn(node, names)
-  if not node then return nil end
-  for _, n in ipairs(names) do
-    local ok, child = pcall(function() return node:GetChild(n) end)
-    if ok and child then return child end
-  end
-  return nil
-end
 
 -- 销毁整层：SetVisible(false) 在真机不保险（实测重开后结算页还在），所以重开就真销毁。
 -- 逐个 pcall：真机某个控件销毁抛错不能中断后面（同 OnStart 的护栏思路）。
@@ -940,7 +696,7 @@ renderAll = function()
   for r = 1, ROWS do
     for c = 1, COLS do
       local v = g.board[r][c]
-      if v == 0 then paint(r, c, COL_EMPTY)
+      if v == 0 then paint(r, c, CFG.COL_EMPTY)
       elseif g.dimRatio > 0 then paint(r, c, dimColor(v, g.dimRatio))
       else paint(r, c, v) end
     end
@@ -949,7 +705,7 @@ end
 
 local function renderNext()
   if not g.preview or not g.preview[5] then return end
-  for i = 1, 8 do g.preview[i].imageColor = COL_BG end
+  for i = 1, 8 do g.preview[i].imageColor = CFG.COL_BG end
   if g.gameOver or not g.nextName then return end
   local s = SHAPES[g.nextName]
   for i = 1, 4 do
@@ -972,7 +728,7 @@ local function renderNext()
   end
   -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
   if g.preview[9] then
-    for i = 9, 12 do g.preview[i].imageColor = COL_BG end
+    for i = 9, 12 do g.preview[i].imageColor = CFG.COL_BG end
     if g.st.name then
       local sh = SHAPES[g.st.name]
       for i = 1, 4 do
@@ -1376,6 +1132,8 @@ local function startIfWaiting()
     renderPiece()
   end
   TK.state, TK.t = 'play', 0            -- T6a：进局即玩家态（菜单选模式/任意键开始同路径）
+  -- v2.7 ⑦：进局即套用该模式的主题背景（底色/背板/边框/强调线）；重开走同一条链
+  pcall(function() applyModeTheme(MODE) end)
   -- v2.1 ①：双人/对抗模式先入引导态（键位说明+任意键+3-2-1），casual 保持直进（旧用例语义）。
   -- v2.2 ①：键位说明分列两盘正下方（P1 左 keyA / P2 右 keyB，y=-318 棋盘外区域——
   -- 不再横跨棋盘被格子压住；服务端 textbox 层级低于运行时棋盘格，文案必须放棋盘投影区之外）。
@@ -1980,7 +1738,7 @@ feedMirror = function()
   g = save
 end
 
--- T7 垃圾行（v2-plan §三/设计书 §四）：给目标盘底部垫 n 行「1 洞」垃圾（暗灰 COL_GRAY）。
+-- T7 垃圾行（v2-plan §三/设计书 §四）：给目标盘底部垫 n 行「1 洞」垃圾（暗灰 CFG.COL_GRAY）。
 -- 跨实例铁律（§1.8 Step3 ②）：入口保存 g → 切目标 → 操作 → 还原。
 -- 洞位随机用 aiRand（AI 独立 LCG）——设计书判据「raiseGarbage 不动 bag」（全局 rand 会改出块序列）。
 -- 顶行被推出=内容丢失（首版简化，垃圾行游戏普遍语义）；当前落子与垃圾重叠则上移，上不动=顶死。
@@ -1992,7 +1750,7 @@ raiseGarbage = function(target, n)
     local hole = aiRand(COLS)
     table.remove(g.board, 1)
     local row = {}
-    for c = 1, COLS do row[c] = (c == hole) and 0 or COL_GRAY end
+    for c = 1, COLS do row[c] = (c == hole) and 0 or CFG.COL_GRAY end
     g.board[#g.board + 1] = row
   end
   if g.piece then
@@ -2027,57 +1785,6 @@ local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡�
 -- 版式（按画布自适应）：暗底整屏 + 顶部标题 + 三栏（左=操作与按键 / 中=计分与判定 / 右=四种模式）
 -- + 页脚提示。全用运行时实例（cell 暗底 + stext 文字），不加新模板。
 -- 框高判据（D566 实测）：h ≥ fontSize×1.45+4，否则整行静默不画——下面按字号自动算。
-local HELP_COLS = {
-  { title = '操作 · 按键', lines = {
-    '← → 移动　↑ 旋转　↓ 软降',
-    '空格 直落　G 暂存',
-    'R 重开　V 回主页　H 本页',
-    'T 调试填底两行（测试用）',
-    '',
-    '双人 P1：A D 移动　W 旋转',
-    '　　　　S 软降　空格 直落　G 暂存',
-    '双人 P2：← → 移动　↑ 旋转',
-    '　　　　↓ 软降　X 直落　F 暂存',
-    '',
-    '合作：P1 = 旋转手（W / G）',
-    '　　　P2 = 行动手（← → / ↓ / X）',
-    '',
-    '标题页：1-4 选模式　任意键=休闲',
-    '触屏：屏幕按钮同键盘',
-  } },
-  { title = '计分 · 判定', lines = {
-    '消行 1/2/3/4 行 = 100/300/500/800',
-    '　　× 等级（行数÷10+1，上限 12）',
-    '连击：连续消行 +50×(链-1)×等级',
-    'B2B：连续两次四消，基础分 ×1.5',
-    'T-spin：T 块三角落定',
-    '　　+400×消行数×等级',
-    '软降 +1/格　硬降 +2/格',
-    '锁定延迟：触底后 0.5s 可救',
-    '　　（移动/旋转各重置一次，上限 15）',
-    'DAS：按住方向 0.25s 后自动连移',
-    '垃圾行：2/3/4 消送对方 1/2/4 行',
-    '　　连四消再 +1 行（洞位随机）',
-    '判负：新块出生位置已被占满',
-    '　　双屏：任一方顶满即分胜负',
-  } },
-  { title = '四种模式', lines = {
-    '1 休闲 casual',
-    '　AI 陪练，任意键接管；停手 5s',
-    '　提示 2s → AI 代打（分数照记）',
-    '2 AI 对抗 ai-battle',
-    '　双屏、镜像出块、hard 档 AI',
-    '　你消 2/3/4 行送 AI 垃圾行',
-    '　任一方顶满＝分胜负',
-    '3 双人对战 pvp',
-    '　双屏同屏 PK，键位分区（见左栏）',
-    '　互送垃圾行，先顶满者败',
-    '4 双人合作 coop',
-    '　共一左盘抗右盘 AI',
-    '　P1 旋转手 + P2 行动手，越权键无效',
-    '　左盘顶满＝败　AI 盘顶满＝胜',
-  } },
-}
 local function destroyHelpLayer()
   local n = 0
   for i = 1, #HL do
@@ -2663,7 +2370,7 @@ local function buildBoardControls(inst)
     g.cellBY[i] = (9.5 - row) * PITCH
     c:SetSizeDelta(CELL, CELL)
     c:SetAnchoredPosition(g.cellBX[i] + (g.boardOX or 0), g.cellBY[i])
-    c.imageColor = COL_EMPTY
+    c.imageColor = CFG.COL_EMPTY
     g.cells[i] = c
   end
   -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
@@ -2822,6 +2529,23 @@ showPersistTip = function()
   setText(botBanner, PERSIST_TIP)
 end
 
+-- v2.7 ⑦：套用模式主题（画面底色 / 棋盘背板 / 棋盘边框 / 上下强调线）
+-- 调用于 startIfWaiting（进局）与 exitToMenu（回标题=复位 casual），重开时随开局链再走一遍。
+-- 双屏模式另由 layoutDual 给两盘分别染座位色（这里先给单屏框色，随后被座位色覆盖，顺序无害）。
+applyModeTheme = function(mode)
+  local t = MODE_THEME[mode] or MODE_THEME.casual
+  local main1 = G[1] or g
+  if main1.bgWash then trySet(main1.bgWash, 'imageColor', t.bg) end
+  local line = C(130, (t.accent // 65536) % 256, (t.accent // 256) % 256, t.accent % 256)
+  if main1.bgTop then trySet(main1.bgTop, 'imageColor', line) end
+  if main1.bgBot then trySet(main1.bgBot, 'imageColor', line) end
+  if g.plate then trySet(g.plate, 'imageColor', t.plate) end
+  for i = 1, 4 do
+    if g.frames and g.frames[i] then trySet(g.frames[i], 'imageColor', t.frame) end
+  end
+  print('mode theme=' .. tostring(mode))      -- 用例锚
+end
+
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；三种双屏（ai-battle/pvp/coop）
 -- 统一建 G[2]（pvp=玩家 2 盘各走各账；ai-battle/coop=AI 盘 autoDriving 走 AI 账）+镜像出块（公平）。
@@ -2878,6 +2602,7 @@ local function exitToMenu()
   end
   guideStage = 0
   demoLoopReset()                         -- 复位主盘演出与横幅（含模式菜单文案）
+  pcall(function() applyModeTheme('casual') end)   -- v2.7 ⑦：回标题=主题复位
   print('mode menu')                      -- 回菜单锚
 end
 
@@ -3534,6 +3259,29 @@ function OnStart()
   hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
   if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
 
+  -- v2.7 ⑦ 模式主题背景（层序：先建的在最下 ⇒ 这三件必须在背板与格子之前建）
+  --   ① bgWash：整屏底色（每模式一套深色调）② ③ 上下各一条模式色强调线。
+  -- 颜色由 applyModeTheme(mode) 在进局/回标题时写入；这里是"存在性 + 初值"。
+  g.bgWash = instInto(TPL_GUIDS.cell, root, nil)
+  if g.bgWash then
+    g.bgWash.name = 'bgWash'
+    tryCall(g.bgWash, 'SetSizeDelta', W + 20, H + 20)
+    tryCall(g.bgWash, 'SetAnchoredPosition', 0, 0)
+    trySet(g.bgWash, 'imageColor', MODE_THEME.casual.bg)
+  end
+  g.bgTop = instInto(TPL_GUIDS.cell, root, nil)
+  g.bgBot = instInto(TPL_GUIDS.cell, root, nil)
+  for _, pair in ipairs({ { g.bgTop, 1 }, { g.bgBot, -1 } }) do
+    local ctl = pair[1]
+    if ctl then
+      ctl.name = pair[2] > 0 and 'bgTop' or 'bgBot'
+      tryCall(ctl, 'SetSizeDelta', W - 40, 6)
+      tryCall(ctl, 'SetAnchoredPosition', 0, pair[2] * (H / 2 - 34))
+      trySet(ctl, 'imageColor', C(130, 45, 212, 191))
+    end
+  end
+  print('bg theme layers=' .. tostring(g.bgWash ~= nil) .. tostring(g.bgTop ~= nil) .. tostring(g.bgBot ~= nil))
+
   -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
   -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。
   -- 背板必须在**格子之前**建（层序：先建的在下），全模式一张，进局后同样让缝隙变暗。
@@ -3560,7 +3308,7 @@ function OnStart()
     g.cellBY[i] = (9.5 - row) * PITCH
     c:SetSizeDelta(CELL, CELL)
     c:SetAnchoredPosition(g.cellBX[i], g.cellBY[i])
-    c.imageColor = COL_EMPTY
+    c.imageColor = CFG.COL_EMPTY
     g.cells[i] = c
   end
   print('cellCount=' .. #g.cells)
@@ -3607,7 +3355,7 @@ function OnStart()
       c:SetSizeDelta(i <= 4 and 18 or i <= 8 and 14 or 18, i <= 4 and 18 or i <= 8 and 14 or 18)
       c:SetAnchoredPosition(i <= 4 and 400 or i <= 8 and 400 or -400,
         i <= 4 and 175 or i <= 8 and 100 or 175)
-      c.imageColor = COL_BG
+      c.imageColor = CFG.COL_BG
     end
     g.preview[i] = c
   end
@@ -3877,7 +3625,7 @@ function OnStart()
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
   listen('KeyboardCharacterSkill4KeyDown', act('KeyboardCharacterSkill4KeyDown', function()
     for rr = ROWS - 1, ROWS do
-      for c = 1, COLS do g.board[rr][c] = COL_BLUE end
+      for c = 1, COLS do g.board[rr][c] = CFG.COL_BLUE end
     end
     print('debug-fill')
     renderAll()

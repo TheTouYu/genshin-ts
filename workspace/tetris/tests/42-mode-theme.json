@@ -1,0 +1,325 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "42 v2.7 七模式主题背景：每种模式进场套自己的底色/背板/边框/强调线，回标题复位 casual",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey2Down"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey2Up"
+  },
+  {
+   "t": 1.0,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 1.02,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  },
+  {
+   "t": 5.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.02,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.119999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.319999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.619999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.72,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.819999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.9,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.92,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.02,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.119999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.319999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.619999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.72,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.819999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.9,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.92,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.02,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.119999999999999,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.300000000000001,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 9.0,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey22Down"
+  },
+  {
+   "t": 9.02,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey22Up"
+  },
+  {
+   "t": 10.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
+  },
+  {
+   "t": 10.52,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.6,
+   "kind": "log",
+   "contains": "bg theme layers",
+   "source": "client"
+  },
+  {
+   "at": 2.0,
+   "kind": "log",
+   "contains": "mode theme=ai-battle",
+   "source": "client"
+  },
+  {
+   "at": 9.6,
+   "kind": "log",
+   "contains": "mode theme=casual",
+   "source": "client"
+  },
+  {
+   "at": 11.6,
+   "kind": "log",
+   "contains": "mode theme=casual",
+   "source": "client"
+  }
+ ]
+}
