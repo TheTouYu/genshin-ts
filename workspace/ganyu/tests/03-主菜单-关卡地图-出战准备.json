@@ -1,0 +1,58 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "03 主菜单-关卡地图-出战准备",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_1"
+    },
+    {
+      "t": 2.1,
+      "kind": "click",
+      "name": "hit_map_start"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "screen=map items=7",
+      "source": "client"
+    },
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "map chapter=1 sel=1 stage=1 state=open",
+      "source": "client"
+    },
+    {
+      "at": 2.9,
+      "kind": "log",
+      "contains": "prepare stage=1",
+      "source": "client"
+    },
+    {
+      "at": 2.9,
+      "kind": "log",
+      "contains": "screen=prepare items=10",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50942
+  ]
+}

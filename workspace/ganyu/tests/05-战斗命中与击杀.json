@@ -1,0 +1,68 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "05 战斗命中与击杀",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_1"
+    },
+    {
+      "t": 2.1,
+      "kind": "click",
+      "name": "hit_map_start"
+    },
+    {
+      "t": 2.7,
+      "kind": "click",
+      "name": "hit_prepare_start"
+    },
+    {
+      "t": 3.6,
+      "kind": "click",
+      "name": "hit_battle_enemy_1"
+    },
+    {
+      "t": 4.05,
+      "kind": "click",
+      "name": "hit_battle_enemy_1"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 3.8,
+      "kind": "log",
+      "contains": "battle hit enemy=1 hp=1",
+      "source": "client"
+    },
+    {
+      "at": 4.5,
+      "kind": "log",
+      "contains": "battle kill enemy=1",
+      "source": "client"
+    },
+    {
+      "at": 4.5,
+      "kind": "log",
+      "contains": "screen=battle",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    40028,
+    40210
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "pc-16-9",
+  "name": "16 PC 画布 1600x900",
+  "events": [
+    {
+      "t": 0.4,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 1.0,
+      "kind": "click",
+      "name": "hit_start"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "canvas 1600.0x900.0",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "screen=boot",
+      "source": "client"
+    },
+    {
+      "at": 1.6,
+      "kind": "log",
+      "contains": "screen=menu",
+      "source": "client"
+    }
+  ]
+}

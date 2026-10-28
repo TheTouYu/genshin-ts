@@ -1,0 +1,82 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "12 养成与两个弹层",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_2"
+    },
+    {
+      "t": 2.4,
+      "kind": "click",
+      "name": "hit_growth_ascend"
+    },
+    {
+      "t": 3.3,
+      "kind": "click",
+      "name": "hit_ascend_cancel"
+    },
+    {
+      "t": 3.9,
+      "kind": "click",
+      "name": "hit_growth_talent_2"
+    },
+    {
+      "t": 4.7,
+      "kind": "click",
+      "name": "hit_talent_close"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "screen=growth",
+      "source": "client"
+    },
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "growth open",
+      "source": "client"
+    },
+    {
+      "at": 2.7,
+      "kind": "log",
+      "contains": "overlay=ascend",
+      "source": "client"
+    },
+    {
+      "at": 3.6,
+      "kind": "log",
+      "contains": "overlay close=ascend",
+      "source": "client"
+    },
+    {
+      "at": 4.2,
+      "kind": "log",
+      "contains": "overlay=talent",
+      "source": "client"
+    },
+    {
+      "at": 5.0,
+      "kind": "log",
+      "contains": "overlay close=talent",
+      "source": "client"
+    }
+  ]
+}

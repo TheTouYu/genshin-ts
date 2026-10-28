@@ -484,8 +484,14 @@ T.portrait = function(ch, cx, cy, s, opts)
   put(58, -56, 28, 82, 'circle', hair, 4, 'sideHair')
   put(-63, -108, 22, 52, 'triangle', hair, 176, 'sideHair')
   put(63, -108, 22, 52, 'triangle', hair, 184, 'sideHair')
-  put(-53, -58, 7, 70, 'rect', T.withA(hair3, 120), -3, 'hairHi')
-  put(53, -58, 7, 70, 'rect', T.withA(hair3, 120), 3, 'hairHi')
+  put(-53, -58, 6, 68, 'rect', T.mix(hair, hair3, 0.55), -3, 'hairHi')
+  put(53, -58, 6, 68, 'rect', T.mix(hair, hair3, 0.55), 3, 'hairHi')
+  put(-43, -96, 3, 40, 'rect', T.mix(hair, hair3, 0.35), -5, 'hairHi')
+  put(43, -96, 3, 40, 'rect', T.mix(hair, hair3, 0.35), 5, 'hairHi')
+  -- 头顶轮廓光
+  for i = -2, 2 do
+    put(i * 16, 52 - math.abs(i) * 3, 14, 5, 'circle', T.mix(hair3, T.P.white, 0.35), 0, 'hairHi')
+  end
 
   -- ===== 7 麒麟角（叠压成连续弯角） =====
   if ch.motif == 'qilin' then
@@ -624,12 +630,19 @@ T.enemyArt = function(kind, x, y, s, opts)
   s = s or 1
   local body = T.P.ice2
   if kind == 'slime' then
-    T.img(x, y, 90 * s, 66 * s, 'circle', body)
-    T.img(x - 18 * s, y - 26 * s, 30 * s, 24 * s, 'triangle', T.withA(T.P.white, 180), 0)
-    T.img(x - 18 * s, y + 4 * s, 9 * s, 12 * s, 'circle', T.withA(T.P.ink, 190))
-    T.img(x + 16 * s, y + 4 * s, 9 * s, 12 * s, 'circle', T.withA(T.P.ink, 190))
-    T.img(x, y - 12 * s, 20 * s, 6 * s, 'circle', T.withA(T.P.ink, 90))
-    T.img(x + 34 * s, y - 18 * s, 16 * s, 16 * s, 'fourstar', T.withA(T.P.white, 150))
+    T.img(x, y - 10 * s, 92 * s, 64 * s, 'circle', T.withA(T.P.deep, 60))
+    T.img(x, y, 88 * s, 64 * s, 'circle', body)
+    T.img(x, y + 12 * s, 62 * s, 26 * s, 'circle', T.mix(body, T.P.white, 0.35))
+    -- 背部冰刺
+    T.img(x - 26 * s, y + 20 * s, 12 * s, 30 * s, 'triangle', T.withA(T.P.white, 170), -16)
+    T.img(x + 4 * s, y + 26 * s, 10 * s, 24 * s, 'triangle', T.withA(T.P.white, 150), 6)
+    -- 眼睛 / 嘴
+    T.img(x - 18 * s, y + 2 * s, 12 * s, 15 * s, 'circle', T.INK)
+    T.img(x + 16 * s, y + 2 * s, 12 * s, 15 * s, 'circle', T.INK)
+    T.img(x - 21 * s, y + 6 * s, 3.4 * s, 3.4 * s, 'circle', T.P.white)
+    T.img(x + 13 * s, y + 6 * s, 3.4 * s, 3.4 * s, 'circle', T.P.white)
+    T.img(x, y - 12 * s, 16 * s, 5 * s, 'circle', T.withA(T.P.ink, 120))
+    T.img(x + 30 * s, y - 20 * s, 14 * s, 14 * s, 'fourstar', T.withA(T.P.white, 160))
   elseif kind == 'fly' then
     T.img(x - 26 * s, y + 10 * s, 44 * s, 30 * s, 'circle', T.withA(T.P.white, 170), 24)
     T.img(x + 26 * s, y + 10 * s, 44 * s, 30 * s, 'circle', T.withA(T.P.white, 170), -24)
@@ -672,36 +685,50 @@ end
 -- ---------------------------------------------------------------------------
 T.stageArt = function(cx, cy, w, h, stage, opts)
   opts = opts or {}
-  local scale = math.min(w / 300, h / 180)
+  local sc = math.min(w / 320, h / 150)
   local warm = stage and stage.chapter == 2
-  local skyTop = warm and T.C(255, 236, 232, 252) or T.C(255, 224, 242, 253)
-  local skyBot = warm and T.C(255, 248, 240, 252) or T.C(255, 242, 251, 255)
-  T.img(cx, cy + h * 0.18, w, h * 0.68, 'rect', skyTop)
-  T.img(cx, cy - h * 0.16, w, h * 0.36, 'rect', skyBot)
-  -- 月/日
-  local mx, my = cx + w * 0.24, cy + h * 0.22
-  T.img(mx, my, 58 * scale, 58 * scale, 'circle', T.withA(T.P.white, 80))
-  T.img(mx, my, 38 * scale, 38 * scale, 'circle', T.C(255, 255, 252, 250))
-  -- 山脊（两座）
-  T.peak(cx - w * 0.26, cy + h * 0.06, w * 0.56, h * 0.48, warm and T.C(255, 224, 218, 246) or T.C(255, 216, 240, 251),
-    { cap = T.P.white, capRatio = 0.3 })
-  T.peak(cx + w * 0.2, cy - h * 0.02, w * 0.5, h * 0.4, warm and T.C(255, 206, 200, 240) or T.C(255, 198, 230, 246),
-    { cap = T.P.white, capRatio = 0.26 })
-  -- 雪地
-  T.img(cx, cy - h * 0.36, w * 1.15, h * 0.5, 'circle', T.C(255, 250, 254, 255))
-  -- 小树
-  local tx = cx - w * 0.3
-  T.img(tx, cy - h * 0.16, 6 * scale, 34 * scale, 'rect', T.C(255, 120, 150, 170))
-  T.img(tx, cy + h * 0.02, 24 * scale, 24 * scale, 'triangle', T.P.ice3, 0)
-  T.img(tx, cy + h * 0.13, 17 * scale, 17 * scale, 'triangle', T.P.ice2, 0)
-  -- 目标点
-  if stage and (stage.id == 3 or stage.id == 6) then
-    T.img(cx + w * 0.4, cy - h * 0.28, 10 * scale, 10 * scale, 'fourstar', T.P.gold)
+  -- 天空（黄昏/夜，独立于页面主题，保证在浅底深底上都立得住）
+  local top = warm and T.C(255, 58, 48, 84) or T.C(255, 34, 56, 92)
+  local mid = warm and T.C(255, 106, 78, 116) or T.C(255, 62, 96, 132)
+  local bot = warm and T.C(255, 196, 150, 166) or T.C(255, 150, 186, 210)
+  local bands = 6
+  for i = 1, bands do
+    local t = (i - 0.5) / bands
+    local col = (t < 0.55) and T.mix(top, mid, t / 0.55) or T.mix(mid, bot, (t - 0.55) / 0.45)
+    T.img(cx, cy + h * 0.5 - (i - 0.5) * (h / bands), w, h / bands + 1, 'rect', col)
   end
-  for i = 1, 7 do
+  -- 月 / 落日光
+  local mx, my = cx + w * 0.3, cy + h * 0.22
+  T.img(mx, my, 54 * sc, 54 * sc, 'circle', T.withA(T.P.white, 60))
+  T.img(mx, my, 30 * sc, 30 * sc, 'circle', T.C(255, 252, 246, 255))
+  -- 远山
+  T.peak(cx - w * 0.2, cy + h * 0.12, w * 0.72, h * 0.42, T.mix(bot, T.P.white, 0.35),
+    { cap = T.mix(bot, T.P.white, 0.75), capRatio = 0.2 })
+  T.peak(cx + w * 0.24, cy + h * 0.04, w * 0.62, h * 0.36, T.mix(bot, T.P.deep, 0.16),
+    { cap = T.mix(bot, T.P.white, 0.6), capRatio = 0.18 })
+  -- 近景雪地
+  T.img(cx, cy - h * 0.46, w * 0.98, h * 0.42, 'circle', T.C(255, 236, 246, 253))
+  -- 雪松
+  local px = cx - w * 0.34
+  for i = 0, 2 do
+    T.pine(px + i * w * 0.1, cy - h * 0.22, 0.55 * sc, T.C(255, 30, 46, 66), T.C(255, 210, 234, 246))
+  end
+  -- 路径与目标
+  if stage then
+    for i = 1, 5 do
+      local t = (i - 1) / 4
+      T.img(cx + w * 0.02 + t * w * 0.26, cy - h * 0.3 + math.sin(t * math.pi) * h * 0.08, 4 * sc, 4 * sc,
+        'circle', T.withA(T.P.goldPale, 190))
+    end
+    local gx = cx + w * 0.3
+    T.img(gx, cy - h * 0.24, 12 * sc, 34 * sc, 'rect', T.withA(T.P.goldPale, 200))
+    T.img(gx + 10 * sc, cy - h * 0.1, 20 * sc, 14 * sc, 'triangle', T.P.danger, 90)
+  end
+  -- 飘雪
+  for i = 1, 8 do
     local x = cx + (T.rand(1000) / 1000 - 0.5) * w * 0.9
     local y = cy + (T.rand(1000) / 1000 - 0.5) * h * 0.8
-    T.img(x, y, (2 + T.rand(3)) * scale, (2 + T.rand(3)) * scale, 'circle', T.withA(T.P.white, 170))
+    T.img(x, y, (1.6 + T.rand(3)) * sc, (1.6 + T.rand(3)) * sc, 'circle', T.withA(T.P.white, 150))
   end
 end
 
@@ -805,5 +832,30 @@ T.sideScrim = function(side, color, alpha, bands)
     local a = math.floor(alpha * (1 - k) ^ 1.4)
     local x = (side == 'left') and (-T.DESIGN_W / 2 + (i - 0.5) * w) or (T.DESIGN_W / 2 - (i - 0.5) * w)
     T.img(x, 0, w + 1, T.DESIGN_H, 'rect', T.withA(c, a))
+  end
+end
+
+
+-- 弓形光环（甘雨的弓，作标题/画像背景；弧用圆点拼，避免遮挡问题）
+T.bowHalo = function(cx, cy, r, color, opts)
+  opts = opts or {}
+  local c = color or T.P.gold
+  local n = 16
+  for i = 0, n do
+    local a = math.pi * (0.18 + 0.64 * (i / n)) + math.pi * 0.5
+    local x = cx + math.cos(a) * r
+    local y = cy + math.sin(a) * r * 1.05
+    T.img(x, y, 7, 7, 'circle', c)
+  end
+  -- 弦
+  local top = math.pi * 0.5 + math.pi * 0.18
+  local bot = math.pi * 0.5 + math.pi * 0.82
+  local x1, y1 = cx + math.cos(top) * r, cy + math.sin(top) * r * 1.05
+  local x2, y2 = cx + math.cos(bot) * r, cy + math.sin(bot) * r * 1.05
+  local len = math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+  local ang = math.deg(math.atan(y2 - y1, x2 - x1))
+  T.img((x1 + x2) / 2, (y1 + y2) / 2, 1.6, len, 'rect', T.withA(c, 140), ang)
+  if opts.grip ~= false then
+    T.img(cx, cy + r * 1.02, 12, 30, 'rect', T.mix(c, T.P.ink, 0.25))
   end
 end

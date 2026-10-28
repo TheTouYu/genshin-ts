@@ -63,7 +63,7 @@ T.screenFns.boot = function()
   T.screen.afterBuild = function()
     T.hit('hit_boot_any', 0, 0, T.DESIGN_W, T.DESIGN_H, {
       clickSfx = false,
-      onClick = function() if T.bootReady then T.go('title') else T.log('boot not ready') end end,
+      onClick = function() T.log('boot enter ready=' .. tostring(T.bootReady)); T.go('title') end,
     })
   end
 end
@@ -83,6 +83,10 @@ T.screenFns.title = function()
   for _, p in ipairs({ { 190, 96, 12 }, { 418, 40, 9 }, { 452, 168, 7 }, { 168, -66, 8 } }) do
     T.snowflake(p[1], p[2], p[3], T.withA(T.P.ice1, 150), { core = T.withA(T.P.white, 180) })
   end
+  -- 前景冰台
+  T.img(300, -352, 480, 54, 'circle', T.C(255, 196, 226, 240))
+  T.iceShardCluster(150, -336, 0.95, T.C(255, 214, 240, 252))
+  T.iceShardCluster(470, -340, 0.8, T.C(255, 200, 232, 248))
   -- 前景飘雪（覆在人身上，制造纵深）
   T.snowfall(10, { scale = 1.5 })
 
@@ -93,6 +97,9 @@ T.screenFns.title = function()
   T.txt(-300, 16, 520, 26, 14, 'F R O S T B L O O M', T.P.ice2, 'Middle', 'Middle')
   T.txt(-300, -14, 560, 28, 15, '甘雨 · 月海亭的守夜人', T.P.ice1, 'Middle', 'Middle')
   T.txt(-300, -46, 620, 26, 12, '冰雪 · 射击 · 关卡 · 养成 · 清新', T.withA(T.P.ice2, 200), 'Middle', 'Middle')
+  T.rrect(-300, 214, 204, 28, 14, T.C(255, 30, 58, 80))
+  T.rrect(-300, 214, 198, 24, 12, T.C(255, 14, 34, 50))
+  T.txt(-300, 214, 190, 22, 11, '序章 · 月海亭的灯', T.P.goldPale, 'Middle', 'Middle')
 
   -- 开始
   local btnY = -112
@@ -149,30 +156,35 @@ T.screenFns.menu = function()
   T.txt(-T.DESIGN_W / 2 + T.M, 336, 240, 40, 22, '霜华纪', T.th.text, 'Left', 'Middle')
   T.txt(-T.DESIGN_W / 2 + T.M + 86, 336, 200, 30, 11, 'FROSTBLOOM', T.th.text3, 'Left', 'Middle')
   -- 玩家
-  local avX = T.DESIGN_W / 2 - 370
+  local avX = T.DESIGN_W / 2 - 392
   T.img(avX, 336, 38, 38, 'circle', T.th.accentSoft)
   T.portraitHead(avX, 338, 0.30, T.chars[1])
-  T.txt(avX + 30, 344, 170, 22, 13, '旅行者', T.th.text, 'Left', 'Middle')
-  T.txt(avX + 30, 326, 170, 20, 10, 'Lv.' .. T.records.level .. '  ·  璃月', T.th.text3, 'Left', 'Middle')
-  T.resChip(T.DESIGN_W / 2 - 158, 336, 'coin', T.fmt(T.records.mats.mora), { w = 112 })
-  T.resChip(T.DESIGN_W / 2 - 36, 336, 'crystal', T.fmt(T.records.mats.crystal), { w = 112, color = T.P.ice4 })
+  T.txt(avX + 30, 344, 120, 22, 13, '旅行者', T.th.text, 'Left', 'Middle')
+  T.txt(avX + 30, 326, 120, 20, 10, 'Lv.' .. T.records.level .. ' · 璃月', T.th.text3, 'Left', 'Middle')
+  T.resChip(452, 336, 'coin', T.fmt(T.records.mats.mora), { w = 110 })
+  T.resChip(568, 336, 'crystal', T.fmt(T.records.mats.crystal), { w = 104, color = T.P.ice4 })
 
   -- 左侧立绘区
   local px, py = -366, -6
-  T.glow(px, py + 70, 200, T.P.white, 7, 46)
-  T.img(px, py + 40, 452, 452, 'circle', T.withA(T.P.white, 140))
-  T.img(px, py + 40, 404, 404, 'circle', T.withA(T.P.ice0, 150))
+  T.glow(px, py + 60, 210, T.P.white, 8, 40)
+  T.txt(px, py + 30, 420, 180, 128, 'GANYU', T.withA(T.P.ice4, 20), 'Middle', 'Middle')
+  T.img(px, py + 40, 440, 440, 'ring', T.withA(T.ice4 and T.P.ice4 or T.P.ice4, 70))
+  T.img(px, py + 40, 412, 412, 'ring', T.withA(T.th.border, 120))
   for i = 0, 5 do
     local a = math.pi * (i / 6) - math.pi / 2
-    T.img(px + math.cos(a) * 202, py + 40 + math.sin(a) * 202, 11, 11, 'fourstar', T.withA(T.P.ice4, 160))
+    T.img(px + math.cos(a) * 206, py + 40 + math.sin(a) * 206, 12, 12, 'fourstar', T.withA(T.P.ice4, 170))
   end
-  T.portrait(T.chars[1], px, py + 96, 0.80, { idle = true })
+  T.img(px, -318, 400, 96, 'circle', T.C(255, 240, 249, 255))
+  T.portrait(T.chars[1], px, py + 88, 0.90, { idle = true })
+  T.img(px, -330, 320, 64, 'circle', T.C(255, 250, 254, 255))
+  T.img(px, -300, 200, 22, 'circle', T.withA(T.P.ink, 28))
   -- 雪丘
   T.img(px - 40, py - 176, 320, 96, 'circle', T.C(255, 252, 255, 255))
   T.img(px + 76, py - 188, 250, 86, 'circle', T.C(255, 250, 254, 255))
   -- 名牌
-  local nameY = -282
-  local nameParts = T.rrect(px, nameY, 320, 64, 18, T.withA(T.P.white, 235))
+  local nameY = -262
+  T.rrect(px, nameY, 324, 68, 18, T.th.border)
+  T.rrect(px, nameY, 318, 62, 16, T.th.panel)
   T.img(px - 140, nameY, 4, 40, 'rect', T.th.accent2)
   T.txt(px - 118, nameY + 12, 150, 34, 24, '甘雨', T.th.text, 'Left', 'Middle')
   T.txt(px - 118, nameY - 14, 170, 22, 11, 'GANYU · 冰 · 弓', T.th.text2, 'Left', 'Middle')

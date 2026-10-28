@@ -1,0 +1,46 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "09 锁定关卡反馈",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_1"
+    },
+    {
+      "t": 2.4,
+      "kind": "click",
+      "name": "hit_map_stage_3"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.4,
+      "kind": "log",
+      "contains": "screen=map",
+      "source": "client"
+    },
+    {
+      "at": 2.7,
+      "kind": "log",
+      "contains": "map locked stage=3",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50937
+  ]
+}

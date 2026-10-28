@@ -78,7 +78,7 @@ T.trySet = function(ctl, key, value)
     if enums and enums[value] ~= nil then value = enums[value] end
   end
   local ok, err = pcall(function() ctl[key] = value end)
-  if not ok then T.warn('set ' .. tostring(key) .. ' :: ' .. tostring(err)) end
+  if not ok then T.warn('pcall fail set ' .. tostring(key) .. ' :: ' .. tostring(err)) end
   return ok
 end
 T.tryCall = function(ctl, method, a, b, c)
@@ -88,12 +88,14 @@ T.tryCall = function(ctl, method, a, b, c)
   elseif b ~= nil then ok, err = pcall(function() ctl[method](ctl, a, b) end)
   elseif a ~= nil then ok, err = pcall(function() ctl[method](ctl, a) end)
   else ok, err = pcall(function() ctl[method](ctl) end) end
-  if not ok then T.warn('call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
+  if not ok then T.warn('pcall fail call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
   return ok
 end
 T.destroy = function(ctl)
   if not ctl then return false end
-  return pcall(function() game.DestroyClientUIControl(ctl) end)
+  local ok, err = pcall(function() game.DestroyClientUIControl(ctl) end)
+  if not ok then T.warn('pcall fail destroy :: ' .. tostring(err)) end
+  return ok
 end
 -- 销毁并从台账里摘除（战斗粒子必须走这条，否则 T.controls 无限增长）
 T.destroyCtl = function(ctl)
@@ -107,7 +109,7 @@ end
 T.inst = function(guid, parent)
   local ok, ctl = pcall(function() return game.InstantiateClientUIControl(guid, parent or T.root) end)
   if not ok or not ctl then
-    T.warn('instantiate fail guid=' .. tostring(guid) .. ' :: ' .. tostring(ctl))
+    T.warn('pcall fail instantiate guid=' .. tostring(guid) .. ' :: ' .. tostring(ctl))
     return nil
   end
   return ctl
@@ -158,7 +160,7 @@ end
 -- 高度按 1.45×fontSize 留足，避免「整行不画 / 裁半字」（04-text 铁律）
 T.textH = function(size, lines)
   lines = lines or 1
-  return lines * size * 1.28 + size * 0.45 + 6
+  return lines * size * 1.28 + size * 0.55 + 12
 end
 T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   opts = opts or {}
@@ -170,7 +172,7 @@ T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   -- 统一按行数抬到 requiredHeight = lines*1.2*fs + blockInset(10) 之上。
   local lines = 1
   for _ in string.gmatch(text or '', '\n') do lines = lines + 1 end
-  local need = math.ceil(lines * fs * 1.2 + 12)
+  local need = math.ceil(lines * fs * 1.2 + fs * 0.5 + 10)
   local ch = math.max(fs + 8, need, math.floor(h * T.S + 0.5))
   local px = x
   if align == 'Left' then px = x + w / 2
@@ -276,7 +278,9 @@ T.tick = function(dt)
       local k = math.min(1, tw.t / tw.dur)
       local keep = tw.fn(tw.ease(k), k)
       if k >= 1 or keep == false then
-        list[i] = nil
+        -- 必须用 table.remove（数组保持紧凑）：留 nil 洞会让 #list 变小，
+        -- 之后 append 的新 tween 可能落在 #list 之外，永远不会被遍历到。
+        table.remove(list, i)
         if tw.done then tw.done() end
       end
     end
@@ -288,9 +292,9 @@ T.tick = function(dt)
       local ok, keep = pcall(fn, dt, T.time)
       if not ok then
         T.warn('anim error :: ' .. tostring(keep))
-        alist[i] = nil
+        table.remove(alist, i)
       elseif keep == false then
-        alist[i] = nil
+        table.remove(alist, i)
       end
     end
   end
@@ -544,7 +548,7 @@ T.clearScreen = function()
       if ok then n = n + 1 else fail = fail + 1 end
     end
   end
-  if fail > 0 then T.log('clear screen destroyed=' .. n .. ' fail=' .. fail) end
+  if fail > 0 then T.warn('pcall fail clear screen fail=' .. fail) end
   T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
   T.tweens, T.anims, T.pos = {}, {}, {}
   T.focus = 0
@@ -656,6 +660,10 @@ T.openOverlay = function(name, builder, opts)
   }
   T.overlays[#T.overlays + 1] = base
   T.overlay = base
+  -- 旧焦点框要移出屏幕：makeFocusFrame 会新建一套，旧的一套不 park 就会在弹层背后残留
+  if T.focusFrame then
+    for i = 1, #T.focusFrame do T.setPos(T.focusFrame[i], 0, -100000) end
+  end
   T.items, T.hits, T.focus, T.focusFrame = {}, {}, 0, nil
   T.mode = 'overlay'
   local prev = T.screen
@@ -751,13 +759,15 @@ T.toast = function(text, color, icon)
     end
     T.toastSet = nil
   end
-  local w = math.max(280, #text * 15 + 90)
+  local w = math.max(280, T.ulen(text) * 15 + 90)
   local y = 250
   local ps = {}
-  ps[1] = T.img(0, y, w, 46, 'circle', T.th.border)
-  ps[2] = T.img(0, y, w - 6, 38, 'circle', T.th.panel)
-  ps[3] = T.img(-w / 2 + 30, y, 8, 8, 'fourstar', color or T.th.accent2)
-  ps[4] = T.txt(12, y, w - 70, 34, 15, text, color or T.th.text, 'Middle', 'Middle')
+  local outer = T.rrect(0, y, w, 46, 23, T.th.border)
+  local inner = T.rrect(0, y, w - 6, 38, 19, T.th.panel)
+  for _, c in ipairs(outer) do ps[#ps + 1] = c end
+  for _, c in ipairs(inner) do ps[#ps + 1] = c end
+  ps[#ps + 1] = T.img(-w / 2 + 30, y, 8, 8, 'fourstar', color or T.th.accent2)
+  ps[#ps + 1] = T.txt(12, y, w - 70, 34, 15, text, color or T.th.text, 'Middle', 'Middle')
   T.toastSet = ps
   local function move(dy)
     for i = 1, #ps do
@@ -947,6 +957,12 @@ T.bgGradient = function(top, mid, bot)
 end
 
 -- ---------- 数字/文本工具 ----------
+-- UTF-8 字符数（#s 是字节数：中文标签按 # 算宽会放大 3 倍，出图实测溢出）
+T.ulen = function(s)
+  local n = 0
+  for _ in string.gmatch(s or '', '[%z\1-\127\194-\244][\128-\191]*') do n = n + 1 end
+  return n
+end
 T.fmt = function(n)
   local s = tostring(math.floor(n or 0))
   local out = s:reverse():gsub('(%d%d%d)', '%1,'):reverse()

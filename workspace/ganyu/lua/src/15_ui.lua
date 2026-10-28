@@ -7,7 +7,7 @@ T = T or {}
 -- ---------- 页头 / 页脚 ----------
 T.header = function(title, sub, opts)
   opts = opts or {}
-  local x = opts.x or (-T.DESIGN_W / 2 + T.M)
+  local x = opts.x or (-T.DESIGN_W / 2 + 176)
   local y = opts.y or T.HEAD_Y
   T.img(x + 3, y, 4, 40, 'rect', T.th.accent2)
   T.img(x + 3, y + 26, 34, 2, 'rect', T.th.line)
@@ -28,7 +28,7 @@ T.footer = function(parts)
   local widths, total = {}, 0
   for i, p in ipairs(parts) do
     local kw = p.key and (#p.key * 11 + 16) or 0
-    widths[i] = kw + 8 + #p.label * 13 + 22
+    widths[i] = kw + 8 + T.ulen(p.label) * 13 + 22
     total = total + widths[i]
   end
   local x = -total / 2
@@ -37,13 +37,13 @@ T.footer = function(parts)
     local cx = x + cw / 2
     local tx = cx
     if p.key then
-      local kw = #p.key * 11 + 16
+      local kw = T.ulen(p.key) * 11 + 16
       local kx = cx - cw / 2 + kw / 2
       T.rrect(kx, y, kw, 22, 6, T.th.borderSoft)
       T.txt(kx, y, kw, 20, 11, p.key, T.th.text2, 'Middle', 'Middle')
-      tx = kx + kw / 2 + (#p.label * 13) / 2 + 8
+      tx = kx + kw / 2 + (T.ulen(p.label) * 13) / 2 + 8
     end
-    T.txt(tx, y, #p.label * 15 + 20, 24, 13, p.label, T.th.text3, 'Middle', 'Middle')
+    T.txt(tx, y, T.ulen(p.label) * 15 + 20, 24, 13, p.label, T.th.text3, 'Middle', 'Middle')
     x = x + cw
   end
 end
@@ -242,14 +242,15 @@ T.button = function(x, y, w, h, label, onClick, opts)
   local kind = opts.kind or 'primary'
   local r = opts.radius or math.min(h / 2, 14)
   local parts, base = {}, {}
-  local fillGroup, glowGroup = nil, nil
+  local fillGroup, glowGroup, glossGroup = nil, nil, nil
   local textCtl, iconCtl
   local baseFill, hoverFill, textColor, hoverText
   if kind == 'primary' then
+    -- 主按钮是淡金底：文字用深墨色，白字在浅金上对比不足（出图实测）
     baseFill, hoverFill = T.th.accent2, T.mix(T.th.accent2, T.P.white, 0.20)
-    textColor, hoverText = T.th.onAccent, T.th.onAccent
+    textColor, hoverText = T.C(255, 44, 62, 74), T.C(255, 30, 46, 58)
   elseif kind == 'secondary' then
-    baseFill, hoverFill = T.th.panel, T.th.panelHi
+    baseFill, hoverFill = T.th.panel2, T.th.panelHi
     textColor, hoverText = T.th.text, T.th.accent
   elseif kind == 'danger' then
     baseFill, hoverFill = T.withA(T.P.danger, 40), T.P.danger
@@ -258,10 +259,20 @@ T.button = function(x, y, w, h, label, onClick, opts)
     textColor, hoverText = T.th.text2, T.th.text
   end
   if baseFill then
-    fillGroup = T.rrect(x, y, w, h, r, baseFill)
+    if kind == 'secondary' or kind == 'danger' then
+      local bd = T.rrect(x, y, w, h, r, T.th.border)
+      T.spread(parts, bd)
+      fillGroup = T.rrect(x, y, w - 2, h - 2, math.max(2, r - 1), baseFill)
+    else
+      fillGroup = T.rrect(x, y, w, h, r, baseFill)
+    end
     T.spread(parts, fillGroup)
-    glowGroup = T.rrect(x, y, w - 4, h - 4, math.max(2, r - 1), T.withA(T.P.white, 18))
-    T.spread(parts, glowGroup)
+    -- 顶部高光：单条不透明预混色（半透明 rrect 会在四角叠出淡斑，出图实测）
+    local gloss = T.rrect(x, y + h * 0.22, w - 18, h * 0.34, math.max(2, r - 4),
+      T.mix(baseFill, T.P.white, 0.18))
+    for _, c in ipairs(gloss) do parts[#parts + 1] = c end
+    T.captureBase(base, gloss)
+    glossGroup = gloss
   end
   local labelW = w - (opts.icon and 44 or 20)
   local tx = x + (opts.icon and 10 or 0)
@@ -271,7 +282,7 @@ T.button = function(x, y, w, h, label, onClick, opts)
     iconCtl = T.icon(opts.icon, x - w / 2 + 26, y, opts.iconSize or 9, textColor)
   end
   if opts.badge then
-    local bw = math.max(30, #opts.badge * 11 + 12)
+    local bw = math.max(30, T.ulen(opts.badge) * 11 + 12)
     local bx = x + w / 2 - bw / 2 - 10
     T.rrect(bx, y, bw, 20, 6, T.th.panel2)
     T.txt(bx, y, bw, 18, 10, opts.badge, T.th.text2, 'Middle', 'Middle')
@@ -295,7 +306,7 @@ T.button = function(x, y, w, h, label, onClick, opts)
         return
       end
       repaint(on and hoverFill or baseFill, on and hoverText or textColor)
-      if glowGroup then T.tint(glowGroup, T.withA(T.P.white, on and 34 or 18)) end
+      if glossGroup then T.tint(glossGroup, T.mix(on and hoverFill or baseFill, T.P.white, 0.18)) end
       shift(on and 3 or 0)
     end,
   })
@@ -349,7 +360,7 @@ end
 T.chip = function(x, y, label, color, opts)
   opts = opts or {}
   local fs = opts.size or 12
-  local w = math.max(opts.minW or 54, #label * fs * 1.05 + 24)
+  local w = math.max(opts.minW or 64, T.ulen(label) * fs * 1.05 + 30)
   local h = opts.h or 24
   local parts = T.rrect(x, y, w, h, h / 2, opts.fill or T.th.accentSoft)
   T.txt(x, y, w - 10, h - 4, fs, label, opts.text or color or T.th.text2, 'Middle', 'Middle')
@@ -359,7 +370,7 @@ end
 T.badge = function(x, y, label, opts)
   opts = opts or {}
   local fs = opts.size or 11
-  local w = math.max(40, #label * fs * 1.1 + 18)
+  local w = math.max(40, T.ulen(label) * fs * 1.1 + 18)
   T.rrect(x, y, w, opts.h or 20, (opts.h or 20) / 2, opts.fill or T.th.accentSoft)
   T.txt(x, y, w - 6, (opts.h or 20) - 4, fs, label, opts.text or T.th.accent, 'Middle', 'Middle')
   return w

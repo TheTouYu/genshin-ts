@@ -1,0 +1,98 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "14 设置开关与弹层",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_4"
+    },
+    {
+      "t": 2.4,
+      "kind": "click",
+      "name": "hit_settings_sfx"
+    },
+    {
+      "t": 3.0,
+      "kind": "click",
+      "name": "hit_settings_motion_3"
+    },
+    {
+      "t": 3.8,
+      "kind": "click",
+      "name": "hit_settings_help"
+    },
+    {
+      "t": 4.6,
+      "kind": "click",
+      "name": "hit_help_close"
+    },
+    {
+      "t": 5.2,
+      "kind": "click",
+      "name": "hit_settings_reset"
+    },
+    {
+      "t": 6.0,
+      "kind": "click",
+      "name": "hit_confirm_cancel"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "screen=settings",
+      "source": "client"
+    },
+    {
+      "at": 2.7,
+      "kind": "log",
+      "contains": "opt sfx=false",
+      "source": "client"
+    },
+    {
+      "at": 3.4,
+      "kind": "log",
+      "contains": "opt motion=3",
+      "source": "client"
+    },
+    {
+      "at": 4.1,
+      "kind": "log",
+      "contains": "overlay=help",
+      "source": "client"
+    },
+    {
+      "at": 4.9,
+      "kind": "log",
+      "contains": "overlay close=help",
+      "source": "client"
+    },
+    {
+      "at": 5.5,
+      "kind": "log",
+      "contains": "overlay=confirm",
+      "source": "client"
+    },
+    {
+      "at": 6.3,
+      "kind": "log",
+      "contains": "overlay close=confirm",
+      "source": "client"
+    }
+  ]
+}

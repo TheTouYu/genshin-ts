@@ -1,0 +1,61 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "01 启动与标题页",
+  "events": [
+    {
+      "t": 0.5,
+      "kind": "click",
+      "name": "hit_boot_any"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "[frost] onstart",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "screen=boot",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "probe prim",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "probe label",
+      "source": "client"
+    },
+    {
+      "at": 0.2,
+      "kind": "log",
+      "contains": "probe hit",
+      "source": "client"
+    },
+    {
+      "at": 1.2,
+      "kind": "log",
+      "contains": "screen=title items=4",
+      "source": "client"
+    },
+    {
+      "at": 1.2,
+      "kind": "log",
+      "contains": "boot enter",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50942
+  ]
+}

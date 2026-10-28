@@ -75,7 +75,7 @@ T.setTheme = function(name)
       line = T.C(255, 40, 96, 124), accent = T.P.ice3, accent2 = T.P.gold,
       accentSoft = T.C(255, 18, 56, 80), onAccent = T.C(255, 8, 26, 40),
       bgTop = T.C(255, 6, 18, 32), bgMid = T.C(255, 12, 36, 60), bgBot = T.C(255, 26, 72, 102),
-      scrim = T.C(176, 3, 13, 24), glow = T.C(90, 170, 232, 255),
+      scrim = T.C(212, 3, 13, 24), glow = T.C(90, 170, 232, 255),
       card = T.C(255, 15, 44, 68), cardBorder = T.C(255, 46, 104, 134),
       slotBg = T.C(255, 10, 32, 52), slotBorder = T.C(255, 38, 90, 118),
       gold = T.P.gold, ice = T.P.ice3,

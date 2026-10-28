@@ -1,0 +1,37 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "02 标题-主菜单",
+  "events": [
+    {
+      "t": 0.4,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 1.0,
+      "kind": "click",
+      "name": "hit_start"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.7,
+      "kind": "log",
+      "contains": "screen=menu items=5",
+      "source": "client"
+    },
+    {
+      "at": 1.7,
+      "kind": "log",
+      "contains": "keys registered",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50942,
+    50884
+  ]
+}

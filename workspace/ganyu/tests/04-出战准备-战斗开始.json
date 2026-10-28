@@ -1,0 +1,57 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "04 出战准备-战斗开始",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_1"
+    },
+    {
+      "t": 2.1,
+      "kind": "click",
+      "name": "hit_map_start"
+    },
+    {
+      "t": 2.7,
+      "kind": "click",
+      "name": "hit_prepare_start"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 3.5,
+      "kind": "log",
+      "contains": "battle start stage=1 waves=3 time=90",
+      "source": "client"
+    },
+    {
+      "at": 3.5,
+      "kind": "log",
+      "contains": "battle wave=1 n=2",
+      "source": "client"
+    },
+    {
+      "at": 3.5,
+      "kind": "log",
+      "contains": "screen=battle items=2",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50884
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "08 指南开关",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey15Down"
+    },
+    {
+      "t": 2.4,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey15Down"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "overlay=help",
+      "source": "client"
+    },
+    {
+      "at": 2.8,
+      "kind": "log",
+      "contains": "overlay close=help",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50884
+  ]
+}

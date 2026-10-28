@@ -1,0 +1,76 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "13 图鉴四页签",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_3"
+    },
+    {
+      "t": 2.4,
+      "kind": "click",
+      "name": "hit_codex_tab_2"
+    },
+    {
+      "t": 3.1,
+      "kind": "click",
+      "name": "hit_codex_tab_3"
+    },
+    {
+      "t": 3.8,
+      "kind": "click",
+      "name": "hit_codex_tab_4"
+    },
+    {
+      "t": 4.5,
+      "kind": "click",
+      "name": "hit_back"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "screen=codex",
+      "source": "client"
+    },
+    {
+      "at": 2.9,
+      "kind": "log",
+      "contains": "screen=codex",
+      "source": "client"
+    },
+    {
+      "at": 3.6,
+      "kind": "log",
+      "contains": "screen=codex",
+      "source": "client"
+    },
+    {
+      "at": 4.3,
+      "kind": "log",
+      "contains": "screen=codex",
+      "source": "client"
+    },
+    {
+      "at": 4.9,
+      "kind": "log",
+      "contains": "screen=menu",
+      "source": "client"
+    }
+  ]
+}

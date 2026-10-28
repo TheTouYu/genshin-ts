@@ -1,0 +1,40 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.03333333333333333,
+  "canvasId": "mobile-16-9",
+  "name": "11 结算后再战",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "click",
+      "name": "hit_boot_any"
+    },
+    {
+      "t": 0.9,
+      "kind": "click",
+      "name": "hit_start"
+    },
+    {
+      "t": 1.5,
+      "kind": "click",
+      "name": "hit_menu_1"
+    },
+    {
+      "t": 2.3,
+      "kind": "click",
+      "name": "hit_map_start"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 3.0,
+      "kind": "log",
+      "contains": "screen=prepare",
+      "source": "client"
+    }
+  ],
+  "audioExpect": [
+    50884
+  ]
+}

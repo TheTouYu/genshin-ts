@@ -9,7 +9,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = '1793183986899'
+T.BUILD_ID = '1793185354383'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -78,7 +78,7 @@ T.setTheme = function(name)
       line = T.C(255, 40, 96, 124), accent = T.P.ice3, accent2 = T.P.gold,
       accentSoft = T.C(255, 18, 56, 80), onAccent = T.C(255, 8, 26, 40),
       bgTop = T.C(255, 6, 18, 32), bgMid = T.C(255, 12, 36, 60), bgBot = T.C(255, 26, 72, 102),
-      scrim = T.C(176, 3, 13, 24), glow = T.C(90, 170, 232, 255),
+      scrim = T.C(212, 3, 13, 24), glow = T.C(90, 170, 232, 255),
       card = T.C(255, 15, 44, 68), cardBorder = T.C(255, 46, 104, 134),
       slotBg = T.C(255, 10, 32, 52), slotBorder = T.C(255, 38, 90, 118),
       gold = T.P.gold, ice = T.P.ice3,
@@ -401,7 +401,7 @@ T.trySet = function(ctl, key, value)
     if enums and enums[value] ~= nil then value = enums[value] end
   end
   local ok, err = pcall(function() ctl[key] = value end)
-  if not ok then T.warn('set ' .. tostring(key) .. ' :: ' .. tostring(err)) end
+  if not ok then T.warn('pcall fail set ' .. tostring(key) .. ' :: ' .. tostring(err)) end
   return ok
 end
 T.tryCall = function(ctl, method, a, b, c)
@@ -411,12 +411,14 @@ T.tryCall = function(ctl, method, a, b, c)
   elseif b ~= nil then ok, err = pcall(function() ctl[method](ctl, a, b) end)
   elseif a ~= nil then ok, err = pcall(function() ctl[method](ctl, a) end)
   else ok, err = pcall(function() ctl[method](ctl) end) end
-  if not ok then T.warn('call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
+  if not ok then T.warn('pcall fail call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
   return ok
 end
 T.destroy = function(ctl)
   if not ctl then return false end
-  return pcall(function() game.DestroyClientUIControl(ctl) end)
+  local ok, err = pcall(function() game.DestroyClientUIControl(ctl) end)
+  if not ok then T.warn('pcall fail destroy :: ' .. tostring(err)) end
+  return ok
 end
 -- 销毁并从台账里摘除（战斗粒子必须走这条，否则 T.controls 无限增长）
 T.destroyCtl = function(ctl)
@@ -430,7 +432,7 @@ end
 T.inst = function(guid, parent)
   local ok, ctl = pcall(function() return game.InstantiateClientUIControl(guid, parent or T.root) end)
   if not ok or not ctl then
-    T.warn('instantiate fail guid=' .. tostring(guid) .. ' :: ' .. tostring(ctl))
+    T.warn('pcall fail instantiate guid=' .. tostring(guid) .. ' :: ' .. tostring(ctl))
     return nil
   end
   return ctl
@@ -481,7 +483,7 @@ end
 -- 高度按 1.45×fontSize 留足，避免「整行不画 / 裁半字」（04-text 铁律）
 T.textH = function(size, lines)
   lines = lines or 1
-  return lines * size * 1.28 + size * 0.45 + 6
+  return lines * size * 1.28 + size * 0.55 + 12
 end
 T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   opts = opts or {}
@@ -493,7 +495,7 @@ T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   -- 统一按行数抬到 requiredHeight = lines*1.2*fs + blockInset(10) 之上。
   local lines = 1
   for _ in string.gmatch(text or '', '\n') do lines = lines + 1 end
-  local need = math.ceil(lines * fs * 1.2 + 12)
+  local need = math.ceil(lines * fs * 1.2 + fs * 0.5 + 10)
   local ch = math.max(fs + 8, need, math.floor(h * T.S + 0.5))
   local px = x
   if align == 'Left' then px = x + w / 2
@@ -599,7 +601,9 @@ T.tick = function(dt)
       local k = math.min(1, tw.t / tw.dur)
       local keep = tw.fn(tw.ease(k), k)
       if k >= 1 or keep == false then
-        list[i] = nil
+        -- 必须用 table.remove（数组保持紧凑）：留 nil 洞会让 #list 变小，
+        -- 之后 append 的新 tween 可能落在 #list 之外，永远不会被遍历到。
+        table.remove(list, i)
         if tw.done then tw.done() end
       end
     end
@@ -611,9 +615,9 @@ T.tick = function(dt)
       local ok, keep = pcall(fn, dt, T.time)
       if not ok then
         T.warn('anim error :: ' .. tostring(keep))
-        alist[i] = nil
+        table.remove(alist, i)
       elseif keep == false then
-        alist[i] = nil
+        table.remove(alist, i)
       end
     end
   end
@@ -867,7 +871,7 @@ T.clearScreen = function()
       if ok then n = n + 1 else fail = fail + 1 end
     end
   end
-  if fail > 0 then T.log('clear screen destroyed=' .. n .. ' fail=' .. fail) end
+  if fail > 0 then T.warn('pcall fail clear screen fail=' .. fail) end
   T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
   T.tweens, T.anims, T.pos = {}, {}, {}
   T.focus = 0
@@ -979,6 +983,10 @@ T.openOverlay = function(name, builder, opts)
   }
   T.overlays[#T.overlays + 1] = base
   T.overlay = base
+  -- 旧焦点框要移出屏幕：makeFocusFrame 会新建一套，旧的一套不 park 就会在弹层背后残留
+  if T.focusFrame then
+    for i = 1, #T.focusFrame do T.setPos(T.focusFrame[i], 0, -100000) end
+  end
   T.items, T.hits, T.focus, T.focusFrame = {}, {}, 0, nil
   T.mode = 'overlay'
   local prev = T.screen
@@ -1074,13 +1082,15 @@ T.toast = function(text, color, icon)
     end
     T.toastSet = nil
   end
-  local w = math.max(280, #text * 15 + 90)
+  local w = math.max(280, T.ulen(text) * 15 + 90)
   local y = 250
   local ps = {}
-  ps[1] = T.img(0, y, w, 46, 'circle', T.th.border)
-  ps[2] = T.img(0, y, w - 6, 38, 'circle', T.th.panel)
-  ps[3] = T.img(-w / 2 + 30, y, 8, 8, 'fourstar', color or T.th.accent2)
-  ps[4] = T.txt(12, y, w - 70, 34, 15, text, color or T.th.text, 'Middle', 'Middle')
+  local outer = T.rrect(0, y, w, 46, 23, T.th.border)
+  local inner = T.rrect(0, y, w - 6, 38, 19, T.th.panel)
+  for _, c in ipairs(outer) do ps[#ps + 1] = c end
+  for _, c in ipairs(inner) do ps[#ps + 1] = c end
+  ps[#ps + 1] = T.img(-w / 2 + 30, y, 8, 8, 'fourstar', color or T.th.accent2)
+  ps[#ps + 1] = T.txt(12, y, w - 70, 34, 15, text, color or T.th.text, 'Middle', 'Middle')
   T.toastSet = ps
   local function move(dy)
     for i = 1, #ps do
@@ -1270,6 +1280,12 @@ T.bgGradient = function(top, mid, bot)
 end
 
 -- ---------- 数字/文本工具 ----------
+-- UTF-8 字符数（#s 是字节数：中文标签按 # 算宽会放大 3 倍，出图实测溢出）
+T.ulen = function(s)
+  local n = 0
+  for _ in string.gmatch(s or '', '[%z\1-\127\194-\244][\128-\191]*') do n = n + 1 end
+  return n
+end
 T.fmt = function(n)
   local s = tostring(math.floor(n or 0))
   local out = s:reverse():gsub('(%d%d%d)', '%1,'):reverse()
@@ -1298,7 +1314,7 @@ T = T or {}
 -- ---------- 页头 / 页脚 ----------
 T.header = function(title, sub, opts)
   opts = opts or {}
-  local x = opts.x or (-T.DESIGN_W / 2 + T.M)
+  local x = opts.x or (-T.DESIGN_W / 2 + 176)
   local y = opts.y or T.HEAD_Y
   T.img(x + 3, y, 4, 40, 'rect', T.th.accent2)
   T.img(x + 3, y + 26, 34, 2, 'rect', T.th.line)
@@ -1319,7 +1335,7 @@ T.footer = function(parts)
   local widths, total = {}, 0
   for i, p in ipairs(parts) do
     local kw = p.key and (#p.key * 11 + 16) or 0
-    widths[i] = kw + 8 + #p.label * 13 + 22
+    widths[i] = kw + 8 + T.ulen(p.label) * 13 + 22
     total = total + widths[i]
   end
   local x = -total / 2
@@ -1328,13 +1344,13 @@ T.footer = function(parts)
     local cx = x + cw / 2
     local tx = cx
     if p.key then
-      local kw = #p.key * 11 + 16
+      local kw = T.ulen(p.key) * 11 + 16
       local kx = cx - cw / 2 + kw / 2
       T.rrect(kx, y, kw, 22, 6, T.th.borderSoft)
       T.txt(kx, y, kw, 20, 11, p.key, T.th.text2, 'Middle', 'Middle')
-      tx = kx + kw / 2 + (#p.label * 13) / 2 + 8
+      tx = kx + kw / 2 + (T.ulen(p.label) * 13) / 2 + 8
     end
-    T.txt(tx, y, #p.label * 15 + 20, 24, 13, p.label, T.th.text3, 'Middle', 'Middle')
+    T.txt(tx, y, T.ulen(p.label) * 15 + 20, 24, 13, p.label, T.th.text3, 'Middle', 'Middle')
     x = x + cw
   end
 end
@@ -1533,14 +1549,15 @@ T.button = function(x, y, w, h, label, onClick, opts)
   local kind = opts.kind or 'primary'
   local r = opts.radius or math.min(h / 2, 14)
   local parts, base = {}, {}
-  local fillGroup, glowGroup = nil, nil
+  local fillGroup, glowGroup, glossGroup = nil, nil, nil
   local textCtl, iconCtl
   local baseFill, hoverFill, textColor, hoverText
   if kind == 'primary' then
+    -- 主按钮是淡金底：文字用深墨色，白字在浅金上对比不足（出图实测）
     baseFill, hoverFill = T.th.accent2, T.mix(T.th.accent2, T.P.white, 0.20)
-    textColor, hoverText = T.th.onAccent, T.th.onAccent
+    textColor, hoverText = T.C(255, 44, 62, 74), T.C(255, 30, 46, 58)
   elseif kind == 'secondary' then
-    baseFill, hoverFill = T.th.panel, T.th.panelHi
+    baseFill, hoverFill = T.th.panel2, T.th.panelHi
     textColor, hoverText = T.th.text, T.th.accent
   elseif kind == 'danger' then
     baseFill, hoverFill = T.withA(T.P.danger, 40), T.P.danger
@@ -1549,10 +1566,20 @@ T.button = function(x, y, w, h, label, onClick, opts)
     textColor, hoverText = T.th.text2, T.th.text
   end
   if baseFill then
-    fillGroup = T.rrect(x, y, w, h, r, baseFill)
+    if kind == 'secondary' or kind == 'danger' then
+      local bd = T.rrect(x, y, w, h, r, T.th.border)
+      T.spread(parts, bd)
+      fillGroup = T.rrect(x, y, w - 2, h - 2, math.max(2, r - 1), baseFill)
+    else
+      fillGroup = T.rrect(x, y, w, h, r, baseFill)
+    end
     T.spread(parts, fillGroup)
-    glowGroup = T.rrect(x, y, w - 4, h - 4, math.max(2, r - 1), T.withA(T.P.white, 18))
-    T.spread(parts, glowGroup)
+    -- 顶部高光：单条不透明预混色（半透明 rrect 会在四角叠出淡斑，出图实测）
+    local gloss = T.rrect(x, y + h * 0.22, w - 18, h * 0.34, math.max(2, r - 4),
+      T.mix(baseFill, T.P.white, 0.18))
+    for _, c in ipairs(gloss) do parts[#parts + 1] = c end
+    T.captureBase(base, gloss)
+    glossGroup = gloss
   end
   local labelW = w - (opts.icon and 44 or 20)
   local tx = x + (opts.icon and 10 or 0)
@@ -1562,7 +1589,7 @@ T.button = function(x, y, w, h, label, onClick, opts)
     iconCtl = T.icon(opts.icon, x - w / 2 + 26, y, opts.iconSize or 9, textColor)
   end
   if opts.badge then
-    local bw = math.max(30, #opts.badge * 11 + 12)
+    local bw = math.max(30, T.ulen(opts.badge) * 11 + 12)
     local bx = x + w / 2 - bw / 2 - 10
     T.rrect(bx, y, bw, 20, 6, T.th.panel2)
     T.txt(bx, y, bw, 18, 10, opts.badge, T.th.text2, 'Middle', 'Middle')
@@ -1586,7 +1613,7 @@ T.button = function(x, y, w, h, label, onClick, opts)
         return
       end
       repaint(on and hoverFill or baseFill, on and hoverText or textColor)
-      if glowGroup then T.tint(glowGroup, T.withA(T.P.white, on and 34 or 18)) end
+      if glossGroup then T.tint(glossGroup, T.mix(on and hoverFill or baseFill, T.P.white, 0.18)) end
       shift(on and 3 or 0)
     end,
   })
@@ -1640,7 +1667,7 @@ end
 T.chip = function(x, y, label, color, opts)
   opts = opts or {}
   local fs = opts.size or 12
-  local w = math.max(opts.minW or 54, #label * fs * 1.05 + 24)
+  local w = math.max(opts.minW or 64, T.ulen(label) * fs * 1.05 + 30)
   local h = opts.h or 24
   local parts = T.rrect(x, y, w, h, h / 2, opts.fill or T.th.accentSoft)
   T.txt(x, y, w - 10, h - 4, fs, label, opts.text or color or T.th.text2, 'Middle', 'Middle')
@@ -1650,7 +1677,7 @@ end
 T.badge = function(x, y, label, opts)
   opts = opts or {}
   local fs = opts.size or 11
-  local w = math.max(40, #label * fs * 1.1 + 18)
+  local w = math.max(40, T.ulen(label) * fs * 1.1 + 18)
   T.rrect(x, y, w, opts.h or 20, (opts.h or 20) / 2, opts.fill or T.th.accentSoft)
   T.txt(x, y, w - 6, (opts.h or 20) - 4, fs, label, opts.text or T.th.accent, 'Middle', 'Middle')
   return w
@@ -2254,8 +2281,14 @@ T.portrait = function(ch, cx, cy, s, opts)
   put(58, -56, 28, 82, 'circle', hair, 4, 'sideHair')
   put(-63, -108, 22, 52, 'triangle', hair, 176, 'sideHair')
   put(63, -108, 22, 52, 'triangle', hair, 184, 'sideHair')
-  put(-53, -58, 7, 70, 'rect', T.withA(hair3, 120), -3, 'hairHi')
-  put(53, -58, 7, 70, 'rect', T.withA(hair3, 120), 3, 'hairHi')
+  put(-53, -58, 6, 68, 'rect', T.mix(hair, hair3, 0.55), -3, 'hairHi')
+  put(53, -58, 6, 68, 'rect', T.mix(hair, hair3, 0.55), 3, 'hairHi')
+  put(-43, -96, 3, 40, 'rect', T.mix(hair, hair3, 0.35), -5, 'hairHi')
+  put(43, -96, 3, 40, 'rect', T.mix(hair, hair3, 0.35), 5, 'hairHi')
+  -- 头顶轮廓光
+  for i = -2, 2 do
+    put(i * 16, 52 - math.abs(i) * 3, 14, 5, 'circle', T.mix(hair3, T.P.white, 0.35), 0, 'hairHi')
+  end
 
   -- ===== 7 麒麟角（叠压成连续弯角） =====
   if ch.motif == 'qilin' then
@@ -2394,12 +2427,19 @@ T.enemyArt = function(kind, x, y, s, opts)
   s = s or 1
   local body = T.P.ice2
   if kind == 'slime' then
-    T.img(x, y, 90 * s, 66 * s, 'circle', body)
-    T.img(x - 18 * s, y - 26 * s, 30 * s, 24 * s, 'triangle', T.withA(T.P.white, 180), 0)
-    T.img(x - 18 * s, y + 4 * s, 9 * s, 12 * s, 'circle', T.withA(T.P.ink, 190))
-    T.img(x + 16 * s, y + 4 * s, 9 * s, 12 * s, 'circle', T.withA(T.P.ink, 190))
-    T.img(x, y - 12 * s, 20 * s, 6 * s, 'circle', T.withA(T.P.ink, 90))
-    T.img(x + 34 * s, y - 18 * s, 16 * s, 16 * s, 'fourstar', T.withA(T.P.white, 150))
+    T.img(x, y - 10 * s, 92 * s, 64 * s, 'circle', T.withA(T.P.deep, 60))
+    T.img(x, y, 88 * s, 64 * s, 'circle', body)
+    T.img(x, y + 12 * s, 62 * s, 26 * s, 'circle', T.mix(body, T.P.white, 0.35))
+    -- 背部冰刺
+    T.img(x - 26 * s, y + 20 * s, 12 * s, 30 * s, 'triangle', T.withA(T.P.white, 170), -16)
+    T.img(x + 4 * s, y + 26 * s, 10 * s, 24 * s, 'triangle', T.withA(T.P.white, 150), 6)
+    -- 眼睛 / 嘴
+    T.img(x - 18 * s, y + 2 * s, 12 * s, 15 * s, 'circle', T.INK)
+    T.img(x + 16 * s, y + 2 * s, 12 * s, 15 * s, 'circle', T.INK)
+    T.img(x - 21 * s, y + 6 * s, 3.4 * s, 3.4 * s, 'circle', T.P.white)
+    T.img(x + 13 * s, y + 6 * s, 3.4 * s, 3.4 * s, 'circle', T.P.white)
+    T.img(x, y - 12 * s, 16 * s, 5 * s, 'circle', T.withA(T.P.ink, 120))
+    T.img(x + 30 * s, y - 20 * s, 14 * s, 14 * s, 'fourstar', T.withA(T.P.white, 160))
   elseif kind == 'fly' then
     T.img(x - 26 * s, y + 10 * s, 44 * s, 30 * s, 'circle', T.withA(T.P.white, 170), 24)
     T.img(x + 26 * s, y + 10 * s, 44 * s, 30 * s, 'circle', T.withA(T.P.white, 170), -24)
@@ -2442,36 +2482,50 @@ end
 -- ---------------------------------------------------------------------------
 T.stageArt = function(cx, cy, w, h, stage, opts)
   opts = opts or {}
-  local scale = math.min(w / 300, h / 180)
+  local sc = math.min(w / 320, h / 150)
   local warm = stage and stage.chapter == 2
-  local skyTop = warm and T.C(255, 236, 232, 252) or T.C(255, 224, 242, 253)
-  local skyBot = warm and T.C(255, 248, 240, 252) or T.C(255, 242, 251, 255)
-  T.img(cx, cy + h * 0.18, w, h * 0.68, 'rect', skyTop)
-  T.img(cx, cy - h * 0.16, w, h * 0.36, 'rect', skyBot)
-  -- 月/日
-  local mx, my = cx + w * 0.24, cy + h * 0.22
-  T.img(mx, my, 58 * scale, 58 * scale, 'circle', T.withA(T.P.white, 80))
-  T.img(mx, my, 38 * scale, 38 * scale, 'circle', T.C(255, 255, 252, 250))
-  -- 山脊（两座）
-  T.peak(cx - w * 0.26, cy + h * 0.06, w * 0.56, h * 0.48, warm and T.C(255, 224, 218, 246) or T.C(255, 216, 240, 251),
-    { cap = T.P.white, capRatio = 0.3 })
-  T.peak(cx + w * 0.2, cy - h * 0.02, w * 0.5, h * 0.4, warm and T.C(255, 206, 200, 240) or T.C(255, 198, 230, 246),
-    { cap = T.P.white, capRatio = 0.26 })
-  -- 雪地
-  T.img(cx, cy - h * 0.36, w * 1.15, h * 0.5, 'circle', T.C(255, 250, 254, 255))
-  -- 小树
-  local tx = cx - w * 0.3
-  T.img(tx, cy - h * 0.16, 6 * scale, 34 * scale, 'rect', T.C(255, 120, 150, 170))
-  T.img(tx, cy + h * 0.02, 24 * scale, 24 * scale, 'triangle', T.P.ice3, 0)
-  T.img(tx, cy + h * 0.13, 17 * scale, 17 * scale, 'triangle', T.P.ice2, 0)
-  -- 目标点
-  if stage and (stage.id == 3 or stage.id == 6) then
-    T.img(cx + w * 0.4, cy - h * 0.28, 10 * scale, 10 * scale, 'fourstar', T.P.gold)
+  -- 天空（黄昏/夜，独立于页面主题，保证在浅底深底上都立得住）
+  local top = warm and T.C(255, 58, 48, 84) or T.C(255, 34, 56, 92)
+  local mid = warm and T.C(255, 106, 78, 116) or T.C(255, 62, 96, 132)
+  local bot = warm and T.C(255, 196, 150, 166) or T.C(255, 150, 186, 210)
+  local bands = 6
+  for i = 1, bands do
+    local t = (i - 0.5) / bands
+    local col = (t < 0.55) and T.mix(top, mid, t / 0.55) or T.mix(mid, bot, (t - 0.55) / 0.45)
+    T.img(cx, cy + h * 0.5 - (i - 0.5) * (h / bands), w, h / bands + 1, 'rect', col)
   end
-  for i = 1, 7 do
+  -- 月 / 落日光
+  local mx, my = cx + w * 0.3, cy + h * 0.22
+  T.img(mx, my, 54 * sc, 54 * sc, 'circle', T.withA(T.P.white, 60))
+  T.img(mx, my, 30 * sc, 30 * sc, 'circle', T.C(255, 252, 246, 255))
+  -- 远山
+  T.peak(cx - w * 0.2, cy + h * 0.12, w * 0.72, h * 0.42, T.mix(bot, T.P.white, 0.35),
+    { cap = T.mix(bot, T.P.white, 0.75), capRatio = 0.2 })
+  T.peak(cx + w * 0.24, cy + h * 0.04, w * 0.62, h * 0.36, T.mix(bot, T.P.deep, 0.16),
+    { cap = T.mix(bot, T.P.white, 0.6), capRatio = 0.18 })
+  -- 近景雪地
+  T.img(cx, cy - h * 0.46, w * 0.98, h * 0.42, 'circle', T.C(255, 236, 246, 253))
+  -- 雪松
+  local px = cx - w * 0.34
+  for i = 0, 2 do
+    T.pine(px + i * w * 0.1, cy - h * 0.22, 0.55 * sc, T.C(255, 30, 46, 66), T.C(255, 210, 234, 246))
+  end
+  -- 路径与目标
+  if stage then
+    for i = 1, 5 do
+      local t = (i - 1) / 4
+      T.img(cx + w * 0.02 + t * w * 0.26, cy - h * 0.3 + math.sin(t * math.pi) * h * 0.08, 4 * sc, 4 * sc,
+        'circle', T.withA(T.P.goldPale, 190))
+    end
+    local gx = cx + w * 0.3
+    T.img(gx, cy - h * 0.24, 12 * sc, 34 * sc, 'rect', T.withA(T.P.goldPale, 200))
+    T.img(gx + 10 * sc, cy - h * 0.1, 20 * sc, 14 * sc, 'triangle', T.P.danger, 90)
+  end
+  -- 飘雪
+  for i = 1, 8 do
     local x = cx + (T.rand(1000) / 1000 - 0.5) * w * 0.9
     local y = cy + (T.rand(1000) / 1000 - 0.5) * h * 0.8
-    T.img(x, y, (2 + T.rand(3)) * scale, (2 + T.rand(3)) * scale, 'circle', T.withA(T.P.white, 170))
+    T.img(x, y, (1.6 + T.rand(3)) * sc, (1.6 + T.rand(3)) * sc, 'circle', T.withA(T.P.white, 150))
   end
 end
 
@@ -2579,6 +2633,31 @@ T.sideScrim = function(side, color, alpha, bands)
 end
 
 
+-- 弓形光环（甘雨的弓，作标题/画像背景；弧用圆点拼，避免遮挡问题）
+T.bowHalo = function(cx, cy, r, color, opts)
+  opts = opts or {}
+  local c = color or T.P.gold
+  local n = 16
+  for i = 0, n do
+    local a = math.pi * (0.18 + 0.64 * (i / n)) + math.pi * 0.5
+    local x = cx + math.cos(a) * r
+    local y = cy + math.sin(a) * r * 1.05
+    T.img(x, y, 7, 7, 'circle', c)
+  end
+  -- 弦
+  local top = math.pi * 0.5 + math.pi * 0.18
+  local bot = math.pi * 0.5 + math.pi * 0.82
+  local x1, y1 = cx + math.cos(top) * r, cy + math.sin(top) * r * 1.05
+  local x2, y2 = cx + math.cos(bot) * r, cy + math.sin(bot) * r * 1.05
+  local len = math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+  local ang = math.deg(math.atan(y2 - y1, x2 - x1))
+  T.img((x1 + x2) / 2, (y1 + y2) / 2, 1.6, len, 'rect', T.withA(c, 140), ang)
+  if opts.grip ~= false then
+    T.img(cx, cy + r * 1.02, 12, 30, 'rect', T.mix(c, T.P.ink, 0.25))
+  end
+end
+
+
 -- ===== 30_home.lua =====
 -- ============================================================================
 -- 页面 1：启动 / 标题 / 主菜单
@@ -2645,7 +2724,7 @@ T.screenFns.boot = function()
   T.screen.afterBuild = function()
     T.hit('hit_boot_any', 0, 0, T.DESIGN_W, T.DESIGN_H, {
       clickSfx = false,
-      onClick = function() if T.bootReady then T.go('title') else T.log('boot not ready') end end,
+      onClick = function() T.log('boot enter ready=' .. tostring(T.bootReady)); T.go('title') end,
     })
   end
 end
@@ -2665,6 +2744,10 @@ T.screenFns.title = function()
   for _, p in ipairs({ { 190, 96, 12 }, { 418, 40, 9 }, { 452, 168, 7 }, { 168, -66, 8 } }) do
     T.snowflake(p[1], p[2], p[3], T.withA(T.P.ice1, 150), { core = T.withA(T.P.white, 180) })
   end
+  -- 前景冰台
+  T.img(300, -352, 480, 54, 'circle', T.C(255, 196, 226, 240))
+  T.iceShardCluster(150, -336, 0.95, T.C(255, 214, 240, 252))
+  T.iceShardCluster(470, -340, 0.8, T.C(255, 200, 232, 248))
   -- 前景飘雪（覆在人身上，制造纵深）
   T.snowfall(10, { scale = 1.5 })
 
@@ -2675,6 +2758,9 @@ T.screenFns.title = function()
   T.txt(-300, 16, 520, 26, 14, 'F R O S T B L O O M', T.P.ice2, 'Middle', 'Middle')
   T.txt(-300, -14, 560, 28, 15, '甘雨 · 月海亭的守夜人', T.P.ice1, 'Middle', 'Middle')
   T.txt(-300, -46, 620, 26, 12, '冰雪 · 射击 · 关卡 · 养成 · 清新', T.withA(T.P.ice2, 200), 'Middle', 'Middle')
+  T.rrect(-300, 214, 204, 28, 14, T.C(255, 30, 58, 80))
+  T.rrect(-300, 214, 198, 24, 12, T.C(255, 14, 34, 50))
+  T.txt(-300, 214, 190, 22, 11, '序章 · 月海亭的灯', T.P.goldPale, 'Middle', 'Middle')
 
   -- 开始
   local btnY = -112
@@ -2731,30 +2817,35 @@ T.screenFns.menu = function()
   T.txt(-T.DESIGN_W / 2 + T.M, 336, 240, 40, 22, '霜华纪', T.th.text, 'Left', 'Middle')
   T.txt(-T.DESIGN_W / 2 + T.M + 86, 336, 200, 30, 11, 'FROSTBLOOM', T.th.text3, 'Left', 'Middle')
   -- 玩家
-  local avX = T.DESIGN_W / 2 - 370
+  local avX = T.DESIGN_W / 2 - 392
   T.img(avX, 336, 38, 38, 'circle', T.th.accentSoft)
   T.portraitHead(avX, 338, 0.30, T.chars[1])
-  T.txt(avX + 30, 344, 170, 22, 13, '旅行者', T.th.text, 'Left', 'Middle')
-  T.txt(avX + 30, 326, 170, 20, 10, 'Lv.' .. T.records.level .. '  ·  璃月', T.th.text3, 'Left', 'Middle')
-  T.resChip(T.DESIGN_W / 2 - 158, 336, 'coin', T.fmt(T.records.mats.mora), { w = 112 })
-  T.resChip(T.DESIGN_W / 2 - 36, 336, 'crystal', T.fmt(T.records.mats.crystal), { w = 112, color = T.P.ice4 })
+  T.txt(avX + 30, 344, 120, 22, 13, '旅行者', T.th.text, 'Left', 'Middle')
+  T.txt(avX + 30, 326, 120, 20, 10, 'Lv.' .. T.records.level .. ' · 璃月', T.th.text3, 'Left', 'Middle')
+  T.resChip(452, 336, 'coin', T.fmt(T.records.mats.mora), { w = 110 })
+  T.resChip(568, 336, 'crystal', T.fmt(T.records.mats.crystal), { w = 104, color = T.P.ice4 })
 
   -- 左侧立绘区
   local px, py = -366, -6
-  T.glow(px, py + 70, 200, T.P.white, 7, 46)
-  T.img(px, py + 40, 452, 452, 'circle', T.withA(T.P.white, 140))
-  T.img(px, py + 40, 404, 404, 'circle', T.withA(T.P.ice0, 150))
+  T.glow(px, py + 60, 210, T.P.white, 8, 40)
+  T.txt(px, py + 30, 420, 180, 128, 'GANYU', T.withA(T.P.ice4, 20), 'Middle', 'Middle')
+  T.img(px, py + 40, 440, 440, 'ring', T.withA(T.ice4 and T.P.ice4 or T.P.ice4, 70))
+  T.img(px, py + 40, 412, 412, 'ring', T.withA(T.th.border, 120))
   for i = 0, 5 do
     local a = math.pi * (i / 6) - math.pi / 2
-    T.img(px + math.cos(a) * 202, py + 40 + math.sin(a) * 202, 11, 11, 'fourstar', T.withA(T.P.ice4, 160))
+    T.img(px + math.cos(a) * 206, py + 40 + math.sin(a) * 206, 12, 12, 'fourstar', T.withA(T.P.ice4, 170))
   end
-  T.portrait(T.chars[1], px, py + 96, 0.80, { idle = true })
+  T.img(px, -318, 400, 96, 'circle', T.C(255, 240, 249, 255))
+  T.portrait(T.chars[1], px, py + 88, 0.90, { idle = true })
+  T.img(px, -330, 320, 64, 'circle', T.C(255, 250, 254, 255))
+  T.img(px, -300, 200, 22, 'circle', T.withA(T.P.ink, 28))
   -- 雪丘
   T.img(px - 40, py - 176, 320, 96, 'circle', T.C(255, 252, 255, 255))
   T.img(px + 76, py - 188, 250, 86, 'circle', T.C(255, 250, 254, 255))
   -- 名牌
-  local nameY = -282
-  local nameParts = T.rrect(px, nameY, 320, 64, 18, T.withA(T.P.white, 235))
+  local nameY = -262
+  T.rrect(px, nameY, 324, 68, 18, T.th.border)
+  T.rrect(px, nameY, 318, 62, 16, T.th.panel)
   T.img(px - 140, nameY, 4, 40, 'rect', T.th.accent2)
   T.txt(px - 118, nameY + 12, 150, 34, 24, '甘雨', T.th.text, 'Left', 'Middle')
   T.txt(px - 118, nameY - 14, 170, 22, 11, 'GANYU · 冰 · 弓', T.th.text2, 'Left', 'Middle')
@@ -2841,55 +2932,1934 @@ T.screenFns.menu = function()
 end
 
 
--- ===== 35_stub.lua =====
+-- ===== 32_quest.lua =====
 -- ============================================================================
--- 临时占位屏（真实实现在 32~45 号文件里覆盖；此文件仅保证分阶段可构建）
+-- 页面 2：关卡地图 / 出战准备
 -- ============================================================================
 T = T or {}
 T.screenFns = T.screenFns or {}
 
-local function placeholder(name, title, sub)
-  T.screenFns[name] = function(params)
-    T.pageBg('day', {})
-    T.header(title, sub)
-    T.backBtn(function() T.go('menu') end)
-    T.txt(0, 20, 720, 60, 26, '这一页正在布置中…', T.th.text2, 'Middle', 'Middle')
-    T.item({ x = 0, y = -100, w = 260, h = 58, name = 'hit_placeholder_back',
-      onConfirm = function() T.go('menu') end })
-    T.button(0, -100, 260, 58, '回到主菜单', function() T.go('menu') end, { name = 'hit_placeholder_btn' })
-    T.screen.key = function(a)
-      if a == 'back' or a == 'confirm' then T.go('menu') end
+-- ---------------------------------------------------------------- 关卡地图
+T.mapNode = function(x, y, d, stage, state, selected, chapterColor)
+  -- state: 'locked' | 'open' | 'clear'
+  local col = chapterColor or T.th.accent
+  local parts = {}
+  if selected then
+    T.img(x, y, d + 46, d + 46, 'circle', T.withA(col, 34))
+    T.img(x, y, d + 26, d + 26, 'ring', T.withA(col, 150))
+  end
+  local outer = T.img(x, y, d + 8, d + 8, 'circle', state == 'locked' and T.th.line or col)
+  local inner = T.img(x, y, d, d, 'circle', T.th.panel)
+  local inner2 = T.img(x, y, d - 12, d - 12, 'circle', state == 'locked' and T.th.slotBg or T.th.panel2)
+  local label
+  if state == 'locked' then
+    T.icon('lock', x, y, 13, T.th.text3)
+  else
+    label = T.txt(x, y + 2, d - 16, d - 30, 26, tostring(stage.id), T.th.text, 'Middle', 'Middle')
+    if state == 'clear' then
+      T.img(x + d * 0.34, y - d * 0.34, 22, 22, 'circle', T.th.accent2)
+      T.icon('check', x + d * 0.34, y - d * 0.34, 7, T.th.onAccent)
+    end
+  end
+  return { outer = outer, inner = inner, inner2 = inner2, label = label, col = col }
+end
+
+T.screenFns.map = function(params)
+  params = params or {}
+  local chapter = params.chapter or 1
+  local sel = params.sel or 1
+  T.pageBg('day', { sunX = 420, sunY = 190 })
+  T.screenFrame(T.withA(T.th.border, 90), 16, T.withA(T.th.accent2, 90))
+  T.snowfall(10, { scale = 0.7 })
+
+  local ch = T.chapters[chapter]
+  T.header('霜原', '沿着雪线，把每一道风都走一遍', { right = ch.sub })
+  T.backBtn(function() T.go('menu') end)
+  local tabNames = {}
+  for i, c in ipairs(T.chapters) do tabNames[i] = c.name end
+  T.tabs(-30, 232, 420, tabNames, chapter, function(i) T.go('map', { chapter = i, sel = 1 }) end,
+    { namePrefix = 'hit_map_chapter_' })
+
+  -- 章节信息
+  T.txt(-T.DESIGN_W / 2 + T.M, 198, 380, 30, 19, ch.name, T.th.text, 'Left', 'Middle')
+  T.txt(-T.DESIGN_W / 2 + T.M, 172, 400, 22, 11, ch.desc, T.th.text2, 'Left', 'Middle')
+  local starTotal = 0
+  for _, st in ipairs(T.stages) do
+    if st.chapter == chapter then starTotal = starTotal + (T.records.stars[st.id] or 0) end
+  end
+  T.chip(-T.DESIGN_W / 2 + T.M + 34, 140, '★ ' .. starTotal .. ' / 9', T.th.accent2, { fill = T.th.accentSoft, minW = 84 })
+
+  -- 地图面板
+  local px, py, pw, ph = -150, -76, 764, 372
+  T.card(px, py, pw, ph, { radius = 22, fill = T.th.panel, border = T.th.cardBorder })
+  T.img(px, py + ph / 2 - 40, pw - 60, 1.2, 'rect', T.th.line)
+  T.txt(px - pw / 2 + 26, py + ph / 2 - 40, 240, 24, 12, '璃月 · 霜原', T.th.text3, 'Left', 'Middle')
+  T.txt(px + pw / 2 - 26, py + ph / 2 - 40, 240, 24, 12, '点击节点查看关卡', T.th.text3, 'Right', 'Middle')
+
+  local stages = {}
+  for _, st in ipairs(T.stages) do
+    if st.chapter == chapter then stages[#stages + 1] = st end
+  end
+  local pos = { { -400, 2 }, { -160, 56 }, { 80, -22 } }
+  local function drawPath(a, b, bright)
+    local n = 12
+    for i = 1, n do
+      local t = (i - 0.5) / n
+      local dx = a[1] + (b[1] - a[1]) * t
+      local dy = a[2] + (b[2] - a[2]) * t + math.sin(t * math.pi) * 20
+      T.img(dx, dy, bright and 5 or 4, bright and 5 or 4, 'circle',
+        bright and T.withA(T.th.accent2, 200) or T.withA(T.th.border, 160))
+    end
+  end
+  for i = 1, #pos - 1 do
+    local st = stages[i]
+    local done = st and (T.records.stars[st.id] or 0) > 0
+    drawPath(pos[i], pos[i + 1], done)
+  end
+  for i, st in ipairs(stages) do
+    local p = pos[i]
+    local state = 'open'
+    if st.locked and not T.records.unlocked[st.id] then state = 'locked' end
+    if (T.records.stars[st.id] or 0) > 0 then state = 'clear' end
+    local n = T.mapNode(p[1], p[2], 80, st, state, (i == sel), ch.color)
+    T.txt(p[1], p[2] - 64, 220, 26, 15, st.name, T.th.text, 'Middle', 'Middle')
+    T.txt(p[1], p[2] - 84, 200, 20, 11, st.code .. ' · 推荐 ' .. st.rec, T.th.text3, 'Middle', 'Middle')
+    T.star3(p[1], p[2] + 58, T.records.stars[st.id] or 0, 14, { empty = T.th.line })
+    T.item({
+      x = p[1], y = p[2], w = 108, h = 108, name = 'hit_map_stage_' .. i, focusPad = 8,
+      onConfirm = function()
+        if state == 'locked' then
+          T.log('map locked stage=' .. st.id)
+          T.sfx(T.SFX.error, true)
+          T.toast('关卡尚未解锁 · 先完成上一关', T.th.text2)
+        else
+          T.sfx(T.SFX.tab)
+          T.go('map', { chapter = chapter, sel = i })
+        end
+      end,
+      onFocus = function(on)
+        T.setColor(n.outer, on and T.th.accent2 or (state == 'locked' and T.th.line or ch.color))
+      end,
+    })
+  end
+
+  -- 详情卡
+  local st = stages[sel] or stages[1]
+  local state = 'open'
+  if st.locked and not T.records.unlocked[st.id] then state = 'locked' end
+  local cx, cy, w, h = 424, 0, 388, 500
+  T.card(cx, cy, w, h, { radius = 20, fill = T.th.card, border = T.th.cardBorder })
+  local artY = cy + 170
+  T.stageArt(cx, artY, 348, 150, st)
+  T.badge(cx - 152, cy + 76, st.code, { fill = T.th.accent, text = T.th.onAccent })
+  T.star3(cx + 96, cy + 76, T.records.stars[st.id] or 0, 16)
+  T.txt(cx - 152, cy + 46, 300, 34, 24, st.name, T.th.text, 'Left', 'Middle')
+  T.txt(cx - 152, cy + 20, 300, 22, 11, st.sub, T.th.text3, 'Left', 'Middle')
+  T.divider(cx, cy - 2, 320)
+  T.txt(cx - 152, cy - 24, 120, 22, 11, '目标', T.th.text3, 'Left', 'Middle')
+  T.txt(cx - 152, cy - 50, 304, 40, 13, st.objective, T.th.text, 'Left', 'Middle')
+  T.txt(cx - 152, cy - 90, 120, 22, 11, '来敌', T.th.text3, 'Left', 'Middle')
+  local ex = cx - 108
+  for _, eid in ipairs(st.enemies) do
+    local e = T.enemies[eid]
+    if e then
+      T.rrect(ex + 32, cy - 90, 66, 24, 12, T.th.accentSoft)
+      T.txt(ex + 32, cy - 90, 60, 20, 11, e.name, T.th.text2, 'Middle', 'Middle')
+      ex = ex + 72
+    end
+  end
+  T.txt(cx - 152, cy - 122, 120, 22, 11, '奖励', T.th.text3, 'Left', 'Middle')
+  for i, rw in ipairs(st.reward) do
+    local yy = cy - 146 - (i - 1) * 22
+    T.icon(i == 1 and 'coin' or (i == 2 and 'book' or 'crystal'), cx - 140, yy, 7, T.th.accent2)
+    T.txt(cx - 122, yy, 280, 22, 12, rw, T.th.text2, 'Left', 'Middle')
+  end
+  T.txt(cx - 152, cy - 222, 140, 22, 11, '最佳 ' .. T.fmt(T.records.best[st.id] or 0), T.th.text3, 'Left', 'Middle')
+  local btnLabel = (state == 'locked') and '尚未解锁' or '开始挑战'
+  T.button(cx + 58, cy - 222, 196, 46, btnLabel, function()
+    if state == 'locked' then
+      T.sfx(T.SFX.error, true)
+      T.toast('关卡尚未解锁 · 先完成上一关', T.th.text2)
+      return
+    end
+    T.go('prepare', { stage = st.id })
+  end, { kind = (state == 'locked') and 'secondary' or 'primary', name = 'hit_map_start' })
+
+  T.footer({ { key = '←→', label = '选择关卡' }, { key = '空格', label = '查看' }, { key = 'Q', label = '返回' } })
+  T.txt(0, -302, 720, 22, 11, '「沿着雪线走，你会遇到一些还没有名字的风。」', T.th.text3, 'Middle', 'Middle')
+
+  local screen = T.screen
+  screen.key = function(a)
+    if a == 'left' or a == 'right' then
+      if (T.focus or 0) <= 2 then
+        local n = (a == 'right') and 1 or -1
+        local t = chapter + n
+        if t < 1 then t = #T.chapters end
+        if t > #T.chapters then t = 1 end
+        T.go('map', { chapter = t, sel = 1 })
+      else
+        T.moveFocus(-1, 0)
+      end
+    elseif a == 'up' then T.moveFocus(0, 1)
+    elseif a == 'down' then T.moveFocus(0, -1)
+    elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'back' then T.go('menu') end
+  end
+  T.screen.defaultFocus = sel
+  T.screen.afterBuild = function() T.setFocus(sel, true) end
+  T.log('map chapter=' .. chapter .. ' sel=' .. sel .. ' stage=' .. st.id .. ' state=' .. state)
+end
+
+-- ---------------------------------------------------------------- 出战准备
+T.screenFns.prepare = function(params)
+  params = params or {}
+  local stage = T.stageById[params.stage or 1] or T.stages[1]
+  T.pageBg('night', { moonX = -420, moonY = 170, moonR = 96, stars = 40, aurora = false })
+  T.snowfall(16, {})
+  T.snowBank(T.C(255, 26, 62, 86), -352)
+  T.header('出战准备', stage.code .. ' · ' .. stage.name, { right = '推荐等级 ' .. stage.rec })
+  T.backBtn(function() T.go('map', { chapter = stage.chapter, sel = ((stage.id - 1) % 3) + 1 }) end)
+
+  -- 左：甘雨立绘
+  local lx, ly = -390, 6
+  T.glow(lx, ly + 40, 190, T.P.ice2, 8, 20)
+  T.card(lx, ly, 380, 500, { radius = 20, fill = T.th.panel, border = T.th.cardBorder })
+  T.drift(lx, -190, 300, 92, T.C(255, 46, 96, 126))
+  T.portrait(T.chars[1], lx, 46, 0.68, { idle = true })
+  T.txt(lx - 150, -120, 160, 30, 22, '甘雨', T.th.text, 'Left', 'Middle')
+  T.txt(lx - 150, -144, 200, 20, 11, 'Lv.' .. T.records.level .. ' · 冰 · 弓', T.th.text2, 'Left', 'Middle')
+  T.chip(lx + 96, -120, '主控', T.th.accent2, { fill = T.th.accentSoft })
+
+  -- 中：队伍 + 装备
+  local mx = 10
+  T.sectionLabel(mx - 250, 248, '出战队伍', { w = 260, right = '元素共鸣 · 双冰', rightX = mx + 200 })
+  local team = { { 1, '主控' }, { 2, '支援' }, { 3, '支援' } }
+  for i, t in ipairs(team) do
+    local cx = mx - 180 + (i - 1) * 150
+    local ch = T.charById[t[1]]
+    local parts = T.card(cx, 172, 138, 132, { radius = 14, fill = i == 1 and T.th.panelHi or T.th.panel, border = i == 1 and T.th.accent or T.th.cardBorder })
+    T.portraitHead(cx, 196, 0.44, ch)
+    T.txt(cx, 138, 120, 24, 13, ch.name, T.th.text, 'Middle', 'Middle')
+    T.txt(cx, 120, 120, 20, 10, t[2] .. ' · ' .. ch.element, T.th.text3, 'Middle', 'Middle')
+    T.item({
+      x = cx, y = 172, w = 138, h = 132, name = 'hit_prepare_team_' .. i, focusPad = 4,
+      onConfirm = function()
+        if i == 1 then
+          T.toast('甘雨已就位 · 霜华矢随时可以拉开', T.th.accent2)
+        else
+          T.sfx(T.SFX.error, true)
+          T.toast(ch.name .. ' 将在后续版本加入出战', T.th.text2)
+        end
+      end,
+      onFocus = function(on)
+        T.tint(parts, on and T.th.panelHi or (i == 1 and T.th.panelHi or T.th.panel))
+      end,
+    })
+  end
+
+  -- 武器 + 圣遗物
+  T.sectionLabel(mx - 250, 62, '装备', { w = 260, right = '战力 12,480', rightX = mx + 200 })
+  local wParts = T.card(mx - 60, 4, 380, 84, { radius = 14, fill = T.th.panel, border = T.th.cardBorder })
+  T.icon('bow', mx - 208, 8, 13, T.th.accent2)
+  T.txt(mx - 182, 16, 220, 26, 15, '阿莫斯之弓', T.th.text, 'Left', 'Middle')
+  T.txt(mx - 182, -8, 240, 20, 11, 'Lv.60 · 精炼 1 阶 · 攻击力 +49', T.th.text3, 'Left', 'Middle')
+  T.chip(mx + 128, 6, '弓', T.th.accent, { fill = T.th.accentSoft })
+  T.item({ x = mx - 60, y = 4, w = 380, h = 84, name = 'hit_prepare_weapon', focusPad = 4,
+    onConfirm = function() T.toast('武器详情将在「养成」中查看', T.th.text2) end,
+    onFocus = function(on) T.tint(wParts, on and T.th.panelHi or T.th.panel) end })
+
+  local artNames = { { 'bloom', '生之花' }, { 'plume', '死之羽' }, { 'hourglass', '时之沙' }, { 'drop', '空之杯' } }
+  for i, a in ipairs(artNames) do
+    local cx = mx - 196 + (i - 1) * 96
+    local slot = T.slot(cx, -86, 86, 86, nil, a[2], { empty = false })
+    T.artifactArt(a[1], cx, -78, 0.5, i % 2 == 0 and T.P.ice2 or T.P.ice3)
+    T.item({ x = cx, y = -86, w = 86, h = 86, name = 'hit_prepare_art_' .. i, focusPad = 4,
+      onConfirm = function() T.toast('圣遗物 · 冰风迷途的勇士（4）', T.th.accent2) end,
+      onFocus = function(on) T.tint(slot.ring, on and T.th.accent or T.th.border) end })
+  end
+
+  -- 右：关卡情报
+  local rx = 428
+  T.card(rx, 40, 384, 400, { radius = 20, fill = T.th.panel, border = T.th.cardBorder })
+  T.stageArt(rx, 160, 336, 140, stage)
+  T.txt(rx - 156, 76, 300, 30, 20, stage.name, T.th.text, 'Left', 'Middle')
+  T.txt(rx - 156, 52, 300, 22, 11, stage.objective, T.th.text2, 'Left', 'Middle')
+  T.divider(rx, 30, 300)
+  T.txt(rx - 156, 6, 300, 24, 12, '来敌', T.th.text3, 'Left', 'Middle')
+  for i, eid in ipairs(stage.enemies) do
+    local e = T.enemies[eid]
+    if e then
+      local yy = -22 - (i - 1) * 30
+      T.enemyArt(eid, rx - 130, yy, eid == 'boss' and 0.30 or 0.26)
+      T.txt(rx - 94, yy + 6, 160, 22, 12, e.name, T.th.text, 'Left', 'Middle')
+      T.txt(rx + 146, yy + 6, 60, 20, 10, e.tag, T.th.text3, 'Right', 'Middle')
+    end
+  end
+  T.txt(rx - 156, -116, 300, 22, 11, '霜华纪 · 第 ' .. stage.chapter .. ' 章', T.th.text3, 'Left', 'Middle')
+  T.button(rx, -196, 300, 54, '进入战斗', function()
+    T.go('battle', { stage = stage.id })
+  end, { kind = 'primary', name = 'hit_prepare_start' })
+  T.txt(rx, -236, 340, 22, 11, '提示：悬停敌人瞄准，点击射出霜华矢', T.th.text3, 'Middle', 'Middle')
+
+  T.footer({ { key = '↑↓←→', label = '选择' }, { key = '空格', label = '确认' }, { key = 'Q', label = '返回' } })
+  local screen = T.screen
+  screen.key = function(a)
+    if a == 'up' then T.moveFocus(0, 1)
+    elseif a == 'down' then T.moveFocus(0, -1)
+    elseif a == 'left' then T.moveFocus(-1, 0)
+    elseif a == 'right' then T.moveFocus(1, 0)
+    elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'back' then T.go('map', { chapter = stage.chapter, sel = ((stage.id - 1) % 3) + 1 }) end
+  end
+  T.screen.defaultFocus = #T.items
+  T.log('prepare stage=' .. stage.id)
+end
+
+
+-- ===== 34_battle.lua =====
+-- ============================================================================
+-- 页面 3：战斗（可操作的演示层：悬停瞄准 → 点击射箭 → 命中碎裂 → 波次）
+-- 设计口径：数值只服务手感，不做平衡；三波清空即胜利，计时归零即失败。
+-- ============================================================================
+T = T or {}
+T.screenFns = T.screenFns or {}
+
+T.BATTLE_WAVES = 3
+
+T.battleEnemyDef = function(id)
+  local d = T.enemies[id]
+  return {
+    id = id, name = d and d.name or id, tag = d and d.tag or '',
+    hp = (id == 'boss') and 5 or (id == 'guard' and 3 or 2),
+    size = (id == 'boss') and 1.05 or 0.86,
+  }
+end
+
+T.battle = nil
+
+-- 爆炸碎片（用完自动销毁，必须从 T.controls 摘掉）
+T.burst = function(x, y, color, n, scale)
+  n = n or 8
+  scale = scale or 1
+  for i = 1, n do
+    local a = (i / n) * math.pi * 2 + T.rand(40) / 40
+    local ctl = T.img(x, y, 7 * scale, 16 * scale, 'triangle', color, T.rand(360))
+    if ctl then
+      local dist = (28 + T.rand(46)) * scale
+      local tx, ty = x + math.cos(a) * dist, y + math.sin(a) * dist
+      local rot = T.rand(200) - 100
+      T.tween(0.42, function(k)
+        T.tryCall(ctl, 'SetAnchoredPosition', (x + (tx - x) * k) * T.S, (y + (ty - y) * k - 16 * k) * T.S)
+        T.trySet(ctl, 'localRotationZ', rot * k)
+        T.trySet(ctl, 'imageColor', T.withA(color % 16777216, math.floor(230 * (1 - k))))
+      end, function() T.destroyCtl(ctl) end, T.easeOut)
     end
   end
 end
 
-placeholder('map', '霜原', '选择关卡')
-placeholder('prepare', '出战准备', '队伍与装备')
-placeholder('battle', '战斗', '霜原之上')
-placeholder('result', '结算', '挑战结果')
-placeholder('growth', '养成', '甘雨')
-placeholder('codex', '图鉴', '霜华纪事')
-placeholder('settings', '设置', '声音与画面')
-placeholder('credits', '制作名单', '霜华纪制作组')
+T.battleFloat = function(x, y, text, color, size)
+  local b = T.battle
+  local seq = 0
+  if b then b.floatSeq = ((b.floatSeq or 0) + 1) % 5; seq = b.floatSeq end
+  local ox = (seq - 2) * 18
+  local oy = (seq % 3) * 10
+  local ctl = T.txt(x + ox, y + oy, 160, 34, size or 20, text, color or T.th.accent2, 'Middle', 'Middle',
+    { outline = true, outlineColor = T.C(180, 6, 22, 36) })
+  if not ctl then return end
+  local py = y + oy
+  T.tween(0.7, function(k)
+    T.tryCall(ctl, 'SetAnchoredPosition', (x + ox) * T.S, (py + 42 * k) * T.S)
+    T.trySet(ctl, 'fontColor', T.withA(color % 16777216, math.floor(255 * (1 - k * k))))
+  end, function() T.destroyCtl(ctl) end, T.easeOut)
+end
 
-T.openHelp = T.openHelp or function()
-  T.openOverlay('help', function(base)
-    T.overlayPanel(720, 440, '玩法说明', '霜华纪 · 基础操作')
-    T.item({ x = 0, y = -160, w = 180, h = 44, name = 'hit_help_close',
-      onConfirm = function() T.closeOverlay() end })
-    T.button(0, -160, 180, 44, '知道了', function() T.closeOverlay() end, { name = 'hit_help_ok' })
-  end, { pausesGame = true, defaultFocus = 1, key = function(a)
-    if a == 'back' or a == 'confirm' then T.closeOverlay() end
-  end })
+T.battleReticleAt = function(x, y, visible)
+  local r = T.battle and T.battle.reticle
+  if not r then return end
+  for i = 1, #r do
+    local c = r[i].ctl
+    local ox, oy = r[i].ox, r[i].oy
+    T.tryCall(c, 'SetAnchoredPosition', (x + (visible and ox or 0)) * T.S, ((visible and y or -1000) + (visible and oy or 0)) * T.S)
+  end
 end
-T.openConfirm = T.openConfirm or function(title, desc, onYes)
-  T.openOverlay('confirm', function(base)
-    T.overlayPanel(520, 300, title, desc)
-    T.button(-90, -90, 130, 44, '取消', function() T.closeOverlay() end, { kind = 'secondary', name = 'hit_confirm_cancel' })
-    T.button(90, -90, 130, 44, '确定', function() T.closeOverlay(); onYes() end, { name = 'hit_confirm_ok' })
-  end, { pausesGame = true })
+
+T.battleSpawnWave = function(n)
+  local b = T.battle
+  if not b then return end
+  b.wave = n
+  b.enemies = {}
+  local stage = b.stage
+  local e1 = stage.enemies[1]
+  local e2 = stage.enemies[2]
+  local e3 = stage.enemies[3]
+  local defs
+  local pos
+  if n == 1 then
+    defs = { e1, e2 }
+    pos = { { -250, 76 }, { 210, 108 } }
+  elseif n == 2 then
+    defs = { e2, e3 }
+    pos = { { -300, 96 }, { 250, 64 } }
+  else
+    defs = { e3, (e3 == 'boss') and e2 or e1 }
+    if stage.id == 3 or stage.id == 6 then
+      defs = { 'boss', e2 }
+      pos = { { 0, 132 }, { 300, 60 } }
+    else
+      pos = { { -240, 72 }, { 240, 110 } }
+    end
+  end
+  b.totalEnemies = #defs
+  for i, id in ipairs(defs) do
+    local d = T.battleEnemyDef(id)
+    local px, py = pos[i][1], pos[i][2]
+    local start = #T.controls + 1
+    T.enemyArt(id, px, py, d.size, {})
+    local parts = {}
+    for k = start, #T.controls do parts[#parts + 1] = T.controls[k] end
+    local base = {}
+    for _, c in ipairs(parts) do
+      local p = T.pos[c]
+      if p then base[c] = { p.x, p.y } end
+    end
+    -- 血条（小圆点）
+    local pips = {}
+    for k = 1, d.hp do
+      local pxp = px - ((d.hp - 1) * 11) / 2 + (k - 1) * 11
+      pips[k] = T.img(pxp, py + 62 * d.size, 9, 9, 'circle', T.P.ice2)
+    end
+    -- 名字
+    local nameCtl = T.txt(px, py + 78 * d.size, 200, 22, 11, d.name, T.th.text2, 'Middle', 'Middle')
+    local e = {
+      i = i, id = id, name = d.name, x = px, y = py, hp = d.hp, maxHp = d.hp,
+      size = d.size, parts = parts, base = base, pips = pips, nameCtl = nameCtl, alive = true,
+      phase = T.rand(100) / 20,
+    }
+    b.enemies[i] = e
+    e.hit = T.hit('hit_battle_enemy_' .. i, px, py, 120 * d.size, 120 * d.size, {
+      clickSfx = false,
+      onClick = function() T.battleFire(e) end,
+      onEnter = function()
+        b.aim = i
+        T.battleReticleAt(px, py, true)
+        for k, c in ipairs(b.aimLine) do
+          local t = k / (#b.aimLine + 1)
+          T.tryCall(c, 'SetAnchoredPosition', (-470 + (px + 470) * t) * T.S, (-266 + (py + 266) * t) * T.S)
+        end
+      end,
+      onExit = function()
+        if b.aim == i then b.aim = nil end
+        T.battleReticleAt(px, py, false)
+        for _, c in ipairs(b.aimLine) do T.tryCall(c, 'SetAnchoredPosition', -470 * T.S, -1000 * T.S) end
+      end,
+    })
+  end
+  -- 敌人漂浮
+  T.anim(function(dt, t)
+    if T.overlay and T.overlay.pausesGame then return end
+    local bb = T.battle
+    if not bb then return false end
+    for _, e in ipairs(bb.enemies) do
+      if e.alive then
+        local bob = math.sin(t * 1.4 + e.phase) * 6
+        for _, c in ipairs(e.parts) do
+          local p = e.base[c]
+          if p then T.tryCall(c, 'SetAnchoredPosition', p[1] * T.S, (p[2] + bob) * T.S) end
+        end
+      end
+    end
+  end)
+  -- 波次横幅
+  local banner = T.txt(0, 70, 420, 60, 32, '第 ' .. n .. ' 波', T.th.text, 'Middle', 'Middle',
+    { outline = true, outlineColor = T.C(170, 4, 16, 28) })
+  if banner then
+    T.setScale(banner, 0.7)
+    T.tween(0.3, function(k) T.setScale(banner, 0.7 + 0.3 * k) end, nil, T.easeBack, true)
+    T.after(1.1, function()
+      if banner then
+        T.tween(0.3, function(k) T.trySet(banner, 'fontColor', T.withA(T.th.text % 16777216, math.floor(255 * (1 - k)))) end,
+          function() T.destroyCtl(banner) end, T.easeOut, true)
+      end
+    end, true)
+  end
+  T.log('battle wave=' .. n .. ' n=' .. #defs)
 end
-T.openPause = T.openPause or function() end
+
+T.battleFire = function(e)
+  local b = T.battle
+  if not b or b.over or not e or not e.alive then return end
+  if (b.shootCd or 0) > 0 then return end
+  b.shootCd = 0.18
+  b.shots = b.shots + 1
+  T.records.totalShots = T.records.totalShots + 1
+  T.sfx(T.SFX.shoot)
+  -- 箭：一条细长矩形从甘雨位置射向敌人
+  local sx, sy = 0, -168
+  local dx, dy = e.x - sx, e.y - sy
+  local len = math.sqrt(dx * dx + dy * dy)
+  local ang = math.deg(math.atan(dy, dx))
+  local arrow = T.img(sx, sy, 34, 3, 'rect', T.P.ice2, ang)
+  local trail = T.img(sx, sy, 60, 2, 'rect', T.withA(T.P.white, 120), ang)
+  T.tween(0.12, function(k)
+    local px, py = sx + dx * k, sy + dy * k
+    T.tryCall(arrow, 'SetAnchoredPosition', px * T.S, py * T.S)
+    T.tryCall(trail, 'SetAnchoredPosition', (px - dx / len * 26) * T.S, (py - dy / len * 26) * T.S)
+  end, function()
+    T.destroyCtl(arrow)
+    T.destroyCtl(trail)
+    T.battleHit(e)
+  end, T.easeIn)
+end
+
+T.battleHit = function(e, isSkill)
+  local b = T.battle
+  if not b or not e.alive then return end
+  e.hp = e.hp - 1
+  if not isSkill then b.hits = b.hits + 1 end
+  b.combo = b.combo + 1
+  b.comboT = 2.4
+  if b.combo > T.records.maxCombo then T.records.maxCombo = b.combo end
+  T.sfx(T.SFX.impact)
+  T.battleFloat(e.x, e.y + 20, '-' .. 1, T.P.ice1, 22)
+  T.burst(e.x, e.y, T.P.ice2, 5, 0.9)
+  if e.pips[e.hp + 1] then T.setColor(e.pips[e.hp + 1], T.th.line) end
+  b.energy = math.min(100, b.energy + 14)
+  b.score = b.score + math.floor(120 * (1 + (b.combo - 1) * 0.15))
+  T.log('battle hit enemy=' .. e.i .. ' hp=' .. e.hp .. ' combo=' .. b.combo)
+  if e.hp <= 0 then T.battleKill(e) end
+end
+
+T.battleKill = function(e)
+  local b = T.battle
+  if not e.alive then return end
+  e.alive = false
+  T.sfx(T.SFX.ice)
+  T.burst(e.x, e.y, T.P.ice3, 12, 1.2)
+  T.burst(e.x, e.y, T.P.white, 6, 0.8)
+  for _, c in ipairs(e.parts) do T.destroyCtl(c) end
+  for _, c in ipairs(e.pips) do T.destroyCtl(c) end
+  if e.nameCtl then T.destroyCtl(e.nameCtl) end
+  if e.hit then T.destroy(e.hit) end
+  T.battleReticleAt(0, 0, false)
+  b.aim = nil
+  T.log('battle kill enemy=' .. e.i)
+  local alive = 0
+  for _, x in ipairs(b.enemies) do if x.alive then alive = alive + 1 end end
+  if alive == 0 then
+    if b.wave >= T.BATTLE_WAVES then
+      b.over = true
+      T.after(0.7, function() T.battleFinish(true) end)
+    else
+      T.log('battle wave clear=' .. b.wave)
+      T.log('battle schedule next wave=' .. (b.wave + 1))
+      T.after(0.9, function()
+        T.log('battle next wave fire=' .. (b.wave + 1) .. ' same=' .. tostring(T.battle == b) .. ' over=' .. tostring(b.over))
+        if T.battle == b and not b.over then T.battleSpawnWave(b.wave + 1) end
+      end)
+    end
+  end
+end
+
+T.battleSkill = function()
+  local b = T.battle
+  if not b or b.over then return end
+  if b.energy < 100 then
+    T.log('battle skill denied energy=' .. math.floor(b.energy))
+    T.sfx(T.SFX.error, true)
+    T.toast('元素能量不足 · ' .. math.floor(b.energy) .. ' / 100', T.th.text2)
+    return
+  end
+  b.energy = 0
+  b.skillUsed = (b.skillUsed or 0) + 1
+  T.sfx(T.SFX.ice, true)
+  T.log('battle skill used=' .. b.skillUsed)
+  -- 全屏霜闪
+  local flash = T.img(0, 0, T.DESIGN_W, T.DESIGN_H, 'rect', T.withA(T.P.ice1, 190))
+  T.tween(0.5, function(k)
+    T.trySet(flash, 'imageColor', T.withA(T.P.ice1, math.floor(190 * (1 - k) ^ 2)))
+  end, function() T.destroyCtl(flash) end, T.easeOut)
+  local ring = T.img(0, 30, 120, 120, 'ring', T.withA(T.P.ice2, 220))
+  T.tween(0.5, function(k)
+    T.tryCall(ring, 'SetSizeDelta', (120 + 900 * k) * T.S, (120 + 420 * k) * T.S)
+    T.trySet(ring, 'imageColor', T.withA(T.P.ice2, math.floor(220 * (1 - k))))
+  end, function() T.destroyCtl(ring) end, T.easeOut)
+  T.burst(0, 30, T.P.ice2, 14, 1.6)
+  T.shake(12, 0.3)
+  for _, e in ipairs(b.enemies) do
+    if e.alive then
+      for _ = 1, 2 do
+        if e.alive then T.battleHit(e, true) end
+      end
+    end
+  end
+end
+
+T.battleFinish = function(win)
+  local b = T.battle
+  if not b or b.finished then return end
+  b.finished = true
+  local ratio = b.timeLeft / b.stage.time
+  local stars = 0
+  if win then
+    stars = (ratio > 0.55) and 3 or ((ratio > 0.28) and 2 or 1)
+  end
+  T.log('battle end win=' .. tostring(win) .. ' stars=' .. stars .. ' time=' .. string.format('%.1f', b.timeLeft))
+  T.go('result', {
+    stage = b.stage.id, win = win, stars = stars, score = b.score,
+    combo = T.records.maxCombo, shots = b.shots, hits = b.hits, timeLeft = b.timeLeft,
+  })
+end
+
+T.screenFns.battle = function(params)
+  params = params or {}
+  local stage = T.stageById[params.stage or 1] or T.stages[1]
+  T.pageBg('night', { moonX = 286, moonY = 226, moonR = 54, stars = 44, aurora = false })
+  T.snowfall(22, { pauseWithGame = true })
+  -- 冰面场地
+  T.img(0, -300, 1600, 300, 'circle', T.C(255, 44, 88, 114))
+  T.img(0, -246, 1200, 200, 'circle', T.C(255, 58, 106, 134))
+  T.img(0, -214, 980, 120, 'circle', T.C(255, 74, 126, 156))
+  T.img(0, -212, 900, 100, 'ring', T.withA(T.P.ice2, 40))
+  -- 角落冰晶
+  T.iceShardCluster(-560, -250, 1.5, T.withA(T.P.ice3, 200))
+  T.iceShardCluster(560, -244, 1.3, T.withA(T.P.ice3, 180))
+  -- 甘雨（底部）
+  T.img(-470, -300, 320, 260, 'circle', T.withA(T.P.ice4, 26))
+  T.portrait(T.chars[1], -470, -266, 0.56, { idle = true, pauseWithGame = true, amp = 1.4 })
+
+  T.img(0, -424, 1600, 190, 'circle', T.withA(T.P.night0, 130))
+  local b = {
+    stage = stage, stageId = stage.id, wave = 0, timeLeft = stage.time,
+    score = 0, combo = 0, comboT = 0, energy = 0, health = 100,
+    shots = 0, hits = 0, over = false, finished = false, aim = nil,
+  }
+  T.battle = b
+  T.log('battle start stage=' .. stage.id .. ' waves=' .. T.BATTLE_WAVES .. ' time=' .. stage.time)
+
+  -- 准星（先建，敌人之后建 → 准星在敌人下层？不会：准星停在屏幕外，悬停时移到敌人处会盖住敌人，可接受）
+  local reticle = {}
+  local ring = T.img(0, -1000, 74, 74, 'ring', T.withA(T.P.gold, 210))
+  reticle[#reticle + 1] = { ctl = ring, ox = 0, oy = 0 }
+  for _, p in ipairs({ { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }) do
+    local ox, oy = p[1] * 26, p[2] * 26
+    reticle[#reticle + 1] = { ctl = T.img(0, -1000, 12, 2.4, 'rect', T.P.gold, p[1] * p[2] * 45), ox = ox, oy = oy }
+    reticle[#reticle + 1] = { ctl = T.img(0, -1000, 2.4, 12, 'rect', T.P.gold, p[1] * p[2] * 45), ox = ox, oy = oy }
+  end
+  reticle[#reticle + 1] = { ctl = T.img(0, -1000, 6, 6, 'circle', T.P.goldPale), ox = 0, oy = 0 }
+  b.reticle = reticle
+  -- 瞄准虚线（悬停时从甘雨的弓到目标）
+  local aimLine = {}
+  for i = 1, 12 do
+    aimLine[i] = T.img(-470, -1000, 5, 5, 'circle', T.withA(T.P.gold, 150))
+  end
+  b.aimLine = aimLine
+
+  -- HUD 左上：角色
+  local hx, hy = -470, 286
+  T.card(hx, hy, 344, 92, { radius = 16, fill = T.th.panel, border = T.th.cardBorder, shadow = false })
+  T.img(hx - 128, hy + 2, 60, 60, 'circle', T.th.accent)
+  T.portraitHead(hx - 128, hy + 4, 0.36, T.chars[1])
+  T.txt(hx - 92, hy + 22, 120, 24, 15, '甘雨', T.th.text, 'Left', 'Middle')
+  T.txt(hx - 92, hy + 2, 130, 20, 10, 'Lv.' .. T.records.level .. ' · 冰', T.th.text3, 'Left', 'Middle')
+  local hpBg = T.rrect(hx + 18, hy - 10, 190, 8, 4, T.th.slotBg)
+  local hpFill = T.img(hx + 18, hy - 10, 186, 6, 'rect', T.P.ok)
+  local enBg = T.rrect(hx + 18, hy - 26, 190, 6, 3, T.th.slotBg)
+  local enFill = T.img(hx + 18, hy - 26, 2, 4, 'rect', T.P.ice3)
+  b.hpFill, b.enFill = hpFill, enFill
+
+  -- HUD 顶部中：波次 / 计时
+  T.rrect(0, 312, 240, 34, 17, T.th.panel)
+  local waveTxt = T.txt(0, 312, 200, 28, 13, '', T.th.text, 'Middle', 'Middle')
+  local aliveTxt = T.txt(0, 286, 200, 20, 10, '', T.th.text3, 'Middle', 'Middle')
+  -- HUD 右上：分数 / 连击
+  T.txt(500, 340, 200, 20, 10, 'SCORE', T.th.text3, 'Right', 'Middle')
+  local scoreTxt = T.txt(500, 320, 200, 30, 18, '0', T.th.text, 'Right', 'Middle')
+  local comboTxt = T.txt(500, 294, 200, 26, 13, '', T.th.accent2, 'Right', 'Middle')
+  T.iconBtn(600, 320, 36, 'pause', function() T.openPause() end, { name = 'hit_battle_pause' })
+  b.waveTxt, b.scoreTxt, b.comboTxt, b.aliveTxt = waveTxt, scoreTxt, comboTxt, aliveTxt
+
+  -- 技能按钮（右下）
+  local sx, sy = 520, -258
+  local skillRing = T.img(sx, sy, 96, 96, 'ring', T.th.border)
+  local skillBg = T.img(sx, sy, 84, 84, 'circle', T.th.panel2)
+  local skillIcon = T.icon('snow', sx, sy + 2, 15, T.th.text3)
+  local skillKey = T.txt(sx, sy - 58, 40, 20, 10, 'E', T.th.text3, 'Middle', 'Middle')
+  b.skillRing, b.skillBg, b.skillIcon, b.skillKey = skillRing, skillBg, skillIcon, skillKey
+  T.item({
+    x = sx, y = sy, w = 100, h = 100, name = 'hit_battle_skill', focusPad = 6,
+    onConfirm = function() T.battleSkill() end,
+    onFocus = function(on) b.skillFocus = on end,
+  })
+  T.txt(sx - 74, sy - 4, 120, 22, 11, '降众天华', T.th.text2, 'Right', 'Middle')
+  T.txt(sx - 74, sy - 26, 120, 20, 10, '能量满后释放', T.th.text3, 'Right', 'Middle')
+
+  -- 底部提示
+  T.txt(0, -340, 760, 22, 11, '悬停敌人瞄准 · 点击射出霜华矢 · E 释放技能 · Q 暂停', T.th.text3, 'Middle', 'Middle')
+
+  T.battleSpawnWave(1)
+
+  -- 逐帧
+  T.screen.update = function(dt)
+    if b.over then return end
+    b.shootCd = math.max(0, (b.shootCd or 0) - dt)
+    b.timeLeft = math.max(0, b.timeLeft - dt)
+    b.comboT = math.max(0, b.comboT - dt)
+    if b.comboT <= 0 and b.combo ~= 0 then b.combo = 0 end
+    -- 计时文字
+    local mm = math.floor(b.timeLeft / 60)
+    local ss = math.floor(b.timeLeft % 60)
+    T.setTxt(b.waveTxt, '第 ' .. b.wave .. ' / ' .. T.BATTLE_WAVES .. ' 波　　' .. string.format('%02d:%02d', mm, ss))
+    T.setTxt(b.scoreTxt, T.fmt(b.score))
+    T.setTxt(b.comboTxt, b.combo > 1 and ('COMBO ×' .. b.combo) or '')
+    local alive = 0
+    for _, e in ipairs(b.enemies) do if e.alive then alive = alive + 1 end end
+    T.setTxt(b.aliveTxt, '来敌 ' .. alive)
+    -- 能量与技能
+    local e = b.energy
+    local fw = math.max(2, 186 * e / 100)
+    T.tryCall(b.enFill, 'SetSizeDelta', fw * T.S, 4 * T.S)
+    T.tryCall(b.enFill, 'SetAnchoredPosition', (-547 + fw / 2) * T.S, (286 - 26) * T.S)
+    local ready = e >= 100
+    T.setColor(b.skillRing, ready and T.th.accent2 or T.th.border)
+    T.setColor(b.skillBg, ready and T.th.panelHi or T.th.panel2)
+    T.setColor(b.skillIcon, ready and T.th.accent2 or T.th.text3)
+    T.setTxtColor(b.skillKey, ready and T.th.accent2 or T.th.text3)
+    if ready then
+      local p = 0.5 + 0.5 * math.sin(T.time * 4)
+      T.tryCall(b.skillRing, 'SetSizeDelta', (96 + p * 8) * T.S, (96 + p * 8) * T.S)
+    else
+      T.tryCall(b.skillRing, 'SetSizeDelta', 96 * T.S, 96 * T.S)
+    end
+    -- 血量（模板：不接伤害逻辑，保持满）
+    T.tryCall(b.hpFill, 'SetSizeDelta', 186 * T.S, 6 * T.S)
+    -- 失败
+    if b.timeLeft <= 0 and not b.finished then
+      b.finished = true
+      b.over = true
+      T.battleFinish(false)
+    end
+  end
+
+  local screen = T.screen
+  screen.key = function(a)
+    if a == 'skill' then T.log('battle key skill'); T.battleSkill()
+    elseif a == 'confirm' then T.battleSkill()
+    elseif a == 'back' then T.openPause()
+    elseif a == 'up' then T.moveFocus(0, 1)
+    elseif a == 'down' then T.moveFocus(0, -1)
+    elseif a == 'left' then T.moveFocus(-1, 0)
+    elseif a == 'right' then T.moveFocus(1, 0) end
+  end
+  T.screen.defaultFocus = #T.items
+end
+
+
+-- ===== 36_result.lua =====
+-- ============================================================================
+-- 页面 4：结算（胜负 / 星级 / 奖励 / 经验与升级）
+-- ============================================================================
+T = T or {}
+T.screenFns = T.screenFns or {}
+
+T.recordResult = function(params)
+  local st = T.stageById[params.stage] or T.stages[1]
+  local rec = T.records
+  local out = { stage = st, levelUp = false, unlockedNext = nil }
+  if params.win then
+    rec.stars[st.id] = math.max(rec.stars[st.id] or 0, params.stars or 0)
+    rec.best[st.id] = math.max(rec.best[st.id] or 0, params.score or 0)
+    rec.plays = (rec.plays or 0) + 1
+    rec.clears = (rec.clears or 0) + 1
+    rec.visited[st.id] = true
+    local nxt = T.stages[st.id + 1]
+    if nxt then
+      rec.unlocked[nxt.id] = true
+      out.unlockedNext = nxt
+    end
+    -- 经验
+    local gain = 320 + (params.stars or 0) * 60
+    rec.exp = (rec.exp or 0) + gain
+    T.hero.exp = rec.exp
+    local maxExp = 4600
+    if rec.exp >= maxExp then
+      rec.exp = rec.exp - maxExp
+      rec.level = (rec.level or 60) + 1
+      T.hero.level = rec.level
+      T.hero.exp = rec.exp
+      T.hero.level = rec.level
+      out.levelUp = true
+    end
+    T.hero.exp = rec.exp
+    T.hero.level = rec.level
+    -- 成就
+    T.unlock('first_shot')
+    if (rec.maxCombo or 0) >= 3 then T.unlock('combo3') end
+    T.unlock('clear1')
+    local sum = 0
+    for _, v in ipairs(rec.stars) do sum = sum + v end
+    if sum >= 12 then T.unlock('stars12') end
+    local got = 0
+    for _ in pairs(rec.achv) do got = got + 1 end
+    if got >= 6 then T.unlock('codex10') end
+    out.gain = gain
+  else
+    rec.plays = (rec.plays or 0) + 1
+  end
+  T.log('records stage=' .. st.id .. ' stars=' .. tostring(rec.stars[st.id]) ..
+    ' clears=' .. tostring(rec.clears) .. ' level=' .. tostring(rec.level))
+  return out
+end
+
+T.screenFns.result = function(params)
+  params = params or {}
+  local st = T.stageById[params.stage] or T.stages[1]
+  local win = params.win and true or false
+  local info = T.recordResult({ stage = st.id, win = win, stars = params.stars, score = params.score })
+  T.pageBg('night', { moonX = 0, moonY = 236, moonR = 78, stars = 34, aurora = false })
+  T.snowfall(16, {})
+  T.snowBank(T.C(255, 30, 70, 96), -352)
+
+  T.sfx(win and T.SFX.victory or T.SFX.fail, true)
+  local cx, cy, w, h = 0, -4, 780, 560
+  T.card(cx, cy, w, h, { radius = 24, fill = T.th.panel, border = T.th.cardBorder })
+  T.img(cx, cy + h / 2 - 8, w - 80, 1.2, 'rect', T.th.line)
+
+  -- 标题
+  local title = win and '挑战成功' or '挑战失败'
+  local tcol = win and T.P.goldPale or T.P.ice2
+  local titleChars = win and { '挑', '战', '成', '功' } or { '挑', '战', '失', '败' }
+  T.logo(cx, cy + h / 2 - 62, titleChars, 38, 46, tcol,
+    { shadow = true, shadowColor = T.C(120, 6, 20, 34) })
+  T.txt(cx, cy + h / 2 - 108, 560, 26, 13,
+    win and (st.code .. ' · ' .. st.name .. '　已完成') or (st.code .. ' · ' .. st.name .. '　时间耗尽'),
+    T.th.text2, 'Middle', 'Middle')
+  T.titleFlourish(cx, cy + h / 2 - 132, 260, T.withA(win and T.P.goldPale or T.P.ice2, 170))
+
+  -- 星级
+  local starY = cy + 100
+  local stars = params.stars or 0
+  for i = 1, 3 do
+    local col = (i <= stars) and T.P.gold or T.th.line
+    local ctl = T.img(cx + (i - 2) * 62, starY, 54, 54, 'fivestar', col)
+    if ctl then
+      T.setScale(ctl, 0.2)
+      T.after(0.15 + i * 0.14, function()
+        T.sfx(i <= stars and T.SFX.reward or T.SFX.click, i == 1)
+        T.tween(0.34, function(k)
+          T.setScale(ctl, 0.2 + 0.8 * k + (k > 0.8 and (1 - k) * 0.6 or 0))
+        end, nil, T.easeBack, true)
+      end, true)
+    end
+  end
+  T.txt(cx, starY - 48, 360, 22, 11, win and ('本关最佳 ' .. T.fmt(math.max(T.records.best[st.id] or 0, params.score or 0))) or '再接一次，风会记得你的箭',
+    T.th.text3, 'Middle', 'Middle')
+
+  -- 统计
+  local panelY = cy - 12
+  T.rrect(cx, panelY, w - 120, 64, 12, T.th.panel2)
+  local stats = {
+    { '得分', T.fmt(params.score or 0) },
+    { '最高连击', tostring(params.combo or 0) },
+    { '命中', tostring(params.hits or 0) .. ' / ' .. tostring(params.shots or 0) },
+    { '剩余时间', string.format('%02d:%02d', math.floor((params.timeLeft or 0) / 60), math.floor((params.timeLeft or 0) % 60)) },
+  }
+  for i, s in ipairs(stats) do
+    local x = cx - (w - 120) / 2 + (i - 0.5) * ((w - 120) / 4)
+    T.txt(x, panelY + 10, 160, 24, 11, s[1], T.th.text3, 'Middle', 'Middle')
+    T.txt(x, panelY - 11, 160, 26, 15, s[2], T.th.text, 'Middle', 'Middle')
+  end
+
+  -- 奖励
+  local ry = cy - 88
+  T.txt(cx - 300, ry + 6, 120, 24, 12, win and '奖励' or '未获得奖励', T.th.text3, 'Left', 'Middle')
+  if win then
+    for i, rw in ipairs(st.reward) do
+      local yy = ry - 22 - (i - 1) * 28
+      T.icon(i == 1 and 'coin' or (i == 2 and 'book' or 'crystal'), cx - 284, yy, 9, T.th.accent2)
+      T.txt(cx - 266, yy, 300, 22, 12, rw, T.th.text2, 'Left', 'Middle')
+    end
+  else
+    T.txt(cx - 300, ry - 30, 360, 40, 12, '调整一下队伍与天赋，再来一次。', T.th.text3, 'Left', 'Middle')
+  end
+  -- 经验条
+  T.txt(80, ry + 4, 150, 24, 12, '冒险阅历', T.th.text3, 'Left', 'Middle')
+  T.txt(372, ry + 4, 180, 24, 12, T.fmt(T.hero.exp or 0) .. ' / 4,600', T.th.text2, 'Right', 'Middle')
+  T.bar(226, ry - 24, 292, 12, (T.hero.exp or 0) / 4600, T.th.accent, T.th.slotBg)
+  if info.levelUp then
+    T.chip(226, ry - 56, 'Lv.' .. T.hero.level .. ' 已提升', T.th.accent2, { fill = T.th.accentSoft })
+  end
+
+  -- 按钮
+  local by = cy - h / 2 + 60
+  T.button(cx - 236, by, 200, 52, '再次挑战', function()
+    T.go('battle', { stage = st.id })
+  end, { kind = 'secondary', name = 'hit_result_retry' })
+  T.button(cx, by, 200, 52, win and '下一关' or '返回地图', function()
+    if win and T.stages[st.id + 1] then
+      T.go('prepare', { stage = st.id + 1 })
+    else
+      T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
+    end
+  end, { kind = 'primary', name = 'hit_result_next' })
+  T.button(cx + 236, by, 200, 52, '返回地图', function()
+    T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
+  end, { kind = 'ghost', name = 'hit_result_map' })
+
+  T.txt(0, -338, 900, 22, 11, win and '「雪会记得每一支箭落下的地方。」' or '「风停了。下一次，把弓拉满一些。」',
+    T.th.text3, 'Middle', 'Middle')
+
+  local screen = T.screen
+  screen.key = function(a)
+    if a == 'up' then T.moveFocus(0, 1)
+    elseif a == 'down' then T.moveFocus(0, -1)
+    elseif a == 'left' then T.moveFocus(-1, 0)
+    elseif a == 'right' then T.moveFocus(1, 0)
+    elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'back' then T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 }) end
+  end
+  T.screen.defaultFocus = 2
+  T.log('result win=' .. tostring(win) .. ' stars=' .. tostring(params.stars) .. ' score=' .. tostring(params.score))
+end
+
+
+-- ===== 38_growth.lua =====
+-- ============================================================================
+-- 页面：养成（甘雨 · 循循守月）
+-- 三栏：左 立绘 / 信息 / 命之座 ｜ 中 属性 / 武器 / 圣遗物 ｜ 右 天赋 / 材料
+-- 弹层：突破（ascend）、天赋（talent），均 pausesGame
+-- 三栏基准：外边距 20、栏距 16（372 + 416 + 420 + 2×16 + 2×20 = 1280）
+-- ============================================================================
+T = T or {}
+T.screenFns = T.screenFns or {}
+
+T.GY = { lx = -434, mx = -24, rx = 410, lw = 372, mw = 416, rw = 420 }
+
+-- ---------------------------------------------------------------- 属性行
+T.gyStatRow = function(cx, y, w, row, color)
+  local x0 = cx - w / 2
+  T.txt(x0, y, w - 104, 26, 13, row.name, T.th.text2, 'Left', 'Middle')
+  T.txt(x0 + w, y, 104, 26, 13, row.value, T.th.text, 'Right', 'Middle')
+  T.bar(cx, y - 18, w, 5, row.pct, color or T.th.accent, T.th.line)
+end
+
+-- ---------------------------------------------------------------- 命之座节点
+T.gyConstNode = function(x, y, c, lit, idx)
+  local halo = T.img(x, y, 50, 50, 'circle', T.withA(T.th.accent, 0))
+  local ring = T.img(x, y, 36, 36, 'circle', lit and T.th.accent2 or T.th.line)
+  local core = T.img(x, y, 30, 30, 'circle', lit and T.th.panel or T.th.panel2)
+  T.icon('const', x, y, 7, lit and T.th.accent2 or T.th.text3)
+  local label = T.txt(x, y - 30, 60, 20, 10, c.name, lit and T.th.text2 or T.th.text3, 'Middle', 'Middle')
+  T.item({
+    x = x, y = y, w = 42, h = 42, name = 'hit_growth_const_' .. idx, focusPad = 3,
+    onConfirm = function()
+      if lit then
+        T.log('growth const open id=' .. idx)
+        T.toast('命之座 · ' .. c.name .. '：' .. c.desc, T.th.accent2)
+      else
+        T.log('growth const locked id=' .. idx)
+        T.sfx(T.SFX.error, true)
+        T.toast('命之座未解锁 · 需要「甘雨之命星」', T.th.text)
+      end
+    end,
+    onFocus = function(on)
+      T.setColor(halo, T.withA(T.th.accent, on and 64 or 0))
+      T.setColor(ring, on and T.th.accent or (lit and T.th.accent2 or T.th.line))
+      T.setColor(core, on and T.th.panelHi or (lit and T.th.panel or T.th.panel2))
+      T.setTxtColor(label, on and T.th.text or (lit and T.th.text2 or T.th.text3))
+    end,
+  })
+end
+
+-- ---------------------------------------------------------------- 天赋行
+T.gyTalentRow = function(i)
+  local t = T.talents[i]
+  local x, y = T.GY.rx, 162 - (i - 1) * 90
+  local bg = T.rrect(x, y, 396, 76, 12, T.th.panel2)
+  T.img(232, y, 46, 46, 'circle', T.th.accentSoft)
+  T.icon(t.icon, 232, y, 9, T.th.accent)
+  local name = T.txt(262, y + 12, 190, 28, 16, t.name, T.th.text, 'Left', 'Middle')
+  T.txt(262, y - 12, 190, 22, 11, t.kind, T.th.text3, 'Left', 'Middle')
+  T.txt(478, y + 12, 130, 22, 12, 'Lv.' .. t.level .. ' / ' .. t.max, T.th.text2, 'Right', 'Middle')
+  T.bar(370, y - 32, 216, 4, t.level / t.max, T.th.accent, T.th.line)
+  -- 整行可点（大命中区，先建，让下面的「提升」按钮压在其上）
+  T.item({
+    x = x, y = y, w = 396, h = 76, name = 'hit_growth_talent_row_' .. i, focusPad = 3,
+    onConfirm = function() T.gyOpenTalent(i) end,
+    onFocus = function(on)
+      T.tint(bg, on and T.th.panelHi or T.th.panel2)
+      T.setTxtColor(name, on and T.th.accent or T.th.text)
+    end,
+  })
+  T.button(548, y, 84, 36, '提升', function() T.gyOpenTalent(i) end,
+    { kind = 'secondary', name = 'hit_growth_talent_' .. i, size = 12 })
+end
+
+-- ---------------------------------------------------------------- 「突破」弹层
+T.gyOpenAscend = function()
+  local ch = T.chars[1]
+  local rows = {
+    { icon = 'snow', name = '霜华之蕊', own = T.records.mats.snow or 0, need = 1 },
+    { icon = 'crystal', name = '冰晶核', own = T.records.mats.crystal or 0, need = 3 },
+    { icon = 'coin', name = '摩拉', own = T.records.mats.mora or 0, need = 120000 },
+  }
+  T.openOverlay('ascend', function(base)
+    local p = T.overlayPanel(620, 420, '突破',
+      'Lv.' .. T.hero.level .. ' → Lv.' .. T.hero.maxLevel .. ' · 第四阶段')
+    local w, h = p.w, p.h
+    -- 左半：霜华冰晶
+    T.img(-182, 22, 164, 164, 'ring', T.th.borderSoft)
+    T.glow(-182, 20, 68, T.th.accentSoft, 6, 60)
+    T.crystalArt(-182, 24, 1.15, T.th.accent)
+    T.snowflake(-250, 86, 9, T.withA(T.th.accent, 140), { core = T.th.panelHi })
+    T.snowflake(-112, 62, 6, T.withA(T.th.accent2, 170))
+    -- 右半：材料清单
+    T.txt(-14, 72, 240, 24, 12, '突破所需', T.th.text3, 'Left', 'Middle')
+    T.txt(280, 72, 150, 24, 12, '拥有 / 需要', T.th.text3, 'Right', 'Middle')
+    for i, r in ipairs(rows) do
+      local y = 38 - (i - 1) * 42
+      local enough = r.own >= r.need
+      local col = enough and T.th.text2 or T.P.danger
+      T.icon(r.icon, 2, y, 9, enough and T.th.accent or T.P.danger)
+      T.txt(28, y, 150, 24, 13, r.name, T.th.text, 'Left', 'Middle')
+      T.txt(280, y, 150, 24, 12, T.fmt(r.own) .. ' / ' .. T.fmt(r.need), col, 'Right', 'Middle')
+      T.hline(133, y - 21, 294, T.th.line)
+    end
+    -- 描述（截到两行）
+    T.txtAuto(0, -96, 540, 12, T.wrap(ch.desc, 30), T.th.text3)
+    T.button(112, -158, 200, 50, '确认突破', function()
+      T.closeOverlay()
+      T.log('growth ascend')
+      T.sfx(T.SFX.reward)
+      T.toast('突破完成 · 霜华更盛', T.th.accent2)
+    end, { name = 'hit_ascend_ok' })
+    T.button(-112, -158, 180, 50, '再想想', function() T.closeOverlay() end,
+      { kind = 'secondary', name = 'hit_ascend_cancel' })
+    T.closeButton(w / 2 - 40, h / 2 - 40, function() T.closeOverlay() end, 'hit_ascend_close')
+  end, {
+    pausesGame = true, defaultFocus = 1,
+    key = function(a) if a == 'back' then T.closeOverlay() end end,
+  })
+end
+
+-- ---------------------------------------------------------------- 「天赋」弹层
+T.gyNextGain = {
+  [1] = '伤害提升 6%',
+  [2] = '冷却时间缩短 0.5 秒',
+  [3] = '领域持续时间延长 2 秒',
+}
+
+T.gyOpenTalent = function(i)
+  local t = T.talents[i]
+  if not t then return end
+  local gain = T.gyNextGain[i] or '伤害提升 6%'
+  T.openOverlay('talent', function(base)
+    local p = T.overlayPanel(560, 380, t.name, t.kind .. ' · 当前 Lv.' .. t.level)
+    local w, h = p.w, p.h
+    T.txtAuto(0, 46, 440, 13, T.wrap(t.desc, 30), T.th.text2)
+    T.hline(0, 8, 440, T.th.line)
+    T.txt(0, -22, 460, 30, 15, '下一级：' .. gain, T.th.accent2, 'Middle', 'Middle')
+    T.txt(0, -46, 460, 24, 12, '提升至 Lv.' .. (t.level + 1) .. ' · 消耗「诗文」的教导 ×3', T.th.text3,
+      'Middle', 'Middle')
+    T.bar(0, -74, 440, 8, t.level / t.max, T.th.accent, T.th.line)
+    T.txt(-220, -92, 120, 22, 11, 'Lv.' .. t.level, T.th.text2, 'Left', 'Middle')
+    T.txt(220, -92, 120, 22, 11, 'Lv.' .. t.max, T.th.text3, 'Right', 'Middle')
+    T.txt(0, -108, 500, 24, 11, '甘雨：「' .. T.chars[1].quote .. '」', T.th.text3, 'Middle', 'Middle')
+    T.button(112, -152, 200, 50, '升级', function()
+      T.closeOverlay()
+      T.log('growth talent up id=' .. t.id)
+      T.sfx(T.SFX.reward)
+      T.toast('天赋已提升 · Lv.' .. (t.level + 1), T.th.accent2)
+    end, { name = 'hit_talent_up' })
+    T.button(-112, -152, 180, 50, '关闭', function() T.closeOverlay() end,
+      { kind = 'secondary', name = 'hit_talent_close' })
+    T.closeButton(w / 2 - 40, h / 2 - 40, function() T.closeOverlay() end, 'hit_talent_close_btn')
+  end, {
+    pausesGame = true, defaultFocus = 1,
+    key = function(a) if a == 'back' then T.closeOverlay() end end,
+  })
+end
+
+-- ---------------------------------------------------------------- 养成页
+T.screenFns.growth = function(params)
+  T.pageBg('day', { sunX = 360, sunY = 176 })
+  T.snowfall(12, { scale = 0.7 })
+  T.snowBank(T.C(255, 250, 254, 255), -300)
+  T.backBtn(function() T.go('menu') end)
+  T.header('养成', '甘雨 · 循循守月', { right = '璃月 · 月海亭', x = -496 })
+
+  local lx, mx, rx = T.GY.lx, T.GY.mx, T.GY.rx
+
+  -- ================= 左栏：立绘卡 =================
+  T.card(lx, 84, 372, 340, { radius = 20, fill = T.th.panel, border = T.th.cardBorder, hi = T.th.panelHi })
+  T.glow(lx, 132, 74, T.th.accentSoft, 5, 44)
+  T.img(lx, 132, 236, 236, 'ring', T.th.borderSoft)
+  T.snowflake(-586, 220, 8, T.withA(T.th.accent, 120), { core = T.th.panelHi })
+  T.snowflake(-286, 232, 6, T.withA(T.th.accent2, 140))
+  T.drift(lx, -50, 330, 64, T.mix(T.th.panelHi, T.th.accentSoft, 0.85))
+  T.portrait(T.chars[1], lx, 152, 0.62, { idle = true })
+  T.img(lx, -72, 156, 22, 'circle', T.withA(T.th.accent, 26))
+  T.drift(lx - 54, -64, 196, 34, T.th.panelHi)
+
+  -- 信息区
+  T.txt(-606, -108, 200, 44, 26, '甘雨', T.th.text, 'Left', 'Middle')
+  T.txt(-260, -108, 150, 28, 13, 'Lv.' .. T.hero.level .. ' / ' .. T.hero.maxLevel, T.th.text2,
+    'Right', 'Middle')
+  T.txt(-606, -140, 120, 24, 11, '经验', T.th.text3, 'Left', 'Middle')
+  T.txt(-260, -140, 150, 24, 11, T.hero.exp .. ' / ' .. T.hero.expMax, T.th.text2,
+    'Right', 'Middle')
+  T.bar(lx, -158, 330, 8, T.hero.exp / T.hero.expMax, T.th.accent, T.th.line)
+  T.button(lx, -196, 220, 48, '突破', function() T.gyOpenAscend() end, { name = 'hit_growth_ascend' })
+
+  -- 命之座
+  local litCount = 0
+  for i = 1, 6 do if T.records.consts[i] then litCount = litCount + 1 end end
+  T.txt(-606, -234, 150, 22, 11, '命之座', T.th.text3, 'Left', 'Middle')
+  T.txt(-260, -234, 150, 22, 11, litCount .. ' / 6', T.th.text3, 'Right', 'Middle')
+  T.img(lx, -264, 326, 1.4, 'rect', T.th.line)
+  for i = 1, 6 do
+    T.gyConstNode(-579 + (i - 1) * 58, -264, T.consts[i], T.records.consts[i] and true or false, i)
+  end
+
+  -- ================= 中栏：属性 =================
+  T.card(mx, 111, 416, 286, { radius = 18, fill = T.th.card, border = T.th.cardBorder, hi = T.th.panelHi })
+  T.txt(-210, 228, 150, 30, 18, '属性', T.th.text, 'Left', 'Middle')
+  T.txt(162, 228, 140, 22, 11, 'Lv.' .. T.hero.level .. ' · 满级 ' .. T.hero.maxLevel, T.th.text3,
+    'Right', 'Middle')
+  T.hline(mx, 208, 372, T.th.line)
+  for i, row in ipairs(T.hero.stats) do
+    T.gyStatRow(mx, 188 - (i - 1) * 38, 372, row, i >= 5 and T.th.accent2 or T.th.accent)
+  end
+
+  -- 武器卡
+  T.card(mx, -92, 416, 96, { radius = 16, fill = T.th.panel, border = T.th.cardBorder, hi = T.th.panelHi })
+  T.rrect(-186, -92, 68, 68, 14, T.th.panel2)
+  T.icon('bow', -186, -92, 13, T.th.text2)
+  T.txt(-142, -80, 230, 28, 16, '阿莫斯之弓', T.th.text, 'Left', 'Middle')
+  T.txt(-142, -104, 230, 22, 11, 'Lv.' .. T.hero.level .. ' · 精炼 1 阶', T.th.text3, 'Left', 'Middle')
+  T.chip(138, -92, '弓', T.th.text2, { fill = T.th.accentSoft, text = T.th.accent, size = 12 })
+
+  -- 圣遗物
+  T.sectionLabel(-210, -152, '圣遗物', { w = 220 })
+  T.txt(184, -152, 140, 22, 11, '2 件套 · 冰伤 15%', T.th.text3, 'Right', 'Middle')
+  local arts = {
+    { 'bloom', '生之花' }, { 'plume', '死之羽' }, { 'hourglass', '时之沙' }, { 'bloom', '空之杯' },
+  }
+  for i = 1, 4 do
+    local cx = -174 + (i - 1) * 100
+    T.slot(cx, -222, 84, 84, nil, arts[i][2], {})
+    T.artifactArt(arts[i][1], cx, -208, 0.58, T.th.accent)
+  end
+
+  -- ================= 右栏：天赋 =================
+  T.card(rx, 84, 420, 330, { radius = 18, fill = T.th.card, border = T.th.cardBorder, hi = T.th.panelHi })
+  T.txt(222, 228, 150, 30, 18, '天赋', T.th.text, 'Left', 'Middle')
+  T.txt(598, 228, 180, 22, 11, '「诗文」系列 · 教导', T.th.text3, 'Right', 'Middle')
+  T.hline(rx, 208, 376, T.th.line)
+  for i = 1, #T.talents do T.gyTalentRow(i) end
+
+  -- 材料
+  T.card(rx, -166, 420, 150, { radius = 18, fill = T.th.card, border = T.th.cardBorder, hi = T.th.panelHi })
+  T.txt(222, -110, 150, 26, 16, '材料', T.th.text, 'Left', 'Middle')
+  T.txt(598, -110, 160, 22, 11, '月海亭库存', T.th.text3, 'Right', 'Middle')
+  T.hline(rx, -126, 376, T.th.line)
+  local order = { 'crystal', 'qingxin', 'snow', 'mora' }
+  for i = 1, 4 do
+    local m
+    for _, mm in ipairs(T.mats) do if mm.id == order[i] then m = mm end end
+    if m then
+      local col = (i - 1) % 2
+      local rw = math.floor((i - 1) / 2)
+      local x0 = 212 + col * 200
+      local y = -156 - rw * 48
+      T.img(x0 + 22, y, 36, 36, 'circle', T.withA(T.th.accent, 20))
+      T.icon(m.icon, x0 + 22, y, 8, m.color)
+      T.txt(x0 + 46, y, 70, 24, 11, m.name, T.th.text2, 'Left', 'Middle')
+      T.txt(x0 + 196, y, 80, 24, 12, T.fmt(m.count), T.th.text, 'Right', 'Middle')
+    end
+  end
+
+  -- ================= 底部 =================
+  T.txt(0, -294, 520, 24, 12, '提升天赋需要「诗文」的教导与摩拉', T.th.text3, 'Middle', 'Middle')
+  T.footer({
+    { key = '↑↓', label = '选择' }, { key = '空格', label = '确认' },
+    { key = 'H', label = '帮助' }, { key = 'Q', label = '返回' },
+  })
+
+  local screen = T.screen
+  screen.key = function(a)
+    if a == 'up' then T.moveFocus(0, 1)
+    elseif a == 'down' then T.moveFocus(0, -1)
+    elseif a == 'left' then T.moveFocus(-1, 0)
+    elseif a == 'right' then T.moveFocus(1, 0)
+    elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'back' then T.go('menu') end
+  end
+  screen.afterBuild = function()
+    T.setFocus(2, true)
+    T.log('growth open', 'consts=' .. litCount .. '/6', 'mats=' .. #T.mats,
+      'exp=' .. tostring(T.hero.exp) .. '/' .. tostring(T.hero.expMax))
+  end
+end
+
+
+-- ===== 40_codex.lua =====
+-- ============================================================================
+-- 40_codex.lua —— 霜华图鉴 / 设置 / 制作名单
+-- 三张「后台页」：图鉴把 T.codex 的 14 条索引成可翻的册子，设置把 T.opt 做成可点的
+-- 开关，制作名单排成一张冷调的谢幕卡。色值只取 T.th.*；控件组改色走 T.tint，
+-- 整组位移走 T.captureBase / T.shiftBase（T.rrect 返回的是 6 个控件，不是单个控件）。
+-- ============================================================================
+T = T or {}
+
+do
+  local GROUP_OF_TAB = { 'enemy', 'gear', 'mat', 'world' }
+  local TAB_LABELS = { '敌人', '装备', '材料', '世界' }
+
+  -- 图鉴补记：正文之外的一句闲笔，让详情面板的段落有 3~5 行的呼吸
+  local FLAVOR = {
+    slime = '在雪线上走夜路时，常听见它们黏在一起的声响。',
+    fly = '翅上的霜粉落在袖口，很久都不会化。',
+    guard = '铠甲里没有人。守夜这件事，自己成了执念。',
+    boss = '它记得每一个抬眼看过它的人。',
+    bow = '拉开它，需要一整个冬天的力气。',
+    flower = '花语是「别忘了回来的路」。',
+    plume = '摸上去很轻，像一句没说出口的话。',
+    hourglass = '把它倒过来，时间也不会真的回去。',
+    crystal = '冷到手心发疼时，它反而暖了一点。',
+    qingxin = '采的时候要留一半，山才肯再开。',
+    snow = '花期只有一个晚上，天亮就谢。',
+    moon = '潮水退去后，滩上会剩一层细白的霜。',
+    bowl = '灯点得最晚的那间，就是她待的地方。',
+    bowl2 = '风从坡上下来，会捎来一点清心的气味。',
+  }
+
+  -- ---------------------------------------------------------------- 收录状态
+  -- 默认：除「清心坡」外全部收录（世界组第 3 条用来展示锁定态）；
+  -- 重置进度后整册回到未收录，页头计数随之归零。
+  local function codexSeen(id)
+    if T.codexSeen == nil then
+      T.codexSeen = {}
+      for i = 1, #T.codex do T.codexSeen[T.codex[i].id] = (T.codex[i].id ~= 'bowl2') end
+    end
+    return T.codexSeen[id] == true
+  end
+
+  local function codexCount()
+    local n = 0
+    for i = 1, #T.codex do
+      if codexSeen(T.codex[i].id) then n = n + 1 end
+    end
+    return n
+  end
+
+  -- 弓（详情大图）：9 段短矩形沿圆弧拼出弓臂 + 直弦 + 握把。
+  -- 库里的 weaponArt 是「金环 + 深色芯」，放大后读不出弓，这里自绘一支。
+  local function bowArt(cx, cy, s, color)
+    local c = color or T.th.accent2
+    local R = 74 * s
+    local ox = cx + 0.75 * R
+    for i = 1, 9 do
+      local deg = 121 + (239 - 121) * (i - 0.5) / 9
+      local a = math.rad(deg)
+      T.img(ox + math.cos(a) * R, cy + math.sin(a) * R, 7 * s, 27 * s, 'rect', c, deg)
+    end
+    T.img(cx + 0.25 * R, cy, 2.4 * s, 1.72 * R, 'rect', T.withA(c, 170))
+    T.img(ox - R, cy, 11 * s, 36 * s, 'rect', T.mix(c, T.th.panelHi, 0.42))
+    T.img(ox - R, cy + 0.2 * R, 7 * s, 7 * s, 'circle', T.th.panelHi)
+  end
+
+  -- 图鉴插图分派：k=0.5 是索引格（用给 14px 设计的图元图标 + 淡色底圆），
+  -- k=1 是详情大图（用整套美术：enemyArt / artifactArt / crystalArt / icon）。
+  -- 索引格里 enemyArt/artifactArt 在这个尺寸会糊成色块，所以两套分开。
+  local function codexArt(it, x, y, k)
+    local found = codexSeen(it.id)
+    if k < 1 then
+      T.img(x, y, 66, 66, 'circle', found and T.mix(it.color, T.th.panel, 0.82) or T.th.line)
+      T.icon(found and it.icon or 'lock', x, y, 14, found and it.color or T.th.text3)
+      return
+    end
+    if not found then
+      T.icon('lock', x, y, 34, T.th.text3)
+      T.snowflake(x, y + 56, 16, T.withA(T.th.text3, 90))
+      return
+    end
+    if it.group == 'enemy' then
+      local s = ({ slime = 1.35, fly = 1.5, guard = 1.12, boss = 0.86 })[it.icon] or 1.2
+      T.enemyArt(it.icon, x, y, s, {})
+    elseif it.group == 'gear' then
+      if it.icon == 'bow' then
+        bowArt(x, y, 1, it.color)
+      else
+        local s = ({ bloom = 1.15, plume = 1.25, hourglass = 1.3 })[it.icon] or 1.2
+        T.artifactArt(it.icon, x, y, s, it.color)
+      end
+    elseif it.group == 'mat' then
+      if it.icon == 'crystal' then
+        T.crystalArt(x, y, 0.85, it.color)
+      elseif it.icon == 'snow' then
+        T.snowflake(x, y, 52, it.color, { core = T.th.panelHi, star = true })
+      else
+        T.icon('bloom', x, y, 48, it.color)
+      end
+    else
+      local s = ({ moon = 54, tower = 46, mountain = 42 })[it.icon] or 44
+      T.icon(it.icon, x, y, s, it.color)
+    end
+  end
+
+  -- 收集「从第 b0 个控件之后新建的控件」，供整组位移使用
+  local function since(b0)
+    local out = {}
+    for k = b0 + 1, #T.controls do out[#out + 1] = T.controls[k] end
+    return out
+  end
+
+  -- 字符数：T.badge 内部按 #label（字节）算宽度，中文标签会被撑成两倍宽并溢出卡片，
+  -- 所以图鉴里的徽章自己画（宽度按字符数算）。
+  local function charLen(s)
+    local n, i = 0, 1
+    while i <= #s do
+      local b = string.byte(s, i)
+      i = i + ((b >= 240 and 4) or (b >= 224 and 3) or (b >= 192 and 2) or 1)
+      n = n + 1
+    end
+    return n
+  end
+
+  local function badgeW(label, size)
+    size = size or 11
+    return math.max(44, charLen(label) * size + 22)
+  end
+
+  local function mkBadge(x, y, label, fill, fg, size)
+    size = size or 11
+    local w = badgeW(label, size)
+    T.rrect(x, y, w, 20, 10, fill)
+    T.txt(x, y, w - 8, 17, size, label, fg, 'Middle', 'Middle')
+    return w
+  end
+
+  -- 中文排版的禁则字：不允许出现在行首
+  local NOSTART = {
+    ['。'] = true, ['，'] = true, ['、'] = true, ['！'] = true, ['？'] = true, ['：'] = true,
+    ['；'] = true, ['」'] = true, ['』'] = true, ['）'] = true, ['·'] = true, ['…'] = true,
+  }
+
+  -- 自己折行：引擎的排版宽度是「控件宽 - 4」，CJK 字宽 = 字号，每行可容
+  -- floor((width-4)/size) 字；顺手做中文禁则（标点不落行首，把上一个字一起挪下来）。
+  -- 返回「折好行的文本 + 行数」——文本框高度必须按这个行数算，否则超出的行会被
+  -- visibleLineCount 整段截掉（表现为「正文后半段消失」）。
+  local function wrapCJK(text, per)
+    per = math.max(4, per)
+    local out = {}
+    for para in string.gmatch(text .. '\n', '([^\n]*)\n') do
+      local chars, i = {}, 1
+      while i <= #para do
+        local b = string.byte(para, i)
+        local step = (b >= 240 and 4) or (b >= 224 and 3) or (b >= 192 and 2) or 1
+        chars[#chars + 1] = string.sub(para, i, i + step - 1)
+        i = i + step
+      end
+      local line, count = {}, 0
+      for k = 1, #chars do
+        local c = chars[k]
+        if count >= per then
+          if NOSTART[c] and count > 1 then
+            local moved = table.remove(line)
+            out[#out + 1] = table.concat(line)
+            line, count = { moved }, 1
+          else
+            out[#out + 1] = table.concat(line)
+            line, count = {}, 0
+          end
+        end
+        line[#line + 1] = c
+        count = count + 1
+      end
+      out[#out + 1] = table.concat(line)
+    end
+    return table.concat(out, '\n'), #out
+  end
+
+  -- 面板内按钮：T.button 的 secondary/danger 在浅色面板上底色几乎与面板同色（看不出是按钮），
+  -- 这里自绘带描边的胶囊——常态 panel2 / 淡红，聚焦时 accent / 实红。
+  local function panelBtn(x, y, w, h, label, onClick, name, danger)
+    local bdOff, bdOn, fillOff, fillOn, txtOff, txtOn
+    if danger then
+      bdOff = T.mix(T.P.danger, T.th.panel, 0.55)
+      bdOn = T.th.accent2
+      fillOff = T.mix(T.P.danger, T.th.panel, 0.86)
+      fillOn = T.P.danger
+      txtOff, txtOn = T.P.danger, T.P.white
+    else
+      bdOff, bdOn = T.th.borderSoft, T.th.accent2
+      fillOff, fillOn = T.th.panel2, T.th.accent
+      txtOff, txtOn = T.th.text2, T.th.onAccent
+    end
+    local r = 14
+    local b0 = #T.controls
+    local bd = T.rrect(x, y, w, h, r, bdOff)
+    local face = T.rrect(x, y, w - 2, h - 2, r - 1, fillOff)
+    local tc = T.txt(x, y, w - 16, h - 8, 16, label, txtOff, 'Middle', 'Middle')
+    local base = {}
+    T.captureBase(base, since(b0))
+    local function paint(on)
+      T.tint(bd, on and bdOn or bdOff)
+      T.tint(face, on and fillOn or fillOff)
+      T.setTxtColor(tc, on and txtOn or txtOff)
+      T.shiftBase(base, 0, on and 2 or 0)
+    end
+    paint(false)
+    T.item({
+      x = x, y = y, w = w, h = h, name = name, focusPad = 6,
+      onConfirm = function()
+        T.sfx(T.SFX.click)
+        onClick()
+      end,
+      onFocus = paint,
+      onDown = function() T.shiftBase(base, 0, 0) end,
+      onUp = function() T.shiftBase(base, 0, 2) end,
+    })
+  end
+
+  -- ==========================================================================
+  -- A. 图鉴
+  -- ==========================================================================
+  T.screenFns.codex = function(params)
+    params = params or {}
+    local tab = math.floor(tonumber(params.tab) or 1)
+    if tab < 1 then tab = 1 elseif tab > 4 then tab = 4 end
+    local group = GROUP_OF_TAB[tab]
+    local list = {}
+    for i = 1, #T.codex do
+      if T.codex[i].group == group then list[#list + 1] = T.codex[i] end
+    end
+    local sel = math.floor(tonumber(params.sel) or 1)
+    if sel < 1 then sel = 1 elseif sel > #list then sel = #list end
+
+    T.pageBg('day', { sunX = 380, sunY = 168 })
+    T.header('霜华图鉴', '敌人、装备、材料与世界的记录',
+      { right = '收录 ' .. codexCount() .. ' / ' .. #T.codex })
+    T.backBtn(function() T.go('menu') end)
+
+    -- ---- 页签 ----------------------------------------------------------
+    -- T.tabs 在失焦时会把 active 页签的底色刷回 panel2（组件既有行为，字色却仍是
+    -- onAccent），在浅色底上会变成「白字看不见」。这里接管每个页签的 onFocus，
+    -- 自己维护「当前页签 = accentSoft + 强调字色，聚焦 = accent + onAccent」。
+    local tabItems, tabFills, tabTxts = {}, {}, {}
+    do
+      local caps = {}
+      local origRrect, origTxt = T.rrect, T.txt
+      T.rrect = function(...)
+        local g, o = origRrect(...)
+        caps[#caps + 1] = { 'fill', g }
+        return g, o
+      end
+      T.txt = function(...)
+        local c = origTxt(...)
+        caps[#caps + 1] = { 'text', c }
+        return c
+      end
+      tabItems = T.tabs(0, 222, 520, TAB_LABELS, tab, function(i)
+        T.go('codex', { tab = i, sel = 1 })
+      end, { namePrefix = 'hit_codex_tab_' })
+      T.rrect, T.txt = origRrect, origTxt
+      for k = 1, #caps do
+        if caps[k][1] == 'fill' then
+          tabFills[#tabFills + 1] = caps[k][2]
+        else
+          tabTxts[#tabTxts + 1] = caps[k][2]
+        end
+      end
+    end
+
+    local function paintTab(i, focused)
+      if tabFills[i] then
+        T.tint(tabFills[i], focused and T.th.accent or (i == tab and T.th.accentSoft or T.th.panel2))
+      end
+      if tabTxts[i] then
+        T.setTxtColor(tabTxts[i], focused and T.th.onAccent or (i == tab and T.th.accent or T.th.text2))
+      end
+    end
+
+    for i = 1, #tabItems do
+      local idx = i
+      tabItems[i].onFocus = function(f) paintTab(idx, f) end
+    end
+    paintTab(tab, false)
+
+    -- ---- 版面：≤4 条走 2×2，5~6 条走 3×2；「网格 + 详情」整组居中 --------
+    local cols = (#list <= 4) and 2 or 3
+    local GAP = 18
+    local gridW = cols * 218 + (cols - 1) * GAP
+    local compLeft = -(gridW + 40 + 340) / 2
+    local gridX = compLeft + gridW / 2
+    local px, py = compLeft + gridW + 40 + 170, -24
+
+    -- ---- 右侧详情：先摆好本组每一条，只留选中那条可见 --------------------
+    local panel = T.card(px, py, 340, 420,
+      { radius = 18, fill = T.th.card, border = T.th.cardBorder, hi = T.withA(T.P.white, 110) })
+    local detailBases = {}
+    local descTop, descW, descSize = -52, 310, 13
+    for i, it in ipairs(list) do
+      local found = codexSeen(it.id)
+      local b0 = #T.controls
+      codexArt(it, px, 116, 1)
+      local tag = found and it.tag or '未收录'
+      mkBadge(px, -10, tag, found and T.th.accentSoft or T.th.line,
+        found and T.th.accent or T.th.text3)
+      local body
+      local nLines = 1
+      if found then
+        body = it.desc .. '\n\n' .. (FLAVOR[it.id] or '')
+      else
+        body = '尚未在霜华纪中留下记录。\n\n雪落在这页纸上，还没有化开。'
+      end
+      local perLine = math.floor((descW - 4) / descSize)
+      body, nLines = wrapCJK(body, perLine)
+      local th = T.textH(descSize, nLines)
+      T.txt(px, descTop - th / 2, descW, th, descSize, body, T.th.text2, 'Middle', 'Middle')
+      local base = {}
+      T.captureBase(base, since(b0))
+      if i ~= sel then T.shiftBase(base, 0, -2400) end
+      detailBases[i] = base
+    end
+    T.divider(px, -34, 280, { color = T.th.line })
+    local selIt = list[sel]
+    local nameTxt = T.txt(px, 26, 300, 44, 24, codexSeen(selIt.id) and selIt.name or '？？？',
+      T.th.text, 'Middle', 'Middle')
+    local capTxt = T.txt(px, -196, 300, 24, 12,
+      codexSeen(selIt.id) and '收录于 霜华纪 · 第 1 章' or '尚未收录 · 未知的风景',
+      T.th.text3, 'Middle', 'Middle')
+
+    -- ---- 左侧网格：2 列（≤4 条）或 3 列（5~6 条）------------------------
+    local COLX, ROWY = {}, {}
+    for c = 1, cols do
+      COLX[c] = gridX - (cols - 1) * (218 + GAP) / 2 + (c - 1) * (218 + GAP)
+    end
+    local rows = math.ceil(#list / cols)
+    if rows <= 1 then
+      ROWY = { 12 }
+    else
+      ROWY = { 96, -72 }
+    end
+    local function setDetail(i)
+      for j = 1, #detailBases do
+        T.shiftBase(detailBases[j], 0, j == i and 0 or -2400)
+      end
+      local it = list[i]
+      local found = codexSeen(it.id)
+      T.setTxt(nameTxt, found and it.name or '？？？')
+      T.setTxt(capTxt, found and '收录于 霜华纪 · 第 1 章' or '尚未收录 · 未知的风景')
+    end
+
+    for i, it in ipairs(list) do
+      local cx = COLX[(i - 1) % cols + 1]
+      local cy = ROWY[math.floor((i - 1) / cols) + 1]
+      local found = codexSeen(it.id)
+      local b0 = #T.controls
+      T.rrect(cx + 4, cy - 7, 218, 150, 16, T.withA(T.th.text, 14))
+      local bd = T.rrect(cx, cy, 218, 150, 16, found and T.th.borderSoft or T.th.line)
+      local face = T.rrect(cx, cy, 214, 146, 15, found and T.th.card or T.th.panel2)
+      codexArt(it, cx, cy + 22, 0.5)
+      T.txt(cx, cy - 44, 190, 26, 16, found and it.name or '未收录 · ？？？',
+        found and T.th.text or T.th.text3, 'Middle', 'Middle')
+      local tag = found and it.tag or '未收录'
+      local bw = badgeW(tag)
+      mkBadge(cx + 99 - bw / 2, cy + 56, tag, found and T.th.accentSoft or T.th.line,
+        found and T.th.accent or T.th.text3)
+      local base = {}
+      T.captureBase(base, since(b0))
+      local function paint(on)
+        T.tint(bd, on and T.th.accent or (found and T.th.borderSoft or T.th.line))
+        T.tint(face, on and T.th.panelHi or (found and T.th.card or T.th.panel2))
+        T.shiftBase(base, 0, on and 2 or 0)
+      end
+      if i == sel then paint(true) end
+      T.item({
+        x = cx, y = cy, w = 218, h = 150, name = 'hit_codex_item_' .. i, focusPad = 6,
+        onConfirm = function() T.go('codex', { tab = tab, sel = i, focus = 5 + i }) end,
+        onFocus = function(on)
+          paint(on)
+          if on then setDetail(i) end
+        end,
+      })
+    end
+
+    -- ---- 网格下方的册页题记：把 2 行网格以下的空当收住 ------------------
+    T.divider(gridX, -176, gridW, { color = T.withA(T.th.accent, 80) })
+    T.txt(gridX - gridW / 2, -202, 380, 24, 12, '霜华纪 · 第一章「雪线」', T.th.text3, 'Left', 'Middle')
+    T.txt(gridX + gridW / 2, -202, 260, 24, 12, '雪落时记下的旧事', T.th.text3, 'Right', 'Middle')
+
+    T.footer({
+      { key = '←→', label = '切换页签' },
+      { key = '↑↓', label = '选择' },
+      { key = 'Q', label = '返回' },
+    })
+
+    T.screen.defaultFocus = params.focus or (1 + tab)
+    T.screen.key = function(a)
+      local f = T.focus or 0
+      if (a == 'left' or a == 'right') and f >= 2 and f <= 5 then
+        local nt = tab + ((a == 'right') and 1 or -1)
+        if nt < 1 then nt = 4 elseif nt > 4 then nt = 1 end
+        T.go('codex', { tab = nt, sel = 1 })
+        return
+      end
+      if a == 'up' then T.moveFocus(0, 1)
+      elseif a == 'down' then T.moveFocus(0, -1)
+      elseif a == 'left' then T.moveFocus(-1, 0)
+      elseif a == 'right' then T.moveFocus(1, 0)
+      elseif a == 'confirm' then T.confirmFocus()
+      elseif a == 'back' then T.go('menu') end
+    end
+  end
+
+  -- ==========================================================================
+  -- B. 设置
+  -- ==========================================================================
+  T.screenFns.settings = function(params)
+    params = params or {}
+    T.pageBg('day')
+    T.header('设置', '声音、动效与画面', { right = '设置会立即生效' })
+    T.backBtn(function() T.go('menu') end)
+
+    T.card(0, -24, 880, 500, { radius = 20, fill = T.th.card, border = T.th.cardBorder })
+
+    local ROWY = { 160, 96, 32, -32, -96 }
+    local rows = {
+      { label = '音效', hint = '按钮、命中的反馈音', icon = 'spark' },
+      { label = '环境音', hint = '雪原的风，会一直陪着你', icon = 'wind' },
+      { label = '动效强度', hint = '转场、悬停与飘雪的幅度', icon = 'snow' },
+      { label = '文字描边', hint = '浅色画面上的字会更清楚', icon = 'book' },
+      { label = '画质', hint = '粒子与光晕的密度', icon = 'eye' },
+    }
+    for i, r in ipairs(rows) do
+      local y = ROWY[i]
+      T.icon(r.icon, -378, y + 7, 11, T.th.accent)
+      T.txt(-352, y + 7, 250, 30, 17, r.label, T.th.text, 'Left', 'Middle')
+      T.txt(-352, y - 17, 300, 22, 12, r.hint, T.th.text3, 'Left', 'Middle')
+    end
+
+    -- ---- 自绘开关（轨道 + 圆 knob）-------------------------------------
+    local function mkSwitch(y, name, on, apply)
+      local cx = 320
+      local track = T.rrect(cx, y, 92, 36, 18, on and T.th.accent or T.th.line)
+      local knob = T.img(cx - 28, y, 28, 28, 'circle', T.P.white)
+      local kb = {}
+      T.captureBase(kb, knob)
+      local stateTxt = T.txt(248, y, 44, 24, 12, on and '开' or '关',
+        on and T.th.accent or T.th.text3, 'Right', 'Middle')
+      local function paint(v)
+        T.tint(track, v and T.th.accent or T.th.line)
+        T.shiftBase(kb, v and 56 or 0, 0)
+        T.setTxt(stateTxt, v and '开' or '关')
+        T.setTxtColor(stateTxt, v and T.th.accent or T.th.text3)
+      end
+      paint(on)
+      T.item({
+        x = cx, y = y, w = 116, h = 48, name = name, focusPad = 6,
+        onConfirm = function()
+          local v = not on
+          on = v
+          paint(v)
+          apply(v)
+        end,
+        onFocus = function(f)
+          T.setTxtColor(stateTxt, f and T.th.accent2 or (on and T.th.accent or T.th.text3))
+        end,
+      })
+    end
+
+    -- ---- 三选胶囊 ------------------------------------------------------
+    local function mkPills(y, cur, labels, names, onPick)
+      for i = 1, 3 do
+        local x = 116 + (i - 1) * 106
+        local on = (i == cur)
+        local g = T.rrect(x, y, 96, 34, 17, on and T.th.accent or T.th.panel2)
+        local t = T.txt(x, y, 88, 28, 12, labels[i],
+          on and T.th.onAccent or T.th.text2, 'Middle', 'Middle')
+        T.item({
+          x = x, y = y, w = 100, h = 40, name = names[i], focusPad = 5,
+          onConfirm = function() onPick(i) end,
+          onFocus = function(f)
+            if on then return end
+            T.tint(g, f and T.th.accentSoft or T.th.panel2)
+            T.setTxtColor(t, f and T.th.accent or T.th.text2)
+          end,
+        })
+      end
+    end
+
+    mkSwitch(ROWY[1], 'hit_settings_sfx', T.opt.sfx, function(v)
+      T.opt.sfx = v
+      T.log('opt sfx=' .. tostring(v))
+      if v then T.sfx(T.SFX.click) end
+    end)
+
+    mkSwitch(ROWY[2], 'hit_settings_ambient', T.opt.ambient, function(v)
+      T.opt.ambient = v
+      T.setAmbient(v)
+      T.log('opt ambient=' .. tostring(v))
+    end)
+
+    mkPills(ROWY[3], T.opt.motion, { '柔和', '标准', '丰富' },
+      { 'hit_settings_motion_1', 'hit_settings_motion_2', 'hit_settings_motion_3' },
+      function(i)
+        T.opt.motion = i
+        T.log('opt motion=' .. i)
+        T.go('settings', { focus = 3 + i })
+      end)
+
+    mkSwitch(ROWY[4], 'hit_settings_outline', T.opt.outline, function(v)
+      T.opt.outline = v
+      for i = 1, #T.texts do T.trySet(T.texts[i], 'enableOutline', v) end
+      T.log('opt outline=' .. tostring(v))
+    end)
+
+    mkPills(ROWY[5], T.opt.quality, { '省电', '均衡', '极致' },
+      { 'hit_settings_quality_1', 'hit_settings_quality_2', 'hit_settings_quality_3' },
+      function(i)
+        T.opt.quality = i
+        T.log('opt quality=' .. i)
+        T.go('settings', { focus = 7 + i })
+      end)
+
+    T.divider(0, -140, 780, { color = T.th.line })
+
+    panelBtn(-130, -200, 220, 48, '操作说明', function()
+      T.openHelp('settings')
+    end, 'hit_settings_help', false)
+
+    panelBtn(130, -200, 220, 48, '重置进度', function()
+      T.openConfirm('重置霜华纪记录？', '关卡星级、图鉴与养成进度都会清空。', function()
+        local rec = T.records
+        rec.stars = { 0, 0, 0, 0, 0, 0 }
+        rec.best = { 0, 0, 0, 0, 0, 0 }
+        rec.unlocked = { true, true, false, false, false, false }
+        rec.visited = { false, false, false, false, false, false }
+        rec.consts = { true, true, true, false, false, false }
+        rec.clears = 0
+        rec.maxCombo = 0
+        rec.totalShots = 0
+        rec.achv = {}
+        rec.exp = 0
+        rec.mats = { crystal = 0, qingxin = 0, snow = 0, mora = 0, page = 0 }
+        T.codexSeen = {}
+        T.log('records reset')
+        T.toast('记录已重置')
+      end)
+    end, 'hit_settings_reset', true)
+
+    T.footer('↑↓ 选择 · 空格切换 · Q 返回')
+
+    T.screen.defaultFocus = params.focus or 2
+    T.screen.key = function(a)
+      if a == 'up' then T.moveFocus(0, 1)
+      elseif a == 'down' then T.moveFocus(0, -1)
+      elseif a == 'left' then T.moveFocus(-1, 0)
+      elseif a == 'right' then T.moveFocus(1, 0)
+      elseif a == 'confirm' then T.confirmFocus()
+      elseif a == 'back' then T.go('menu') end
+    end
+  end
+
+  -- ==========================================================================
+  -- C. 制作名单
+  -- ==========================================================================
+  T.screenFns.credits = function(params)
+    T.pageBg('night', { moonX = 0, moonY = 120, moonR = 100, stars = 40, aurora = false })
+    T.snowfall(22, {})
+    T.screenFrame()
+
+    local px, py, pw, ph = 0, -14, 860, 520
+    T.card(px, py, pw, ph, {
+      radius = 20,
+      fill = T.th.panel,
+      border = T.withA(T.th.accent2, 150),
+      hi = T.withA(T.th.accent2, 46),
+    })
+
+    -- 标题：字距拉开的三字牌
+    local chars = { '霜', '华', '纪' }
+    for i = 1, #chars do
+      T.txt((i - (#chars + 1) / 2) * 62, 196, 60, 60, 40, chars[i], T.th.accent2, 'Middle', 'Middle')
+    end
+    T.titleFlourish(0, 158, 300, T.withA(T.th.accent2, 170))
+    T.txt(0, 134, 420, 24, 11, 'F R O S T B L O O M', T.th.accent, 'Middle', 'Middle')
+    T.txt(0, 108, 460, 26, 13, '一个关于雪、契约与归途的故事', T.th.text2, 'Middle', 'Middle')
+
+    T.divider(0, 82, 700, { color = T.th.line })
+
+    -- 两列名单
+    local leftCol, rightCol = -370, 60
+    local function columnHead(x, title)
+      T.txt(x, 58, 260, 24, 12, title, T.th.accent2, 'Left', 'Middle')
+      T.img(x + 165, 42, 330, 1.2, 'rect', T.withA(T.th.accent2, 90))
+    end
+    local function credit(x, y, role, name)
+      T.txt(x, y, 170, 24, 12, role, T.th.text3, 'Left', 'Middle')
+      T.img(x + 176, y, 1.2, 13, 'rect', T.withA(T.th.accent2, 110))
+      T.txt(x + 186, y, 200, 24, 14, name, T.th.text, 'Left', 'Middle')
+    end
+
+    columnHead(leftCol, '企划 · 设计')
+    credit(leftCol, 16, '企划 · 世界观', '霜华纪制作组')
+    credit(leftCol, -16, '角色设计', '甘雨 · 麒麟')
+    credit(leftCol, -48, '界面设计', '雪原事务所')
+
+    columnHead(rightCol, '实现 · 打磨')
+    credit(rightCol, 16, '程序', '千星 Lua 客户端')
+    credit(rightCol, -16, '美术实现', '纯图元手绘')
+    credit(rightCol, -48, '音效', '霜风与铃')
+    credit(rightCol, -80, '测试', '看到这里的你')
+
+    T.divider(0, -110, 560, { color = T.th.line })
+    T.txt(0, -136, 560, 26, 14, '特别感谢：愿意在落雪时停下来的你', T.th.accent2, 'Middle', 'Middle')
+
+    -- 底部小饰：细线 + 六角冰晶
+    T.img(-150, -170, 260, 1.2, 'rect', T.withA(T.th.accent, 70))
+    T.img(150, -170, 260, 1.2, 'rect', T.withA(T.th.accent, 70))
+    T.snowflake(0, -170, 11, T.withA(T.th.accent, 200), { core = T.th.accent2 })
+
+    T.txt(0, -194, 420, 24, 11, 'v' .. tostring(T.VERSION) .. ' · Build ' .. tostring(T.BUILD_ID),
+      T.th.text3, 'Middle', 'Middle')
+
+    T.button(0, -238, 240, 44, '返回主菜单', function()
+      T.go('menu')
+    end, { kind = 'primary', name = 'hit_credits_back', radius = 22 })
+
+    T.footer('Q / 空格 返回主菜单')
+
+    T.screen.defaultFocus = 1
+    T.screen.key = function(a)
+      if a == 'back' or a == 'confirm' then
+        T.go('menu')
+      elseif a == 'up' then T.moveFocus(0, 1)
+      elseif a == 'down' then T.moveFocus(0, -1)
+      elseif a == 'left' then T.moveFocus(-1, 0)
+      elseif a == 'right' then T.moveFocus(1, 0) end
+    end
+  end
+end
+
+
+-- ===== 45_overlays.lua =====
+-- ============================================================================
+-- 弹层：暂停 / 指南 / 确认
+-- ============================================================================
+T = T or {}
+
+T.openPause = function()
+  if T.overlay then return end
+  local ctx = T.mode
+  T.openOverlay('pause', function()
+    local p = T.overlayPanel(520, 430, '暂停', '霜雪暂歇，风还在等你')
+    local panel, w, h = p.panel, p.w, p.h
+    local y0 = 46
+    T.button(0, y0, 320, 54, '继续挑战', function() T.closeOverlay() end,
+      { kind = 'primary', name = 'hit_pause_resume' })
+    T.button(0, y0 - 70, 320, 50, '重新开始', function()
+      T.closeOverlay()
+      T.go('battle', { stage = T.battle and T.battle.stageId or 1 })
+    end, { kind = 'secondary', name = 'hit_pause_retry' })
+    T.button(0, y0 - 130, 320, 50, '设置', function()
+      T.closeAllOverlays()
+      T.go('settings')
+    end, { kind = 'secondary', name = 'hit_pause_settings' })
+    T.button(0, y0 - 190, 320, 50, '返回地图', function()
+      T.closeAllOverlays()
+      T.go('map', { chapter = 1, sel = 1 })
+    end, { kind = 'ghost', name = 'hit_pause_quit' })
+    T.txt(0, -h / 2 + 34, 380, 22, 11, '当前进度：' .. (ctx == 'battle' and '战斗进行中' or ctx), T.th.text3, 'Middle', 'Middle')
+    T.closeButton(w / 2 - 40, h / 2 - 40, function() T.closeOverlay() end, 'hit_pause_close')
+  end, {
+    pausesGame = true, defaultFocus = 1,
+    key = function(a)
+      if a == 'up' then T.moveFocus(0, 1)
+      elseif a == 'down' then T.moveFocus(0, -1)
+      elseif a == 'confirm' then T.confirmFocus()
+      elseif a == 'back' then T.closeOverlay() end
+    end,
+  })
+end
+
+T.openHelp = function(context)
+  if T.overlay then return end
+  T.openOverlay('help', function()
+    local p = T.overlayPanel(920, 560, '霜华指南', '操作、战斗与养成')
+    local panel, w, h = p.panel, p.w, p.h
+    local cols = {
+      { x = -300, title = '操作', icon = 'user', items = {
+        { '鼠标悬停', '瞄准敌人，出现霜华准星' },
+        { '鼠标点击', '射出霜华矢' },
+        { '↑ ↓ ← →', '选择 / 移动焦点' },
+        { '空格 / J', '确认' },
+        { 'E', '释放元素战技 / 爆发' },
+        { 'Q', '返回上一层' },
+        { 'H', '打开本指南' },
+      } },
+      { x = 0, title = '战斗', icon = 'snow', items = {
+        { '瞄准', '把光标停在敌人身上' },
+        { '射击', '点击命中，积攒元素能量' },
+        { '连击', '短时间内连续命中会累计 COMBO' },
+        { '冰莲', '能量满后按 E 释放降众天华' },
+        { '波次', '清空三波敌人即可完成挑战' },
+        { '计时', '在限定时间内完成，星级更高' },
+      } },
+      { x = 300, title = '养成', icon = 'const', items = {
+        { '等级', '通过冒险阅历提升，上限受突破限制' },
+        { '突破', '消耗霜华之蕊与冰晶核，提升上限' },
+        { '天赋', '提升霜华矢与降众天华的威力' },
+        { '命之座', '点亮相应的命星，解锁额外效果' },
+        { '图鉴', '记录遇到过的敌人与拾得的材料' },
+      } },
+    }
+    for _, col in ipairs(cols) do
+      T.img(col.x - 148, -26, 1.2, 272, 'rect', T.th.line)
+      T.icon(col.icon, col.x - 124, 128, 10, T.th.accent2)
+      T.txt(col.x - 104, 128, 200, 28, 17, col.title, T.th.text, 'Left', 'Middle')
+      for i, it in ipairs(col.items) do
+        local yy = 86 - (i - 1) * 42
+        T.txt(col.x - 128, yy + 8, 260, 24, 13, it[1], T.th.accent, 'Left', 'Middle')
+        T.txt(col.x - 128, yy - 11, 268, 22, 11, it[2], T.th.text2, 'Left', 'Middle')
+      end
+    end
+    T.button(0, -h / 2 + 40, 220, 44, '知道了', function() T.closeOverlay() end,
+      { kind = 'primary', name = 'hit_help_close' })
+    T.closeButton(w / 2 - 36, h / 2 - 36, function() T.closeOverlay() end, 'hit_help_x')
+  end, {
+    pausesGame = true, defaultFocus = 1,
+    key = function(a)
+      if a == 'back' or a == 'confirm' or a == 'help' then T.closeOverlay() end
+    end,
+  })
+end
+
+T.openConfirm = function(title, desc, onYes, opts)
+  opts = opts or {}
+  if T.overlay then return end
+  T.openOverlay('confirm', function()
+    local p = T.overlayPanel(560, 280, title, desc)
+    local w, h = p.w, p.h
+    T.button(-96, -h / 2 + 58, 160, 48, opts.cancelLabel or '取消', function() T.closeOverlay() end,
+      { kind = 'secondary', name = 'hit_confirm_cancel' })
+    T.button(96, -h / 2 + 58, 160, 48, opts.okLabel or '确定', function()
+      T.closeOverlay()
+      if onYes then onYes() end
+    end, { kind = 'danger', name = 'hit_confirm_ok' })
+  end, {
+    pausesGame = true, defaultFocus = 2,
+    key = function(a)
+      if a == 'left' then T.moveFocus(-1, 0)
+      elseif a == 'right' then T.moveFocus(1, 0)
+      elseif a == 'up' then T.moveFocus(0, 1)
+      elseif a == 'down' then T.moveFocus(0, -1)
+      elseif a == 'confirm' then T.confirmFocus()
+      elseif a == 'back' then T.closeOverlay() end
+    end,
+  })
+end
 
 
 -- ===== 50_main.lua =====
