@@ -99,6 +99,9 @@ local NUM = {
   LD_RESETS  = 15,     -- 锁定延迟重置上限（移动/旋转成功各计一次，超限强制锁定）
   DAS_DELAY  = 0.25,   -- DAS：按住 ←/→ 多少秒后开始自动连移
   ARR_RATE   = 0.05,   -- ARR：DAS 触发后自动连移的间隔秒数
+  TK_PLAY_S  = 3,      -- v3.1 一-2：casual 无操作多少秒出接管提示（用户定版 5→3）
+  TK_HINT_S  = 3,      -- v3.1 一-2：提示期多少秒后 AI 接管（用户定版 2→3）
+  NADA_GREEN = nil,    -- 占位注释：纳西妲草绿主色 #7FCF6A 在 main.lua THEME 侧定义（C() 在那里）
   DAS_HOLD   = 0.35,   -- v2.8：DAS 持续上限秒数（ARR 激活后超过即强制停）——单击语义硬化：
                         -- 真机日志定谳（2026-10-28 09:12 场）：v2.7 起 Up 正常到达、单击=恰 1 格、零 ARR 残留；
                         -- 旧构建（10-27 20:18 场）Up 丢失致 12 格连走 182 次 das cap。0.6→0.35 收紧安全网：
@@ -527,6 +530,141 @@ MODE_BG_POOL = 18
 -- 池在 OnStart 一次性建好（必须早于棋盘 ⇒ 压在棋盘之下），换模式只换肤不新建实例。
 MODE_BG_POOL = 18
 M.MODE_BG, M.MODE_BG_POOL = MODE_BG, MODE_BG_POOL
+
+-- ===== v3.2 原神世界观文案表（40 条；玩家身份 = 周游提瓦特的旅行者）====================
+-- 设计文档 = docs/genshin-copy-design.md（联网查证 + 40 条全表 + 分批计划 + 出处 URL）。
+-- 本表**只放数据**，触发点/时机由 main.lua 决定。字段：
+--   id 编号 · text 文案 · color 主色（ARGB）· kind 类型（旁白/场景/提示/成就/彩蛋）
+--   anim 动画 · cond 触发条件（人读）· live 是否已接线
+--   （true=本轮已接；false=留表待接，接线 = 改 live + 在 main.lua 挂对应槽位）
+-- 占位符：{n}=等级/连击数 · {分}=本次得分 · {lines}=本局消行数（main 用 string.gsub 填）。
+-- 为什么数字必须留在文案里：玩家在局内看的是数值反馈，风味只做前缀/后缀，不替换数值。
+-- 配色口径（v3.0 定稿 D）：gold/goldDeep=描金 · textSub/textDim=墨色次字 ·
+--   四模式角色色 D_LEAF 纳西妲草绿 #7FCF6A / D_BOLT 刻晴雷紫 #B39BEA /
+--   D_PETAL 少女樱粉 #FFA8C8 / D_ICE 甘雨冰蓝 #8FD8F0
+local DEEP_BOLT = C(255, 124, 99, 201)      -- 雷紫深档（同 ai-battle 模式 frame 色，用于 3 行）
+local COPY = {
+  -- ① 标题屏「旅行者手记」轮播（实例文字；位置=左栏两张模式卡之间的下方空带）
+  title = {
+    { id = 'T01', text = '旅行者，提瓦特的风一直在等你。', color = THEME.gold, kind = '旁白',
+      anim = '淡入0.5s→停5s→淡出0.6s+上浮2px', cond = '标题屏常驻轮播（每 6.1s 一条）', live = true },
+    { id = 'T02', text = '向着星辰与深渊——冒险家协会全天为你营业。', color = THEME.textSub,
+      kind = '旁白', anim = '同 T01', cond = '标题屏轮播第 2 条', live = true },
+    { id = 'T03', text = '世界树记得每一次尝试；消掉的行不会白消。', color = D_LEAF,
+      kind = '旁白', anim = '同 T01', cond = '标题屏轮播第 3 条（须弥/草绿）', live = true },
+    { id = 'T04', text = '雷光落下之前，先看清那四行在哪里。', color = D_BOLT,
+      kind = '旁白', anim = '同 T01', cond = '标题屏轮播第 4 条（稻妻/雷紫）', live = true },
+    { id = 'T05', text = '雪山的夜很静，适合慢慢往上堆。', color = D_ICE,
+      kind = '旁白', anim = '同 T01', cond = '标题屏轮播第 5 条（龙脊雪山/冰蓝）', live = true },
+    { id = 'T06', text = '先随便按一个键，派蒙给你带路！', color = D_PETAL,
+      kind = '提示', anim = '同 T01', cond = '标题屏轮播第 6 条（派蒙·新手引导）', live = true },
+  },
+  -- ② 开局：进局第一句话（底部横幅 2.8s，到点自动落回常驻键位提示）
+  start = {
+    casual = { id = 'S01', text = '踏入须弥的雨林 · 时间属于你', color = D_LEAF,
+      kind = '场景', anim = '静态 2.8s→落回常驻键位提示',
+      cond = 'casual 进局（startIfWaiting 尾部）· 待接：会占 botBanner，用例 29 在 t=1.4s 断言常驻键位提示',
+      live = false },
+    ['ai-battle'] = { id = 'S02', text = '雷光的对峙 · 三、二、一', color = D_BOLT,
+      kind = '场景', anim = '静态（写进准备态 topBanner）', cond = 'ai-battle 准备段', live = false },
+    pvp = { id = 'S03', text = '花见坂的樱瓣 · 各落一边', color = D_PETAL,
+      kind = '场景', anim = '静态', cond = 'pvp 准备段', live = false },
+    coop = { id = 'S04', text = '雪原上的两双手 · 共守一塔', color = D_ICE,
+      kind = '场景', anim = '静态', cond = 'coop 准备段', live = false },
+  },
+  -- ③ 消行 1–4 行（底部横幅；下标 = 消行数）：0.8s（四消 1.2s）
+  clear = {
+    [1] = { id = 'C1', text = '一行消散 · 地脉轻响　+{分}', color = THEME.hint, kind = '场景',
+      anim = '静态 0.8s 后自动清', cond = 'cleared==1 且无升级/连击', live = true },
+    [2] = { id = 'C2', text = '两行相叠 · 剑光掠过　+{分}', color = D_BOLT, kind = '场景',
+      anim = '同 C1', cond = 'cleared==2 且无升级/连击', live = true },
+    [3] = { id = 'C3', text = '三行俱碎 · 雷罚落下　+{分}', color = DEEP_BOLT, kind = '场景',
+      anim = '同 C1', cond = 'cleared==3 且无升级/连击', live = true },
+    [4] = { id = 'C4', text = '四行归元 · 元素爆发！　+{分}', color = THEME.goldDeep,
+      kind = '场景', anim = '静态 1.2s（优先于连击）', cond = 'cleared==4', live = true },
+  },
+  -- ④ 连击（下标 = 档位：1 → combo==2 / 2 → 3–4 / 3 → ≥5），0.8s
+  combo = {
+    [1] = { id = 'K2', text = '连击 ×{n} · 元素反应开始', color = THEME.hint, kind = '场景',
+      anim = '静态短横幅', cond = 'combo==2', live = true },
+    [2] = { id = 'K3', text = '连击 ×{n} · 元素共鸣', color = D_LEAF, kind = '场景',
+      anim = '同 K2', cond = 'combo 3–4', live = true },
+    [3] = { id = 'K5', text = '连击 ×{n} · 神之眼回应愿望', color = THEME.goldDeep, kind = '成就',
+      anim = '同 K2', cond = 'combo>=5（「愿望强烈→神之眼」原句意象）', live = true },
+  },
+  -- ⑤ 升级（下标 1 = 升级中 / 2 = 满级），1.2s，优先于消行与连击
+  level = {
+    [1] = { id = 'L1', text = '冒险等阶 {n} · 风带你更快', color = THEME.goldDeep, kind = '提示',
+      anim = '静态 1.2s', cond = 'g.level 上升且 <LEVEL_CAP', live = true },
+    [2] = { id = 'LC', text = '等阶 12 · 已抵满速', color = THEME.goldDeep, kind = '提示',
+      anim = '同 L1', cond = 'g.level>=LEVEL_CAP（12）', live = true },
+  },
+  -- ⑥ 结算明细行（轮播 3 条，带本局数据；颜色由 settleSetColors 按 g.settleNoteRGB 上色）
+  settle = {
+    [1] = { id = 'E1', text = '旅行暂歇——提瓦特还有七国等你。', color = THEME.textSub,
+      kind = '旁白', anim = '随结算四段动画淡入（0→0.9s）', cond = '每局结算轮播第 1 条', live = true },
+    [2] = { id = 'E2', text = '凯瑟琳记下了这一程：消行 {lines} 行。', color = THEME.textSub,
+      kind = '旁白', anim = '同 E1', cond = '结算轮播第 2 条', live = true },
+    [3] = { id = 'E3', text = '派蒙：再来一局吧，这次一定行！', color = D_PETAL, kind = '提示',
+      anim = '同 E1', cond = '结算轮播第 3 条', live = true },
+  },
+  -- ⑦ 接管（casual 无操作链）：hint/ai 两条 v3.1 已落地（此处只登记），back 为本轮新接
+  takeover = {
+    hint = { id = 'H1', text = '小草神纳西妲正看着你的盘面…再不动手她就要来帮忙啦',
+      color = D_LEAF, kind = '提示', anim = '静态，草绿主色（v3.1 已接）',
+      cond = 'casual 停手 TK_PLAY_S=3s', live = true },
+    ai = { id = 'H2', text = '纳西妲：交给我吧，旅行者！· 按任意键接手', color = D_LEAF,
+      kind = '提示', anim = '静态常驻至交还（v3.1 已接）', cond = '提示期 TK_HINT_S=3s 后', live = true },
+    back = { id = 'H3', text = '旅行者归位！', color = D_LEAF, kind = '提示',
+      anim = '静态 0.8s→落回常驻键位提示', cond = '接管中按任一游戏键（takeover back）', live = true },
+  },
+  -- ⑧ 留表待接（live=false）：接线只需改 live + 在 main.lua 挂对应槽位，文案不用重写
+  pending = {
+    { id = 'S02', text = '雷光的对峙 · 三、二、一', color = D_BOLT, kind = '场景',
+      anim = '静态', cond = 'ai-battle 准备段 topBanner', live = false },
+    { id = 'S03', text = '花见坂的樱瓣 · 各落一边', color = D_PETAL, kind = '场景',
+      anim = '静态', cond = 'pvp 准备段 topBanner', live = false },
+    { id = 'S04', text = '雪原上的两双手 · 共守一塔', color = D_ICE, kind = '场景',
+      anim = '静态', cond = 'coop 准备段 topBanner', live = false },
+    { id = 'E4', text = '你赢了！蒙德的风把消息吹遍了七国。', color = THEME.goldDeep,
+      kind = '场景', anim = '静态（替换结算标题）', cond = '双屏模式胜局 overTitle', live = false },
+    { id = 'E5', text = '你倒下了——但提瓦特的星空里永远有你的位置。', color = THEME.textSub,
+      kind = '旁白', anim = '淡入', cond = '玩家盘顶满（引用命之座原句）', live = false },
+    { id = 'E6', text = '逐项明细 · 星辰与深渊都记着。', color = THEME.hint, kind = '旁白',
+      anim = '静态', cond = '结算页按 Q', live = false },
+    { id = 'G1', text = '四行俱灭 = 元素爆发 · +800', color = THEME.textSub, kind = '提示',
+      anim = '静态 4s', cond = '首次消行（!g.taughtClear）', live = false },
+    { id = 'G2', text = '把一行填满，地脉就会回应你', color = THEME.textSub, kind = '提示',
+      anim = '静态 2.5s', cond = '首次锁定（!g.taughtLock）', live = false },
+    { id = 'G3', text = 'T-SPIN · 三角落定，重击！', color = D_BOLT, kind = '场景',
+      anim = '静态 0.8s', cond = 'T-spin 判定成立', live = false },
+    { id = 'G4', text = '连续元素爆发 · ×1.5', color = THEME.goldDeep, kind = '成就',
+      anim = '静态 0.8s', cond = '连续两次四消（b2bApplied）', live = false },
+    { id = 'G5', text = '等阶 12 · 天顶之上', color = THEME.goldDeep, kind = '成就',
+      anim = '静态 1.2s', cond = '首次到达 LEVEL_CAP', live = false },
+    { id = 'G6', text = '新纪录 · 七天神像为你亮起', color = THEME.gold, kind = '成就',
+      anim = '静态 1.5s', cond = 'score 首次超过 bestScore', live = false },
+    { id = 'G7', text = '新的旅程，从风起地开始', color = D_LEAF, kind = '场景',
+      anim = '静态 1.2s', cond = 'R 重开', live = false },
+    { id = 'G8', text = '回到提瓦特的路口', color = THEME.textSub, kind = '场景',
+      anim = '静态', cond = 'V 回主页（标题屏手记行）', live = false },
+    { id = 'G9', text = '时间静止——只有风还在吹', color = THEME.hint, kind = '旁白',
+      anim = '静态常驻至继续', cond = 'H 说明页（局内=暂停）', live = false },
+    { id = 'G10', text = '旅行者手册 · 提瓦特生存指南', color = THEME.hint, kind = '旁白',
+      anim = '静态', cond = '说明页页眉', live = false },
+    { id = 'G11', text = '元素与方块，都有相生相克', color = THEME.textDim, kind = '旁白',
+      anim = '静态', cond = '说明页左栏导语', live = false },
+    { id = 'G12', text = '契约与计分，都写在纸上', color = THEME.textDim, kind = '旁白',
+      anim = '静态', cond = '说明页中栏导语', live = false },
+    { id = 'G13', text = '七国各有规矩，选一种上路', color = THEME.textDim, kind = '旁白',
+      anim = '静态', cond = '说明页右栏导语', live = false },
+    { id = 'G14', text = '派蒙：喂，旅行者？', color = D_PETAL, kind = '彩蛋',
+      anim = '静态 2s', cond = '局内 20s 无输入（每局一次）', live = false },
+    { id = 'G15', text = '第一步 · 旅行者', color = D_LEAF, kind = '彩蛋',
+      anim = '静态 1.2s', cond = '本局首块落下', live = false },
+  },
+}
+M.COPY = COPY
 
 -- ===== 导出（main.lua 按名取用；新增字段记得同步导出）=====
 M.COLS, M.ROWS, M.CELL, M.GAP, M.PITCH, M.STEP = COLS, ROWS, CELL, GAP, PITCH, STEP

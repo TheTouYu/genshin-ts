@@ -1241,14 +1241,9 @@ local function startIfWaiting()
   renderHud()
   setText(hint, '堆满一行即消除')
   if MODE == 'casual' then showPersistTip() end   -- v2.6 ① casual 常驻提示
-  -- v3.2 原神文案：进局第一句话（旅行者入境）。2.8s 后 bannerTimer 到点，OnUpdate 自动落回
-  -- casual 的常驻键位提示（PERSIST_TIP）——所以这里只负责「开场一句」，不占常驻位。
-  local openRec = CFG.COPY.start.casual
-  if MODE == 'casual' and openRec and openRec.live then
-    setText(botBanner, openRec.text)
-    trySet(botBanner, 'fontColor', openRec.color)
-    bannerTimer = 2.8
-  end
+  -- v3.2 原神文案：开局句（S01）**本轮不接线**——casual 进局后 botBanner 是常驻键位提示的位子，
+  -- 用例 29 在 t=1.4s 断言它等于 PERSIST_TIP；开场句要占用这条横幅就得把断言时机往后挪。
+  -- 留表待接（config.lua COPY.start.casual），接线方式见 docs/genshin-copy-design.md §3 批 2。
   print('mode=' .. MODE)                -- T6：进局模式（菜单选择或默认休闲）
   print('guide stage=1')
 end
