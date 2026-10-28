@@ -181,10 +181,14 @@ end
 G[1] = newInst()
 g = G[1]
 
+local aiRand                           -- 前向声明（实现见 AI 段；refillBag 在更早处用 G[2] 独立洗牌）
 local function refillBag()
+  -- v2.8 ③：双屏第二盘（G[2]）独立出块——用 aiRand 独立洗袋（不动全局 LCG ⇒ G[1] 序列与
+  -- 全部既有断言不变）；公平性靠 7-bag 保底本身 + hard 档 AI，不再镜像等待（用户裁决）。
+  local isP2 = (g ~= G[1] and G[2] ~= nil)
   local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
   for i = #t, 2, -1 do                 -- Fisher-Yates：6 次 rand()，保证确定性与均匀性
-    local j = rand(i)
+    local j = isP2 and aiRand(i) or rand(i)
     t[i], t[j] = t[j], t[i]
   end
   if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
@@ -800,6 +804,7 @@ spawn = function(overrideName, overrideBag)
   local name = overrideName or g.nextName or 'T'
   local nameBag = overrideBag or g.nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
   if not overrideName then g.nextName, g.nextBag = takeFromBag() end
+  if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. name) end   -- v2.8 ③ 独立出块锚
   local s = SHAPES[name]
   g.piece = {
     name = name, n = s.n, color = s.color,
@@ -819,13 +824,8 @@ spawn = function(overrideName, overrideBag)
     if not g.autoDriving then updateBest() end
     showGameOver()
   end
-  -- T6b ai-battle 出块镜像队列（同源同序，裁决④）：主盘自然出块 push；AI 盘 piece 空时立即喂、
-  -- AI 盘 doLock 后拉。队列保序 ⇒ 任意节奏不覆盖不丢块；AI 盘快过主盘时 piece=nil 空转等待。
-  -- 跨实例交互铁律（设计书 §1.8 Step3 ②）：切实例前保存 g → 操作 → 还原。
-  if G[2] and g == G[1] and not overrideName then
-    MIRRORQ[#MIRRORQ + 1] = { name = name, bag = nameBag }
-    if G[2] and not G[2].gameOver and not G[2].piece then feedMirror() end
-  end
+  -- v2.8 ③：镜像队列退役（用户裁决「不用两边出块一样也不用等」）——G[2] 独立 bag（aiRand 洗）。
+  -- p2 出块日志锚在自然出块路径（takeFromBag 后）；主日志锚（bag=/piece=）不动。
   renderPiece()
   renderHud()
 end
@@ -986,12 +986,7 @@ doLock = function()
     print('guide lock-tip')
   end
   if not g.gameOver then
-    -- T6b：AI 盘不自己取块——拉镜像队列（空则 piece=nil 空转，等主盘下一次出块喂）。
-    if G[2] and g ~= G[1] then
-      feedMirror()
-    else
-      spawn()   -- spawn 内部 renderPiece() 会重画棋盘+新方块
-    end
+    spawn()   -- v2.8 ③：全部自然出块（G[2] 用 aiRand 独立 bag）
   end
   renderHud()
 end
@@ -1097,6 +1092,9 @@ local function newGame()
   g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
   -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
   if G[2] and g == G[2] then
+    -- v2.8 ③：独立出块——AI/对家盘自己跑 bag（aiRand 洗牌），不等主盘镜像。
+    g.nextName, g.nextBag = takeFromBag()
+    spawn()
     renderHud()
     return
   end
@@ -1308,7 +1306,7 @@ local WELL_DEPTH = 3                                -- 1 列宽凹槽多深才�
 
 -- 自演专用小随机：独立 LCG，不动方块袋那条序列 ⇒ 用例/出图仍可复现
 local aiSeed = 20261024
-local function aiRand(n)
+aiRand = function(n)
   aiSeed = (aiSeed * 1103515245 + 12345) % 2147483648
   return (aiSeed // 65536) % n + 1
 end

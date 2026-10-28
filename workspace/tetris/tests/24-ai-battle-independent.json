@@ -1,7 +1,7 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "24 ai-battle 数据层：Digit2 进局建 AI 盘（hard），镜像同源同序，AI 落块后等主盘",
+  "name": "24 v2.8 AI 盘独立出块：不等玩家，自己 bag 递增（p2 bag= 锚）；玩家不动 AI 持续落",
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [
@@ -16,22 +16,12 @@
       "typeName": "KeyboardCraftspersonKey2Up"
     },
     {
-      "t": 3.0,
-      "kind": "key",
-      "typeName": "KeyboardMoveLeftKeyDown"
-    },
-    {
-      "t": 3.05,
-      "kind": "key",
-      "typeName": "KeyboardMoveLeftKeyUp"
-    },
-    {
-      "t": 10.0,
+      "t": 1.5,
       "kind": "key",
       "typeName": "KeyboardJumpKeyDown"
     },
     {
-      "t": 10.02,
+      "t": 1.52,
       "kind": "key",
       "typeName": "KeyboardJumpKeyUp"
     }
@@ -44,27 +34,33 @@
       "source": "client"
     },
     {
-      "at": 1.0,
+      "at": 1.2,
       "kind": "log",
       "contains": "p2 inst ai-battle",
       "source": "client"
     },
     {
-      "at": 1.2,
+      "at": 1.4,
       "kind": "log",
-      "contains": "p2 mirror name=",
+      "contains": "guide keys ai-battle",
       "source": "client"
     },
     {
-      "at": 9.5,
+      "at": 5.2,
       "kind": "log",
-      "contains": "lock ",
+      "contains": "guide start",
       "source": "client"
     },
     {
-      "at": 10.5,
+      "at": 8.0,
       "kind": "log",
-      "contains": "harddrop",
+      "contains": "p2 bag=1 piece=",
+      "source": "client"
+    },
+    {
+      "at": 14.0,
+      "kind": "log",
+      "contains": "p2 bag=",
       "source": "client"
     }
   ]
