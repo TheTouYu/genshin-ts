@@ -9,6 +9,7 @@
 
 > **长期任务（跨多个会话）先读这里**：[`longtask/INDEX.md`](longtask/INDEX.md)（L0 分层档案入口）→ [`longtask/LINES.md`](longtask/LINES.md)（L0.5 **并行线看板**：有哪几条线、各自断点、谁在推、共享资源仲裁）。
 > 任务**多线并行**（`football` / `sim-2d` / `gui-agi`），会话推哪条线由用户指定；收尾只改本线。维护流程见技能 `longtask-dossier`。
+> **有多个独立长期任务时**先看 [`LONG_TASKS.md`](LONG_TASKS.md)（跨任务登记表：一任务一目录，例：`longtask/` 千星主线、`longtask-defender3/` 守墙者 3D 重制）。
 
 ## 先读什么
 

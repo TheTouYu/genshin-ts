@@ -8,8 +8,9 @@
 当前长期任务的分层档案：**`docs/longtask/INDEX.md`**（L0，3 分钟读完）→ **`docs/longtask/LINES.md`**（L0.5，**并行线看板**）。
 **任务是多条线并行**（2026-10-24 用户定）：`football` / `sim-2d` / `gui-agi` 各有判据与断点，**没有"单一活动分支"**；
 本次会话推哪条线**由用户首句指定**（没点明就问），线表与断点以 `LINES.md` §二 为准。
-收尾规矩：只改本线在 `LINES.md` 的那一行 + 本线 dossier（`football-v3.md` / `simulator-2d.md` / `gui-agi.md`）+ `03-state.md` 标了本线 id 的分节。
+收尾只改本线：`LINES.md` 那一行 + 本线 dossier + `03-state.md` 本线分节。
 维护流程见技能 `longtask-dossier`（含体检脚本 `longtask_check.py`，已校验多线字段）。
+**多任务并行**：先看 `docs/LONG_TASKS.md`（例 `docs/longtask-defender3/` 守墙者 3D 重制）。
 
 ## 常用命令
 

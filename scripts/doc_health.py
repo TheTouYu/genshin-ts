@@ -237,30 +237,54 @@ def discover_full() -> list[str]:
     return sorted(rels)
 
 
-LONGTASK_DIR = "docs/longtask"
+LONGTASK_GLOB = "docs/longtask*"
 LONGTASK_CHECK = ".agents/skills/longtask-dossier/scripts/longtask_check.py"
+LONGTASK_TASKS_CHECK = ".agents/skills/longtask-dossier/scripts/longtask_tasks.py"
+LONGTASK_REGISTRY = "docs/LONG_TASKS.md"
 
 
-def check_longtask() -> list[str]:
-    """多线档案体检（2026-10-24 接入：新判定器必须进主链，否则等于没建）。
+def longtask_dirs() -> list[Path]:
+    """所有长期任务档案目录（`docs/longtask*` 且含 INDEX.md）。
 
-    只在「全量模式」或「暂存区含 docs/longtask/」时跑；判定器自身带 --selftest。
+    2026-10-28 由「单目录 docs/longtask」扩到多任务：一任务一目录，登记表 docs/LONG_TASKS.md。
     """
-    script = REPO_ROOT / LONGTASK_CHECK
-    if not script.exists():
-        return [f"多线档案体检器缺失：{LONGTASK_CHECK}"]
+    return sorted(
+        p for p in REPO_ROOT.glob(LONGTASK_GLOB) if p.is_dir() and (p / "INDEX.md").is_file()
+    )
+
+
+def _run_script(script: Path, argv: list[str]) -> list[str]:
     proc = subprocess.run(
-        [sys.executable, str(script), "--dir", str(REPO_ROOT / LONGTASK_DIR)],
-        cwd=REPO_ROOT,
-        text=True,
-        capture_output=True,
+        [sys.executable, str(script), *argv], cwd=REPO_ROOT, text=True, capture_output=True
     )
     if proc.returncode == 0:
         return []
     lines = [ln.strip() for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()]
-    # 去掉「体检目录：…」与最终 RESULT 行，只留具体 FAIL 项
-    lines = [ln for ln in lines if not ln.startswith("体检目录") and not ln.startswith("RESULT:")]
-    return lines or [f"longtask_check 退出码 {proc.returncode}"]
+    return [
+        ln for ln in lines if not ln.startswith("体检目录") and not ln.startswith("RESULT:")
+    ] or [f"{script.name} 退出码 {proc.returncode}"]
+
+
+def check_longtask() -> list[str]:
+    """长期任务档案体检（2026-10-24 接入单任务；2026-10-28 扩到多任务）。
+
+    - 每个 `docs/longtask*/` 目录跑一次 `longtask_check.py`
+    - 登记表 `docs/LONG_TASKS.md` 跑 `longtask_tasks.py --check`
+    只在「全量模式」或「暂存区含 docs/longtask* / 登记表」时跑；判定器自身带 --selftest。
+    """
+    problems: list[str] = []
+    script = REPO_ROOT / LONGTASK_CHECK
+    if not script.exists():
+        return [f"多线档案体检器缺失：{LONGTASK_CHECK}"]
+    for d in longtask_dirs():
+        for ln in _run_script(script, ["--dir", str(d)]):
+            problems.append(f"{d.name}: {ln}")
+    tasks_script = REPO_ROOT / LONGTASK_TASKS_CHECK
+    registry = REPO_ROOT / LONGTASK_REGISTRY
+    if tasks_script.exists() and registry.is_file():
+        for ln in _run_script(tasks_script, ["--registry", str(registry), "--check"]):
+            problems.append(f"登记表: {ln}")
+    return problems
 
 
 def main() -> int:
@@ -276,7 +300,9 @@ def main() -> int:
             for f in raw_staged
             if in_scope_md(f) or in_scope_src(f) or f in ("AGENTS.md", "CLAUDE.md")
         ]
-        run_longtask = any(f.startswith(LONGTASK_DIR + "/") for f in raw_staged)
+        run_longtask = any(
+            f.startswith("docs/longtask") or f == LONGTASK_REGISTRY for f in raw_staged
+        )
         if not files and not run_longtask:
             print("doc_health: no in-scope staged files; PASS")
             return 0
@@ -297,13 +323,14 @@ def main() -> int:
 
     if run_longtask:
         lt = check_longtask()
+        names = ", ".join(d.name for d in longtask_dirs()) or "（无）"
         if lt:
             total += len(lt)
-            print(f"FAIL  {LONGTASK_DIR}（多线档案：线表/状态头/缺口标线）")
+            print(f"FAIL  长期任务档案（{names} + {LONGTASK_REGISTRY}）")
             for p in lt:
                 print(f"      - {p}")
         else:
-            print(f"PASS  {LONGTASK_DIR}（多线档案）")
+            print(f"PASS  长期任务档案（{names} + {LONGTASK_REGISTRY}）")
 
     print(f"\n{total} problem(s) found.")
     return 1 if total else 0

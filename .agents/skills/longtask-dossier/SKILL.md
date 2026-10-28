@@ -15,6 +15,7 @@ description: 为长期任务建立并维护**分层文档档案**（INDEX/线表
 |---|---|
 | 任务已跨 ≥2 个会话，或将持续 ≥1 天 | **CREATE**：建档案骨架（含 `LINES.md`） |
 | 有 ≥2 条互不归属的活在并行（足球 / 2D / GUI…） | **LINES**：每线一行，各有判据/断点/恢复入口（§二点五） |
+| 有 ≥2 个**独立长期任务**在跑（不同项目/不同仓库目录） | **REGISTRY**：跨任务登记表 `docs/LONG_TASKS.md`，一任务一目录（§二点六） |
 | 每轮收尾、压缩上下文前、交接前 | **UPDATE**：四件套（线表那一行 → 本线 dossier → 共享现状 → 缺口） |
 | 新会话接手、怀疑文档过期 | **AUDIT**：跑校验器（含 `--selftest`），修过期指针 |
 | 上下文已经丢了、要补回细节 | 先 `context-loss-recovery`，再回到 UPDATE |
@@ -59,6 +60,43 @@ L2 是"为什么"，L3 是"要用时再查"。任何一份超过预算就说明�
 **开线/关线**：开线过三问（有判据 / 断点可接手 / 不抢别线独占资源）→ `LINES.md` §二 加一行 + 建 dossier；
 关线状态改 `已闭环` 并写证据，**不删行**（删了下次会重开）。
 
+## 二点六、多任务并行（2026-10-28 起；第三根支柱）
+
+> 触发原话：「这个技能也需要优化来支持多个任务同时推进。」（2026-10-28）
+> 失败形态：技能原来只有"一个任务内多条线"这一层。当两个**独立项目**同时在跑时，
+> 文档要么挤进同一个 `docs/longtask/`（互相污染），要么散落各处没人知道有几个任务。
+
+**任务 vs 线**（两层，别混）：
+
+| 层 | 单位 | 载体 | 例 |
+|---|---|---|---|
+| 任务 | 一个独立项目/一个持续目标 | `docs/longtask-<task-id>/` 整目录 | `docs/longtask/`（千星三游戏）、`docs/longtask-defender3/`（守墙者） |
+| 线 | 任务内一组有独立判据的活 | 该目录的 `LINES.md` §二，每行一条 | `football` / `sim-2d` / `gui-agi` |
+
+**跨任务登记表** `docs/LONG_TASKS.md`（唯一权威）：
+
+| 任务 id | 名称 | 档案目录 | 状态 | 断点 | 恢复入口 | 上次读数 |
+|---|---|---|---|---|---|---|
+| `defender3` | 守墙者 | `docs/longtask-defender3/` | 活跃 | … | `[INDEX.md](longtask-defender3/INDEX.md)` | 日期 |
+
+**五条规则**：
+
+| # | 规则 | 为什么 | 怎么机检 |
+|---|---|---|---|
+| 1 | **一任务一目录**：`docs/longtask-<task-id>/`，内含 `INDEX.md` + `LINES.md` + 五件套 + `dossiers/` | 混目录 = 两个任务的断点互相污染 | `longtask_tasks.py --check` 要求 INDEX/LINES 都在 |
+| 2 | **登记表只放指针**，不复制细节 | 否则登记表长成第二个大文档 | 人判（预算 ≤120 行） |
+| 3 | **新任务必须注册**；闭环改状态、**不删行** | 删行 = 下次重开 | 体检：目录存在 + 状态头 + 词表 + 链接可达 |
+| 4 | **接手顺序**：`LONG_TASKS.md` → 任务 `INDEX.md` → 该任务 `LINES.md` → 本线 dossier | 先认任务再认线，少读一半 | 人判（会话首句指定任务） |
+| 5 | **跨任务独占资源**（真机/屏幕/手机/存档）写进各任务 `LINES.md` §三，不写登记表 | 登记表不承载仲裁 | 人判 |
+
+**命令**：
+
+```bash
+python3 .agents/skills/longtask-dossier/scripts/longtask_new.py --dir docs/longtask-<task> --line <line> ...
+python3 .agents/skills/longtask-dossier/scripts/longtask_tasks.py --registry docs/LONG_TASKS.md --check
+python3 .agents/skills/longtask-dossier/scripts/longtask_tasks.py --selftest   # 4 类注入：缺目录/缺状态头/坏状态/断链
+```
+
 ## 三、CREATE：建立档案
 
 1. 先问清三件事（缺就按现有证据写，标"待确认"）：任务目标与完成判据、当前阶段、谁在维护。
@@ -72,8 +110,15 @@ L2 是"为什么"，L3 是"要用时再查"。任何一份超过预算就说明�
 3. 填 L1：**charter 用用户原话**（带日期/会话/seq），**xinfa 每条带出处**；填 `LINES.md` §二 的判据与断点。
 4. 在仓库入口挂指针（新会话才会读到）：根 `CLAUDE.md` 或 `AGENTS.md` 加一行指向 `INDEX.md` + `LINES.md`；
    同时更新 `docs/documentation-map.md`。注意 `AGENTS.md` 有 16KB 硬限、`CLAUDE.md` 有 12KB。
-5. 跑体检（含自证）：`python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask`
-   —— 基线要 `PASS`；再跑 `--selftest` 确认判定器抓得到 6 类破坏（抓不到=门禁空转）。
+   **再加一步（2026-10-28 起）**：在跨任务登记表 `docs/LONG_TASKS.md` §二 加一行（任务 id / 目录 / 状态 / 断点 / 入口）。
+5. 跑体检（含自证）：
+   ```bash
+   python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask-<task>
+   python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask-<task> --selftest
+   python3 .agents/skills/longtask-dossier/scripts/longtask_tasks.py --registry docs/LONG_TASKS.md --check
+   ```
+   —— 基线要 `PASS`；`--selftest` 确认判定器抓得到 6 类破坏（抓不到=门禁空转）。
+   **2026-10-28 起 selftest 自建夹具**，与 `--dir` 内容无关：任何任务目录跑 `--selftest` 都应 PASS。
 
 字段与模板见 `references/templates.md`。
 
@@ -98,6 +143,9 @@ L2 是"为什么"，L3 是"要用时再查"。任何一份超过预算就说明�
 ```bash
 python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask
 python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/longtask --selftest   # 判定器自证（6 类注入）
+# 多任务层（2026-10-28 起）
+python3 .agents/skills/longtask-dossier/scripts/longtask_tasks.py --registry docs/LONG_TASKS.md --check
+python3 .agents/skills/longtask-dossier/scripts/longtask_tasks.py --selftest   # 4 类注入：缺目录/缺状态头/坏状态/断链
 ```
 
 检查项：文件齐全（含 `LINES.md`）、状态头（`状态：` + `最近校验：`）、行数预算、`INDEX.md` 指针可达、
@@ -121,7 +169,7 @@ python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/lon
 
 接手者读完 L0 + `LINES.md` + 本线 dossier 后，应能不看别的材料回答：
 
-0. **我在哪条线？这条线的判据与断点是什么？**（多线模型的第一问，答不出＝线表不合格）
+0. **我在哪个任务、哪条线？这条线的判据与断点是什么？**（多任务/多线模型的第一问，答不出＝登记表或线表不合格）
 1. 这个任务要交付什么？**判据是什么**？
 2. 现在到哪一步？**断点在哪**？
 3. 哪几条纪律最容易违反？违反了会怎样？
@@ -132,6 +180,7 @@ python3 .agents/skills/longtask-dossier/scripts/longtask_check.py --dir docs/lon
 ## 七、常见坑
 
 - **把多线写成一条串行线**（"当前在哪/断点"只留一组）：第二条线的断点会被覆盖，接手者只拿到一条任务——这正是 2026-10-24 用户点名的系统缺陷。
+- **把两个独立长期任务塞进同一个 `docs/longtask/`**（2026-10-28 新增）：任务之间没有共享判据，混在一起 = 两套五件套互相污染、登记缺席。正确做法是 `docs/longtask-<task-id>/` + `docs/LONG_TASKS.md` 登记一行（§二点六）。
 - **改别线的行**：`LINES.md` 里别的线的那一行、别线 dossier 的断点，归那条线的执行者改；顺手改＝覆盖别人的断点。
 - **按时间戳选线**：看到最新提交/最新档案就当作"该做这条"，会接到别的会话正在推的线。
 - **写成一个大文档**：超过 300 行就拆；每份文件只回答一个层次的问题。
