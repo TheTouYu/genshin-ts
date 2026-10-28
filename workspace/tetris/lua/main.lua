@@ -992,6 +992,24 @@ doLock = function()
   g.lastRot = false
   g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。hold 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
   local cleared = clearLines()
+  -- v3.1 二-1 机制A 垃圾行侵蚀：每盘独立账本；连续 N 块无消行（N 按等级段 DRYNESS_N）→
+  -- 顶起 1 行带洞垃圾并清零重计（不叠加）。raiseGarbage 的洞位用 aiRand（不动 bag）。
+  do
+    local seg = g.level >= 9 and 3 or g.level >= 5 and 2 or 1
+    local N = NUM.DRYNESS_N[seg] or 14
+    if cleared > 0 then
+      g.AI.dryness = 0
+    else
+      g.AI.dryness = g.AI.dryness + 1
+      if g.AI.dryness >= N then
+        g.AI.dryness = 0
+        local save = g
+        raiseGarbage(g, 1)
+        g = save
+        print('garbage n=1 dryness reset (lv=' .. g.level .. ')')
+      end
+    end
+  end
   if isTspin then
     -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
     -- 分流玩家/AI 账本（与 clearLines 同口径：autoDriving 时入 AI.score）。
@@ -1123,6 +1141,26 @@ local function newGame()
   g.dimRatio, g.dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
+  g.AI.dryness = 0                        -- v3.1 二-1 机制A：干燥计数（连续无消行块数，每盘独立）
+  -- v3.1 二-1 机制B：开局障碍行（进局首帧可见——建在取块/spawn 前，renderPiece 全盘重画即显示）。
+  -- 行数按等级段（OBSTACLE 表）；每行洞数：第1行2洞/第2行2洞/第3行1洞（高等级更挤）。
+  -- 双盘各自独立随机洞位（aiRand=AI 盘独立 LCG，不动主盘 bag 序列——同 raiseGarbage 口径）。
+  do
+    local seg = g.level >= 11 and 4 or g.level >= 8 and 3 or g.level >= 5 and 2 or 1
+    local rows = NUM.OBSTACLE[seg] or 0
+    if rows > 0 then
+      local holesPer = { 0, 2, 2, 1 }
+      for i = 1, rows do
+        local r = ROWS - rows + i          -- 从下往上填：r=ROWS-rows+1..ROWS
+        local holes = {}
+        for h = 1, (holesPer[i] or 1) do holes[aiRand(COLS)] = true end
+        for c = 1, COLS do
+          g.board[r][c] = holes[c] and 0 or CFG.COL_GRAY
+        end
+      end
+      print('obstacle n=' .. rows .. ' lv=' .. g.level)
+    end
+  end
   g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
   g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
   -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
