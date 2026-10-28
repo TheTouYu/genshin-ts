@@ -18,14 +18,14 @@
     { "at": 0.15, "kind": "control", "name": "next1", "field": "imageColor", "equals": -10822546 },
     { "at": 0.15, "kind": "control", "name": "next1", "field": "anchoredPositionX", "equals": 400 },
     { "at": 0.15, "kind": "control", "name": "next1", "field": "anchoredPositionY", "equals": 180 },
-    { "at": 0.15, "kind": "control", "name": "next5", "field": "imageColor", "equals": -10670972 },
+    { "at": 0.15, "kind": "control", "name": "next5", "field": "imageColor", "equals": -3038729 },
     { "at": 0.15, "kind": "control", "name": "next5", "field": "anchoredPositionY", "equals": 99 },
     { "at": 0.4, "kind": "control", "name": "next1", "field": "imageColor", "equals": -5615376 },
     { "at": 0.4, "kind": "control", "name": "next4", "field": "imageColor", "equals": -5615376 },
-    { "at": 0.4, "kind": "control", "name": "next5", "field": "imageColor", "equals": -14268540 },
-    { "at": 0.4, "kind": "control", "name": "next8", "field": "imageColor", "equals": -14268540 },
+    { "at": 0.4, "kind": "control", "name": "next5", "field": "imageColor", "equals": -6570761 },
+    { "at": 0.4, "kind": "control", "name": "next8", "field": "imageColor", "equals": -6570761 },
     { "at": 0.65, "kind": "control", "name": "next1", "field": "imageColor", "equals": -12156176 },
-    { "at": 0.65, "kind": "control", "name": "next5", "field": "imageColor", "equals": -14583420 },
+    { "at": 0.65, "kind": "control", "name": "next5", "field": "imageColor", "equals": -6886153 },
     { "at": 0.65, "kind": "control", "name": "next5", "field": "anchoredPositionX", "equals": 389 },
     { "at": 0.65, "kind": "log", "contains": "bag=1 piece=T x=4 y=1", "source": "client" }
   ]

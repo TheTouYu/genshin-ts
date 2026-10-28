@@ -76,7 +76,7 @@
       "kind": "control",
       "name": "hold1",
       "field": "imageColor",
-      "equals": -7972831
+      "equals": -339810
     },
     {
       "at": 0.3,
@@ -104,7 +104,7 @@
       "kind": "control",
       "name": "hold1",
       "field": "imageColor",
-      "equals": -7972831
+      "equals": -339810
     },
     {
       "at": 0.8,
@@ -135,7 +135,7 @@
       "kind": "control",
       "name": "hold1",
       "field": "imageColor",
-      "equals": -10670972
+      "equals": -2774792
     },
     {
       "at": 1.05,
