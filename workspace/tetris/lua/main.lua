@@ -1167,7 +1167,14 @@ local function startIfWaiting()
     tryCall(keyB, 'SetSizeDelta', 520, 40)
     tryCall(keyB, 'SetAnchoredPosition', 280, -338)
     setText(keyB, keys2b)
-    setText(hint, '')
+    -- v2.8 ①：准备按键说明行（hint 挪两盘中间正下方，避开棋盘投影区）
+    trySet(hint, 'fontSize', 20)
+    trySet(hint, 'fontColor', THEME.textSub)
+    tryCall(hint, 'SetSizeDelta', 700, 40)
+    tryCall(hint, 'SetAnchoredPosition', 0, -338)
+    setText(hint, (MODE == 'ai-battle') and '按任意键开始对战 · H 帮助'
+      or 'P1 按任意键准备 · P2 按方向键/X 准备 · H 帮助')
+    tryCall(hint, 'SetVisible', true)
     print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
     return
   end
@@ -3524,6 +3531,8 @@ function OnStart()
         if MODE == 'ai-battle' then GK.p2ready = true end
         if GK.p1ready then setText(keyA, 'P1 准备好了 ✓') end
         if GK.p2ready and MODE ~= 'ai-battle' then setText(keyB, 'P2 准备好了 ✓') end
+        setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
+          or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))   -- v2.8 ① ready 进度
         print('guide ready ' .. (P2_KEYS[keyName] and 'p2' or 'p1'))
         if GK.p1ready and GK.p2ready then
           GK.phase, GK.t = 'count', 0
@@ -3784,6 +3793,7 @@ function OnStart()
       GK.p1ready = true
       if MODE == 'ai-battle' then GK.p2ready = true end
       setText(keyA, 'P1 准备好了 ✓')
+      setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！' or '等待 P2 准备…')
       print('guide ready p1')
       if GK.p1ready and GK.p2ready then
         GK.phase, GK.t = 'count', 0
@@ -3855,7 +3865,7 @@ local function tickInstance(d)
   -- v2.6 根治「按一下走到底」：网页旧构建 keyup 转发丢失（或焦点转移吞 keyup）会让 dir 永不清零，
   -- 点按也触发完整 DAS+ARR 连走。时间上限（DAS_HOLD）取代 v2.1 的步数上限：ARR 激活累计 hold，
   -- 达 0.6s 强制清 dir——lua 层不依赖 Up 事件自愈；真机/新版网页 Up 正常时提前清、永不触及上限
-  --（0.6s ≈ 按住滑墙 12 格的正常用时，有意识按住的用户最多在墙边多走半秒即停，重按恢复）。
+  --（v2.8 0.35s：长按用户最多连走 ~7 格后需重按一次——比「单击飞到底」轻微得多；真机 Up 正常时此上限永不触发）。
   if g.das.dir ~= 0 and not g.gameOver then
     g.das.t = g.das.t + d
     if g.das.t >= NUM.DAS_DELAY then
