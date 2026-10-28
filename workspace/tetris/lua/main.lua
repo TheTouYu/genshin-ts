@@ -281,7 +281,18 @@ local WIDGETS = UI.new({
   styleOf = function() return UI_STYLE end,     -- 惰性：UI_STYLE 在本文件更后面才定义
 })
 local noteFail, trySet, tryCall, addCursor = WIDGETS.noteFail, WIDGETS.trySet, WIDGETS.tryCall, WIDGETS.addCursor
-local find, setText, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
+local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
+-- v3.5 ①：HUD 常量文字的**实例份兜底**（层序铁律：服务端 textbox 永远在运行时实例之下）
+-- 背景池 wash／棋盘格都是运行时实例，textbox 份被压在下面看不见 ⇒ v3.3 把 textbox 份
+-- SetVisible(false) 之后，全仓 40+ 处 `setText(botBanner/hint/topBanner, …)` 变成「写了但看不见」
+-- （出图实测：PERSIST_TIP 常驻键位提示、开场句、纳西妲接管文案全都没有墨迹）。
+-- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
+-- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
+local function setText(ctl, value)
+  setTextRaw(ctl, value)
+  local inst = ctl and ctl.name and HUD_INST[ctl.name]
+  if inst and inst ~= ctl then pcall(function() inst.text = value end) end
+end
 local probeTemplate, instInto, findIn = WIDGETS.probeTemplate, WIDGETS.instInto, WIDGETS.findIn
 local AUDIO = loadModule('audio')
 if not AUDIO then error('tetris: 模块 audio 装载失败') end
@@ -349,7 +360,9 @@ local C_TEXT, C_GOLD2, C_ACCENT2, C_DANGER, C_BTN =
 UI_STYLE = {
   title     = { font = 64, color = C_GOLD2,   align = 'Middle' },
   hud       = { font = 20, color = C_TEXT,    align = 'Middle' },   -- v3.0 浅底：HUD 用墨色（原为蓝）
-  hudNext   = { font = 22, color = THEME.textSub, align = 'Middle' },
+  -- v3.5 ④：「下一个」标签必须 valign=Middle——Top 时字形从框顶起画，8× 放大图实测
+  -- fs22 的墨迹只有 17px 高（对照 hud fs20 = 21px），「下」「个」的顶部横笔被框顶裁掉。
+  hudNext   = { font = 22, color = THEME.textSub, align = 'Middle', valign = 'Middle' },
   best      = { font = 20, color = C_GOLD2,   align = 'Middle' },
   hint      = { font = 22, color = C_ACCENT2, align = 'Middle', valign = 'Middle' },
   keyA      = { font = 22, color = C_TEXT,    align = 'Middle' },
@@ -954,6 +967,11 @@ local function renderNext()
   -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
   if g.preview[9] then
     for i = 9, 12 do g.preview[i].imageColor = CFG.COL_BG end
+    if not g.st.name then
+      -- v3.5 ⑩：空槽把 4 格挪出画布——只刷底色的话格子停在出生位，
+      -- 盘面上会留一块 COL_BG 脏格（出图实测：左盘左上角一个 20px 灰方块）
+      for i = 9, 12 do tryCall(g.preview[i], 'SetAnchoredPosition', -4000, -4000) end
+    end
     if g.st.name then
       local sh = SHAPES[g.st.name]
       for i = 1, 4 do
@@ -1408,6 +1426,27 @@ local function startIfWaiting()
     tryCall(HUD_INST.keyB, 'SetVisible', true)
     tryCall(HUD_INST.keyC, 'SetVisible', true)
   end
+  -- v3.5 ④：进局即亮「下一个」实例份（标题页藏过并挪到画布外 ⇒ 位与显一起还原）
+  local hw_, hh_ = (CANVAS_W or 1280) / 2, (CANVAS_H or 720) / 2
+  if HUD_INST.hudNext then
+    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (hw_ - 230), 255)
+    tryCall(HUD_INST.hudNext, 'SetVisible', true)
+    tryCall(hudNext, 'SetVisible', false)
+  end
+  -- v3.5 ④：标题页一并下架的横幅/提示实例，进局还原「位 + 显」（只还原显 = 文字留在画布外）
+  if HUD_INST.topBanner then
+    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, hh_ - 36)
+    tryCall(HUD_INST.topBanner, 'SetVisible', true)
+  end
+  if HUD_INST.botBanner then
+    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(hh_ - 28))
+    tryCall(HUD_INST.botBanner, 'SetVisible', true)
+  end
+  if HUD_INST.hint then
+    tryCall(HUD_INST.hint, 'SetSizeDelta', 420, 150)
+    tryCall(HUD_INST.hint, 'SetAnchoredPosition', -(hw_ - 230), -95)
+    tryCall(HUD_INST.hint, 'SetVisible', true)
+  end
   trySet(topBanner, 'fontSize', 34)
   trySet(botBanner, 'fontSize', 22)
   if overlay then tryCall(overlay, 'SetVisible', false) end
@@ -1445,24 +1484,59 @@ local function startIfWaiting()
     local seat1 = C(255, 47, 126, 158)                                  -- P1 深冰蓝
     local seat2 = (MODE == 'pvp') and C(255, 95, 76, 168)                -- 双人：深紫
       or ((MODE == 'coop') and C(255, 63, 139, 60) or C(255, 192, 78, 124))
+    -- v3.5 ③：准备期文案**分列三块，同一行**（用户打回：右侧战况与准备提示挤两行、中缝提示压底栏）
+    -- 真机层序铁律：服务端 textbox 永远在运行时实例之下 ⇒ 可见文案只能走实例份（HUD_INST）。
+    -- 摆位（1600×900 实测）：盘底 ypx750 → 本行 ypx770..810 → 底栏常驻 ypx852..892，三段互不相压。
+    --   左：P1 键位卡（x≈-440，宽 540 → -710..-170）
+    --   中：准备提示（x=0，宽 260 → -130..130）
+    --   右：AI/P2 就绪（x≈+440 → 170..710）
+    local halfW = (CANVAS_W or 1280) / 2
+    local rowY = -((CANVAS_H or 720) / 2 - 110)
+    local seatW = 540
+    local seatX = halfW - seatW / 2 - 90
+    -- textbox 份：位置/文字保持用例 33 的口径（断言读 text/anchoredPositionX）——但**不显示**
+    -- （textbox 在实例层下，显示=双份叠字或直接被 wash/格子吃掉，两个坑都踩过）
     trySet(keyA, 'fontSize', 20)
     trySet(keyA, 'fontColor', seat1)
     tryCall(keyA, 'SetSizeDelta', 520, 40)
-    tryCall(keyA, 'SetAnchoredPosition', -280, -338)
+    tryCall(keyA, 'SetAnchoredPosition', -280, rowY)
     HUD_INST.txt(keyA, keys2)
     trySet(keyB, 'fontSize', 20)
     trySet(keyB, 'fontColor', seat2)
     tryCall(keyB, 'SetSizeDelta', 520, 40)
-    tryCall(keyB, 'SetAnchoredPosition', 280, -338)
+    tryCall(keyB, 'SetAnchoredPosition', 280, rowY)
     HUD_INST.txt(keyB, keys2b)
-    -- v2.8 ①：准备按键说明行（hint 挪两盘中间正下方，避开棋盘投影区）
-    trySet(hint, 'fontSize', 20)
+    -- 实例份：左右两张席位卡按盘下摆位（座位色同步，P1/P2 一眼可分）
+    if HUD_INST.keyA then
+      trySet(HUD_INST.keyA, 'fontSize', 20)
+      trySet(HUD_INST.keyA, 'fontColor', seat1)
+      tryCall(HUD_INST.keyA, 'SetSizeDelta', seatW, 40)
+      tryCall(HUD_INST.keyA, 'SetAnchoredPosition', -seatX, rowY)
+      tryCall(HUD_INST.keyA, 'SetVisible', true)
+    end
+    if HUD_INST.keyB then
+      trySet(HUD_INST.keyB, 'fontSize', 20)
+      trySet(HUD_INST.keyB, 'fontColor', seat2)
+      tryCall(HUD_INST.keyB, 'SetSizeDelta', seatW, 40)
+      tryCall(HUD_INST.keyB, 'SetAnchoredPosition', seatX, rowY)
+      tryCall(HUD_INST.keyB, 'SetVisible', true)
+    end
+    if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetVisible', false) end   -- 准备期第三行留空（不叠字）
+    -- 中缝准备提示：两侧键位卡之间的窄条位（原 x=0 宽 700 ⇒ 与两侧键位串相交 = 用户说的「压住」）
+    trySet(hint, 'fontSize', 18)
     trySet(hint, 'fontColor', THEME.textSub)
-    tryCall(hint, 'SetSizeDelta', 700, 40)
-    tryCall(hint, 'SetAnchoredPosition', 0, -338)
-    setText(hint, (MODE == 'ai-battle') and '按任意键开始对战 · H 帮助'
-      or 'P1 按任意键准备 · P2 按方向键/X 准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
-    tryCall(hint, 'SetVisible', true)
+    tryCall(hint, 'SetSizeDelta', 260, 40)
+    tryCall(hint, 'SetAnchoredPosition', 0, rowY)
+    setText(hint, (MODE == 'ai-battle') and '按任意键开始 · H 帮助'
+      or '双方按任意键准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
+    if HUD_INST.hint then
+      trySet(HUD_INST.hint, 'fontSize', 18)
+      trySet(HUD_INST.hint, 'fontColor', THEME.textSub)
+      tryCall(HUD_INST.hint, 'SetSizeDelta', 260, 40)
+      tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, rowY)
+      tryCall(HUD_INST.hint, 'SetVisible', true)
+    end
+    tryCall(hint, 'SetVisible', false)   -- textbox 份隐藏（实例份可见）
     print('guide keys ' .. MODE)        -- v2.1 ① 引导锚
     return
   end
@@ -1526,6 +1600,11 @@ showGameOver = function(overTitle)
   bannerTimer = 0
   g.settleOpen = false
   setText(botBanner, '')               -- v2.6 ① 结算撤常驻
+  -- v3.5 ⑥：结算期把**战况列**下架——遮罩是半透明的，否则「得分 204 消行 0 / 最高 2…」
+  -- 会从面板左侧透出来（出图 d-settle.png 实测），读起来像结算页里还有一列没对齐的字。
+  -- 只下架战况列、不清 text 字段（用例仍读得到数值），横幅保留（结算层建不出来时走横幅兜底）。
+  -- 重开/回菜单由 startIfWaiting / layout 还原。
+  if HUD_INST.hideStats then HUD_INST.hideStats() end
   print('guide gameover score=' .. g.score .. ' lines=' .. g.lines)
   -- 懒创建：第一次结算才建这一层（建的时候棋盘格早就存在 ⇒ 天然在它上面）
   if not g.settleReady and not g.settleBuildTried then
@@ -2056,6 +2135,8 @@ local function demoLoopReset()
   setText(topBanner, '俄罗斯方块')
   setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
+  -- v3.5 ④：回标题屏同样下架 HUD 实例（含横幅/下一个；标题页只看展台）
+  if HUD_INST.hideAll then HUD_INST.hideAll() end
   trySet(topBanner, 'fontColor', C_GOLD2)
   trySet(topBanner, 'fontSize', 26)
   trySet(botBanner, 'fontColor', C_ACCENT2)
@@ -2407,7 +2488,9 @@ local function buildCountBig(txt)
     c.text = txt
     c.fontSize = 120
     trySet(c, 'fontColor', THEME.textMain)
-    c:SetSizeDelta(500, 190)
+    -- v3.5 ⑪：框要装得下脉冲峰值的字号——120 + 26*sin 峰值 146 号需 215.7 高，
+    -- 原来 190 ⇒ 峰值帧 textLayout.fits=false 数字整行不画（倒计时看起来「闪一下消失」）
+    c:SetSizeDelta(560, 250)
     c:SetAnchoredPosition(0, 0)
   end
   return c
@@ -2577,7 +2660,10 @@ MS.build = function()
   trySet(topBanner, 'fontColor', C(0, 255, 194, 76))
   trySet(botBanner, 'fontColor', C(0, 118, 214, 255))
   -- ⑤ 底部分段提示条（3 段 + 2 分隔点）
-  local lineY = winBot - 30
+  -- v3.5 ⑤：lineY 之前锚在 winBot（棋盘视窗底 -301）⇒ 1600×900 上提示条浮在云带上方 79px 处
+  -- （1280×720 恰好落进云带里，所以小画布看不出问题）。改成锚画布底：云带 = -halfH..-halfH+40，
+  -- 提示条中心落在带内（1600：ypx 872 / 1280：ypx 692），两块画布都居中在带里。
+  local lineY = -(halfH - 28)
   MS.lineY = lineY
   local segX, segW = { -290, 0, 290 }, { 215, 250, 215 }
   for i = 1, 3 do
@@ -3073,17 +3159,10 @@ local function layoutDual()
     if G[1].frames and G[1].frames[i] then G[1].frames[i].imageColor = p1c end
     if G[2] and G[2].frames and G[2].frames[i] then G[2].frames[i].imageColor = p2c end
   end
-  if G[1].preview then
-    for i = 1, 4 do   -- next1-4（当前块 4 格，18px）：棋盘上方一排
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -280 + (i - 2.5) * 22, 318)
-    end
-    for i = 5, 8 do   -- next5-8（第二块，14px）：再上一排
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -280 + (i - 6.5) * 18, 338)
-    end
-    for i = 9, 12 do  -- hold1-4：左栏竖排（x=-550）
-      tryCall(G[1].preview[i], 'SetAnchoredPosition', -600, 175 - (i - 9) * 22)
-    end
-  end
+  -- v3.5 ⑨：预览/hold 位**不再由布局另写一套**——原来这里用 22/18 间距摆到左盘上方，
+  -- 而 renderNext 用 20/14 间距摆到右栏 ⇒ 准备期与对局期预览块会「跳位 + 格子间露缝」。
+  -- 唯一真源 = renderNext（格子间距=格宽），布局末尾直接调一次即可让准备期与对局期完全一致。
+  if renderNext then pcall(renderNext) end
   tryCall(title, 'SetVisible', false)
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
@@ -3109,9 +3188,17 @@ local function layoutDual()
     tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
     trySet(DUAL_DECO[2], 'imageColor', THEME.goldDeep)
   end
-  -- 左栏战况归位：hud 原在 x=-(halfW-…)=压在左盘边上；挪进左空区并缩小字号防裁尾
+  -- ===== v3.5 双屏 HUD 摆位（唯一真源；此前这里有个 nil 全局炸点，见下）=====
+  -- 🔴 事故记录（v3.4 起潜伏）：本函数原先引用全局 `halfH`——layout() 里那是 **local**，
+  --   所以 `-(halfH - 96)` 每帧抛 `attempt to perform arithmetic on a nil value (global 'halfH')`
+  --   （客户端日志 lua-error: lua/main.lua:3138），**函数从此中断**：
+  --   keyA-C 复位成 'AI 盘'、textbox 隐藏收口、hudNext 归位全部没执行 ⇒
+  --   右侧 keyC(fs22 textbox) 与 ikeyC(fs14 实例) 同框叠成双影、「下一个」还留在 y=300 被裁。
+  --   教训：布局函数里的画布尺寸一律从 CANVAS_W/CANVAS_H 现算，不要依赖别处的 local。
   local halfW = (CANVAS_W or 1280) / 2
-  local gutterX = -(halfW - 186)
+  local halfH = (CANVAS_H or 720) / 2
+  local gutterX = -(halfW - 186)          -- 左空区中线（1600 画布 = -614）
+  -- ① 左栏：玩家战况（hud 17 号 / best 20 号，上下 48 间距）
   if hud then
     tryCall(hud, 'SetSizeDelta', 348, 40)          -- 18 号下 330 会把尾字裁掉（右缘贴边）
     tryCall(hud, 'SetAnchoredPosition', gutterX, 250)
@@ -3121,25 +3208,54 @@ local function layoutDual()
     tryCall(best, 'SetSizeDelta', 330, 36)
     tryCall(best, 'SetAnchoredPosition', gutterX, 202)
   end
-  -- v2.8 ⑤/v2.9 ②③：实例 HUD 同步双屏 gutter 位 + 恢复显示（layoutDual 是双屏必经路径，
-  -- 引导结束/GK 复位都走这里；ikeyA-C 在此必显，防 startIfWaiting 时序漏恢复）
-  if HUD_INST.hud then tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true) end
-  if HUD_INST.best then tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true) end
-  -- v3.3 修：keyA-C 原 x=400 落在右盘内（1600 画布右盘 x∈[130,430]）+ 宽 640 压盘出界
-  -- 现挪进右栏空区（x=600/宽 330 → 跨 435..765，右边缘留 35px 防裁）
-  if HUD_INST.keyA then tryCall(HUD_INST.keyA, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 600, -40) tryCall(HUD_INST.keyA, 'SetVisible', true) end
-  if HUD_INST.keyB then tryCall(HUD_INST.keyB, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 600, -80) tryCall(HUD_INST.keyB, 'SetVisible', true) end
-  if HUD_INST.keyC then tryCall(HUD_INST.keyC, 'SetSizeDelta', 360, 38) tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 600, -120) tryCall(HUD_INST.keyC, 'SetVisible', true) end
-  if hudNext then
-    tryCall(hudNext, 'SetSizeDelta', 330, 40)
-    tryCall(hudNext, 'SetAnchoredPosition', gutterX, 300)
+  if HUD_INST.hud then
+    tryCall(HUD_INST.hud, 'SetSizeDelta', 348, 40) trySet(HUD_INST.hud, 'fontSize', 17)
+    tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true)
   end
-  -- v3.3 ④：引导/准备提示（hint）在双屏下上移，避免与底栏常驻操作提示叠字
-  if hint then tryCall(hint, 'SetAnchoredPosition', 0, -(halfH - 96)) tryCall(hint, 'SetSizeDelta', 720, 40) end
-  if HUD_INST.hint then tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 96)) tryCall(HUD_INST.hint, 'SetSizeDelta', 720, 40) end
-  HUD_INST.txt(keyA, 'AI 盘')
-  HUD_INST.txt(keyB, '')
-  HUD_INST.txt(keyC, '')
+  if HUD_INST.best then
+    tryCall(HUD_INST.best, 'SetSizeDelta', 330, 36) trySet(HUD_INST.best, 'fontSize', 20)
+    tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true)
+  end
+  -- ② 右栏：AI/P2 盘战况三行（x=600/宽 360 → 跨 420..780，画布右缘留 20）
+  --    行距 44（原 40 且框高 38 ⇒ 净空只剩 2px，用户读成「两行挤在一起」）；
+  --    ①行标题 18 号、②③行数据 16 号（14 号在 1600 画布上偏小，视觉上像脚注）。
+  if HUD_INST.keyA then
+    tryCall(HUD_INST.keyA, 'SetSizeDelta', 360, 40) trySet(HUD_INST.keyA, 'fontSize', 18)
+    tryCall(HUD_INST.keyA, 'SetAnchoredPosition', 600, -40) tryCall(HUD_INST.keyA, 'SetVisible', true)
+  end
+  if HUD_INST.keyB then
+    tryCall(HUD_INST.keyB, 'SetSizeDelta', 360, 40) trySet(HUD_INST.keyB, 'fontSize', 16)
+    tryCall(HUD_INST.keyB, 'SetAnchoredPosition', 600, -90) tryCall(HUD_INST.keyB, 'SetVisible', true)
+  end
+  if HUD_INST.keyC then
+    tryCall(HUD_INST.keyC, 'SetSizeDelta', 360, 40) trySet(HUD_INST.keyC, 'fontSize', 16)
+    tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 600, -134) tryCall(HUD_INST.keyC, 'SetVisible', true)
+  end
+  -- ③「下一个」标签：贴预览块上方（预览块实测 y 78..189，标签中心 215、框高 44、valign=Middle）
+  if hudNext then
+    tryCall(hudNext, 'SetSizeDelta', 240, 44)
+    tryCall(hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
+  end
+  if HUD_INST.hudNext then
+    tryCall(HUD_INST.hudNext, 'SetSizeDelta', 240, 44)
+    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
+    tryCall(HUD_INST.hudNext, 'SetVisible', true)
+  end
+  -- ④ 引导/准备提示（hint）：中缝一行，压在底栏常驻之上（1600 画布：y=-340 → ypx770..810，
+  --    底栏常驻 ypx852..892，互不相压；宽 260 只占中缝，不再横穿两侧键位卡）
+  if hint then
+    tryCall(hint, 'SetSizeDelta', 260, 40)
+    tryCall(hint, 'SetAnchoredPosition', 0, -(halfH - 110))
+  end
+  if HUD_INST.hint then
+    tryCall(HUD_INST.hint, 'SetSizeDelta', 260, 40)
+    tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 110))
+    tryCall(HUD_INST.hint, 'SetVisible', true)
+  end
+  -- ⑤ 收口：textbox 份一律隐藏（实例份在上可见；断言只读 text/anchoredPositionX，不受影响）
+  for _, box in ipairs({ hud, best, keyA, keyB, keyC, hint, hudNext }) do
+    if box then tryCall(box, 'SetVisible', false) end
+  end
   print('layout dual')
 end
 
@@ -3157,22 +3273,32 @@ HUD_INST.build = function()
   -- v3.2 ①：botBanner/topBanner 也入双写（用户打回：PERSIST_TIP/H 提示/接管文案
   -- 被 wash 盖住——服务端 textbox 永远在实例层下，凡常驻文字一律实例份）
   -- v3.3 ②：textbox 份建完即隐藏（此前实例+textbox 双份叠字；断言读 text 字段，不受 visible 影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
     local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
     if ok and c then
       c.name = 'i' .. nm
       local isBanner = (nm == 'botBanner' or nm == 'topBanner')
-      local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700 or 640)
+      local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700) or (nm == 'hudNext' and 240) or 640
       local fs = isBanner and 22 or 20
+      if nm == 'hudNext' then fs = 22 end
       trySet(c, 'fontSize', fs)
       trySet(c, 'fontColor', THEME.textMain)
-      c:SetSizeDelta(w, math.floor(fs * 1.45 + 8))   -- v2.9 ①/v3.2 ②：宽按最长文案、高按框高判据
+      -- v3.5 ④：hudNext 也要够高（22 号框高判据 35.9，取 44 留余量；valign=Middle 防顶部裁字）
+      -- v3.5 ⑧：横幅实例的框高必须按它**实际字号**算——topBanner 排的是 34 号（需 53.3），
+      -- 原来按 22 号算成 39 ⇒ 出图判据报 `itopBanner 框=1480x39 需高=53.3 fits=false` 整行裁字。
+      local hh = (nm == 'hudNext') and 44
+        or ((nm == 'topBanner') and 64)
+        or ((nm == 'botBanner') and 48)
+        or math.floor(fs * 1.45 + 8)
+      c:SetSizeDelta(w, hh)   -- v2.9 ①/v3.2 ②：宽按最长文案、高按框高判据
       HUD_INST[nm] = c
       -- v3.3 ③：keyA-C 常驻文案最长 24 全角（PERSIST_TIP 整串），20 号需 ~480px > 框宽
       -- → 实例份字号降 14（需 336px < 360-4），fits 判据过；textbox 份字号不变（仅断言）
       if nm == 'keyA' or nm == 'keyB' or nm == 'keyC' then
         trySet(c, 'fontSize', 14)
       end
+      -- v3.5 ④：所有 HUD 实例统一 垂直居中（模板缺省 Top 会裁掉字形顶部）
+      trySet(c, 'verticalAlignment', 'Middle')
       made = made + 1
     end
   end
@@ -3185,14 +3311,46 @@ HUD_INST.build = function()
   if HUD_INST.botBanner then
     tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 28))
   end
+  -- v3.5 ④：「下一个」标签实例摆到预览块正上方（预览块实测 y 78..189，标签中心 215 不压块）
+  -- 为什么贴在预览块上而不是屏幕右上：原 (RIGHT_CX, halfH-150) 离预览块 90px，读起来像独立标题。
+  if HUD_INST.hudNext then
+    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or 570, 255)
+  end
   -- v3.3 ②：textbox 份隐藏防双份（实例在上可见；断言只读 text 字段不受影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
     local box = (nm == 'hud' and hud) or (nm == 'best' and best) or (nm == 'keyA' and keyA)
       or (nm == 'keyB' and keyB) or (nm == 'keyC' and keyC) or (nm == 'botBanner' and botBanner)
-      or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint)
+      or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint) or (nm == 'hudNext' and hudNext)
     if box then tryCall(box, 'SetVisible', false) end
   end
   print('hud inst n=' .. made .. ' (textbox hidden)')
+end
+
+-- v3.5 ④：标题页/回菜单把 HUD 实例整体下架（`SetVisible(false)` 在真机对运行时实例不一定生效
+-- ⇒ 同时挪到画布外 y=-4000 兜底；进局由 startIfWaiting 把「位 + 显」一起还原）
+HUD_INST.hideAll = function()
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
+    local inst = HUD_INST[nm]
+    if inst then
+      tryCall(inst, 'SetVisible', false)
+      tryCall(inst, 'SetAnchoredPosition', 0, -4000)
+    end
+  end
+end
+-- v3.5 ⑥：只下架「战况列」（结算遮罩半透明，那几行会从面板外透出来）；
+-- 横幅保留——结算层建不出来时走 topBanner/botBanner 兜底文案，把横幅一起藏掉等于兜底全黑。
+HUD_INST.hideStats = function()
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'hint', 'hudNext' }) do
+    local inst = HUD_INST[nm]
+    if inst then tryCall(inst, 'SetVisible', false) end
+  end
+end
+-- 与 hideStats 对称：结算期下架的站况列重新上架（casual 重开不走 startIfWaiting，必须显式还原）
+HUD_INST.showStats = function()
+  for _, nm in ipairs({ 'hud', 'best', 'hint', 'hudNext' }) do
+    local inst = HUD_INST[nm]
+    if inst then tryCall(inst, 'SetVisible', true) end
+  end
 end
 
 -- v2.6 ①：按模式生成常驻提示并显示（20 号次文字色，单行不动）
@@ -3348,6 +3506,13 @@ restartMatch = function()
   settleDestroy()
   if mode == 'casual' then
     newGame()
+    -- v3.5 ⑥：结算期下架的战况列在这里必须显式上架——casual 重开只走 newGame，
+    -- 不经过 startIfWaiting/layoutDual（那两条才负责还原显隐）⇒ 漏这一步 = 重开后 HUD 整片空白。
+    if HUD_INST.showStats then HUD_INST.showStats() end
+    -- 同一处把常驻文案也补回来：结算时 setText(botBanner,'')/清 hint，重开若只 newGame，
+    -- 底栏键位提示与左侧「堆满一行即消除」就一直空着（casual 重开不走 startIfWaiting）。
+    setText(hint, '堆满一行即消除')
+    showPersistTip()
   else
     for i = 1, #DUAL_DECO do
       if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
@@ -3917,7 +4082,13 @@ layout = function(W, H)
   place(hud, leftCX, 40, panelW + 40, 40)            -- 20 号：22 号时尾部一个字被裁，实测
   place(best, leftCX, -10, panelW, 36)               -- 20 号
   place(hint, leftCX, -95, panelW, 150)              -- 22 号
-  place(hudNext, rightCX, halfH - 150, 200, 40)      -- 22 号
+  -- v3.5 ④：「下一个」贴在预览块正上方（预览块实测 y 78..189）——原 halfH-150 在 1600 画布上
+  -- 离块 90px 且 valign=Top 裁掉字形顶部；改 y=215 + 框高 44 + valign=Middle（UI_STYLE）
+  place(hudNext, rightCX, 255, 200, 44)              -- 22 号
+  if HUD_INST.hudNext then
+    tryCall(HUD_INST.hudNext, 'SetSizeDelta', 200, 44)
+    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', rightCX, 255)
+  end
   place(keyA, rightCX, -40, panelW, 38)              -- 22 号
   place(keyB, rightCX, -80, panelW, 38)              -- 22 号
   place(keyC, rightCX, -120, panelW, 38)             -- 22 号
@@ -3943,6 +4114,24 @@ layout = function(W, H)
   place(topBanner, 0, halfH - 36, W - 180, 64)
   -- 底行：结算 26 号（需 41.7）、入场呼吸 22~23 号 ⇒ 给 48
   place(botBanner, 0, -(halfH - 28), W - 180, 48)
+  -- v3.5 ②：实例份与 textbox 份同位（真机层序铁律 ⇒ 看得见的文字只能是实例份；
+  -- textbox 份保持同步只为断言读 text/anchoredPositionX。这里补齐单屏位，双屏位由 layoutDual 覆盖）
+  local function placeInst(nm, x, y, w, h, fs)
+    local inst = HUD_INST[nm]
+    if not inst then return end
+    if w then tryCall(inst, 'SetSizeDelta', w, h) end
+    if fs then trySet(inst, 'fontSize', fs) end
+    tryCall(inst, 'SetAnchoredPosition', x, y)
+  end
+  placeInst('hud', leftCX, 40, panelW + 40, 40, 20)
+  placeInst('best', leftCX, -10, panelW, 36, 20)
+  placeInst('hint', leftCX, -95, panelW, 150, 22)
+  placeInst('hudNext', rightCX, 255, 240, 44, 22)
+  placeInst('keyA', rightCX, -40, panelW, 38, 22)
+  placeInst('keyB', rightCX, -80, panelW, 38, 22)
+  placeInst('keyC', rightCX, -120, panelW, 38, 22)
+  placeInst('topBanner', 0, halfH - 36, W - 180, 64, 34)
+  placeInst('botBanner', 0, -(halfH - 28), W - 180, 48, 22)
 
   if g.settleReady then layoutSettle(W, H) end
   -- 抖动状态必须能被 layout 覆盖后复位：重排后基准坐标仍是创建时那套，直接停抖并写回基准
@@ -4115,9 +4304,9 @@ function OnStart()
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
   pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
   -- v2.9 ③：标题页藏 HUD 实例（左下角漏「等级 1 已填 0」——stage0 只看展台）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC' }) do
-    if HUD_INST[nm] then tryCall(HUD_INST[nm], 'SetVisible', false) end
-  end
+  -- v3.5 ④：含 hudNext/横幅/提示走统一 hideAll（真机 SetVisible(false) 对运行时实例不一定生效
+  -- ⇒ 同时挪到画布外 y=-4000；进局由 startIfWaiting「位+显」一起还原）
+  if HUD_INST.hideAll then HUD_INST.hideAll() end
 
   -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
   -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
@@ -4684,12 +4873,21 @@ function OnUpdate(dt)
           destroyCountBig()
           setText(topBanner, '')
           setText(botBanner, '')
+          setText(hint, '')                 -- v3.5 ③：倒计时结束即清准备提示（否则「等待 P1 准备…」留到对局期）
           -- v2.2 ①：引导结束，keyA/keyB 从盘下说明位复位回战况位（layout 全量+双屏重摆）
           if G[2] and CANVAS_W and CANVAS_H then
             pcall(layout, CANVAS_W, CANVAS_H)
             layoutDual()
           end
           renderHud()
+          -- v3.5 ⑦：对家盘 HUD 立刻刷一次——右栏此前要等 AI 落子（spawn→renderHud）才从
+          -- 「P1 准备好了 ✓」变成「AI 盘」，对局前 0.5~2s 里右栏是准备期残留文案（用例 25 实测）。
+          if G[2] then
+            local saveG = g
+            g = G[2]
+            renderHud()
+            g = saveG
+          end
           showPersistTip()             -- v2.6 ① 双屏常驻提示
           print('guide start')
           print('guide stage=1')
