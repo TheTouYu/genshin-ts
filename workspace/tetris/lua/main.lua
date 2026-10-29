@@ -1699,6 +1699,31 @@ local function aiRange(lo, hi) return lo + (hi - lo) * (aiRand(1000) / 1000) end
 local function aiFmt(x) return string.format('%.2f', x) end
 
 -- 堆叠高度：最高一列已填的行数（0 = 空盘）
+-- v4.0 ④：靠墙井深（1 列宽）——留 I 块四消的前提条件。
+-- 只看两侧靠墙列：depth = 邻列高度 - 本列高度（>0 才是井）。
+local function colHeight(c)
+  if not g.board then return 0 end
+  for r = 1, ROWS do
+    if g.board[r][c] ~= 0 then return ROWS - r + 1 end
+  end
+  return 0
+end
+
+local function wellDepth()
+  if not g.board then return 0 end
+  local h = {}
+  for c = 1, COLS do
+    h[c] = 0
+    for r = 1, ROWS do
+      if g.board[r][c] ~= 0 then h[c] = ROWS - r + 1 break end
+    end
+  end
+  -- 右墙井（第 COLS 列）：只算这一侧，与 AI 选井口径一致（左墙第 1 列填不到 I，见 aiTickCore 注释）
+  local d = h[COLS - 1] - h[COLS]
+  if d < 0 then d = 0 end
+  return d
+end
+
 local function stackHeight()
   for r = 1, ROWS do
     for c = 1, COLS do
@@ -1824,9 +1849,51 @@ local function evalBoard(cells, x)
     local d = nb - heights[c]
     if d > 0 then cw = cw + d * (d + 1) / 2 end
   end
-  local BW = NUM.BW
-  return BW.LH * lh + BW.ER * epc + BW.RT * rt + BW.CT * ct
-    + BW.HO * holes + BW.CW * cw + BW.HD * hdepth + BW.RH * rowsWithHoles, top, complete
+  -- v4.0 ④：easy 档走**简化评估**（"想得少"，不是"故意摆错"——后者是用户点名反对的）
+  local BW = NUM.AI_SIMPLE and NUM.BW_SIMPLE or NUM.BW
+  -- v4.0 ④-b：留井模式（AI_WELL>0）下**宽容井惩罚**——BCTS 的 CW=-10.49 会让"保留 4 深井"
+  -- 付出 -105 分，任何留井奖励都抵不过 ⇒ AI 永远不敢攒井打四消（实测 120 块 0 次四消）。
+  -- 缩到 35% 后，I 块四消的正收益（ER=+6.6×4行×4格=+105.6 加 attack 加成）才压得住。
+  local cwW = BW.CW
+  if (NUM.AI_WELL or 0) > 0 then cwW = cwW * 0.35 end
+  local sc = BW.LH * lh + BW.ER * epc + BW.RT * rt + BW.CT * ct
+    + BW.HO * holes + cwW * cw + BW.HD * hdepth + BW.RH * rowsWithHoles
+  -- ④-a 多消行（对抗模式）：对手快死时把 2+ 行的收益按 n² 放大 ⇒ AI 才会"攒着一次消"造垃圾
+  local atk = NUM.AI_ATK or 0
+  if atk > 0 then
+    if complete and complete >= 2 then
+      sc = sc + atk * complete * complete
+    end
+    -- ④-a2 **攒行**：把"9/10 格满的行"当资产。1-ply 看不到"下一块就能消 2 行"，
+    -- 只能给"接近满行"直接加分 ⇒ AI 才肯把多行同时推到临门一脚。
+    local nearFull = 0
+    for rr = 1, ROWS do
+      local empty = 0
+      for c = 1, COLS do if sim[rr][c] == 0 then empty = empty + 1 end end
+      if empty == 1 then nearFull = nearFull + 1 end
+    end
+    if nearFull > 0 then sc = sc + atk * 0.9 * nearFull end
+  end
+  -- ④-b 留井：靠墙 1 列宽、深 ≥3 的井是 I 块四消的落点（给一点正向分，避免 AI 顺手填平）
+  local wellW = NUM.AI_WELL or 0
+  if wellW > 0 then
+    local dl = (heights[2] or 0) - (heights[1] or 0)
+    local dr = (heights[COLS - 1] or 0) - (heights[COLS] or 0)
+    if dl >= 3 or dr >= 3 then sc = sc + wellW end
+    -- ④-c 井纪律：指定井列除非"这一手直接四消"，否则不许往里放块。
+    -- 为什么必须硬约束：1-ply 评估看不到"攒 4 行再放 I"的收益，只能像人一样先占住一列不用。
+    local wc, base = NUM.AI_WELLCOL or 0, NUM.AI_WELLBASE or 0
+    if wc > 0 then
+      local afterH = 0
+      for rr = 1, ROWS do
+        if sim[rr][wc] ~= 0 then afterH = ROWS - rr + 1 break end
+      end
+      if afterH > base and not (complete and complete >= 3) then
+        sc = sc - 45
+      end
+    end
+  end
+  return sc, top, complete
 end
 
 -- [v1 时代的旧 El-Tetris 评估体已整体替换为上方 BCTS；evalNext（第二层零分配版）
@@ -3748,9 +3815,58 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
   end
   if not g.piece or not g.board then return false end
   local lv = NUM.AI_LEVELS[lvIdx or NUM.AI_LEVEL] or NUM.AI_LEVELS[2]
+  -- ===== v4.0 ④ AI 能力重构（用户 2026-10-29 第 4 点）=====
+  -- ① 每块用时按**当前等级速度**现算（旧实现是档位常数 1.0~2.2s ⇒ 高速档被自己的节奏拖死）
+  -- ② 观测下限随速度收紧（obsMin 也必须让位，否则再快也被观察段吃掉）
+  -- ③ 对抗模式：对手最高列 ≥ attackHeight ⇒ attack=true，多消行 + 留井权重上线
+  -- ④ easy 档走简化评估（NUM.AI_SIMPLE），不再注入"故意失误"
+  local tune = NUM.AI_TUNE or {}
+  local tier = lv.tier or 2
+  local pace = NUM.aiPace(tier, g.level)
+  local obsMin = lv.obsMin or 0.30
+  if obsMin > pace * 0.45 then obsMin = pace * 0.45 end
+  local pieceMax = lv.pieceMax or 2.0
+  if pieceMax > pace * 1.40 then pieceMax = pace * 1.40 end
+  local pieceMin = lv.pieceMin or 0.6
+  if pieceMin > pace * 0.75 then pieceMin = pace * 0.75 end
+  local opp = (g == G[2]) and G[1] or G[2]
+  local oppH = 0
+  if opp and opp.board then
+    for r = 1, ROWS do
+      local hitRow = false
+      for c = 1, COLS do
+        if opp.board[r][c] ~= 0 then hitRow = true break end
+      end
+      if hitRow then oppH = ROWS - r + 1 break end
+    end
+  end
+  local atkOn = oppH >= (tune.attackHeight or 8)
+  if g.AI.atk ~= atkOn then
+    g.AI.atk = atkOn
+    print('ai attack=' .. tostring(atkOn) .. ' oppH=' .. tostring(oppH) .. ' tier=' .. tostring(tier))
+  end
+  NUM.AI_ATK = atkOn and ((tune.attackBonus or 9) * (tier / 3)) or 0
+  -- 井模式**只在对抗进攻态开**（用户原话：「积累然后一次消除更多的行来给对手制造垃圾」）：
+  -- 单人对局没有对手，攒井只会降低自己的容错 ⇒ 那时保持干净盘面（ρ 不损失）。
+  NUM.AI_WELL = (atkOn and tune.saveI and tune.saveI[tier]) and ((tune.attackBonus or 9) * 0.7) or 0
+  -- ⚠ 井列只能取**右墙第 COLS 列**：I 块竖放时占的是"盒内第 2 列"，x∈[1,COLS-1] ⇒ 真正能填的
+  -- 列是 2..COLS，第 1 列根本填不到（2026-10-29 实测：选左墙井 ⇒ 永远等不到四消）。
+  if NUM.AI_WELL > 0 and tune.wellPlan then
+    NUM.AI_WELLCOL, NUM.AI_WELLBASE = COLS, colHeight(COLS)
+  else
+    NUM.AI_WELLCOL, NUM.AI_WELLBASE = 0, 0
+  end
+  NUM.AI_SIMPLE = (lv.simple == true)
+  if NUM.AI_WELL > 0 then
+    g.AI.wellDbg = (g.AI.wellDbg or 0) + 1
+    if g.AI.wellDbg % 5 == 1 then
+      print('ai well col=' .. tostring(NUM.AI_WELLCOL) .. ' base=' .. tostring(NUM.AI_WELLBASE)
+        .. ' depth=' .. tostring(wellDepth()))
+    end
+  end
   if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
     g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
-    g.AI.wait = aiRange(lv.obsMin, AI_OBSERVE_MAX)
+    g.AI.wait = aiRange(obsMin, AI_OBSERVE_MAX)
   end
   g.AI.t = g.AI.t + dt
   g.AI.dur = g.AI.dur + dt
@@ -3867,7 +3983,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
         end
         FN.aiDrop()                              -- 与玩家「空格直落」同一条落子路径
         g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
-        g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+        g.AI.t, g.AI.wait = 0, aiRange(obsMin, AI_OBSERVE_MAX)
         return true
       end
       g.AI.search = { plan = plan, idx = 1, best2 = nil, bestScore = nil,
@@ -3875,20 +3991,25 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       g.AI.piece = g.piece
       g.AI.dur = 0
       g.AI.t = 0
-      g.AI.wait = lv.obsMin + 0.10
+      g.AI.wait = obsMin + 0.10
       return
     end
     if g.AI.search and not g.AI.search.done then
       refineSearch()
       if not g.AI.search.done then
-        if g.AI.t < lv.obsMin + 0.10 then return end
+        if g.AI.t < obsMin + 0.10 then return end
         g.AI.search.done = true          -- 超时收敛：用当前已精化最优（保底仍在）
       end
     end
     if g.AI.search and not g.AI.search.holdChecked then
       g.AI.search.holdChecked = true
-      -- T5 hold 第三分支（hard 档）：换出块在当前盘面的 1-ply 最优 > 留守 2-ply 值 + 0.3 才换
-      -- （复用 NUM.doHold 同一执行路径——lead 指示别另写一套换块逻辑）
+      -- v4.0 ④ hold（用户：「和 AI 对抗的过程中，发现 AI 不太会使用暂存来提高水平」）
+      -- 旧实现只有 hard 档开 hold、阈值写死 1.5（1-ply 分数量级下几乎不会触发）。现在：
+      --   ① 全档开启（NUM.AI_LEVELS[*].hold = 1），阈值按档位给（NUM.AI_TUNE.holdMargin）
+      --   ② 多一条**留 I 块**策略：靠墙井已挖到 ≥wellDepth 且槽空、当前块是 I ⇒ 先存起来等四消
+      --      （这是"会多消行"的另一半——光有分数权重还不够，得真的把 I 块留住）
+      -- 两条都复用 NUM.doHold 同一执行路径（不另写换块逻辑）。
+      local holdMargin = (tune.holdMargin and tune.holdMargin[tier]) or 1.2
       if lv.hold > 0 and g.st.can then
         local altS = SHAPES[g.st.name or g.nextName or 'T']
         local cells = altS.cells
@@ -3902,9 +4023,28 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
           end
           cells = rotateCells(cells, altS.n)
         end
-        local stay = g.AI.search.plan.best1.score   -- 同口径 1-ply vs 1-ply（2-ply 值含负向回应分，恒偏小）
-        if bestAlt and bestAlt > stay + 1.5 then
+        local stay = g.AI.search.plan.best1.score   -- 同口径 1-ply vs 1-ply
+        if bestAlt and bestAlt > stay + holdMargin then
           g.AI.search.doHoldAfter = true
+          print('ai hold why=better gain=' .. aiFmt(bestAlt - stay) .. ' tier=' .. tostring(tier))
+        end
+        -- 留 I 块（attack 模式）：井快成型 + 手里是 I ⇒ 存进槽（槽里是别的块就先换出来摆掉）
+        if (not g.AI.search.doHoldAfter) and tune.saveI and tune.saveI[tier]
+          and g.piece and g.piece.name == 'I' then
+          local wd = wellDepth()
+          if wd >= (tune.wellDepth or 4) - 1 and (g.st.name ~= 'I') then
+            g.AI.search.doHoldAfter = true
+            print('ai hold why=saveI well=' .. tostring(wd) .. ' slot=' .. tostring(g.st.name or '-'))
+          end
+        end
+        -- 井已够深 + 槽里正躺着 I ⇒ 换出 I 立刻四消（这是"会利用多消行"的最后一环）
+        if (not g.AI.search.doHoldAfter) and tune.saveI and tune.saveI[tier]
+          and g.st.name == 'I' and g.piece and g.piece.name ~= 'I' then
+          local wd = wellDepth()
+          if wd >= (tune.wellDepth or 4) then
+            g.AI.search.doHoldAfter = true
+            print('ai hold why=fireI well=' .. tostring(wd))
+          end
         end
       end
       if g.AI.search.doHoldAfter then
@@ -3914,25 +4054,15 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       end
     end
     if not g.AI.queue then
-      -- 定稿：2-ply 最优（超时退 1-ply best）→ 失误注入（topK 池按分加权）→ buildQueue（拟人外壳不变）
+      -- v4.0 ④：每块打一条节奏读数（用例按它断言"等级越高每块用时越短"）
+      print('ai pace tier=' .. tostring(tier) .. ' lv=' .. tostring(g.level)
+        .. ' pace=' .. aiFmt(pace) .. ' obs=' .. aiFmt(obsMin) .. ' atk=' .. tostring(atkOn))
+      -- 定稿：2-ply 最优（超时退 1-ply best）→ buildQueue（拟人外壳不变）
+      -- v4.0 ④：**故意失误注入已废除**（用户原话「明显的故意制造错误来达到降智商，这个更蠢」）。
+      -- 弱档的"弱"由 simple 简化评估 + 更长的每块用时体现，不再采样次优位。
       local S = g.AI.search
       local final = S.plan.best1
       if S.best2 and S.done then final = S.best2 end
-      if lv.pMistake > 0 and #S.plan.sorted > 1 and aiRand(100) <= lv.pMistake then
-        local pool = {}
-        for i = 2, math.min(lv.topK, #S.plan.sorted) do pool[#pool + 1] = S.plan.sorted[i] end
-        if #pool > 0 then
-          local minS = S.plan.sorted[#S.plan.sorted].score
-          local sum = 0
-          for _, c in ipairs(pool) do sum = sum + math.max(c.score - minS + 0.01, 0.01) end
-          local r = aiRand(1000) / 1000 * sum
-          local acc = 0
-          for _, c in ipairs(pool) do
-            acc = acc + math.max(c.score - minS + 0.01, 0.01)
-            if r <= acc then final = c; break end
-          end
-        end
-      end
       local probe = g.piece.cells
       for _ = 1, final.rot - 1 do probe = rotateCells(probe, g.piece.n or 4) end
       local ly = 1
@@ -3942,7 +4072,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       g.AI.queue, g.AI.info, g.AI.qi = q, info, 1
       local rest = 0
       for _, a in ipairs(q) do rest = rest + (a.wait or 0) end
-      local target = aiRange(lv.targetLo, lv.targetHi)
+      local target = aiRange(pace * 0.85, pace)   -- v4.0 ④：目标用时随速度收紧
       g.AI.softPer = 0
       local dropKind = 'hard'
       if aiRand(100) <= 50 then dropKind = 'soft' end
@@ -3958,11 +4088,11 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       end
       -- 观察时长 = 目标总时长 - 其余各段；下限 obsMin（高难 0.55 覆盖精化帧数）、上限 1.2s
       -- 兜底：软降 + 长距离 + 多动作会让整块超过 pieceMax+0.2 ⇒ 这一块改成硬降（人也常常直接按到底）
-      if dropKind == 'soft' and (rest + dropTime + lv.obsMin) > lv.pieceMax + 0.2 then
+      if dropKind == 'soft' and (rest + dropTime + obsMin) > pieceMax + 0.2 then
         dropKind, dropTime, g.AI.softPer = 'hard', 0, 0
       end
       local think = target - rest - dropTime
-      if think < lv.obsMin then think = lv.obsMin end
+      if think < obsMin then think = obsMin end
       if think > 1.2 then think = 1.2 end
       g.AI.wait = think
       g.AI.t = 0
@@ -4072,17 +4202,17 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       end
       if not canFall then
         -- 落地后若这块太快（< 档位 pieceMin），落定前再停一下（像人抬手前确认一下）
-        if g.AI.dur < lv.pieceMin then return end
+        if g.AI.dur < pieceMin then return end
         FN.aiDrop()
         g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
-        g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+        g.AI.t, g.AI.wait = 0, aiRange(obsMin, AI_OBSERVE_MAX)
       end
       return
     end
-    if g.AI.dur < lv.pieceMin then return end       -- 太快就再停一下（同软降）
+    if g.AI.dur < pieceMin then return end       -- 太快就再停一下（同软降）
     FN.aiDrop()                                     -- 硬降
     g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
-    g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
+    g.AI.t, g.AI.wait = 0, aiRange(obsMin, AI_OBSERVE_MAX)
   end
   return true
 end
@@ -4090,7 +4220,9 @@ end
 -- stage0 入场自演入口（守卫版）：休闲接管/双屏 AI 走 OnUpdate/T6 入口直接调 aiTickCore
 autoTick = function(dt)
   if guideStage ~= 0 then return end
-  FN.aiTickCore(dt, 'demo', 3)          -- v2.5：stage0 自演=演示，恒 hard（最强摆位）
+  -- v2.5：stage0 自演=演示，默认最强摆位。v4.0 起改成读 NUM.AI_LEVEL（默认 3=hard）：
+  -- 这样调试切档键（SwitchToWalkOrRun）对**自演**也生效，用例才能分别量到三档的真实 ρ。
+  FN.aiTickCore(dt, 'demo', NUM.AI_LEVEL or 3)
 end
 
 --------------------------------------------------------------------------------
@@ -4635,6 +4767,13 @@ function OnStart()
     end
   end
   IS_MOBILE = isMobile     -- v2.7：菜单选择/热区等模块级函数要读它（local 外提一份）
+  -- v4.0 ④：AI 调参锚（用例断言"三档都不再故意失误"）
+  do
+    local lv1, lv2, lv3 = NUM.AI_LEVELS[1], NUM.AI_LEVELS[2], NUM.AI_LEVELS[3]
+    print('ai tune pMistake=' .. tostring(lv1.pMistake) .. ',' .. tostring(lv2.pMistake) .. ',' .. tostring(lv3.pMistake)
+      .. ' hold=' .. tostring(lv1.hold) .. ',' .. tostring(lv2.hold) .. ',' .. tostring(lv3.hold)
+      .. ' simple=' .. tostring(lv1.simple) .. ' paceK=' .. table.concat(NUM.AI_TUNE and NUM.AI_TUNE.paceK or {}, ','))
+  end
 
   -- 模板 guid 探测（双宿主）：先 cell（image，无光标事件）再 hit（cursor，有光标事件）
   local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)

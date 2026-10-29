@@ -1,68 +1,68 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "13 AI 自演完整链路（计分/HUD/消行音/抖屏；best 不收 AI 分）",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [
-    {
-      "t": 46,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey1Down"
-    },
-    {
-      "t": 46,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey1Up"
-    }
-  ],
-  "asserts": [
-    {
-      "at": 34.5,
-      "kind": "log",
-      "contains": "demo clear n=1 aiScore=100 aiLines=1 combo=1 b2b=0",
-      "source": "client"
-    },
-    {
-      "at": 34.5,
-      "kind": "log",
-      "contains": "shake rows=1 amp=7 dur=0.18",
-      "source": "client"
-    },
-    {
-      "at": 45,
-      "kind": "control",
-      "name": "hud",
-      "field": "text",
-      "equals": "得分 950　消行 9　等级 1　已填 6"
-    },
-    {
-      "at": 46.6,
-      "kind": "log",
-      "contains": "guide stage=1",
-      "source": "client"
-    },
-    {
-      "at": 46.6,
-      "kind": "control",
-      "name": "hud",
-      "field": "text",
-      "equals": "得分 0　消行 0　等级 1　已填 10"
-    },
-    {
-      "at": 46.6,
-      "kind": "control",
-      "name": "best",
-      "field": "text",
-      "equals": "最高 0"
-    }
-  ],
-  "audioExpect": [
-    50917,
-    50872
-  ],
-  "audioExclude": [
-    50929
-  ],
-  "note": "v2.5：默认档改 hard 且 stage0 自演恒 hard（aiTickCore 第三参强制，演示即最强）——首消提前到 7.7s，45s 内消 9 行、盘面已填 6（极净）；hold 音 50883 出现（hard hold 生效实证）。"
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "13 AI 自演完整链路（计分/HUD/消行音/抖屏；best 不收 AI 分）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  {
+   "t": 46,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
+  },
+  {
+   "t": 46,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 34.5,
+   "kind": "log",
+   "contains": "demo clear n=1 aiScore=100 aiLines=1 combo=1 b2b=0",
+   "source": "client"
+  },
+  {
+   "at": 34.5,
+   "kind": "log",
+   "contains": "shake rows=1 amp=7 dur=0.18",
+   "source": "client"
+  },
+  {
+   "at": 45,
+   "kind": "control",
+   "name": "hud",
+   "field": "text",
+   "equals": "得分 1150　消行 11　等级 1　已填 10"
+  },
+  {
+   "at": 46.6,
+   "kind": "log",
+   "contains": "guide stage=1",
+   "source": "client"
+  },
+  {
+   "at": 46.6,
+   "kind": "control",
+   "name": "hud",
+   "field": "text",
+   "equals": "得分 0　消行 0　等级 1　已填 4"
+  },
+  {
+   "at": 46.6,
+   "kind": "control",
+   "name": "best",
+   "field": "text",
+   "equals": "最高 0"
+  }
+ ],
+ "audioExpect": [
+  50917,
+  50872
+ ],
+ "audioExclude": [
+  50929
+ ],
+ "note": "v2.5：默认档改 hard 且 stage0 自演恒 hard（aiTickCore 第三参强制，演示即最强）——首消提前到 7.7s，45s 内消 9 行、盘面已填 6（极净）；hold 音 50883 出现（hard hold 生效实证）。"
 }

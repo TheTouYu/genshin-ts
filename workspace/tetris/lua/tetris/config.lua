@@ -75,23 +75,39 @@ local NUM = {
   BW = { LH = -12.63, ER = 6.60, RT = -9.22, CT = -19.77,
          HO = -13.08, CW = -10.49, HD = -1.61, RH = -24.04 },
   nxFull = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- T5 性能修复：evalNext scratch（1-4 满行行号；11-20 各列高度）
+  -- v4.0 ④：三档 = 难度分层的**唯一真源**（用户 2026-10-29：「玩家可以用的 AI 太蠢，而且还有明显的
+  -- 故意制造错误来达到降智商，这个更蠢」）。三条设计原则：
+  --   ① **不装傻**：pMistake / nudgePct 全档归零（旧实现 easy 25% 故意摆次优位 + 30% 软降横调，
+  --      玩家一眼看出来"AI 在送"。弱档要弱在"想得少"——simple=true 走简化评估，错得自然）。
+  --   ② **不跟不上**：每块用时不再写死，由 NUM.aiPace(档位, 当前等级) 按**当前重力速度**现算
+  --      （等级越高速度越快 ⇒ AI 每块用时越短；旧实现是常数 1.0~2.2s/块，高速档反被自己的节奏拖死）。
+  --   ③ **会用暂存**：hold 全档开启（旧实现只有 hard 有），阈值按档位给（NUM.AI_TUNE.holdMargin）。
   AI_LEVELS = {
-    { name = 'easy',   ply = 1, hold = 0, pMistake = 25, topK = 8, nudgePct = 30,
-      pieceMin = 2.2, pieceMax = 3.8, moveMin = 0.10, moveMax = 0.30,
-      obsMin = 0.30, targetLo = 2.6, targetHi = 4.0 },
-    { name = 'normal', ply = 1, hold = 0, pMistake = 8, topK = 3, nudgePct = 30,
-      pieceMin = 1.5, pieceMax = 3.2, moveMin = 0.08, moveMax = 0.25,
-      obsMin = 0.30, targetLo = 1.8, targetHi = 3.2 },
-    { name = 'hard',   ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
-      pieceMin = 0.9, pieceMax = 2.2, moveMin = 0.06, moveMax = 0.18,
-      obsMin = 0.55, targetLo = 1.0, targetHi = 2.2 },
+    { name = 'easy',   tier = 1, ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+      pieceMin = 1.20, pieceMax = 3.00, moveMin = 0.10, moveMax = 0.30,
+      obsMin = 0.30, targetLo = 2.00, targetHi = 2.60, simple = true },
+    { name = 'normal', tier = 2, ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+      pieceMin = 0.80, pieceMax = 2.40, moveMin = 0.08, moveMax = 0.25,
+      obsMin = 0.30, targetLo = 1.40, targetHi = 2.00 },
+    { name = 'hard',   tier = 3, ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+      pieceMin = 0.55, pieceMax = 1.60, moveMin = 0.05, moveMax = 0.16,
+      obsMin = 0.30, targetLo = 0.80, targetHi = 1.20 },
   },
+  -- 简化评估权重（easy 档用）：只看"别堆太高 / 能消行 / 少留洞"，没有 transition/well 那些精修项。
+  -- 这不是随机化，是"想得少"——比"故意摆错"诚实，也比随机强得多。
+  BW_SIMPLE = { LH = -1.00, ER = 1.00, RT = 0, CT = 0, HO = -0.35, CW = 0, HD = 0, RH = 0 },
   -- T5 评估特征补强（Dellacherie；与 El-Tetris 四权重同表共存，docs/v2-ai-design.md §三）：
   -- rowtrans/coltrans = 行/列内 空实 边界数；wellsum = 井深累加 d*(d-1)/2（浅井轻罚）。
   -- 【T5 校准定论】Dellacherie 补充特征在 El-Tetris 权重系内为负贡献（对照实验 A/B/D，
   -- docs/v2-ai-design.md §三）：A=全 0 基线 ρ0.24 > B=landing(-0.30) 0.22 ≈ D=小系数 0.22。
   -- 特征计算代码保留（rowtrans/coltrans/wellsum/landing），权重 0=等效 El-Tetris 四项。
   W_ROWTRANS = 0.0, W_COLTRANS = 0.0, W_WELLSUM = 0.0, W_LANDING = 0.0,
+
+  -- 运行时钩子（aiTickCore 每块写一次；evalBoard 读）：
+  --   AI_ATK  >0 ⇒ 对抗模式多消行加成系数（消 n 行 +AI_ATK×n²）
+  --   AI_WELL >0 ⇒ 留井奖励（靠墙 1 列宽、深 ≥3 的井给 I 块四消）
+  --   AI_SIMPLE  ⇒ easy 档走 BW_SIMPLE（简化评估）
+  AI_ATK = 0, AI_WELL = 0, AI_SIMPLE = false,
 
   -- ===== T8 进阶操作（数值出处 v2-plan §三 T8；只作用于玩家输入路径——
   -- AI 的 aiDrop 即时锁定、AI 横移走自身节奏，不受下面任何参数影响）=====
@@ -129,6 +145,26 @@ local NUM = {
     { key = 'KeyboardCraftspersonKey14Down',  action = 'hold' },   -- G（与 HOLD_KEY 同键）
   },
 }
+
+-- v4.0 ④：**速度自适应的每块用时**（纯函数，tests-lua/ai_pace_test.lua 直接单测）
+-- 为什么放在表外：写在 `NUM = { ... }` 构造器里时，函数体内的 `NUM` 还不是 local（构造未完成）
+-- ⇒ 解析成全局 → 调用时报 `attempt to index a nil value (global 'NUM')`（2026-10-29 实测）。
+-- 自然坠落时长 natural = 每行秒数 × ROWS；目标用时 = natural × 档位系数，夹到 [paceMin, paceMax]。
+-- 实测曲线（hard）：Lv1 1.20s → Lv5 1.00s → Lv9 0.78s → Lv12 0.61s（等级越高越紧凑）。
+NUM.aiPace = function(tier, level)
+  local T = NUM.AI_TUNE or {}
+  local t = tier or 2
+  local spd = NUM.SPEED[level] or NUM.SPEED[NUM.LEVEL_CAP] or 30
+  local perRow = spd / 60          -- 每下落一行所需秒数（SPEED 单位=帧@60fps）
+  local natural = perRow * 20      -- ROWS=20（模块 local，这里写常量并保留注释）
+  local k = (T.paceK and T.paceK[t]) or 0.40
+  local lo = (T.paceMin and T.paceMin[t]) or 0.40
+  local hi = (T.paceMax and T.paceMax[t]) or 2.00
+  local target = natural * k
+  if target < lo then target = lo end
+  if target > hi then target = hi end
+  return target, natural, perRow
+end
 
 local function C(a, r, g, b) return a * 16777216 + r * 65536 + g * 256 + b end
 -- v3.0 浅底：空格=近白纸面（棋盘缝隙由「背板色」露出来当网格线），预览槽底=浅雾蓝，垃圾行=石板灰
@@ -737,7 +773,9 @@ NUM.PAD = {
 -- ③ 永久开启 hold（不再只有 hard 档），并把「留 I 块打多消行」写成显式策略。
 -- ④ 对抗模式：对手堆高时进入 attack 模式，多消行给额外分（垃圾行按 GARBAGE 表送出）。
 NUM.AI_TUNE = {
-  paceK   = { 0.55, 0.40, 0.26 },   -- easy / normal / hard：一块的用时占「自然坠落时长」的比例
+  -- paceK 越小 ⇒ 同一速度下 AI 越紧凑。定值依据：让 hard 在 Lv5 起就开始收紧（而非只在满级前），
+  -- 且 Lv12 仍 ≥ 0.24s（低于此值观感像"瞬移"，人手做不到）。
+  paceK   = { 0.45, 0.30, 0.18 },   -- easy / normal / hard：一块的用时占「自然坠落时长」的比例
   paceMin = { 0.55, 0.40, 0.24 },   -- 每块最短用时（秒）：再快就不像人了
   paceMax = { 2.60, 2.00, 1.20 },   -- 每块最长用时（秒）
   holdMargin = { 2.4, 1.2, 0.5 },   -- 换块收益阈值（简化评估档给大一点，免得来回换块）
@@ -745,6 +783,9 @@ NUM.AI_TUNE = {
   attackBonus = 9.0,                -- 对手危险时，每多消 1 行的额外分（消 2 行 +9、4 行 +27）
   attackHeight = 8,                 -- 对手最高列 ≥ 8 格 ⇒ 判定「对手快死了」，进入 attack 模式
   wellDepth  = 4,                   -- 留 I 块的井深阈值（1 列宽、深度 ≥ 4）
+  -- 井纪律（"指定井列不许填"）：**默认关**。实测（2026-10-29）1-ply 评估看不到"攒 4 行再放 I"的
+  -- 收益，硬约束只会让 AI 把块堆到别处、ρ 掉且四消仍打不出来 ⇒ 开关留着当后续 2-ply 的入口。
+  wellPlan   = false,
   simpleEval = { true, false, false },  -- 简化评估（只看聚合高度+消行）：弱档"想得少"，不是"故意错"
 }
 

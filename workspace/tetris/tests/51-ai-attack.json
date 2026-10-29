@@ -1,0 +1,16 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "51 v4.0 AI 重构②：AI 对抗里玩家盘堆高（≥8 格）⇒ AI 进入 attack 模式（多消行/留井权重上线）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  { "t": 0.5, "kind": "key", "typeName": "KeyboardCraftspersonKey2Down" },
+  { "t": 6.0, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+  { "t": 62.0, "kind": "key", "typeName": "KeyboardJumpKeyDown" }
+ ],
+ "asserts": [
+  { "at": 1.5, "kind": "log", "contains": "mode=ai-battle", "source": "client" },
+  { "at": 45.0, "kind": "log", "contains": "ai attack=true oppH=", "source": "client" }
+ ]
+}

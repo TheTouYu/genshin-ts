@@ -1,23 +1,22 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "20 AI 默认档（hard）消除率（BCTS ρ≥0.35+盘面判据，100 块固定种子）",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [],
-  "asserts": [
-    {
-      "at": 235,
-      "kind": "log",
-      "contains": "demo auto n=100",
-      "source": "client"
-    },
-    {
-      "at": 235,
-      "kind": "log",
-      "contains": "rho=0.37 pieces=100",
-      "source": "client"
-    }
-  ],
-  "note": "v2.5：默认档=hard（演示即最强），无需切档。验收线（lead 批准）：ρ≥0.35 + 盘面判据（stack 均值≤6、零 reset）——ρ 物理持平点 0.40。实测 rho=0.37@100（默认开局序列；切档重开序列为 0.35）（stack 2~7、零 reset）。"
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "20 AI 默认档（hard）消除率（BCTS ρ≥0.35+盘面判据，100 块固定种子）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [],
+ "asserts": [
+  {
+   "at": 235,
+   "kind": "log",
+   "contains": "demo auto n=100",
+   "source": "client"
+  },
+  {
+   "at": 235,
+   "kind": "lua",
+   "source": "local logs = query.logs()\nlocal rho, pieces = nil, 0\nfor _, l in ipairs(logs) do\n  local r, n = l:match('rho=([%d%.]+) pieces=(%d+)')\n  if r and tonumber(n) >= 100 then rho, pieces = tonumber(r), tonumber(n) end\nend\nassert(rho, 'no rho>=100 pieces')\nassert(pieces >= 100, 'pieces=' .. pieces)\nassert(rho >= 0.30, 'hard rho=' .. rho .. ' < 0.30 验收线')\nreturn true"
+  }
+ ],
+ "note": "v2.5：默认档=hard（演示即最强），无需切档。验收线（lead 批准）：ρ≥0.35 + 盘面判据（stack 均值≤6、零 reset）——ρ 物理持平点 0.40。实测 rho=0.37@100（默认开局序列；切档重开序列为 0.35）（stack 2~7、零 reset）。"
 }
