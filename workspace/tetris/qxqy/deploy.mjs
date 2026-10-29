@@ -3,12 +3,20 @@
 //          → 把注入过 guid 的 Lua 写进地图的 external_lua_file（脚本同步路径）。
 //
 // 用法：
-//   node qxqy/deploy.mjs                 只重建 + 部署
+//   node qxqy/deploy.mjs                 重建 + 铺网页工作区 + 导出目录（旧路径，仍需编辑器导入）
+//   node qxqy/deploy.mjs --device        重建 + **直写地图 .gil**（f5 内联源码 + external lua + Temp 同步）
+//                                        ⇒ 真机里切到这张图就能直接试玩，不需要编辑器导入/重挂
 //   node qxqy/deploy.mjs --calibrate     先读真机 GIL 的 cell/hit 实际 guid，写进 main.lua 候选表，再重建部署
 //   node qxqy/deploy.mjs --map 1073741834 --uid 110170759
 //
+// 为什么 --device 走 assets:scripts update 而不是复制文件：
+//   GIA 导入只会**新增**一条 main_N 脚本并把它挂到**新的**容器实例节点上；地图里真正跑的是
+//   「父 = 默认布局」的那个实例节点上挂的那条脚本（本次实测 = main_2 / guid 1073741827）。
+//   只复制 external_lua_file 里的文件不改 f5 内联源码与 Temp ⇒ 真机读到的还是旧逻辑（而且不报错）。
+//
 // 需要环境变量 GSTS_LOCALLOW_DIR（缺省按本机路径推断；须指到 .../AppData/LocalLow/miHoYo/原神）
 import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync } from 'node:fs'
+import crypto from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -113,7 +121,83 @@ if (existsSync(dirname(externalLua))) {
   }
 }
 
+// ── 直写地图（一步到位：真机切图即玩）────────────────────────────────────────
+// 步骤：①更新「默认布局里那个容器实例节点」所挂脚本的源码（f5 + external + Temp 三同步）
+//       ②四个模块脚本同步（已在登记表里就 update，不在就 register）
+//       ③读回 mounts 与 Save/Temp sha 作验收
+const MAP_ID = String(mapId)
+function runGsts(args) {
+  const cli = join(repoRoot, 'dist/src/cli/gsts.js')
+  return execFileSync(process.execPath, [cli, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, GSTS_LOCALLOW_DIR: localLow },
+    maxBuffer: 64 * 1024 * 1024
+  })
+}
+function deviceDeploy() {
+  if (!existsSync(gilPath)) throw new Error(`找不到 GIL：${gilPath}`)
+  const tmp = join(root, 'device-package', 'inject-main.lua')
+  mkdirSync(dirname(tmp), { recursive: true })
+  writeFileSync(tmp, injectedLua)
+
+  // ① 找出"默认布局里"的容器实例节点挂的是哪条脚本（不是靠名字猜：名字每导入一次就变）
+  const discoverRaw = runGsts(['assets:ui', 'container', 'discover', '--gil', gilPath, '--format', 'json'])
+  const discover = JSON.parse(discoverRaw.slice(discoverRaw.indexOf('{')))
+  const inst = (discover.instances || []).find((x) => String(x.parentId || x.parent || '') === '1073741825')
+    || (discover.instances || []).slice().sort((a, b) => (b.children?.length || 0) - (a.children?.length || 0))[0]
+  const hostId = inst?.mounts?.[0]?.hostId
+  const scriptGuid = inst?.mounts?.[0]?.scriptGuids?.[0]
+  if (!scriptGuid) throw new Error('设备部署失败：默认布局的容器实例上没有挂脚本（先导入一次 GIA 或手动挂载）')
+  const listRaw = runGsts(['assets:scripts', 'list', '--gil', gilPath])
+  const scriptName = (listRaw.match(new RegExp(`guid=${scriptGuid} name=(\\S+)`)) || [])[1]
+  if (!scriptName) throw new Error(`设备部署失败：登记表里找不到 guid=${scriptGuid}`)
+  console.log(`设备部署：布局实例=${inst.name || '?'} node=${hostId} → 脚本 ${scriptName}(guid=${scriptGuid})`)
+  const upd = runGsts(['assets:scripts', 'update', '--gil', gilPath, '--name', scriptName,
+    '--source-file', tmp, '--map-id', MAP_ID, '--write'])
+  for (const line of upd.split('\n')) if (/sourceBytes|temp-sync|backup=|writePerformed/.test(line)) console.log('  ' + line.trim())
+
+  // ② 模块脚本（require 按路径读 external，但登记表里同步一份更稳）
+  const mods = [['tetris_config', 'config.lua'], ['tetris_widgets', 'widgets.lua'],
+    ['tetris_audio', 'audio.lua'], ['tetris_skills', 'skills.lua']]
+  for (const [name, file] of mods) {
+    const src = join(root, 'lua/tetris', file)
+    if (!existsSync(src)) continue
+    const registered = listRaw.includes(`name=${name} `)
+    const base = ['--gil', gilPath, '--name', name, '--source-file', src, '--map-id', MAP_ID, '--write']
+    if (registered) {
+      runGsts(['assets:scripts', 'update', ...base])
+      console.log(`  模块更新 ${name}`)
+    } else {
+      runGsts(['assets:scripts', 'register', '--gil', gilPath, '--name', name,
+        '--path', `lua/tetris/${file}`, '--source-file', src, '--map-id', MAP_ID, '--write'])
+      console.log(`  模块登记 ${name}`)
+    }
+  }
+
+  // ③ 验收：挂载 + Save/Temp 同 sha
+  const mounts = runGsts(['assets:scripts', 'mounts', '--gil', gilPath])
+  const mountLines = mounts.split('\n').filter((l) => l.includes('host='))
+  console.log(`  挂载：${mountLines.length} 处`)
+  for (const line of mountLines) console.log('    ' + line.trim())
+  // Temp 与 Save_Level 平级：<...>/BeyondLocal/<uid>/Temp/<id>.gil（不是 <saveDir>/Temp！）
+  const tempPath = join(saveDir, '..', '..', 'Temp', `${MAP_ID}.gil`)
+  const sha = (f) => (existsSync(f) ? crypto.createHash('sha256').update(readFileSync(f)).digest('hex').slice(0, 16) : 'MISSING')
+  const a = sha(gilPath), b = sha(tempPath)
+  console.log(`  双址：Save_Level=${a} Temp=${b} ${a === b && a !== 'MISSING' ? 'OK（编辑器/游戏读的是同一份）' : '⚠ 不一致'}`)
+  console.log('\n下一步：真机里直接切到这张图（' + MAP_ID + '）试玩；不用再开编辑器导入。')
+}
+
 console.log(`构建：GIA ${gia.length} B  模板 cell=${cellGuid} hit=${hitGuid}  Lua ${injectedLua.length} B`)
 for (const line of deployed) console.log('部署：' + line)
 if (!deployed.length) console.log('部署：跳过（导出目录或 external_lua_file 不存在，检查 --map/--uid/GSTS_LOCALLOW_DIR）')
-console.log('\n下一步：编辑器 → 打开存档「hl」→ 导入 ' + join(exportDir, 'tetris-整合包.gia') + ' → 试玩')
+if (flag('--device')) {
+  try {
+    deviceDeploy()
+  } catch (err) {
+    console.error('设备部署失败：' + (err && err.message ? err.message : err))
+    process.exitCode = 1
+  }
+} else {
+  console.log('\n下一步（旧路径）：编辑器 → 打开存档「hl」→ 导入 ' + join(exportDir, 'tetris-整合包.gia') + ' → 试玩')
+  console.log('        （想一步到位直写地图：node qxqy/deploy.mjs --device）')
+}
