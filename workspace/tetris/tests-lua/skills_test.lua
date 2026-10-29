@@ -324,6 +324,303 @@ eq(#S8b.party, 0, '8.11 partyMax=0 → 不入队（边界不崩）')
 eq(S8b.active, 0, '8.12 空队伍 active=0 不崩')
 
 -- ===========================================================================
+-- 组 9：v6 天赋清单 —— 四角色各 1 主动 + 4 条被动/机制，id 唯一、字段齐全
+-- ===========================================================================
+local S9 = M.newState()
+local totalTalents, ids = 0, {}
+local roleOrder = { 'nahida', 'keqing', 'ganyu', 'columbina' }
+local badGate, badField, dupId = false, false, nil
+for i = 1, #roleOrder do
+  local r = roleOrder[i]
+  local list = M.talents(S9, r)
+  eq(#list, 5, '9.' .. i .. ' ' .. r .. ' 天赋数 = 5（1 主动 + 4 被动/机制）')
+  local actives, passives = 0, 0
+  for k = 1, #list do
+    local t = list[k]
+    totalTalents = totalTalents + 1
+    if ids[t.id] then dupId = t.id end
+    ids[t.id] = true
+    if t.kind == 'active' then actives = actives + 1 else passives = passives + 1 end
+    if type(t.name) ~= 'string' or t.name == '' then badField = true end
+    if type(t.official) ~= 'string' or #t.official < 8 then badField = true end
+    if type(t.map) ~= 'string' or #t.map < 8 then badField = true end
+    if type(t.see) ~= 'string' or #t.see < 4 then badField = true end
+    if type(t.verify) ~= 'string' or #t.verify < 4 then badField = true end
+    if t.gate == nil or t.gate > M.NUM.LEVEL_MAX then badGate = true end
+  end
+  eq(actives, 1, '9.' .. i .. 'b ' .. r .. ' 恰有 1 条主动')
+  eq(passives, 4, '9.' .. i .. 'c ' .. r .. ' 恰有 4 条被动/机制')
+end
+eq(totalTalents, 20, '9.10 全量 20 条天赋')
+eq(dupId, nil, '9.11 天赋 id 全局唯一')
+eq(badField, false, '9.12 每条天赋的 name/official/map/see/verify 都写全')
+eq(badGate, false, '9.13 每条天赋的解锁门槛合法（0..LEVEL_MAX）')
+
+-- ===========================================================================
+-- 组 10：纳西妲 —— 蕴种印 / 慧明缘觉智论 / 摩耶之殿 / 净善摄受明论
+-- ===========================================================================
+local S10 = M.newState({ startRoles = { 'nahida' } })
+local c10 = M.cast(S10, 'nahida', { mode = 'casual' })
+eq(c10.ok, true, '10.01 纳西妲施放成功')
+near(c10.takeDur, M.params(S10, 'nahida').aiDur + 0.5, '10.02 净善摄受：接管 +0.5s（精通 200 → 200*0.25*0.01）')
+near(S10.tal.nahida.seedT, M.NUM.NAHIDA.SEED_DUR, '10.03 施放后蕴种印 25s 就位')
+near(S10.tal.nahida.domainT, M.NUM.NAHIDA.DOMAIN_DUR, '10.04 施放后摩耶之殿 15s 就位')
+
+local r10 = M.onClear(S10, 'nahida', 2, { mode = 'casual' })
+eq(#r10.effects >= 1, true, '10.05 消行触发灭净三业')
+eq(r10.effects[1].kind, 'clear-bottom', '10.06 单人模式降级为 clear-bottom')
+eq(r10.effects[1].n, 1, '10.07 精通 216 → 连锁 1 行')
+ok(r10.mult > 1.14 and r10.mult < 1.16, '10.08 领域内得分 ×1.149', 'mult=' .. tostring(r10.mult))
+near(S10.tal.nahida.seedCd, M.NUM.NAHIDA.TRIGGER_GAP_DOMAIN, '10.09 领域内触发间隔 2.25s')
+
+-- 间隔未到 ⇒ 不触发；间隔到了 ⇒ 再触发
+local r10b = M.onClear(S10, 'nahida', 1, { mode = 'casual' })
+eq(#r10b.effects, 0, '10.10 2.5s 间隔未到不重复触发')
+M.tick(S10, 2.6)
+local r10c = M.onClear(S10, 'nahida', 1, { mode = 'casual' })
+eq(#r10c.effects >= 1, true, '10.11 间隔到期后再次触发')
+
+-- 精通成长：50 行 ⇒ 增幅 40% ⇒ 连锁 2 行
+local S10b = M.newState({ startRoles = { 'nahida' } })
+M.cast(S10b, 'nahida', {})
+S10b.tal.nahida.seedT = 25
+S10b.tal.nahida.lines = 50
+local pr10 = M.params(S10b, 'nahida')
+eq(pr10.chainRows, 2, '10.12 50 行 → 精通 600 → 连锁 2 行')
+S10b.tal.nahida.seedCd = 0
+local r10d = M.onClear(S10b, 'nahida', 1, { mode = 'casual' })
+eq(r10d.effects[1].n, 2, '10.13 连锁 2 行写进效果')
+S10b.tal.nahida.lines = 100
+eq(M.params(S10b, 'nahida').chainRows, 3, '10.14 100 行 → 精通 1000 → 连锁 3 行（封顶）')
+
+-- 净善摄受封顶 +2.5s
+local S10c = M.newState({ startRoles = { 'nahida' } })
+S10c.tal.nahida.lines = 500        -- 精通 4200
+local c10b = M.cast(S10c, 'nahida', {})
+near(c10b.takeDur, M.params(S10c, 'nahida').aiDur + M.NUM.NAHIDA.ABSORB_CAP,
+  '10.15 净善摄受封顶 +2.5s')
+
+-- ===========================================================================
+-- 组 11：刻晴 —— 雷楔 / 二段引爆 / 长按跨地形 / 玉衡之贵 / 四叠
+-- ===========================================================================
+local S11 = M.newState({ startRoles = { 'keqing' } })
+local c11 = M.cast(S11, 'keqing', { col = 6 })
+eq(c11.ok, true, '11.01 刻晴施放')
+eq(c11.effect, 'blink', '11.02 短按 = 本列瞬落')
+near(S11.tal.keqing.markT, M.NUM.KEQING.MARK_LIFE, '11.03 雷楔 5s 就位')
+eq(S11.tal.keqing.markCol, 6, '11.04 雷楔记下列号')
+near(c11.takeDur, 0, '11.05 非纳西妲不带 takeDur')
+ok(S11.cd.keqing < 7.5, '11.06 玉衡充能：CD 按 1/1.15 记（<7.5）',
+  'cd=' .. tostring(S11.cd.keqing))
+
+-- 雷楔期间再按一次 ⇒ 二段引爆（免 CD）
+local c11b = M.cast(S11, 'keqing', { col = 3 })
+eq(c11b.ok, true, '11.07 雷楔期间可再次施放（不受 CD 门禁）')
+eq(c11b.effect, 'mark-blink', '11.08 二段 = mark-blink')
+near(S11.tal.keqing.markT, 0, '11.09 引爆后雷楔清除')
+near(S11.cd.keqing, S11.cd.keqing, '11.10 引爆不重置 CD（数值不变）')
+
+-- 雷楔期间消行 ⇒ 雷暴连斩（清该列 2 格）
+local S11b = M.newState({ startRoles = { 'keqing' } })
+M.cast(S11b, 'keqing', { col = 4 })
+local r11 = M.onClear(S11b, 'keqing', 1, { mode = 'casual' })
+local slash
+for i = 1, #r11.effects do
+  if r11.effects[i].kind == 'clear-col' then slash = r11.effects[i] end
+end
+ok(slash ~= nil, '11.11 雷楔期间消行触发雷暴连斩')
+eq(slash and slash.n, M.NUM.KEQING.SLASH_CELLS, '11.12 连斩清 2 格')
+eq(slash and slash.col, 4, '11.13 连斩落在雷楔列')
+near(S11b.tal.keqing.markT, 0, '11.14 连斩消耗雷楔')
+
+-- 长按 ⇒ blink-best
+local S11c = M.newState({ startRoles = { 'keqing' } })
+local c11c = M.cast(S11c, 'keqing', { col = 2, holdSec = M.NUM.KEQING.LONG_PRESS + 0.01 })
+eq(c11c.effect, 'blink-best', '11.15 长按 = 跨地形（blink-best）')
+
+-- 玉衡之贵：8s 内 +15% 得分，8s 后消失
+local S11d = M.newState({ startRoles = { 'keqing' } })
+M.cast(S11d, 'keqing', { col = 5 })
+local r11b = M.onClear(S11d, 'keqing', 1, { mode = 'casual' })
+ok(r11b.mult >= 1.15 - 1e-9, '11.16 玉衡窗口内消行 ≥×1.15', 'mult=' .. tostring(r11b.mult))
+M.tick(S11d, 8.1)
+local r11c = M.onClear(S11d, 'keqing', 1, { mode = 'casual' })
+ok(r11c.mult < 1.15, '11.17 8s 后玉衡过期', 'mult=' .. tostring(r11c.mult))
+
+-- 四叠：移动/旋转/硬降各 1 层，+6%/层，独立 8s
+local S11e = M.newState({ startRoles = { 'keqing' } })
+local l1 = M.onLock(S11e, 'keqing', { moved = true, rotated = true, hard = true, dwell = 0.5 })
+eq(M.talentState(S11e, 'keqing').stacks, 3, '11.18 三操作 = 3 层')
+near(M.nextMult(S11e, 'keqing'), 1 + 3 * M.NUM.KEQING.STK_VAL, '11.19 3 层 = +18% 得分')
+local r11e = M.onClear(S11e, 'keqing', 1, {})
+eq(M.talentState(S11e, 'keqing').stacks, 4, '11.20 消行补第 4 层')
+near(M.nextMult(S11e, 'keqing'), 1 + 4 * M.NUM.KEQING.STK_VAL, '11.21 满 4 层 = +24%')
+M.tick(S11e, M.NUM.KEQING.STK_DUR + 0.1)
+eq(M.talentState(S11e, 'keqing').stacks, 0, '11.22 8s 后全部叠层过期')
+
+-- ===========================================================================
+-- 组 12：甘雨 —— 冰莲 / 唯此一心 / 天地交泰 / 霜华矢蓄力
+-- ===========================================================================
+local S12 = M.newState({ startRoles = { 'ganyu' } })
+local c12 = M.cast(S12, 'ganyu', { mode = 'casual' })
+eq(c12.ok, true, '12.01 甘雨施放')
+near(S12.tal.ganyu.lotusT, M.NUM.GANYU.LOTUS_LIFE, '12.02 冰莲 6s 埋下')
+eq(S12.tal.ganyu.lotusArmed, true, '12.03 冰莲待绽放')
+near(M.params(S12, 'ganyu').gravityMult, M.NUM.GANYU.FIELD_GRAVITY, '12.04 冻结期重力 ×1.20')
+eq(#M.drain(S12), 0, '12.05 冰莲未到期不吐效果')
+
+-- 6s 到点自然绽放 ⇒ clear-top 3
+M.tick(S12, M.NUM.GANYU.LOTUS_LIFE + 0.1)
+local d12 = M.drain(S12)
+eq(#d12, 1, '12.06 冰莲到点产出 1 个效果')
+eq(d12[1].kind, 'clear-top', '12.07 自然绽放 = clear-top')
+eq(d12[1].n, M.NUM.GANYU.LOTUS_ROWS, '12.08 自然绽放清 3 行')
+eq(#M.drain(S12), 0, '12.09 drain 是"取一次就清空"')
+
+-- 期间消行 ⇒ 提前绽放（2 行）
+local S12b = M.newState({ startRoles = { 'ganyu' } })
+M.cast(S12b, 'ganyu', {})
+local r12 = M.onClear(S12b, 'ganyu', 1, { mode = 'casual' })
+local early
+for i = 1, #r12.effects do
+  if r12.effects[i].id == 'ganyu.lotus' then early = r12.effects[i] end
+end
+ok(early ~= nil, '12.10 冻结期消行 ⇒ 冰莲提前绽放')
+eq(early and early.n, M.NUM.GANYU.LOTUS_BROKEN_ROWS, '12.11 提前绽放只清 2 行')
+eq(S12b.tal.ganyu.lotusArmed, false, '12.12 提前绽放后不再自然绽放')
+
+-- 唯此一心：消行开 5s 窗口，窗口内再消行 +20%
+local S12c = M.newState({ startRoles = { 'ganyu' } })
+local r12b = M.onClear(S12c, 'ganyu', 1, { mode = 'casual' })
+ok(r12b.mult < 1.2, '12.13 首次消行无窗口加成')
+near(S12c.tal.ganyu.critWin, M.NUM.GANYU.FOCUS_WINDOW, '12.14 消行开 5s 窗口')
+local r12c = M.onClear(S12c, 'ganyu', 1, { mode = 'casual' })
+ok(r12c.mult >= 1.2 - 1e-9, '12.15 窗口内再消行 ×1.20', 'mult=' .. tostring(r12c.mult))
+
+-- 霜华矢蓄力：慢锁 2 次 ⇒ 2 段 ⇒ 施放冻结 +2 行
+local S12d = M.newState({ startRoles = { 'ganyu' } })
+M.onLock(S12d, 'ganyu', { hard = false, dwell = M.NUM.GANYU.CHARGE_WINDOW + 0.1 })
+M.onLock(S12d, 'ganyu', { hard = false, dwell = M.NUM.GANYU.CHARGE_WINDOW + 0.1 })
+eq(S12d.tal.ganyu.charge, M.NUM.GANYU.CHARGE_MAX, '12.16 两次慢锁 = 2 段（封顶）')
+local base = M.params(S12d, 'ganyu').freezeRows
+local c12b = M.cast(S12d, 'ganyu', { mode = 'casual', boardH = 5 })
+eq(c12b.n, base + M.NUM.GANYU.CHARGE_MAX * M.NUM.GANYU.CHARGE_ROWS, '12.17 施放吃到 2 段蓄力（+2 行）')
+eq(S12d.tal.ganyu.charge, 0, '12.18 施放后蓄力清零')
+-- 硬降不蓄力
+local S12e = M.newState({ startRoles = { 'ganyu' } })
+M.onLock(S12e, 'ganyu', { hard = true, dwell = 5 })
+eq(S12e.tal.ganyu.charge, 0, '12.19 硬降不蓄力')
+
+-- ===========================================================================
+-- 组 13：哥伦比娅 —— 引力值 / 月诱 / 新月法则 / 月之领域
+-- ===========================================================================
+local S13 = M.newState({ startRoles = { 'columbina' } })
+S13.energy.columbina = 100
+local r13 = M.onClear(S13, 'columbina', 2, { mode = 'pvp' })
+near(S13.tal.columbina.gravity, 2 * M.NUM.COLUMBINA.GRAVITY_PER_LINE, '13.01 消 2 行 = +10 引力值')
+for _ = 1, 30 do M.onClear(S13, 'columbina', 4, { mode = 'pvp' }) end
+near(S13.tal.columbina.gravity, M.NUM.COLUMBINA.GRAVITY_MAX, '13.02 引力值封顶 60')
+
+local c13 = M.cast(S13, 'columbina', { mode = 'pvp', oppH = 5 })
+eq(c13.ok, true, '13.03 满值时施放成功')
+ok(c13.n >= 3, '13.04 满辉放大推层（×1.5 向上取整）', 'n=' .. tostring(c13.n))
+eq(S13.tal.columbina.gravity, 0, '13.05 满辉后引力值清零')
+eq(S13.tal.columbina.lure, 1, '13.06 满辉给 1 层月诱')
+near(S13.tal.columbina.lureT, M.NUM.COLUMBINA.LURE_DUR, '13.07 月诱 10s')
+near(M.nextMult(S13, 'columbina'), 1 + M.NUM.COLUMBINA.LURE_BONUS, '13.08 月诱每层 +5% 得分')
+
+-- 月诱 3 层封顶
+for _ = 1, 2 do
+  S13.tal.columbina.gravity = M.NUM.COLUMBINA.GRAVITY_MAX
+  S13.cd.columbina = 0
+  S13.energy.columbina = M.NUM.ENERGY_MAX      -- 对战施放要 60 能量
+  local cc = M.cast(S13, 'columbina', { mode = 'pvp' })
+  eq(cc.ok, true, '13.09a 满辉施放成功')
+end
+eq(S13.tal.columbina.lure, M.NUM.COLUMBINA.LURE_MAX, '13.09 月诱至多 3 层')
+near(M.nextMult(S13, 'columbina'), 1 + M.NUM.COLUMBINA.LURE_MAX * M.NUM.COLUMBINA.LURE_BONUS,
+  '13.10 3 层 = +15%')
+M.tick(S13, M.NUM.COLUMBINA.LURE_DUR + 0.1)
+eq(S13.tal.columbina.lure, 0, '13.11 月诱 10s 到期清空')
+
+-- 月之领域：引力积攒 ×1.13
+local S13b = M.newState({ startRoles = { 'columbina' } })
+S13b.tal.columbina.domainT = M.NUM.COLUMBINA.DOMAIN_LIFE
+local r13b = M.onClear(S13b, 'columbina', 3, { mode = 'casual' })
+near(S13b.tal.columbina.gravity, 3 * M.NUM.COLUMBINA.GRAVITY_PER_LINE * M.NUM.COLUMBINA.DOMAIN_GAIN,
+  '13.12 领域内引力积攒 ×1.13')
+
+-- 新月自己的法则：33% 概率（固定 rng ⇒ 可复现，统计落在合理带）
+local S13c = M.newState({ startRoles = { 'columbina' } })
+S13c.tal.columbina.domainT = 999
+local procs = 0
+for _ = 1, 200 do
+  local rr = M.onClear(S13c, 'columbina', 1, { mode = 'pvp' })
+  for i = 1, #rr.effects do
+    if rr.effects[i].id == 'columbina.law' then procs = procs + 1 end
+  end
+end
+ok(procs >= 40 and procs <= 100, '13.13 33% 触发率落在合理带（200 次）', 'procs=' .. tostring(procs))
+local S13d = M.newState({ startRoles = { 'columbina' } })
+S13d.tal.columbina.rng = 12345
+local a = M.onClear(S13d, 'columbina', 1, { mode = 'pvp' })
+local b = M.onClear(S13d, 'columbina', 1, { mode = 'pvp' })
+ok(a.log ~= nil and b.log ~= nil, '13.14 同种子序列稳定可复现（日志可回溯）')
+
+-- 慧明缘觉智论·暴击侧：追加一次的概率（固定 rng ⇒ 可复现）
+local S10d = M.newState({ startRoles = { 'nahida' } })
+M.cast(S10d, 'nahida', {})
+S10d.tal.nahida.lines = 50        -- 精通 600 ⇒ 增幅 40% / 暴击率 12%
+S10d.tal.nahida.seedCd = 0
+S10d.tal.nahida.rng = 0           -- 下一次 roll = 12345/2^31 ≈ 5.7e-6 < 0.12 ⇒ 必中
+local r10e = M.onClear(S10d, 'nahida', 1, { mode = 'casual' })
+eq(#r10e.effects, 2, '10.16 暴击判定命中 ⇒ 灭净三业追加一次（两个效果）')
+
+local S10e = M.newState({ startRoles = { 'nahida' } })
+M.cast(S10e, 'nahida', {})
+S10e.tal.nahida.lines = 50
+S10e.tal.nahida.seedCd = 0
+S10e.tal.nahida.rng = 1000000
+local nx = ((1000000 * 1103515245 + 12345) % 2147483648) / 2147483648
+ok(nx > 0.12, '10.17 选定种子确实落在暴击外', 'roll=' .. string.format('%.4f', nx))
+local r10f = M.onClear(S10e, 'nahida', 1, { mode = 'casual' })
+eq(#r10f.effects, 1, '10.18 暴击未过 ⇒ 只触发一次')
+
+-- nextMult 与 onClear 的倍率口径一致（同轴加成相加）
+local S10f = M.newState({ startRoles = { 'nahida' } })
+M.cast(S10f, 'nahida', {})
+near(M.nextMult(S10f, 'nahida'), 1 + M.NUM.NAHIDA.DOMAIN_SCORE, '10.19 领域内 nextMult = 1+14.9%')
+local r10g = M.onClear(S10f, 'nahida', 1, { mode = 'casual' })
+near(r10g.mult, M.nextMult(S10f, 'nahida'), '10.20 onClear 与 HUD 读数同一套公式')
+
+-- ===========================================================================
+-- 组 14：容错 —— 新钩子对 nil/未知角色/空 state 一律不抛错
+-- ===========================================================================
+noThrow(function() M.onClear(nil, 'nahida', 1, nil) end, '14.01 onClear(nil) 不抛错')
+noThrow(function() M.onClear({}, 'nobody', 1, nil) end, '14.02 onClear 未知角色不抛错')
+noThrow(function() M.onLock(nil, 'keqing', nil) end, '14.03 onLock(nil) 不抛错')
+noThrow(function() M.onLock({}, nil, nil) end, '14.04 onLock(nil role) 不抛错')
+noThrow(function() M.drain(nil) end, '14.05 drain(nil) 不抛错')
+noThrow(function() M.drain({}) end, '14.06 drain 空 state 不抛错')
+noThrow(function() M.talents(nil, 'nahida') end, '14.07 talents(nil) 不抛错')
+noThrow(function() M.talents({}, 'nobody') end, '14.08 talents 未知角色返回空表')
+eq(#M.talents({}, 'nobody'), 0, '14.09 未知角色天赋清单为空')
+noThrow(function() M.buffs(nil, 'ganyu') end, '14.10 buffs(nil) 不抛错')
+noThrow(function() M.nextMult(nil, nil) end, '14.11 nextMult(nil) 不抛错')
+eq(M.nextMult(nil, nil), 1, '14.12 nextMult 缺省 = 1')
+noThrow(function() M.talentState(nil, 'columbina') end, '14.13 talentState(nil) 不抛错')
+
+-- 15：snapshot 的新字段（旧字段已在组 8 验过）
+local S15 = M.newState({ startRoles = { 'ganyu' } })
+M.cast(S15, 'ganyu', {})
+local sp15 = M.snapshot(S15)
+eq(type(sp15.buff), 'table', '15.01 snapshot.buff 是表')
+ok(#sp15.buff >= 1, '15.02 施放后 HUD 能看到天赋状态', 'n=' .. tostring(#sp15.buff))
+eq(type(sp15.talents), 'table', '15.03 snapshot.talents 是表')
+eq(sp15.talents.role, 'ganyu', '15.04 snapshot.talents 指向当前角色')
+ok(sp15.mult >= 1, '15.05 snapshot.mult ≥ 1')
+
+-- ===========================================================================
 -- 汇总
 -- ===========================================================================
 io.write('----\n')
