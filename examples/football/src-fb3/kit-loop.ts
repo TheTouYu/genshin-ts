@@ -740,6 +740,23 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     },
     () => {}
   )
+  // ———— 自检探针（tag='Q'）————
+  // 目的：把**客户端算出来的玩家坐标**送进服务端日志（客户端 print 不落 .gia，且不想开客户端图日志）。
+  // 载荷：pos = (pPx, pPz, 子实体列表长度)，服务端帧会原样打出 OUT5:Vector。
+  chanSendState6(
+    f,
+    KitSignal.kit_state,
+    'Q',
+    tick,
+    f.create3dVector(
+      pPxV.value,
+      pPzV.value,
+      f.dataTypeConversion(pSubLen, 'float')
+    ),
+    f.create3dVector(0.0, 0.0, 0.0),
+    f.create3dVector(0.0, 0.0, 0.0),
+    0n
+  )
   chanSendState6(
     f,
     KitSignal.kit_state,
