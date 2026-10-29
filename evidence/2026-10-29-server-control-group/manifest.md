@@ -428,6 +428,40 @@ rec9     [tea] discover result=true
 全新图 / 空白对照 / 重复落地（重名+撞 ID）/ 克隆真实 UI 图（碰撞）/ 编辑器保存往返，各分支均通过：
 `Save=Temp` 同 sha、`f501`==无 `f504` 记录集、模板与实例计数、挂载数、外置 Lua 齐全、`T.tpl` 三个 GUID 全部命中真实记录。
 
+
+## ✅ R8（真机试玩 1073741855）— 第三条链路闭环，**probe 直接命中、未走兜底**
+
+日志：`raw/r8-playtest-1073741855.gia`（`2026-10-29_12-51-19_3406`，27 条，f3 秒 1..25）
+
+```text
+rec0  [tea] canvas 1599.9997558594x899.99981689453 scale=1.250
+rec1  [tea] onstart version=1.0.0 build=1793236868580
+rec2  [tea] probe prim 1073742504 ok      ← CLI 重映射后的 ID，直接命中
+rec3  [tea] probe label 1073742505 ok
+rec4  [tea] probe hit 1073742506 ok
+rec7  [tea] screen=title items=5 controls=425 hits=0
+rec13 [tea] board seed=785789005 …
+rec15 [tea] screen=game items=0 controls=592 hits=0
+rec16-18 [tea] match combo=1/2/3 score=180/690/1440
+rec23 [tea] gameover win=true score=2340 stars=1 moves=17
+rec24 [tea] overlay=result items=4 controls=784 pause=true
+rec25/26 achievement first_tea / combo3
+```
+
+**判据全部满足**：
+- **`probe ... ok` × 3**，且**日志里没有 `discover missing=` / `discover incomplete`** ⇒
+  脚本身份靠的是我们注入的新 GUID，**兜底扫描根本没被触发**——这是比"能显示"强得多的证据
+  （证明 root9 里 `prim/label/hit` 三个模板记录同时满足「ID 对」与「能力对」）。
+- 关键字扫描 `FAIL|incomplete|error|nil|不可用` = **0 命中**。
+- 完整一局跑到底：title → chapter=2 → game → 三连消 → `gameover win=true score=2340 stars=1` → 结算页 → 两个成就。
+
+**两个非本链的观察**（记下，不当作本链缺陷）：
+- `rec10 clear screen destroyed=425 fail=3`：脚本销毁控件时 3 个失败（脚本自身清理逻辑，controls 里可能有不可销毁项）。
+- `rec19 [tea][warn] game busy timeout :: repair board` → `rec20 game recover repaired=0`：
+  脚本自带的忙等超时自愈被触发过一次（第 20 秒），说明该处链路有 >1.2s 的停顿（可能是用户思考/操作间隔，也可能是抖动）。
+
+⇒ **一条龙闭环**：模拟器 GIA → `gsts sim:import --apply` → 编辑器保存 → 真机显示并玩通。
+
 ## 轮次计划
 
 | 轮 | 用户的唯一变化 | 要闭合的字段 |
