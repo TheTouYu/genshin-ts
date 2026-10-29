@@ -81,6 +81,15 @@ assert.deepEqual(
   ['prim', 'label', 'hit'],
   '三个模板 GUID 都重映射'
 )
+// 外置 Lua 必须由调用方落盘（编辑器保存会把 root50 内联源码外置成
+// external_lua_file/<filePath>；只写内联 → 首次保存后 external=MISSING，脚本失效）
+assert.equal(templatesOnly.scripts.length, 1, '返回外置 Lua 载荷')
+assert.equal(templatesOnly.scripts[0].guid, scriptGuid)
+assert.ok(templatesOnly.scripts[0].filePath.includes('main'), 'filePath 指向 main')
+assert.ok(
+  templatesOnly.scripts[0].source.includes(String(START + 2)),
+  '外置 Lua 源码里的模板 GUID 同样被重映射'
+)
 const nodeRecord = parsed.recordsById.get(START + 1)
 assert.ok(nodeRecord, '容器节点记录存在')
 void scriptGuid

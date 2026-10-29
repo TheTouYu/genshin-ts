@@ -25,14 +25,18 @@
  * `ui/src/client-kinds.ts` 的判别表，不需要第二套映射。
  */
 
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename } from 'node:path'
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, dirname } from 'node:path'
 import { RootType } from './client_ui/proto.js'
 import { parseWireMessage, type WireField } from './static_assembly/wire.js'
 import { sha256Bytes } from './static_assembly/json.js'
 import { resyncMap } from './maps.js'
 import { saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
-import { registerScriptInPayload, updateScriptInPayload } from './gil_scripts.js'
+import {
+  externalLuaDestOf,
+  registerScriptInPayload,
+  updateScriptInPayload
+} from './gil_scripts.js'
 import {
   clientUiRootStatus,
   ensureClientUiHierarchyRoots,
@@ -719,6 +723,11 @@ export interface ApplyGiaResult {
   instanceGroupId?: number
   instanceNodeId?: number
   script?: { guid: number; name: string; filePath: string; sourceBytes: number }
+  /**
+   * 需要落到磁盘的外置 Lua（编辑器保存时会把 root50 内联源码外置成 external_lua_file/<path>，
+   * 只写内联不写外置 → 首次保存后源码丢失、脚本变成 external=MISSING。2026-10-29 实测踩到）
+   */
+  scripts: Array<{ guid: number; name: string; filePath: string; source: string }>
   /** 脚本里被改写的模板 GUID */
   remaps: Array<{ key: string; from: number; to: number }>
   notes: string[]
@@ -753,6 +762,7 @@ export function applyGiaPackage(
   const script = pkg.scripts[0]
   const scriptIdMap = new Map<number, number>()
   let registered: { guid: number; name: string; filePath: string; sourceBytes: number } | undefined
+  let finalSource = script ? String(script.source ?? '') : ''
   let working = targetBytes
   const remaps: Array<{ key: string; from: number; to: number }> = []
 
@@ -807,6 +817,7 @@ export function applyGiaPackage(
         source: patched
       })
       final = wrapPayload(reg.payload, final)
+      finalSource = patched
       notes.push(`脚本模板 GUID 已重映射 ${remaps.length} 处`)
     } else {
       notes.push('脚本里没有可按名字对上新 ID 的模板 GUID（未重映射）')
@@ -836,6 +847,17 @@ export function applyGiaPackage(
     ...(instanceGroupId !== undefined ? { instanceGroupId } : {}),
     ...(instanceNodeId !== undefined ? { instanceNodeId } : {}),
     ...(registered ? { script: registered } : {}),
+    scripts:
+      registered !== undefined
+        ? [
+            {
+              guid: registered.guid,
+              name: registered.name,
+              filePath: registered.filePath,
+              source: finalSource
+            }
+          ]
+        : [],
     remaps,
     notes
   }
@@ -1009,6 +1031,14 @@ function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOption
     copyFileSync(options.gilPath, backup)
     writeFileSync(options.gilPath, result.bytes)
     options.log(`backup=${backup}`)
+    // 外置 Lua 必须一起落地：编辑器保存时会把内联源码外置成 external_lua_file/<path>，
+    // 缺这个文件就会变成 external=MISSING（实测：只写内联 → 编辑器首存后脚本失效）
+    for (const entry of result.scripts) {
+      const dest = externalLuaDestOf(options.gilPath, entry.filePath)
+      mkdirSync(dirname(dest), { recursive: true })
+      writeFileSync(dest, '\uFEFF' + entry.source)
+      options.log(`externalLua=${dest}`)
+    }
     const mapIdMatch = /(\d+)\.gil$/.exec(options.gilPath)
     try {
       if (mapIdMatch) resyncMap(saveLevelDirOf(options.gilPath), Number(mapIdMatch[1]))
