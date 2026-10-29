@@ -563,6 +563,13 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
   }
   // 容器子树一条龙（discover / instantiate / save-template）：先于旧高级命令面
   // （'container' 也在高级命令根里，但 add/active 仍走旧路径）
+  if (argv[0] === 'container' && !isContainerSubcommand(argv[1])) {
+    // `assets:ui container` / `container --help`：只打印子命令说明，不要求 GIL
+    if (argv[1] === undefined || argv[1] === '--help' || argv[1] === '-h') {
+      console.log(containerUsage())
+      process.exit(0)
+    }
+  }
   if (argv[0] === 'container' && isContainerSubcommand(argv[1])) {
     const gilCArg = argvValue(argv, '--gil')
     const gilCPath = gilCArg
