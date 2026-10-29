@@ -1,63 +1,37 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "08 点击热区链路（模拟器 device=MobileController ⇒ 按钮与热区都在）",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [
-    {
-      "t": 0.3,
-      "kind": "click",
-      "name": "btnAhit"
-    },
-    {
-      "t": 0.6,
-      "kind": "click",
-      "name": "btnDhit"
-    },
-    {
-      "t": 0.9,
-      "kind": "click",
-      "name": "btnEhit"
-    }
-  ],
-  "asserts": [
-    {
-      "at": 0.2,
-      "kind": "log",
-      "contains": "hits=6",
-      "source": "client"
-    },
-    {
-      "at": 0.35,
-      "kind": "log",
-      "contains": "guide stage=1",
-      "source": "client"
-    },
-    {
-      "at": 0.35,
-      "kind": "log",
-      "contains": "move x=",
-      "source": "client"
-    },
-    {
-      "at": 0.7,
-      "kind": "log",
-      "contains": "rotate",
-      "source": "client"
-    },
-    {
-      "at": 1.0,
-      "kind": "log",
-      "contains": "touchdrop y=",
-      "source": "client"
-    },
-    {
-      "at": 1.0,
-      "kind": "control",
-      "name": "btnA",
-      "field": "text",
-      "equals": "←"
-    }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "08 v4.0 移动端 6 键实例按钮：坐标点击 ←/旋转/锁定/缓降/暂存，每个都打到 act 链（phone tap 锚）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  { "t": 0.5, "kind": "pointer", "type": "move", "x": 82, "y": 47 },
+  { "t": 0.55, "kind": "pointer", "type": "down", "x": 82, "y": 47 },
+  { "t": 0.6, "kind": "pointer", "type": "up", "x": 82, "y": 47 },
+  { "t": 0.9, "kind": "pointer", "type": "move", "x": 224, "y": 119 },
+  { "t": 0.95, "kind": "pointer", "type": "down", "x": 224, "y": 119 },
+  { "t": 1.0, "kind": "pointer", "type": "up", "x": 224, "y": 119 },
+  { "t": 1.4, "kind": "pointer", "type": "move", "x": 1056, "y": 47 },
+  { "t": 1.45, "kind": "pointer", "type": "down", "x": 1056, "y": 47 },
+  { "t": 1.5, "kind": "pointer", "type": "up", "x": 1056, "y": 47 },
+  { "t": 2.0, "kind": "pointer", "type": "move", "x": 1198, "y": 47 },
+  { "t": 2.05, "kind": "pointer", "type": "down", "x": 1198, "y": 47 },
+  { "t": 2.1, "kind": "pointer", "type": "up", "x": 1198, "y": 47 },
+  { "t": 2.6, "kind": "pointer", "type": "move", "x": 1198, "y": 119 },
+  { "t": 2.65, "kind": "pointer", "type": "down", "x": 1198, "y": 119 },
+  { "t": 2.7, "kind": "pointer", "type": "up", "x": 1198, "y": 119 }
+ ],
+ "asserts": [
+  { "at": 0.4, "kind": "log", "contains": "phone build n=7", "source": "client" },
+  { "at": 0.4, "kind": "log", "contains": "phone layout w=1280 h=720", "source": "client" },
+  { "at": 0.8, "kind": "log", "contains": "phone tap left", "source": "client" },
+  { "at": 1.2, "kind": "log", "contains": "phone tap rot", "source": "client" },
+  { "at": 1.2, "kind": "log", "contains": "rotate", "source": "client" },
+  { "at": 1.8, "kind": "log", "contains": "phone tap hard", "source": "client" },
+  { "at": 1.8, "kind": "log", "contains": "harddrop rows=", "source": "client" },
+  { "at": 2.4, "kind": "log", "contains": "phone tap soft", "source": "client" },
+  { "at": 2.4, "kind": "log", "contains": "fall y=", "source": "client" },
+  { "at": 3.0, "kind": "log", "contains": "phone tap hold", "source": "client" },
+  { "at": 3.0, "kind": "log", "contains": "hold in=", "source": "client" }
+ ]
 }

@@ -448,3 +448,65 @@ npx tsx src/cli/gsts.ts assets:ui list --flat | head -20
    ②改用**导入图片素材**（`gsts image:import` → 模板 imageId）做真背景图 —— 那需要先确认真机能否选中自建图片（已知未闭合项）。
 2. **②③ 的按键语义**：现在 `V` 只在**结算态**回标题页（局内按 V 无动作，局内回标题仍走 R）。
    若希望「局内也能按 V 直接回标题」，需要确认（会与 R 的局内回菜单语义重叠）。
+
+---
+
+## 12. v4.0（2026-10-29）设备适配：移动端 / 手柄 / 多分辨率
+
+> 状态：**当前实现**（模拟器已验证：`runner` 51/51 绿 + 全控件巡检 69/0；真机差异项见
+> `docs/research/device-adaptation.md` §5）。用户原话四项里的第 1 项，其余三项见 §12.4。
+
+### 12.1 背景满幅（用户：「手机两边有部分的背景区域缺失」）
+
+病根：`MODE_BG` 构图按 **1280×720 设计板**摆位（母题在 x≈±500~±600），换 1560×720 / 2100×900 画布后
+两侧只剩整屏底色。修法 = **cover 缩放** `bs = max(W/1280, H/720)`，坐标与尺寸同乘（16:9 时 bs=1 构图不变）。
+判据：构图外缘覆盖画布边沿 92%，日志 `bg cover ok bs=…`；用例 **47**（mobile-19.5-9）。
+
+### 12.2 移动端操作控件（用户：「左边移动+旋转方向，右边锁定+缓慢下落+暂存」）
+
+7 个**客户端实例**按钮（底图+文字+cursor 三件套，坐标按画布现算）：
+
+| 簇 | 按钮 | 动作（与键盘同一条 `act`+`doPlay` 链） |
+| --- | --- | --- |
+| 左 | ◀ / ▶ / 旋转 | left / right / rot |
+| 右 | 锁定 / 缓降 / 暂存 | hard / soft / hold |
+| 右上 | 说明（开=「合上」） | help（局内也能开/关帮助页） |
+
+- 长按连发：`HOLD_DELAY 0.26s` 后每 `0.075s` 一次，松开即停（日志 `phone rep start/done`）。
+- 旧实现（6 个服务端 textbox + 热区、坐标写死 `x=±410`）退役；服务端 `btnA..btnF` 一律隐藏并挪出画布。
+- 判据：用例 **08**（六键逐个 `phone tap`）、**44**（长按连发）、出图 `docs/v4-phone-wide.png`。
+
+### 12.3 点击与帮助闭环（用户：「帮助点了之后移动端看不到在哪里点回来」「结算点击不生效」）
+
+| 项 | 修法 | 判据 |
+| --- | --- | --- |
+| 帮助页回不去 | 帮助页右上加「合上手册 ✕」胶囊（实例 + cursor） | 用例 **45**（移动端）、**49**（PC） |
+| 21:9 帮助页掉出屏幕 | 缩放从 `W/1600` 改成 **fit** `min(W/1600, H/900)` | 巡检在 pc-21-9 / mobile-19.5-9 抓到，改后 0 死 |
+| 移动端选多人无反应 | 点 2/3/4 卡 → 原神风引导浮层（`NUM.PAD_NOTE` + 知道了 + 点任意处关） | 用例 **46** |
+| 结算点击 | 三个选项热区逐个坐标点击 → `hot settle R/V/Q` + 真动作 | 巡检 settle 三项 × 2 画布；用例 40 |
+| **全控件巡检**（新仪器） | Lua 侧登记表 `UI4.reg` + 建屏 `ctl dump screen=…`；`qxqy/audit-controls.mjs` 按坐标逐个点，**必须出现该控件自己的日志锚** | `node qxqy/audit-controls.mjs` → **69 控件 / 0 死**（5 画布 × menu/play/help/settle/note） |
+
+### 12.4 手柄
+
+- `NUM.PAD.KEYS` 表驱动映射（left/right/rot/soft/hard/hold/help/ok）。
+- **24 条 `Controller*` 事件探针**：任意手柄键都打 `pad ev <name>`，真机按一遍即可读出实际键名再改表。
+- 左摇杆：死区 0.55、左右连发、向下缓降（日志 `pad stick x/y/dir`）。
+- 菜单焦点导航：`SetControllerFocus(MS.zones[i])` + `hoverCard` 高亮，确认键选模式（`pad focus/confirm`）。
+- 判据：用例 **48**。
+
+### 12.5 用例总数与命令
+
+```bash
+lua5.3 -e 'assert(loadfile("lua/main.lua"))'   # 语法门（逐文件）
+node qxqy/build.mjs                            # 重建存档里的 Lua 副本（跳过=假绿）
+node qxqy/runner.mjs                           # 51/51（73s）
+node qxqy/audit-controls.mjs                   # 全控件巡检：0 死
+```
+
+### 12.6 本轮其余三项的状态（用户 2026-10-29 第 2/3/4 点）
+
+| 项 | 产物 | 状态 |
+| --- | --- | --- |
+| 2 文案扩充 | `docs/copy-v4.md`（50 场景 / 180 条 / 46 行接线表） | 设计完成，接线未做 |
+| 3 角色技能 | `docs/characters-design.md`（701 行）+ `lua/tetris/skills.lua`（478 行纯逻辑）+ `tests-lua/skills_test.lua`（111 断言绿） | 模块完成，未接进 main |
+| 4 AI 重构 | 根因三条已定位（`pMistake=25` 的 easy 档 / hold 仅 hard / 无攒井项） | 进行中 |

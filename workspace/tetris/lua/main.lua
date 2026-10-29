@@ -70,7 +70,11 @@ local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
 local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
   CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
 local MODE_BG, MODE_BG_POOL = CFG.MODE_BG, CFG.MODE_BG_POOL
-local HUD_INST = {}    -- v2.8 ⑤：HUD 实例双写表（txt/build 挂字段；声明在 renderHud 等全部调用点之前）
+local HUD_INST = {}
+local FN = {}    -- v3.6：把一批大函数的 local 声明挂表（真机 LuaJIT 计 local 严格，省槽防 200 上限）    -- v2.8 ⑤：HUD 实例双写表（txt/build 挂字段；声明在 renderHud 等全部调用点之前）
+-- v4.0：设备适配子系统（移动端操作控件 / 手柄映射与焦点导航 / 移动端多人引导浮层）。
+-- 挂表不挂 local（main chunk 已 134 个 local，真机 200 上限只剩 ~10 槽；D591 教训）。
+local UI4 = { btns = {}, pad = { fk = 1, t = 0, last = 0 }, note = {}, rep = nil }
 -- 官方内置图元 id（模拟器 studio/constants.js: IMAGE_PRIMITIVES 实证；真机为「六类代理图元」）
 local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 100004,
                  fivestar = 100005, ring = 100006 }
@@ -338,18 +342,8 @@ end
 
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
 
--- 手机按钮：标签是服务端 textbox（bgColor 当底），点击热区是客户端 cursor 实例（透明，叠在上面）
-local BUTTONS = {
-  -- 三行按钮：最下一行留 18px 离画布底边（-332 时整块贴边被裁，实测）
-  { name = 'btnA', label = '←',    x = -410, y = -185 },
-  { name = 'btnB', label = '→',    x = -410, y = -250 },
-  { name = 'btnC', label = '↓',    x = -410, y = -315 },
-  { name = 'btnD', label = '旋转', x =  410, y = -185 },
-  { name = 'btnE', label = '直落', x =  410, y = -250 },
-  { name = 'btnF', label = '重开', x =  410, y = -315 },
-}
-local BTN_W, BTN_H = 150, 56
-local hits = {}
+-- v4.0：老的「服务端 textbox + cursor 叠层」按钮表已退役（坐标写死 x=±410、真机控件名一变就消失）。
+-- 移动端按钮现在由 UI4（客户端实例层）建，数据在 lua/tetris/config.lua 的 NUM.PHONE。
 
 -- 文字样式：真机 GIL 里新建的控件没有样式（CLI 只建骨架），全部由 Lua 运行时设置。
 -- 框高判据：h >= fontSize*1.45 + 4（见 docs/README §10.2），尺寸在 layout() 里给。
@@ -741,6 +735,7 @@ MS.opts = function(cy)
     trySet(c, 'imageColor', col)
     return c
   end
+  UI4.regScreen('settle')
   local items, made = {}, 0
   for i, it in ipairs(cfg.items or {}) do
     local g0 = geoms[i] or geoms[#geoms]
@@ -855,6 +850,7 @@ MS.opts = function(cy)
           if fn then fn() end
         end)
         SETTLE_HOTS[#SETTLE_HOTS + 1] = z
+        UI4.regAdd('settle.' .. tostring(it.key), z, rec.w + 12, rec.h + 12)
         made = made + 1
       end
     end
@@ -864,6 +860,7 @@ MS.opts = function(cy)
   -- 真机 SetVisible(false) 对运行时实例不生效（D581 实证），只有清空文字在两宿主都干净。
   if #items > 0 then setText(g.settleOpts, '') end
   print('settle hotzones n=' .. made .. ' v=' .. variant)
+  UI4.dump('settle')
   return #items
 end
 local function settleTick(d)
@@ -2228,7 +2225,11 @@ local function buildHelpLayer()
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
   local S = CFG.HELP or {}
   -- 设计基准 1600×900，按画布等比缩放（两块画布同为 16:9 ⇒ 比例不变，文字框宽同步缩放不会裁字）
-  local s = W / 1600
+  -- v4.0 ⑤：帮助页缩放改成 **fit**（min(W/1600, H/900)）。旧实现只按宽度缩放 ⇒ 21:9 画布上
+  -- 1548×848 的设计板被放大 1.31 倍变成 2032×1113，比画布还高 213px：页脚与右上角「合上手册」
+  -- 整个掉到屏幕外（全控件巡检在 pc-21-9 / mobile-19.5-9 上抓到的真 bug）。
+  local s = math.min(W / 1600, H / 900)
+  if s <= 0 then s = 1 end
   local function u(v) return v * s end
   local function fs(v)
     local r = math.floor(v * s + 0.5)
@@ -2328,7 +2329,7 @@ local function buildHelpLayer()
     t('helpTitle', S.title, -420, 344, 560, 40, INK, 'Left')
     t('helpSub', S.sub, -420, 304, 560, 19, SUB, 'Left')
     rect('helpRule', 0, 278, 1400, 2, GOLD)
-    t('helpHint', S.hint, 420, 396, 580, 17, SUB, 'Right')
+    t('helpHint', S.hint, 292, 396, 470, 17, SUB, 'Right')
     -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
     rrect('helpBubble', 300, 344, 676, 60, 30, GOLD)
     rrect('helpBubble2', 300, 344, 668, 52, 26, CARD)
@@ -2457,6 +2458,32 @@ local function buildHelpLayer()
 
   local v = (S.variant or 'A'):upper()
   if v == 'B' then buildB() elseif v == 'C' then buildC() else buildA() end
+  -- v4.0 ④：帮助页必须有**看得见、点得到**的关闭入口（用户 2026-10-29 反馈：「帮助点了之后，
+  -- 移动端看不到在哪里可以点回来」）。旧实现只有一行提示「H / E 合上手册」——移动端没有 H 键。
+  -- 做法：右上角一颗描金胶囊 + 光标热区（同在实例层；层序由下面的 SetAsLastSibling 统一处理）。
+  -- 设计坐标 (655, 380) 在 1600×900 设计板的画板内沿右上角；A 版实测不与页眉/派蒙气泡相撞。
+  UI4.regScreen('help')
+  do
+    local bw2, bh2 = 196, 56
+    local cx2, cy2 = 640, 378
+    rrect('helpClosePill', cx2, cy2, bw2, bh2, 26, GOLD)
+    rrect('helpClosePill2', cx2, cy2, bw2 - 8, bh2 - 8, 22, CARD)
+    text('helpCloseTx', '合上手册 ✕', cx2, cy2, bw2 - 16, fs(21), INK, 'Middle')
+    local z = UI4.hit('helpCloseHit', u(bw2), u(bh2))
+    if z then
+      tryCall(z, 'SetAnchoredPosition', u(cx2), u(cy2))
+      addCursor(z, 'CursorDown', function()
+        sfx(SFX.press, true)
+        print('tap help close')
+        closeHelp()
+      end)
+      HL[#HL + 1] = z
+      UI4.regAdd('help.close', z, u(bw2), u(bh2))
+      UI4.dump('help')
+    else
+      print('help close zone=none（无 cursor 模板）')
+    end
+  end
   -- 层序强制：按创建顺序逐个置顶（底→字），压住标题页卡片与服务端 textbox 的残留
   for i = 1, #HL do
     if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
@@ -2469,6 +2496,7 @@ closeHelp = function()
   helpOpen = false
   destroyHelpLayer()
   if guideStage == 2 then guideStage = helpFromStage or 1 end
+  if UI4.refreshHelpLabel then UI4.refreshHelpLabel(false) end
   print('guide help closed stage=' .. tostring(guideStage))
 end
 -- ===== v2.5 ① 倒计时大字（120 号屏幕正中+每秒缩放弹跳）=====
@@ -2503,6 +2531,7 @@ toggleHelp = function()
   else
     helpOpen = true
     buildHelpLayer()
+    if UI4.refreshHelpLabel then UI4.refreshHelpLabel(true) end
     if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
   end
 end
@@ -2970,6 +2999,7 @@ MS.pressCard = function(i)
 end
 -- 四张卡的透明命中热区（cursor 模板实例，PC 也可用鼠标；移动端 = 触屏点卡）
 MS.buildHoverZones = function()
+  UI4.regScreen('menu')
   if not TPL_HIT then print('menu zones=none（无 cursor 模板，仅键盘 1-4 可选）') return false end
   MS.zones = {}
   for i = 1, #MODE_INFO do
@@ -2989,6 +3019,7 @@ MS.buildHoverZones = function()
     end)
     MC[#MC + 1] = z
     MS.zones[i] = z
+    UI4.regAdd('menu.mode' .. i, z, 416, 108)
   end
   -- v2.7 ④ 用户要求「H 按钮常驻」：底栏第三段「H 游戏说明」本身做成可点热区（键盘 H/E 之外的鼠标入口）
   local okH, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
@@ -3003,17 +3034,25 @@ MS.buildHoverZones = function()
     end)
     MC[#MC + 1] = zh
     MS.helpZone = zh
+    UI4.regAdd('menu.help', zh, 260, 56)
     print('menu help zone=ok')
   else
     print('menu help zone=none（仅键盘 H/E 可开说明页）')
   end
   print('menu zones n=' .. (#MS.zones + (MS.helpZone and 1 or 0)))
+  UI4.dump('menu')
   return true
 end
 -- 键盘 Digit 与鼠标点击共用的选模式入口（v2.7：原逻辑内联在 listen 回调里，抽出来两处复用）
 menuSelectMode = function(i)
   if guideStage ~= 0 or pendingMode then return end
-  if i > 1 and IS_MOBILE then return end            -- 双屏砍手机端，回落 casual（裁决⑨）
+  -- v4.0 ③：移动端不做双屏（裁决⑨）——但**不能静默吞点击**（用户 2026-10-29：
+  -- 「移动端点击了，没有任何反应。应该有原神风格的文案引导去 PC 端游玩」）⇒ 开引导浮层。
+  if i > 1 and IS_MOBILE then
+    print('pad note menu i=' .. i)
+    if UI4.noteOpen then UI4.noteOpen(i) end
+    return
+  end
   local mname = ({ 'casual', 'ai-battle', 'pvp', 'coop' })[i]
   if not mname then return end
   MODE = mname
@@ -3146,7 +3185,7 @@ end
 
 -- 双屏布局：G[1] 棋盘移左（-320）、G[2] 移右（+320）；G[1] preview 重排（next 上移棋盘上方两排、
 -- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
-local function layoutDual()
+FN.layoutDual = function()
   placeBoard(G[1], -280)
   -- v2.4 ③ 双屏读图读数（v23-pvp.png）：两侧各 300+px 空区没有归属物，左栏 HUD 压在左盘边上，
   -- 两盘除了位置没有任何席位标识。做法：棋盘框按席位染色 + 左栏战况回归左空区 + 中缝一条细线。
@@ -3375,7 +3414,7 @@ end
 -- 做法：背景池在 OnStart 一次性建好（必须早于棋盘 ⇒ 压在棋盘之下），换模式只**换肤**不新建实例
 --      （运行中新建的实例会盖住 200 个棋盘格，真机 SetVisible(false) 又靠不住 ⇒ 只能池化）。
 -- SetImage 用枚举形态，失败回落字符串形态；两者都失败就保持 rect（布局仍然自洽，只是没有圆/环）。
-local function skinBgItem(ctl, spec)
+FN.skinBgItem = function(ctl, spec)
   if not ctl then return false end
   tryCall(ctl, 'SetSizeDelta', spec.w, spec.h)
   tryCall(ctl, 'SetAnchoredPosition', spec.x, spec.y)
@@ -3403,11 +3442,19 @@ applyModeTheme = function(mode)
   local specs = MODE_BG[mode] or MODE_BG.casual
   local pool = (G[1] or g).bgPool
   local n = 0
+  local W, H = CANVAS_W or 1280, CANVAS_H or 720
+  -- v4.0 ①背景满幅（用户 2026-10-29：「手机两边有部分的背景区域缺失」）：
+  -- 构图全部按 1280×720 设计板摆位（母题在 x≈±500~±600），换到 1560×720 / 2100×900 画布时
+  -- 两侧只剩整屏底色（wash 是 W+20×H+20，颜色在但没有构图）⇒ 看起来就是"背景缺一块"。
+  -- 修法 = **cover 缩放**（同 CSS background-size:cover）：bs = max(W/1280, H/720)，
+  -- 坐标与尺寸一起乘 bs。16:9 画布 bs=1（构图原样），更宽的画布构图放大后溢出裁掉。
+  local bs = math.max(W / (NUM.BG_BASE_W or 1280), H / (NUM.BG_BASE_H or 720))
+  -- 构图外缘（判据用）：取每个图元的外接圆半径，避免旋转矩形算不准
+  local extL, extR, extB, extT = 0, 0, 0, 0
   if pool then
     -- 池第 1 件 = 整屏底色（所有模式共用一层深底，颜色随模式换）
     local wash = pool[1]
     if wash then
-      local W, H = CANVAS_W or 1280, CANVAS_H or 720
       tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
       tryCall(wash, 'SetAnchoredPosition', 0, 0)
       trySet(wash, 'imageColor', t.bg)
@@ -3416,13 +3463,31 @@ applyModeTheme = function(mode)
       local spec = specs[i]
       local ctl = pool[i + 1]
       if spec then
-        if skinBgItem(ctl, spec) then n = n + 1 end
+        local sp = { s = spec.s, x = (spec.x or 0) * bs, y = (spec.y or 0) * bs,
+          w = (spec.w or 0) * bs, h = (spec.h or 0) * bs, c = spec.c, rot = spec.rot }
+        if FN.skinBgItem(ctl, sp) then
+          n = n + 1
+          local r = math.sqrt((sp.w / 2) ^ 2 + (sp.h / 2) ^ 2)
+          if sp.x - r < extL then extL = sp.x - r end
+          if sp.x + r > extR then extR = sp.x + r end
+          if sp.y - r < extB then extB = sp.y - r end
+          if sp.y + r > extT then extT = sp.y + r end
+        end
       elseif ctl then
         -- 空槽：缩成 1×1 挪出画布（不依赖 visible）
         tryCall(ctl, 'SetSizeDelta', 1, 1)
         tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
       end
     end
+  end
+  -- 判据：构图外缘必须覆盖到画布边沿的 92%（整屏 wash 另外保证 100% 底色）。
+  -- 打印锚：`bg cover ok bs=…` / `bg cover GAP …`（用例按画布逐张断言 ok）
+  local needX, needY = W / 2 * 0.92, H / 2 * 0.92
+  if extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
+    print('bg cover ok bs=' .. aiFmt(bs) .. ' w=' .. math.floor(W) .. ' h=' .. math.floor(H))
+  else
+    print('bg cover GAP bs=' .. aiFmt(bs) .. ' ext=' .. math.floor(extL) .. ',' .. math.floor(extR)
+      .. ',' .. math.floor(extB) .. ',' .. math.floor(extT) .. ' need=' .. math.floor(needX) .. ',' .. math.floor(needY))
   end
   if g.plate then trySet(g.plate, 'imageColor', t.plate) end
   for i = 1, 4 do
@@ -3437,7 +3502,7 @@ end
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；三种双屏（ai-battle/pvp/coop）
 -- 统一建 G[2]（pvp=玩家 2 盘各走各账；ai-battle/coop=AI 盘 autoDriving 走 AI 账）+镜像出块（公平）。
-local function enterMode()
+FN.enterMode = function()
   if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
     if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
     G[2] = newInst()
@@ -3453,7 +3518,7 @@ local function enterMode()
     g = G[1]
     newGame()                             -- 主盘同起点重开（丢自演半盘）；首块 spawn→push→喂 G[2]
     local okBuild = buildBoardControls(G[2])
-    if okBuild then layoutDual() else print('p2 build fail') end
+    if okBuild then FN.layoutDual() else print('p2 build fail') end
     print('p2 inst ' .. MODE)             -- 双屏日志 p2 前缀
     g = save
   else
@@ -3463,7 +3528,7 @@ local function enterMode()
 end
 
 -- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
-local function exitToMenu()
+FN.exitToMenu = function()
   MODE_OVER = false                    -- v2.2 ③：终局标志复位（R 回菜单）
   for i = 1, #DUAL_DECO do             -- v2.4 ③：拆中缝装饰（防实例累积）
     if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
@@ -3530,7 +3595,7 @@ restartMatch = function()
     placeBoard(G[1], 0)
     guideStage = 0
     newGame()                             -- 主盘重开
-    enterMode()                           -- 重建对家盘 + 双屏布局
+    FN.enterMode()                           -- 重建对家盘 + 双屏布局
     startIfWaiting()                      -- 进模式开局引导（keys → 3-2-1）
   end
   setText(topBanner, '')
@@ -3544,22 +3609,22 @@ restartMatch = function()
   print('restart mode=' .. mode)
 end
 
--- 硬降到底 + 落子。账本归属由 aiAutoFlag() 决定（v2.7，用户反馈①⑧）：
+-- 硬降到底 + 落子。账本归属由 FN.aiAutoFlag() 决定（v2.7，用户反馈①⑧）：
 --   stage0 入场自演 / 双屏 AI 盘 = AI 账（autoDriving=true：demo 日志、教学静音、best 不收）；
 --   casual 局中接管 = **玩家账**（autoDriving=false：日志/音效/教学/最高分与玩家亲手操作完全同构）——
 --   这也是设计书裁决⑤「接管续算不清零」的原口径，旧实现无条件置 true ⇒ 接管的消行分跑到 AI 账上，
 --   且死亡时 updateBest 被跳过，和玩家死法不一致。
-local function aiAutoFlag()
+FN.aiAutoFlag = function()
   return (guideStage == 0) or (g.aiAccount == true)
 end
-local function aiDrop()
+FN.aiDrop = function()
   local guard = 0
   while guard < ROWS + 4 and not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
     g.piece.y = g.piece.y + 1
     guard = guard + 1
   end
   local prevAuto = g.autoDriving
-  g.autoDriving = aiAutoFlag()
+  g.autoDriving = FN.aiAutoFlag()
   local ok, err = pcall(doLock)
   g.autoDriving = prevAuto
   if not ok then
@@ -3676,7 +3741,7 @@ end
 
 -- v2.5：lvIdx=强制档位（演示/接管场景传 3=hard——AI 代打要展示最强/帮玩家续命，不故意失误；
 -- ai-battle 对抗盘不传=用玩家选的难度档做对抗强度）。NUM.AI_LEVEL 仍是玩家侧难度语义。
-local function aiTickCore(dt, onOver, lvIdx)
+FN.aiTickCore = function(dt, onOver, lvIdx)
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
     return false
@@ -3800,7 +3865,7 @@ local function aiTickCore(dt, onOver, lvIdx)
         else
           print('ai topout noplan')
         end
-        aiDrop()                              -- 与玩家「空格直落」同一条落子路径
+        FN.aiDrop()                              -- 与玩家「空格直落」同一条落子路径
         g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
         g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
         return true
@@ -4008,14 +4073,14 @@ local function aiTickCore(dt, onOver, lvIdx)
       if not canFall then
         -- 落地后若这块太快（< 档位 pieceMin），落定前再停一下（像人抬手前确认一下）
         if g.AI.dur < lv.pieceMin then return end
-        aiDrop()
+        FN.aiDrop()
         g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
         g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
       end
       return
     end
     if g.AI.dur < lv.pieceMin then return end       -- 太快就再停一下（同软降）
-    aiDrop()                                     -- 硬降
+    FN.aiDrop()                                     -- 硬降
     g.AI.phase, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', nil, 1, nil, nil
     g.AI.t, g.AI.wait = 0, aiRange(lv.obsMin, AI_OBSERVE_MAX)
   end
@@ -4025,7 +4090,7 @@ end
 -- stage0 入场自演入口（守卫版）：休闲接管/双屏 AI 走 OnUpdate/T6 入口直接调 aiTickCore
 autoTick = function(dt)
   if guideStage ~= 0 then return end
-  aiTickCore(dt, 'demo', 3)          -- v2.5：stage0 自演=演示，恒 hard（最强摆位）
+  FN.aiTickCore(dt, 'demo', 3)          -- v2.5：stage0 自演=演示，恒 hard（最强摆位）
 end
 
 --------------------------------------------------------------------------------
@@ -4064,6 +4129,409 @@ layoutSettle = function(W, H)
   place2(g.settleOpts, 0, g.settleOptsY, cw - 60, 48)
 end
 
+--------------------------------------------------------------------------------
+-- v4.0 设备适配子系统（UI4）：移动端操作控件 / 手柄 / 移动端多人玩法引导
+--------------------------------------------------------------------------------
+-- 为什么整套控件改用**客户端实例**拼（不再用服务端 textbox + cursor 叠层）：
+--   旧实现（v2.7–v3.5）= 6 个服务端 textbox(btnA..btnF) 当按钮底 + 客户端 cursor 热区，
+--   ① 坐标写死 x=±410（1280 画布口径）⇒ 1560 宽画布上按钮离屏幕边还有 350px，拇指够不到；
+--   ② 真机上服务端控件靠 GetChild('名字') 取（v2.7 已踩过：名字一变整排静默消失），
+--      而实例层在真机**已验证可见**（标题卡 menu*/结算页 settle* 都是实例）。
+-- 布局为什么按 GetUICanvasSize 现算：官方 UI 教程（docs/ui-tutorial/official-ui-tutorial.md
+--   :2960-3060）四设备（PC/移动/主机/移动手柄）的位置/大小/锚点**分别设置**，移动端以 16:9
+--   为死区基准；Lua 侧只拿得到画布尺寸 ⇒ 一律由 W/H 推导（换设备不用重新导入）。
+-- 三态为什么自绘：image 类控件没有按钮四态（D44 实证），只能改底图色 + 点击时下沉 3px。
+-- 控件登记表（全仓唯一一份"可点控件"清单）：用户 2026-10-29「部分按钮点击异常，需要对全部控件
+-- 进行检查」——靠人肉逐屏点不可靠。登记 = 声明"这里有可点控件"，qxqy/audit-controls.mjs 按
+-- dump 出来的画布坐标逐个点，点完必须出现新日志，否则判"死控件"。
+-- 每个屏幕（menu/play/help/settle/note）各自一份，重建即清空（防止旧屏幕的坐标被当成活的）。
+UI4.reg = {}
+UI4.regScreen = function(name)
+  UI4.cur = name
+  for i = #UI4.reg, 1, -1 do
+    if UI4.reg[i].screen == name then table.remove(UI4.reg, i) end
+  end
+end
+UI4.regAdd = function(name, ctl, w, h)
+  if not ctl then return end
+  UI4.reg[#UI4.reg + 1] = { screen = UI4.cur, name = name, ctl = ctl, w = w or 0, h = h or 0 }
+end
+-- ⚠ 真机/模拟器的 GetAnchoredPosition 是**多返回值**（x, y），不是表 —— 只接第一个返回值的话
+-- 永远读到 (0,0)，dump 出来的坐标全变画布中心（2026-10-29 实测：巡检脚本照着重心点，全点空）。
+UI4.pos = function(ctl)
+  if not ctl then return 0, 0 end
+  local ok, a, b = pcall(function() return ctl:GetAnchoredPosition() end)
+  if not ok then return 0, 0 end
+  if type(a) == 'table' then
+    return tonumber(a[1] or a.x) or 0, tonumber(a[2] or a.y) or 0
+  end
+  if type(a) == 'number' then return a, tonumber(b) or 0 end
+  return 0, 0
+end
+UI4.dump = function(tag)
+  local W, H = CANVAS_W or 1280, CANVAS_H or 720
+  local n = 0
+  for _, r in ipairs(UI4.reg) do
+    if r.screen == tag then n = n + 1 end
+  end
+  print('ctl dump screen=' .. tostring(tag) .. ' n=' .. n
+    .. ' canvas=' .. math.floor(W) .. 'x' .. math.floor(H))
+  for _, r in ipairs(UI4.reg) do
+    if r.screen == tag then
+      local x, y = UI4.pos(r.ctl)
+      print('ctl ' .. r.name .. ' px=' .. math.floor(W / 2 + x + 0.5)
+        .. ' py=' .. math.floor(H / 2 + y + 0.5) .. ' w=' .. math.floor(r.w) .. ' h=' .. math.floor(r.h))
+    end
+  end
+end
+
+UI4.clamp = function(v, lo, hi)
+  if v < lo then return lo end
+  if v > hi then return hi end
+  return v
+end
+
+UI4.pill = function(name, w, h, color)
+  local c = instInto(TPL_GUIDS.cell, root, nil)
+  if not c then return nil end
+  c.name = name
+  tryCall(c, 'SetSizeDelta', w, h)
+  trySet(c, 'imageColor', color)
+  return c
+end
+
+UI4.label = function(name, text, w, h, size, color)
+  if not TPL_TEXT then return nil end
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+  if not ok or not c then return nil end
+  c.name = name
+  c.text = text
+  trySet(c, 'fontSize', size)
+  trySet(c, 'fontColor', color)
+  trySet(c, 'bgColor', C(0, 0, 0, 0))
+  trySet(c, 'horizontalAlignment', 'Middle')
+  trySet(c, 'verticalAlignment', 'Middle')
+  trySet(c, 'enableOutline', true)
+  trySet(c, 'outlineColor', C(190, 255, 255, 255))
+  tryCall(c, 'SetSizeDelta', w, h)
+  return c
+end
+
+UI4.hit = function(name, w, h)
+  if not TPL_HIT then return nil end
+  local z = instInto({ TPL_HIT }, root, true)
+  if not z then return nil end
+  z.name = name
+  tryCall(z, 'SetSizeDelta', w, h)
+  return z
+end
+
+-- 按钮三态（底图色 + 点击下沉 3px）；文字始终墨色（浅底才读得清）
+UI4.paint = function(b, st)
+  local bg = THEME.btnBg
+  if st == 'hover' then bg = THEME.card end
+  if st == 'down' then bg = THEME.gold end
+  trySet(b.bg, 'imageColor', bg)
+  local dy = (st == 'down') and -3 or 0
+  if b.x and b.y then
+    tryCall(b.bg, 'SetAnchoredPosition', b.x, b.y + dy)
+    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', b.x, b.y + dy) end
+  end
+end
+
+-- 一个按钮 = 底图 + 文字 + 光标热区（三者同尺寸同位置；热区最后建 ⇒ 命中优先）
+UI4.makeBtn = function(id, label, act, w, h, size)
+  local b = { id = id, act = act, w = w, h = h }
+  b.bg = UI4.pill('pbtn' .. id, w, h, THEME.btnBg)
+  b.txt = UI4.label('pbtn' .. id .. 't', label, w, h, size or 24, THEME.textMain)
+  b.hit = UI4.hit('pbtn' .. id .. 'hit', w, h)
+  if not (b.bg and b.hit) then return nil end
+  UI4.regAdd('phone.' .. id, b.hit, w, h)
+  addCursor(b.hit, 'CursorEnter', function() UI4.paint(b, 'hover') end)
+  addCursor(b.hit, 'CursorExit', function() UI4.paint(b, 'normal') end)
+  addCursor(b.hit, 'CursorUp', function()
+    UI4.paint(b, 'hover')
+    UI4.stopRep(b)
+  end)
+  addCursor(b.hit, 'CursorDown', function()
+    sfx(SFX.press, true)
+    UI4.paint(b, 'down')
+    print('phone tap ' .. b.id)
+    if UI4.dispatch then UI4.dispatch(b.act, b.id) end
+    if b.rep then UI4.rep = { b = b, t = 0, n = 0 } end
+  end)
+  return b
+end
+
+UI4.stopRep = function(b)
+  local r = UI4.rep
+  if not r then return end
+  if b and r.b ~= b then return end
+  if (r.n or 0) >= 2 then print('phone rep done id=' .. r.b.id .. ' n=' .. r.n) end
+  UI4.rep = nil
+end
+
+-- 连发（触屏长按 ←/→/缓降）：只在按住期间推进，松开/移出即停（触屏版 DAS）
+UI4.tick = function(dt)
+  local r = UI4.rep
+  if not r then return end
+  local P = NUM.PHONE or {}
+  r.t = r.t + dt
+  if r.t >= (P.HOLD_DELAY or 0.26) then
+    r.t = r.t - (P.HOLD_RATE or 0.075)
+    r.n = (r.n or 0) + 1
+    if r.n == 1 then print('phone rep start id=' .. r.b.id) end
+    if UI4.dispatch then UI4.dispatch(r.b.act, r.b.id, true) end
+  end
+end
+
+UI4.build = function(mobile)
+  UI4.mobile = mobile and true or false
+  UI4.btns = {}
+  UI4.regScreen('play')   -- 登记屏幕切换：按钮都归 play 屏（dump 时才按屏过滤）
+  if not UI4.mobile then
+    print('phone build skip device=pc')
+    return
+  end
+  local P = NUM.PHONE or {}
+  local n = 0
+  for _, it in ipairs(P.items or {}) do
+    local b = UI4.makeBtn(it.id, it.label, it.act, P.W, P.H, 24)
+    if b then
+      b.side, b.col, b.row, b.rep = it.side, it.col, it.row, it.rep
+      UI4.btns[#UI4.btns + 1] = b
+      n = n + 1
+    end
+  end
+  -- 说明键：移动端没有 H 键，帮助页必须能自己开、也要能自己关（用户 2026-10-29 反馈 d）
+  UI4.helpBtn = UI4.makeBtn('help', '说明', 'help', P.HELP_W or 108, P.HELP_H or 52, 22)
+  if UI4.helpBtn then n = n + 1 end
+  print('phone build n=' .. n .. ' help=' .. (UI4.helpBtn and 'ok' or 'none'))
+  if CANVAS_W and CANVAS_H then UI4.layout(CANVAS_W, CANVAS_H) end
+  UI4.dump('play')   -- 必须在 layout 之后：dump 读的是控件实时坐标
+end
+
+-- 布局：左右两簇贴屏幕下角（2 列 × 2 行），说明键贴右上角。全按画布尺寸现算。
+UI4.layout = function(W, H)
+  if not UI4.mobile then return end
+  local P = NUM.PHONE or {}
+  local halfW, halfH = W / 2, H / 2
+  local bw, bh, gp, m = P.W, P.H, P.GAP, P.MARGIN
+  local function place(c, x, y, w, h)
+    if not c then return end
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+  end
+  for _, b in ipairs(UI4.btns) do
+    local x
+    if b.side == 'L' then
+      x = -(halfW - m - bw / 2) + (b.col or 0) * (bw + gp)
+    else
+      x = (halfW - m - bw / 2) - (b.col or 0) * (bw + gp)
+    end
+    local y = -(halfH - m - bh / 2) + (b.row or 0) * (bh + gp)
+    b.x, b.y = x, y
+    place(b.bg, x, y, bw, bh)
+    place(b.txt, x, y, bw, bh)
+    place(b.hit, x, y, bw, bh)
+  end
+  local hb = UI4.helpBtn
+  if hb then
+    local hw, hh = P.HELP_W or 108, P.HELP_H or 52
+    local x, y = halfW - m - hw / 2, halfH - m - hh / 2
+    hb.x, hb.y = x, y
+    place(hb.bg, x, y, hw, hh)
+    place(hb.txt, x, y, hw, hh)
+    place(hb.hit, x, y, hw, hh)
+  end
+  print('phone layout w=' .. math.floor(W) .. ' h=' .. math.floor(H) .. ' n=' .. #UI4.btns)
+end
+
+-- 结算/终局时把按钮整排挪出画布（真机 SetVisible 对实例不生效，只信坐标；2026-10-25 实证）
+UI4.syncVisible = function(dead)
+  if not UI4.mobile or not UI4.btns then return end
+  if UI4.dead == dead then return end
+  UI4.dead = dead
+  local y = dead and -4000 or 0
+  for _, b in ipairs(UI4.btns) do
+    local yy = dead and -4000 or (b.y or 0)
+    tryCall(b.bg, 'SetAnchoredPosition', b.x or 0, yy)
+    tryCall(b.txt, 'SetAnchoredPosition', b.x or 0, yy)
+    tryCall(b.hit, 'SetAnchoredPosition', b.x or 0, yy)
+  end
+  if UI4.helpBtn then
+    local yy = dead and -4000 or (UI4.helpBtn.y or 0)
+    tryCall(UI4.helpBtn.bg, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
+    tryCall(UI4.helpBtn.txt, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
+    tryCall(UI4.helpBtn.hit, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
+  end
+  print('phone play bar=' .. tostring(not dead))
+end
+
+UI4.refreshHelpLabel = function(open)
+  if UI4.helpBtn and UI4.helpBtn.txt then
+    UI4.helpBtn.txt.text = open and '合上' or '说明'
+  end
+end
+
+-- ── 移动端「双人玩法请回 PC」引导浮层（原神风文案；点模式卡触发，不静默吞点击）──
+-- 层序：每个实例建完立刻 SetAsFirstSibling（first sibling = 最上层，见 runtime.js injectKey 注释），
+-- 于是最终顺序 = 按钮 > 正文 > 标题 > 装饰线 > 卡片 > 暗底 > 标题页 —— 与结算页同一套手法。
+UI4.noteOpen = function(which)
+  if UI4.noteOn then return end
+  local N = NUM.PAD_NOTE or {}
+  local W, H = CANVAS_W or 1280, CANVAS_H or 720
+  local L = UI4.note
+  UI4.noteOn = true
+  -- 创建顺序 = 绘制顺序（D647 实测：运行时实例「后建在上」；SetAsFirstSibling 在模拟器不分层，
+  -- 而在真机 Unity 语义里 FirstSibling = 最底层 ⇒ 绝不能用它"置顶"）。
+  local function top(c) return c end
+  local cw = math.min(760, W - 120)
+  local tw = math.min(700, W - 160)
+  -- 点卡片外任意处也能关（触屏没有 Esc）：全屏 cursor 垫在最下，命中优先于标题页模式卡
+  L.block = top(UI4.hit('padNoteBlock', W + 40, H + 40))
+  if L.block then
+    addCursor(L.block, 'CursorDown', function()
+      print('pad note close which=' .. tostring(which) .. ' via=block')
+      UI4.noteClose()
+    end)
+  end
+  L.dim = top(UI4.pill('padNoteDim', W + 40, H + 40, C(160, 30, 46, 66)))
+  L.card = top(UI4.pill('padNoteCard', cw, 330, THEME.panel))
+  L.line = top(UI4.pill('padNoteLine', tw, 3, THEME.gold))
+  L.title = top(UI4.label('padNoteTitle', N.title or '旅行者，请回到更大的屏幕', tw, 60, 30, THEME.textMain))
+  L.b1 = top(UI4.label('padNoteB1', N.body1 or '', tw, 34, 20, THEME.textSub))
+  L.b2 = top(UI4.label('padNoteB2', N.body2 or '', tw, 34, 20, THEME.textMain))
+  L.b3 = top(UI4.label('padNoteB3', N.body3 or '', tw, 34, 18, THEME.textSub))
+  local bw, bh = 220, 60
+  L.btnBg = top(UI4.pill('padNoteBtnBg', bw, bh, THEME.gold))
+  L.btnTx = top(UI4.label('padNoteBtnTx', N.btn or '知道了', bw, bh, 24, THEME.textMain))
+  L.btn = top(UI4.hit('padNoteBtnHit', bw, bh))
+  UI4.regScreen('note')
+  UI4.regAdd('note.ok', L.btn, bw, bh)
+  if L.btn then
+    addCursor(L.btn, 'CursorDown', function()
+      sfx(SFX.press, true)
+      print('pad note close which=' .. tostring(which))
+      UI4.noteClose()
+    end)
+  end
+  local cy = 40
+  local function at(c, x, y, w, h)
+    if not c then return end
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+  end
+  at(L.block, 0, 0, W + 40, H + 40)
+  at(L.dim, 0, 0, W + 40, H + 40)
+  at(L.card, 0, cy, cw, 330)
+  at(L.line, 0, cy + 128, tw, 3)
+  at(L.title, 0, cy + 92, tw, 60)
+  at(L.b1, 0, cy + 34, tw, 34)
+  at(L.b2, 0, cy - 2, tw, 34)
+  at(L.b3, 0, cy - 40, tw, 34)
+  at(L.btnBg, 0, cy - 108, bw, bh)
+  at(L.btnTx, 0, cy - 108, bw, bh)
+  at(L.btn, 0, cy - 108, bw, bh)
+  UI4.dump('note')
+  print('pad note open which=' .. tostring(which))
+end
+
+UI4.noteClose = function()
+  if not UI4.noteOn then return end
+  local L = UI4.note
+  for _, k in ipairs({ 'block', 'dim', 'card', 'line', 'title', 'b1', 'b2', 'b3', 'btnBg', 'btnTx', 'btn' }) do
+    if L[k] then
+      pcall(function() game.DestroyClientUIControl(L[k]) end)
+      L[k] = nil
+    end
+  end
+  UI4.noteOn = false
+  print('pad note close')
+end
+
+-- ── 手柄：键映射 + 左摇杆 + 菜单焦点导航（真机键名以日志 `pad ev` 为准，改 config 即可换绑）──
+-- 为什么先注册探针再派发：官方手柄键位由编辑器「按键映射-手柄」决定，Lua 侧拿不到映射表；
+--   真实玩家按一遍，日志里的 `pad ev ControllerXxxKeyDown` 就是实际键名 ⇒ 表驱动改绑，不靠猜。
+UI4.padBind = function(listen)
+  local P = NUM.PAD or {}
+  local map = {}
+  for action, list in pairs(P.KEYS or {}) do
+    for _, ev in ipairs(list) do map[ev] = action end
+  end
+  local bases = {}
+  for i = 1, 14 do bases[#bases + 1] = 'CraftspersonKey' .. i end
+  for _, n in ipairs(P.PROBE_NAMED or {}) do bases[#bases + 1] = n end
+  local cnt = 0
+  for _, base in ipairs(bases) do
+    local ev = 'Controller' .. base .. 'Down'
+    local action = map[ev]
+    listen(ev, function()
+      print('pad ev ' .. ev .. (action and (' act=' .. action) or ''))
+      if action then UI4.padAct(action, ev) end
+    end)
+    cnt = cnt + 1
+  end
+  print('pad bind n=' .. cnt)
+end
+
+-- 摇杆：左右移动（带连发）、向下缓降。轴的正负真机未实证 ⇒ 日志把两个数都打出来。
+UI4.padTick = function(dt)
+  if not (UI4.isPad or UI4.mobile) then return end
+  local ok, ax, ay = pcall(function() return game.GetControllerLeftStickAxis() end)
+  if not ok then return end
+  local dz = (NUM.PAD and NUM.PAD.DEADZONE) or 0.55
+  local p = UI4.pad
+  local dir = 0
+  if ax <= -dz then dir = -1 elseif ax >= dz then dir = 1 end
+  if dir ~= p.dir then
+    p.dir, p.t = dir, 0
+    if dir ~= 0 then
+      print('pad stick x=' .. aiFmt(ax) .. ' y=' .. aiFmt(ay) .. ' dir=' .. dir)
+      UI4.padAct(dir < 0 and 'left' or 'right', 'stick')
+    end
+  elseif dir ~= 0 then
+    p.t = (p.t or 0) + dt
+    if p.t >= (NUM.PAD.REPEAT_DELAY or 0.30) then
+      p.t = p.t - (NUM.PAD.REPEAT_RATE or 0.10)
+      UI4.padAct(dir < 0 and 'left' or 'right', 'stick')
+    end
+  end
+  local down = ay <= -dz
+  if down ~= p.down then
+    p.down, p.dt2 = down, 0
+    if down then
+      print('pad stick down y=' .. aiFmt(ay))
+      UI4.padAct('soft', 'stick')
+    end
+  elseif down then
+    p.dt2 = (p.dt2 or 0) + dt
+    if p.dt2 >= (NUM.PAD.REPEAT_DELAY or 0.30) then
+      p.dt2 = p.dt2 - (NUM.PAD.REPEAT_RATE or 0.10)
+      UI4.padAct('soft', 'stick')
+    end
+  end
+end
+
+-- 手柄动作派发：菜单态 = 焦点导航（官方口径：手柄=焦点导航+快捷键），局内 = 与键盘同一条链
+UI4.padAct = function(action, ev)
+  if UI4.menuMode and UI4.menuMode() then
+    if action == 'left' or action == 'hold' then UI4.focusMove(-1) return end
+    if action == 'right' or action == 'soft' then UI4.focusMove(1) return end
+    if action == 'ok' or action == 'rot' or action == 'hard' or action == 'help' then
+      UI4.focusConfirm()
+      return
+    end
+    return
+  end
+  if action == 'help' then
+    if UI4.helpToggle then UI4.helpToggle() end
+    return
+  end
+  if UI4.runAct then UI4.runAct(action, ev) end
+end
+
+
 layout = function(W, H)
   CANVAS_W, CANVAS_H = W, H
   local halfW, halfH = W / 2, H / 2
@@ -4092,22 +4560,24 @@ layout = function(W, H)
   place(keyA, rightCX, -40, panelW, 38)              -- 22 号
   place(keyB, rightCX, -80, panelW, 38)              -- 22 号
   place(keyC, rightCX, -120, panelW, 38)             -- 22 号
-  for _, b in ipairs(BUTTONS) do
-    local ctl = find(b.name)
+  -- v4.0：老的 6 个服务端按钮（btnA..btnF）退役——移动端按钮改成客户端实例层（UI4.btns，
+  -- 位置按画布现算、自带三态与连发）。这里只负责把服务端那 6 个 textbox 永久藏掉
+  -- （真机 SetVisible 不生效时再挪出画布，双保险），否则会和实例按钮叠成两排。
+  for _, nm in ipairs({ 'btnA', 'btnB', 'btnC', 'btnD', 'btnE', 'btnF' }) do
+    local ctl = find(nm)
     if ctl then
-      if isMobile then
-        place(ctl, b.x, b.y, BTN_W, BTN_H)
-        tryCall(ctl, 'SetVisible', true)
-      else
-        tryCall(ctl, 'SetVisible', false)   -- PC 端不展示移动按钮
-      end
+      tryCall(ctl, 'SetVisible', false)
+      tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
     end
+  end
+  if UI4.layout then
+    local okUI, errUI = pcall(UI4.layout, W, H)
+    if not okUI then print('phone layout error :: ' .. tostring(errUI)) end
   end
   applyStyle('title', title) applyStyle('hud', hud) applyStyle('hudNext', hudNext)
   applyStyle('best', best) applyStyle('hint', hint)
   applyStyle('keyA', keyA) applyStyle('keyB', keyB) applyStyle('keyC', keyC)
   applyStyle('topBanner', topBanner) applyStyle('botBanner', botBanner)
-  for _, b in ipairs(BUTTONS) do applyStyle(b.name, find(b.name)) end
   -- 横幅框高按判据算「同时装得下的最大字号」：入场标题会长到 40、结算大字 40（都需 62）
   -- ⇒ topBanner 给 64；旧实现 56 高，标题长过 35 号就整行静默消失（实测）。
   -- 纵向位置：框 64 居中在屏幕上 4..68 那条带子里（棋盘顶框在 59，40 号墨迹 16..56 不压框）
@@ -4157,7 +4627,9 @@ function OnStart()
     local okDev, dev = pcall(function() return game.GetDevice() end)
     if okDev and type(Enum) == 'table' and Enum.Device then
       isMobile = (dev == Enum.Device.Mobile or dev == Enum.Device.MobileController)
-      print('device=' .. tostring(dev) .. ' mobile=' .. tostring(isMobile))
+      UI4.isPad = (dev == Enum.Device.Controller or dev == Enum.Device.MobileController)
+      print('device=' .. tostring(dev) .. ' mobile=' .. tostring(isMobile)
+        .. ' pad=' .. tostring(UI4.isPad))
     else
       print('device=unknown（按移动端处理，按钮可见）')
     end
@@ -4486,12 +4958,12 @@ function OnStart()
     end
     -- v2.1 ①：引导态的 R=直接回菜单（还没开局，重开无意义）
     if guideStage == 3 and MODE ~= 'casual' then
-      exitToMenu()
+      FN.exitToMenu()
       return
     end
     -- T6b：非 casual 模式**局内**的 R=回标题菜单（模式可重选）；casual 保持 v1 就地重开语义
     if MODE ~= 'casual' and guideStage == 1 then
-      exitToMenu()
+      FN.exitToMenu()
       return
     end
     settleDestroy()          -- 双保险：newGame 里还会再调一次（幂等），保证 R 一定销毁结算层
@@ -4540,7 +5012,7 @@ function OnStart()
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
     if MODE ~= 'casual' and guideStage == 1 then
-      exitToMenu()
+      FN.exitToMenu()
       return
     end
     settleDestroy()
@@ -4558,7 +5030,7 @@ function OnStart()
     if g.gameOver or MODE_OVER then
       keyConsumedFrame = frameSeq
       print('menu back V')
-      exitToMenu()
+      FN.exitToMenu()
     end
   end
   SETTLE_ACT.detail = function()    -- = Q 键体核心（明细切换；结算信号优先路径保留在键监听）
@@ -4613,68 +5085,54 @@ function OnStart()
     renderHud()
   end))
 
-  -- 手机按钮热区（v2.7 修用户反馈⑥「鼠标点一下就重开」）：
-  -- 这些 cursor 热区本来是触屏专用，但 v1 在 PC 上也**照建照挂监听且从未摆位**——
-  -- 6 个热区全叠在模板默认位置（画布中心），于是 PC 上点画面中央就命中 btnF=重开。
-  -- 现在：① 一律按按钮坐标摆位 ② PC 端 visible=false + 挪出画布（双保险：真机若忽略 visible 也点不到）
-  -- ③ 结算态点「重开」走 restartMatch（同一模式再来一局，与键盘 R 同语义）。
-  local function hitOf(name)
-    local c = find(name .. 'hit')
-    if c then return c end
-    return nil
+  -- ===== v4.0 设备适配接线（移动端按钮 / 手柄 / 焦点导航）=====
+  -- 动作派发一律走键盘同一条链（act(key, fn) + doPlay）：于是"帮助页开着先关页""入场态按键
+  -- 既开局也执行动作""MODE_OVER 冻结输入""接管中按键交还"这些语义自动一致，不用重写第二套。
+  local PHONE_KEY = {
+    left = 'KeyboardMoveLeftKeyDown', right = 'KeyboardMoveRightKeyDown',
+    rot = 'KeyboardMoveForwardKeyDown', soft = 'KeyboardMoveBackwardKeyDown',
+    hard = 'KeyboardJumpKeyDown', hold = 'KeyboardCraftspersonKey14Down',
+  }
+  UI4.runAct = function(action)
+    local key = PHONE_KEY[action]
+    if not key then return end
+    act(key, function() doPlay(action, key) end)()
   end
-  local anyHit = hitOf(BUTTONS[1].name)
-  local firstHit, hitGuid = hitSeed, TPL_HIT    -- v2.7：复用上面提前探测的 cursor 实例与 guid
-  if anyHit then firstHit, hitGuid = nil, nil end
-  if anyHit or firstHit then
-    if hitGuid then print('hit guid=' .. hitGuid) else print('hit source=layout') end
-    local actions = {
-      btnA = function() if guideStage ~= 2 then moveBy(-1) end end,
-      btnB = function() if guideStage ~= 2 then moveBy(1) end end,
-      btnC = function() if guideStage ~= 2 then stepDown(true) end end,
-      btnD = function() if guideStage ~= 2 then rotate() end end,
-      btnE = function()
-        if guideStage == 2 or g.gameOver or not g.piece then return end
-        while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do g.piece.y = g.piece.y + 1 end
-        print('touchdrop y=' .. g.piece.y)
-        doLock()
-      end,
-      btnF = function()
-        if g.gameOver or MODE_OVER then restartMatch() return end
-        if guideStage == 2 then guideStage = 1 setText(hint, '') end
-        newGame()
-        setText(topBanner, '') setText(botBanner, '')
-      end,
-    }
-    for i, b in ipairs(BUTTONS) do
-      local h = hitOf(b.name)
-      if not h then
-        h = firstHit
-        firstHit = nil
-        if not h then h = game.InstantiateClientUIControl(hitGuid, root) end
-      end
-      if h then
-        h.name = b.name .. 'hit'
-        tryCall(h, 'SetSizeDelta', BTN_W, BTN_H)
-        tryCall(h, 'SetAnchoredPosition', b.x, b.y)
-        if not isMobile then
-          tryCall(h, 'SetVisible', false)
-          tryCall(h, 'SetAnchoredPosition', 0, -100000)   -- 画布外：visible 不生效时也不可命中
-        end
-        local act = actions[b.name]
-        addCursor(h, 'CursorDown', function()
-          if not isMobile then return end
-          if helpOpen then closeHelp() return end
-          startIfWaiting()
-          if act then act() end
-        end)
-        hits[i] = h
-      end
+  UI4.helpToggle = function()
+    if helpOpen then closeHelp() else toggleHelp() end
+  end
+  UI4.dispatch = function(action, id)
+    if action == 'help' then UI4.helpToggle() return end
+    if UI4.noteOn then UI4.noteClose() return end
+    UI4.runAct(action)
+  end
+  UI4.menuMode = function()
+    if guideStage == 0 then return true end
+    local m = G[1]
+    return (m and m.gameOver) or MODE_OVER
+  end
+  UI4.focusMove = function(step)
+    if guideStage ~= 0 then return end
+    local n = #MODE_INFO
+    UI4.focus = (UI4.focus or 1) + step
+    if UI4.focus < 1 then UI4.focus = n end
+    if UI4.focus > n then UI4.focus = 1 end
+    if MS.hoverCard then pcall(MS.hoverCard, UI4.focus) end
+    if MS.zones and MS.zones[UI4.focus] then
+      pcall(function() game.SetControllerFocus(MS.zones[UI4.focus]) end)
     end
-    print('hits=' .. #hits .. ' mobile=' .. tostring(isMobile))
-  else
-    print('hits=0 click disabled（真机导入后跑 node qxqy/deploy.mjs --calibrate）')
+    print('pad focus i=' .. UI4.focus)
   end
+  UI4.focusConfirm = function()
+    local i = UI4.focus or 1
+    print('pad confirm i=' .. i)
+    if guideStage == 0 then menuSelectMode(i) return end
+    if UI4.menuMode() and SETTLE_ACT.restart then SETTLE_ACT.restart() end
+  end
+  pcall(UI4.build, isMobile)         -- 移动端 6 键 + 说明键（客户端实例层）
+  pcall(UI4.padBind, listen)         -- 手柄 24 条 Controller 事件（探针 + 映射）
+  print('v4 device mobile=' .. tostring(isMobile) .. ' pad=' .. tostring(UI4.isPad)
+    .. ' phone=' .. #(UI4.btns or {}))
 
   -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
   -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
@@ -4728,7 +5186,7 @@ end
 -- OnUpdate 对 ACTIVE 每实例调用一次；内部全部经 g（闭包共享 upvalue）作用于当前盘。
 -- 铁律（v2 设计书 §1.8 Step3）：事件回调先 `g = G[player]` 再执行动作；
 -- 跨实例交互（T7 垃圾行）入口保存 g → 切目标 → 操作 → 还原。
-local function tickInstance(d)
+FN.tickInstance = function(d)
   -- 抖屏：只在 shakeT > 0 的帧写坐标；到点复位一次后就不再碰任何控件
   if g.shakeT > 0 then
     g.shakePhase = g.shakePhase + d
@@ -4798,6 +5256,11 @@ end
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
+  -- v4.0：触屏连发与手柄摇杆必须在"帮助页时停"早退**之前**推进——否则帮助页开着时
+  -- 移动端「合上」按钮和手柄的返回键都按不动（旧代码在 helpOpen 时整帧 return，正是这个坑）。
+  if UI4.tick then UI4.tick(d) end
+  if UI4.padTick then UI4.padTick(d) end
+  if UI4.syncVisible then UI4.syncVisible(MODE_OVER or ((G[1] and G[1].gameOver) and true or false)) end
   -- v2.8 ②：局内开帮助=游戏时停（重力/AI/接管计时全停；结算态不冻结）。关闭即恢复。
   if helpOpen and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
@@ -4833,7 +5296,7 @@ function OnUpdate(dt)
         pendingMode = nil
         trySet(topBanner, 'fontSize', 34)
         trySet(topBanner, 'fontColor', C_GOLD2)
-        enterMode()
+        FN.enterMode()
         startIfWaiting()
       end
       return
@@ -4877,7 +5340,7 @@ function OnUpdate(dt)
           -- v2.2 ①：引导结束，keyA/keyB 从盘下说明位复位回战况位（layout 全量+双屏重摆）
           if G[2] and CANVAS_W and CANVAS_H then
             pcall(layout, CANVAS_W, CANVAS_H)
-            layoutDual()
+            FN.layoutDual()
           end
           renderHud()
           -- v3.5 ⑦：对家盘 HUD 立刻刷一次——右栏此前要等 AI 落子（spawn→renderHud）才从
@@ -4932,7 +5395,7 @@ function OnUpdate(dt)
         end
         TK.prevState = 'ai'
       end
-      aiTickCore(d, 'stop', g.AI.assistLv or 1)
+      FN.aiTickCore(d, 'stop', g.AI.assistLv or 1)
     elseif TK.state ~= 'ai' then
       TK.prevState = nil
     end
@@ -4949,9 +5412,9 @@ function OnUpdate(dt)
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
     -- T6b：AI 盘驱动（i==2）——作用于 G[2]（闭包 g 已切）；盘死即停（胜负在 showGameOver 收口）
     if (MODE == 'ai-battle' or MODE == 'coop') and i == 2 then
-      aiTickCore(d, 'stop')
+      FN.aiTickCore(d, 'stop')
     end
-    tickInstance(d)
+    FN.tickInstance(d)
   end
 end
 

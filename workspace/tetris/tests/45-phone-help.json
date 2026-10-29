@@ -1,0 +1,25 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "45 v4.0 移动端帮助闭环：说明键开页 → 页内「合上手册」胶囊关页（tap help close）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  { "t": 0.5, "kind": "pointer", "type": "move", "x": 1210, "y": 678 },
+  { "t": 0.55, "kind": "pointer", "type": "down", "x": 1210, "y": 678 },
+  { "t": 0.6, "kind": "pointer", "type": "up", "x": 1210, "y": 678 },
+  { "t": 1.4, "kind": "pointer", "type": "move", "x": 1152, "y": 662 },
+  { "t": 1.45, "kind": "pointer", "type": "down", "x": 1152, "y": 662 },
+  { "t": 1.5, "kind": "pointer", "type": "up", "x": 1152, "y": 662 },
+  { "t": 2.4, "kind": "pointer", "type": "move", "x": 1210, "y": 678 },
+  { "t": 2.45, "kind": "pointer", "type": "down", "x": 1210, "y": 678 },
+  { "t": 2.5, "kind": "pointer", "type": "up", "x": 1210, "y": 678 }
+ ],
+ "asserts": [
+  { "at": 1.0, "kind": "log", "contains": "phone tap help", "source": "client" },
+  { "at": 1.0, "kind": "log", "contains": "guide help on n=", "source": "client" },
+  { "at": 2.0, "kind": "log", "contains": "tap help close", "source": "client" },
+  { "at": 2.0, "kind": "log", "contains": "guide help closed stage=0", "source": "client" },
+  { "at": 3.0, "kind": "log", "contains": "guide help on n=", "source": "client" }
+ ]
+}

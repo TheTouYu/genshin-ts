@@ -1,0 +1,63 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "44 v4.0 触屏长按连发：按住 ← 0.9s 应连发（phone rep start/done），松手后不再移动",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  {
+   "t": 0.4,
+   "kind": "pointer",
+   "type": "move",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 0.45,
+   "kind": "pointer",
+   "type": "down",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 1.35,
+   "kind": "pointer",
+   "type": "up",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 2.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 640,
+   "y": 600
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.7,
+   "kind": "log",
+   "contains": "phone tap left",
+   "source": "client"
+  },
+  {
+   "at": 1.2,
+   "kind": "log",
+   "contains": "phone rep start id=left",
+   "source": "client"
+  },
+  {
+   "at": 1.6,
+   "kind": "log",
+   "contains": "phone rep done id=left",
+   "source": "client"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "move x=",
+   "source": "client"
+  }
+ ]
+}

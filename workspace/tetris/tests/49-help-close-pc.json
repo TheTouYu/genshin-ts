@@ -1,0 +1,19 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "49 v4.0 帮助页可见关闭入口（PC）：H 开页 → 点右上「合上手册」胶囊 → 关页",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  { "t": 0.5, "kind": "key", "typeName": "KeyboardCraftspersonKey15Down" },
+  { "t": 0.6, "kind": "key", "typeName": "KeyboardCraftspersonKey15Up" },
+  { "t": 1.4, "kind": "pointer", "type": "move", "x": 1440, "y": 828 },
+  { "t": 1.45, "kind": "pointer", "type": "down", "x": 1440, "y": 828 },
+  { "t": 1.5, "kind": "pointer", "type": "up", "x": 1440, "y": 828 }
+ ],
+ "asserts": [
+  { "at": 1.0, "kind": "log", "contains": "guide help on n=", "source": "client" },
+  { "at": 2.0, "kind": "log", "contains": "tap help close", "source": "client" },
+  { "at": 2.0, "kind": "log", "contains": "guide help closed stage=0", "source": "client" }
+ ]
+}

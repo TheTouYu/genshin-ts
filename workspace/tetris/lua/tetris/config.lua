@@ -664,6 +664,90 @@ local COPY = {
 }
 M.COPY = COPY
 
+--[[==========================================================================
+v4.0 设备适配数据（2026-10-29 用户四条反馈的唯一数据源）
+1) 背景满幅：构图按 1280×720 设计板摆放，换到更宽的画布（mobile-19.5-9 / pc-21-9）
+   两侧就只剩底色 ⇒ 按 **cover 缩放**（max(W/1280,H/720)）把构图放大到盖住整屏。
+2) 移动端操作控件：用户原话「左边移动+旋转方向，右边锁定+缓慢下落+暂存」。
+3) 移动端多人玩法引导：手机端不做双屏，点击要给出原神风文案指路 PC。
+4) 手柄：键位映射表 + 焦点导航（真机键名以日志 `pad ev` 实测为准，改这张表即可换绑）。
+========================================================================]]
+
+-- 背景设计基准（cover 缩放的分子；改构图尺寸时同步改这里）
+NUM.BG_BASE_W, NUM.BG_BASE_H = 1280, 720
+
+-- ── 移动端操作控件（6 键 + 1 常驻说明键）────────────────────────────────────
+-- 布局：左簇 2 列 × 2 行、右簇 2 列 × 2 行，贴画布两下角；坐标由 main 按 GetUICanvasSize 现算
+-- （旧实现写死 x=±410 = 1280 画布口径，换 1560 宽画布按钮离边缘 350px，真机等于"没有按钮"）。
+NUM.PHONE = {
+  W = 132, H = 62, GAP = 10, MARGIN = 16,
+  HELP_W = 108, HELP_H = 52,          -- 说明键（右上角）：局内/标题都能开合帮助页
+  HOLD_DELAY = 0.26, HOLD_RATE = 0.075,   -- 触屏连发：按下 0.26s 后每 0.075s 一次
+  items = {
+    { id = 'left',  label = '◀',    act = 'left',  side = 'L', col = 0, row = 0, rep = true },
+    { id = 'right', label = '▶',    act = 'right', side = 'L', col = 1, row = 0, rep = true },
+    { id = 'rot',   label = '旋转', act = 'rot',   side = 'L', col = 1, row = 1 },
+    { id = 'hard',  label = '锁定', act = 'hard',  side = 'R', col = 1, row = 0 },
+    { id = 'soft',  label = '缓降', act = 'soft',  side = 'R', col = 0, row = 0, rep = true },
+    { id = 'hold',  label = '暂存', act = 'hold',  side = 'R', col = 0, row = 1 },
+  },
+}
+
+-- ── 移动端「双人玩法请回 PC」引导（原神风；点卡片触发，不静默吞点击）──────
+NUM.PAD_NOTE = {
+  title = '旅行者，双人委托暂不在此处',
+  body1 = '手机这一方寸屏幕，摆不下两张并排的棋盘。',
+  body2 = '请回到更开阔的屏幕——PC 端，双人 / AI 对抗随时等你。',
+  body3 = '单人「休闲」玩法，旅途中照旧可以玩。',
+  btn = '知道了',
+  toastTitle = '此处需要更大的屏幕',
+  -- 主页模式卡在移动端的角标（4 张卡按模式顺序；casual 无角标）
+  cardTag = '仅 PC',
+}
+
+-- ── 手柄（Controller / MobileController）──────────────────────────────────
+-- 键名都用枚举全名（`ControllerXxxKeyDown`）：模拟器/真机都按字符串注册，真机不认会打 ui fail。
+-- ⚠ 真机键位与下表不一致时**不要猜**：手柄任意键都会打 `pad ev <name>` 与 `pad key <name>`
+--   ⇒ 让玩家按一遍，从日志读出实际键名，再改本表（表驱动，不改逻辑）。
+NUM.PAD = {
+  DEADZONE = 0.55,          -- 左摇杆死区（0..1）
+  REPEAT_DELAY = 0.30,      -- 摇杆连发：首次触发后 0.30s 起连日Repeat
+  REPEAT_RATE = 0.10,
+  FOCUS_REPEAT = 0.22,      -- 菜单焦点移动的连发间隔
+  KEYS = {
+    left  = { 'ControllerCraftspersonKey1Down', 'ControllerMoveLeftKeyDown' },
+    right = { 'ControllerCraftspersonKey2Down', 'ControllerMoveRightKeyDown' },
+    rot   = { 'ControllerJumpKeyDown', 'ControllerCraftspersonKey5Down' },
+    hard  = { 'ControllerNormalAttackKeyDown', 'ControllerCraftspersonKey6Down' },
+    soft  = { 'ControllerCharacterSkill1KeyDown', 'ControllerCraftspersonKey7Down' },
+    hold  = { 'ControllerCharacterSkill2KeyDown', 'ControllerCraftspersonKey8Down' },
+    help  = { 'ControllerMenuBackKeyDown', 'ControllerCharacterSkill3KeyDown' },
+    ok    = { 'ControllerMenuConfirmKeyDown', 'ControllerCraftspersonKey9Down' },
+  },
+  -- 探针只登记 keydown 与手势无关的那批（keyup 只在左/右/软降需要，见 main 侧生成规则）
+  PROBE_NAMED = { 'SprintKey', 'JumpKey', 'InteractKey', 'NormalAttackKey',
+    'CharacterSkill1Key', 'CharacterSkill2Key', 'CharacterSkill3Key', 'CharacterSkill4Key',
+    'MenuConfirmKey', 'MenuBackKey' },
+}
+
+-- ── AI 节奏与策略（v4.0；用户 2026-10-29 第 4 点）──────────────────────────
+-- ① 操作间隔随「当前重力速度」收紧：paceK × 一块从顶落到底的时长，再夹到 [paceMin, targetHi]。
+--    旧实现是档位常数（1.0~2.2s/块），等级越高重力越快 ⇒ AI 反被自己的节奏拖死。
+-- ② 玩家可用的 AI 不注入失误（pMistake 字段保留但全 0；弱档改走**简化评估**，错得自然不装傻）。
+-- ③ 永久开启 hold（不再只有 hard 档），并把「留 I 块打多消行」写成显式策略。
+-- ④ 对抗模式：对手堆高时进入 attack 模式，多消行给额外分（垃圾行按 GARBAGE 表送出）。
+NUM.AI_TUNE = {
+  paceK   = { 0.55, 0.40, 0.26 },   -- easy / normal / hard：一块的用时占「自然坠落时长」的比例
+  paceMin = { 0.55, 0.40, 0.24 },   -- 每块最短用时（秒）：再快就不像人了
+  paceMax = { 2.60, 2.00, 1.20 },   -- 每块最长用时（秒）
+  holdMargin = { 2.4, 1.2, 0.5 },   -- 换块收益阈值（简化评估档给大一点，免得来回换块）
+  saveI      = { false, false, true },  -- 留 I 块等四消（hard 专属策略，弱档不做）
+  attackBonus = 9.0,                -- 对手危险时，每多消 1 行的额外分（消 2 行 +9、4 行 +27）
+  attackHeight = 8,                 -- 对手最高列 ≥ 8 格 ⇒ 判定「对手快死了」，进入 attack 模式
+  wellDepth  = 4,                   -- 留 I 块的井深阈值（1 列宽、深度 ≥ 4）
+  simpleEval = { true, false, false },  -- 简化评估（只看聚合高度+消行）：弱档"想得少"，不是"故意错"
+}
+
 -- ===== 导出（main.lua 按名取用；新增字段记得同步导出）=====
 M.COLS, M.ROWS, M.CELL, M.GAP, M.PITCH, M.STEP = COLS, ROWS, CELL, GAP, PITCH, STEP
 M.TPL_GUIDS, M.NUM, M.C = TPL_GUIDS, NUM, C
