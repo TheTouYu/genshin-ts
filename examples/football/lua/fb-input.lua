@@ -118,14 +118,20 @@ end
 local function setStyle(name, fs, color)
   local c = getCtl(name)
   if c == nil then return end
-  local ok, err = pcall(function()
-    if fs ~= nil then c.fontSize = fs end
-    if color ~= nil then c.fontColor = color end
-    -- 真机：对齐字段收字符串（霜华纪实测）；个别版本要枚举，失败只记日志
-    c.horizontalAlignment = 'Middle'
-    c.verticalAlignment = 'Middle'
-  end)
-  if not ok then log('pcall fail style ' .. name .. ' ' .. tostring(err)) end
+  -- 每条属性单独 pcall：一条失败不挡其余（真机属性名/类型按版本有差异）
+  if fs ~= nil then
+    local ok, err = pcall(function() c.fontSize = fs end)
+    if not ok then log('pcall fail fontSize ' .. name .. ' ' .. tostring(err)) end
+  end
+  if color ~= nil then
+    local ok, err = pcall(function() c.fontColor = color end)
+    if not ok then log('pcall fail fontColor ' .. name .. ' ' .. tostring(err)) end
+  end
+  -- 真机：对齐字段收字符串（霜华纪实测）；个别版本要枚举，失败只记日志
+  local okh, errh = pcall(function() c.horizontalAlignment = 'Middle' end)
+  if not okh then log('pcall fail alignH ' .. name .. ' ' .. tostring(errh)) end
+  local okv, errv = pcall(function() c.verticalAlignment = 'Middle' end)
+  if not okv then log('pcall fail alignV ' .. name .. ' ' .. tostring(errv)) end
 end
 
 local function two(n)

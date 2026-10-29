@@ -149,3 +149,41 @@ Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
    若 0 条 ⇒ 一行命令回滚（`assets:creations skill add --target 1082130442 --skill-config 1191182338 --cd 0.03 --ignore-public-cd --write`）。
 2. 真机确认 Lua 三键链路（`[fb-in] onstart` / `listen … via enum|string` / `key …` + 服务端 `fb-key`）。
 3. 真机确认运动器渲染观感（线性补间是否平滑、滚转是否可见、大跳变是否用瞬时定点）。
+
+---
+
+## 现状读数（2026-10-29 14:2x，本轮：HUD v1 界面骨架 + 核心机制设计 v0）
+
+> 测量方式：`assets:ui list` / `assets:scripts list|mounts` / `assets:creations inspect` /
+> `assets:skill-config list` / `sha256sum`（全部只读 CLI，活图 1073741827）。
+
+### 结构层（已验证）
+
+- **HUD 11 控件**（客户端容器节点 1073741863 下）：`hud_title`(1073741866, 800,862, 720×44)、
+  `hud_score`(1073741873, 800,800, 420×78)、`hud_timer`(1073741874, 800,744, 260×40)、
+  `hud_toast`(1073741875, 800,620, 1000×96)、`hud_state`(1073741876, 800,270, 700×44)、
+  `hud_k1..k6`(1073741867..72, x=1380, y=636/588/540/492/444/396, 380×44)。
+- **脚本**：registry 2 条（fb-input 1073741825 / fb-input2 1073741826），**mounts=1**（只 fb-input 挂在容器节点；
+  本轮 unmount 了 fb-input2 —— 两条同源脚本同挂一个节点会让每次按键双发 `fb_input`）。
+  external Lua 10848B（含 BOM）；Save_Level == Temp sha `7893105f…`。
+- **技能配置链**（复读确认）：打手丘丘人 1082130445 skills=1 → config `1191182341`（instant）→ `graphId=1082130436`
+  = `_GSTS_kitLoop`；decision=1082130438（20007）。真足球 1077936135 挂 kitRender 1073741828。
+- **UI 控件的样式编辑能力边界**（本轮新判据）：`assets:ui update --font-size/--align` 只支持
+  `textbox/input-box/message-queue`；**client-textbox 不支持**（文本样式在记录 `f505(501=64/f502=84)→f503→f74→f75`），
+  `--position/--size` 有效。⇒ 字号/颜色/对齐/文案一律由 Lua 运行时赋值。
+- **客户端容器加控件的可用路径**：`assets:ui create --on container:<节点>` 对客户端容器**不成立**
+  （报「不属于任何悬浮页」/「缺少 f503 成员列表」）；用 `assets:ui clone <同容器控件> --on container:<节点> --id/--name/--position/--size`。
+
+### 行为层（零证据，本轮最重要的发现）
+
+- 近 32 份 `Beyond_Debug_Log/*.gia` 中**没有任何一份含 `[fb-in]`**（Lua 从未在带日志的试玩里跑过），
+  `fb-heartbeat` 只在 2026-10-28 07:22 那份 256B 短日志出现过一次。
+- ⇒ 物理内核 v2 / Lua 输入桥 / HUD **三层都只有结构层证据**；`VERIFY-PHYSICS.md` 给出「一条试玩周期验四条链」的步骤与失败分支。
+
+### 断点（下一轮从这里接）
+
+1. **一条试玩周期验四条链**（用户执行，约 3 分钟）：重开地图 1073741827 → 试玩 → 站 3 秒 → 按 ①~⑥ → 带球 5 秒 → 射门三次 → 退出；
+   我解析新日志判 V1~V4（见 `examples/football/design/VERIFY-PHYSICS.md` §2/§4）。
+2. **M1-a 通道实验（10 分钟）**：服务端写玩家自定义变量 → Lua `GetGlobalCustomVariableValue(PlayerSelf, …)` 读到值；
+   成立后进 M1-b（kitMatch 比赛图：计时/比分/开球/结束/重开）。
+3. HUD 视觉 v2（底板图像控件、技能条双态高亮）——依赖 M1 数据通道，排在后面。

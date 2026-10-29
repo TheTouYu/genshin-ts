@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-10-29 09:3x（`[sim-2d]` 回归读数更新为 51/51 + 全控件巡检 69/0；共享面未变）
+> 最近校验：2026-10-29 14:2x（新增 `[football]` 结构自检与行为层零证据读数；共享面未变）
 > 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
@@ -43,6 +43,8 @@
 | `[sim-2d]` | `node qxqy/audit-controls.mjs`（在 `workspace/tetris`） | **69 控件 / 0 死**（5 画布 × menu/play/help/settle/note；判据=每个控件点下去必须出现它自己的日志锚） | 2026-10-29 09:3x |
 | `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`，等用户导入） | 17/17 PASS（上一活跃工程，冻结态） | 2026-10-24 11:4x |
 | `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
+| `[football]` | 地图 1073741827 结构自检（`assets:ui list` / `assets:scripts mounts` / `sha256sum`） | 11 个 client-textbox 位置尺寸一致；mounts=1；Save_Level==Temp sha `7893105f…`；Lua 静态审计 PASS | 2026-10-29 14:2x |
+| `[football]` | 行为层（真机试玩日志） | **9 份近期日志 `[fb-in]` 命中 0**（Lua 从未在带日志试玩中跑过）⇒ 物理/输入/HUD 三层行为证据为零 | 2026-10-29 14:2x |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
 
 ## 四、机器与常驻服务（只读实测，2026-10-24 11:5x）
