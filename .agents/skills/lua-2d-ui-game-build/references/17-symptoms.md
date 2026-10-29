@@ -56,6 +56,9 @@
 | 游戏实际执行的是旧脚本 | `assets:scripts mounts` 查**活跃容器挂的是哪条**（deploy 写的可能不是它） | `12-deploy` §1 |
 | `GSTS_LOCALLOW_DIR` 报错找不到 BeyondLocal | CLI 要 `…/AppData/LocalLow`；`deploy.mjs` 要 `…/LocalLow/miHoYo/原神`（两个口径不同） | `12-deploy` §6 |
 | 试玩服务僵死 / 页面打不开 | 重启服务，自证 pid + HTTP 200；旧页面会话失效需刷新 | `13-device` §6 |
+| **布局里有客户端容器，游戏里什么都没有 / `mounts=0`** | ①`assets:ui container discover` 看**布局实例**节点在不在（空容器节点会被编辑器保存时剪掉→放 1×1 占位子控件）②`assets:scripts mounts` 看挂载在**布局实例节点**还是模板节点 | `12-deploy` §9 |
+| **换了地图／克隆后 Lua 探测模板全失败（`tpl guid=` 是旧数字 或 nil）** | 设备版 Lua 把模板 GUID 烘死在源码里（`T.tpl = {prim=…}`）；换图要重新 build（`FLOWER_PRIM/LABEL/HIT=… node qxqy/build-device.mjs`）再 `assets:scripts update` | `12-deploy` §9.2 / `13-device` §3 |
+| **`external_lua_file` 不存在 / 游戏跑旧脚本** | `assets:scripts list` 看 `exists/size`；`maps:clone` 会把内联 source 物化到新图目录，手写路径要自己补 | `12-deploy` §9 |
 
 ## 4. 玩法 / 逻辑类
 

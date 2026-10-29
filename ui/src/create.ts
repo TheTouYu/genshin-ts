@@ -54,6 +54,7 @@ import {
 import { UI_KIND_REGISTRY } from './types.js'
 import type { UiRecordMeta } from './types.js'
 import type { ParsedRoot9 } from './record.js'
+import { linkTemplateInstance } from './container-subtree.js'
 
 export type CreateControlKind =
   | Extract<UiCreateDonorKind, 'custom-button' | 'textbox' | 'image' | 'input-box' | 'message-queue'>
@@ -789,6 +790,11 @@ export function createClientContainerCandidate(
     parentId: layoutId
   })
   out = insertRecordOnly(out, layoutChild)
+  // 模板侧反向引用：模板族 f14 实例列表登记布局实例组（编辑器同款双向树）
+  out = linkTemplateInstance(out, {
+    templateGroupId,
+    instanceGroupId: layoutGroupId
+  })
 
   return {
     bytes: out,

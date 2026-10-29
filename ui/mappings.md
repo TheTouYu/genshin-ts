@@ -150,3 +150,27 @@
 ## 票09 实测追加（2026-09-03）：对齐右码 + 命令层缺口
 - 对齐：f19.f503/f68.f506 居中=1/右=2/缺省=左（第12步 输入框右对齐 样本铁证）。
 - create 默认形态=空素材/空文本；素材组/模板化坑与成员编辑见 ui-controls.md 票09 节 + 票10。
+
+## 9. 客户端控件容器三条命令（模板 ⇄ 布局实例 ⇄ 存为模板；2026-10-29）
+
+命令面（`src/cli/assets_ui_container.ts` + `ui/src/container-subtree.ts`，默认 dry-run；`--write` 须 `--yes`）：
+
+| 命令 | 作用 | 关键读数 |
+|---|---|---|
+| `assets:ui container discover --gil <导入后图> [--baseline <导入前图>] [--container <ID\|名字\|all>]` | 自动发现 root9 里的容器**模板组**（族 4），递归列出 组→容器节点→全部子控件、脚本挂载、实例列表 | `template=<组ID> ... children=<n> kinds={...} mounts={host->script}` |
+| `assets:ui container instantiate --gil <图> [--container …] [--layout <ID\|名字>] [--id <实例组ID>] [--force]` | 把模板整棵子树复制成**布局实例**（含全部子控件）+ 布局 `f503` 追加 + 模板 `f14` 实例列表追加 + `f74` 挂载随记录复制 + 回读同构自检 | `instance template=… -> group=… node=… records=<n> children=<n> mounts={…} selfCheck=pass` |
+| `assets:ui container save-template --instance <ID\|名字> [--name <新名>]` | 把库/布局实例复制成**容器模板**（实例 `f13` 改指新模板 + 两侧同名去重 `_1/_2`；旧模板 `f14` 摘除该实例；源实例保留） | `template group=… name=… instance=… previousTemplate=… selfCheck=pass` |
+
+**三层 wire（全部由记录推导，无 donor/ID 常量）**
+
+| 层 | 判别 | 关键字段 |
+|---|---|---|
+| 容器模板组 | `kind=client-container` + 族 `f502{f501=4,f502=4}`，**无 f504** | `f14{f501=实例ID列表packed}`；成员表在 `f505{f72,f501=62,f502=82,f503{f73{f501=节点}}}` |
+| 容器节点 | 组的成员；**无 f504** | 子控件在节点顶层 `f503` packed；子控件 `f504=节点ID` |
+| 布局实例组 | 族 `f13{f501=模板组}` + `f501=3`，`f504=布局ID` | `f12{f501=模板序号}` 照抄模板；布局 `f503` 尾部追加实例组 |
+| 脚本挂载槽 | 记录内深层 `f505{…f503{f74{f501=1,f502{f1{f1=脚本GUID}}}}}` | **复制记录即继承挂载**；f74 内是脚本 GUID（不在控件 ID 空间），克隆时整段不可重映射 |
+| owner 自引用 | 每个 `f505{…f503{f504{f2,f3,f4=自身ID}}}` | 克隆时必须一起重映射 |
+
+**ID 与索引纪律**：容器族 ID 从 `1073742500` 起避让（低位会被编辑器分给 `ClientUIRootHierarchyRoot`/模板实例）；`root9.f501` 索引 = **全部无 f504 记录、按物理顺序**（模板组/容器节点/布局在，实例组/控件子件不在），写入后自检该不变量 + 无悬空成员。
+
+**证据与回归**：三组真机 GIA 导入快照（空容器 / 16 文本框 / 7 HUD 文本框）+ 编辑器自己造的实例与 after-save-template 逐字段对拍 → `npm run test:ui-container`（19 断言，含 2 组黄金差分 0 差异）。

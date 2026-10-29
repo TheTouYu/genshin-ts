@@ -9,6 +9,8 @@
 //
 // 编辑策略：整树 parse → 原地替换顶层 f50（其余顶层字段字节透传，不重排）→
 // 容器内既有条目按原始 WireField 原样回放（未知字段保留），仅追加新条目。
+import path from 'node:path'
+
 import { emitWireMessage, parseWireMessage, type WireField } from './static_assembly/wire.js'
 
 export const SCRIPT_REGISTRY_FIELD = 50
@@ -83,6 +85,18 @@ function entryOfFields(fields: WireField[]): ScriptRegistryEntry | null {
     filePath: decodeUtf8(pathField.value as Uint8Array),
     source: sourceField ? decodeUtf8(sourceField.value as Uint8Array) : null
   }
+}
+
+/**
+ * 脚本外部文件的落盘路径：`<地图槽目录>/external_lua_file/<filePath>`
+ * （真机契约见 D253：default_import_file 前缀 + 编辑器/游戏读这份外部副本）。
+ * 单一实现：assets:scripts 写回与 maps:clone 物化外部副本共用。
+ */
+export function externalLuaDestOf(gilPath: string, filePath: string): string {
+  const dir = path.dirname(gilPath)
+  const base = path.basename(gilPath, '.gil')
+  const slotDir = path.basename(dir) === base ? dir : path.join(dir, base)
+  return path.join(slotDir, 'external_lua_file', ...filePath.split('/'))
 }
 
 export function parseScriptRegistry(payload: Uint8Array): ScriptRegistryEntry[] {

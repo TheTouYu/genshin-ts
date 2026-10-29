@@ -53,6 +53,16 @@
 - 文本配置容器 f19（文本框 t25 / 图文输入框 type45 共用）：f502=字号（默认 20）/ f503=对齐（1=居中）/ f505=文本 / f510=颜色 varint ARGB。
 - 小开关/标记 = `f50x varint=1` 增删（±3B），偶有反向语义——以反向实验为准，不猜。
 
+## 客户端控件容器（2026-10-29 新增命令面）
+
+- `assets:ui container discover|instantiate|save-template`（`src/cli/assets_ui_container.ts` +
+  `ui/src/container-subtree.ts`）：**从导入后的 root9 容器模板记录推导整棵子树**（组→节点→全部子控件），
+  复制成布局实例或存为模板。禁止写死模板/容器 ID 与子控件名——判别全靠族描述符（4=模板 / 3=实例）、
+  `f503` 成员表、`f504` 父引用、`f74` 挂载槽；wire 细节与三组 GIA 差分阅 `ui/mappings.md` §9。
+- 写后自检三条（本命令内置，手改 wire 时也要自己验）：布局实例 `f504=布局` 且族 3 引用模板组；
+  `root9.f501` 索引 = 全部无 `f504` 记录按物理顺序；成员表无悬空引用。
+- 回归：`npm run test:ui-container`（dist CLI 跑三组 fixture + 两组编辑器黄金差分）。
+
 ## 常用文件
 
 - 设计全稿：`ui/DESIGN.md`；模块索引：`ui/README.md`

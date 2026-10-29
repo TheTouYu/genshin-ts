@@ -73,6 +73,15 @@ local function trySet(ctl, field, value) … end
 
 ## 3. 模板与容器差异
 
+> **换地图必做的一件事（2026-10-29 实证）**：设备版 Lua 里的模板 GUID 是**烘死的常量**
+> （`T.tpl = {prim=…, label=…, hit=…}`，由 `qxqy/build-device.mjs` 用 `FLOWER_PRIM/LABEL/HIT`
+> 注入）。GIA 导入或 `maps:clone` 到新地图后模板会被**重新编号**，脚本里还是旧数字 ⇒
+> `InstantiateClientUIControl(旧guid, root)` 全失败（被 pcall 吞掉）⇒ 界面空。
+> 判据：`grep -m1 'T.tpl' <地图目录>/external_lua_file/default_import_file/**/*.lua` 的三个数字必须
+> **都能在 `assets:ui list` 的 `控件模板:` 里找到**。修法：重新 build 设备版（烘本图真实 GUID）→
+> `assets:scripts update --source-file <新.lua> --map-id <id> --write`。
+
+
 | 项 | 模拟器 | 真机 |
 |---|---|---|
 | 文本模板 | `build.mjs` 里的 `settle`（子控件名 `settleTitle/…`） | 地图里已有的「控件模板:客户端控件容器_1」（子控件名 `title/hud/best/hint/botBanner`） |

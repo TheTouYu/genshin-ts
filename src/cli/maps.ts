@@ -5,6 +5,7 @@ import path from 'node:path'
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
 import { gilPathInSaveLevel, syncGilToTemp, tempDirOf } from './gil_paths.js'
+import { externalLuaDestOf, parseScriptRegistry } from './gil_scripts.js'
 import { buildEmptyNodeGraph, ensureMinimalContainers, nextGraphId } from './assets_node_graphs.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
@@ -478,4 +479,105 @@ export function initFromTemplate(
   })
   warn(`init-from-template: replaced roots ${replacedRoots.join(',')}`)
   return { bytes, replacedRoots }
+}
+
+export interface CloneMapResult {
+  mapId: number
+  gilPath: string
+  name: string
+  size: number
+  sha256: string
+  sourceGilPath: string
+  sourceSize: number
+  sourceSha256: string
+  /** 从内联 source 物化出来的外部 Lua 文件路径 */
+  externalLuaFiles: string[]
+  tempCopied?: string
+}
+
+/**
+ * 克隆一张既有地图为新地图 ID：保留全部资产段（root 3-49，含 root 9 UI 树、
+ * root 50 脚本登记表及其外部 Lua 文件引用），只改写地图特有根：
+ *   root 1 = 新地图 ID / root 2 = 新名字 / root 39 = 玩家账号 / root 40 = 创建时间戳。
+ *
+ * 用途：把「编辑器导入 GIA 后的地图」作为基座，复制成新图再跑 `assets:ui container …`
+ * 一条龙——比"每次都要用户重新导入 GIA"更适合做可复现交付；不改动源图（只读）。
+ * 注册与 Temp 同步与 maps:create 一致（编辑器列表只读 Temp gip）。
+ */
+export function cloneMap(
+  saveLevelDir: string,
+  sourceGilPath: string,
+  name: string,
+  dependencies: ListMapsDependencies & { mapId?: number } = {}
+): CloneMapResult {
+  const warn = dependencies.warn ?? (() => {})
+  if (!name.trim()) throw new Error('[error] --name 不能为空')
+  if (!fs.existsSync(sourceGilPath)) {
+    throw new Error(`[error] source map file not found: ${sourceGilPath}`)
+  }
+  const sourceBytes = new Uint8Array(fs.readFileSync(sourceGilPath))
+  const sourceTop = parseWireMessage(sourceBytes.subarray(20, sourceBytes.length - 4))
+  if (!sourceTop) throw new Error('[error] malformed GIL payload')
+  const existing = listMaps(saveLevelDir, {}, dependencies).maps
+  const mapId =
+    dependencies.mapId ??
+    (existing.length ? Math.max(...existing.map((map) => map.mapId)) + 1 : FIRST_MAP_ID)
+  if (!Number.isSafeInteger(mapId) || mapId < 0) {
+    throw new Error(`[error] invalid map id: ${mapId}`)
+  }
+  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
+  if (fs.existsSync(gilPath)) {
+    throw new Error(`[error] target map file already exists: ${gilPath}`)
+  }
+  const playerIdDir = path.basename(path.dirname(saveLevelDir))
+  const playerId = Number(playerIdDir)
+  if (!/^\d+$/.test(playerIdDir) || !Number.isSafeInteger(playerId)) {
+    throw new Error(
+      `[error] cannot determine player account id from save level parent dir: ${playerIdDir}`
+    )
+  }
+  const nowSec = Math.floor(Date.now() / 1000)
+  const nameBytes = new TextEncoder().encode(name)
+  const rewritten = sourceTop.map((field) => {
+    if (field.number === 1 && field.wire === 0) return { number: 1, wire: 0, value: mapId }
+    if (field.number === 2 && field.wire === 2) return { number: 2, wire: 2, value: nameBytes }
+    if (field.number === 39 && field.wire === 0) return { number: 39, wire: 0, value: playerId }
+    if (field.number === 40 && field.wire === 0) return { number: 40, wire: 0, value: nowSec }
+    return field
+  })
+  if (!rewritten.some((field) => field.number === 1)) {
+    rewritten.unshift({ number: 1, wire: 0, value: mapId })
+  }
+  rewritten.sort((a, b) => a.number - b.number)
+  const file = buildFile(emitWireMessage(rewritten), {
+    schema: readUint32BE(sourceBytes, 4),
+    headTag: readUint32BE(sourceBytes, 8),
+    fileType: readUint32BE(sourceBytes, 12),
+    tailTag: readUint32BE(sourceBytes, sourceBytes.length - 4)
+  })
+  fs.writeFileSync(gilPath, file)
+  // 外部 Lua 副本：脚本登记表里的内联 source 物化到 <新图目录>/external_lua_file（真机读这份）
+  const externalWritten: string[] = []
+  for (const entry of parseScriptRegistry(file.subarray(20, file.length - 4))) {
+    if (entry.source === null) continue
+    const dest = externalLuaDestOf(gilPath, entry.filePath)
+    fs.mkdirSync(path.dirname(dest), { recursive: true })
+    fs.writeFileSync(dest, `\uFEFF${entry.source}`)
+    externalWritten.push(dest)
+  }
+  warn(`cloned=${gilPath} from=${sourceGilPath} externalLua=${externalWritten.length}`)
+  gipRegister(saveLevelDir, mapId, name, warn)
+  const tempCopied = syncGilToTemp(saveLevelDir, `${mapId}.gil`)
+  return {
+    mapId,
+    gilPath,
+    name,
+    size: file.length,
+    sha256: createHash('sha256').update(file).digest('hex'),
+    sourceGilPath,
+    sourceSize: sourceBytes.length,
+    sourceSha256: createHash('sha256').update(sourceBytes).digest('hex'),
+    externalLuaFiles: externalWritten,
+    ...(tempCopied ? { tempCopied } : {})
+  }
 }

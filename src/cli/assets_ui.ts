@@ -30,6 +30,11 @@ import {
   isUiAdvancedArgv0,
   parseUiAdvancedCommand
 } from './assets_ui_advanced.js'
+import {
+  containerUsage,
+  isContainerSubcommand,
+  runContainerCommand
+} from './assets_ui_container.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
@@ -122,6 +127,18 @@ function usage(exitCode = 1): never {
     '                     # 新建布局=克隆默认布局官方预置全集（轮1/2）；名字重名自动 _1/_2',
     '                     # donor 支持矩阵=真实编辑器样本：按钮 轮4/26；输入框 轮19/64；文本框/图片 轮64；队列 轮51(仅布局)',
     '                     # --id 缺省=避让扫描分配（禁 max+1）；--text/--color/--font-size 本轮 fail-closed',
+    '  容器子树一条龙（导入后的 root9 容器模板 → 布局实例 → 脚本挂载；默认 dry-run，写回须 --write --yes）：',
+    '  container discover: gsts assets:ui container discover --gil <file> [--baseline <before.gil>]',
+    '                     [--container <ID|名字|all>] [--format text|json]',
+    '                     # 自动发现 client-container 模板（族 4），递归列出 组→节点→全部子控件',
+    '  container instantiate: gsts assets:ui container instantiate --gil <file> [--baseline <before.gil>]',
+    '                     [--container <ID|名字|all>] [--layout <ID|名字>] [--id <实例组ID>] [--force]',
+    '                     [--output <file> | --write --yes] [--format text|json]',
+    '                     # 复制整棵子树 → 布局实例（f504=布局、f502.f13=模板组、布局 f503 追加、',
+    '                     # 模板 f14 实例列表追加、f74 脚本挂载随记录复制到布局节点；含回读同构自检）',
+    '  container save-template: gsts assets:ui container save-template --instance <ID|名字> [--gil <file>]',
+    '                     [--name <新模板名>] [--id <模板组ID>] [--output <file> | --write --yes]',
+    '                     # 实例复制成模板（实例改指新模板 + 同名去重 _1/_2；旧模板实例列表摘除；源实例保留）',
     '  update: gsts assets:ui update <control-id> [--name|--text|--content|--position|--size|--color|--font-size|--align|--asset <素材ID>]',
     '  delete: gsts assets:ui delete <control-id> [--output <file>|--write]',
     '  template list: gsts assets:ui template list [--gil <file>] [--format json]',
@@ -542,6 +559,30 @@ async function execute(argv: readonly string[], projectConfig: GstsConfig | unde
       sourceSha256
     }
     await runUiSemanticCommand(command, context)
+    return
+  }
+  // 容器子树一条龙（discover / instantiate / save-template）：先于旧高级命令面
+  // （'container' 也在高级命令根里，但 add/active 仍走旧路径）
+  if (argv[0] === 'container' && isContainerSubcommand(argv[1])) {
+    const gilCArg = argvValue(argv, '--gil')
+    const gilCPath = gilCArg
+      ? path.resolve(gilCArg)
+      : resolveGilPath({ gilPath: undefined }, projectConfig)
+    if (!fs.existsSync(gilCPath) || !fs.statSync(gilCPath).isFile()) {
+      throw new Error(`[error] gil not found: ${gilCPath}`)
+    }
+    const sourceCBytes = new Uint8Array(fs.readFileSync(gilCPath))
+    const sourceCHash = sha256(sourceCBytes)
+    runContainerCommand(argv.slice(1), {
+      gilPath: gilCPath,
+      sourceBytes: sourceCBytes,
+      sourceHash: sourceCHash,
+      writeBack: (candidate) =>
+        writeBack(gilCPath, candidate, sourceCHash, projectConfig?.inject?.mapId),
+      ...(projectConfig?.inject?.mapId !== undefined
+        ? { mapId: projectConfig.inject.mapId }
+        : {})
+    })
     return
   }
   // 票10 高级控件命令面（floating-page/container/tab/state/material/rich-image/queue）

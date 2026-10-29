@@ -12,6 +12,7 @@ import { buildFile, readUint32BE } from '../injector/binary.js'
 import { resolveGilTarget, saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import {
   mountScriptInPayload,
+  externalLuaDestOf,
   parseScriptMounts,
   parseScriptRegistry,
   registerScriptInPayload,
@@ -151,12 +152,7 @@ function backupPath(gilPath: string): string {
 // 槽目录两种形态（D257）：平面 .gil（Save_Level/<id>.gil，编辑器首存后目录化）与
 // 目录形（Save_Level/<id>/<id>.gil）。目录化前也统一落 Save_Level/<id>/external_lua_file/，
 // 与编辑器首存后的运行时加载路径（D253 实证）一致。
-function externalLuaDest(gilPath: string, filePath: string): string {
-  const dir = path.dirname(gilPath)
-  const base = path.basename(gilPath, '.gil')
-  const slotDir = path.basename(dir) === base ? dir : path.join(dir, base)
-  return path.join(slotDir, 'external_lua_file', ...filePath.split('/'))
-}
+const externalLuaDest = externalLuaDestOf
 
 function externalFileStatus(gilPath: string, entry: ScriptRegistryEntry): {
   externalPath: string

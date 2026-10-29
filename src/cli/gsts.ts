@@ -66,7 +66,7 @@ import {
   extractSignalsFromGil,
   readRegisteredSignalsFromGil
 } from './gil_signals.js'
-import { listMaps, renameMap, createMap, resyncMap, initFromTemplate } from './maps.js'
+import { listMaps, renameMap, createMap, cloneMap, resyncMap, initFromTemplate } from './maps.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -1369,6 +1369,28 @@ async function runMapsCreate(opts: GlobalOptions, commandOptions: { name: string
   }
 }
 
+async function runMapsClone(
+  opts: GlobalOptions,
+  commandOptions: { from: string; name: string; mapId?: string }
+) {
+  const loaded = await loadConfigOrNull(opts, 'project')
+  const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
+  const resolved = resolveGilFolder(gil)
+  const explicitId =
+    commandOptions.mapId !== undefined ? Number(commandOptions.mapId) : undefined
+  if (explicitId !== undefined && (!Number.isSafeInteger(explicitId) || explicitId < 0)) {
+    throw new Error(`[error] invalid map id: ${commandOptions.mapId}`)
+  }
+  const result = cloneMap(resolved.saveLevelDir, path.resolve(commandOptions.from), commandOptions.name, {
+    warn: (message) => console.error(`[warning] ${message}`),
+    ...(explicitId !== undefined ? { mapId: explicitId } : {})
+  })
+  ui.ok(`cloned map ${result.mapId}: ${result.name}`)
+  console.log(`written=${result.gilPath} size=${result.size} sha256=${result.sha256}`)
+  console.log(`source=${result.sourceGilPath} sourceSize=${result.sourceSize} sourceSha256=${result.sourceSha256}`)
+  console.log(`temp=${result.tempCopied ?? '(no Temp dir)'}`)
+}
+
 async function runMapsResync(opts: GlobalOptions, commandOptions: { mapId: string }) {
   const loaded = await loadConfigOrNull(opts, 'project')
   const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
@@ -1799,6 +1821,17 @@ async function main() {
     .action(async (commandOptions: { mapId: string; template?: string; write?: boolean }) => {
       const opts = program.opts<GlobalOptions>()
       await runMapsInit(opts, commandOptions)
+    })
+
+  program
+    .command('maps:clone')
+    .description('clone an existing map into a new map id (rewrites root 1/2/39/40; registers .gip + Temp)')
+    .requiredOption('--from <file>', 'source .gil path (read-only)')
+    .requiredOption('--name <name>', t('mapsOptName'))
+    .option('--map-id <id>', 'explicit new map id (default: max existing + 1)')
+    .action(async (commandOptions: { from: string; name: string; mapId?: string }) => {
+      const opts = program.opts<GlobalOptions>()
+      await runMapsClone(opts, commandOptions)
     })
 
   program
