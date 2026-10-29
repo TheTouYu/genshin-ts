@@ -29,13 +29,15 @@ local COL = {
 }
 
 -- id=发给服务端的 keyId；names=候选枚举名（按序试）；line=HUD 文案
+-- 每个动作绑两种物理键：**动作键（左键/E/空格/右键/F/X）+ 数字键 1~6**
+-- 2026-10-29 真机实证：只绑动作键时「按 1~6 完全没反应」（用户按的是数字键）；两种都绑最稳
 local KEYS = {
-  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, line = '① 推射 / 抢断' },
-  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, line = '② 抽射 / 解围' },
-  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, line = '③ 吊射 / 停球' },
-  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）' },
-  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球' },
-  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前' }
+  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, line = '① 推射 / 抢断  · 左键 或 1' },
+  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, line = '② 抽射 / 解围  · E 或 2' },
+  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, line = '③ 吊射 / 停球  · 空格 或 3' },
+  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）· 右键 或 4' },
+  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球  · F 或 5' },
+  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · X 或 6' }
 }
 
 -- 控件名 → 字号/颜色（文案在 setStatic / 事件里写）
@@ -249,19 +251,28 @@ local function listen(entry)
     log('err host ' .. tostring(h) .. ' (key ' .. tostring(entry.id) .. ')')
     return false
   end
+  local bound = 0
   for _, enumName in ipairs(entry.names) do
     local ok, err = pcall(function()
       local ev = Enum.KeyEventType[enumName]
       if ev == nil then error('Enum.KeyEventType.' .. enumName .. ' is nil') end
       h:AddKeyEventListener(ev, handler)
     end)
-    if ok then log('listen ' .. enumName .. ' via enum'); return true end
-    local ok2 = pcall(function() h:AddKeyEventListener(enumName, handler) end)
-    if ok2 then log('listen ' .. enumName .. ' via string'); return true end
-    log('miss ' .. enumName .. ' enum=' .. tostring(err))
+    if ok then
+      bound = bound + 1
+      log('listen ' .. enumName .. ' via enum')
+    else
+      local ok2 = pcall(function() h:AddKeyEventListener(enumName, handler) end)
+      if ok2 then
+        bound = bound + 1
+        log('listen ' .. enumName .. ' via string')
+      else
+        log('miss ' .. enumName .. ' enum=' .. tostring(err))
+      end
+    end
   end
-  log('err listen key ' .. tostring(entry.id) .. ' (all names failed)')
-  return false
+  if bound == 0 then log('err listen key ' .. tostring(entry.id) .. ' (all names failed)') end
+  return bound > 0
 end
 
 function OnInit()

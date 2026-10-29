@@ -71,8 +71,9 @@ const REST_SPEED = 0.35 // 贴地速度低于此 ⇒ 静止
 const ROLL_SPEED = 3.0 // 贴地速度高于此 ⇒ 进入滚动
 const DRIBBLE_R = 2.4
 const DRIBBLE_AHEAD = 1.3
-const DRIBBLE_GAIN = 8.0
-const DRIBBLE_BLEND = 0.55
+// 带球跟随增益：每拍吃掉 55% 位置误差 ⇒ K = 0.55/DT ≈ 4.125 /s（几何收敛，无过冲）
+const DRIBBLE_FOLLOW = 0.55
+const DRIBBLE_K = DRIBBLE_FOLLOW / DT
 const PLAYER_SPEED_CAP = 8.0
 const WARMUP_TICKS = 75n // 开局建图期不做物理
 // 载体停放策略：**x/z 跟随玩家 + y 固定在支撑空模型内部**
@@ -364,13 +365,16 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         dribble,
         () => {
-          // 带球：速度混合 + 玩家速度前馈；自旋按纯滚动
-          const vdesX = f.addition(f.multiplication(ddx, DRIBBLE_GAIN), ffx.value)
-          const vdesZ = f.addition(f.multiplication(ddz, DRIBBLE_GAIN), ffz.value)
-          const keep = 1.0 - DRIBBLE_BLEND
-          vx.set(f.addition(f.multiplication(vx.value, keep), f.multiplication(vdesX, DRIBBLE_BLEND)))
+          // 带球：**位置式跟随**（2026-10-29 第二轮修「运动不正常/抖」）
+          // 旧写法 v ← 0.45v + 0.55·(ddx·8 + ff) 是速度环套位置环，闭环增益 ≈ 0.55·8·DT ≈ 0.586/拍
+          // 外加 0.45 惯性 ⇒ 欠阻尼。真机日志 3411 实证：tick 81 速度 4.99，随后在 x≈−2.2 附近
+          // 以 0.1~0.6 m/s 来回抖（过冲→回拉），玩家已走远球还留在原地打转。
+          // 新写法：**每拍吃掉 55% 位置误差**（v = 0.55·ddx/DT + 玩家速度前馈），几何收敛、无过冲。
+          const vdesX = f.addition(f.multiplication(ddx, DRIBBLE_K), ffx.value)
+          const vdesZ = f.addition(f.multiplication(ddz, DRIBBLE_K), ffz.value)
+          vx.set(vdesX)
           vy.set(0.0)
-          vz.set(f.addition(f.multiplication(vz.value, keep), f.multiplication(vdesZ, DRIBBLE_BLEND)))
+          vz.set(vdesZ)
           wx.set(f.division(vz.value, BALL_R))
           wy.set(0.0)
           wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))

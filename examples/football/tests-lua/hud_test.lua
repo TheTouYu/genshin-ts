@@ -129,8 +129,9 @@ eq(w.controls.hud_score.text, '0 : 0', 'score 初始 0 : 0')
 eq(w.controls.hud_timer.text, '00:00', 'timer 初始 00:00')
 eq(w.controls.hud_toast.text, '', 'toast 初始为空')
 eq(w.controls.hud_state.text, '技能演练 · 按 ①~⑥ 触发', 'state 初始文案')
-eq(w.controls.hud_k1.text, '① 推射 / 抢断', 'k1 文案')
-eq(w.controls.hud_k6.text, '⑥ 球放回正前', 'k6 文案')
+ok(w.controls.hud_k1.text:find('① 推射', 1, true) == 1, 'k1 文案以序号开头', w.controls.hud_k1.text)
+ok(w.controls.hud_k6.text:find('⑥ 球放回正前', 1, true) == 1, 'k6 文案以序号开头', w.controls.hud_k6.text)
+ok(w.controls.hud_k1.text:find('1', 1, true) ~= nil, 'k1 文案标出数字键', w.controls.hud_k1.text)
 
 eq(w.controls.hud_score.fontSize, 46, 'score 字号 46')
 eq(w.controls.hud_title.fontSize, 24, 'title 字号 24')
@@ -139,7 +140,7 @@ eq(w.controls.hud_title.horizontalAlignment, 'hM', 'title 水平居中=枚举 Te
 eq(w.controls.hud_title.verticalAlignment, 'vM', 'title 垂直居中=枚举 TextVerticalAlignment.Middle')
 ok(w.controls.hud_title.fontColor ~= 0, 'title 颜色已设', tostring(w.controls.hud_title.fontColor))
 
-eq(#w.listeners, 6, '注册 6 个键监听')
+eq(#w.listeners, 12, '12 条监听（6 动作键 + 6 数字键）')
 ok(hasLog(w, '[fb-in] onstart v2'), '日志 onstart v2')
 ok(hasLog(w, 'listen ok 6/6'), '日志 listen ok 6/6')
 ok(#w.sent >= 1 and w.sent[1].v == 0, 'OnStart 发心跳 key=0', fmt(w.sent[1] and w.sent[1].v))
@@ -157,13 +158,13 @@ local before = #w.sent
 w.listeners[1].fn()                    -- ①
 eq(#w.sent, before + 1, '按 ① 发一条信号')
 eq(w.sent[#w.sent].v, 1, '信号 keyId=1')
-eq(w.controls.hud_toast.text, '① 推射 / 抢断', '按 ① 横幅文案')
-eq(w.controls.hud_state.text, '① 推射 / 抢断 · 已触发', '按 ① 状态行')
+ok(w.controls.hud_toast.text:find('① 推射', 1, true) == 1, '按 ① 横幅文案', w.controls.hud_toast.text)
+ok(w.controls.hud_state.text:find('已触发', 1, true) ~= nil, '按 ① 状态行含已触发', w.controls.hud_state.text)
 ok(hasLog(w, '[fb-in] key 1'), '日志 key 1')
 
 -- ④ 横幅生命周期（1.2s 后自清）
 OnUpdate(0.6)
-eq(w.controls.hud_toast.text, '① 推射 / 抢断', '0.6s 横幅仍在')
+ok(w.controls.hud_toast.text:find('① 推射', 1, true) == 1, '0.6s 横幅仍在', w.controls.hud_toast.text)
 OnUpdate(0.7)
 eq(w.controls.hud_toast.text, '', '1.3s 横幅自清')
 
@@ -207,7 +208,7 @@ for _, k in ipairs({ 'OnStart', 'OnUpdate', 'OnDestroy', 'OnInit', 'setScore' })
 dofile(SRC)
 local okNoEnum = pcall(OnStart)
 ok(okNoEnum, '枚举缺名时 OnStart 不抛错（走字符串兜底）')
-ok(hasLog(w4, 'listen ok 6/6'), '枚举缺名仍靠字符串兜底注册 6 个键')
+ok(hasLog(w4, 'listen ok 6/6'), '枚举缺名仍靠字符串兜底注册 6 个动作（12 条监听）')
 
 -- ---------------------------------------------------------------- 汇总
 io.write('\n========================================\n')
