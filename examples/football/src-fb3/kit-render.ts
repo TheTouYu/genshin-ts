@@ -10,7 +10,10 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 
 const GRAPH_ID = 1073741828
 const TELEPORT_DIST = 5.0
-const DRIVE_DUR = 0.25 // 运动器时长（用户要求每次 0.25s）
+// 运动器时长 = 一拍（内核 7.5Hz ⇒ 0.1333s；取 0.14 略长一点，保证下一拍到来前已走完，无空档）
+// 2026-10-29 修：原来 0.25s + FixedSpeed，运动器比拍长一倍 ⇒ 每拍都在"重启"未完成的运动，
+//   实测（日志 3412）tick 61 之后球实体一直停在 (0,0,1.5) 不动，而内核目标已走到 3m 外。
+const DRIVE_DUR = 0.14
 
 g
   .server({ id: GRAPH_ID, name: '_GSTS_kitRender' })
@@ -32,7 +35,9 @@ g
         const loc = f.getEntityLocationAndRotation(ball).location
         const delta = f._3dVectorSubtraction(pos, loc)
         const dist = f._3dVectorModuloOperation(delta)
-        const vel = f._3dVectorZoom(delta, f.division(1.0, DRIVE_DUR))
+        // ⚠️ 速度参数直接喂**内核逻辑速度**（PKC game-engine-knowledge「运动器传导链」实证：
+        //   用 (target−实体位置)/dt 反推速度时，实体滞后会被放大进速度 ⇒ 引擎不驱动实体 ⇒ 越滞越不动）。
+        const speedLogical = f._3dVectorModuloOperation(evt.params.vel)
         // 位移：一律用**定点运动器**（日志实证：add_uniform_basic_linear_motion_device 在这颗球上无效——
         // 速度 13.8m/s 发了 675 次，球实体位置一步没动；而旋转设备生效 ⇒ 换成定点运动器）。
         // 近平移：UniformLinearMotion + 速度 + 时长；大跳：Instant。
@@ -45,10 +50,11 @@ g
             )
           },
           () => {
+            // **固定时间**（PKC 已验证配方）：DRIVE_DUR 内走到 pos，与速度大小无关 ⇒ 每拍必到位
             f.activateFixedPointMotionDevice(
               ball, 'fb_movex', MovementMode.UniformLinearMotion,
-              f.division(dist, DRIVE_DUR), pos,
-              f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedSpeed, DRIVE_DUR
+              speedLogical, pos,
+              f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedTime, DRIVE_DUR
             )
           }
         )
