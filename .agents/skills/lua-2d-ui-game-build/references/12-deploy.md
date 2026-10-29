@@ -157,3 +157,39 @@ grep -cE '^local ' lua/main.lua                    # ≤150
 5. **写完不切图重载** → CLI 全绿但真机没变。
 6. **"CLI 说成功"就当已生效** → CLI 只证明写盘成功，不证明真机加载了。
 7. **`deploy.mjs` 成功就当真机更新** → 它可能写的是没被挂载的那条脚本。
+
+
+## 9. 2D UI 容器一条龙边界（2026-10-29 真机闭环）
+
+**布局 = 游戏开始就渲染的实例；模板 = 可复用、可动态创建，不放进布局就不渲染。**
+
+CLI 已覆盖：
+
+```text
+maps:create / maps:init
+template clone
+client-container 四件套（模板组/节点 + 布局实例组/节点；
+  ID 从 1073742500 起，避开编辑器 2002/2003 特殊根与 2004+ 模板实例；
+  清空 donor f74，避免旧 main_1/main_2 挂载被复制）
+scripts register / update / mount
+maps:resync
+```
+
+**纯 CLI 仍做不到的一步**：服务端控件模板（`客户端控件容器`）。它不是 root9 的 client container；只有编辑器导入完整 GIA 时才生成。只写客户端半边，编辑器保存会把低 ID 容器重解释成 `ClientUIRootHierarchyRoot`，模板和挂载一起消失。
+
+可靠的一条龙顺序：
+
+1. 新图 → `maps:init`；
+2. **编辑器导入完整 GIA**（生成服务端控件模板 + 客户端模板 + 脚本）；
+3. 把客户端控件容器模板加入默认布局（生成布局实例组/节点）；
+4. CLI `assets:scripts update/mount` 挂到布局节点；
+5. 用户切出再切回地图，试玩看 `[tea]`。
+
+**删除语义**：删布局里的客户端容器，编辑器会连带删模板组/节点和布局实例，不是只删布局；CLI 不能只删一半。
+
+**真机两个高频坑**：
+
+- `AddKeyEventListener` 第一参必须是 `Enum.KeyEventType`（不是 `Enum.KeyCode`），否则所有键静默失败；
+- 结算 `T.after(0.45, fn)` 要传 `ui=true`；否则玩家一按暂停/设置，计时器冻结，赢了却永远不弹结算，表现为“棋盘突然点不动、暂停/设置还能点”。
+
+**模拟器日志**：Web 试玩页有 Logs 视图（客户端 Lua 最近 100 条、服务端日志、变量/信号、运行时树），是事后排查面板；真机排障仍以 `Beyond_Debug_Log/*.gia` 的 `[tea]` 行为准。
