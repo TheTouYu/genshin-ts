@@ -16,6 +16,18 @@ const graph = g
   })
   .onSignal(KitSignal.kit_state, (evt: any, f: any) => {
     const tick = evt.params.tick
+    // ———— 玩家位置同步（2026-10-29 修「球不跟人」）————
+    // 内核 kitLoop 每拍读**载体实体变量** fbvx/fbvz 当玩家 x/z（src-fb3/kit-loop.ts:109），
+    // 但此前没有任何图写这两个变量、实体上也没声明它们 ⇒ 内核永远以为玩家在 (0,0)，
+    // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
+    // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
+    const owner = f.getSelfEntity()
+    const player0 = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
+    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+    const char0 = f.getCorrespondingValueFromList(chars, 0n)
+    const pSplit = f.split3dVector(f.getEntityLocationAndRotation(char0).location)
+    f.setCustomVariable(owner, 'fbvx', pSplit.xComponent, false)
+    f.setCustomVariable(owner, 'fbvz', pSplit.zComponent, false)
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
@@ -84,7 +96,44 @@ const graph = g
         print('fb-key')
       },
       () => {
-        print('fb-heartbeat')
+        // 心跳带自检码（2026-10-29）：Lua 的 print 不落 .gia，只能把自检结果塞进心跳再让服务端打点。
+        //   state < 100  = 成功注册的键数（0..6，6 = 六键全就位）
+        //   state >= 100 = 100 + HUD 控件命中数（0..11，11 = 十一个文本框全找到）
+        const st = evt.params.state
+        f.doubleBranch(
+          f.lessThan(st, 100n),
+          () => {
+            // 展开写（DSL 的 for 会走 finiteLoop，字符串拼接在循环体里不支持）
+            f.doubleBranch(f.equal(st, 0n), () => { print('fb-hb-keys0') }, () => {})
+            f.doubleBranch(f.equal(st, 1n), () => { print('fb-hb-keys1') }, () => {})
+            f.doubleBranch(f.equal(st, 2n), () => { print('fb-hb-keys2') }, () => {})
+            f.doubleBranch(f.equal(st, 3n), () => { print('fb-hb-keys3') }, () => {})
+            f.doubleBranch(f.equal(st, 4n), () => { print('fb-hb-keys4') }, () => {})
+            f.doubleBranch(f.equal(st, 5n), () => { print('fb-hb-keys5') }, () => {})
+            f.doubleBranch(f.equal(st, 6n), () => { print('fb-hb-keys6') }, () => {})
+            f.doubleBranch(f.greaterThan(st, 6n), () => { print('fb-hb-keys-other') }, () => {})
+          },
+          () => {
+            const hud = f.subtraction(st, 100n)
+            f.doubleBranch(
+              f.greaterThanOrEqualTo(hud, 11n),
+              () => {
+                print('fb-hb-hud11')
+              },
+              () => {
+                f.doubleBranch(
+                  f.greaterThanOrEqualTo(hud, 1n),
+                  () => {
+                    print('fb-hb-hud-partial')
+                  },
+                  () => {
+                    print('fb-hb-hud0')
+                  }
+                )
+              }
+            )
+          }
+        )
       }
     )
   })

@@ -261,15 +261,23 @@ end
 function OnInit()
 end
 
+-- HUD 控件命中数（0..11）：心跳自检用——服务端心跳分支按 state 打点，替代不落 .gia 的 print
+local function countHud()
+  local n = 0
+  for _, s in pairs(STYLE) do if getCtl(s.name) ~= nil then n = n + 1 end end
+  return n
+end
+
 function OnStart()
   log('onstart v2')
   applyStyles()
   setStatic()
   listenGlobals()
   applyGlobals()
-  send(0, 0)                      -- 心跳：证明整链通
+  send(0, 100 + countHud())       -- 心跳 1：100+HUD 命中数（11 = 全部找到）
   local n = 0
   for _, k in ipairs(KEYS) do if listen(k) then n = n + 1 end end
+  send(0, n)                      -- 心跳 2：成功注册的键数（6 = 六键全就位）
   log('listen ok ' .. tostring(n) .. '/' .. tostring(#KEYS))
 end
 

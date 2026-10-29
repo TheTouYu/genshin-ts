@@ -374,6 +374,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           wx.set(f.division(vz.value, BALL_R))
           wy.set(0.0)
           wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
+          // ⚠️ 2026-10-29 修复「球原地旋转」：位置积分原来只写在 notDribble 分支里，
+          //   带球帧速度在变、位置却一动不动 ⇒ 球钉在原地按 spin 自转（试玩日志 3410 实证：
+          //   tick 98→658 六个字段 pos 恒 (0,0.25,1.5)、vel 恒 (0,0,-1.6006)、state 恒 5）。
+          //   带球帧是「球跟着玩家」的帧，必须自己推进位置；y 钉地面（带球不离开地面）。
+          by.set(GROUND_Y)
+          bx.set(f.addition(bx.value, f.multiplication(vx.value, DT)))
+          bz.set(f.addition(bz.value, f.multiplication(vz.value, DT)))
           mode.set(5n)
         },
         () => {}
