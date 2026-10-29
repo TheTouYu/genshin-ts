@@ -89,6 +89,11 @@
       "t": 11.2,
       "kind": "click",
       "name": "hit_battle_enemy_2"
+    },
+    {
+      "t": 14.4,
+      "kind": "click",
+      "name": "hit_result_settle"
     }
   ],
   "asserts": [
@@ -119,13 +124,13 @@
     {
       "at": 13.6,
       "kind": "log",
-      "contains": "screen=result items=3",
+      "contains": "result win=true",
       "source": "client"
     },
     {
-      "at": 13.6,
+      "at": 14.8,
       "kind": "log",
-      "contains": "result win=true",
+      "contains": "settle signal",
       "source": "client"
     }
   ],

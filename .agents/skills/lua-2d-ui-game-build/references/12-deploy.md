@@ -420,3 +420,37 @@ $GSTS sim:import --gia <包.gia> --gil <地图.gil> --apply \
 
 **教训（比结论更值钱）**：`grep 不到` / `解析不出` ≠ 不存在。判"某东西不在这个文件里"之前，
 先确认**解析器能读这种 wire 形态**（packed vs message 是同一个字节串的两种合法解释）。
+
+
+## 9.5 官方结算链路（客户端只能发信号；结算必须由服务端图触发）
+
+**事实**：客户端 Lua **没有结算能力**（`research/千星知识图谱/learn-lua71/知识提炼.md:98`「存档/结算是关卡必须，但客户端控件/脚本无法实现」）。
+玩家看到"打完没有结算"的根因就是：只做了自定义结算屏，没有让服务端图调 `结算关卡`。
+
+**五步（2026-10-29 在 1073741856 跑通，结构层）**
+
+```bash
+GSTS="node dist/src/cli/gsts.js"; MAP=<地图/地图.gil>; MAPID=<id>
+# ① 注册信号（客户端 → 服务端）
+$GSTS assets:signals register --gil "$MAP" --name ganyu_settle --param win:int --write
+#    → sendId/monitorId/serverId/clientScriptId；参数必须与 TS defineSignal 完全一致（compile 时 schema 校验）
+
+# ② 建空服务端图占位（拿 graphId）
+$GSTS assets:node-graphs create --gil "$MAP" --name ganyu_settle --write
+
+# ③ TS 图：onSignal → setPlayerSettlementSuccessStatus → settleStage（顺序不能反，见 concepts.md:7666）
+#    examples/tetris-settle/src/graph.ts 是可直接抄的最小实现
+node dist/src/cli/gsts.js --config <settle/gsts.config.ts>     # 编译并注入（inject.mapId/nodeGraphId）
+
+# ④ 挂到关卡实体（entity 层才会被执行；def 层不执行）
+$GSTS assets:mounts attach 1094713345 --graph <graphId> --entity --gil "$MAP" --write
+
+# ⑤ 客户端发信号（两形态都 pcall，真机日志确认哪条生效）
+#    game.ServerSignal('名'):AddInt(1):SendSignal()   ← 工厂形态
+#    game.ServerSignal.send('名', 1)                   ← 备选形态
+```
+
+**验收**：真机日志出现 `ganyu-settle-recv` / `ganyu-settle-victory` / `ganyu-settle-stage`，随后官方结算页弹出。
+只有客户端 `settle signal sent` 而没有 `ganyu-settle-recv` ⇒ 图没挂对（多半挂在 def 层或没挂）。
+
+**UI 侧**：结算屏给一个显式「结算并结束」主按钮（本例 `hit_result_settle` + `E` 键），不要指望自动——玩家可能想先看战绩或再来一次。

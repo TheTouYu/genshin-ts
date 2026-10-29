@@ -9,7 +9,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = 'device-1793250631534'
+T.BUILD_ID = 'device-1793251466555'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -330,6 +330,7 @@ T = T or {}
 T.tpl = { prim = 1073742504, label = 1073742505, hit = 1073742506 }
 T.ev = {}
 T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
+T.kindOf = {}
 T.tweens, T.anims, T.pos = {}, {}, {}
 T.overlays = {}
 T.overlay = nil
@@ -448,7 +449,8 @@ end
 T.setColor = function(ctl, c) if ctl then T.trySet(ctl, 'imageColor', c) end end
 T.setAlpha = function(ctl, c, a) if ctl then T.trySet(ctl, 'imageColor', T.withA(c % 16777216, a)) end end
 T.setScale = function(ctl, s)
-  if ctl then T.tryCall(ctl, 'SetLocalScale', s, s) end
+  -- 真机 SetLocalScale(x,y,z) 需要 3 个参数（2026-10-29 日志: 4 expected, got 3）
+  if ctl then T.tryCall(ctl, 'SetLocalScale', s, s, 1) end
 end
 
 -- ---------- 图片工厂 ----------
@@ -464,6 +466,7 @@ T.img = function(x, y, w, h, shape, color, rot)
   if rot and rot ~= 0 then T.trySet(ctl, 'localRotationZ', rot) end
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'img'
   return ctl
 end
 T.imgRaw = function(x, y, w, h, shape, color, rot)
@@ -476,6 +479,7 @@ T.imgRaw = function(x, y, w, h, shape, color, rot)
   if rot and rot ~= 0 then T.trySet(ctl, 'localRotationZ', rot) end
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'img'
   return ctl
 end
 
@@ -512,6 +516,7 @@ T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   T.trySet(ctl, 'verticalAlignment', valign or 'Middle')
   T.controls[#T.controls + 1] = ctl
   T.texts[#T.texts + 1] = ctl
+  T.kindOf[ctl] = 'txt'
   T.pos[ctl] = { x = px, y = y }
   return ctl
 end
@@ -737,6 +742,7 @@ T.hit = function(name, x, y, w, h, opts)
     if opts.onExit then opts.onExit(data) end
   end)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'hit'
   T.hits[name] = ctl
   return ctl
 end
@@ -864,15 +870,31 @@ end
 -- ---------- 屏幕构建 ----------
 T.clearScreen = function()
   local n, fail = 0, 0
+  local byKind = {}
   for i = #T.controls, 1, -1 do
     local ctl = T.controls[i]
     if ctl then
       local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
-      if ok then n = n + 1 else fail = fail + 1 end
+      if ok then
+        n = n + 1
+      else
+        fail = fail + 1
+        local k = T.kindOf[ctl] or '?'
+        byKind[k] = (byKind[k] or 0) + 1
+        -- 销毁失败时至少让它不可见/不挡点击：停用 + 移出屏幕
+        pcall(function() ctl:SetActive(false) end)
+        pcall(function() ctl:SetAnchoredPosition(0, -100000) end)
+      end
     end
   end
-  if fail > 0 then T.warn('pcall fail clear screen fail=' .. fail) end
+  T.kindOf = {}
+  if fail > 0 then
+    local parts = {}
+    for k, v in pairs(byKind) do parts[#parts + 1] = k .. ':' .. v end
+    T.warn('pcall fail clear screen fail=' .. fail .. ' kinds=' .. table.concat(parts, ','))
+  end
   T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
+T.kindOf = {}
   T.tweens, T.anims, T.pos = {}, {}, {}
   T.focus = 0
   T.focusFrame = nil
@@ -1277,6 +1299,34 @@ T.bgGradient = function(top, mid, bot)
     if t < 0.58 then col = T.mix(top, mid, t / 0.58) else col = T.mix(mid, bot, (t - 0.58) / 0.42) end
     T.imgRaw(0, T.H / 2 - (i - 0.5) * h, T.W + 2, h + 1, 'rect', col)
   end
+end
+
+-- ---------- 官方结算信号（客户端 → 服务端图 → 结算关卡） ----------
+-- 客户端 Lua 没有结算能力（官方教程：结算/存档必须由服务端节点图完成）。
+-- 服务端图监听 ganyu_settle(win:int)，设玩家结算状态后调 结算关卡。
+T.settleState = 'unknown'
+T.sendSettle = function(win)
+  local flag = win and 1 or 0
+  local ok, err = pcall(function()
+    local sig = game.ServerSignal('ganyu_settle')
+    sig:AddInt(flag)
+    sig:SendSignal()
+  end)
+  if ok then
+    T.settleState = 'sent'
+    T.log('settle signal sent win=' .. flag)
+    return true
+  end
+  T.warn('settle signal factory failed :: ' .. tostring(err))
+  local ok2, err2 = pcall(function() game.ServerSignal.send('ganyu_settle', flag) end)
+  if ok2 then
+    T.settleState = 'sent'
+    T.log('settle signal sent (send form) win=' .. flag)
+    return true
+  end
+  T.warn('settle signal failed :: ' .. tostring(err2))
+  T.settleState = 'none'
+  return false
 end
 
 -- ---------- 数字/文本工具 ----------
@@ -3789,21 +3839,33 @@ T.screenFns.result = function(params)
     T.chip(226, ry - 56, 'Lv.' .. T.hero.level .. ' 已提升', T.th.accent2, { fill = T.th.accentSoft })
   end
 
-  -- 按钮
-  local by = cy - h / 2 + 60
-  T.button(cx - 236, by, 200, 52, '再次挑战', function()
+  -- 按钮：结算（官方）为主，其余保留模板循环
+  local by = cy - h / 2 + 66
+  local function finishSettle()
+    T.sfx(T.SFX.confirm)
+    if not T.sendSettle(win) then
+      T.sfx(T.SFX.error)
+      T.toast('本机没有服务端信号通道，已跳过官方结算', T.th.text2)
+    else
+      T.toast('已请求关卡结算 · 即将进入官方结算页', T.th.accent2)
+    end
+  end
+  T.button(cx - 285, by, 170, 52, '再次挑战', function()
     T.go('battle', { stage = st.id })
   end, { kind = 'secondary', name = 'hit_result_retry' })
-  T.button(cx, by, 200, 52, win and '下一关' or '返回地图', function()
+  T.button(cx - 95, by, 170, 52, win and '下一关' or '返回地图', function()
     if win and T.stages[st.id + 1] then
       T.go('prepare', { stage = st.id + 1 })
     else
       T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
     end
-  end, { kind = 'primary', name = 'hit_result_next' })
-  T.button(cx + 236, by, 200, 52, '返回地图', function()
+  end, { kind = 'secondary', name = 'hit_result_next' })
+  T.button(cx + 95, by, 170, 52, '结算并结束', finishSettle,
+    { kind = 'primary', name = 'hit_result_settle', icon = 'snow', iconSize = 7 })
+  T.button(cx + 285, by, 170, 52, '返回地图', function()
     T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
   end, { kind = 'ghost', name = 'hit_result_map' })
+  T.txt(cx, by - 48, 640, 22, 11, '「结算并结束」会请服务端触发关卡结算，进入官方结算页（E 键同效）', T.th.text3, 'Middle', 'Middle')
 
   T.txt(0, -338, 900, 22, 11, win and '「雪会记得每一支箭落下的地方。」' or '「风停了。下一次，把弓拉满一些。」',
     T.th.text3, 'Middle', 'Middle')
@@ -3815,9 +3877,10 @@ T.screenFns.result = function(params)
     elseif a == 'left' then T.moveFocus(-1, 0)
     elseif a == 'right' then T.moveFocus(1, 0)
     elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'skill' then finishSettle()
     elseif a == 'back' then T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 }) end
   end
-  T.screen.defaultFocus = 2
+  T.screen.defaultFocus = 3
   T.log('result win=' .. tostring(win) .. ' stars=' .. tostring(params.stars) .. ' score=' .. tostring(params.score))
 end
 
@@ -4980,22 +5043,27 @@ function OnStart()
     T.log('onstart version=' .. T.VERSION .. ' build=' .. T.BUILD_ID)
     T.probeTemplates()
     T.setSeed(20261028)
-    if type(Enum) == 'table' and Enum.KeyCode then T.keyEnum = Enum.KeyCode end
+    -- 真机要求 AddKeyEventListener(Enum.KeyEventType.X, fn)：传字符串会报
+    -- "KeyEventType expected, got string"（2026-10-29 真机日志实证）。
+    local keyEvent = (type(Enum) == 'table' and Enum.KeyEventType) or nil
+    T.keyEnum = keyEvent
+    local total, okCount = 0, 0
     for raw, action in pairs(T.keyMap) do
-      local okKey, errKey
-      if T.keyEnum and T.keyEnum[raw] ~= nil then
-        okKey, errKey = pcall(function()
-          T.root:AddKeyEventListener(T.keyEnum[raw], function() T.onKey(action) end)
-        end)
+      total = total + 1
+      local fn = function() T.onKey(action) end
+      local okKey, errKey = false, nil
+      local ev = keyEvent and keyEvent[raw] or nil
+      if ev ~= nil then
+        okKey, errKey = pcall(function() T.root:AddKeyEventListener(ev, fn) end)
       end
-      if not okKey then
-        okKey, errKey = pcall(function()
-          T.root:AddKeyEventListener(raw, function() T.onKey(action) end)
-        end)
+      if not okKey and keyEvent == nil then
+        -- 旧模拟器没有 Enum.KeyEventType 时退回字符串（仅本地；真机不走这条）
+        okKey, errKey = pcall(function() T.root:AddKeyEventListener(raw, fn) end)
       end
-      if not okKey then T.warn('key fail ' .. raw .. ' :: ' .. tostring(errKey)) end
+      if okKey then okCount = okCount + 1
+      else T.warn('key fail ' .. raw .. ' :: ' .. tostring(errKey)) end
     end
-    T.log('keys registered')
+    T.log('keys registered ok=' .. okCount .. '/' .. total)
     T.build('boot')
   end, function(e)
     return tostring(e) .. '\n' .. debug.traceback('', 2)

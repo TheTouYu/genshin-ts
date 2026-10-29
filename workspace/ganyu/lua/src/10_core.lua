@@ -7,6 +7,7 @@ T = T or {}
 T.tpl = { prim = __GUID_PRIM__, label = __GUID_LABEL__, hit = __GUID_HIT__ }
 T.ev = {}
 T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
+T.kindOf = {}
 T.tweens, T.anims, T.pos = {}, {}, {}
 T.overlays = {}
 T.overlay = nil
@@ -125,7 +126,8 @@ end
 T.setColor = function(ctl, c) if ctl then T.trySet(ctl, 'imageColor', c) end end
 T.setAlpha = function(ctl, c, a) if ctl then T.trySet(ctl, 'imageColor', T.withA(c % 16777216, a)) end end
 T.setScale = function(ctl, s)
-  if ctl then T.tryCall(ctl, 'SetLocalScale', s, s) end
+  -- 真机 SetLocalScale(x,y,z) 需要 3 个参数（2026-10-29 日志: 4 expected, got 3）
+  if ctl then T.tryCall(ctl, 'SetLocalScale', s, s, 1) end
 end
 
 -- ---------- 图片工厂 ----------
@@ -141,6 +143,7 @@ T.img = function(x, y, w, h, shape, color, rot)
   if rot and rot ~= 0 then T.trySet(ctl, 'localRotationZ', rot) end
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'img'
   return ctl
 end
 T.imgRaw = function(x, y, w, h, shape, color, rot)
@@ -153,6 +156,7 @@ T.imgRaw = function(x, y, w, h, shape, color, rot)
   if rot and rot ~= 0 then T.trySet(ctl, 'localRotationZ', rot) end
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'img'
   return ctl
 end
 
@@ -189,6 +193,7 @@ T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   T.trySet(ctl, 'verticalAlignment', valign or 'Middle')
   T.controls[#T.controls + 1] = ctl
   T.texts[#T.texts + 1] = ctl
+  T.kindOf[ctl] = 'txt'
   T.pos[ctl] = { x = px, y = y }
   return ctl
 end
@@ -414,6 +419,7 @@ T.hit = function(name, x, y, w, h, opts)
     if opts.onExit then opts.onExit(data) end
   end)
   T.controls[#T.controls + 1] = ctl
+  T.kindOf[ctl] = 'hit'
   T.hits[name] = ctl
   return ctl
 end
@@ -541,15 +547,31 @@ end
 -- ---------- 屏幕构建 ----------
 T.clearScreen = function()
   local n, fail = 0, 0
+  local byKind = {}
   for i = #T.controls, 1, -1 do
     local ctl = T.controls[i]
     if ctl then
       local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
-      if ok then n = n + 1 else fail = fail + 1 end
+      if ok then
+        n = n + 1
+      else
+        fail = fail + 1
+        local k = T.kindOf[ctl] or '?'
+        byKind[k] = (byKind[k] or 0) + 1
+        -- 销毁失败时至少让它不可见/不挡点击：停用 + 移出屏幕
+        pcall(function() ctl:SetActive(false) end)
+        pcall(function() ctl:SetAnchoredPosition(0, -100000) end)
+      end
     end
   end
-  if fail > 0 then T.warn('pcall fail clear screen fail=' .. fail) end
+  T.kindOf = {}
+  if fail > 0 then
+    local parts = {}
+    for k, v in pairs(byKind) do parts[#parts + 1] = k .. ':' .. v end
+    T.warn('pcall fail clear screen fail=' .. fail .. ' kinds=' .. table.concat(parts, ','))
+  end
   T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
+T.kindOf = {}
   T.tweens, T.anims, T.pos = {}, {}, {}
   T.focus = 0
   T.focusFrame = nil
@@ -954,6 +976,34 @@ T.bgGradient = function(top, mid, bot)
     if t < 0.58 then col = T.mix(top, mid, t / 0.58) else col = T.mix(mid, bot, (t - 0.58) / 0.42) end
     T.imgRaw(0, T.H / 2 - (i - 0.5) * h, T.W + 2, h + 1, 'rect', col)
   end
+end
+
+-- ---------- 官方结算信号（客户端 → 服务端图 → 结算关卡） ----------
+-- 客户端 Lua 没有结算能力（官方教程：结算/存档必须由服务端节点图完成）。
+-- 服务端图监听 ganyu_settle(win:int)，设玩家结算状态后调 结算关卡。
+T.settleState = 'unknown'
+T.sendSettle = function(win)
+  local flag = win and 1 or 0
+  local ok, err = pcall(function()
+    local sig = game.ServerSignal('ganyu_settle')
+    sig:AddInt(flag)
+    sig:SendSignal()
+  end)
+  if ok then
+    T.settleState = 'sent'
+    T.log('settle signal sent win=' .. flag)
+    return true
+  end
+  T.warn('settle signal factory failed :: ' .. tostring(err))
+  local ok2, err2 = pcall(function() game.ServerSignal.send('ganyu_settle', flag) end)
+  if ok2 then
+    T.settleState = 'sent'
+    T.log('settle signal sent (send form) win=' .. flag)
+    return true
+  end
+  T.warn('settle signal failed :: ' .. tostring(err2))
+  T.settleState = 'none'
+  return false
 end
 
 -- ---------- 数字/文本工具 ----------

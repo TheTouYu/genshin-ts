@@ -115,22 +115,27 @@ function OnStart()
     T.log('onstart version=' .. T.VERSION .. ' build=' .. T.BUILD_ID)
     T.probeTemplates()
     T.setSeed(20261028)
-    if type(Enum) == 'table' and Enum.KeyCode then T.keyEnum = Enum.KeyCode end
+    -- 真机要求 AddKeyEventListener(Enum.KeyEventType.X, fn)：传字符串会报
+    -- "KeyEventType expected, got string"（2026-10-29 真机日志实证）。
+    local keyEvent = (type(Enum) == 'table' and Enum.KeyEventType) or nil
+    T.keyEnum = keyEvent
+    local total, okCount = 0, 0
     for raw, action in pairs(T.keyMap) do
-      local okKey, errKey
-      if T.keyEnum and T.keyEnum[raw] ~= nil then
-        okKey, errKey = pcall(function()
-          T.root:AddKeyEventListener(T.keyEnum[raw], function() T.onKey(action) end)
-        end)
+      total = total + 1
+      local fn = function() T.onKey(action) end
+      local okKey, errKey = false, nil
+      local ev = keyEvent and keyEvent[raw] or nil
+      if ev ~= nil then
+        okKey, errKey = pcall(function() T.root:AddKeyEventListener(ev, fn) end)
       end
-      if not okKey then
-        okKey, errKey = pcall(function()
-          T.root:AddKeyEventListener(raw, function() T.onKey(action) end)
-        end)
+      if not okKey and keyEvent == nil then
+        -- 旧模拟器没有 Enum.KeyEventType 时退回字符串（仅本地；真机不走这条）
+        okKey, errKey = pcall(function() T.root:AddKeyEventListener(raw, fn) end)
       end
-      if not okKey then T.warn('key fail ' .. raw .. ' :: ' .. tostring(errKey)) end
+      if okKey then okCount = okCount + 1
+      else T.warn('key fail ' .. raw .. ' :: ' .. tostring(errKey)) end
     end
-    T.log('keys registered')
+    T.log('keys registered ok=' .. okCount .. '/' .. total)
     T.build('boot')
   end, function(e)
     return tostring(e) .. '\n' .. debug.traceback('', 2)

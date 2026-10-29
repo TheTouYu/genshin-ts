@@ -132,21 +132,33 @@ T.screenFns.result = function(params)
     T.chip(226, ry - 56, 'Lv.' .. T.hero.level .. ' 已提升', T.th.accent2, { fill = T.th.accentSoft })
   end
 
-  -- 按钮
-  local by = cy - h / 2 + 60
-  T.button(cx - 236, by, 200, 52, '再次挑战', function()
+  -- 按钮：结算（官方）为主，其余保留模板循环
+  local by = cy - h / 2 + 66
+  local function finishSettle()
+    T.sfx(T.SFX.confirm)
+    if not T.sendSettle(win) then
+      T.sfx(T.SFX.error)
+      T.toast('本机没有服务端信号通道，已跳过官方结算', T.th.text2)
+    else
+      T.toast('已请求关卡结算 · 即将进入官方结算页', T.th.accent2)
+    end
+  end
+  T.button(cx - 285, by, 170, 52, '再次挑战', function()
     T.go('battle', { stage = st.id })
   end, { kind = 'secondary', name = 'hit_result_retry' })
-  T.button(cx, by, 200, 52, win and '下一关' or '返回地图', function()
+  T.button(cx - 95, by, 170, 52, win and '下一关' or '返回地图', function()
     if win and T.stages[st.id + 1] then
       T.go('prepare', { stage = st.id + 1 })
     else
       T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
     end
-  end, { kind = 'primary', name = 'hit_result_next' })
-  T.button(cx + 236, by, 200, 52, '返回地图', function()
+  end, { kind = 'secondary', name = 'hit_result_next' })
+  T.button(cx + 95, by, 170, 52, '结算并结束', finishSettle,
+    { kind = 'primary', name = 'hit_result_settle', icon = 'snow', iconSize = 7 })
+  T.button(cx + 285, by, 170, 52, '返回地图', function()
     T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
   end, { kind = 'ghost', name = 'hit_result_map' })
+  T.txt(cx, by - 48, 640, 22, 11, '「结算并结束」会请服务端触发关卡结算，进入官方结算页（E 键同效）', T.th.text3, 'Middle', 'Middle')
 
   T.txt(0, -338, 900, 22, 11, win and '「雪会记得每一支箭落下的地方。」' or '「风停了。下一次，把弓拉满一些。」',
     T.th.text3, 'Middle', 'Middle')
@@ -158,8 +170,9 @@ T.screenFns.result = function(params)
     elseif a == 'left' then T.moveFocus(-1, 0)
     elseif a == 'right' then T.moveFocus(1, 0)
     elseif a == 'confirm' then T.confirmFocus()
+    elseif a == 'skill' then finishSettle()
     elseif a == 'back' then T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 }) end
   end
-  T.screen.defaultFocus = 2
+  T.screen.defaultFocus = 3
   T.log('result win=' .. tostring(win) .. ' stars=' .. tostring(params.stars) .. ' score=' .. tostring(params.score))
 end

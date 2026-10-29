@@ -71,6 +71,16 @@ local function trySet(ctl, field, value) … end
 真机上要"隐藏"一个运行时创建的实例，`SetVisible(false)` **不可靠** → 用**挪出画布**（坐标移到画布外）兜底。
 **影响**：所有"常驻 + 隐藏"式的浮层设计在真机上会露馅；改用**懒创建 + 销毁**。
 
+## 2c. 2026-10-29 真机新增三条（霜华纪 1073741856 实测日志）
+
+| API | 真机行为（日志原文） | 模拟器 | 修法 |
+|---|---|---|---|
+| `AddKeyEventListener` | 只收 `Enum.KeyEventType.X`；传字符串报 `bad argument #2 (KeyEventType expected, got string)` → **17 个键位全灭，界面照常显示** | 字符串也收 | 注册时 `Enum.KeyEventType[名]` 优先；**只有当枚举表整体不存在**（老模拟器）才回落字符串，并在日志里记 `keys registered ok=N/total` |
+| `SetLocalScale` | 要 3 个参数 → 传 2 个报 `bad argument count (4 expected, got 3)`（每帧刷屏） | 2 参宽容 | `SetLocalScale(s, s, 1)` |
+| `DestroyClientUIControl` | 部分运行时实例销毁失败（本例每屏稳定 20 个） | 全部成功 | 失败分支 `SetActive(false)` + 挪到 y=-100000 兜底；按 `kind`（img/txt/hit）统计后打一条 `clear screen fail=K kinds=…`，下轮照日志定位 |
+
+**判定顺序**：真机"界面能显示但键位没反应"→ 先看 `keys registered` 那行；`ok=0/N` 就是枚举传错，不是键位表错。
+
 ## 3. 模板与容器差异
 
 > **换地图必做的一件事（2026-10-29 实证）**：设备版 Lua 里的模板 GUID 是**烘死的常量**
