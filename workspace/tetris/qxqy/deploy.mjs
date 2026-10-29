@@ -98,6 +98,19 @@ if (existsSync(exportDir)) {
 if (existsSync(dirname(externalLua))) {
   writeFileSync(externalLua, injectedLua)
   deployed.push(`Lua → ${externalLua}`)
+  // v4.0（2026-10-29）：**模块文件也要部署**。main 用 loadModule('config'|'widgets'|'audio'|'skills')
+  // 按路径 require（4 级候选，首选 default_import_file/lua/tetris/<name>），而上面的 writeFileSync
+  // 只写 main.lua ⇒ 真机上模块是本机旧副本（本次实测：config 还是 10-28 的 47788 B、skills.lua 根本没有）。
+  // 后果不是报错而是**静默用旧数值**（NUM.PHONE/AI_TUNE 缺失、aiPace 不存在）。
+  const modDir = join(dirname(externalLua), 'tetris')
+  mkdirSync(modDir, { recursive: true })
+  const mods = ['config.lua', 'widgets.lua', 'audio.lua', 'skills.lua']
+  for (const m of mods) {
+    const src = join(root, 'lua/tetris', m)
+    if (!existsSync(src)) { console.log(`部署：模块缺失 ${m}（跳过）`); continue }
+    copyFileSync(src, join(modDir, m))
+    deployed.push(`模块 → ${join(modDir, m)}`)
+  }
 }
 
 console.log(`构建：GIA ${gia.length} B  模板 cell=${cellGuid} hit=${hitGuid}  Lua ${injectedLua.length} B`)
