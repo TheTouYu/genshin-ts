@@ -76,7 +76,13 @@ if (flag('--calibrate')) calibrate()
 // 重建（与 build.mjs 共用同一套 patch 序列，保证存档/GIA/Lua 三份产物同源）
 const { studio, cellGuid, hitGuid, settleGuid, stextGuid } = buildStudio()
 const save = studio.exportData('save')
-writeFileSync(join(root, 'tetris.save.json'), Buffer.from(save.data, 'base64').toString('utf8'))
+{
+  // 存档显示名：网页工作区下拉显示 `meta.name · 文件名`，不设就是「未命名存档」⇒ 每次构建看起来都像旧的
+  const saveObj = JSON.parse(Buffer.from(save.data, 'base64').toString('utf8'))
+  saveObj.meta = saveObj.meta || {}
+  saveObj.meta.name = opt('--title', '俄罗斯方块 v4.0')
+  writeFileSync(join(root, 'tetris.save.json'), JSON.stringify(saveObj))
+}
 mkdirSync(join(root, 'device-package'), { recursive: true })
 const gia = Buffer.from(studio.exportData('gia-combined').data, 'base64')
 writeFileSync(join(root, 'device-package/tetris-整合包.gia'), gia)
@@ -159,17 +165,27 @@ function deviceDeploy() {
   // ② 模块脚本（require 按路径读 external，但登记表里同步一份更稳）
   const mods = [['tetris_config', 'config.lua'], ['tetris_widgets', 'widgets.lua'],
     ['tetris_audio', 'audio.lua'], ['tetris_skills', 'skills.lua']]
+  // ⚠ 模块源码里也有 __GUID_*__ 占位（TPL_GUIDS 在 config.lua）。build 会给 GIA 里的模块源码注入，
+  // 但这里直写 external 时用的是**仓库源文件**——不注入就等于把字符串当 guid 传下去（2026-10-29 真机实测：
+  // `cell 模板 guid 都不可用，候选=3` 就是这么来的）。
+  const subst = (text) => text
+    .replaceAll('__GUID_CELL__', String(cellGuid))
+    .replaceAll('__GUID_HIT__', String(hitGuid))
+    .replaceAll('__GUID_SETTLE__', String(settleGuid))
+    .replaceAll('__GUID_STEXT__', String(stextGuid))
   for (const [name, file] of mods) {
     const src = join(root, 'lua/tetris', file)
     if (!existsSync(src)) continue
+    const injectedMod = join(root, 'device-package', `inject-${file}`)
+    writeFileSync(injectedMod, subst(readFileSync(src, 'utf8')))
     const registered = listRaw.includes(`name=${name} `)
-    const base = ['--gil', gilPath, '--name', name, '--source-file', src, '--map-id', MAP_ID, '--write']
+    const base = ['--gil', gilPath, '--name', name, '--source-file', injectedMod, '--map-id', MAP_ID, '--write']
     if (registered) {
       runGsts(['assets:scripts', 'update', ...base])
       console.log(`  模块更新 ${name}`)
     } else {
       runGsts(['assets:scripts', 'register', '--gil', gilPath, '--name', name,
-        '--path', `lua/tetris/${file}`, '--source-file', src, '--map-id', MAP_ID, '--write'])
+        '--path', `lua/tetris/${file}`, '--source-file', injectedMod, '--map-id', MAP_ID, '--write'])
       console.log(`  模块登记 ${name}`)
     }
   }

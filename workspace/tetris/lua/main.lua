@@ -221,7 +221,8 @@ end
 -- HUD 走客户端实例化（v2 设计书 §1.4）。
 local root
 local title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner
-local guideStage, bannerTimer           -- 全局流程阶段（0=AI 演出/1=游戏/2=键位表）与全局横幅计时
+local guideStage, bannerTimer = 0, 0    -- 全局流程阶段（0=AI 演出/1=游戏/2=键位表）与全局横幅计时
+-- ⚠ 初值不能留 nil：OnStart 一旦提前报错，OnUpdate 的 `bannerTimer > 0` 会每帧崩（实测 2026-10-29）
 local introT, overlay
 local introFont, introPulse
 local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
@@ -5077,6 +5078,13 @@ function OnStart()
   end
 
   -- 模板 guid 探测（双宿主）：先 cell（image，无光标事件）再 hit（cursor，有光标事件）
+  -- 诊断锚（真机排查唯一入口）：脚本挂在哪个节点、用哪份候选表
+  do
+    local okR, rootName = pcall(function() return root and root.name or '?' end)
+    print('diag root=' .. tostring(okR and rootName or '?')
+      .. ' cell_cand=' .. tostring(#TPL_GUIDS.cell) .. ' hit_cand=' .. tostring(#TPL_GUIDS.hit)
+      .. ' first_cell_guid=' .. tostring(TPL_GUIDS.cell[1]))
+  end
   local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
   if not firstCell then
     error('tetris: cell 模板 guid 都不可用，候选=' .. #TPL_GUIDS.cell

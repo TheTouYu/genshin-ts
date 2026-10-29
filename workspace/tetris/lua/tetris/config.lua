@@ -21,8 +21,10 @@ local PITCH         = CELL + GAP
 --   cell = image（无光标事件方法） / hit = cursor（有 AddCursorEventListener）。
 -- 真机首次导入 hit 后若仍点不动，跑 `node qxqy/deploy.mjs --calibrate` 自动把新 guid 写进这里。
 local TPL_GUIDS = {
-  cell = { __GUID_CELL__, 1073741849, 1073741854 },
-  hit  = { __GUID_HIT__, 1073741884, 1073741865, 1073741866 },
+  -- 候选表顺序：模拟器导出的 guid（注入）→ 地图 1073741834 实测值 → 历史值。
+  -- 真机若又重编号：probeTemplate 会走能力探测 + GUID 兜底扫描（日志 probe cell/hit scan ok guid=…）。
+  cell = { __GUID_CELL__, 1073741849, 1073741854, 1073741883 },
+  hit  = { __GUID_HIT__, 1073741884, 1073741865, 1073741866, 1073741867 },
   -- 结算层**容器模板**候选：真机地图里的两个容器组 + 它们的容器节点 + 模拟器模板。
   -- 2026-10-24 真机日志实证：容器组 1073741865 在真机 `InstantiateClientUIControl` 返回 nil
   -- ⇒ 容器整棵实例化在真机不支持（要么容器不在可实例化表里，要么引擎只认叶子控件），
