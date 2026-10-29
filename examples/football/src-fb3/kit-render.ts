@@ -35,12 +35,10 @@ g
         const loc = f.getEntityLocationAndRotation(ball).location
         const delta = f._3dVectorSubtraction(pos, loc)
         const dist = f._3dVectorModuloOperation(delta)
-        // ⚠️ 速度参数直接喂**内核逻辑速度**（PKC game-engine-knowledge「运动器传导链」实证：
-        //   用 (target−实体位置)/dt 反推速度时，实体滞后会被放大进速度 ⇒ 引擎不驱动实体 ⇒ 越滞越不动）。
-        const speedLogical = f._3dVectorModuloOperation(evt.params.vel)
-        // 位移：一律用**定点运动器**（日志实证：add_uniform_basic_linear_motion_device 在这颗球上无效——
-        // 速度 13.8m/s 发了 675 次，球实体位置一步没动；而旋转设备生效 ⇒ 换成定点运动器）。
-        // 近平移：UniformLinearMotion + 速度 + 时长；大跳：Instant。
+        // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
+        //   「直线设备的 velocity 显式算成 (target-current)/duration，可同时拿到精确到点与不漂移」）
+        const velToTarget = f._3dVectorZoom(delta, f.division(1.0, DRIVE_DUR))
+        // 大跳用定点器瞬移（§10：定点器仍可用于 INSTANT_MOVEMENT，别全盘禁用）
         f.doubleBranch(
           f.greaterThan(dist, new float(TELEPORT_DIST)),
           () => {
@@ -50,12 +48,12 @@ g
             )
           },
           () => {
-            // **固定时间**（PKC 已验证配方）：DRIVE_DUR 内走到 pos，与速度大小无关 ⇒ 每拍必到位
-            f.activateFixedPointMotionDevice(
-              ball, 'fb_movex', MovementMode.UniformLinearMotion,
-              speedLogical, pos,
-              f.create3dVector(0.0, 0.0, 0.0), false, FixedMotionParameterType.FixedTime, DRIVE_DUR
-            )
+            // ⚠️ 平移**必须用基础运动器**，不能与旋转设备一起混用定点器：
+            //   motion-devices.md §10（2026-08-23 足球实证，日志 2828/2829）——同一 exec 链里
+            //   「定点器匀速直线 + 旋转设备」= 直线设备被秒停、实体位置纹丝不动、只剩微量自旋。
+            //   本轮真机日志 3412 复现同形态：参数照发、实体停在 (0,0.25,1.5)。
+            // 参数：add_uniform_basic_linear_motion_device(实体, 设备名, 时长(秒), 速度向量(m/s))
+            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', DRIVE_DUR, velToTarget)
           }
         )
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
