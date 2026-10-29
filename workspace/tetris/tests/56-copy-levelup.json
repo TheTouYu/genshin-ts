@@ -1,0 +1,82 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "56 v4.0 ② 文案场景扩充：升到 Lv2 时触发原神风升级文案（copy levelup lv=2），且同一次升级只播一次",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 0.9,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.1,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 1.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.5,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 1.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.9,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 2.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.3,
+   "kind": "key",
+   "typeName": "KeyboardCharacterSkill4KeyDown"
+  },
+  {
+   "t": 2.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 2.6,
+   "kind": "log",
+   "contains": "copy levelup lv=2",
+   "source": "client"
+  },
+  {
+   "at": 3.0,
+   "kind": "lua",
+   "source": "local n=0\nfor _,l in ipairs(query.logs()) do if l:match('^copy levelup lv=2') then n=n+1 end end\nassert(n==1, 'lv2 文案次数='..n..'（应恰好 1 次）')\nreturn true"
+  }
+ ]
+}

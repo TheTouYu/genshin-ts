@@ -1,0 +1,38 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "57 v4.0 ② 文案场景扩充：被 AI 送垃圾时触发受击文案（copy garbage recv）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey2Down"
+  },
+  {
+   "t": 6.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 62.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 45.0,
+   "kind": "log",
+   "contains": "ai attack=true oppH=",
+   "source": "client"
+  },
+  {
+   "at": 62.0,
+   "kind": "log",
+   "contains": "copy garbage recv n=",
+   "source": "client"
+  }
+ ]
+}

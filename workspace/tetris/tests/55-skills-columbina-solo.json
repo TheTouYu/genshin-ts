@@ -1,0 +1,18 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "55 v4.0 ③ 少女单人降级：无对手时「月之领域」降级为清底 1 行（不空放、不耗能）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  { "t": 0.6, "kind": "key", "typeName": "KeyboardCraftspersonKey30Down" },
+  { "t": 1.0, "kind": "key", "typeName": "KeyboardCraftspersonKey13Down" },
+  { "t": 1.4, "kind": "key", "typeName": "KeyboardCraftspersonKey13Down" },
+  { "t": 1.8, "kind": "key", "typeName": "KeyboardCraftspersonKey13Down" },
+  { "t": 2.2, "kind": "key", "typeName": "KeyboardCraftspersonKey12Down" }
+ ],
+ "asserts": [
+  { "at": 2.7, "kind": "log", "contains": "skill cast slot=1 role=columbina ok=true effect=gravity-clear", "source": "client" },
+  { "at": 2.7, "kind": "log", "contains": "skill clear_bottom rows=1", "source": "client" }
+ ]
+}

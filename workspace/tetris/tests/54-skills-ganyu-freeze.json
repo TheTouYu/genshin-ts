@@ -1,0 +1,18 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "54 v4.0 ③ 甘雨冰封：解锁 → 换到甘雨 → Z 施放 → 冻结生效（skill freeze rows/sec）+ 倒计时归零 skill freeze end",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  { "t": 0.6, "kind": "key", "typeName": "KeyboardCraftspersonKey30Down" },
+  { "t": 1.0, "kind": "key", "typeName": "KeyboardCraftspersonKey13Down" },
+  { "t": 1.4, "kind": "key", "typeName": "KeyboardCraftspersonKey13Down" },
+  { "t": 1.8, "kind": "key", "typeName": "KeyboardCraftspersonKey12Down" }
+ ],
+ "asserts": [
+  { "at": 2.3, "kind": "log", "contains": "skill cast slot=1 role=ganyu ok=true effect=freeze", "source": "client" },
+  { "at": 2.3, "kind": "log", "contains": "skill freeze rows=3 sec=3", "source": "client" },
+  { "at": 6.5, "kind": "log", "contains": "skill freeze end", "source": "client" }
+ ]
+}

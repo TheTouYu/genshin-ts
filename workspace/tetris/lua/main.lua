@@ -1116,9 +1116,25 @@ clearLines = function()
         print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
       end
     end
+    -- v4.0 ③：解锁计数（累计消行 / 四消次数）——四消是少女的解锁条件之一
+    if not g.autoDriving then
+      FN.skillCount('lines', cleared)
+      if cleared >= 4 then FN.skillCount('tetris', 1) end
+      FN.skillUnlockTick()
+    end
     local levelBefore = g.level
     g.level = g.lines // NUM.LEVEL_UP_LINES + 1
     if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
+    -- v4.0 ②：升级场景文案（用户：「可以在游戏内出现文案和触发文案的场景太少了」）
+    -- 不加 bannerTimer 守卫：升级是低频高价值事件（一局最多 11 次），被连击横幅压住就永远不播了
+    if g.level > levelBefore and not g.autoDriving then
+      local ups = { '风带来了新的歌，方块也跟上了节奏。', '这一层的重力，开始变得认真了。',
+        '脚下的路快了一点点——别慌，先深呼吸。', '提瓦特的时间在走，你的手也跟上了。' }
+      setText(botBanner, ups[(g.level - 2) % #ups + 1] or ups[1])
+      trySet(botBanner, 'fontSize', 20)
+      bannerTimer = 1.8
+      print('copy levelup lv=' .. g.level)
+    end
     -- T7 垃圾行（v2-plan §三/设计书 §四）：双屏模式 2/3/4 消送对方盘 1/2/4 行（B2B 再 +1）。
     -- 送出方向：g == G[1] → 送 G[2]，反之亦然（ai-battle/coop 人↔AI、pvp 玩家互送）。
     if cleared >= 2 and G[2] then
@@ -1412,6 +1428,12 @@ local function startIfWaiting()
   if pendingMode then return end       -- v2.1 ②：模式名动画窗独占（0.5s），任意键不打断
   if helpOpen then toggleHelp() return end   -- v2.1 ③：说明层开着时任意键=先关层不开局
   guideStage = 1
+  -- v4.0 ③：解锁计数（局数 / 对战局数）——放在"玩家真正开局"这一刻，AI 自演与复局不算新局
+  if SK then
+    FN.skillCount('games', 1)
+    if MODE == 'pvp' or MODE == 'ai-battle' then FN.skillCount('pvp', 1) end
+    FN.skillUnlockTick()
+  end
   pendingMode = nil                    -- v2.1 ②：任何开局路径都清动画窗状态
   destroyMenuCards()                   -- v2.1 ②：开局销毁菜单卡片（任意键直开时卡片也要撤）
   MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
@@ -2240,6 +2262,11 @@ end
 -- 顶行被推出=内容丢失（首版简化，垃圾行游戏普遍语义）；当前落子与垃圾重叠则上移，上不动=顶死。
 raiseGarbage = function(target, n)
   if not target or target.gameOver or n < 1 then return end
+  -- v4.0 ③ 甘雨「冰封」：冻结期内玩家的盘不吃垃圾（AI 盘不受玩家技能影响，保持公平）
+  if SK and SK.freezeT and SK.freezeT > 0 and target == G[1] then
+    print('skill freeze block n=' .. n .. ' left=' .. aiFmt(SK.freezeT))
+    return
+  end
   local save = g
   g = target
   for _ = 1, n do
@@ -2262,6 +2289,12 @@ raiseGarbage = function(target, n)
   renderPiece()
   renderHud()
   print('garbage n=' .. n)              -- v2-plan T7 验收锚（被送方日志）
+  -- v4.0 ②：受击文案——给玩家"被打了"的明确反馈（对抗场景的文案出口）
+  if not g.autoDriving then
+    setText(botBanner, n >= 3 and '对面把整条街都掀过来了——撑住！' or '有一点碎石落进了你的盘中。')
+    bannerTimer = 1.6
+    print('copy garbage recv n=' .. n)
+  end
   sfx(SFX.garbageRecv, true)            -- 受击音（force 防同帧吞）
   startShake(n >= 3 and 3 or 2)         -- 受击抖屏（行数越多越强）
   g = save
@@ -3591,6 +3624,48 @@ end
 -- 键位：Z = 技能1（当前前台角色）、U = 技能2（第二角色，没有就回落同一人）、Y = 切换前台。
 -- 为什么这样分：Z/U 两个瞬发槽不占移动键（WASD/箭头/空格/G 全被玩法占用），Y 做前台切换。
 -- 数值/门禁全在 skills.lua（锁定→CD→能量），这里只做"效果"与"文案"。
+-- 解锁计数（会话内累计；模块只认 "k:v,k:v" 字符串，见 skills.lua parseReason）
+FN.skillCount = function(k, v)
+  if not SK then return end
+  SK.cnt = SK.cnt or {}
+  SK.cnt[k] = (SK.cnt[k] or 0) + (v or 1)
+end
+
+-- 解锁检查：把累计计数喂给模块，解锁后按 partyMax 自动入队（满 2 人时只解锁不入队）
+FN.skillUnlockTick = function()
+  if not (SK and SKILLS and SKILLS.tryUnlock) then return end
+  local c = SK.cnt or {}
+  local reason = 'lines:' .. tostring(c.lines or 0) .. ',games:' .. tostring(c.games or 0)
+    .. ',tetris:' .. tostring(c.tetris or 0) .. ',pvp:' .. tostring(c.pvp or 0)
+    .. ',time:' .. tostring(c.time or 0)
+  for _, role in ipairs(SK.roles or {}) do
+    if SK.unlocked and SK.unlocked[role] ~= true then
+      local ok, why = SKILLS.tryUnlock(SK, role, reason)
+      if ok then
+        print('skill unlock role=' .. role .. ' ok=true why=' .. tostring(why)
+          .. ' party=' .. tostring(#(SK.party or {})))
+        setText(botBanner, '新的契约已缔结 · ' .. tostring(role) .. ' 加入队伍')
+        bannerTimer = 1.8
+      end
+    end
+  end
+end
+
+-- HUD 一行技能状态（复用左栏 hint；变了才写，避免每帧刷控件）
+FN.skillHud = function()
+  if not (SK and SKILLS and SKILLS.snapshot) then return end
+  if guideStage ~= 1 or helpOpen then return end   -- 只在局内写 hint，别覆盖标题页/引导提示
+  local sn = SKILLS.snapshot(SK) or {}
+  local txt = tostring(sn.active or '-') .. ' Lv' .. tostring(sn.lv or 1)
+    .. '｜Z 技能 ' .. (sn.cd and sn.cd > 0 and (math.floor(sn.cd + 0.5) .. 's') or '就绪')
+    .. '｜能量 ' .. tostring(math.floor((sn.energy or 0) + 0.5))
+  if SK.hudTxt ~= txt then
+    SK.hudTxt = txt
+    setText(hint, txt)
+    print('skill hud ' .. txt)
+  end
+end
+
 FN.skillCast = function(slot)
   if not (SK and SKILLS and SKILLS.cast) then
     print('skill cast skipped (no skills module)')
@@ -3598,8 +3673,14 @@ FN.skillCast = function(slot)
   end
   if not g or g.gameOver or MODE_OVER then return false end
   if guideStage ~= 1 then return false end
-  local role = (SK.party and SK.party[1]) or 'nahida'
-  if slot == 2 and SK.party and SK.party[2] then role = SK.party[2] end
+  -- 台前角色 = party[active]（Y 键翻 active）；slot 2 = 队伍里的另一个人
+  local partyN = (SK.party and #SK.party) or 0
+  local idx = SK.active or 1
+  if partyN > 0 then
+    if slot == 2 and partyN > 1 then idx = (idx % partyN) + 1 end
+    if idx < 1 or idx > partyN then idx = 1 end
+  end
+  local role = (partyN > 0 and SK.party[idx]) or 'nahida'
   local opp = (g == G[2]) and G[1] or G[2]
   local oppH = 0
   if opp and opp.board then
@@ -3621,6 +3702,7 @@ FN.skillCast = function(slot)
     bannerTimer = 1.4
     return false
   end
+  FN.skillHud()
   local pr = (SKILLS.params and SKILLS.params(SK, role)) or {}
   -- 模块里的 effect 用连字符（ai-takeover / clear-bottom / gravity-clear / mark-blink），
   -- 这里统一归一化，免得两套命名互相不认识（2026-10-29 实测踩过：effect=todo）。
@@ -3646,6 +3728,26 @@ FN.skillCast = function(slot)
     setText(botBanner, '甘雨：冰莲已开，这一段路我来铺平。')
     bannerTimer = 1.6
     print('skill clear_bottom rows=' .. rows)
+  elseif eff == 'blink' then
+    -- 刻晴：雷楔瞬闪——当前块瞬间落到本列最低位并锁定（不额外计分，纯粹是"抢时间"）
+    if g.piece then
+      local dropped = 0
+      while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
+        g.piece.y = g.piece.y + 1
+        dropped = dropped + 1
+      end
+      print('skill blink col=' .. tostring(g.piece.x) .. ' rows=' .. dropped)
+      doLock()
+    end
+    setText(botBanner, '刻晴：雷楔已落，这一手就到这里。')
+    bannerTimer = 1.6
+  elseif eff == 'freeze' then
+    -- 甘雨：冰封——冻结 n 行高度的垃圾顶推 n 秒（raiseGarbage 里读 SK.freezeT）
+    SK.freezeT = pr.freezeSec or 3
+    SK.freezeRows = r.n or pr.freezeRows or 3
+    print('skill freeze rows=' .. tostring(SK.freezeRows) .. ' sec=' .. tostring(SK.freezeT))
+    setText(botBanner, '甘雨：霜华落下，这条路暂时封住了。')
+    bannerTimer = 1.8
   elseif eff == 'ripple' then
     setText(botBanner, '哥伦比娅：让潮汐替我说下去。')
     bannerTimer = 1.6
@@ -5394,12 +5496,31 @@ function OnStart()
   listen('KeyboardCraftspersonKey12Down', skillKey(function() FN.skillCast(1) end))
   listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end))
   listen('KeyboardCraftspersonKey13Down', skillKey(function()
-    if not (SK and SKILLS and SKILLS.switchRole) then
-      print('skill switch unavailable（模块无 switchRole）')
-      return
+    -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
+    if not (SK and SK.party and #SK.party > 0) then return end
+    local n = #SK.party
+    SK.active = ((SK.active or 1) % n) + 1
+    FN.skillHud()
+    print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
+  end))
+  -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
+  listen('KeyboardCraftspersonKey30Down', skillKey(function()
+    if not (SK and SKILLS) then return end
+    for _, role in ipairs(SK.roles or {}) do
+      if SK.unlocked[role] ~= true then
+        local ok, why = SKILLS.tryUnlock(SK, role, 'lines:99999,games:99999,tetris:99999,pvp:99999,time:99999')
+        if ok then print('skill unlock role=' .. role .. ' ok=true why=debug') end
+      end
     end
-    local okR = SKILLS.switchRole(SK)
-    print('skill switch ok=' .. tostring(okR) .. ' active=' .. tostring(SK.active))
+    -- 调试专用：把 partyMax 抬到全角色数并让全部入队（真机玩家无从触发；只给用例铺场景）
+    SK.partyMax = #(SK.roles or {})
+    SK.party = {}
+    for _, role in ipairs(SK.roles or {}) do
+      if SK.unlocked[role] == true then SK.party[#SK.party + 1] = role end
+    end
+    SK.active = 1
+    print('skill debug unlock all party=' .. tostring(#(SK.party or {}))
+      .. ' active=' .. tostring(SK.party[1] or '-'))
   end))
 
   -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
@@ -5529,9 +5650,22 @@ function OnUpdate(dt)
   if UI4.tick then UI4.tick(d) end
   if UI4.padTick then UI4.padTick(d) end
   if UI4.syncVisible then UI4.syncVisible(MODE_OVER or ((G[1] and G[1].gameOver) and true or false)) end
+  -- v4.0 ③ 甘雨冰封倒计时（独立于技能 CD：技能 CD 是"下次能不能放"，冰封是"效果还剩多久"）
+  if SK and SK.freezeT and SK.freezeT > 0 then
+    SK.freezeT = SK.freezeT - d
+    if SK.freezeT <= 0 then
+      SK.freezeT = 0
+      print('skill freeze end')
+    end
+  end
   -- v4.0 ③：技能时钟（能量自然回复 / CD 递减）——时停时也走，玩家开帮助不会白等冷却
   if SK and SKILLS and SKILLS.tick then
     pcall(SKILLS.tick, SK, d)
+    SK.hudT = (SK.hudT or 0) + d
+    if SK.hudT >= 1 then
+      SK.hudT = 0
+      FN.skillHud()
+    end
     SK.logT = (SK.logT or 0) + d
     if SK.logT >= 5 then
       SK.logT = 0
