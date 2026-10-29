@@ -420,19 +420,16 @@ T.gFinish = function(win)
   T.sfx(win and T.SFX.win or T.SFX.lose, true)
   local data = { chapter = chId, win = win, score = g.score, best = T.records.best[chId],
     stars = stars, moves = g.moves, maxCombo = g.maxCombo or 0, cleared = g.cleared or 0 }
-  -- ui=true：暂停/设置打开时结算倒计时继续，否则玩家一按暂停，结算层永远不会出现
-  T.after(0.45, function()
-    if not T.game or T.game ~= g then return end
-    if T.overlay then T.closeAllOverlays() end
-    T.openResult(data)
-    if win then T.unlock('first_tea') end
-    if (g.maxCombo or 0) >= 3 then T.unlock('combo3') end
-    if g.score >= 3000 then T.unlock('score3000') end
-    if stars == 3 then T.unlock('perfect') end
-    local all = true
-    for i = 1, #T.chapters do if not T.records.visited[i] then all = false end end
-    if all then T.unlock('all_chapters') end
-  end, true)
+  -- 直接结算：之前 T.after 在部分真机会话里不触发，表现为赢了以后永远停在棋盘
+  if T.overlay then T.closeAllOverlays() end
+  T.openResult(data)
+  if win then T.unlock('first_tea') end
+  if (g.maxCombo or 0) >= 3 then T.unlock('combo3') end
+  if g.score >= 3000 then T.unlock('score3000') end
+  if stars == 3 then T.unlock('perfect') end
+  local all = true
+  for i = 1, #T.chapters do if not T.records.visited[i] then all = false end end
+  if all then T.unlock('all_chapters') end
 end
 
 -- ---------- 提示 / 更新 ----------
