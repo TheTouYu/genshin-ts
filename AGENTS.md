@@ -35,7 +35,7 @@
 
 项目是长期自进化项目：每轮任务都应是"做 demo/修 bug → 复盘反思 → 知识落盘 → 技能迭代"的闭环，不只交付结果。
 
-**任务迭代节奏（自主闭环，无需用户逐点提醒，2026-08-22 用户要求固化）**——每轮按固定节奏自主推进：
+**任务迭代节奏（2026-08-22 用户要求，自主推进，不必逐点提醒）**：
 1. **探索 + 精准加载技能**：接任务先查下方路由表，只加载最小必要技能，不凭记忆猜。
 2. **执行中顺手优化资源**：发现可复用的脚本/技能/文档/规则，执行中就改，不拖到收尾。
 3. **完成小点就提交**：一个独立小点（文档/技能/脚本/知识）完成即 `git commit`，只精确暂存相关文件；破坏性操作仍需确认。
@@ -51,7 +51,7 @@
 
 ## 信息检索优先级（缺关键信息/上下文/历史记忆时，2026-08-22 强制）
 
-**高频触发——节点预算/帧数超限（先查规则再动刀）**：遇到节点数超限/拒载/图预算超限，第一步**先查规则**：`pkc query` 读硬限与公式口径（命令见 CLAUDE「PKC 查询」），再 `dsh-session-history` 找该地图历史定稿公式；本地测量是第二取证动作。**引擎单图上限=2000（生产红线），超 2000 直接按职责拆新图**；单 tick 帧数预算 <3000 帧/记录。旧“3000 拒载阈值”口径已作废（历史见 PKC/复盘，勿再引用）。
+**高频触发——节点预算/帧数超限（先查规则再动刀）**：遇到节点数超限/拒载/图预算超限，第一步**先查规则**：`pkc query` 读硬限与公式口径（命令见 CLAUDE「PKC 查询」），再 `dsh-session-history` 找该地图历史定稿公式；本地测量是第二取证动作。**引擎单图上限=2000（生产红线），超 2000 直接按职责拆新图**；单 tick 帧数预算 <3000 帧/记录。旧 3000 阈值已作废。
 
 **负载设计铁律（2026-08-24 用户定义）**：按「事件驱动 → 低频定时器（0.7~1s）→ 高频轮询」选择；0.06s 级触发本身即高负载，禁止长期运行；定时器必须有停止条件；单 tick 内重计算拆成小复合，禁止多个有限循环叠在一条链上。写图前算两笔账：`assets:node-graphs nodes` 节点预算 + 单 tick 帧数预算（<3000 帧/记录）。**打印纪律（2026-09-03）**：print 只留关键状态入口（生命周期/任务唤醒/异常标记），高频路径零 print；完整数据让用户按图开详情日志。
 
@@ -72,7 +72,7 @@
 | 调试节点图日志/负载 | `debug-log-investigator` |
 | **GUI 世界状态感知**（读界面/判态/按文字找对象/验动作/黑屏） | `gui-world-state` + `.scratch/gui-service/worldsvc.py` |
 | 游戏正文采集（故事/对话页文字→结构化文档；OCR 分歧裁定） | `gui-text-collect` |
-| **真机试玩与取数** / 编辑器窗口层故障 | `device-playtest-loop` + `tools/ys-editor/` |
+| **真机试玩与取数** / 编辑器窗口层故障 / 存档路径·地图清单（**不扫盘**，见 `lua-2d-ui-game-build` §5） | `device-playtest-loop` + `tools/ys-editor/` |
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（调用客户端图／技能实例／不触发／信号回传） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
@@ -82,7 +82,7 @@
 | Composite/GIA 文档导航 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | **千星模拟器 2D UI+Lua 路线** | `simulator-2d-route` + 插件技能 `qxqy-simulator` |
-| 2D 小游戏 / 3D 界面层（HUD·结算·浮层·引导） | `lua-2d-ui-game-build`（阶段门；工具细节走 `simulator-2d-route`） |
+| 2D 小游戏 / 3D 界面层（HUD·结算·浮层·引导）／**客户端控件容器一条龙**（`assets:ui container`，`12-deploy.md` §9） | `lua-2d-ui-game-build`（阶段门；工具细节走 `simulator-2d-route`） |
 | 音效选型/接入/验证（BGM·SFX·PlayAudio2D·挑音网页） | `game-sfx-kit` |
 | 项目记忆／领域知识路由 | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
