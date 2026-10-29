@@ -449,9 +449,47 @@ T.gameHint = function()
   T.sfx(T.SFX.hover)
   T.log('hint r=' .. move.a.r .. ' c=' .. move.a.c .. ' -> r=' .. move.b.r .. ' c=' .. move.b.c)
 end
+T.gRecover = function(g)
+  -- 动画/回调异常后的兜底：让棋盘数据和可见图元重新一致，解除 busy
+  local repaired = 0
+  for r = 1, T.G.N do
+    for c = 1, T.G.N do
+      local tile = g.tiles[r][c]
+      if not tile or not tile.parts or #tile.parts == 0 then
+        local typ = g.board[r][c]
+        if not typ or typ == 0 then
+          typ = T.rand(5)
+          g.board[r][c] = typ
+        end
+        local x, y = T.gpos(r, c)
+        if tile then T.gDestroyTile(tile) end
+        g.tiles[r][c] = T.gMakeTile(r, c, typ, x, y)
+        repaired = repaired + 1
+      end
+    end
+  end
+  g.busy = false
+  g.busyT = 0
+  g.sel = nil
+  g.dragFrom, g.dragTo = nil, nil
+  T.gRingHide(g.selRing)
+  T.gHud(g)
+  T.log('game recover repaired=' .. repaired)
+end
+
 T.gTick = function(dt)
   local g = T.game
   if not g or g.phase ~= 'play' then return end
+  if g.busy then
+    g.busyT = (g.busyT or 0) + dt
+    if g.busyT > 1.5 then
+      T.warn('game busy timeout :: repair board')
+      T.gRecover(g)
+      return
+    end
+  else
+    g.busyT = 0
+  end
   local pulse = 1 + math.sin(T.time * 4.2) * 0.045
   if g.sel then T.gRingAt(g.selRing, g.sel.r, g.sel.c, 64 * pulse) end
   if g.hintT > 0 then

@@ -201,10 +201,17 @@ T.tick = function(dt)
     if tw and not (paused and not tw.ui) then
       tw.t = tw.t + dt
       local k = math.min(1, tw.t / tw.dur)
-      local keep = tw.fn(tw.ease(k), k)
-      if k >= 1 or keep == false then
+      -- 补间回调也必须 pcall：一个回调抛错会打断 OnUpdate，表现为动画/棋盘永久冻结
+      local okTw, keep = pcall(tw.fn, tw.ease(k), k)
+      if not okTw then
+        T.warn('tween error :: ' .. tostring(keep))
         list[i] = nil
-        if tw.done then tw.done() end
+      elseif k >= 1 or keep == false then
+        list[i] = nil
+        if tw.done then
+          local okDone, errDone = pcall(tw.done)
+          if not okDone then T.warn('tween done error :: ' .. tostring(errDone)) end
+        end
       end
     end
   end
