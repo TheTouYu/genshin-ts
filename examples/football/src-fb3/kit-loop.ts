@@ -111,25 +111,43 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 玩家位置：从载体实体变量读（服务端 kitRender 每拍写 fb_px/fb_pz）————
   // 不用 getListOfPlayerEntitiesOnTheField：那是玩家控制器实体，读位置恒 0（2026-10-17 定谳）。
-  // 玩家坐标：优先用「选项卡锁存的角色 GUID」现读位置（最新鲜），没锁存时退回服务端写的 fbvx/fbvz。
-  // 为什么不能直接用玩家实体：getListOfPlayerEntitiesOnTheField 给的是玩家控制器实体，坐标恒 (0,y,0)。
+  // ———— 玩家坐标（2026-10-29 四修）————
+  // 固定 GUID 的「玩家模板实体」1086324737 是玩家侧锚点（v5 架构也用它挂 UI 事件与寄存器），
+  // 角色实体是它的子实体 ⇒ 取子实体[0] 的坐标。玩家控制器实体本身坐标恒 (0,y,0)（日志 3416 实证），
+  // 20008 图又拿不到 getCurrentCharacter 之类节点（编译期实测拒收），所以走这条固定 GUID 链。
   const carrierE = f.queryEntityByGuid(1082130445n)
-  const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
+  const playerE = f.queryEntityByGuid(1086324737n)
+  const pSubs = f.getSubEntityList(playerE)
+  const pSubLen = f.getListLength(pSubs)
   const pPxV = f.localVariable('float')
   const pPzV = f.localVariable('float')
   f.doubleBranch(
-    f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+    f.greaterThan(pSubLen, 0n),
     () => {
-      const cl = f.split3dVector(f.getEntityLocation(charE))
-      pPxV.set(cl.xComponent)
-      pPzV.set(cl.zComponent)
+      const l = f.split3dVector(
+        f.getEntityLocation(f.getCorrespondingValueFromList(0n, pSubs))
+      )
+      pPxV.set(l.xComponent)
+      pPzV.set(l.zComponent)
     },
     () => {
-      pPxV.set(f.getCustomVariable(carrierE, 'fbvx').asType('float'))
-      pPzV.set(f.getCustomVariable(carrierE, 'fbvz').asType('float'))
+      // 兜底 1：选项卡锁存的角色实体（whenTabIsSelected 的 selectorEntity）
+      const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
+      f.doubleBranch(
+        f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+        () => {
+          const l2 = f.split3dVector(f.getEntityLocation(charE))
+          pPxV.set(l2.xComponent)
+          pPzV.set(l2.zComponent)
+        },
+        () => {
+          // 兜底 2：服务端写的 fbvx/fbvz（可能为 0，至少不会崩）
+          pPxV.set(f.getCustomVariable(carrierE, 'fbvx').asType('float'))
+          pPzV.set(f.getCustomVariable(carrierE, 'fbvz').asType('float'))
+        }
+      )
     }
   )
-
   // ———— 输入：fb_seq（有没有新输入）+ fb_key（哪一种踢法）————
   const carrier = f.queryEntityByGuid(CARRIER_GUID)
   const seqStd = f.getCustomVariable(carrier, 'fb_seq').asType('int')

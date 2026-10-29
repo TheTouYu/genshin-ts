@@ -22,67 +22,8 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
-    // ———— 玩家位置（2026-10-29 三修）————
-    // ① 玩家控制器实体 getEntityLocationAndRotation 恒 (0, y, 0)（日志 3416 实证：IN0:Vector=(0.0,0.472,0.0)）
-    // ② 角色列表[0] 可能是掉出场外的实体（日志 3414 见到 y=−4.5 / −142、x 到 94）
-    // ⇒ 取角色列表里**站在场上**的那个（y ∈ [-1, 5]），最多试 2 个；都不合格就保持上一次的值。
-    const players = f.getListOfPlayerEntitiesOnTheField()
-    const player0 = f.getCorrespondingValueFromList(players, 0n)
-    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
-    const clen = f.getListLength(chars)
-    const cx = f.localVariable('float')
-    const cy = f.localVariable('float')
-    const cz = f.localVariable('float')
-    f.doubleBranch(
-      f.greaterThan(clen, 0n),
-      () => {
-        const l0 = f.split3dVector(
-          f.getEntityLocationAndRotation(f.getCorrespondingValueFromList(chars, 0n)).location
-        )
-        const ok0 = f.logicalAndOperation(
-          f.greaterThan(l0.yComponent, -1.0),
-          f.lessThan(l0.yComponent, 5.0)
-        )
-        f.doubleBranch(
-          ok0,
-          () => {
-            cx.set(l0.xComponent)
-            cy.set(l0.yComponent)
-            cz.set(l0.zComponent)
-          },
-          () => {
-            f.doubleBranch(
-              f.greaterThan(clen, 1n),
-              () => {
-                const l1 = f.split3dVector(
-                  f.getEntityLocationAndRotation(
-                    f.getCorrespondingValueFromList(chars, 1n)
-                  ).location
-                )
-                const ok1 = f.logicalAndOperation(
-                  f.greaterThan(l1.yComponent, -1.0),
-                  f.lessThan(l1.yComponent, 5.0)
-                )
-                f.doubleBranch(
-                  ok1,
-                  () => {
-                    cx.set(l1.xComponent)
-                    cy.set(l1.yComponent)
-                    cz.set(l1.zComponent)
-                  },
-                  () => {}
-                )
-              },
-              () => {}
-            )
-          }
-        )
-        f.setCustomVariable(owner, 'fbvx', cx.value, false)
-        f.setCustomVariable(owner, 'fbvz', cz.value, false)
-        f.setCustomVariable(owner, 'fbvy', cy.value, false)
-      },
-      () => {}
-    )
+    // 玩家位置改由**客户端内核**自取（服务端没有「获取子实体列表」节点，只有客户端有）：
+    //   固定 GUID 玩家模板实体 1086324737 → 子实体[0]（角色） → 位置。
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
