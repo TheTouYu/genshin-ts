@@ -59,8 +59,9 @@
 | **布局里有客户端容器，游戏里什么都没有 / `mounts=0`** | ①`assets:ui container discover` 看**布局实例**节点在不在（空容器节点会被编辑器保存时剪掉 → CLI 自动补 1×1 占位子控件）②`assets:scripts mounts` 看挂载在**布局实例节点**还是模板节点 | `12-deploy` §9 |
 | **编辑器保存后容器节点/占位件/挂载全消失，只剩两个空组**（2026-10-29 B 图事故） | 查**地图有没有 ClientUI 层级根 fam 87/88**（`ClientUIRootHierarchyRoot`/`ClientUIPrototypeHierarchyRoot`）：缺了编辑器会自建并丢弃/重编号容器子树；用 `container instantiate --system-donor <已有根的图.gil>` 先补根再交付 | `12-deploy` §9 硬前提 ③ |
 | **容器里的子控件 ID 掉到 2xxx（<1073742500）** | 编辑器动态段，会被改分配成系统根/模板实例 → 子件消失；容器下新建子树件必须 ≥1073742500 | `12-deploy` §9 硬前提 ② |
-| **换了地图／克隆后 Lua 探测模板全失败（`tpl guid=` 是旧数字 或 nil）** | 设备版 Lua 把模板 GUID 烘死在源码里（`T.tpl = {prim=…}`）；换图要重新 build（`FLOWER_PRIM/LABEL/HIT=… node qxqy/build-device.mjs`）再 `assets:scripts update` | `12-deploy` §9.2 / `13-device` §3 |
+| **换了地图／克隆后 Lua 探测模板全失败（`tpl guid=` 是旧数字 或 nil）** | 设备版 Lua 把模板 GUID 烘死在源码里（`T.tpl = {prim=…}`）。**走 `sim:import --apply` 落地时已自动重映射**（并会先跑只读分析报 `[DRIFT]`）；只有手工搬图/换图才需要重新 build（`FLOWER_PRIM/LABEL/HIT=… node qxqy/build-device.mjs`）再 `assets:scripts update` | `12-deploy` §9.3 / `13-device` §3 |
 | **`external_lua_file` 不存在 / 游戏跑旧脚本** | `assets:scripts list` 看 `exists/size`；`maps:clone` 会把内联 source 物化到新图目录，手写路径要自己补 | `12-deploy` §9 |
+| **CLI 写完脚本好好的，用户在编辑器里保存一次就废了**（`.gil` 从 15 万 B 掉到 3 万 B、root50 只剩几十字节、`assets:scripts list` 报 `external=MISSING`、界面空白但零报错） | **编辑器保存会把 root50 的内联源码外置**成 `external_lua_file/<filePath>`。只写内联 = 外置后两边都空。修法：写完必须同时落外置文件（`UTF8_BOM + source`，内容要是**重映射后**的源码）；判据 = `externalLuaDestOf(gilPath, entry.filePath)` 那个文件存在且含 BOM | `12-deploy` §9 硬前提 ④ / §9.3 |
 
 ## 4. 玩法 / 逻辑类
 

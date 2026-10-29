@@ -17,7 +17,7 @@ description: 从空工程做到「能玩、能结算、有数值、有反馈、�
 | 画面不对 / 字看不见 / 被裁 / 被盖 | `17-symptoms.md` → `05-layer.md` / `04-text.md` → `01-verification.md` |
 | 按键不对 / 自己一直走 / 点不动 | `17-symptoms.md` → `03-input.md` → `14-diagnosis.md` |
 | 还是老板版 / 白屏 / 没反应 | `12-deploy.md` → `13-device.md` → `14-diagnosis.md` |
-| 容器/模板怎么进布局、布局里有容器但没画面 | `12-deploy.md` §9（`assets:ui container discover/instantiate/save-template`）|
+| 容器/模板怎么进布局、布局里有容器但没画面、**模拟器 GIA 怎么一键落地** | `12-deploy.md` §9（`sim:import --apply` 一键 / `assets:ui container discover/instantiate/save-template` 分步）|
 | 太丑 / 没审美 | `08-art.md`（含三次打回史与正确做法） |
 | AI 太蠢 / 不会打 / 卡 | `10-ai.md` / `11-performance.md` |
 | 多代理并行 / 任务很大 | `15-collaboration.md` + `16-efficiency.md` |
@@ -69,7 +69,7 @@ description: 从空工程做到「能玩、能结算、有数值、有反馈、�
 | `09-copy` | COPY 表、六维设计、三落点通道、PERSIST_TIP 用例锁、世界观锚点 |
 | `10-ai` | BCTS 权重、ρ 上限 0.40、三档参数、演示强制 hard、镜像 nextName、独立出块、分帧 |
 | `11-performance` | 帧探针、交替对照法、权重 0 短路、分帧预算、零分配、背景池溢出、降级顺序 |
-| `12-deploy` | 部署三处、零导入直写、多模块 register、注入版、版本指纹、环境变量两口径、**容器一条龙（模板→布局实例→脚本 + 三组 GIA 差分验收）** |
+| `12-deploy` | 部署三处、零导入直写、多模块 register、注入版、版本指纹、环境变量两口径、**容器一条龙（模板→布局实例→脚本 + 三组 GIA 差分验收 + GIA 一键落地 + 首存外置 Lua）** |
 | `13-device` | 200-local、真机 API 三差异、模板重编号、`SetVisible` 失效、切图重载、浏览器差异 |
 | `14-diagnosis` | 三条原则、六种手段、错判类型学、三个完整案例、何时停手问人 |
 | `15-collaboration` | 队伍编制、三次覆盖事故与纪律、哨兵、崩溃接手、模型选择、任务板 |

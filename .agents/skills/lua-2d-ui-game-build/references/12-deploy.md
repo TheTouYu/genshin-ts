@@ -207,7 +207,7 @@ node dist/src/cli/gsts.js assets:ui container save-template --gil "$GIL" --insta
 #   → 新模板组/节点新建，实例 f13 改指新模板、实例改名去重 _1，旧模板 f14 摘除该实例
 ```
 
-**交付前的三条硬前提（2026-10-29 B 图事故后固化，缺一条编辑器就会剪掉整棵容器子树）**：
+**交付前的四条硬前提（2026-10-29 B 图事故 + 首存丢源码事故后固化，缺一条要么子树被剪、要么脚本失效）**：
 1. **两个容器节点都必须至少有一个子控件**（模板节点 + 布局实例节点）。空节点会被编辑器保存时剪掉，
    `f74` 脚本挂载随之消失 → 真机 `mounts=0`、界面空白。`container instantiate` 现在会自动补
    **占位子控件**（默认名 `gsts_anchor`，1×1 @ `-2000,-2000`，可用 `--placeholder-name` 改名）。
@@ -227,10 +227,16 @@ node dist/src/cli/gsts.js assets:ui container save-template --gil "$GIL" --insta
    查目标图有没有根：`node dist/src/cli/gsts.js assets:ui container discover --gil "$GIL" --format json`，
    JSON 里 `templates/instances` 之外看记录的 `familyTypes` 是否含 87/88（或直接看
    `assets:ui list` 里是否有 `ClientUIRootHierarchyRoot`）。
+4. **写脚本必须同时落「外置 Lua」**：编辑器保存时会把 root50 的内联源码外置成
+   `external_lua_file/<filePath>`。只写内联 = 首次保存后**两边都没有源码**
+   （实测 150,410 B → 29,947 B、root50 剩 46 B、`assets:scripts list` 报 `external=MISSING`、脚本静默不执行）。
+   判据：`externalLuaDestOf(<地图.gil>, <entry.filePath>)` 那个文件存在、含 UTF-8 BOM、
+   里面写死的模板 GUID 已是本图真实模板 ID。详见 §9.3。
+
 
 **新地图也是 CLI 做的**：`maps:clone --from <已导入的图.gil> --name <名>` 克隆成新地图 ID
 （只改写 root 1/2/39/40，其余资产段/脚本登记表原样；内联 Lua 会物化到 `<新图目录>/external_lua_file/`），
-之后照上面 ②③④ 走。
+之后照上面 ①②③④ 走（或直接用 §9.3 的 `sim:import --apply` 一步到位）。
 
 ### 9.1 三组 fixture 差分验收（禁止写死模板/ID 的判据）
 
@@ -333,7 +339,66 @@ $GSTS maps:resync --map-id <新图ID>
 
 **跑偏时的排查顺序**：`assets:scripts mounts` 是不是只剩布局节点那条 → `assets:ui list` 里布局实例子树在不在
 → `external_lua_file` 是否存在（`assets:scripts list` 的 `exists/size`）→ 真机日志里 `T.tpl guid=` 是否等于本图模板 ID。
-### 9.3 干净导入差分（服务端控件模板不在 GIL 的证据；2026-10-29，地图 1073741843）
+### 9.3 GIA 一键落地（`gsts sim:import --apply`；2026-10-29 真机闭环）
+
+**核心事实（省掉整类逆向）**：GIA 的 `UiControlGroup.content` 与 `.gil` 的 root9 记录**字段号完全一致**——
+`guid=501 / info=502 / children=503 / parent=504 / data=505`（子消息同样 501/502/503…，
+见 `src/cli/client_ui/gia_proto.proto:16-20`）。编辑器做一次「GIA 导入」实际只做三件事：
+
+1. **重新分配 ID**（guid、成员表 `rootChildRef`、nodeRef 自引用 `f504.f4`）
+2. **改写模板序号**（`f502[1]{f501=2,f502=6} → f12{f501}`，全图自增计数器）
+3. **重名去重**（`客户端控件容器 → 客户端控件容器_1`；**容器节点不去重**，同图多个「容器节点」并存）
+
+实测：`prim/label/hit` 三段 content 与编辑器产物**逐字节同尺寸**（810 / 755 / 715 B），
+归一化 ID 后**非 ID 差异 = 0**。⇒ 落地 = **克隆 content 字节 + 打这三处补丁**，
+不需要逐类解释控件内容块（"支持一种新控件类型"从逆向工程降级成查表）。
+
+**只读分析（不写盘）**：`gsts sim:import --gia <包> --gil <地图>` 输出三栏——
+`[OK]/[GAP]/[HOST]` 能力栏 × 「目标图已有」栏 × `[DRIFT]` 脚本 GUID 栏，
+并给出一句话结论（"会不会因为 GUID 漂移而界面空白"）。**先跑这个，再决定要不要落地。**
+
+**一条命令落地**：
+
+```bash
+export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
+unset LOCALAPPDATA
+GSTS="node dist/src/cli/gsts.js"
+$GSTS sim:import --gia <包.gia> --gil <地图.gil> --apply \
+  --root-donor <含 87/88 根的地图.gil> [--layout <ID|名>] --write --yes
+#   ① 造模板侧（模板组 + 容器节点 + 各控件模板）
+#   ② 登记脚本 root50 + 挂载槽 f74 重指向新脚本 GUID
+#   ③ 把脚本里写死的模板 GUID 重映射（T.tpl={prim=…}）
+#   ④ 实例化进布局（--layout 缺省取第一张布局）
+#   ⑤ 自检：root9.f501 集合 == 「无 f504 记录」集合
+```
+
+**每一步都是踩过坑才加上的**：
+
+| 步 | 为什么必须有 |
+|---|---|
+| `--root-donor` 补 87/88 | CLI 新建的地图**没有** ClientUI 层级根（编辑器首开才建）。缺了直接落地，编辑器一开就自建，**连坐把整棵容器子树丢掉** |
+| 挂载槽 f74 重指向 | GIA 的 f74 存的是**源图**的脚本 GUID，不重指向 = 挂到不存在的脚本上 |
+| 脚本 GUID 重映射 | 脚本写死 `T.tpl={prim=<源图ID>}`；不重映射 → 运行时 `probe ... FAIL`，靠脚本自带 `discoverTemplates` 在**写死的 ID 区间**里兜底，落在区间外就**静默空白** |
+| **外置 Lua 一起写** | **编辑器保存时会把 root50 的内联源码外置成 `external_lua_file/<filePath>`**。只写内联 = 首存后两边都空（实测 150,410 B → 29,947 B、root50 剩 46 B、`assets:scripts list` 报 `external=MISSING`）。与 §2「三同步」同一条纪律 |
+| 占位子控件 | 空容器节点会被编辑器保存时剪掉、挂载随之消失（§9 硬前提 ①）。**这条不能删**，2026-10-29 真机往返再次证实有效 |
+
+**验收判据（分层，禁止合成一个 ✅）**
+
+| 层 | 判据 |
+|---|---|
+| 结构 | 五条模板记录与编辑器导入产物**尺寸逐一相等**（模板组 513 / 容器节点 566 / 三个控件 810,755,715 B）；`root9.f501` == 无 `f504` 记录集；`Save_Level` 与 `Temp` 同 sha |
+| 保存往返 | 编辑器打开**保存一次**后：root9 / root50 **逐字节不动**、`external_lua_file/<path>` 仍在且 `assets:scripts list` 的 `external=` 是字节数（不是 MISSING）、`T.tpl` 与挂载同值 |
+| 行为（唯一硬证据） | 试玩日志里 **`probe <kind> <新ID> ok` × 3**，且**没有** `discover missing=` / `discover incomplete` —— 后者说明在走兜底，也就是重映射没对上 |
+| 用户 | 界面能显示并能玩完一局（2026-10-29 实测：title 425 控件 → game 592 → 结算 784，`gameover win=true score=2340 stars=1`） |
+
+**覆盖矩阵（"一个存档不能说明可用"）**：全新图 / 空白对照 / **重复落地**（重名 `_1`/`_2`、撞 ID、
+模板序号接着涨、脚本去重成 `main2`）/ **克隆真实 UI 图**（与既有 8 个脚本共存）/ **编辑器保存往返**——
+五种分支全绿才叫能用。2026-10-29 实测九张图全绿。
+
+**两个日志观察（不是本链缺陷，别误判）**：`clear screen destroyed=N fail=k` 是脚本自身清理逻辑；
+`[warn] game busy timeout :: repair board` 是脚本自带的忙等自愈被触发过。
+
+### 9.4 干净导入差分（历史读数；结论已被 §9.3 推翻，只留 root 增量作对照）
 
 干净图 `maps:init` 21,272 B → 只导入完整 GIA 后 146,255 B（+124,983）。root 级增量：
 
@@ -345,4 +410,13 @@ $GSTS maps:resync --map-id <新图ID>
 | 15 / 21 / 35 | +2 / +3 / +4 B | 小索引 |
 | 46 | 22 → 44 B | 保存审计 |
 
-**关键结论：服务端控件模板 `客户端控件容器` 不在 `.gil` 任何 root 里。** root50 只是 GIA 脚本资产；root9 只有客户端模板；root6 是文件夹。它只存在于编辑器的服务端控件模板库/GIA 导入过程中，所以**纯 CLI 无法凭空生成**，必须由编辑器导入一次完整 GIA。CLI 能一条龙做的是导入之后的客户端布局、脚本挂载和写回。
+> ⚠️ **上一段「纯 CLI 无法凭空生成」已在同一天（2026-10-29）被推翻 —— 见 §9.3。**
+> 它当时显得"不在任何 root 里"，是**工具读不出**：root9 的族描述符/成员表是 packed varint
+> （`95 80 80 80 04` 的真身是 packed `[1073741845]`），旧解析把它读成「字段 134217730 / fixed32 0」
+> 这种根本不存在的字段，于是成员表看起来是空的。
+> 修好解析后的结论：**「客户端控件容器」就是 root9 里的模板组 + 容器节点 + 各控件模板记录**，
+> GIA 的 `UiControlGroup.content` 与这些记录**字段号完全一致**，`gsts sim:import --apply` 纯 CLI 一次造全。
+> 本节上面的 root 增量读数仍然有效（可当"导入到底往哪个 root 写"的对照）。
+
+**教训（比结论更值钱）**：`grep 不到` / `解析不出` ≠ 不存在。判"某东西不在这个文件里"之前，
+先确认**解析器能读这种 wire 形态**（packed vs message 是同一个字节串的两种合法解释）。
