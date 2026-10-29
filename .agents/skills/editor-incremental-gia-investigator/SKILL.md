@@ -150,6 +150,13 @@ probe/实验名只是目录标签，**不要用它推断实验内容**；实际�
 3. 在破坏性写入前请求确认（`maps:create` 新建文件在用户已明确要求建图时属直接授权，可直接执行）；
 4. 创建后记录实际路径、ID、大小、SHA-256（v0 快照 + manifest 恢复块），并停止。
 
+> ⚠️ **编辑器首次保存会换布局（2026-10-29 实测，每张 CLI 新图都会发生）**：
+> `maps:init` 写的是**平铺** `Save_Level/<mapId>.gil`；编辑器第一次打开并保存后，
+> 地图变成**子目录** `Save_Level/<mapId>/<mapId>.gil`，原平铺文件被挪进
+> `Save_Level/UpgradeBackup/<mapId>.gil`（内容就是你的 v0，可当二次核对）。
+> ⇒ 第二轮的「当前地图路径」**必须重新解析**（`gil_paths` 子目录优先，别拿旧平铺路径去 diff，
+> 否则会对着 UpgradeBackup 里的旧件算差，得到 Δ0 或反向结论）。
+
 不要在初始化前读取 `docs/game-engine-knowledge/index.md`、`project-pipeline.md`、PKC、Composite 导航、完整 Authority、测试或实时地图全量清单。初始化不是规则调查；第一处用户变化保存后，才按下面的续作或冷启动流程加载调查所需的最小模块。
 
 ### A. 已有任务续作（优先）
@@ -260,8 +267,21 @@ npx tsx tools/list-gil-node-graphs.ts <map.gil>
 ```bash
 python .agents/skills/editor-incremental-gia-investigator/scripts/gil-quick-diff.py \
   <LOCKED_BEFORE 快照> <当前地图.gil> \
-  --capture-dir <实验目录>/raw --snap <语义名-vN> [--record <配置ID>] [--effect-list]
+  --capture-dir <实验目录>/raw --snap <语义名-vN> \
+  [--pair] [--root 9 --root 46] [--record <配置ID>] [--effect-list]
 ```
+
+**两个省一轮的参数（2026-10-29 加）**：
+- `--pair`：把「同 identity（f1）的增删记录」配对并直接打印**叶子级字段差**
+  （`~ f1=1090519041: 1701B→1703B 1 leaf change(s) / f4[5].f34.f1.f12: None -> ('bytes','')`），
+  不用再逐条跑 `gil-record-fielddiff.py`。
+- `--root N`（可重复）：只打指定 root。噪声图（root46 审计、root29 版本号、root43 客户端版本串）
+  一眼滤掉，输出短一半。
+
+**非 message 根体自动降级（同轮实修）**：版本串 → `str "7.1.0"`、packed 列表 →
+`packed[1073741825,1073741840,…]`。旧版对这类体直接抛 `bad wire type 7`，
+**把后面所有 root 一起吞掉**——差分工具单点解析失败绝不能截断整轮结果。
+回归口径：252 组历史样本对全 `exit 0`。
 
 **先查规则是否已闭合再开差分**（省用户配合成本）：已闭合的 wire 直接走生产 CLI，别再让用户重做实验。
 已知闭合入口一览：阵营 / 组件槽 / 变量 → `genshin-ts-asset-operations`（阵营含
