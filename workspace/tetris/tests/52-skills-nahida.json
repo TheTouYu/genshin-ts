@@ -1,0 +1,56 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "52 v4.0 ③ 小草神技能化：Z 施放「接手」→ AI 代打接管（skill ai start）；再按 Z 撞 CD 被拒",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Down"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Down"
+  },
+  {
+   "t": 8.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.1,
+   "kind": "log",
+   "contains": "effect=ai-takeover",
+   "source": "client"
+  },
+  {
+   "at": 1.1,
+   "kind": "log",
+   "contains": "skill ai start tier=",
+   "source": "client"
+  },
+  {
+   "at": 1.7,
+   "kind": "log",
+   "contains": "ok=false effect=",
+   "source": "client"
+  },
+  {
+   "at": 1.7,
+   "kind": "log",
+   "contains": "why=cd",
+   "source": "client"
+  },
+  {
+   "at": 7.6,
+   "kind": "log",
+   "contains": "skill ai end",
+   "source": "client"
+  }
+ ]
+}

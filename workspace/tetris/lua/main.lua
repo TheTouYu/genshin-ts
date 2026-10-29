@@ -302,6 +302,10 @@ local AUDIO = loadModule('audio')
 if not AUDIO then error('tetris: 模块 audio 装载失败') end
 local AUDIO_ENGINE = AUDIO.new({ game = game, frameOf = function() return frameSeq end })
 local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.play
+-- v4.0 ③ 角色技能：纯逻辑在 lua/tetris/skills.lua（111 断言单测），这里只持状态 + 派发效果。
+-- 设计见 docs/characters-design.md；局外养成 v1 = 会话内跨盘（真持久化是缺口，见 05-open）。
+local SKILLS = loadModule('skills')
+local SK = nil
 
 
 
@@ -1104,6 +1108,14 @@ clearLines = function()
     if g.autoDriving then g.AI.score = g.AI.score + gain else g.score = g.score + gain end
     if g.autoDriving then g.AI.lines = g.AI.lines + cleared else g.lines = g.lines + cleared end
     if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
+    -- v4.0 ③：消行给前台角色加经验（用户：「哪个技能用的更多，加点更多，就可以获得更好的效果」）
+    if SK and SKILLS and SKILLS.addExp then
+      local active = SK.active or 'nahida'
+      local up = SKILLS.addExp(SK, active, cleared * 10)
+      if up and up.leveled then
+        print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
+      end
+    end
     local levelBefore = g.level
     g.level = g.lines // NUM.LEVEL_UP_LINES + 1
     if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
@@ -3466,6 +3478,15 @@ showPersistTip = function()
   --   ai-battle  = 玩家键组（同 casual，单人对 AI）+H —— 不出现任何 P2 字样
   --   pvp        = P1（A/D/W/S/空格/G）｜P2（方向键/X/F）
   --   coop       = P1（W/G）｜P2（←→/↓/X）（共盘）
+  -- v4.0 ②：**移动端不能贴键盘键位**（用户 2026-10-29：「移动端没法操作」——底栏还在教键盘）。
+  -- 触屏文案跟新的 7 键丝印走（左 ◀ ▶ 旋转 / 右 锁定 缓降 暂存 / 右上 说明），文案见 docs/copy-v4.md §5。
+  if IS_MOBILE and MODE == 'casual' then
+    PERSIST_TIP = '左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明'
+    trySet(botBanner, 'fontSize', 18)
+    trySet(botBanner, 'fontColor', THEME.textSub)
+    setText(botBanner, PERSIST_TIP)
+    return
+  end
   PERSIST_TIP = (MODE == 'pvp')
     and 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存　｜　P2：方向键 · X 直落 · F 暂存'
     or (MODE == 'coop')
@@ -3564,6 +3585,79 @@ applyModeTheme = function(mode)
     print('bg overflow !! specs=' .. #specs .. ' pool=' .. tostring(MODE_BG_POOL))   -- 构图条数超过池容量会静默丢背景
   end
   print('mode theme=' .. tostring(mode) .. ' bg=' .. n .. '/' .. #specs)   -- 用例锚
+end
+
+-- ===== v4.0 ③ 角色技能：施放 + 效果派发 =====
+-- 键位：Z = 技能1（当前前台角色）、U = 技能2（第二角色，没有就回落同一人）、Y = 切换前台。
+-- 为什么这样分：Z/U 两个瞬发槽不占移动键（WASD/箭头/空格/G 全被玩法占用），Y 做前台切换。
+-- 数值/门禁全在 skills.lua（锁定→CD→能量），这里只做"效果"与"文案"。
+FN.skillCast = function(slot)
+  if not (SK and SKILLS and SKILLS.cast) then
+    print('skill cast skipped (no skills module)')
+    return false
+  end
+  if not g or g.gameOver or MODE_OVER then return false end
+  if guideStage ~= 1 then return false end
+  local role = (SK.party and SK.party[1]) or 'nahida'
+  if slot == 2 and SK.party and SK.party[2] then role = SK.party[2] end
+  local opp = (g == G[2]) and G[1] or G[2]
+  local oppH = 0
+  if opp and opp.board then
+    for r = 1, ROWS do
+      local hitRow = false
+      for c = 1, COLS do
+        if opp.board[r][c] ~= 0 then hitRow = true break end
+      end
+      if hitRow then oppH = ROWS - r + 1 break end
+    end
+  end
+  local r = SKILLS.cast(SK, role, { mode = MODE, boardH = stackHeight(), oppH = oppH, now = g.elapsed or 0 })
+  print('skill cast slot=' .. tostring(slot) .. ' role=' .. role .. ' ok=' .. tostring(r.ok)
+    .. ' effect=' .. tostring(r.effect) .. ' why=' .. tostring(r.why) .. ' n=' .. tostring(r.n))
+  if not r.ok then
+    setText(botBanner, (r.why == 'cd') and ('技能冷却中 · 还需 ' .. tostring(math.floor((r.n or 0) + 0.5)) .. ' 秒')
+      or (r.why == 'energy') and ('能量不足 · 还需 ' .. tostring(math.floor((r.n or 0) + 0.5)))
+      or '这个角色还没解锁')
+    bannerTimer = 1.4
+    return false
+  end
+  local pr = (SKILLS.params and SKILLS.params(SK, role)) or {}
+  -- 模块里的 effect 用连字符（ai-takeover / clear-bottom / gravity-clear / mark-blink），
+  -- 这里统一归一化，免得两套命名互相不认识（2026-10-29 实测踩过：effect=todo）。
+  local eff = tostring(r.effect or ''):gsub('_', '-')
+  if eff == 'ai-takeover' then
+    -- 纳西妲：把盘面交给智慧之神（复用 casual 接管同一条 AI 链路，档位来自技能等级）
+    TK.state, TK.t = 'ai', 0
+    TK.skillTier = r.tier or pr.aiTier or 1
+    TK.skillT = pr.aiDur or 6
+    setText(topBanner, '纳西妲：这一局，让我替你落子。')
+    trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
+    print('skill ai start tier=' .. tostring(TK.skillTier) .. ' dur=' .. tostring(TK.skillT))
+  elseif eff == 'clear-bottom' or eff == 'gravity-clear' then
+    -- 甘雨/少女（单人）：冰莲清底——直接清掉底部 n 行（不计分，属于解围）
+    local rows = math.min(r.n or 1, ROWS)
+    for i = 1, rows do
+      table.remove(g.board, ROWS)
+      local nr = {}
+      for c = 1, COLS do nr[c] = 0 end
+      table.insert(g.board, 1, nr)
+    end
+    renderAll()
+    setText(botBanner, '甘雨：冰莲已开，这一段路我来铺平。')
+    bannerTimer = 1.6
+    print('skill clear_bottom rows=' .. rows)
+  elseif eff == 'ripple' then
+    setText(botBanner, '哥伦比娅：让潮汐替我说下去。')
+    bannerTimer = 1.6
+    print('skill ripple layers=' .. tostring(r.n))
+  elseif eff == 'mark-blink' then
+    setText(botBanner, '刻晴：雷楔已落，走位快一点。')
+    bannerTimer = 1.6
+    print('skill mark_blink n=' .. tostring(r.n))
+  else
+    print('skill effect todo=' .. tostring(r.effect))
+  end
+  return true
 end
 
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
@@ -5272,6 +5366,41 @@ function OnStart()
   pcall(UI4.padBind, listen)         -- 手柄 24 条 Controller 事件（探针 + 映射）
   print('v4 device mobile=' .. tostring(isMobile) .. ' pad=' .. tostring(UI4.isPad)
     .. ' phone=' .. #(UI4.btns or {}))
+  -- ===== v4.0 ③ 角色技能：状态机 + Z/U/Y 键 =====
+  if SKILLS and SKILLS.newState then
+    local okS, st = pcall(SKILLS.newState, { partyMax = 2, startRoles = { 'nahida' } })
+    if okS and st then
+      SK = st
+      print('skills ready active=' .. tostring(SK.active) .. ' party=' .. tostring(#(SK.party or {}))
+        .. ' unlocked=' .. tostring((SKILLS.snapshot and SKILLS.snapshot(SK).unlockedCount) or '?'))
+    else
+      print('skills newState fail')
+    end
+  else
+    print('skills module=none')
+  end
+  -- Z=技能1（CraftspersonKey12）/ U=技能2（11）/ Y=切前台（13）
+  -- ⚠ 这三条**不走 act() 包装**：act() 会调 playerTouched()（把"任何游戏键"当成玩家要接回控制权），
+  -- 而按技能键时 AI 代打可能正在进行——走 act 会把刚放出来的技能自己取消掉（2026-10-29 实测：
+  -- 第二次按 Z 撞 CD，日志里没有 skill ai end，接管被 playerTouched 打断了）。
+  local function skillKey(fn)
+    return function()
+      if helpOpen then closeHelp() return end
+      startIfWaiting()
+      if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then return end
+      fn()
+    end
+  end
+  listen('KeyboardCraftspersonKey12Down', skillKey(function() FN.skillCast(1) end))
+  listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end))
+  listen('KeyboardCraftspersonKey13Down', skillKey(function()
+    if not (SK and SKILLS and SKILLS.switchRole) then
+      print('skill switch unavailable（模块无 switchRole）')
+      return
+    end
+    local okR = SKILLS.switchRole(SK)
+    print('skill switch ok=' .. tostring(okR) .. ' active=' .. tostring(SK.active))
+  end))
 
   -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
   -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
@@ -5400,6 +5529,17 @@ function OnUpdate(dt)
   if UI4.tick then UI4.tick(d) end
   if UI4.padTick then UI4.padTick(d) end
   if UI4.syncVisible then UI4.syncVisible(MODE_OVER or ((G[1] and G[1].gameOver) and true or false)) end
+  -- v4.0 ③：技能时钟（能量自然回复 / CD 递减）——时停时也走，玩家开帮助不会白等冷却
+  if SK and SKILLS and SKILLS.tick then
+    pcall(SKILLS.tick, SK, d)
+    SK.logT = (SK.logT or 0) + d
+    if SK.logT >= 5 then
+      SK.logT = 0
+      local snap = SKILLS.snapshot and SKILLS.snapshot(SK) or {}
+      print('skill state active=' .. tostring(snap.active) .. ' lv=' .. tostring(snap.lv)
+        .. ' tier=' .. tostring(snap.tier) .. ' cd=' .. tostring(snap.cd) .. ' energy=' .. tostring(snap.energy))
+    end
+  end
   -- v2.8 ②：局内开帮助=游戏时停（重力/AI/接管计时全停；结算态不冻结）。关闭即恢复。
   if helpOpen and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
@@ -5521,6 +5661,24 @@ function OnUpdate(dt)
       print('takeover ai')             -- v2-plan T6 验收锚
     end
     if TK.state == 'ai' then
+      -- v4.0 ③：技能接管（纳西妲 Z）——档位来自技能等级，时长到了自动交还
+      local skillTier = nil
+      if TK.skillT and TK.skillT > 0 then
+        TK.skillT = TK.skillT - d
+        skillTier = TK.skillTier or 3
+        if TK.skillT <= 0 then
+          TK.skillT, TK.skillTier = nil, nil
+          TK.state, TK.t = 'play', 0
+          setText(topBanner, '')
+          setText(botBanner, '纳西妲：接下来交给你，旅行者。')
+          bannerTimer = 1.6
+          print('skill ai end')
+        end
+      end
+      if skillTier then
+        FN.aiTickCore(d, 'stop', skillTier)
+        return
+      end
       -- v3.1 二-2（用户定版）：AI 代打档位与玩家表现联动——初始 easy（陪练级，玩家≈Lv4 水平），
       -- 玩家等级涨 AI 跟着涨（Lv5→normal、Lv8→hard），体现「玩家越厉害 AI 辅助越厉害」。
       -- 映射存 g.AI.assistLv（1/2/3），进 ai 态时算一次+变化时打 ai assist lv= 日志。

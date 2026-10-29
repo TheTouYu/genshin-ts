@@ -510,3 +510,52 @@ node qxqy/audit-controls.mjs                   # 全控件巡检：0 死
 | 2 文案扩充 | `docs/copy-v4.md`（50 场景 / 180 条 / 46 行接线表） | 设计完成，接线未做 |
 | 3 角色技能 | `docs/characters-design.md`（701 行）+ `lua/tetris/skills.lua`（478 行纯逻辑）+ `tests-lua/skills_test.lua`（111 断言绿） | 模块完成，未接进 main |
 | 4 AI 重构 | 根因三条已定位（`pMistake=25` 的 easy 档 / hold 仅 hard / 无攒井项） | 进行中 |
+
+---
+
+## 13. v4.0（2026-10-29）角色技能系统接线（第 3 项第一版）
+
+> 状态：**已接最小闭环**（纳西妲 = 唯一已解锁角色；其余三名角色数据与门禁全在模块里，效果分支待接）
+> 设计：`docs/characters-design.md`（四角色机制/8 档 AI/加点/养成/解锁链，701 行）
+> 逻辑：`lua/tetris/skills.lua`（478 行纯逻辑，`tests-lua/skills_test.lua` **111 断言**）+ main 侧只做派发。
+
+### 13.1 键位与状态
+
+| 键 | 动作 | 说明 |
+| --- | --- | --- |
+| **Z**（CraftspersonKey12） | 技能 1 | 当前前台角色的主动技能 |
+| **U**（CraftspersonKey11） | 技能 2 | 第二个前台角色（没有就回落同一人） |
+| **Y**（CraftspersonKey13） | 切前台 | 一局最多 2 个前台角色（`skills.lua` 里 `partyMax=2`） |
+
+- 技能键**不走 `act()` 包装**：`act()` 会调 `playerTouched()`（任何游戏键=玩家接回控制权），
+  第二次按 Z 撞 CD 时会把正在进行的 AI 接管取消掉（实测踩过，日志里没有 `skill ai end`）。
+- 门禁顺序（`skills.lua`）：**锁定 → CD → 能量**（否则"未解锁"会先报"能量不足"）。
+
+### 13.2 已实现的效果
+
+| 角色 | effect | 实现 | 判据 |
+| --- | --- | --- | --- |
+| 纳西妲 | `ai-takeover` | 复用 casual 接管同一条 AI 链路：`TK.state='ai' + TK.skillTier/dur`，时长到自动交还 | 用例 **52**（`skill cast … ok=true effect=ai-takeover` → `skill ai start tier=1 dur=6.0` → 再按 `why=cd` → `skill ai end`） |
+| 甘雨 | `clear-bottom` | 清底部 n 行（解围，不计分） | 日志 `skill clear_bottom rows=` |
+| 哥伦比娅 | `ripple` | 对抗挂涟漪（单人降级为清底） | 日志 `skill ripple layers=` |
+| 刻晴 | `mark-blink` | 效果分支留桩（`skill mark_blink n=`）——雷楔需要点选列，等下一版 | — |
+
+### 13.3 养成与经验
+
+- **局外养成 v1 = 会话内跨盘**（R 重开不清、刷新归零）：`skills.lua` 的 state 在 `OnStart` 建一次。
+  真持久化是**已知缺口**（模拟器 `game` 表无自定义变量 Setter，见 `05-open.md` O-2026-10-29-3）。
+- **局内加点**：`clearLines` 按消行数给前台角色加经验（`cleared × 10`），`skills.lua` 自动升级+点亮节点，
+  日志 `skill levelup role=… lv=… node=…`；每 5s 打一条 `skill state active/lv/tier/cd/energy` 便于取数。
+
+### 13.4 用例与命令
+
+```bash
+lua5.3 tests-lua/skills_test.lua      # 111 断言（状态机/门禁/解锁/养成/降级）
+node qxqy/build.mjs && node qxqy/runner.mjs 52-skills-nahida
+```
+
+### 13.5 未接完的部分（诚实登记）
+
+1. 四角色里只有纳西妲是"完整闭环"（解锁→加点→AI 档位→文案）。刻晴/甘雨/少女的**效果分支**只做了最简版或留桩。
+2. 技能 HUD（能量条/冷却环/角色头像）还没有专门控件，目前只用 `botBanner` 一句话 + 日志。
+3. 解锁链路（刻晴 40 行/3 局、甘雨 600 行/300s、少女 pvp1/四消50）代码已就绪，但没有"解锁演出"与"选择队伍"界面。
