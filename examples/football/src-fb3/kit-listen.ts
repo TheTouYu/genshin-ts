@@ -22,12 +22,21 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
-    const player0 = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
-    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
-    const char0 = f.getCorrespondingValueFromList(chars, 0n)
-    const pSplit = f.split3dVector(f.getEntityLocationAndRotation(char0).location)
-    f.setCustomVariable(owner, 'fbvx', pSplit.xComponent, false)
-    f.setCustomVariable(owner, 'fbvz', pSplit.zComponent, false)
+    const players = f.getListOfPlayerEntitiesOnTheField()
+    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(
+      f.getCorrespondingValueFromList(players, 0n)
+    )
+    // 守卫：角色还没生成时列表为空 —— 对空实体读位置会让整张图报错停摆（顺带打死输入桥）
+    f.doubleBranch(
+      f.greaterThan(f.getListLength(chars), 0n),
+      () => {
+        const char0 = f.getCorrespondingValueFromList(chars, 0n)
+        const pSplit = f.split3dVector(f.getEntityLocationAndRotation(char0).location)
+        f.setCustomVariable(owner, 'fbvx', pSplit.xComponent, false)
+        f.setCustomVariable(owner, 'fbvz', pSplit.zComponent, false)
+      },
+      () => {}
+    )
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
