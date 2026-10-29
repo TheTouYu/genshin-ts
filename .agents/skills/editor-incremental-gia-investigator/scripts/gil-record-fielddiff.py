@@ -12,6 +12,11 @@
     python3 gil-record-fielddiff.py before.gil after.gil 5 1082130442
     → CHANGED f6[3].f16.f1: ('varint', 1) -> ('varint', 2)
 
+  `--id-field N`：记录 identity 字段号。默认 1（root5/root15 等）；
+    **root9 的 UI 控件记录用 f501**，必须 `--id-field 501`（2026-10-29 实测）。
+  `-` 代替文件名：该侧没有这条记录（新增/删除记录也能直接看全量叶子）。
+    例：python3 gil-record-fielddiff.py - after.gil 9 1073741847 --id-field 501
+
 输出约定：
 - 叶子路径形如 `f6[3].f16.f1`（数组下标 = 该层同号字段的第 N 次出现，0 省略）。
 - 叶子值一律 `(kind, value)`：varint / fixed32 / fixed64 / utf8 / bytes(hex)。
@@ -24,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gil_wire_lib import walk  # noqa: E402
+from gil_wire_lib import try_parse, walk  # noqa: E402
 
 
 def roots_of(path, root_field):
@@ -34,11 +39,24 @@ def roots_of(path, root_field):
     return [v for fn, wt, v in walk(raw[20:-4]) if fn == root_field]
 
 
-def find_record(root_bb, rid):
-    for fn, wt, v in walk(root_bb):
-        if fn != 1:
+def find_record(root_bb, rid, id_field=1):
+    """在 root 的直接子记录里找 identity 字段 = rid 的那条（wrapper 号无关）。
+
+    `id_field` 默认 1（root5/root15 等记录以 f1 作 identity）；
+    **root9 的 UI 控件记录以 f501 作 identity**，必须显式 `--id-field 501`。
+
+    wrapper 字段号不写死：root5 的记录包在 `f1{}` 里，root9 的包在 `f502{}` 里
+    （2026-10-29 实测：写死 `fn == 1` 会让 root9 全部查不到）。这里只认
+    「非标量孩子、其直接子字段里 id_field 的第一个 varint == rid」。
+    """
+    for _fn, _wt, v in walk(root_bb):
+        if not isinstance(v, (bytes, bytearray)):
             continue
-        ids = [vv for ff, ww, vv in walk(v) if ff == 1 and ww == 'varint']
+        try:
+            kids = list(walk(v))
+        except Exception:
+            continue
+        ids = [vv for ff, ww, vv in kids if ff == id_field and ww == 'varint']
         if ids and ids[0] == rid:
             return v
     return None
@@ -68,6 +86,10 @@ def flatten(buf, path=''):
         if txt is not None:
             out.append((p, 'utf8', txt))
             continue
+        kind, val = try_parse(v)
+        if kind == 'packed':
+            out.append((p, 'packed', ','.join(str(x) for x in val)))
+            continue
         sub = flatten(v, p + '.')
         out.extend(sub) if sub else out.append((p, 'bytes', v.hex()))
     return out
@@ -78,18 +100,28 @@ def sha(b):
 
 
 def main(argv):
-    if len(argv) != 5:
+    args = list(argv[1:])
+    id_field = 1
+    pos = []
+    while args:
+        a = args.pop(0)
+        if a == '--id-field':
+            id_field = int(args.pop(0), 0)
+        else:
+            pos.append(a)
+    if len(pos) != 4:
         print(__doc__)
         return 2
-    before, after, root_field, rid = argv[1], argv[2], int(argv[3]), int(argv[4])
-    rb = find_record(roots_of(before, root_field)[0], rid)
-    ra = find_record(roots_of(after, root_field)[0], rid)
-    if rb is None or ra is None:
-        raise SystemExit(f'record {rid} not found (root{root_field}: before={rb is not None} after={ra is not None})')
-    fb = {p: (k, v) for p, k, v in flatten(rb)}
-    fa = {p: (k, v) for p, k, v in flatten(ra)}
-    print(f'record {rid} root{root_field}: before {len(rb)}B sha={sha(rb)} leaves={len(fb)} '
-          f'| after {len(ra)}B sha={sha(ra)} leaves={len(fa)}')
+    before, after, root_field, rid = pos[0], pos[1], int(pos[2]), int(pos[3])
+    rb = find_record(roots_of(before, root_field)[0], rid, id_field) if before != '-' else None
+    ra = find_record(roots_of(after, root_field)[0], rid, id_field) if after != '-' else None
+    if rb is None and ra is None:
+        raise SystemExit(f'record {rid} not found in either side (root{root_field}, id_field={id_field})')
+    fb = {p: (k, v) for p, k, v in flatten(rb)} if rb is not None else {}
+    fa = {p: (k, v) for p, k, v in flatten(ra)} if ra is not None else {}
+    side_b = f'before {len(rb)}B sha={sha(rb)} leaves={len(fb)}' if rb is not None else 'before (absent)'
+    side_a = f'after {len(ra)}B sha={sha(ra)} leaves={len(fa)}' if ra is not None else 'after (absent)'
+    print(f'record {rid} root{root_field}: {side_b} | {side_a}')
     changed = 0
     for k, val in fb.items():
         if k not in fa:

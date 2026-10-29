@@ -198,6 +198,35 @@ def packed_varints(data: bytes) -> list[int]:
     return out
 
 
+def try_parse(buf: bytes):
+    """判定一个 length-delimited 载荷的真实形态：('msg', fields) / ('packed', ints) / ('raw', buf)。
+
+    **为什么需要它（2026-10-29 实证）**：`95 80 80 80 04` 既是
+    「packed varint [1073741845]」，也能被 `walk()` 当成 tag 解出
+    `field 134217730 / wire 5 / fixed32 0`——一个**根本不存在的字段**。
+    root9 的成员/实例列表全是这种 packed 形态，直接递归 parse 会得到假字段号，
+    把「模板组列了哪个实例」这种关键结论读错。
+
+    判据：message 解出来的最小字段号 > 2^26 一律视为误判，回落 packed。
+    """
+    fields = None
+    try:
+        fields = walk(buf)
+        if fields and min(f for f, w, v in fields) > (1 << 26):
+            fields = None
+    except Exception:
+        fields = None
+    if fields is not None:
+        return ('msg', fields)
+    try:
+        ints = packed_varints(buf)
+        if ints and all(v < (1 << 32) for v in ints):
+            return ('packed', ints)
+    except Exception:
+        pass
+    return ('raw', buf)
+
+
 def f32(raw: int) -> float:
     return struct.unpack('<f', struct.pack('<I', raw))[0]
 

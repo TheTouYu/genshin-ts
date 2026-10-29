@@ -398,6 +398,15 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/gil-record-fie
 # → == N leaf change(s)；N=0 表示记录逐字节未变（可用来验证「改回去」是否完全还原）
 ```
 
+**控制台 UI 记录（root9）必须加 `--id-field 501`**（2026-10-29 实修）：root5/root15 的记录以 `f1`
+作 identity，而 root9 的控件记录用 **`f501`** 作 identity、并包在 **`f502`** wrapper 里
+（旧版写死 `fn==1`，对 root9 恒定「record not found」，白费一轮）。传 `-` 作文件名可看新增/删除记录的全量叶子。
+
+**packed 列表会被误读成假字段（同一轮实修，已进 `gil_wire_lib.try_parse()`）**：
+`95 80 80 80 04` 的真身是 packed varint `[1073741845]`，但按 message 解析会得到
+「字段 134217730 / wire5 / fixed32 0」——**一个根本不存在的字段**。root9 的实例列表、库成员表
+全是这种形态，不解就会把「模板组列了哪个实例」读错。判据：message 解出的最小字段号 > 2^26 即回落 packed。
+
 输出给出 `path → (kind, value)` 的叶子差（varint/fixed32/utf8/bytes 各自标注），足以直接定位 wire 字段。2026-10-24 阵营实验即用它把 1 字节变化锁到 `f6{f1=6}.f16.f1`。
 
 同一保存中出现的**未声明额外变化**（如 root 注册表、信号、引用块），不能直接归因给用户声明操作：先记录；随后用“删除/回退该操作”的对照轮验证——若回退后这些变化不动，则它们与声明操作生命周期无关（exp14→17 实测：新增镜头时出现的 root35/root11/组件引用块在删除镜头后全部不回退，属一次性编辑器注册）。未经验证的归因写 `INSUFFICIENT`。
