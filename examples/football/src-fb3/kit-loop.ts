@@ -111,37 +111,35 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 玩家位置：从载体实体变量读（服务端 kitRender 每拍写 fb_px/fb_pz）————
   // 不用 getListOfPlayerEntitiesOnTheField：那是玩家控制器实体，读位置恒 0（2026-10-17 定谳）。
-  // ———— 玩家坐标（2026-10-29 四修）————
-  // 固定 GUID 的「玩家模板实体」1086324737 是玩家侧锚点（v5 架构也用它挂 UI 事件与寄存器），
-  // 角色实体是它的子实体 ⇒ 取子实体[0] 的坐标。玩家控制器实体本身坐标恒 (0,y,0)（日志 3416 实证），
-  // 20008 图又拿不到 getCurrentCharacter 之类节点（编译期实测拒收），所以走这条固定 GUID 链。
+  // ———— 玩家坐标（2026-10-29 五修：选项卡锁存升为主路径）————
+  // 依据：D318 实测「whenTabIsSelected 载荷 selectorEntity = 触发选项卡的**角色实体**，坐标是真的」；
+  // 而 getListOfPlayerEntitiesOnTheField 给的是玩家控制器实体，坐标恒 (0,y,0)（日志 3416 实证）；
+  // getSubEntityList(玩家模板 1086324737) 在真机上返回空（子实体数探针 3418 后确认）。
   const carrierE = f.queryEntityByGuid(1082130445n)
-  const playerE = f.queryEntityByGuid(1086324737n)
-  const pSubs = f.getSubEntityList(playerE)
-  const pSubLen = f.getListLength(pSubs)
+  const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
   const pPxV = f.localVariable('float')
   const pPzV = f.localVariable('float')
   f.doubleBranch(
-    f.greaterThan(pSubLen, 0n),
+    f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
     () => {
-      const l = f.split3dVector(
-        f.getEntityLocation(f.getCorrespondingValueFromList(0n, pSubs))
-      )
+      const l = f.split3dVector(f.getEntityLocation(charE))
       pPxV.set(l.xComponent)
       pPzV.set(l.zComponent)
     },
     () => {
-      // 兜底 1：选项卡锁存的角色实体（whenTabIsSelected 的 selectorEntity）
-      const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
+      // 兜底 1：玩家模板实体的子实体（若平台把角色挂在模板下）
+      const subs = f.getSubEntityList(f.queryEntityByGuid(1086324737n))
       f.doubleBranch(
-        f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+        f.greaterThan(f.getListLength(subs), 0n),
         () => {
-          const l2 = f.split3dVector(f.getEntityLocation(charE))
+          const l2 = f.split3dVector(
+            f.getEntityLocation(f.getCorrespondingValueFromList(0n, subs))
+          )
           pPxV.set(l2.xComponent)
           pPzV.set(l2.zComponent)
         },
         () => {
-          // 兜底 2：服务端写的 fbvx/fbvz（可能为 0，至少不会崩）
+          // 兜底 2：服务端写的 fbvx/fbvz
           pPxV.set(f.getCustomVariable(carrierE, 'fbvx').asType('float'))
           pPzV.set(f.getCustomVariable(carrierE, 'fbvz').asType('float'))
         }
@@ -740,29 +738,155 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     },
     () => {}
   )
-  // ———— 自检探针（tag='Q'）————
-  // 一条消息打包四个待验通道，服务端帧日志会原样打出 OUT5/OUT6/OUT7：
-  //   pos  = 玩家模板实体 1086324737 的坐标
-  //   vel  = 角色编辑实体 1090519041 的坐标
-  //   spin = (玩家模板的子实体数, 角色编辑的子实体数, 内核实际用的 pPx)
-  const probeA = f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324737n)))
-  const probeB = f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1090519041n)))
-  const probeSubA = f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324737n)))
-  const probeSubB = f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1090519041n)))
+  // ———— 自检探针（tag='Q1'..'Q5'）：把 10 个固定 GUID 候选的实时坐标塞进日志 ————
+  // 本图「默认模版」实体 9 个（1086324737..745，res 1000000）+「默认模版(角色编辑)」1090519041（res 1000001），
+  // 全部静止摆在地编里 ⇒ 有固定 GUID。角色实体到底挂在哪个 GUID 下、它的坐标是否实时，一跑就知道。
+  // 每票打包 2 个候选：pos=候选A坐标，vel=候选B坐标，spin=(A 的子实体数, B 的子实体数, 0)。
   chanSendState6(
     f,
     KitSignal.kit_state,
-    'Q',
+    'Q1',
     tick,
-    f.create3dVector(probeA.xComponent, probeA.yComponent, probeA.zComponent),
-    f.create3dVector(probeB.xComponent, probeB.yComponent, probeB.zComponent),
     f.create3dVector(
-      f.dataTypeConversion(probeSubA, 'float'),
-      f.dataTypeConversion(probeSubB, 'float'),
-      pPxV.value
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324737n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324737n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324737n))).zComponent
+    ),
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324738n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324738n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324738n))).zComponent
+    ),
+    f.create3dVector(
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324737n))),
+        'float'
+      ),
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324738n))),
+        'float'
+      ),
+      0.0
     ),
     0n
   )
+
+  chanSendState6(
+    f,
+    KitSignal.kit_state,
+    'Q2',
+    tick,
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324739n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324739n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324739n))).zComponent
+    ),
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324740n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324740n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324740n))).zComponent
+    ),
+    f.create3dVector(
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324739n))),
+        'float'
+      ),
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324740n))),
+        'float'
+      ),
+      0.0
+    ),
+    0n
+  )
+
+  chanSendState6(
+    f,
+    KitSignal.kit_state,
+    'Q3',
+    tick,
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324741n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324741n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324741n))).zComponent
+    ),
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324742n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324742n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324742n))).zComponent
+    ),
+    f.create3dVector(
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324741n))),
+        'float'
+      ),
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324742n))),
+        'float'
+      ),
+      0.0
+    ),
+    0n
+  )
+
+  chanSendState6(
+    f,
+    KitSignal.kit_state,
+    'Q4',
+    tick,
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324743n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324743n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324743n))).zComponent
+    ),
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324744n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324744n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324744n))).zComponent
+    ),
+    f.create3dVector(
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324743n))),
+        'float'
+      ),
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324744n))),
+        'float'
+      ),
+      0.0
+    ),
+    0n
+  )
+
+  chanSendState6(
+    f,
+    KitSignal.kit_state,
+    'Q5',
+    tick,
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324745n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324745n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324745n))).zComponent
+    ),
+    f.create3dVector(
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1090519041n))).xComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1090519041n))).yComponent,
+      f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1090519041n))).zComponent
+    ),
+    f.create3dVector(
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324745n))),
+        'float'
+      ),
+      f.dataTypeConversion(
+        f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1090519041n))),
+        'float'
+      ),
+      0.0
+    ),
+    0n
+  )
+
   chanSendState6(
     f,
     KitSignal.kit_state,
