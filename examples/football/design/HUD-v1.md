@@ -58,10 +58,15 @@ CLI 没有这条命令面。而 `update --position/--size` 对 client-textbox �
 ## 4. 验证状态（三栏）
 
 1. **已验证（结构层）**：11 个 client-textbox 均在容器节点下（`assets:ui list` 回读位置尺寸一致）；
-   `fb-input` 挂载唯一（mounts=1）；Save_Level 与 Temp 同 sha `7893105f…`；Lua 静态审计
-   `audit-lua.mjs` = PASS（fail 0，29 local / 150）。
-2. **未验证**：真机渲染（字号/颜色/对齐是否如设计）、定时器刷新、按键横幅、全局变量读取是否可用。
-3. **需用户在游戏内确认**：进图后 HUD 是否按上表落在对应位置、文字不被裁、按键有横幅与状态更新。
+   `fb-input` 挂载唯一（mounts=1）；Save_Level 与 Temp 同 sha `9a12157a…`；Lua 静态审计
+   `audit-lua.mjs` = PASS（fail 0，29 local / 150）；`lua5.3 -e "assert(loadfile(...))"` 语法 OK。
+2. **已验证（L1 逻辑层）**：`cd examples/football && lua5.3 tests-lua/hud_test.lua` → **38/38 PASS**
+   （假控件/假 game/假 script 驱动真实脚本：11 条文案、字号/颜色/对齐赋值、计时 00:00→01:01、
+   按键 → 信号 keyId + 横幅 + 状态行、横幅 1.2s 自清、全局变量 3:2 读取 + 变化回调、setScore 弹进球横幅、
+   缺控件兜底不崩、枚举缺名走字符串兜底）。**只证明逻辑算得对，不证明真机画得出**。
+3. **未验证**：真机渲染（字号/颜色/对齐是否如设计、文字不被裁）、真机键位枚举名、
+   `GetGlobalCustomVariableValue` 在真机的实际返回、`fontSize/fontColor/alignment` 属性名是否与真机一致。
+4. **需用户在游戏内确认**：进图后 HUD 是否按上表落在对应位置、文字不被裁、按键有横幅与状态更新。
 
 ## 5. 待办
 
