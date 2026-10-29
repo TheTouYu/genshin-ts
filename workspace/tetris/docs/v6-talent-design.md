@@ -351,13 +351,17 @@ v6 给 **每个角色 1 主动 + 4 条机制各异的被动/机制**（共 20 �
 
 ### 6.3 main.lua —— 角色页（「被动」页目前是硬编码表）
 
-`lua/main.lua:4446-4480` 的 `PSV = { nahida = {...}, keqing = {...}, ... }` 必须删除，改为遍历 `SKILLS.talents(SK, role)`：
+`PSV = { nahida = {...}, ... }` 硬编码表已由其他写者删除，`main.lua:4448` 现在直接读 `SKILLS.talents(SK, role)`：
 ```
-for _, t in ipairs(SKILLS.talents(SK, role)) do
-  entry(颜色, t.name, t.map, t.official, 数值串(t.live))
-end
+local tal = SKILLS.talents(SK, role)
+for ti = 1, #tal do entry(颜色, tal[ti].name, tal[ti].map, tal[ti].live) end
 ```
-这样 20 条天赋就有 20 条内容，且**文案只有一份**（在 skills.lua 的 `M.TALENTS` 里，与数值同源）。
+**`live` 契约（已按 main 现有渲染代码定型）：它是「可直接显示的字符串」**，例如
+`印 23.4s · 已触发 2 次 · 连锁 2 行` / `叠层 2/4 · 每层 +6% · 共 +12%` / `引力 17.5/60 · 满辉推层 ×1.5`。
+不要传 table：main 用 `pairs` 渲染 table 键，Lua 的字符串 hash 顺序跨进程不定，HUD 文字会跳。
+需要机器读数时读同项的 `liveData`（定序的数值表：`{left, hits, chain}` 等）。
+
+这样 20 条天赋就有 20 条内容，且**文案与数值只有一份**（都在 skills.lua 的 `M.TALENTS` / `M.talents()` 里）。
 
 ### 6.4 main.lua —— 3 个待修 bug（顺手，都在 skills 边界上）
 

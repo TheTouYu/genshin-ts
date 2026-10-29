@@ -1357,36 +1357,86 @@ M.talents = function(state, role)
     for k, v in pairs(src) do e[k] = v end
     e.lv = lv
     e.unlocked = (numOr(src.gate, 0) <= lv)
-    if src.id == 'nahida.seed' then
-      e.live = { left = p.seedLeft, hits = numOr(t and t.seedHits, 0), chain = p.chainRows }
+    -- live 是**给人看的字符串**（main 的角色页直接渲染）：定序 + 中文键，
+    -- 不用 pairs 遍历表 —— Lua 的字符串 hash 顺序跨进程不定，HUD 会抖。
+    -- liveData 保留机器可读的原值（测试 / 将来的 HUD 数值条读它）。
+    local D = {}
+    if src.id == 'nahida.active' then
+      D = { tier = p.aiTier, dur = p.aiDur + p.absorbSec }
+      e.live = string.format('AI 档位 %d · 接管 %.1f 秒', p.aiTier, p.aiDur + p.absorbSec)
+    elseif src.id == 'nahida.seed' then
+      D = { left = p.seedLeft, hits = numOr(t and t.seedHits, 0), chain = p.chainRows }
+      e.live = string.format('印 %.1fs · 已触发 %d 次 · 连锁 %d 行', p.seedLeft, D.hits, p.chainRows)
     elseif src.id == 'nahida.wisdom' then
-      e.live = { mastery = nahidaMastery(state, role), chain = p.chainRows,
-                 dmg = select(1, nahidaPower(state, role)), crit = select(2, nahidaPower(state, role)) }
+      local dmg, crit = nahidaPower(state, role)
+      D = { mastery = nahidaMastery(state, role), chain = p.chainRows, dmg = dmg, crit = crit }
+      e.live = string.format('精通 %d · 增幅 %.0f%% · 连锁 %d 行 · 追爆 %.0f%%',
+        D.mastery, dmg * 100, p.chainRows, crit * 100)
     elseif src.id == 'nahida.domain' then
-      e.live = { left = p.domainLeft, score = p.domainScore, gap = p.seedGap }
+      D = { left = p.domainLeft, score = p.domainScore, gap = p.seedGap }
+      e.live = string.format('领域 %.1fs · 得分 +%.1f%% · 间隔 %.2fs', p.domainLeft,
+        p.domainScore * 100, p.seedGap)
     elseif src.id == 'nahida.absorb' then
-      e.live = { sec = p.absorbSec, dur = p.aiDur }
+      D = { sec = p.absorbSec, dur = p.aiDur }
+      e.live = string.format('本次接管 +%.2f 秒（精通 %d）', p.absorbSec, nahidaMastery(state, role))
+    elseif src.id == 'keqing.active' then
+      D = { cd = M.NUM.KEQING.BLINK_CD[1], mark = M.NUM.KEQING.MARK_LIFE }
+      e.live = string.format('瞬落 · 雷楔 %.0f 秒 · CD %.1f 秒', M.NUM.KEQING.MARK_LIFE,
+        pick3(M.NUM.KEQING.BLINK_CD, nodeLv(state, role, 2)))
     elseif src.id == 'keqing.mark' then
-      e.live = { left = p.markLeft, col = p.markCol, cells = M.NUM.KEQING.SLASH_CELLS }
+      D = { left = p.markLeft, col = p.markCol, cells = M.NUM.KEQING.SLASH_CELLS }
+      e.live = string.format('雷楔 %.1fs · 列 %d · 连斩 %d 格', p.markLeft, p.markCol,
+        M.NUM.KEQING.SLASH_CELLS)
+    elseif src.id == 'keqing.longpress' then
+      D = { sec = M.NUM.KEQING.LONG_PRESS }
+      e.live = string.format('按住 ≥%.2f 秒 = 跳到最空列', M.NUM.KEQING.LONG_PRESS)
     elseif src.id == 'keqing.yuheng' then
-      e.live = { left = p.yhLeft, score = M.NUM.KEQING.YH_SCORE, recharge = M.NUM.KEQING.YH_RECHARGE }
+      D = { left = p.yhLeft, score = M.NUM.KEQING.YH_SCORE, recharge = M.NUM.KEQING.YH_RECHARGE }
+      e.live = string.format('窗口 %.1fs · 得分 +%.0f%% · CD ÷%.2f', p.yhLeft,
+        M.NUM.KEQING.YH_SCORE * 100, 1 + M.NUM.KEQING.YH_RECHARGE)
     elseif src.id == 'keqing.stacks' then
-      e.live = { stacks = keqingStacks(state, role), each = M.NUM.KEQING.STK_VAL }
+      local st = keqingStacks(state, role)
+      D = { stacks = st, each = M.NUM.KEQING.STK_VAL }
+      e.live = string.format('叠层 %d/4 · 每层 +%.0f%% · 共 +%.0f%%', st,
+        M.NUM.KEQING.STK_VAL * 100, st * M.NUM.KEQING.STK_VAL * 100)
+    elseif src.id == 'ganyu.active' then
+      D = { rows = p.freezeRows, sec = p.freezeSec }
+      e.live = string.format('冻结 %d 行 · %.1f 秒 · CD %.0f 秒', p.freezeRows, p.freezeSec,
+        M.NUM.CD.ganyu)
     elseif src.id == 'ganyu.lotus' then
-      e.live = { left = p.lotusLeft, bloom = M.NUM.GANYU.LOTUS_ROWS, early = M.NUM.GANYU.LOTUS_BROKEN_ROWS }
+      D = { left = p.lotusLeft, bloom = M.NUM.GANYU.LOTUS_ROWS, early = M.NUM.GANYU.LOTUS_BROKEN_ROWS }
+      e.live = string.format('冰莲 %.1fs · 绽放清 %d 行（提前 %d 行）', p.lotusLeft,
+        M.NUM.GANYU.LOTUS_ROWS, M.NUM.GANYU.LOTUS_BROKEN_ROWS)
     elseif src.id == 'ganyu.focus' then
-      e.live = { left = numOr(t and t.critWin, 0), bonus = M.NUM.GANYU.FOCUS_BONUS }
+      D = { left = numOr(t and t.critWin, 0), bonus = M.NUM.GANYU.FOCUS_BONUS }
+      e.live = string.format('窗口 %.1fs · 再消行 +%.0f%%', D.left, M.NUM.GANYU.FOCUS_BONUS * 100)
     elseif src.id == 'ganyu.field' then
-      e.live = { left = p.freezeLeft, gravity = p.gravityMult }
+      D = { left = p.freezeLeft, gravity = p.gravityMult }
+      e.live = string.format('冻结期重力 ×%.2f（剩 %.1fs）', p.gravityMult, p.freezeLeft)
     elseif src.id == 'ganyu.charge' then
-      e.live = { charge = p.charge, max = p.chargeMax, rows = M.NUM.GANYU.CHARGE_ROWS }
+      D = { charge = p.charge, max = p.chargeMax, rows = M.NUM.GANYU.CHARGE_ROWS }
+      e.live = string.format('霜华 %d/%d 段 · 每段冻结 +%d 行', p.charge, p.chargeMax,
+        M.NUM.GANYU.CHARGE_ROWS)
+    elseif src.id == 'columbina.active' then
+      D = { layers = M.NUM.COLUMBINA.LAYERS[1], cap = M.NUM.COLUMBINA.LAYER_CAP }
+      e.live = string.format('推 %d~%d 层 · 单人清底 %d 行', M.NUM.COLUMBINA.LAYERS[1],
+        M.NUM.COLUMBINA.LAYER_CAP, M.NUM.COLUMBINA.CLEAR_ROWS)
     elseif src.id == 'columbina.gravity' then
-      e.live = { gravity = p.gravity, max = p.gravityMax, full = M.NUM.COLUMBINA.FULL_MULT }
+      D = { gravity = p.gravity, max = p.gravityMax, full = M.NUM.COLUMBINA.FULL_MULT }
+      e.live = string.format('引力 %.1f/%d · 满辉推层 ×%.1f', p.gravity, p.gravityMax,
+        M.NUM.COLUMBINA.FULL_MULT)
     elseif src.id == 'columbina.lure' then
-      e.live = { stacks = p.lure, left = p.lureLeft, each = p.lureBonus }
+      D = { stacks = p.lure, left = p.lureLeft, each = p.lureBonus }
+      e.live = string.format('月诱 %d/3 层 · 每层 +%.0f%% · %.1fs', p.lure, p.lureBonus * 100, p.lureLeft)
+    elseif src.id == 'columbina.law' then
+      D = { chance = M.NUM.COLUMBINA.LAW_CHANCE }
+      e.live = string.format('领域内消行 %.0f%% 额外推 1 行', M.NUM.COLUMBINA.LAW_CHANCE * 100)
     elseif src.id == 'columbina.domain' then
-      e.live = { left = p.domainLeft, gain = M.NUM.COLUMBINA.DOMAIN_GAIN }
+      D = { left = p.domainLeft, gain = M.NUM.COLUMBINA.DOMAIN_GAIN }
+      e.live = string.format('领域 %.1fs · 引力积攒 ×%.2f', p.domainLeft,
+        M.NUM.COLUMBINA.DOMAIN_GAIN)
     end
+    e.liveData = D
     out[#out + 1] = e
   end
   return out
