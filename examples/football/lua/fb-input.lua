@@ -127,10 +127,16 @@ local function setStyle(name, fs, color)
     local ok, err = pcall(function() c.fontColor = color end)
     if not ok then log('pcall fail fontColor ' .. name .. ' ' .. tostring(err)) end
   end
-  -- 真机：对齐字段收字符串（霜华纪实测）；个别版本要枚举，失败只记日志
-  local okh, errh = pcall(function() c.horizontalAlignment = 'Middle' end)
+  -- 对齐：真机**只收枚举**（2026-10-29 真机日志实证，字段 f23：
+  --   `bad argument #2 to 'horizontalAlignment' (TextHorizontalAlignment expected, got string)`）；
+  -- 模拟器（fengari）收字符串 ⇒ 先取枚举，取不到再回落字符串，两边都能跑。
+  local hAlign = nil
+  local vAlign = nil
+  pcall(function() hAlign = Enum.TextHorizontalAlignment.Middle end)
+  pcall(function() vAlign = Enum.TextVerticalAlignment.Middle end)
+  local okh, errh = pcall(function() c.horizontalAlignment = hAlign or 'Middle' end)
   if not okh then log('pcall fail alignH ' .. name .. ' ' .. tostring(errh)) end
-  local okv, errv = pcall(function() c.verticalAlignment = 'Middle' end)
+  local okv, errv = pcall(function() c.verticalAlignment = vAlign or 'Middle' end)
   if not okv then log('pcall fail alignV ' .. name .. ' ' .. tostring(errv)) end
 end
 

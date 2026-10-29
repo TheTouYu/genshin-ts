@@ -32,7 +32,8 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 | 工具 | 作用 |
 |---|---|
-| `scripts/gia_log.py <日志.gia> text` | 提取 f22 文本日志（按记录序，验证打印顺序） |
+| `scripts/gia_log.py <日志.gia> text` | 提取 **f22** 文本日志＝**服务端节点图** print（按记录序） |
+| `scripts/gia_log.py <日志.gia> lua` | 提取 **f23** 文本日志＝**客户端脚本（Lua）** print/printerr（2026-10-29 新增，详见下节） |
 | `scripts/gia_log.py <日志.gia> records` | 记录概览（进程号/会话/实体/**图名**/f21 大小）；`--gil <地图.gil>` 标注图名、`--graph <id>` 过滤 |
 | `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**节点名标注完整嵌套复合链**，如 `复合:A > 复合:B > 节点X`）；`--gil`/`--rec <n>`/`--graph <id>`/`--contains <文本>` 过滤（2026-08-19 升级：wire 列表值直接解码；2026-08-20 升级：head 递归解析全链，不再只显示 2 层） |
 | `scripts/gia_log.py <日志.gia> perf` | **性能聚合视图（2026-08-20 新增）**：每记录 帧数/总负载/均负载 + 节点链 TOP（**真实执行性能 = 单次负载 × 次数**，按总负载降序，热点一目了然）；`--compare <日志2.gia>` 输出两次会话逐记录帧数/负载对比（优化前后量化） |
@@ -117,6 +118,31 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
    一行一拍轨迹；停距=同段末帧 px−踢出帧 px；横偏=x 目标处对相邻两帧插值 z。
 5. **pivot 输出坑（本轮实证，必看）**：引擎**零值分量省略**（Vector=(0,1.85,0) 的 x/z OUT 显示空、px=0 的行整格空）——
    用 awk 数空格列**必错位**，一律 python csv 按 header 解析；**列空≠无值，是 0**。
+
+## 客户端脚本（Lua）日志：走 f23，不是 f22（2026-10-29 实证，地图 1073741827）
+
+**两条通道，字段不同**：
+
+| 通道 | 记录字段 | 取法 |
+|---|---|---|
+| 服务端节点图 `print` | **f22** | `gia_log.py <log> text` |
+| **客户端脚本 Lua `print` / `printerr`** | **f23**（`{f2: 文本}`） | `gia_log.py <log> lua` |
+
+⇒ **`text` 里没看到 `[你的前缀]` 行，不能证明 Lua 没跑**——先跑 `lua` 子命令。
+2026-10-29 实证：`text` 只有 1 行服务端 `fb-heartbeat`，而 `lua` 子命令取出 **31 行**，
+其中 `[fb-in] onstart v2` 说明脚本正常启动、`listen ok 6/6` 说明六键注册成功；
+D627 那句「`[fb-in]` 打印 0 条 ⇒ 脚本从未执行」是**这条通道没解**导致的误判。
+
+**官方口径（`research/千星知识图谱/learn-lua71/` 两篇）**：
+
+1. `print(...)` 写普通级别日志、`printerr(...)` 写错误级别日志（都不阻断运行）；
+   `game.PrintClientUITree()` 把**当前客户端控件树**按父子层级写入日志——查「控件在不在/叫什么」的第一工具。
+2. 教程第 8 节「日志功能」：**要先在日志面板里勾选「客户端脚本」**才会记录；勾选后运行期报错可双击查看。
+3. **本地日志 `ErrorLog.txt`**：与客户端脚本**储存路径一致**
+   （`…/Beyond_Local_Save_Level/<mapId>/external_lua_file/`），**只在正常日志报告不了的错误**（如循环调用卡死）时才创建。
+
+**判据**：一轮真机试玩后先 `gia_log.py <log> lua`；
+`[]` 空输出＝脚本没跑或被日志面板挡了；有 `onstart` 无 `listen ok`＝注册到一半就抛错（Lua 无 try/catch，一句抛错整段中断）。
 
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
 

@@ -351,6 +351,27 @@ def cmd_text(recs):
                 for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
                     if f2 == 2: print(f'rec{ri}: {v2.decode("utf-8", "replace")}')
 
+
+def cmd_lua(recs):
+    """客户端脚本（Lua）日志。
+
+    2026-10-29 实证（地图 1073741827，日志 2026-10-29_14-42-19_3410）：
+      服务端节点图 print → 记录字段 **f22**（cmd_text 解的就是它）；
+      **客户端 Lua print/printerr → 记录字段 f23**（{f2: 文本}）。
+    因此「text 里没有 [xxx] 行」**不能**证明 Lua 没跑——Lua 的输出在 f23。
+    """
+    n = 0
+    for ri, r in enumerate(recs):
+        for f, w, x, _ in walk_fields(r, 0, len(r)):
+            if f != 23 or w != 2:
+                continue
+            for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
+                if f2 == 2:
+                    n += 1
+                    print(f'rec{ri}: {v2.decode("utf-8", "replace")}')
+    if n == 0:
+        print('[lua] 本日志无 f23 客户端脚本记录（脚本未运行，或运行时日志面板未勾选「客户端脚本」）')
+
 def cmd_records(recs, gil=None, summary=False):
     if summary:
         from collections import defaultdict
@@ -683,5 +704,6 @@ if __name__ == '__main__':
     elif cmd == 'perf': cmd_perf(recs, gil, rec_filter, graph_filter, compare_path, sec_filter)
     elif cmd == 'dump': cmd_dump(recs, rec_filter)
     elif cmd == 'text': cmd_text(recs)
+    elif cmd == 'lua': cmd_lua(recs)
     else:
         print(__doc__); sys.exit(1)

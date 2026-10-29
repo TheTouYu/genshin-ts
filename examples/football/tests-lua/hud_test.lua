@@ -71,7 +71,10 @@ local function install(w)
       KeyboardJumpKeyDown = 'ev.p3', KeyboardSprintKeyDown = 'ev.p4',
       KeyboardInteractKeyDown = 'ev.p5', KeyboardDropKeyDown = 'ev.p6'
     },
-    CustomVariableEntityType = { PlayerSelf = 'ps', Level = 'lv' }
+    CustomVariableEntityType = { PlayerSelf = 'ps', Level = 'lv' },
+    -- 真机形态：对齐只收枚举（2026-10-29 日志 f23 实证）；模拟器收字符串
+    TextHorizontalAlignment = { Left = 'hL', Middle = 'hM', Right = 'hR' },
+    TextVerticalAlignment = { Top = 'vT', Middle = 'vM', Bottom = 'vB' }
   }
   _G.game = {
     ServerSignal = function(name)
@@ -132,8 +135,8 @@ eq(w.controls.hud_k6.text, '⑥ 球放回正前', 'k6 文案')
 eq(w.controls.hud_score.fontSize, 46, 'score 字号 46')
 eq(w.controls.hud_title.fontSize, 24, 'title 字号 24')
 eq(w.controls.hud_k1.fontSize, 20, 'k1 字号 20')
-eq(w.controls.hud_title.horizontalAlignment, 'Middle', 'title 水平居中')
-eq(w.controls.hud_title.verticalAlignment, 'Middle', 'title 垂直居中')
+eq(w.controls.hud_title.horizontalAlignment, 'hM', 'title 水平居中=枚举 TextHorizontalAlignment.Middle')
+eq(w.controls.hud_title.verticalAlignment, 'vM', 'title 垂直居中=枚举 TextVerticalAlignment.Middle')
 ok(w.controls.hud_title.fontColor ~= 0, 'title 颜色已设', tostring(w.controls.hud_title.fontColor))
 
 eq(#w.listeners, 6, '注册 6 个键监听')

@@ -91,6 +91,12 @@ description: 从空工程做到「能玩、能结算、有数值、有反馈、�
 | P6 模拟器体感 | 网页真跑 | **你自己**每模式玩一局（不是看用例） |
 | P7 真机 | 部署 + 真机日志 | 版本指纹全对 + `module ok` / `hud inst n=` + `lua-error` 零条 |
 
+> **真机日志怎么取（2026-10-29 实证，别再踩）**：Lua 的 `print` 落在 `.gia` 的**记录字段 f23**，服务端节点图 print 落在 **f22**——
+> `gia_log.py <log> text` 只解 f22，所以「text 里没有 `[前缀]` 行」**不能**证明 Lua 没跑；
+> 用 `gia_log.py <log> lua` 取客户端脚本日志（官方教程第 8 节还要求日志面板**勾选「客户端脚本」**；
+> 正常日志报不了错误时才在与脚本同目录生成 `ErrorLog.txt`；`game.PrintClientUITree()` 可把控件树打进日志）。
+> 另：真机 `horizontalAlignment/verticalAlignment` **只收 `Enum.TextHorizontalAlignment/TextVerticalAlignment` 枚举**，传字符串报 `Text… expected, got string`（模拟器收字符串 ⇒ 先取枚举再回落）。
+
 **三条红线**：P3 未过不许进 P7；P6 未过不许通知用户真机测试；P7 前所有"完成"必须写明验到第几层。
 
 ## 5. 环境速查 + 静态审计
