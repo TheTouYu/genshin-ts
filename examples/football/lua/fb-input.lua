@@ -301,6 +301,13 @@ end
 function OnUpdate(dt)
   local step = tonumber(dt) or 0
   G.t = G.t + step
+  -- 时间同步：每 2 帧把真实帧时长（毫秒）发给服务端，服务端据此写 fb_dt 给物理内核。
+  -- 为什么由这里给：服务端的 queryGameTimeElapsed 每秒只数到 2~9 拍（游戏时钟 ≠ 真实秒），
+  -- 而内核按固定 0.1333s 积分会让模拟时间跑快 3.5 倍（高吊球「光速完成」的根因）。
+  G.frames = (G.frames or 0) + 1
+  if G.frames % 2 == 0 then
+    send(-1, math.floor(step * 1000))
+  end
   local s = math.floor(G.t)
   if s ~= G.sec then
     G.sec = s

@@ -22,42 +22,66 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
+    // ———— 玩家位置（2026-10-29 三修）————
+    // ① 玩家控制器实体 getEntityLocationAndRotation 恒 (0, y, 0)（日志 3416 实证：IN0:Vector=(0.0,0.472,0.0)）
+    // ② 角色列表[0] 可能是掉出场外的实体（日志 3414 见到 y=−4.5 / −142、x 到 94）
+    // ⇒ 取角色列表里**站在场上**的那个（y ∈ [-1, 5]），最多试 2 个；都不合格就保持上一次的值。
     const players = f.getListOfPlayerEntitiesOnTheField()
     const player0 = f.getCorrespondingValueFromList(players, 0n)
-    // 2026-10-29 二修：角色列表[0] 的坐标实测不可用（日志 3414：x∈[-27.9,94.2]、y 到 −142、
-    //   z∈[-32,85]，玩家明明站在原地）⇒ 改读**玩家实体本身**的坐标。
-    //   自检：坐标一旦非零就打印一次（证明这条通道真的给了真值，而不是恒 0）。
-    const pLoc = f.split3dVector(f.getEntityLocationAndRotation(player0).location)
-    f.setCustomVariable(owner, 'fbvx', pLoc.xComponent, false)
-    f.setCustomVariable(owner, 'fbvz', pLoc.zComponent, false)
-    // ———— 每拍真实步长校准（2026-10-29）————
-    // 载体技能 CD 让内核实际跑 14~27Hz（客户端越忙越慢），而内核按 7.5Hz 标定的 DT 积分
-    // ⇒ 模拟时间跑快 2~3.5 倍（用户体感「高吊球整个过程光速完成」）。这里用「游戏已进行时间(秒)」
-    // 数每秒钟收到几拍，折算成真实步长写 fb_dt，客户端每拍读。
-    const nowSec = f.queryGameTimeElapsed()
-    const lastSec = f.getCustomVariable(owner, 'fb_sec').asType('int')
-    const cnt = f.getCustomVariable(owner, 'fb_cnt').asType('int')
+    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(player0)
+    const clen = f.getListLength(chars)
+    const cx = f.localVariable('float')
+    const cy = f.localVariable('float')
+    const cz = f.localVariable('float')
     f.doubleBranch(
-      f.equal(nowSec, lastSec),
+      f.greaterThan(clen, 0n),
       () => {
-        f.setCustomVariable(owner, 'fb_cnt', f.addition(cnt, 1n), false)
-      },
-      () => {
-        const cntF = f.dataTypeConversion(cnt, 'float')
-        const safe = f.localVariable('float')
+        const l0 = f.split3dVector(
+          f.getEntityLocationAndRotation(f.getCorrespondingValueFromList(chars, 0n)).location
+        )
+        const ok0 = f.logicalAndOperation(
+          f.greaterThan(l0.yComponent, -1.0),
+          f.lessThan(l0.yComponent, 5.0)
+        )
         f.doubleBranch(
-          f.lessThan(cntF, 1.0),
+          ok0,
           () => {
-            safe.set(1.0)
+            cx.set(l0.xComponent)
+            cy.set(l0.yComponent)
+            cz.set(l0.zComponent)
           },
           () => {
-            safe.set(cntF)
+            f.doubleBranch(
+              f.greaterThan(clen, 1n),
+              () => {
+                const l1 = f.split3dVector(
+                  f.getEntityLocationAndRotation(
+                    f.getCorrespondingValueFromList(chars, 1n)
+                  ).location
+                )
+                const ok1 = f.logicalAndOperation(
+                  f.greaterThan(l1.yComponent, -1.0),
+                  f.lessThan(l1.yComponent, 5.0)
+                )
+                f.doubleBranch(
+                  ok1,
+                  () => {
+                    cx.set(l1.xComponent)
+                    cy.set(l1.yComponent)
+                    cz.set(l1.zComponent)
+                  },
+                  () => {}
+                )
+              },
+              () => {}
+            )
           }
         )
-        f.setCustomVariable(owner, 'fb_dt', f.division(1.0, safe.value), false)
-        f.setCustomVariable(owner, 'fb_cnt', 0n, false)
-        f.setCustomVariable(owner, 'fb_sec', nowSec, false)
-      }
+        f.setCustomVariable(owner, 'fbvx', cx.value, false)
+        f.setCustomVariable(owner, 'fbvz', cz.value, false)
+        f.setCustomVariable(owner, 'fbvy', cy.value, false)
+      },
+      () => {}
     )
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
@@ -117,6 +141,10 @@ const graph = g
   .onSignal(KitSignal.fb_input, (evt: any, f: any) => {
     const owner = f.getSelfEntity()
     const key = evt.params.key
+    // 时间同步用（key<0 时才是真值；其它票这些读数无副作用）
+    // Lua 每帧把它 OnUpdate(dt) 的真实毫秒发上来（key<0），这里直接折算成步长。
+    // 不用 queryGameTimeElapsed：它每秒只数到 2~9 拍（游戏时钟 ≠ 真实秒，日志 3416 实证）。
+    const dtCalc = f.division(f.dataTypeConversion(evt.params.state, 'float'), 1000.0)
     f.doubleBranch(
       f.greaterThan(key, 0n),
       () => {
@@ -127,6 +155,20 @@ const graph = g
         print('fb-key')
       },
       () => {
+      // key < 0 = Lua 时间同步（OnUpdate 累计的真实毫秒）；用它和内核 tick 差算真实步长。
+      // queryGameTimeElapsed 不可用：它每秒只数到 2~9 拍（游戏时钟与真实秒不同步，日志 3416 实证）。
+      f.doubleBranch(
+        f.lessThan(key, 0n),
+        () => {
+          f.doubleBranch(
+            f.logicalAndOperation(f.greaterThan(dtCalc, 0.004), f.lessThan(dtCalc, 0.25)),
+            () => {
+              f.setCustomVariable(owner, 'fb_dt', dtCalc, false)
+            },
+            () => {}
+          )
+        },
+        () => {
         // 心跳带自检码（2026-10-29）：Lua 的 print 不落 .gia，只能把自检结果塞进心跳再让服务端打点。
         //   state < 100  = 成功注册的键数（0..6，6 = 六键全就位）
         //   state >= 100 = 100 + HUD 控件命中数（0..11，11 = 十一个文本框全找到）
@@ -165,6 +207,8 @@ const graph = g
             )
           }
         )
+      }
+      )
       }
     )
   })
