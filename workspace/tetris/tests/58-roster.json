@@ -1,0 +1,44 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "58 v4.0 ③ 角色名册：Key16 打开契约与解锁进度面板（含四角色解锁条件文案），同键关闭",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Down"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Down"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.0,
+   "kind": "log",
+   "contains": "roster open n=",
+   "source": "client"
+  },
+  {
+   "at": 1.0,
+   "kind": "tree",
+   "name": "rosterTitle",
+   "exists": true
+  },
+  {
+   "at": 1.0,
+   "kind": "lua",
+   "source": "local t=query.control('rosterR2')\nassert(t and t.text, 'rosterR2 不在')\nassert(t.text:find('刻晴',1,true), '缺刻晴行: '..t.text)\nassert(t.text:find('/40',1,true), '缺解锁阈值: '..t.text)\nreturn true"
+  },
+  {
+   "at": 2.0,
+   "kind": "log",
+   "contains": "roster close",
+   "source": "client"
+  }
+ ]
+}

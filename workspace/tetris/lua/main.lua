@@ -1907,6 +1907,18 @@ local function evalBoard(cells, x)
       if empty == 1 then nearFull = nearFull + 1 end
     end
     if nearFull > 0 then sc = sc + atk * 0.9 * nearFull end
+    -- ④-a3 造井（attack + 井模式）：为了让"攒 4 行"真的发生，必须**暂时不急着消行**。
+    -- 做法：消行权重压到 30%，并给"井旁那一列"的堆高（上限 6 行）直接加分。
+    -- 这是有意的策略切换：对手快死时用整洁度换垃圾行（用户：「积累然后一次消除更多的行」）。
+    -- 实测（2026-10-29）：把消行权重压到 30% + 邻列堆高奖励，仍然**堆不出深井**
+    -- （`ai well col=10 base=6 depth=0`：预留列每块都被填上去，depth 恒 0）。
+    -- 结论：预留一列需要"连续 4 步都不碰它"的规划力，1-ply 做不到 ⇒ 这里只保留很轻的
+    -- 邻列堆高倾向（1.5 分/行，上限 6），把"攒行"交给 nearFull 项；真正的四消等 2-ply。
+    if (NUM.AI_WELL or 0) > 0 then
+      local hNear = heights[COLS - 1] or 0
+      if hNear > 6 then hNear = 6 end
+      sc = sc + 1.5 * hNear
+    end
   end
   -- ④-b 留井：靠墙 1 列宽、深 ≥3 的井是 I 块四消的落点（给一点正向分，避免 AI 顺手填平）
   local wellW = NUM.AI_WELL or 0
@@ -2085,6 +2097,20 @@ local function aiChoose()
     cells = rotateCells(cells, boxN)
   end
   if #cands == 0 then return nil end
+  -- v4.0 ④-a4：**显式四消射击**——井已挖到 ≥2 深且当前块是 I，就直接竖放到井列。
+  -- 为什么必须显式：1-ply 评估把"现在消 1 行"算得比"等等消 4 行"高，永远选不到四消。
+  -- I 块竖放 = rot1（cells 全在盒内第 2 列），落点 x = COLS-1 ⇒ 占第 COLS 列。
+  if (NUM.AI_WELL or 0) > 0 and g.piece and g.piece.name == 'I' and g.piece.n == 4 then
+    local wd = wellDepth()
+    if wd >= 2 then
+      for _, c in ipairs(cands) do
+        if c.rot == 1 and c.x == COLS - 1 and (c.clear or 0) >= 2 then
+          print('ai tetris shot depth=' .. tostring(wd) .. ' clear=' .. tostring(c.clear))
+          return c
+        end
+      end
+    end
+  end
   local function better(a, b)
     if not b then return true end
     if a.score > b.score + 1e-9 then return true end
@@ -3765,6 +3791,72 @@ end
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
 -- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；三种双屏（ai-battle/pvp/coop）
 -- 统一建 G[2]（pvp=玩家 2 盘各走各账；ai-battle/coop=AI 盘 autoDriving 走 AI 账）+镜像出块（公平）。
+-- ===== v4.0 ③ 角色名册（契约与解锁进度）=====
+-- 用户口径：「四个角色，初始就只解锁小草神的部分机制吧，剩下的设计一定的条件在解锁」
+-- ⇒ 条件判定在 skills.lua，本层负责**让人看得见**（不然玩家永远不知道自己差多少）。
+local ROSTER = { on = false, items = {} }
+FN.rosterDestroy = function()
+  for i = #ROSTER.items, 1, -1 do
+    pcall(function() game.DestroyClientUIControl(ROSTER.items[i]) end)
+    ROSTER.items[i] = nil
+  end
+end
+
+FN.rosterToggle = function()
+  if not (SK and SKILLS) then
+    print('roster skip (no skills)')
+    return
+  end
+  if ROSTER.on then
+    FN.rosterDestroy()
+    ROSTER.on = false
+    print('roster close')
+    return
+  end
+  local W, H = CANVAS_W or 1600, CANVAS_H or 900
+  local cw, chh = math.min(900, W - 120), math.min(520, H - 100)
+  local cy = 20
+  local function add(c) if c then ROSTER.items[#ROSTER.items + 1] = c end return c end
+  add(UI4.pill('rosterDim', W + 40, H + 40, C(150, 24, 40, 60)))
+  add(UI4.pill('rosterCard', cw, chh, THEME.panel))
+  add(UI4.pill('rosterLine', cw - 80, 3, THEME.gold))
+  local title = add(UI4.label('rosterTitle', '旅行者名册 · 契约与解锁', cw - 60, 52, 28, THEME.textMain))
+  local c = SK.cnt or {}
+  local rows = {
+    '纳西妲　已缔结 · 智慧之神的代理（Z 键接管你的盘面）',
+    '刻晴　　累计消行 ' .. tostring(c.lines or 0) .. '/40 或 局数 ' .. tostring(c.games or 0) .. '/3',
+    '甘雨　　累计消行 ' .. tostring(c.lines or 0) .. '/600 或 单局存活 300 秒',
+    '少女　　对战局 ' .. tostring(c.pvp or 0) .. '/1 或 四消 ' .. tostring(c.tetris or 0) .. '/50',
+  }
+  local rowCtl = {}
+  for i = 1, #rows do
+    local role = (SK.roles and SK.roles[i]) or '?'
+    local open = SK.unlocked and SK.unlocked[role] == true
+    local inParty = false
+    for _, r in ipairs(SK.party or {}) do if r == role then inParty = true end end
+    local tag = open and (inParty and '【台前】' or '【已解锁】') or '【未解锁】'
+    local col = open and THEME.textMain or THEME.textSub
+    rowCtl[i] = add(UI4.label('rosterR' .. i, tag .. ' ' .. rows[i], cw - 80, 44, 21, col))
+  end
+  local foot = add(UI4.label('rosterFoot', 'Y 切换台前角色 · 同键关闭名册（一局最多两个前台主动角色）',
+    cw - 80, 40, 19, THEME.hint))
+  local function at(ctl, x, y2, w, h)
+    if not ctl then return end
+    tryCall(ctl, 'SetSizeDelta', w, h)
+    tryCall(ctl, 'SetAnchoredPosition', x, y2)
+  end
+  at(ROSTER.items[1], 0, 0, W + 40, H + 40)
+  at(ROSTER.items[2], 0, cy, cw, chh)
+  at(ROSTER.items[3], 0, cy + chh / 2 - 52, cw - 80, 3)
+  at(title, 0, cy + chh / 2 - 96, cw - 60, 52)
+  for i = 1, #rows do
+    at(rowCtl[i], 0, cy + 120 - (i - 1) * 58, cw - 80, 44)
+  end
+  at(foot, 0, cy - chh / 2 + 44, cw - 80, 40)
+  ROSTER.on = true
+  print('roster open n=' .. #ROSTER.items)
+end
+
 FN.enterMode = function()
   if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
     if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
@@ -4634,6 +4726,9 @@ UI4.build = function(mobile)
   -- 说明键：移动端没有 H 键，帮助页必须能自己开、也要能自己关（用户 2026-10-29 反馈 d）
   UI4.helpBtn = UI4.makeBtn('help', '说明', 'help', P.HELP_W or 108, P.HELP_H or 52, 22)
   if UI4.helpBtn then n = n + 1 end
+  -- 名册键（顶部右侧第二颗）：手机上没有 Key16，名册必须能有触屏入口
+  UI4.rosterBtn = UI4.makeBtn('roster', '名册', 'roster', P.HELP_W or 108, P.HELP_H or 52, 22)
+  if UI4.rosterBtn then n = n + 1 end
   print('phone build n=' .. n .. ' help=' .. (UI4.helpBtn and 'ok' or 'none'))
   if CANVAS_W and CANVAS_H then UI4.layout(CANVAS_W, CANVAS_H) end
   UI4.dump('play')   -- 必须在 layout 之后：dump 读的是控件实时坐标
@@ -4664,13 +4759,21 @@ UI4.layout = function(W, H)
     place(b.hit, x, y, bw, bh)
   end
   local hb = UI4.helpBtn
+  local hw, hh = P.HELP_W or 108, P.HELP_H or 52
   if hb then
-    local hw, hh = P.HELP_W or 108, P.HELP_H or 52
     local x, y = halfW - m - hw / 2, halfH - m - hh / 2
     hb.x, hb.y = x, y
     place(hb.bg, x, y, hw, hh)
     place(hb.txt, x, y, hw, hh)
     place(hb.hit, x, y, hw, hh)
+  end
+  local rb = UI4.rosterBtn
+  if rb then
+    local x, y = halfW - m - hw - 10 - hw / 2, halfH - m - hh / 2
+    rb.x, rb.y = x, y
+    place(rb.bg, x, y, hw, hh)
+    place(rb.txt, x, y, hw, hh)
+    place(rb.hit, x, y, hw, hh)
   end
   print('phone layout w=' .. math.floor(W) .. ' h=' .. math.floor(H) .. ' n=' .. #UI4.btns)
 end
@@ -5438,6 +5541,10 @@ function OnStart()
   end
   UI4.dispatch = function(action, id)
     if action == 'help' then UI4.helpToggle() return end
+    if action == 'roster' then
+      if FN.rosterToggle then FN.rosterToggle() end
+      return
+    end
     if UI4.noteOn then UI4.noteClose() return end
     UI4.runAct(action)
   end
@@ -5503,6 +5610,7 @@ function OnStart()
     FN.skillHud()
     print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
   end))
+  listen('KeyboardCraftspersonKey16Down', skillKey(function() FN.rosterToggle() end))
   -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
   listen('KeyboardCraftspersonKey30Down', skillKey(function()
     if not (SK and SKILLS) then return end

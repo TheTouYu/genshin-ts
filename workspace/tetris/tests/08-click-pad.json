@@ -5,33 +5,178 @@
  "dt": 0.016666666666666666,
  "canvasId": "mobile-16-9",
  "events": [
-  { "t": 0.5, "kind": "pointer", "type": "move", "x": 82, "y": 47 },
-  { "t": 0.55, "kind": "pointer", "type": "down", "x": 82, "y": 47 },
-  { "t": 0.6, "kind": "pointer", "type": "up", "x": 82, "y": 47 },
-  { "t": 0.9, "kind": "pointer", "type": "move", "x": 224, "y": 119 },
-  { "t": 0.95, "kind": "pointer", "type": "down", "x": 224, "y": 119 },
-  { "t": 1.0, "kind": "pointer", "type": "up", "x": 224, "y": 119 },
-  { "t": 1.4, "kind": "pointer", "type": "move", "x": 1056, "y": 47 },
-  { "t": 1.45, "kind": "pointer", "type": "down", "x": 1056, "y": 47 },
-  { "t": 1.5, "kind": "pointer", "type": "up", "x": 1056, "y": 47 },
-  { "t": 2.0, "kind": "pointer", "type": "move", "x": 1198, "y": 47 },
-  { "t": 2.05, "kind": "pointer", "type": "down", "x": 1198, "y": 47 },
-  { "t": 2.1, "kind": "pointer", "type": "up", "x": 1198, "y": 47 },
-  { "t": 2.6, "kind": "pointer", "type": "move", "x": 1198, "y": 119 },
-  { "t": 2.65, "kind": "pointer", "type": "down", "x": 1198, "y": 119 },
-  { "t": 2.7, "kind": "pointer", "type": "up", "x": 1198, "y": 119 }
+  {
+   "t": 0.5,
+   "kind": "pointer",
+   "type": "move",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 0.55,
+   "kind": "pointer",
+   "type": "down",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 0.6,
+   "kind": "pointer",
+   "type": "up",
+   "x": 82,
+   "y": 47
+  },
+  {
+   "t": 0.9,
+   "kind": "pointer",
+   "type": "move",
+   "x": 224,
+   "y": 119
+  },
+  {
+   "t": 0.95,
+   "kind": "pointer",
+   "type": "down",
+   "x": 224,
+   "y": 119
+  },
+  {
+   "t": 1.0,
+   "kind": "pointer",
+   "type": "up",
+   "x": 224,
+   "y": 119
+  },
+  {
+   "t": 1.4,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1056,
+   "y": 47
+  },
+  {
+   "t": 1.45,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1056,
+   "y": 47
+  },
+  {
+   "t": 1.5,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1056,
+   "y": 47
+  },
+  {
+   "t": 2.0,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1198,
+   "y": 47
+  },
+  {
+   "t": 2.05,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1198,
+   "y": 47
+  },
+  {
+   "t": 2.1,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1198,
+   "y": 47
+  },
+  {
+   "t": 2.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1198,
+   "y": 119
+  },
+  {
+   "t": 2.65,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1198,
+   "y": 119
+  },
+  {
+   "t": 2.7,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1198,
+   "y": 119
+  }
  ],
  "asserts": [
-  { "at": 0.4, "kind": "log", "contains": "phone build n=7", "source": "client" },
-  { "at": 0.4, "kind": "log", "contains": "phone layout w=1280 h=720", "source": "client" },
-  { "at": 0.8, "kind": "log", "contains": "phone tap left", "source": "client" },
-  { "at": 1.2, "kind": "log", "contains": "phone tap rot", "source": "client" },
-  { "at": 1.2, "kind": "log", "contains": "rotate", "source": "client" },
-  { "at": 1.8, "kind": "log", "contains": "phone tap hard", "source": "client" },
-  { "at": 1.8, "kind": "log", "contains": "harddrop rows=", "source": "client" },
-  { "at": 2.4, "kind": "log", "contains": "phone tap soft", "source": "client" },
-  { "at": 2.4, "kind": "log", "contains": "fall y=", "source": "client" },
-  { "at": 3.0, "kind": "log", "contains": "phone tap hold", "source": "client" },
-  { "at": 3.0, "kind": "log", "contains": "hold in=", "source": "client" }
+  {
+   "at": 0.4,
+   "kind": "log",
+   "contains": "phone build n=8",
+   "source": "client"
+  },
+  {
+   "at": 0.4,
+   "kind": "log",
+   "contains": "phone layout w=1280 h=720",
+   "source": "client"
+  },
+  {
+   "at": 0.8,
+   "kind": "log",
+   "contains": "phone tap left",
+   "source": "client"
+  },
+  {
+   "at": 1.2,
+   "kind": "log",
+   "contains": "phone tap rot",
+   "source": "client"
+  },
+  {
+   "at": 1.2,
+   "kind": "log",
+   "contains": "rotate",
+   "source": "client"
+  },
+  {
+   "at": 1.8,
+   "kind": "log",
+   "contains": "phone tap hard",
+   "source": "client"
+  },
+  {
+   "at": 1.8,
+   "kind": "log",
+   "contains": "harddrop rows=",
+   "source": "client"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "phone tap soft",
+   "source": "client"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "fall y=",
+   "source": "client"
+  },
+  {
+   "at": 3.0,
+   "kind": "log",
+   "contains": "phone tap hold",
+   "source": "client"
+  },
+  {
+   "at": 3.0,
+   "kind": "log",
+   "contains": "hold in=",
+   "source": "client"
+  }
  ]
 }

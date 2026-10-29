@@ -70,6 +70,7 @@ const EXPECT = {
   'phone.soft': 'phone tap soft',
   'phone.hold': 'phone tap hold',
   'phone.help': 'phone tap help',
+  'phone.roster': 'roster open',
   'settle.R': 'hot settle R',
   'settle.V': 'hot settle V',
   'settle.Q': 'hot settle Q',
