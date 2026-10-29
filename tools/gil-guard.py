@@ -22,6 +22,11 @@ import sys
 from pathlib import Path
 
 ID_FLOOR = 1073741824
+# 记录 ID 的可信上界：真实 id 是 1073741824 起的紧凑分配（≈1.07e9~1.08e9）。
+# ≥2^31 的值出现在 f503 里时是**属性值**（实测：文本框句柄 18015918068190054、
+# 颜色哈希 3004833062/4283220735/8477855348），
+# 不是子记录引用 —— 2026-10-29 实证：11 个 client-textbox 的属性表被误判成悬空子引用。
+ID_CEIL = 1 << 31
 
 
 def read_varint(buf: bytes, i: int) -> tuple[int, int]:
@@ -85,7 +90,7 @@ def collect_child_refs(fields) -> set[int]:
         for f, w, v in flds:
             if f == 503 and w == 'bytes':
                 try:
-                    refs.update(x for x in packed_varints(v) if x >= ID_FLOOR)
+                    refs.update(x for x in packed_varints(v) if ID_FLOOR <= x < ID_CEIL)
                 except Exception:
                     pass
             elif f == 505 and w == 'bytes':

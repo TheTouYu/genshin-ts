@@ -85,6 +85,7 @@
 
 | 编号 | 结论 | 证据 |
 |---|---|---|
+| O-2026-10-29-6 | `[football]` `tools/gil-guard.py` 对 client-textbox 属性表误报「children 悬空引用」（11 个 hud_* 的 `f505.f503` 属性表里 18015918068190054 是句柄、3004833062/4283220735/8477855348 是颜色哈希，被当成子记录 id）⇒ 已修：子引用只认 `ID_FLOOR ≤ x < 2^31`（真实 id ≈1.07e9~1.09e9），并加注释与实证样本 | `python3 tools/gil-guard.py --selftest` = PASS（仍抓得到真的悬空 id）；地图 1073741827 / 1073741834 / 1073741856 三图改后均 PASS（改前 1827/1834/1856 全 FAIL） |
 | O-2026-10-24-8 | simulator-2d.md §四.1 矛盾已修：改为「整合包 GIA 已进导入目录且清成唯一一个（见 §三），待用户执行 P1」 | 2026-10-27 本线收尾改 `docs/longtask/dossiers/simulator-2d.md` §四.1，与 §三 读数一致 |
 | O-2026-10-24-6 | **多线并行改造落地**：新增 `LINES.md`（线表/进门协议/共享资源仲裁/收尾规则），`INDEX.md` §二 删除"单一活动分支"，`03-state.md` 改为共享面 + 标线 id 的分节，`05-open.md` 每条标线，足球线建 `dossiers/football-v3.md`，技能 `longtask-dossier` 与体检器同步支持多线 | 提交 `9ed58de3`/`e259b0cd`；`longtask_check.py --dir docs/longtask` = PASS，`--selftest` = PASS（6 类注入各被抓到）；**已接主链**：`scripts/doc_health.py` 在暂存区含 `docs/longtask/` 时自动跑该体检（pre-commit 拦得住），实测注入"状态词表破坏"→ doc_health FAIL + rc=1 |
 | O-2026-10-22-9 | 状态包落地：`state_pack.py`（validate/eval/list）+ `packs/gn-start-v1.json` + `look --pack` 接入；判据是数据，加状态不改代码 | 提交 `9c4a1ee0`；`state_pack.selftest.sh` 7/7 PASS；真机后台帧 `state=START` conf 1.0 |
