@@ -67,7 +67,9 @@ const SPIN_DECAY = 0.985 // 每拍自旋衰减（空中）
 const SPIN_GROUND = 0.85 // 触地自旋衰减
 const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
 const SETTLE_VY = 1.0 // 触地 |vy| 低于此 ⇒ 直接贴地不再弹
-const REST_SPEED = 0.35 // 贴地速度低于此 ⇒ 静止
+const REST_SPEED = 0.35
+const GROUND_MU = 0.8 // 库仑摩擦系数（接触冲量与滑移的比值上限）
+const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴地速度低于此 ⇒ 静止
 const ROLL_SPEED = 3.0 // 贴地速度高于此 ⇒ 进入滚动
 const DRIBBLE_R = 2.4
 const DRIBBLE_AHEAD = 1.3
@@ -447,59 +449,88 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         },
         () => {}
       )
-      // ④ 触地：法向反弹（|vy| 已很慢则直接贴地）+ 切向摩擦 + 自旋衰减
+      // ④⑤ 接触模型（2026-10-29 重写：法向冲量 + 库仑摩擦 + 自旋耦合）
+      //   旧实现三处硬伤：①摩擦只在 by<GROUND_Y 触发，而位置每拍被夹回地面 ⇒ 几乎不触发；
+      //   ②滑行态完全不改自旋（用户实测「反弹后旋转不变、只有速度变」）；③反弹没有法向冲量参与摩擦上限。
+      const grounded = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.01))
       f.doubleBranch(
-        f.logicalAndOperation(notDribble, f.lessThan(by.value, GROUND_Y)),
+        f.logicalAndOperation(notDribble, grounded),
         () => {
           by.set(GROUND_Y)
+          const vyIn = vy.value
+          const hitting = f.lessThan(vyIn, -SETTLE_VY)
+          const jn = f.localVariable('float') // 法向冲量当量（m/s）：撞击=(1+e)|vy|，静息=g·DT
           f.doubleBranch(
-            f.lessThan(f.multiplication(vy.value, -1.0), SETTLE_VY),
+            hitting,
             () => {
-              vy.set(0.0)
+              vy.set(f.multiplication(vyIn, -RESTITUTION))
+              jn.set(
+                f.multiplication(f.multiplication(vyIn, -1.0), f.addition(1.0, RESTITUTION))
+              )
+              mode.set(1n)
             },
             () => {
-              vy.set(f.multiplication(vy.value, -RESTITUTION))
+              vy.set(0.0)
+              jn.set(f.multiplication(GRAVITY, DT))
             }
           )
-          vx.set(f.multiplication(vx.value, GROUND_FRICTION))
-          vz.set(f.multiplication(vz.value, GROUND_FRICTION))
-          wx.set(f.multiplication(wx.value, SPIN_GROUND))
-          wy.set(f.multiplication(wy.value, SPIN_GROUND))
-          wz.set(f.multiplication(wz.value, SPIN_GROUND))
-          mode.set(1n)
-        },
-        () => {}
-      )
-      // ⑤ 贴地三态：滚动 / 滑行 / 静止（覆盖 ④ 的 mode）
-      f.doubleBranch(
-        f.logicalAndOperation(notDribble, onGroundAfter),
-        () => {
+          // 接触点滑移：v_slip = v + ω×r_c，r_c=(0,−R,0) ⇒ (vx + wz·R, 0, vz − wx·R)
+          const sx = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
+          const sz = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
+          const slip = f._3dVectorModuloOperation(f.create3dVector(sx, 0.0, sz))
+          // 库仑上限：γ = min(1, μ·jn / |slip|) —— 压力大（撞击）就抓得死，压力小就慢慢磨
+          const gammaRaw = f.division(
+            f.multiplication(GROUND_MU, jn.value),
+            f.addition(slip, 0.001)
+          )
+          const gamma = f.localVariable('float')
+          f.doubleBranch(
+            f.greaterThan(gammaRaw, 1.0),
+            () => {
+              gamma.set(1.0)
+            },
+            () => {
+              gamma.set(gammaRaw)
+            }
+          )
+          // 消滑移冲量（实心球 I=2/5·mR² 解得）：a=(γ/5.25)(sx+2.5sz), b=(γ/5.25)(sz+2.5sx)
+          const a = f.division(
+            f.multiplication(gamma.value, f.addition(sx, f.multiplication(2.5, sz))),
+            5.25
+          )
+          const b = f.division(
+            f.multiplication(gamma.value, f.addition(sz, f.multiplication(2.5, sx))),
+            5.25
+          )
+          vx.set(f.addition(vx.value, a))
+          vz.set(f.addition(vz.value, b))
+          wx.set(f.addition(wx.value, f.division(f.multiplication(-2.5, b), BALL_R)))
+          wz.set(f.addition(wz.value, f.division(f.multiplication(2.5, a), BALL_R)))
+          // 滚动阻力（地面接触始终存在）
+          vx.set(f.multiplication(vx.value, ROLL_FRICTION))
+          vz.set(f.multiplication(vz.value, ROLL_FRICTION))
           const spG = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
           f.doubleBranch(
             f.lessThan(spG, REST_SPEED),
             () => {
               vx.set(0.0)
-              vz.set(0.0)
               vy.set(0.0)
+              vz.set(0.0)
               wx.set(0.0)
               wy.set(f.multiplication(wy.value, 0.9))
               wz.set(0.0)
               mode.set(4n)
             },
             () => {
+              const sx2 = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
+              const sz2 = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
+              const slip2 = f._3dVectorModuloOperation(f.create3dVector(sx2, 0.0, sz2))
               f.doubleBranch(
-                f.greaterThan(spG, ROLL_SPEED),
+                f.lessThan(slip2, SLIP_ROLL),
                 () => {
-                  vx.set(f.multiplication(vx.value, ROLL_FRICTION))
-                  vz.set(f.multiplication(vz.value, ROLL_FRICTION))
-                  wx.set(f.division(vz.value, BALL_R))
-                  wy.set(0.0)
-                  wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
                   mode.set(3n)
                 },
                 () => {
-                  vx.set(f.multiplication(vx.value, ROLL_FRICTION))
-                  vz.set(f.multiplication(vz.value, ROLL_FRICTION))
                   mode.set(2n)
                 }
               )

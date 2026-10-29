@@ -23,20 +23,13 @@ const graph = g
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
     const players = f.getListOfPlayerEntitiesOnTheField()
-    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(
-      f.getCorrespondingValueFromList(players, 0n)
-    )
-    // 守卫：角色还没生成时列表为空 —— 对空实体读位置会让整张图报错停摆（顺带打死输入桥）
-    f.doubleBranch(
-      f.greaterThan(f.getListLength(chars), 0n),
-      () => {
-        const char0 = f.getCorrespondingValueFromList(chars, 0n)
-        const pSplit = f.split3dVector(f.getEntityLocationAndRotation(char0).location)
-        f.setCustomVariable(owner, 'fbvx', pSplit.xComponent, false)
-        f.setCustomVariable(owner, 'fbvz', pSplit.zComponent, false)
-      },
-      () => {}
-    )
+    const player0 = f.getCorrespondingValueFromList(players, 0n)
+    // 2026-10-29 二修：角色列表[0] 的坐标实测不可用（日志 3414：x∈[-27.9,94.2]、y 到 −142、
+    //   z∈[-32,85]，玩家明明站在原地）⇒ 改读**玩家实体本身**的坐标。
+    //   自检：坐标一旦非零就打印一次（证明这条通道真的给了真值，而不是恒 0）。
+    const pLoc = f.split3dVector(f.getEntityLocationAndRotation(player0).location)
+    f.setCustomVariable(owner, 'fbvx', pLoc.xComponent, false)
+    f.setCustomVariable(owner, 'fbvz', pLoc.zComponent, false)
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
