@@ -242,13 +242,58 @@ npm run test:ui-container     # = npm run build && npx tsx ui/tests/container-fr
 
 ### 9.2 两张新地图（2026-10-29 交付，可复现）
 
-| 地图 | ID | 名称 | 内容 |
-|---|---|---|---|
-| A | `1073741844` | 花间茶会·一条龙 | 花间茶会 GIA 导入快照 → 克隆 → 容器模板（含 1×1 占位子控件）→ 布局实例 → `main` 挂载 |
-| B | `1073741845` | 霜华纪·容器一条龙 | 霜华纪地图克隆 → 旧布局实例删除 → **新 CLI** 实例化 → `ganyu_main` 挂载 + 1×1 占位 |
+| 地图 | ID | 名称 | 大小 | Save/Temp sha256（两址同 sha） |
+|---|---|---|---|---|
+| A | `1073741844` | 花间茶会·一条龙 | 149,594 B | `1c7c3f1a4371dd6ecfb079e6e3e3ffd80cf0a55bb557d65687e709bfaa7bc477` |
+| B | `1073741845` | 霜华纪·容器一条龙 | 240,111 B | `46e54f3353dbdb958ec36a8c5ff7b9c78b214092fa0325944ea6bd8d5f9bd7e0` |
 
 路径：`<LocalLow>/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/<ID>.gil`
-（Save_Level 与 Temp 同 sha；sha 见仓库交付记录 `docs/`/提交说明）。
+（Save_Level 与 Temp 同 sha；两份都已注册进 `.gip`，编辑器存档列表可见）。交付提交：`4db3fdc6`。
+
+**地图 A（花间茶会）资产**
+
+| 资产 | ID |
+|---|---|
+| 容器模板组 / 节点 | `1073741845` / `1073741846` |
+| 模板占位子控件 `tea_anchor`（1×1 @ -2000,-2000，防编辑器剪空容器） | `1073741850` |
+| 布局实例组 / 节点（`f504=默认布局 1073741825`、族 3 引用模板组） | `1073742500` / `1073742501` |
+| 实例子控件 `tea_anchor`（随模板复制） | `1073742502` |
+| 脚本 `main`（guid `1073741825`）+ 挂载 | 只在布局实例节点 `1073742501` 上 |
+| 设备版 Lua 烘焙模板 ID | `prim=1073741847 / label=1073741848 / hit=1073741849`（本图真实模板） |
+
+**地图 B（霜华纪）资产**
+
+| 资产 | ID |
+|---|---|
+| 容器模板组 / 节点 | `1073742500` / `1073742501` |
+| 布局实例组 / 节点（新 CLI 生成） | `1073742502` / `1073742503` |
+| 占位子控件 `ganyu_anchor`（1×1 @ -2000,-2000） | `1073742499` |
+| 脚本 `ganyu_main`（guid `1073741825`）+ 挂载 | 布局实例节点 `1073742503` |
+| 三个客户端模板 | `ganyu_prim=1073741930 / ganyu_label=1073741931 / ganyu_hit=1073741932` |
+
+**复现命令（A/B 同一套，B 多一步删除旧实例）**
+
+```bash
+GSTS="node dist/src/cli/gsts.js"
+# A
+$GSTS maps:clone --from workspace/flower-tea/device-package/1073741843.after-import-20261029.gil \
+  --name '花间茶会·一条龙'
+$GSTS assets:ui create --type client-textbox --on container:1073741846 --name tea_anchor \
+  --gil <新图.gil> --write --yes        # 占位子控件（防剪）
+$GSTS assets:ui container instantiate --gil <新图.gil> --container 1073741845 --write --yes
+$GSTS assets:scripts update --gil <新图.gil> --name main --source-file <烘本图模板ID的.lua> \
+  --map-id <新图ID> --write            # 设备版 Lua 的 T.tpl 必须换成本图模板 ID
+$GSTS assets:scripts unmount --gil <新图.gil> --host 1073741846 --script 1073741825 --write  # 只留布局节点挂载
+$GSTS maps:resync --map-id <新图ID>
+# B
+$GSTS maps:clone --from workspace/ganyu/device-package/1073741842.final.gil --name '霜华纪·容器一条龙'
+$GSTS assets:ui delete <旧布局实例组> --gil <新图.gil> --write --yes
+$GSTS assets:ui container instantiate --gil <新图.gil> --container 1073742500 --write --yes
+$GSTS assets:ui create --type client-textbox --on container:1073742503 --name ganyu_anchor \
+  --gil <新图.gil> --write --yes
+$GSTS assets:scripts mount --gil <新图.gil> --host 1073742503 --script 1073741825 --write
+$GSTS maps:resync --map-id <新图ID>
+```
 
 **试玩步骤（用户）**：编辑器打开该图 → **切出再切回**（编辑器内存版否则仍是旧的）→ 试玩。
 - 图 A 期望：花间茶会 2D 界面（Lua 从 3 个模板 `prim/label/hit` 动态创建全部控件；脚本已把 `T.tpl` 重新烘成本图真实模板 ID）。
