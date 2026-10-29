@@ -8,6 +8,7 @@ T.tpl = { prim = __GUID_PRIM__, label = __GUID_LABEL__, hit = __GUID_HIT__ }
 T.ev = {}
 T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
 T.kindOf = {}
+T.idxOf = {}
 T.tweens, T.anims, T.pos = {}, {}, {}
 T.overlays = {}
 T.overlay = nil
@@ -98,6 +99,17 @@ T.destroy = function(ctl)
   if not ok then T.warn('pcall fail destroy :: ' .. tostring(err)) end
   return ok
 end
+-- 真机 DestroyClientUIControl 会稳定失败一批（2026-10-29 日志 img:20）。
+-- 失败时至少让控件不可见/不挡点击：停用 + 挪出屏幕（SetVisible 在真机不可靠）。
+T.destroySafe = function(ctl)
+  if not ctl then return true end
+  local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
+  if not ok then
+    pcall(function() ctl:SetActive(false) end)
+    pcall(function() ctl:SetAnchoredPosition(0, -100000) end)
+  end
+  return ok
+end
 -- 销毁并从台账里摘除（战斗粒子必须走这条，否则 T.controls 无限增长）
 T.destroyCtl = function(ctl)
   if not ctl then return end
@@ -105,7 +117,9 @@ T.destroyCtl = function(ctl)
     if T.controls[i] == ctl then table.remove(T.controls, i) break end
   end
   T.pos[ctl] = nil
-  T.destroy(ctl)
+  T.destroySafe(ctl)
+  T.kindOf[ctl] = nil
+  T.idxOf[ctl] = nil
 end
 T.inst = function(guid, parent)
   local ok, ctl = pcall(function() return game.InstantiateClientUIControl(guid, parent or T.root) end)
@@ -144,6 +158,7 @@ T.img = function(x, y, w, h, shape, color, rot)
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
   T.kindOf[ctl] = 'img'
+  T.idxOf[ctl] = #T.controls
   return ctl
 end
 T.imgRaw = function(x, y, w, h, shape, color, rot)
@@ -157,6 +172,7 @@ T.imgRaw = function(x, y, w, h, shape, color, rot)
   T.setColor(ctl, color or T.P.white)
   T.controls[#T.controls + 1] = ctl
   T.kindOf[ctl] = 'img'
+  T.idxOf[ctl] = #T.controls
   return ctl
 end
 
@@ -194,6 +210,7 @@ T.txt = function(x, y, w, h, size, text, color, align, valign, opts)
   T.controls[#T.controls + 1] = ctl
   T.texts[#T.texts + 1] = ctl
   T.kindOf[ctl] = 'txt'
+  T.idxOf[ctl] = #T.controls
   T.pos[ctl] = { x = px, y = y }
   return ctl
 end
@@ -420,6 +437,7 @@ T.hit = function(name, x, y, w, h, opts)
   end)
   T.controls[#T.controls + 1] = ctl
   T.kindOf[ctl] = 'hit'
+  T.idxOf[ctl] = #T.controls
   T.hits[name] = ctl
   return ctl
 end
@@ -551,27 +569,28 @@ T.clearScreen = function()
   for i = #T.controls, 1, -1 do
     local ctl = T.controls[i]
     if ctl then
-      local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
+      local ok = T.destroySafe(ctl)
       if ok then
         n = n + 1
       else
         fail = fail + 1
         local k = T.kindOf[ctl] or '?'
         byKind[k] = (byKind[k] or 0) + 1
-        -- 销毁失败时至少让它不可见/不挡点击：停用 + 移出屏幕
-        pcall(function() ctl:SetActive(false) end)
-        pcall(function() ctl:SetAnchoredPosition(0, -100000) end)
+        if not byKind.first then byKind.first = (T.idxOf[ctl] or -1) end
       end
     end
   end
   T.kindOf = {}
+T.idxOf = {}
   if fail > 0 then
     local parts = {}
     for k, v in pairs(byKind) do parts[#parts + 1] = k .. ':' .. v end
-    T.warn('pcall fail clear screen fail=' .. fail .. ' kinds=' .. table.concat(parts, ','))
+    T.warn('pcall fail clear screen fail=' .. fail .. ' kinds=' .. table.concat(parts, ',') ..
+      ' firstIdx=' .. tostring(byKind.first or -1) .. ' total=' .. #T.controls)
   end
   T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
 T.kindOf = {}
+T.idxOf = {}
   T.tweens, T.anims, T.pos = {}, {}, {}
   T.focus = 0
   T.focusFrame = nil
@@ -706,7 +725,12 @@ T.closeOverlay = function()
   if not o then return end
   for i = #T.controls, o.controlsStart, -1 do
     local ctl = T.controls[i]
-    if ctl then pcall(function() game.DestroyClientUIControl(ctl) end); T.pos[ctl] = nil end
+    if ctl then
+      if not T.destroySafe(ctl) then T.warn('pcall fail overlay destroy pos=' .. i) end
+      T.pos[ctl] = nil
+      T.kindOf[ctl] = nil
+      T.idxOf[ctl] = nil
+    end
     T.controls[i] = nil
   end
   T.items, T.hits, T.focus, T.focusFrame = o.items, o.hits, o.focus, o.focusFrame
@@ -806,7 +830,7 @@ T.toast = function(text, color, icon)
           local c = ps[i]
           for j = #T.controls, 1, -1 do if T.controls[j] == c then table.remove(T.controls, j) end end
           T.pos[c] = nil
-          T.destroy(c)
+          T.destroySafe(c)
         end
         T.toastSet = nil
       end, nil, true)

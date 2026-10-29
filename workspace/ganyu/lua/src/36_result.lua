@@ -113,7 +113,7 @@ T.screenFns.result = function(params)
   end
 
   -- 奖励
-  local ry = cy - 88
+  local ry = cy - 68
   T.txt(cx - 300, ry + 6, 120, 24, 12, win and '奖励' or '未获得奖励', T.th.text3, 'Left', 'Middle')
   if win then
     for i, rw in ipairs(st.reward) do
@@ -132,8 +132,17 @@ T.screenFns.result = function(params)
     T.chip(226, ry - 56, 'Lv.' .. T.hero.level .. ' 已提升', T.th.accent2, { fill = T.th.accentSoft })
   end
 
-  -- 按钮：结算（官方）为主，其余保留模板循环
-  local by = cy - h / 2 + 66
+  -- 按钮：先鼓励继续（主），结算收进底部小字链接 + 二次确认，避免误触
+  local by = cy - h / 2 + 96
+  local nextStage = nil
+  if win and T.stages[st.id + 1] then nextStage = T.stages[st.id + 1] end
+  local remaining = 0
+  for _, s2 in ipairs(T.stages) do
+    if (T.records.stars[s2.id] or 0) == 0 then remaining = remaining + 1 end
+  end
+  local function backToMap()
+    T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
+  end
   local function finishSettle()
     T.sfx(T.SFX.confirm)
     if not T.sendSettle(win) then
@@ -143,23 +152,47 @@ T.screenFns.result = function(params)
       T.toast('已请求关卡结算 · 即将进入官方结算页', T.th.accent2)
     end
   end
-  T.button(cx - 285, by, 170, 52, '再次挑战', function()
-    T.go('battle', { stage = st.id })
-  end, { kind = 'secondary', name = 'hit_result_retry' })
-  T.button(cx - 95, by, 170, 52, win and '下一关' or '返回地图', function()
-    if win and T.stages[st.id + 1] then
-      T.go('prepare', { stage = st.id + 1 })
+  local primaryLabel, primaryAction
+  if win then
+    if nextStage then
+      primaryLabel = '继续 · ' .. nextStage.code .. ' ' .. nextStage.name
+      primaryAction = function() T.go('prepare', { stage = nextStage.id }) end
     else
-      T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
+      primaryLabel = '回到霜原'
+      primaryAction = backToMap
     end
-  end, { kind = 'secondary', name = 'hit_result_next' })
-  T.button(cx + 95, by, 170, 52, '结算并结束', finishSettle,
-    { kind = 'primary', name = 'hit_result_settle', icon = 'snow', iconSize = 7 })
-  T.button(cx + 285, by, 170, 52, '返回地图', function()
-    T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 })
-  end, { kind = 'ghost', name = 'hit_result_map' })
-  T.txt(cx, by - 48, 640, 22, 11, '「结算并结束」会请服务端触发关卡结算，进入官方结算页（E 键同效）', T.th.text3, 'Middle', 'Middle')
-
+  else
+    primaryLabel = '再来一次'
+    primaryAction = function() T.go('battle', { stage = st.id }) end
+  end
+  T.button(cx, by, 340, 58, primaryLabel, primaryAction,
+    { kind = 'primary', name = 'hit_result_continue', size = 19 })
+  if win then
+    T.button(cx - 238, by, 170, 46, '再战本关', function() T.go('battle', { stage = st.id }) end,
+      { kind = 'secondary', name = 'hit_result_retry' })
+    T.button(cx + 238, by, 170, 46, '返回地图', backToMap,
+      { kind = 'ghost', name = 'hit_result_map' })
+  else
+    T.button(cx - 220, by, 180, 46, '返回地图', backToMap,
+      { kind = 'ghost', name = 'hit_result_map' })
+  end
+  -- 结算：小字链接（不显眼、需二次确认）
+  local settleLink = T.txt(cx, by - 54, 240, 22, 12, '结束挑战并结算', T.th.text3, 'Middle', 'Middle')
+  T.item({
+    x = cx, y = by - 54, w = 220, h = 30, name = 'hit_result_settle', focusPad = 2,
+    onConfirm = function()
+      T.openConfirm('结束挑战并结算？', '将立即进入官方结算页；本局按当前结算状态记录。', finishSettle)
+    end,
+    onFocus = function(on) T.setTxtColor(settleLink, on and T.th.accent2 or T.th.text3) end,
+  })
+  local encourage
+  if win then
+    encourage = remaining > 0 and ('霜原还有 ' .. remaining .. ' 处雪线未走完，下一站的风更冷一点。')
+      or '雪原的尽头还有一段旧誓，等你去读。'
+  else
+    encourage = '风会记得你下一次拉满的弓。'
+  end
+  T.txt(cx, by - 84, 660, 22, 11, encourage, T.th.text3, 'Middle', 'Middle')
   T.txt(0, -338, 900, 22, 11, win and '「雪会记得每一支箭落下的地方。」' or '「风停了。下一次，把弓拉满一些。」',
     T.th.text3, 'Middle', 'Middle')
 
@@ -170,9 +203,8 @@ T.screenFns.result = function(params)
     elseif a == 'left' then T.moveFocus(-1, 0)
     elseif a == 'right' then T.moveFocus(1, 0)
     elseif a == 'confirm' then T.confirmFocus()
-    elseif a == 'skill' then finishSettle()
     elseif a == 'back' then T.go('map', { chapter = st.chapter, sel = ((st.id - 1) % 3) + 1 }) end
   end
-  T.screen.defaultFocus = 3
+  T.screen.defaultFocus = 1
   T.log('result win=' .. tostring(win) .. ' stars=' .. tostring(params.stars) .. ' score=' .. tostring(params.score))
 end

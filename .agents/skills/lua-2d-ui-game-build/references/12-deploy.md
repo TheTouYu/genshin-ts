@@ -454,3 +454,35 @@ $GSTS assets:mounts attach 1094713345 --graph <graphId> --entity --gil "$MAP" --
 只有客户端 `settle signal sent` 而没有 `ganyu-settle-recv` ⇒ 图没挂对（多半挂在 def 层或没挂）。
 
 **UI 侧**：结算屏给一个显式「结算并结束」主按钮（本例 `hit_result_settle` + `E` 键），不要指望自动——玩家可能想先看战绩或再来一次。
+
+
+### 9.6 一分钟宽限：中途退出按胜利结算（2026-10-29 用户令）
+
+**需求**：玩家游玩超过 1 分钟后退出，按胜利结算（大部分游戏适用的留存友好规则）。
+**官方语义**（`official-guide-concepts.md:7664-7678`）：结算状态是每个玩家的属性，由「逃跑合法性」+「结算状态」两个字段构成；
+逃跑合法性=否 ⇒ 退出必为「逃跑」；=是 时才看结算状态（胜利/失败/未定）。**结算时读的是当前值**。
+
+所以「1 分钟后退出=胜利」= **满 1 分钟时把该玩家的逃跑合法性置真、结算状态置胜利**，之后他退出就按胜利结算：
+
+```ts
+const graph = g.server({ id: GRAPH_ID, variables: { graceArmed: false } })
+  .on('whenEntityIsCreated', (_e, f) => {          // 图起手只跑一次（变量守卫）
+    if (f.get('graceArmed')) return
+    f.set('graceArmed', true)
+    setTimeout(() => {                              // 服务端图内的 setTimeout，毫秒
+      const ps = f.getListOfPlayerEntitiesOnTheField()
+      if (f.getListLength(ps) > 0n) {
+        const p = f.getCorrespondingValueFromList(ps, 0n)
+        f.setPlayerEscapeValidity(p, true)                    // 允许正常离开
+        f.setPlayerSettlementSuccessStatus(p, SettlementStatus.Victory)  // 按胜利
+      }
+    }, 60000)
+  })
+  .onSignal(Signal.ganyu_settle, (evt, f) => { /* 主动结算：胜负由参数决定 */ })
+```
+
+**要点**
+- `whenEntityIsCreated` 会为每个实体触发 ⇒ **必须用图变量守卫**，否则起 N 个定时器。
+- 定时器只对**当前在场玩家**生效；多人/中途加入时要在玩家进入事件里补一次（单机模板取 list[0] 足够）。
+- 顺序：先 `setPlayerEscapeValidity(true)`，再 `setPlayerSettlementSuccessStatus(Victory)`；两个都在 60s 定时器里做，不要提前做（提前置胜利会让前 60 秒失败也算胜利）。
+- 判据：真机日志出现 `ganyu-grace-arm`（0s）→ `ganyu-grace-victory`（60s）；60s 后中途退出，官方结算页显示胜利。

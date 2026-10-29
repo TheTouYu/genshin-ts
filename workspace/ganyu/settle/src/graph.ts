@@ -12,7 +12,24 @@ import { SettlementStatus } from 'genshin-ts/definitions/enum'
 import { Signal } from './resources/signals.js'
 
 const graph = g
-  .server({ id: 1073741825 })
+  .server({ id: 1073741825, variables: { graceArmed: false } })
+  // 60 秒宽限：游玩超过 1 分钟后退出，按「胜利」结算（官方语义 = 逃跑合法性=是 + 结算状态=胜利）
+  .on('whenEntityIsCreated', (_e: any, f: any) => {
+    if (f.get('graceArmed')) return
+    f.set('graceArmed', true)
+    f.printString('ganyu-grace-arm')
+    setTimeout(() => {
+      const ps = f.getListOfPlayerEntitiesOnTheField()
+      if (f.getListLength(ps) > 0n) {
+        const p = f.getCorrespondingValueFromList(ps, 0n)
+        f.setPlayerEscapeValidity(p, true)
+        f.setPlayerSettlementSuccessStatus(p, SettlementStatus.Victory)
+        f.printString('ganyu-grace-victory')
+      } else {
+        f.printString('ganyu-grace-noplayer')
+      }
+    }, 60000)
+  })
   .onSignal(Signal.ganyu_settle, (evt: any, f: any) => {
     f.printString('ganyu-settle-recv')
     const players = f.getListOfPlayerEntitiesOnTheField()

@@ -94,6 +94,11 @@
       "t": 14.4,
       "kind": "click",
       "name": "hit_result_settle"
+    },
+    {
+      "t": 15.0,
+      "kind": "click",
+      "name": "hit_confirm_ok"
     }
   ],
   "asserts": [
@@ -128,7 +133,7 @@
       "source": "client"
     },
     {
-      "at": 14.8,
+      "at": 15.6,
       "kind": "log",
       "contains": "settle signal",
       "source": "client"

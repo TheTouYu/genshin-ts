@@ -154,6 +154,24 @@ end
 - 所以模板 GUID 要写成**候选表**逐个试：`TEMPLATE_GUIDS = { 真机值, authoring值 }`，探测成功才继续。
 - 服务端 textbox 按 **name** 寻址最稳（不受重编号影响）。
 
+## 4c. 关闭弹层必须走「销毁失败兜底」（2026-10-29 真机小窗口）
+
+真机实测：`DestroyClientUIControl` **每屏稳定失败 20 个图片实例**（日志 `clear screen fail=20 kinds=img:20`）。`T.clearScreen` 有兜底，但 `T.closeOverlay` 早期版本没有 → **暂停再继续后残留一个异常小窗口**（弹层的阴影/面板图片没销毁掉）。
+
+规则：
+```lua
+-- 唯一的销毁入口：失败就 SetActive(false) + 挪出屏幕（SetVisible 真机不可靠）
+function T.destroySafe(ctl)
+  local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
+  if not ok then
+    pcall(function() ctl:SetActive(false) end)
+    pcall(function() ctl:SetAnchoredPosition(0, -100000) end)
+  end
+  return ok
+end
+```
+`clearScreen`、`closeOverlay`、`toast` 清理、粒子回收全部走它；失败时按 `kind`（img/txt/hit）与**控件序号**打一条日志，下一轮才能定位是哪批控件。
+
 ## 5. `pcall` 与静默失败
 
 真机字段写入可能抛错（`SetVisible` 严格计参、对齐只收枚举），所以每个字段写都包 `pcall`：
