@@ -22,6 +22,7 @@
 | `assets:ui` / `assets:node-graphs` / `assets:mounts` / `assets:signals` | UI/图挂载/信号 | 对应 `assets_*.ts` |
 | `assets:scripts` | Lua 脚本登记表 f50（list/register/update + external_lua_file + Temp 同步） | `assets_scripts.ts`、`gil_scripts.ts` |
 | `client:sim` | 千星模拟器 headless 桥接（get/patch/playStart/playRun/playStop，spawn 模拟器 studio/cli.mjs） | `client_sim.ts` |
+| `sim:import` | 模拟器 GIA → 地图 .gil 落地**覆盖分析**（只读；三栏：能力 / 目标图已有 / 脚本 GUID 漂移） | `sim_import.ts` |
 | `image:*` | 图片素材导入/导出（SVG/CSS/JSON ↔ GIA image） | `image_editor.ts` |
 | `maps` | 地图创建/打开/同步 Temp | `maps.ts`、`gil_paths.ts` |
 | `maps:create` / `maps:init` / `maps:resync` / `maps:rename` | 建图 / 补引擎骨架 root 3-49（首次保存门槛）/ 同步编辑器 Temp + gip 注册 / 改名 | `maps.ts` |
