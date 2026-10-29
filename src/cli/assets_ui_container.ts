@@ -15,6 +15,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 import {
+  clientUiRootStatus,
+  ensureClientUiHierarchyRoots,
   inventoryContainers,
   layoutInstancesOf,
   newTemplatesSince,
@@ -53,12 +55,14 @@ export function containerUsage(): string {
     '  instantiate    把容器模板整棵子树复制成布局实例（脚本挂载随记录复制到布局节点）',
     '                 gsts assets:ui container instantiate --gil <file> [--baseline <before.gil>]',
     '                 [--container <ID|名字|all>] [--layout <ID|名字>] [--id <实例组ID>] [--force]',
+    '                 [--placeholder-name <占位子控件名>] [--system-donor <含87/88根的.gil>]',
     '                 [--output <file> | --write --yes] [--format text|json]',
     '  save-template  把实例复制成容器模板（实例改指新模板 + 同名去重；源实例保留）',
     '                 gsts assets:ui container save-template --instance <ID|名字> [--gil <file>]',
     '                 [--name <新模板名>] [--id <模板组ID>] [--output <file> | --write --yes]',
     '',
     '  判别与装配全部由记录推导（族描述符 4=模板 / 3=实例、f503 成员表、f504 父引用、f74 挂载槽）；',
+    '  前置：地图必须已有 ClientUI 层级根（fam 87/88），否则编辑器打开会自建并丢弃容器子树',
     '  不接受 donor 常量，也不读 GIA 文件名。--format json 时机器可读摘要走 stdout。',
     '  --write 须附 --yes：写回前自动备份并把候选同步到编辑器 Temp 目录。'
   ].join('\n')
@@ -72,6 +76,9 @@ interface ParsedContainerArgs {
   layout?: string
   instance?: string
   name?: string
+  placeholderName?: string
+  systemDonor?: string
+  allowMissingRoots?: boolean
   id?: number
   outputPath?: string
   write: boolean
@@ -116,6 +123,15 @@ function parseContainerArgs(argv: readonly string[]): ParsedContainerArgs {
         break
       case '--name':
         args.name = readValue(++i, '--name')
+        break
+      case '--placeholder-name':
+        args.placeholderName = readValue(++i, '--placeholder-name')
+        break
+      case '--system-donor':
+        args.systemDonor = readValue(++i, '--system-donor')
+        break
+      case '--allow-missing-roots':
+        args.allowMissingRoots = true
         break
       case '--id': {
         const raw = readValue(++i, '--id')
@@ -290,6 +306,35 @@ export function runContainerCommand(argv: readonly string[], context: ContainerC
     const layoutId = resolveLayout(parsed, args.layout)
     const selected = selectionOf(inventory, args, baselineIds)
     let bytes = context.sourceBytes
+    // ClientUI 层级根（fam 87/88）预检：缺了编辑器会自建并丢弃容器子树（2026-10-29 事故）
+    let rootInfo: Record<string, unknown> = { present: clientUiRootStatus(bytes) }
+    if (rootInfo.present && (rootInfo.present as { missing: number[] }).missing.length > 0) {
+      if (args.systemDonor !== undefined) {
+        const donorBytes = readFileBytes(args.systemDonor)
+        const ensured = ensureClientUiHierarchyRoots(bytes, { donor: donorBytes })
+        bytes = ensured.bytes
+        rootInfo = { donor: path.resolve(args.systemDonor), added: ensured.added, present: ensured.status }
+        log(
+          `system-roots added=[${ensured.added.map((item) => `${item.id}:${item.name}`).join(',')}] ` +
+            `from ${path.resolve(args.systemDonor)}`
+        )
+      } else if (args.allowMissingRoots) {
+        rootInfo = { ...rootInfo, allowed: true }
+        log(
+          'WARN: 地图缺 ClientUI 层级根（fam 87/88）——编辑器打开时会自建并丢弃容器子树；' +
+            '已按 --allow-missing-roots 继续'
+        )
+      } else {
+        throw new Error(
+          '[error] 地图缺 ClientUI 层级根（fam 87/88：ClientUIRootHierarchyRoot / ' +
+            'ClientUIPrototypeHierarchyRoot）。编辑器打开这种图会自建两条根并丢弃/重编号' +
+            '客户端容器子树（挂载随之丢失，2026-10-29 事故）。\n' +
+            '  修法：给 --system-donor <一条已含层级根的地图.gil>（只读，复制这两条根，' +
+            '例：Save_Level/1073741844.gil 或 1073741834/1073741834.gil）；' +
+            '确知后果时可用 --allow-missing-roots 强制继续。'
+        )
+      }
+    }
     const created: Array<Record<string, unknown>> = []
     for (const [index, template] of selected.entries()) {
       const existing = layoutInstancesOf(inventoryContainers(bytes), template.groupId, layoutId)
@@ -305,7 +350,8 @@ export function runContainerCommand(argv: readonly string[], context: ContainerC
       const result = instantiateContainerTemplate(bytes, {
         templateGroupId: template.groupId,
         layoutId,
-        ...(args.id !== undefined && selected.length === 1 ? { id: args.id + index } : {})
+        ...(args.id !== undefined && selected.length === 1 ? { id: args.id + index } : {}),
+        ...(args.placeholderName !== undefined ? { placeholderName: args.placeholderName } : {})
       })
       bytes = result.bytes
       created.push({
@@ -316,13 +362,15 @@ export function runContainerCommand(argv: readonly string[], context: ContainerC
         copiedRecords: result.copiedRecords,
         childCount: result.childCount,
         transferredMounts: result.transferredMounts,
+        placeholders: result.placeholders,
         selfCheck: result.selfCheck
       })
       log(
         `instance template=${result.templateGroupId} -> group=${result.instanceGroupId} ` +
           `node=${result.instanceNodeId} records=${result.copiedRecords} children=${result.childCount} ` +
           `mounts={${result.transferredMounts.map((m) => `${m.hostId}->${m.scriptGuids.join('+')}`).join(',') || '无'}} ` +
-          'selfCheck=pass'
+          `placeholders={${result.placeholders.map((p) => `${p.nodeId}->${p.childId}`).join(',') || '已有'}} ` +
+          'selfCheck=pass(nodes/placeholders/mounts/birefs/index)'
       )
     }
     const summary: Record<string, unknown> = {
@@ -331,6 +379,7 @@ export function runContainerCommand(argv: readonly string[], context: ContainerC
       gilPath: context.gilPath,
       sourceSha256: context.sourceHash,
       layoutId,
+      systemRoots: rootInfo,
       created
     }
     summary.candidateSha256 = sha256(bytes)

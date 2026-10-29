@@ -32,6 +32,8 @@ import {
   type WireField
 } from '../../src/cli/static_assembly/wire.js'
 import { collectCompTypes, extractMemberIds, firstVarint, packedVarints, parseRoot9 } from './record.js'
+import { updateUiControl } from '../../src/cli/gil_ui.js'
+import { createClientControlCandidate } from './create.js'
 import type { ParsedRoot9 } from './record.js'
 
 /** 控件 ID 段下界（root9 记录 ID 与引用 ID 都在 0x40000000 段） */
@@ -497,24 +499,23 @@ function ownIdOfField(field: WireField): number | undefined {
 }
 
 /**
- * root9 顶层索引（f501）重建 = **全部无 f504 的记录，按物理顺序**。
- * 编辑器实测（1073741843.after-import2 / 1073741840.after-layout-templates）：
- * 模板组、容器节点、布局、库根、层级根在索引里；实例组（有 f504）与控件子件（有 f504）不在。
- * 索引顺序必须与记录物理顺序单调一致（D558 整图写回事故的判据之一）。
+ * root9 顶层索引（f501）**追加**新根记录 ID（已存在则跳过；绝不重排/清空既有顺序）。
+ *
+ * 事实依据：编辑器自己的索引顺序不等于记录物理顺序 —— 1073741842 的索引是
+ * `1932,1931,1930,1825,1840,1841,1842`（模板新→旧，再布局/库/系统根），而物理顺序是
+ * `1825…,1840,1841,1842,1930,1931,1932,2500,2501,2502,2503,2540`。
+ * 2026-10-29 的事故里我按「物理顺序重建索引」把既有顺序改写了 → 交付给编辑器时
+ * 结构不再与它自己写出的一致。故这里只做**追加**：新容器节点入索引（编辑器产物里
+ * 节点都在索引里），既有顺序与既有缺项（旧 CLI 留下的未入索引记录）一律不动。
  */
-function rebuildIndexFromParentless(section: WireField[]): void {
+function appendIndexEntries(section: WireField[], ids: readonly number[]): void {
   const indexField = section.find((field) => field.number === SELF_FIELD && field.wire === 2)
   if (!indexField) throw new Error('[error] root9 顶层索引（f501）缺失')
-  const ids: number[] = []
-  for (const field of section) {
-    if (field.number !== FAMILY_TYPE_FIELD || field.wire !== 2) continue
-    const fields = parseWireMessage(field.value as Uint8Array)
-    if (!fields) continue
-    const id = firstVarint(fields, SELF_FIELD)
-    if (id === undefined) continue
-    if (firstVarint(fields, PARENT_FIELD) === undefined) ids.push(id)
-  }
-  indexField.value = encodePackedVarints(ids)
+  const current = decodePackedVarints(indexField.value as Uint8Array)
+  if (!current) throw new Error('[error] root9 顶层索引不是 packed varints')
+  const additions = ids.filter((id) => !current.includes(id))
+  if (additions.length === 0) return
+  indexField.value = encodePackedVarints([...current, ...additions])
 }
 
 function insertRecords(section: WireField[], records: readonly Uint8Array[]): void {
@@ -525,18 +526,14 @@ function insertRecords(section: WireField[], records: readonly Uint8Array[]): vo
 }
 
 /**
- * 索引自检：①集合 = 全部无 f504 记录；②顺序 = 记录物理顺序（D558 整图写回事故的判据）。
+ * 索引自检（**无悬空**）：索引里每个 ID 必须对应真实记录。
+ * 注意：不能要求「索引 == 全部无 f504 记录」——1073741842 这类旧 CLI 写的地图里
+ * 容器组/节点并未入索引，编辑器仍正常打开；硬按物理顺序重建反而会改写编辑器顺序。
  */
-function assertIndexInvariant(parsed: ParsedRoot9): void {
-  const parentless = parsed.records
-    .filter((record) => record.parentId === null)
-    .map((record) => record.id)
-  const indexed = [...parsed.indexIds]
-  if (parentless.join(',') !== indexed.join(',')) {
-    throw new Error(
-      '[error] 自检失败：root9 顶层索引与「无 f504 记录按物理顺序」不一致\n' +
-        `  parentless=${parentless.join(',')}\n  index     =${indexed.join(',')}`
-    )
+function assertIndexNoDangling(parsed: ParsedRoot9): void {
+  const dangling = [...parsed.indexIds].filter((id) => !parsed.recordsById.has(id))
+  if (dangling.length > 0) {
+    throw new Error(`[error] 自检失败：root9 顶层索引含悬空记录 ${dangling.join(',')}`)
   }
 }
 
@@ -628,8 +625,14 @@ function usedIds(parsed: ParsedRoot9): Set<number> {
   return used
 }
 
-function allocateRun(parsed: ParsedRoot9, count: number, explicit?: number): number[] {
+function allocateRun(
+  parsed: ParsedRoot9,
+  count: number,
+  explicit?: number,
+  avoid: readonly number[] = []
+): number[] {
   const used = usedIds(parsed)
+  for (const id of avoid) used.add(id)
   const start = explicit ?? CONTAINER_SAFE_ID_FLOOR
   if (!Number.isSafeInteger(start) || start < CONTAINER_SAFE_ID_FLOOR) {
     throw new Error(`[error] --id 须 >= ${CONTAINER_SAFE_ID_FLOOR}（低位会被编辑器特殊根/模板实例占用）`)
@@ -648,6 +651,286 @@ function allocateRun(parsed: ParsedRoot9, count: number, explicit?: number): num
 }
 
 /* ------------------------------------------------------------------ *
+ * 占位子控件（空容器节点会被编辑器保存时剪掉 → 挂载丢失）
+ * ------------------------------------------------------------------ */
+
+/** 占位子控件默认名 / 位置 / 尺寸（1×1 在屏幕外；2026-10-29 B 事故后固化） */
+export const PLACEHOLDER_CONTROL_NAME = 'gsts_anchor'
+export const PLACEHOLDER_POSITION: readonly [number, number] = [-2000, -2000]
+export const PLACEHOLDER_SIZE: readonly [number, number] = [1, 1]
+
+export interface EnsurePlaceholderResult {
+  bytes: Uint8Array
+  nodeId: number
+  added: boolean
+  childId?: number
+}
+
+/** 节点的现有子控件 ID（成员表 ∩ 记录存在；再并上 f504 指向它的记录） */
+function childIdsOf(parsed: ParsedRoot9, nodeId: number): number[] {
+  const out: number[] = []
+  const node = parsed.recordsById.get(nodeId)
+  if (node) {
+    for (const id of extractMemberIds(node.fields)) {
+      if (parsed.recordsById.has(id) && !out.includes(id)) out.push(id)
+    }
+  }
+  for (const record of parsed.records) {
+    if (record.parentId === nodeId && !out.includes(record.id)) out.push(record.id)
+  }
+  return out
+}
+
+/**
+ * 保证容器节点至少有一个占位子控件。
+ *
+ * 依据（真机事故 + D662）：**空的客户端控件容器节点会被编辑器保存时剪掉**，
+ * 连带丢掉脚本挂载（`mounts=0`），且节点 ID 可能被编辑器改分配给
+ * ClientUIRootHierarchyRoot / ClientUIPrototypeHierarchyRoot。故布局实例与模板节点
+ * 都必须带至少一个子控件；占位件用 1×1 放到屏幕外（-2000,-2000），ID 走 >= 1073742500 安全段。
+ */
+export function ensureContainerPlaceholder(
+  bytes: Uint8Array,
+  options: { nodeId: number; name?: string; id?: number; avoid?: readonly number[] }
+): EnsurePlaceholderResult {
+  const parsed = parseRoot9(bytes)
+  const node = parsed.recordsById.get(options.nodeId)
+  if (!node) throw new Error(`[error] 容器节点不存在: ${options.nodeId}`)
+  if (node.kind !== 'client-container-node') {
+    throw new Error(`[error] ${options.nodeId} 不是容器节点（kind=${node.kind}）`)
+  }
+  const existing = childIdsOf(parsed, options.nodeId)
+  if (existing.length > 0) {
+    return { bytes, nodeId: options.nodeId, added: false }
+  }
+  const newId = allocateRun(parsed, 1, options.id, options.avoid ?? [])[0]
+  const created = createClientControlCandidate(bytes, {
+    kind: 'client-textbox',
+    surface: { kind: 'container', containerId: options.nodeId },
+    id: newId,
+    name: options.name ?? PLACEHOLDER_CONTROL_NAME
+  })
+  const positioned = updateUiControl(created.bytes, newId, {
+    position: [...PLACEHOLDER_POSITION] as [number, number],
+    size: [...PLACEHOLDER_SIZE] as [number, number]
+  })
+  const after = parseRoot9(positioned.bytes)
+  const child = after.recordsById.get(newId)
+  if (!child) throw new Error(`[error] 占位子控件写入失败: ${newId}`)
+  if (child.parentId !== options.nodeId) {
+    throw new Error(`[error] 占位子控件 f504 不是容器节点（${child.parentId} != ${options.nodeId}）`)
+  }
+  const nodeAfter = after.recordsById.get(options.nodeId)
+  if (!nodeAfter || !extractMemberIds(nodeAfter.fields).includes(newId)) {
+    throw new Error(`[error] 容器节点成员表未包含占位子控件 ${newId}`)
+  }
+  if (newId < CONTAINER_SAFE_ID_FLOOR) {
+    throw new Error(`[error] 占位子控件 ID ${newId} 落在编辑器动态段（< ${CONTAINER_SAFE_ID_FLOOR}）`)
+  }
+  return { bytes: positioned.bytes, nodeId: options.nodeId, added: true, childId: newId }
+}
+
+/* ------------------------------------------------------------------ *
+ * ClientUI 层级根（fam 87/88）——编辑器打开容器图的前提
+ * ------------------------------------------------------------------ */
+
+/** 编辑器系统层级根族号：87=ClientUIRootHierarchyRoot，88=ClientUIPrototypeHierarchyRoot */
+export const CLIENT_UI_ROOT_FAMILY = 87
+export const CLIENT_UI_PROTOTYPE_ROOT_FAMILY = 88
+export const CLIENT_UI_ROOT_NAMES: Record<number, string> = {
+  [CLIENT_UI_ROOT_FAMILY]: 'ClientUIRootHierarchyRoot',
+  [CLIENT_UI_PROTOTYPE_ROOT_FAMILY]: 'ClientUIPrototypeHierarchyRoot'
+}
+
+export interface ClientUiRootStatus {
+  rootId?: number
+  prototypeRootId?: number
+  missing: number[]
+}
+
+/** 查地图里是否已有 ClientUI 层级根（fam 87/88） */
+export function clientUiRootStatus(bytes: Uint8Array): ClientUiRootStatus {
+  const parsed = parseRoot9(bytes)
+  const find = (family: number): number | undefined =>
+    parsed.records.find((record) => record.familyTypes.includes(family))?.id
+  const rootId = find(CLIENT_UI_ROOT_FAMILY)
+  const prototypeRootId = find(CLIENT_UI_PROTOTYPE_ROOT_FAMILY)
+  const missing: number[] = []
+  if (rootId === undefined) missing.push(CLIENT_UI_ROOT_FAMILY)
+  if (prototypeRootId === undefined) missing.push(CLIENT_UI_PROTOTYPE_ROOT_FAMILY)
+  return {
+    ...(rootId !== undefined ? { rootId } : {}),
+    ...(prototypeRootId !== undefined ? { prototypeRootId } : {}),
+    missing
+  }
+}
+
+export interface EnsureClientUiRootsResult {
+  bytes: Uint8Array
+  status: ClientUiRootStatus
+  added: Array<{ id: number; name: string; family: number }>
+}
+
+/**
+ * 从 donor 地图**只读复制** ClientUI 层级根（fam 87/88）到目标图，并登记进 root9 顶层索引。
+ *
+ * 为什么必须有：2026-10-29 事故证据（地图 1841 三张快照 + 1842/1845 对照）——
+ *   · 有 87/88 根的地图（1840/1843/1827/1834/1844…）：容器记录跨多次编辑器保存存活；
+ *   · 缺 87/88 根的地图（1841.cli-clean、1842、1845）：**编辑器一打开就自己补根**
+ *     （1841 里补出的根正好占用了我们容器节点用过的 ID），随后整棵客户端容器子树被丢弃/重编号，
+ *     脚本挂载一起没了（`mounts=0`）。
+ * 目标图已有则原样返回；缺哪条补哪条（按 donor 里同名同族记录克隆 + 新 ID 重映射）。
+ */
+export function ensureClientUiHierarchyRoots(
+  bytes: Uint8Array,
+  options: { donor: Uint8Array; id?: number }
+): EnsureClientUiRootsResult {
+  const status = clientUiRootStatus(bytes)
+  if (status.missing.length === 0) return { bytes, status, added: [] }
+  const donorParsed = parseRoot9(options.donor)
+  const templates: Array<{ family: number; record: { raw: Uint8Array; id: number; name: string } }> = []
+  for (const family of status.missing) {
+    const record = donorParsed.records.find((item) => item.familyTypes.includes(family))
+    if (!record) {
+      throw new Error(
+        `[error] donor 地图里没有 fam=${family} 的 ClientUI 层级根（${CLIENT_UI_ROOT_NAMES[family]}）`
+      )
+    }
+    templates.push({ family, record: { raw: record.raw, id: record.id, name: record.name } })
+  }
+  const parsed = parseRoot9(bytes)
+  const ids = allocateRun(parsed, templates.length, options.id)
+  const records: Uint8Array[] = []
+  const added: EnsureClientUiRootsResult['added'] = []
+  templates.forEach((item, index) => {
+    const cloned = cloneFields(
+      parseWireMessage(item.record.raw) ?? [],
+      new Map([[item.record.id, ids[index]]])
+    )
+    records.push(emitWireMessage(cloned))
+    added.push({ id: ids[index], name: item.record.name, family: item.family })
+  })
+  const out = withRoot9Section(bytes, (section) => {
+    insertRecords(section, records)
+    appendIndexEntries(
+      section,
+      added.map((item) => item.id)
+    )
+  })
+  const after = clientUiRootStatus(out)
+  if (after.missing.length > 0) {
+    throw new Error(`[error] ClientUI 层级根复制后仍缺失: ${after.missing.join(',')}`)
+  }
+  return { bytes: out, status: after, added }
+}
+
+export interface ContainerInvariantOptions {
+  templateGroupId: number
+  instanceGroupId: number
+  layoutId: number
+  /** 本次操作新建的记录（这些必须落在 >= 1073742500 安全段；GIA 导入的既有子控件不受限） */
+  createdIds?: readonly number[]
+}
+
+/**
+ * 写后结构不变量（缺一条就抛错，不做"看起来差不多"）：
+ *   ①模板组与布局实例组各自都有容器节点；②每个容器节点至少 1 个子控件，且子控件 f504=该节点；
+ *   ③布局实例继承模板节点的全部脚本挂载；④布局成员表含实例组、模板 f14 含实例组；
+ *   ⑤实例组与模板组的成员表无悬空引用；⑥root9 顶层索引 = 无 f504 记录按物理顺序。
+ */
+export function assertContainerInvariants(
+  bytes: Uint8Array,
+  options: ContainerInvariantOptions
+): { templateChildCount: number; instanceChildCount: number; mounts: number[] } {
+  const parsed = parseRoot9(bytes)
+  const inventory = inventoryContainers(bytes)
+  const template = inventory.templates.find((item) => item.groupId === options.templateGroupId)
+  const instance = inventory.instances.find((item) => item.groupId === options.instanceGroupId)
+  if (!template) throw new Error(`[error] 自检失败：找不到容器模板 ${options.templateGroupId}`)
+  if (!instance) throw new Error(`[error] 自检失败：找不到布局实例 ${options.instanceGroupId}`)
+  if (template.nodeIds.length === 0) {
+    throw new Error('[error] 自检失败：容器模板没有容器节点成员（结构异常）')
+  }
+  if (instance.nodeIds.length === 0) {
+    throw new Error('[error] 自检失败：布局实例没有容器节点成员（编辑器会剪掉整棵子树）')
+  }
+  if (instance.templateGroupId !== options.templateGroupId) {
+    throw new Error('[error] 自检失败：实例未指向模板组')
+  }
+  if (instance.parentId !== options.layoutId) {
+    throw new Error('[error] 自检失败：实例组 f504 不是目标布局')
+  }
+  const childCountOf = (tree: ContainerTreeNode, nodeKinds: Set<string>): number =>
+    tree.children
+      .filter((child) => nodeKinds.has(child.kind))
+      .reduce((sum, node) => sum + node.children.length, 0)
+  const nodes = new Set(['client-container-node'])
+  const templateChildCount = childCountOf(template.tree, nodes)
+  const instanceChildCount = childCountOf(instance.tree, nodes)
+  if (templateChildCount === 0) {
+    throw new Error('[error] 自检失败：模板节点没有占位子控件（编辑器会剪掉空容器节点 → 挂载丢失）')
+  }
+  if (instanceChildCount === 0) {
+    throw new Error('[error] 自检失败：布局实例节点没有占位子控件（编辑器会剪掉空容器节点 → 挂载丢失）')
+  }
+  for (const treeNode of [...template.tree.children, ...instance.tree.children]) {
+    for (const child of treeNode.children) {
+      const record = parsed.recordsById.get(child.id)
+      if (!record) throw new Error(`[error] 自检失败：子控件记录不存在 ${child.id}`)
+      if (record.parentId !== treeNode.id) {
+        throw new Error(
+          `[error] 自检失败：子控件 ${child.id} 的 f504=${record.parentId ?? '-'} 不是节点 ${treeNode.id}`
+        )
+      }
+    }
+  }
+  const templateMounts = new Set(template.mounts.flatMap((mount) => mount.scriptGuids))
+  const instanceMounts = new Set(instance.mounts.flatMap((mount) => mount.scriptGuids))
+  for (const guid of templateMounts) {
+    if (!instanceMounts.has(guid)) {
+      throw new Error(`[error] 自检失败：布局实例未继承脚本挂载 ${guid}`)
+    }
+  }
+  const layout = requireRecord(parsed, options.layoutId, '布局')
+  if (!extractMemberIds(layout.fields).includes(options.instanceGroupId)) {
+    throw new Error('[error] 自检失败：布局成员表未包含实例组')
+  }
+  const templateRecord = requireRecord(parsed, options.templateGroupId, '容器模板')
+  if (!instanceIdsOf(templateRecord.fields).includes(options.instanceGroupId)) {
+    throw new Error('[error] 自检失败：模板 f14 实例列表未包含实例组')
+  }
+  for (const groupId of [options.templateGroupId, options.instanceGroupId]) {
+    const record = requireRecord(parsed, groupId, '容器组')
+    for (const member of extractMemberIds(record.fields)) {
+      if (!parsed.recordsById.has(member)) {
+        throw new Error(`[error] 自检失败：容器组 ${groupId} 成员表有悬空引用 ${member}`)
+      }
+    }
+  }
+  for (const id of options.createdIds ?? []) {
+    if (id < CONTAINER_SAFE_ID_FLOOR) {
+      throw new Error(
+        `[error] 自检失败：新建记录 ${id} 落在编辑器动态段（< ${CONTAINER_SAFE_ID_FLOOR}），会被改分配`
+      )
+    }
+  }
+  assertIndexNoDangling(parsed)
+  const rootStatus = clientUiRootStatus(bytes)
+  if (rootStatus.missing.length > 0) {
+    throw new Error(
+      `[error] 自检失败：地图缺 ClientUI 层级根 fam=${rootStatus.missing.join('/')}` +
+        '（编辑器打开时会自建这两条根并丢弃/重编号客户端容器子树 → 挂载丢失）；' +
+        '用 --system-donor <已含层级根的.gil> 让 CLI 先补齐'
+    )
+  }
+  return {
+    templateChildCount,
+    instanceChildCount,
+    mounts: [...instanceMounts].sort((a, b) => a - b)
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * 布局实例化（模板子树 → 布局实例子树）
  * ------------------------------------------------------------------ */
 
@@ -656,6 +939,10 @@ export interface InstantiateOptions {
   layoutId: number
   /** 显式实例组 ID（缺省=从 1073742500 起避让） */
   id?: number
+  /** 占位子控件名（缺省 gsts_anchor） */
+  placeholderName?: string
+  /** 关掉占位子控件（不推荐；自检会因空节点失败） */
+  skipPlaceholder?: boolean
 }
 
 export interface InstantiateResult {
@@ -670,7 +957,9 @@ export interface InstantiateResult {
   childCount: number
   /** 复制到实例节点上的挂载（= 模板节点挂载） */
   transferredMounts: ContainerMount[]
-  /** 结构自检（回读同构）；false 时本函数抛错 */
+  /** 本次为模板节点补的占位子控件 */
+  placeholders: Array<{ nodeId: number; childId: number }>
+  /** 结构自检（回读同构 + 节点/占位/挂载不变量）；不通过时本函数抛错 */
   selfCheck: 'pass'
 }
 
@@ -691,19 +980,61 @@ export function instantiateContainerTemplate(
   bytes: Uint8Array,
   options: InstantiateOptions
 ): InstantiateResult {
-  const parsed = parseRoot9(bytes)
+  {
+    const probe = requireRecord(parseRoot9(bytes), options.templateGroupId, '容器模板')
+    if (probe.kind !== 'client-container') {
+      throw new Error(`[error] ${options.templateGroupId} 不是客户端控件容器（kind=${probe.kind}）`)
+    }
+    if (!probe.familyTypes.includes(FAMILY_TEMPLATE)) {
+      throw new Error(
+        `[error] ${options.templateGroupId} 不是容器模板（族 ${probe.familyTypes.join('/')}）`
+      )
+    }
+    const layoutProbe = requireRecord(parseRoot9(bytes), options.layoutId, '布局')
+    if (layoutProbe.kind !== 'layout') throw new Error(`[error] ${options.layoutId} 不是布局记录`)
+  }
+
+  // ⓪ 模板节点先补占位子控件（空节点会被编辑器剪掉 → 挂载丢；2026-10-29 B 事故）
+  const placeholders: Array<{ nodeId: number; childId: number }> = []
+  let current = bytes
+  if (!options.skipPlaceholder) {
+    const templateParsed = parseRoot9(current)
+    const templateTree = subtreeOf(
+      options.templateGroupId,
+      buildChildrenMap(templateParsed),
+      templateParsed
+    ).tree
+    const nodeIds = templateTree.children
+      .filter((child) => templateParsed.recordsById.get(child.id)?.kind === 'client-container-node')
+      .map((child) => child.id)
+    if (nodeIds.length === 0) {
+      throw new Error(
+        `[error] ${options.templateGroupId} 的成员里没有容器节点：结构异常，CLI 不猜（请先在编辑器里补节点或重新导入）`
+      )
+    }
+    for (const nodeId of nodeIds) {
+      const ensured = ensureContainerPlaceholder(current, {
+        nodeId,
+        ...(options.placeholderName !== undefined ? { name: options.placeholderName } : {}),
+        ...(options.id !== undefined ? { avoid: [options.id] } : {})
+      })
+      current = ensured.bytes
+      if (ensured.added && ensured.childId !== undefined) {
+        placeholders.push({ nodeId, childId: ensured.childId })
+      }
+    }
+  }
+
+  const parsed = parseRoot9(current)
   const template = requireRecord(parsed, options.templateGroupId, '容器模板')
-  if (template.kind !== 'client-container') {
-    throw new Error(`[error] ${options.templateGroupId} 不是客户端控件容器（kind=${template.kind}）`)
-  }
-  if (!template.familyTypes.includes(FAMILY_TEMPLATE)) {
-    throw new Error(`[error] ${options.templateGroupId} 不是容器模板（族 ${template.familyTypes.join('/')}）`)
-  }
-  const layout = requireRecord(parsed, options.layoutId, '布局')
-  if (layout.kind !== 'layout') throw new Error(`[error] ${options.layoutId} 不是布局记录`)
 
   const childrenMap = buildChildrenMap(parsed)
   const { ids: subtreeIds, tree } = subtreeOf(options.templateGroupId, childrenMap, parsed)
+  if (subtreeIds.length < 2) {
+    throw new Error(
+      `[error] 模板 ${options.templateGroupId} 子树只有组记录（缺容器节点）：结构异常，拒绝实例化`
+    )
+  }
   const instanceIds = allocateRun(parsed, subtreeIds.length, options.id)
   const idMap = new Map<number, number>()
   subtreeIds.forEach((oldId, index) => idMap.set(oldId, instanceIds[index]))
@@ -733,18 +1064,16 @@ export function instantiateContainerTemplate(
     records.push(emitWireMessage(cloned))
   }
 
-  const out = withRoot9Section(bytes, (section) => {
+  const out = withRoot9Section(current, (section) => {
     insertRecords(section, records)
-    rebuildIndexFromParentless(section)
+    appendIndexEntries(section, [instanceNodeId])
     appendMember(section, options.layoutId, instanceGroupId)
     const templateFields =
       parseWireMessage(recordEntry(section, options.templateGroupId).value as Uint8Array) ?? []
-    // 顺手清掉悬空实例引用（记录已被删除的历史残留），再追加本次实例
+    // 只追加，不剪既有项（编辑器自己也保留悬空实例引用，如 1073741842 的 1073742012）
     const current = instanceIdsOf(templateFields)
-    const liveIds = current.filter((id) => parsed.recordsById.has(id))
-    const next = liveIds.includes(instanceGroupId) ? liveIds : [...liveIds, instanceGroupId]
-    if (next.join(',') !== current.join(',')) {
-      setInstanceList(section, options.templateGroupId, next)
+    if (!current.includes(instanceGroupId)) {
+      setInstanceList(section, options.templateGroupId, [...current, instanceGroupId])
     }
   })
 
@@ -780,7 +1109,13 @@ export function instantiateContainerTemplate(
   if (parsedOut.indexIds.has(instanceGroupId)) {
     throw new Error('[error] 自检失败：实例组不应进入顶层索引（编辑器样本中实例组不在森林根集）')
   }
-  assertIndexInvariant(parsedOut)
+  // 节点/占位/挂载/双向引用/索引 全量不变量（缺一条抛错）
+  assertContainerInvariants(out, {
+    templateGroupId: options.templateGroupId,
+    instanceGroupId,
+    layoutId: options.layoutId,
+    createdIds: [...instanceIds, ...placeholders.map((item) => item.childId)]
+  })
 
   return {
     bytes: out,
@@ -792,6 +1127,7 @@ export function instantiateContainerTemplate(
     copiedRecords: records.length,
     childCount: countNodes(tree) - tree.children.length,
     transferredMounts: instance.mounts.filter((mount) => mount.hostId === instanceNodeId),
+    placeholders,
     selfCheck: 'pass'
   }
 }
@@ -877,7 +1213,7 @@ export function saveInstanceAsTemplate(
   const previousTemplateGroupId = templateRefOf(groupFields)
   const out = withRoot9Section(bytes, (section) => {
     insertRecords(section, records)
-    rebuildIndexFromParentless(section)
+    appendIndexEntries(section, [newTemplateGroupId, newTemplateNodeId])
     // 实例改指新模板 + 实例改名（与编辑器 after-save-template 样本一致）
     const entry = recordEntry(section, options.instanceGroupId)
     const fields = parseWireMessage(entry.value as Uint8Array)
@@ -923,7 +1259,7 @@ export function saveInstanceAsTemplate(
       throw new Error(`[error] 自检失败：新模板记录 ${id} 未进入 root9 顶层索引`)
     }
   }
-  assertIndexInvariant(parsedOutSave)
+  assertIndexNoDangling(parsedOutSave)
 
   return {
     bytes: out,
@@ -961,13 +1297,9 @@ export function linkTemplateInstance(
     const templateFields =
       parseWireMessage(recordEntry(section, options.templateGroupId).value as Uint8Array) ?? []
     const current = instanceIdsOf(templateFields)
-    const liveIds = current.filter((id) => parsed.recordsById.has(id))
-    const next = liveIds.includes(options.instanceGroupId)
-      ? liveIds
-      : [...liveIds, options.instanceGroupId]
-    // 列表有变化（新增或清掉悬空实例）才写回
-    if (next.join(',') !== current.join(',')) {
-      setInstanceList(section, options.templateGroupId, next)
+    // 只追加（保留既有项，含历史悬空引用——编辑器同款行为）
+    if (!current.includes(options.instanceGroupId)) {
+      setInstanceList(section, options.templateGroupId, [...current, options.instanceGroupId])
     }
   })
 }

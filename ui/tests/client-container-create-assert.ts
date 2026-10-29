@@ -114,7 +114,9 @@ const instanceIds = (() => {
   }
   return []
 })()
-assert.deepEqual(instanceIds, [result.containerId], '模板 f14 实例列表 = 布局实例组')
+// 只追加：donor 里本就带着一条悬空实例引用（1073742012），编辑器自己也保留这种项
+assert.ok(instanceIds.includes(result.containerId), '模板 f14 实例列表含布局实例组')
+assert.equal(instanceIds[instanceIds.length - 1], result.containerId, '新实例追加在列表末尾')
 
 const layout = after.recordsById.get(LAYOUT)
 const members = extractMemberIds(layout!.fields)

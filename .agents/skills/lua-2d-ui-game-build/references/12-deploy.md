@@ -207,6 +207,27 @@ node dist/src/cli/gsts.js assets:ui container save-template --gil "$GIL" --insta
 #   → 新模板组/节点新建，实例 f13 改指新模板、实例改名去重 _1，旧模板 f14 摘除该实例
 ```
 
+**交付前的三条硬前提（2026-10-29 B 图事故后固化，缺一条编辑器就会剪掉整棵容器子树）**：
+1. **两个容器节点都必须至少有一个子控件**（模板节点 + 布局实例节点）。空节点会被编辑器保存时剪掉，
+   `f74` 脚本挂载随之消失 → 真机 `mounts=0`、界面空白。`container instantiate` 现在会自动补
+   **占位子控件**（默认名 `gsts_anchor`，1×1 @ `-2000,-2000`，可用 `--placeholder-name` 改名）。
+2. **占位件/新建记录 ID 必须 ≥ `1073742500`**。低位段是编辑器的动态分配区
+   （`ClientUIRootHierarchyRoot` / `ClientUIPrototypeHierarchyRoot` / 模板实例都会占它），
+   低 ID 会被改分配 → 子件消失 → 节点变空 → 整棵子树被剪。
+   `assets:ui create --on container:<节点>` 已强制走该安全段。
+3. **地图必须已有 ClientUI 层级根（族 87/88）**：`ClientUIRootHierarchyRoot` / `ClientUIPrototypeHierarchyRoot`。
+   缺这两条根的地图（如 `1073741842` 霜华纪原始图），**编辑器一打开就会自建它们**（占用的正是容器节点
+   用过的 ID），随后整棵客户端容器子树被丢弃/重编号、挂载全没。`container instantiate` 现在会先 preflight：
+   ```bash
+   # 缺根时把这两条根从一条已有根的地图（只读）复制进目标图
+   node dist/src/cli/gsts.js assets:ui container instantiate --gil "$GIL" \
+     --container <模板组ID> --system-donor <已有87/88根的图.gil> --write --yes
+   #   没有 donor 又确知后果时才用 --allow-missing-roots（默认 fail-closed 拦下）
+   ```
+   查目标图有没有根：`node dist/src/cli/gsts.js assets:ui container discover --gil "$GIL" --format json`，
+   JSON 里 `templates/instances` 之外看记录的 `familyTypes` 是否含 87/88（或直接看
+   `assets:ui list` 里是否有 `ClientUIRootHierarchyRoot`）。
+
 **新地图也是 CLI 做的**：`maps:clone --from <已导入的图.gil> --name <名>` 克隆成新地图 ID
 （只改写 root 1/2/39/40，其余资产段/脚本登记表原样；内联 Lua 会物化到 `<新图目录>/external_lua_file/`），
 之后照上面 ②③④ 走。
@@ -224,17 +245,22 @@ node dist/src/cli/gsts.js assets:ui container save-template --gil "$GIL" --insta
 
 ```bash
 npm run test:ui-container     # = npm run build && npx tsx ui/tests/container-from-import-assert.ts
-# 期望：CONTAINER-FLOW-RESULT fixtures=3 assertions=19 verdict=PASS
+# 期望：CONTAINER-FLOW-RESULT fixtures=3 assertions=24 verdict=PASS
 ```
 
-**它证明什么（19 断言）**：
+**它证明什么（24 断言）**：
 1. 发现结果 = 源 `.gil` 推导的容器模板集合（ID/名字/子控件数全部**由记录推导**，CLI 里没有任何 donor/常量）；
 2. 每个模板都能生成布局实例：`f504=布局`、族 3 描述符引用模板组、布局 `f503` 追加、模板 `f14` 追加、
    子控件逐条复制（子 `f504=新节点`）、`assets:ui list` 读回子树与源容器同构；
 3. 脚本挂载从模板节点复制到布局实例节点（`assets:scripts mounts` 读回同 script guid）；
 4. **两组黄金差分**：CLI 产物 vs **编辑器自己**造的实例（`1073741840.after-layout-templates` 的 2049/2050+16 子）
    与 after-save-template（1852/1853）→ 归一化 ID 后**逐字段 0 差异**；
-5. 写回闸门：`--write` 不带 `--yes` 必须拒绝，且拒绝时不改源文件；fixture sha 全程不变。
+5. 写回闸门：`--write` 不带 `--yes` 必须拒绝，且拒绝时不改源文件；fixture sha 全程不变；
+6. **B 图事故回归（4 条）**：用 `workspace/ganyu/device-package/1073741842.final.gil` 复现 B 流程——
+   ①缺 87/88 根必须被 preflight 拦下（不产出候选）；②容器节点下 `create` 的子控件 ID ≥ 2500；
+   ③`--system-donor` 补齐两条层级根后，**模板节点 + 布局节点 + 两个占位子控件 + 双向引用 + 索引**全在；
+   ④`scripts mount` 后 `mounts` 读数只有布局实例节点那一条、`list` 视图能看到 `gsts_anchor`。
+   **注意**：断言里没有任何写死的模板/容器/子控件 ID，期望值全部由源 `.gil` 推导。
 
 **判断"我造的和编辑器一样"的正确做法**：不能只比子树形状（形状同构也可能字段写错——
 本轮就抓到"把所有 `f502` 族描述符都替换成实例描述符"，形状仍同构但 8 行字段差异）——

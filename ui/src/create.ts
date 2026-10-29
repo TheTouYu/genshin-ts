@@ -937,7 +937,13 @@ export function createClientControlCandidate(
   if (parent.kind !== 'client-container-node' && parent.kind !== 'client-container') {
     throw new Error(`[error] ${parentId} 不是客户端容器（kind=${parent.kind}）`)
   }
-  const newId = allocateControlId(parsed, options.id)
+  // 客户端容器下的子控件必须落在 >= 1073742500 的动态安全段：低位会被编辑器
+  // 改分配给 ClientUIRootHierarchyRoot / ClientUIPrototypeHierarchyRoot 与模板实例，
+  // 子件被覆盖后节点变空 → 编辑器保存时整棵容器子树被剪掉（2026-10-29 事故）。
+  const newId =
+    parent.kind === 'client-container-node' || parent.kind === 'client-container'
+      ? allocateClientContainerId(parsed, options.id)
+      : allocateControlId(parsed, options.id)
   const map: Record<number, number> = { [donor.selfId]: newId }
   if (donor.parentId !== parentId) map[donor.parentId] = parentId
   let record: Uint8Array = remapUiRecordVarints(Buffer.from(donor.hex, 'hex'), map)

@@ -32,6 +32,7 @@ import path from 'node:path'
 
 import { parseWireMessage, type WireField } from '../../src/cli/static_assembly/wire.js'
 import {
+  clientUiRootStatus,
   inventoryContainers,
   subtreeSignature,
   type ContainerTreeNode
@@ -297,18 +298,30 @@ for (const testCase of CASES) {
       assert.ok(instance, `模板 ${template.groupId} 没有生成实例`)
       assert.equal(instance.parentId, LAYOUT_ID, '实例组 f504 必须是目标布局')
       assert.equal(instance.family, 'instance')
+      // 空容器模板会被 CLI 补占位子控件 → 同构比较对象是**实例化后的模板**
+      const templateAfter = outInventoryAll.templates.find((item) => item.groupId === template.groupId)
+      assert.ok(templateAfter)
       assert.equal(
         subtreeSignature(instance.tree),
-        subtreeSignature(template.tree),
+        subtreeSignature(templateAfter.tree),
         `实例 ${instance.groupId} 子树与模板 ${template.groupId} 不同构`
       )
-      assert.equal(instance.childCount, template.childCount)
+      assert.equal(instance.childCount, templateAfter.childCount)
+      // 节点/占位子控件硬要求（2026-10-29 B 事故）
+      assert.ok(instance.nodeIds.length >= 1, '布局实例必须有容器节点')
+      assert.ok(templateAfter.nodeIds.length >= 1, '模板必须有容器节点')
+      for (const node of instance.tree.children) {
+        assert.ok(node.children.length >= 1, `实例节点 ${node.id} 必须有占位子控件`)
+        for (const child of node.children) assert.ok(child.id >= 1073742500, '占位件必须在安全 ID 段')
+      }
+      for (const node of templateAfter.tree.children) {
+        assert.ok(node.children.length >= 1, `模板节点 ${node.id} 必须有占位子控件`)
+      }
       // 布局 f503 尾部追加
       const layout = parseRoot9(outBytesAll).recordsById.get(LAYOUT_ID)
       assert.ok(layout && extractMemberIds(layout.fields).includes(instance.groupId))
       // 模板 f14 实例列表追加
-      const templateAfter = outInventoryAll.templates.find((item) => item.groupId === template.groupId)
-      assert.ok(templateAfter && templateAfter.instanceIds.includes(instance.groupId))
+      assert.ok(templateAfter.instanceIds.includes(instance.groupId))
     }
     // 挂载随记录复制：实例节点 = 模板节点的挂载集合
     for (const created of instantiated.created) {
@@ -334,7 +347,7 @@ for (const testCase of CASES) {
     assert.ok(layoutNode, 'list 树里没有默认布局根')
     const containerNodes = collectContainers(layoutNode)
     assert.equal(containerNodes.length, sourceInventory.templates.length)
-    for (const template of sourceInventory.templates) {
+    for (const template of outInventoryAll.templates) {
       const names = subControlNamesFromTree(template.tree)
       const match = containerNodes.find((node) => subControlNamesFromView(node).join('|') === names.join('|'))
       assert.ok(match, `list 树里找不到与模板 ${template.groupId} 同构的实例（${names.join('|')}）`)
@@ -391,14 +404,212 @@ for (const testCase of CASES) {
     assert.equal(sourceTemplates, sourceInventory.templates.length, '模板侧不应被改动')
     const instance = layoutInstances[0]
     assert.equal(instance.templateGroupId, biggest.groupId)
-    const expectedNames = biggest.tree.children
+    const templateAfter = inventory.templates.find((item) => item.groupId === biggest.groupId)
+    assert.ok(templateAfter)
+    const expectedNames = templateAfter.tree.children
       .flatMap((node) => node.children.map((child) => `${child.kind}:${child.name}`))
       .join('|')
     const actualNames = instance.tree.children
       .flatMap((node) => node.children.map((child) => `${child.kind}:${child.name}`))
       .join('|')
-    assert.equal(actualNames, expectedNames, '实例子控件名字/类型序列与源容器不同')
-    assert.equal(instance.childCount, biggest.childCount)
+    assert.equal(actualNames, expectedNames, '实例子控件名字/类型序列与实例化后的模板不同')
+    assert.equal(instance.childCount, templateAfter.childCount)
+    assert.ok(instance.childCount >= 1, '空容器模板也必须落出占位子控件')
+  })
+}
+
+// ---------------------------------------------------------------- B 图事故回归（1842 → 等价结构）
+// 2026-10-29 事故：B 图（1073741845）交给编辑器后，容器节点/占位件/挂载全丢，只剩两个空组。
+// 两个根因都在这里回归：
+//   ①空容器节点会被编辑器保存时剪掉（模板节点与布局节点都必须有占位子控件，ID 走 >=2500 安全段）；
+//   ②缺 ClientUI 层级根（fam 87/88）的地图，编辑器打开会自建这两条根并丢弃/重编号容器子树。
+const GANYU_FIXTURE = path.join(ROOT, 'workspace', 'ganyu', 'device-package', '1073741842.final.gil')
+if (!fs.existsSync(GANYU_FIXTURE)) {
+  console.log('SKIP - B 图事故回归：缺 workspace/ganyu/device-package/1073741842.final.gil')
+} else {
+  /** 从 fixture 里挑一条**已有** ClientUI 层级根的图当 donor（按文件大小升序，确定性选择） */
+  const donorFixture = fs
+    .readdirSync(FIXTURES)
+    .filter((name) => name.endsWith('.gil'))
+    .map((name) => path.join(FIXTURES, name))
+    .sort((a, b) => fs.statSync(a).size - fs.statSync(b).size)
+    .find((file) => {
+      const status = clientUiRootStatus(new Uint8Array(fs.readFileSync(file)))
+      return status.missing.length === 0
+    })
+  assert.ok(donorFixture, '找不到含 ClientUI 层级根的 donor fixture')
+
+  fixtureHashes.set(GANYU_FIXTURE, sha(new Uint8Array(fs.readFileSync(GANYU_FIXTURE))))
+  const bSource = path.join(TMP, 'b-1842.gil')
+  fs.copyFileSync(GANYU_FIXTURE, bSource)
+  const bBytes = new Uint8Array(fs.readFileSync(bSource))
+  const bInventory = inventoryContainers(bBytes)
+  const bLayoutId = 1073741825
+  const bTemplate = bInventory.templates[0]
+  const bOldInstance = bInventory.instances.find((item) => item.parentId === bLayoutId)
+  assert.ok(bTemplate && bOldInstance, '1842 fixture 结构不符预期')
+
+  ok('B 图回归：缺 ClientUI 层级根的图必须被 preflight 拦下（不许静默产出坏图）', () => {
+    assert.deepEqual(clientUiRootStatus(bBytes).missing.sort(), [87, 88].sort())
+    const failed = runCli(
+      [
+        'assets:ui',
+        'container',
+        'instantiate',
+        '--gil',
+        bSource,
+        '--container',
+        String(bTemplate.groupId),
+        '--output',
+        path.join(TMP, 'b-should-not-exist.gil')
+      ],
+      { expectFail: true }
+    )
+    assert.notEqual(failed.code, 0)
+    assert.match(failed.stderr, /层级根/)
+    assert.ok(!fs.existsSync(path.join(TMP, 'b-should-not-exist.gil')), '失败时不得产出候选文件')
+  })
+
+  ok('B 图回归：容器节点下 create 的子控件落在 >=1073742500 安全段', () => {
+    const createCopy = path.join(TMP, 'b-create.gil')
+    const createOut = path.join(TMP, 'b-create-out.gil')
+    fs.copyFileSync(GANYU_FIXTURE, createCopy)
+    const created = JSON.parse(
+      runCli([
+        'assets:ui',
+        'create',
+        '--type',
+        'client-textbox',
+        '--on',
+        `container:${bTemplate.nodeIds[0]}`,
+        '--name',
+        'id_floor_probe',
+        '--gil',
+        createCopy,
+        '--output',
+        createOut,
+        '--format',
+        'json'
+      ]).stdout
+    ) as { newId: number; parentId: number }
+    assert.ok(created.newId >= 1073742500, `容器下新控件 ID ${created.newId} 落在编辑器动态段`)
+    assert.equal(created.parentId, bTemplate.nodeIds[0])
+    const record = parseRoot9(new Uint8Array(fs.readFileSync(createOut))).recordsById.get(created.newId)
+    assert.equal(record?.parentId, bTemplate.nodeIds[0], '候选里子控件 f504 必须是容器节点')
+    const node = parseRoot9(new Uint8Array(fs.readFileSync(createOut))).recordsById.get(bTemplate.nodeIds[0])
+    assert.ok(node && extractMemberIds(node.fields).includes(created.newId), '候选里节点成员表要含它')
+  })
+
+  // 真实 B 流程：删旧布局实例 → 带 --system-donor 实例化 → 挂脚本
+  const bFixed = path.join(TMP, 'b-fixed.gil')
+  runCli(['assets:ui', 'delete', String(bOldInstance.groupId), '--gil', bSource, '--write', '--yes'])
+  const bInst = runCli([
+    'assets:ui',
+    'container',
+    'instantiate',
+    '--gil',
+    bSource,
+    '--container',
+    String(bTemplate.groupId),
+    '--system-donor',
+    donorFixture!,
+    '--write',
+    '--yes',
+    '--format',
+    'json'
+  ])
+  const bPayload = JSON.parse(bInst.stdout) as {
+    created: Array<{ instanceGroupId: number; instanceNodeId: number; placeholders: unknown[] }>
+    systemRoots: { added?: Array<{ id: number; family: number }> }
+    layoutId: number
+  }
+  const bCreated = bPayload.created[0]
+  const bOutBytes = new Uint8Array(fs.readFileSync(bSource))
+  const bOut = inventoryContainers(bOutBytes)
+
+  ok('B 图回归：层级根补进地图（fam 87/88 都在，且不再被编辑器重建）', () => {
+    assert.equal(bPayload.systemRoots.added?.length, 2)
+    assert.deepEqual(
+      bPayload.systemRoots.added!.map((item) => item.family).sort((a, b) => a - b),
+      [87, 88]
+    )
+    const status = clientUiRootStatus(bOutBytes)
+    assert.deepEqual(status.missing, [])
+    assert.ok(status.rootId !== undefined && status.prototypeRootId !== undefined)
+  })
+
+  ok('B 图回归：模板节点 + 布局节点 + 占位子控件 + 挂载 全在（事故复盘点）', () => {
+    const template = bOut.templates.find((item) => item.groupId === bTemplate.groupId)
+    const instance = bOut.instances.find((item) => item.groupId === bCreated.instanceGroupId)
+    assert.ok(template && instance, '模板/实例都要在')
+    // ① 节点无条件复制（即使模板节点原本 0 子控件）
+    assert.equal(template.nodeIds.length, 1, '模板必须有容器节点')
+    assert.equal(instance.nodeIds.length, 1, '布局实例必须有容器节点')
+    // ② 两个节点都至少 1 个占位子控件，且 ID 在安全段
+    for (const node of [...template.tree.children, ...instance.tree.children]) {
+      assert.ok(node.children.length >= 1, `节点 ${node.id} 必须有占位子控件（空了会被编辑器剪掉）`)
+      for (const child of node.children) {
+        assert.ok(child.id >= 1073742500, `占位子控件 ${child.id} 必须在 >=1073742500 安全段`)
+        const record = parseRoot9(bOutBytes).recordsById.get(child.id)
+        assert.equal(record?.parentId, node.id, '占位子控件 f504 必须是该节点')
+      }
+    }
+    // ③ 双向引用
+    const layout = parseRoot9(bOutBytes).recordsById.get(bPayload.layoutId)
+    assert.ok(layout && extractMemberIds(layout.fields).includes(instance.groupId), '布局成员表要有实例组')
+    assert.ok(template.instanceIds.includes(instance.groupId), '模板 f14 要有实例组')
+    assert.equal(instance.parentId, bPayload.layoutId, '实例组 f504=布局')
+    // ④ 索引：新建节点与层级根都在（不重建顺序）
+    const parsedOut = parseRoot9(bOutBytes)
+    for (const id of [template.nodeIds[0], instance.nodeIds[0]]) {
+      assert.ok(parsedOut.indexIds.has(id), `容器节点 ${id} 应在 root9 顶层索引里`)
+    }
+    // ⑤ 无悬空成员
+    for (const group of [template, instance]) {
+      const record = parsedOut.recordsById.get(group.groupId)!
+      for (const member of extractMemberIds(record.fields)) {
+        assert.ok(parsedOut.recordsById.has(member), `组 ${group.groupId} 成员 ${member} 悬空`)
+      }
+    }
+  })
+
+  ok('B 图回归：脚本挂到布局实例节点后 mounts 读数正确', () => {
+    // 脚本 guid 从脚本登记表里派生（不写死）
+    const registry = JSON.parse(
+      runCli(['assets:scripts', 'list', '--gil', bSource, '--format', 'json']).stdout
+    ) as { entries: Array<{ guid: number; name: string }> }
+    assert.equal(registry.entries.length, 1, '1842 fixture 应只有 1 条脚本')
+    const scriptGuid = registry.entries[0].guid
+    runCli([
+      'assets:scripts',
+      'mount',
+      '--gil',
+      bSource,
+      '--host',
+      String(bCreated.instanceNodeId),
+      '--script',
+      String(scriptGuid),
+      '--write'
+    ])
+    const mounts = JSON.parse(
+      runCli(['assets:scripts', 'mounts', '--gil', bSource, '--format', 'json']).stdout
+    ) as { mounts: Array<{ hostGuid: number; scriptGuid: number }> }
+    assert.equal(mounts.mounts.length, 1, '应只有布局实例节点上的一条挂载（模板节点不挂）')
+    assert.equal(mounts.mounts[0].hostGuid, bCreated.instanceNodeId)
+    assert.equal(mounts.mounts[0].scriptGuid, scriptGuid)
+    // list 视图里实例节点下能看到占位子控件
+    const listed = JSON.parse(
+      runCli(['assets:ui', 'list', '--gil', bSource, '--format', 'json']).stdout
+    ) as { tree: ViewNode[] }
+    const layoutNode = listed.tree.find((node) => node.id === bPayload.layoutId)
+    assert.ok(layoutNode)
+    const containers = collectContainers(layoutNode)
+    const instNode = containers
+      .flatMap((node) => node.children)
+      .find((node) => node.id === bCreated.instanceNodeId)
+    assert.ok(instNode, 'list 树里应有布局实例节点')
+    assert.ok(instNode.children.length >= 1, 'list 树里实例节点必须有占位子控件')
+    assert.equal(instNode.children[0].name, 'gsts_anchor')
   })
 }
 
