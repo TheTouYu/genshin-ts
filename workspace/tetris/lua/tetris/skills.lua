@@ -1119,7 +1119,7 @@ M.onClear = function(state, role, cleared, info)
       res.mult = res.mult + N.KEQING.STK_VAL * st
       notes[#notes + 1] = 'stk=' .. tostring(st)
     end
-    t.stkC = N.KEQING.STK_DUR        -- 消行本身也是四类操作之一
+    if cleared > 0 then t.stkC = N.KEQING.STK_DUR end   -- 消行本身也是四类操作之一
     -- P1 雷楔：存续期间消行 ⇒ 雷暴连斩（清雷楔列底部 2 格），雷楔被消耗
     if cleared > 0 and numOr(t.markT, 0) > 0 then
       local col = numOr(t.markCol, 0)
@@ -1137,7 +1137,7 @@ M.onClear = function(state, role, cleared, info)
       res.mult = res.mult + N.GANYU.FOCUS_BONUS
       notes[#notes + 1] = 'focus=1'
     end
-    t.critWin = N.GANYU.FOCUS_WINDOW   -- 本次消行重新开窗口
+    if cleared > 0 then t.critWin = N.GANYU.FOCUS_WINDOW end   -- 本次消行重新开窗口
     -- P1 冰莲：冻结期间消行 ⇒ 冰莲被提前打掉，绽放 2 行（自然绽放 3 行）
     if cleared > 0 and t.lotusArmed then
       t.lotusArmed = false

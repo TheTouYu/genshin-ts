@@ -346,6 +346,8 @@ v6 给 **每个角色 1 主动 + 4 条机制各异的被动/机制**（共 20 �
 | `FN.skillCast` 调 `SKILLS.cast(SK, role, { mode, boardH, oppH, now })` | 追加 `col = g.piece and g.piece.x`、`holdSec = <Z 键按住秒数>`、`longestEmptyCol = <列高最小的列号>` |
 | `elseif eff == 'mark-blink' then print('skill mark_blink n=…')`（`main.lua:4118`，目前是空壳） | 瞬移到雷楔列并落底锁定：`g.piece.x = res.n2? or markCol`（雷楔列建议放进 `res.buffs[1].val`）+ `doLock()`；日志 `skill mark-blink col=…` |
 | `elseif eff == 'blink'`（刻晴瞬落） | 追加处理 `eff == 'blink-best'`（→ 最空列） |
+| 重力下落（`stepDown`/`OnUpdate` 的重力段） | 下落间隔乘 `SKILLS.params(SK,'ganyu').gravityMult`（冻结期 1.20）——甘雨·天地交泰唯一的生效点 |
+| `raiseGarbage` 的冻结判定（`main.lua:2300`） | 判「目标盘对应角色」而不是 `target == G[1]`：`SKILLS.params(SK, roleOfBoard(target)).freezeLeft > 0`（修 pvp 里 P2 不受保护） |
 
 ### 6.3 main.lua —— 角色页（「被动」页目前是硬编码表）
 
