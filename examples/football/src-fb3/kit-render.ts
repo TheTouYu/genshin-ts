@@ -96,3 +96,16 @@ g
       () => {}
     )
   })
+
+  // ———— 选项卡选中：锁存「活的玩家角色实体」————
+  // 2026-10-29 三条通道实测后定谳：
+  //   ① 玩家控制器实体坐标恒 (0, y, 0)（日志 3416：IN0:Vector=(0.0,0.472,0.0)）；
+  //   ② 官方语义「角色实体根据模板动态初始化故无 GUID」⇒ queryEntityByGuid 拿不到活角色；
+  //   ③ 20008 创造物技能图在 beyond 模式没有 getCurrentCharacter / getCharacterEntityOfSpecifiedPlayer /
+  //      getActiveCharacterOfSpecifiedPlayer（编译期实测拒收，报错原文见 design/HUD-v1.md 附注）。
+  // 官方 query nodes 里唯一输出「触发选项卡的角色实体」的是 whenTabIsSelected 的 selectorEntity（D318 实测为真坐标）。
+  // 球上本来就挂「足球操作」选项卡（半径 5m、9 个选项），玩家选一次即锁存，之后内核按 GUID 每拍读位置。
+  .on('whenTabIsSelected', (evt: any, f: any) => {
+    const carrier = f.queryEntityByGuid(1082130445n)
+    f.setCustomVariable(carrier, 'fbc_e', evt.selectorEntity, false)
+  })
