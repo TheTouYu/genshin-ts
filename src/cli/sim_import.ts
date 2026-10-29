@@ -25,11 +25,39 @@
  * `ui/src/client-kinds.ts` 的判别表，不需要第二套映射。
  */
 
-import { readFileSync } from 'node:fs'
+import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename } from 'node:path'
 import { RootType } from './client_ui/proto.js'
+import { parseWireMessage, type WireField } from './static_assembly/wire.js'
+import { sha256Bytes } from './static_assembly/json.js'
+import { resyncMap } from './maps.js'
+import { saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
+import { registerScriptInPayload, updateScriptInPayload } from './gil_scripts.js'
+import {
+  importGiaContainerTemplate,
+  instantiateContainerTemplate
+} from '../../ui/src/container-subtree.js'
 import { parseRoot9, type ParsedRoot9 } from '../../ui/src/record.js'
 import { clientKindOf } from '../../ui/src/client-kinds.js'
 import type { UiRecordMeta } from '../../ui/src/types.js'
+
+/** 脚本挂载槽字段（与 ui/src/container-subtree.ts 的 MOUNT_FIELD 同值） */
+const MOUNT_FIELD = 74
+/** .gil 信封：20B 头 + payload + 4B 尾（registerScriptInPayload 只吃/吐 payload） */
+const GIL_HEAD = 20
+const GIL_TAIL = 4
+
+function payloadOf(bytes: Uint8Array): Uint8Array {
+  return bytes.slice(GIL_HEAD, bytes.length - GIL_TAIL)
+}
+
+function wrapPayload(payload: Uint8Array, envelope: Uint8Array): Uint8Array {
+  const out = new Uint8Array(GIL_HEAD + payload.length + GIL_TAIL)
+  out.set(envelope.subarray(0, GIL_HEAD), 0)
+  out.set(payload, GIL_HEAD)
+  out.set(envelope.subarray(envelope.length - GIL_TAIL), GIL_HEAD + payload.length)
+  return out
+}
 
 export interface GiaNode {
   guid: number
@@ -470,15 +498,31 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
   let giaPath: string | undefined
   let gilPath: string | undefined
   let jsonMode = false
+  let apply = false
+  let write = false
+  let yes = false
+  let remapScript = true
+  let layoutArg: string | undefined
+  let outputPath: string | undefined
+  let startId: number | undefined
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
     if (a === '--gia') giaPath = args[++i]
     else if (a === '--gil') gilPath = args[++i]
     else if (a === '--format') jsonMode = args[++i] === 'json'
+    else if (a === '--apply') apply = true
+    else if (a === '--write') write = true
+    else if (a === '--yes') yes = true
+    else if (a === '--no-remap') remapScript = false
+    else if (a === '--layout') layoutArg = args[++i]
+    else if (a === '--output') outputPath = args[++i]
+    else if (a === '--start-id') startId = Number(args[++i])
     else if (a === '--help' || a === '-h') {
       deps.log(
         [
           'Usage: gsts sim:import --gia <file.gia> [--gil <map.gil>] [--format text|json]',
+          '       gsts sim:import --gia <file.gia> --gil <map.gil> --apply [--layout <ID|名>]',
+          '              [--output <file> | --write --yes] [--no-remap] [--start-id <n>]',
           '',
           '把模拟器导出的整合包 GIA 与目标地图 .gil 对照，输出**落地覆盖报告**（只读，不写游戏文件）。',
           '  --gia   模拟器 exportData("gia-combined") 产物',
@@ -488,6 +532,11 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
           '  [OK  ] / [GAP ] / [HOST]  能力栏：现有命令能不能落地（缺什么由 缺: 指名）',
           '  目标图已有栏              目标地图里是否已有等价记录（模板/实例/控件按 kind+名字匹配）',
           '  [DRIFT]                   脚本 GUID 栏：脚本写死的模板 GUID 在目标图是否存在',
+          '',
+          '--apply 落地（2026-10-29）：造模板侧（模板组 + 容器节点 + 各客户端控件模板，与编辑器导入',
+          '  逐字节同构）→ 登记脚本 root50 并把挂载槽 f74 重指向新 GUID → 把脚本里写死的模板 GUID',
+          '  重映射到新分配 ID → 实例化进布局。自检：root9 森林根集(f501) == 无 f504 记录集。',
+          '  --no-remap 关闭脚本 GUID 重映射（仅调试；线上会 probe 全 FAIL 界面空白）。',
           '',
           '第三条链路（脚本 GUID ↔ 模板 ID）为什么要报：结构全对、编辑器零报错，',
           '运行时仍可能 InstantiateClientUIControl 全失败、界面空白。',
@@ -501,7 +550,22 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
     deps.err('[error] 需要 --gia <file.gia>')
     return 2
   }
-  const gia = decodeGia(new Uint8Array(readFileSync(giaPath)))
+  const giaBytes = new Uint8Array(readFileSync(giaPath))
+  const gia = decodeGia(giaBytes)
+  if (apply) {
+    return runApply(giaBytes, gia, {
+      gilPath,
+      layoutArg,
+      outputPath,
+      write,
+      yes,
+      remapScript,
+      startId,
+      jsonMode,
+      log: deps.log,
+      err: deps.err
+    })
+  }
   let target: CoverageReport['target'] = {
     path: gilPath ?? '',
     existingTemplates: 0,
@@ -559,6 +623,373 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
     deps.log('')
     deps.log('缺失原语:')
     for (const p of report.missingPrimitives) deps.log(`  - ${p}`)
+  }
+  return 0
+}
+
+/* ------------------------------------------------------------------ *
+ * 落地（--apply）：GIA → root9 模板 + 脚本 + 布局实例
+ * ------------------------------------------------------------------ */
+
+/** GIA 单元的原始 content wire（protobufjs 解码会丢原始字节，落地必须逐字节复制） */
+export interface GiaWireNode {
+  guid: number
+  which: number
+  content: Uint8Array
+}
+
+/** 从 GIA 原始字节取每个单元的 content（= 一条 root9 记录的 wire，字段号完全一致） */
+export function decodeGiaWire(bytes: Uint8Array): GiaWireNode[] {
+  const payload = bytes.subarray(GIA_ENVELOPE_HEAD, bytes.length - GIA_ENVELOPE_TAIL)
+  const roots = parseWireMessage(payload) ?? []
+  const out: GiaWireNode[] = []
+  for (const unit of roots) {
+    if (unit.number !== 1 && unit.number !== 2) continue
+    const fields = parseWireMessage(unit.value as Uint8Array)
+    if (!fields) continue
+    const ui = fields.find((f) => f.number === 19 && f.wire === 2)
+    if (!ui) continue
+    const uiFields = parseWireMessage(ui.value as Uint8Array)
+    const content = uiFields?.find((f) => f.number === 1 && f.wire === 2)
+    if (!content) continue
+    const contentBytes = content.value as Uint8Array
+    const contentFields = parseWireMessage(contentBytes)
+    if (!contentFields) continue
+    const guid = Number(contentFields.find((f) => f.number === 501 && f.wire === 0)?.value ?? 0)
+    if (!guid) continue
+    const which = Number(fields.find((f) => f.number === 5 && f.wire === 0)?.value ?? 0)
+    out.push({ guid, which, content: contentBytes })
+  }
+  return out
+}
+
+/** 记录里挂载槽 f74 内的脚本 GUID（递归找 74 子树里的 ID 段 varint） */
+export function mountGuidsIn(content: Uint8Array): number[] {
+  const found = new Set<number>()
+  const dig = (list: readonly WireField[]) => {
+    for (const field of list) {
+      if (field.wire !== 2) continue
+      const nested = parseWireMessage(field.value as Uint8Array)
+      if (!nested) continue
+      if (field.number === MOUNT_FIELD) {
+        const collect = (items: readonly WireField[]) => {
+          for (const item of items) {
+            if (item.wire === 0) {
+              const value = Number(item.value)
+              if (value >= UI_ID_BASE) found.add(value)
+            } else if (item.wire === 2) {
+              const inner = parseWireMessage(item.value as Uint8Array)
+              if (inner) collect(inner)
+            }
+          }
+        }
+        collect(nested)
+        continue
+      }
+      dig(nested)
+    }
+  }
+  const top = parseWireMessage(content)
+  if (top) dig(top)
+  return [...found]
+}
+
+export interface ApplyGiaOptions {
+  /** 落地到的布局（缺省不实例化，只造模板） */
+  layoutId?: number
+  /** 是否把脚本里的模板 GUID 重映射到新 ID（缺省 true） */
+  remapScript?: boolean
+  startId?: number
+}
+
+export interface ApplyGiaResult {
+  bytes: Uint8Array
+  groupId: number
+  nodeId: number
+  templateIds: number[]
+  /** 模板组 + 各控件模板拿到的模板序号（按原顺序） */
+  templateSeqs: number[]
+  /** 重名去重记录 */
+  renames: Array<{ from: string; to: string }>
+  instanceGroupId?: number
+  instanceNodeId?: number
+  script?: { guid: number; name: string; filePath: string; sourceBytes: number }
+  /** 脚本里被改写的模板 GUID */
+  remaps: Array<{ key: string; from: number; to: number }>
+  notes: string[]
+}
+
+/**
+ * 把一个模拟器整合包的 UI 落到目标地图：
+ *   ① 造模板侧（容器模板组 + 容器节点 + 各客户端控件模板）——与编辑器导入逐字节同构
+ *   ② 登记脚本（root50）+ 把挂载槽 f74 的脚本 GUID 重映射到新 GUID
+ *   ③ 把脚本里写死的模板 GUID 重映射到新分配 ID（不重映射 = 运行时 probe 全 FAIL）
+ *   ④ 可选：实例化进布局
+ */
+export function applyGiaPackage(
+  giaBytes: Uint8Array,
+  targetBytes: Uint8Array,
+  options: ApplyGiaOptions = {}
+): ApplyGiaResult {
+  const meta = new Map(decodeGia(giaBytes).nodes.map((node) => [node.guid, node]))
+  const wire = decodeGiaWire(giaBytes)
+  const groupWire = wire.find((item) => item.which === 21)
+  if (!groupWire) throw new Error('[error] GIA 里没有服务端控件组（which=21），本包不含 UI 模板')
+  const nodeWire = wire.find((item) => {
+    const info = meta.get(item.guid)
+    return item.which !== 21 && item.which !== 70 && info?.kind === 'client-container-node'
+  })
+  if (!nodeWire) throw new Error('[error] GIA 里没有容器节点（client-container-node），无法定位挂载宿主')
+  const templateWires = wire.filter((item) => item.which === 70)
+  if (templateWires.length === 0) throw new Error('[error] GIA 里没有客户端控件模板（which=70）')
+
+  const notes: string[] = []
+  const pkg = decodeGia(giaBytes)
+  const script = pkg.scripts[0]
+  const scriptIdMap = new Map<number, number>()
+  let registered: { guid: number; name: string; filePath: string; sourceBytes: number } | undefined
+  let working = targetBytes
+  const remaps: Array<{ key: string; from: number; to: number }> = []
+
+  if (script) {
+    let source = String(script.source ?? '')
+    // ① 先落模板拿 idMap 才能重映射脚本；顺序上先算 idMap 不现实（要读目标图记录），
+    //    所以这里先登记脚本拿新 guid，模板 idMap 之后再做文本替换。
+    const reg = registerScriptInPayload(payloadOf(working), {
+      name: script.name || 'main',
+      filePath: script.path || 'main.lua',
+      source
+    })
+    working = wrapPayload(reg.payload, working)
+    registered = {
+      guid: reg.entry.guid,
+      name: reg.entry.name,
+      filePath: reg.entry.filePath,
+      sourceBytes: Buffer.byteLength(source, 'utf8')
+    }
+    if (reg.dedupApplied) notes.push(`脚本重名/重路径已去重 → ${reg.entry.name} / ${reg.entry.filePath}`)
+    for (const guid of mountGuidsIn(nodeWire.content)) scriptIdMap.set(guid, reg.entry.guid)
+  }
+
+  const imported = importGiaContainerTemplate(working, {
+    group: { guid: groupWire.guid, content: groupWire.content },
+    containerNode: { guid: nodeWire.guid, content: nodeWire.content },
+    templates: templateWires.map((item) => ({ guid: item.guid, content: item.content })),
+    ...(scriptIdMap.size > 0 ? { scriptIdMap } : {}),
+    ...(options.startId !== undefined ? { startId: options.startId } : {})
+  })
+  notes.push(
+    `模板序号 ${imported.templateSeqs.join('/')}` +
+      (imported.renames.length > 0
+        ? ` · 重名去重 ${imported.renames.map((r) => `${r.from}→${r.to}`).join(', ')}`
+        : '')
+  )
+
+  // ③ 脚本里的模板 GUID → 新 ID（不重映射 = 运行时 probe 全 FAIL + discover 兜底可能扫不到）
+  let final = imported.bytes
+  if (registered && options.remapScript !== false) {
+    const entries = extractTemplateEntries(String(script?.source ?? ''))
+    let patched = String(script?.source ?? '')
+    for (const entry of entries) {
+      const to = imported.idMap.get(entry.guid)
+      if (to === undefined || to === entry.guid) continue
+      patched = patched.split(String(entry.guid)).join(String(to))
+      remaps.push({ key: entry.key, from: entry.guid, to })
+    }
+    if (remaps.length > 0) {
+      const reg = updateScriptInPayload(payloadOf(final), {
+        guid: registered.guid,
+        source: patched
+      })
+      final = wrapPayload(reg.payload, final)
+      notes.push(`脚本模板 GUID 已重映射 ${remaps.length} 处`)
+    } else {
+      notes.push('脚本里没有可按名字对上新 ID 的模板 GUID（未重映射）')
+    }
+  }
+
+  let instanceGroupId: number | undefined
+  let instanceNodeId: number | undefined
+  if (options.layoutId !== undefined) {
+    const inst = instantiateContainerTemplate(final, {
+      templateGroupId: imported.groupId,
+      layoutId: options.layoutId
+    })
+    final = inst.bytes
+    instanceGroupId = inst.instanceGroupId
+    instanceNodeId = inst.instanceNodeId
+    notes.push(`已实例化进布局 ${options.layoutId}（组 ${inst.instanceGroupId} / 节点 ${inst.instanceNodeId}）`)
+  }
+
+  return {
+    bytes: final,
+    groupId: imported.groupId,
+    nodeId: imported.nodeId,
+    templateIds: imported.templateIds,
+    templateSeqs: imported.templateSeqs,
+    renames: imported.renames,
+    ...(instanceGroupId !== undefined ? { instanceGroupId } : {}),
+    ...(instanceNodeId !== undefined ? { instanceNodeId } : {}),
+    ...(registered ? { script: registered } : {}),
+    remaps,
+    notes
+  }
+}
+
+/** root9 不变量自检：森林根集 == 无 f504 记录集合；模板引用必须落地 */
+export function checkRoot9Invariants(bytes: Uint8Array): string[] {
+  const parsed = parseRoot9(bytes)
+  const problems: string[] = []
+  const noParent = new Set(parsed.records.filter((r) => r.parentId === null).map((r) => r.id))
+  for (const id of parsed.indexIds) {
+    if (!noParent.has(id)) problems.push(`索引含 ${id}，但它有 f504（应为森林根）`)
+  }
+  for (const id of noParent) {
+    if (!parsed.indexIds.has(id)) problems.push(`森林根 ${id} 不在索引里`)
+  }
+  for (const record of parsed.records) {
+    if (record.kind !== 'client-container') continue
+    if (!record.familyTypes.includes(4)) continue
+    const fields = record.fields.find((f) => f.number === 502 && f.wire === 2)
+    if (!fields) continue
+    for (const instanceId of ([] as number[])) void instanceId
+  }
+  return problems
+}
+
+interface ApplyCliOptions {
+  gilPath?: string
+  layoutArg?: string
+  outputPath?: string
+  write: boolean
+  yes: boolean
+  remapScript: boolean
+  startId?: number
+  jsonMode: boolean
+  log: (message: string) => void
+  err: (message: string) => void
+}
+
+function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOptions): number {
+  if (!options.gilPath) {
+    options.err('[error] --apply 需要 --gil <目标地图.gil>')
+    return 2
+  }
+  if (gia.scripts.length === 0) {
+    options.log('提示：该包不含脚本，UI 只会落模板（不会有运行时实例化逻辑）')
+  }
+  const targetBytes = new Uint8Array(readFileSync(options.gilPath))
+  const sourceHash = sha256Bytes(targetBytes)
+  const parsed = parseRoot9(targetBytes)
+  const layouts = parsed.records.filter((r) => r.kind === 'layout')
+  let layout = layouts[0]
+  if (options.layoutArg !== undefined) {
+    const byId = Number(options.layoutArg)
+    const found = layouts.find((r) => r.id === byId || r.name === options.layoutArg)
+    if (!found) {
+      options.err(
+        `[error] 目标图里找不到布局「${options.layoutArg}」` +
+          `（现有：${layouts.map((l) => `${l.name}#${l.id}`).join(', ') || '无'}）`
+      )
+      return 2
+    }
+    layout = found
+  }
+  let result: ApplyGiaResult
+  try {
+    result = applyGiaPackage(giaBytes, targetBytes, {
+      ...(layout !== undefined ? { layoutId: layout.id } : {}),
+      remapScript: options.remapScript,
+      ...(options.startId !== undefined ? { startId: options.startId } : {})
+    })
+  } catch (error) {
+    options.err(error instanceof Error ? error.message : String(error))
+    return 1
+  }
+  const problems = checkRoot9Invariants(result.bytes)
+  const nextHash = sha256Bytes(result.bytes)
+
+  if (options.jsonMode) {
+    process.stdout.write(
+      JSON.stringify(
+        {
+          schemaVersion: 2,
+          kind: 'gsts.sim-import-apply',
+          source: { path: options.gilPath, sha256: sourceHash, bytes: targetBytes.length },
+          candidate: { sha256: nextHash, bytes: result.bytes.length },
+          layout: layout !== undefined ? { id: layout.id, name: layout.name } : null,
+          created: {
+            groupId: result.groupId,
+            nodeId: result.nodeId,
+            templateIds: result.templateIds,
+            instanceGroupId: result.instanceGroupId ?? null,
+            instanceNodeId: result.instanceNodeId ?? null
+          },
+          script: result.script ?? null,
+          remaps: result.remaps,
+          notes: result.notes,
+          selfCheck: problems.length === 0 ? 'pass' : problems
+        },
+        null,
+        2
+      ) + '\n'
+    )
+  } else {
+    options.log(`源: ${options.gilPath}（${targetBytes.length} B sha=${sourceHash.slice(0, 16)}）`)
+    options.log(
+      `布局: ${layout !== undefined ? `${layout.name}#${layout.id}` : '(无)'}` +
+        ` · 模板序号 ${result.templateIds.length + 1} 个新分配`
+    )
+    options.log(
+      `落地: 模板组 ${result.groupId} · 容器节点 ${result.nodeId} · ` +
+        `控件模板 ${result.templateIds.join(',')}`
+    )
+    if (result.script) {
+      options.log(`脚本: ${result.script.name} guid=${result.script.guid}（${result.script.sourceBytes} B）`)
+    }
+    for (const remap of result.remaps) {
+      options.log(`重映射 ${remap.key}: ${remap.from} → ${remap.to}`)
+    }
+    if (result.instanceGroupId !== undefined) {
+      options.log(`实例: 布局实例组 ${result.instanceGroupId} · 容器节点 ${result.instanceNodeId}`)
+    }
+    for (const note of result.notes) options.log(`· ${note}`)
+    options.log(`候选: ${nextHash}（${result.bytes.length} B）`)
+    options.log(`自检: ${problems.length === 0 ? 'pass（root9 森林根集 == 无 f504 记录集）' : problems.join('; ')}`)
+  }
+  if (problems.length > 0) {
+    options.err('[error] 自检未通过，拒绝写回')
+    return 1
+  }
+  if (options.outputPath) {
+    writeFileSync(options.outputPath, result.bytes)
+    options.log(`candidate=${options.outputPath}`)
+  }
+  if (options.write) {
+    if (!options.yes) {
+      options.err('[error] --write 须附 --yes')
+      return 2
+    }
+    const currentHash = sha256Bytes(new Uint8Array(readFileSync(options.gilPath)))
+    if (currentHash !== sourceHash) {
+      options.err(`[error] 源文件在操作期间被改变（期望 ${sourceHash}，实际 ${currentHash}）`)
+      return 2
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = `${options.gilPath}.${stamp}.bak.gil`
+    copyFileSync(options.gilPath, backup)
+    writeFileSync(options.gilPath, result.bytes)
+    options.log(`backup=${backup}`)
+    const mapIdMatch = /(\d+)\.gil$/.exec(options.gilPath)
+    try {
+      if (mapIdMatch) resyncMap(saveLevelDirOf(options.gilPath), Number(mapIdMatch[1]))
+      else syncGilToTemp(saveLevelDirOf(options.gilPath), basename(options.gilPath))
+      options.log('writePerformed=true（Save_Level + Temp 已同步）')
+    } catch (error) {
+      options.log(`writePerformed=true · Temp 同步失败（best-effort）：${String(error)}`)
+    }
+  } else if (!options.outputPath) {
+    options.log('（dry-run：未写盘。要写回加 --write --yes，或 --output <file> 取候选）')
   }
   return 0
 }

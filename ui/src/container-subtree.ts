@@ -1368,3 +1368,220 @@ export function layoutInstancesOf(
 
 export type { ParsedRoot9 }
 export { collectCompTypes }
+
+/* ------------------------------------------------------------------ *
+ * GIA → 容器模板落地（2026-10-29）
+ *
+ * **事实（本轮差分定谳，证据 evidence/2026-10-29-server-control-group/）**：
+ * GIA 的 `UiControlGroup.content` 与 .gil 的 root9 记录**字段号完全一致**
+ * （guid=501 / info=502 / children=503 / parent=504 / data=505；子消息同样 501/502/503…）。
+ * 编辑器做一次「GIA 导入」实际只做三件事：
+ *   ① 重新分配 ID（guid、成员表 rootChildRef、nodeRef 自引用 f504.f4）
+ *   ② 改写模板序号（root9 内全局自增计数器，落在 `f502[1]{f501=2,f502=6} → f12{f501}`）
+ *   ③ 重名去重（客户端控件容器 → 客户端控件容器_1）
+ * 实测：prim / label / hit 三段 content 与编辑器产物**逐字节同尺寸**（810 / 755 / 715 B），
+ * 归一化 ID 后非 ID 差异只有模板序号 1 处；容器组额外差一个名字后缀。
+ * ⇒ 落地 = 克隆 content 字节 + 打这三处补丁，**不需要逐类解释控件内容块**。
+ * ------------------------------------------------------------------ */
+
+export interface GiaRecordInput {
+  /** GIA 侧 guid */
+  guid: number
+  /** GIA `UiControlGroup.content` 原始 wire（与 root9 记录同字段号） */
+  content: Uint8Array
+}
+
+export interface ImportGiaTemplatesOptions {
+  /** 服务端控件组（GIA which=21）：模板组记录 */
+  group: GiaRecordInput
+  /** 容器节点（GIA accessories 里的客户端容器节点） */
+  containerNode: GiaRecordInput
+  /** 客户端控件模板（GIA which=70，按原顺序） */
+  templates: readonly GiaRecordInput[]
+  /** 脚本 GUID 重映射（挂载槽 f74 内是脚本 GUID，不在控件 ID 空间） */
+  scriptIdMap?: ReadonlyMap<number, number>
+  /** 显式起始 ID（调试用；缺省走 allocateRun 避让扫描） */
+  startId?: number
+}
+
+export interface ImportGiaTemplatesResult {
+  bytes: Uint8Array
+  groupId: number
+  nodeId: number
+  templateIds: number[]
+  /** GIA guid → 新 root9 记录 ID */
+  idMap: Map<number, number>
+  /** 重名去重记录 */
+  renames: Array<{ from: string; to: string }>
+  /** 分配到的模板序号（模板组 + 各控件模板，按原顺序） */
+  templateSeqs: number[]
+}
+
+/** 记录名（f505 块 {f501=2,f502=15} 内 f12{f501} 文本） */
+function recordNameInFields(fields: readonly WireField[]): string | undefined {
+  for (const field of fields) {
+    if (field.number !== COMPONENT_FIELD || field.wire !== 2) continue
+    const nested = parseWireMessage(field.value as Uint8Array)
+    if (!nested) continue
+    if (firstVarint(nested, SELF_FIELD) !== 2) continue
+    if (firstVarint(nested, FAMILY_TYPE_FIELD) !== 15) continue
+    const nameField = nested.find((item) => item.number === 12 && item.wire === 2)
+    if (!nameField) continue
+    const inner = parseWireMessage(nameField.value as Uint8Array)
+    if (!inner) continue
+    const textField = inner.find((item) => item.number === SELF_FIELD && item.wire === 2)
+    if (!textField) continue
+    return new TextDecoder().decode(textField.value as Uint8Array)
+  }
+  return undefined
+}
+
+/** 模板序号：`f502{f501=2,f502=6}` 块内 `f12{f501}` */
+function templateSeqInFields(fields: readonly WireField[]): number | undefined {
+  for (const field of fields) {
+    if (field.number !== FAMILY_TYPE_FIELD || field.wire !== 2) continue
+    const nested = parseWireMessage(field.value as Uint8Array)
+    if (!nested) continue
+    if (firstVarint(nested, SELF_FIELD) !== 2) continue
+    if (firstVarint(nested, FAMILY_TYPE_FIELD) !== 6) continue
+    const wrapper = nested.find((item) => item.number === 12 && item.wire === 2)
+    if (!wrapper) continue
+    const inner = parseWireMessage(wrapper.value as Uint8Array)
+    if (!inner) continue
+    return firstVarint(inner, SELF_FIELD)
+  }
+  return undefined
+}
+
+/** 改写模板序号（原地替换 `f12{f501}` 包装） */
+function withTemplateSeq(fields: readonly WireField[], seq: number): WireField[] {
+  return fields.map((field) => {
+    if (field.number !== FAMILY_TYPE_FIELD || field.wire !== 2) return field
+    const nested = parseWireMessage(field.value as Uint8Array)
+    if (!nested) return field
+    if (firstVarint(nested, SELF_FIELD) !== 2) return field
+    if (firstVarint(nested, FAMILY_TYPE_FIELD) !== 6) return field
+    const patched = nested.map((inner) => {
+      if (inner.number !== 12 || inner.wire !== 2) return inner
+      return {
+        number: 12,
+        wire: 2,
+        value: emitWireMessage([{ number: SELF_FIELD, wire: 0, value: seq }])
+      }
+    })
+    return { number: field.number, wire: 2, value: emitWireMessage(patched) }
+  })
+}
+
+/** 挂载槽内的脚本 GUID 重映射（f74 子树里所有 varint 走 idMap） */
+function remapMountGuids(
+  fields: readonly WireField[],
+  map: ReadonlyMap<number, number>
+): WireField[] {
+  const remapAll = (list: readonly WireField[]): WireField[] =>
+    list.map((field) => {
+      if (field.wire === 0) {
+        const value = Number(field.value)
+        const mapped = map.get(value)
+        return mapped === undefined ? field : { number: field.number, wire: 0, value: mapped }
+      }
+      if (field.wire !== 2) return field
+      const nested = parseWireMessage(field.value as Uint8Array)
+      if (!nested) return field
+      return { number: field.number, wire: 2, value: emitWireMessage(remapAll(nested)) }
+    })
+  const walk = (list: readonly WireField[]): WireField[] =>
+    list.map((field) => {
+      if (field.wire !== 2) return field
+      const nested = parseWireMessage(field.value as Uint8Array)
+      if (!nested) return field
+      if (field.number === MOUNT_FIELD) {
+        return { number: field.number, wire: 2, value: emitWireMessage(remapAll(nested)) }
+      }
+      return { number: field.number, wire: 2, value: emitWireMessage(walk(nested)) }
+    })
+  return walk(fields)
+}
+
+/** 图内已用的最大模板序号 */
+export function maxTemplateSeqOf(bytes: Uint8Array): number {
+  let max = 0
+  for (const record of parseRoot9(bytes).records) {
+    const seq = templateSeqInFields(record.fields)
+    if (seq !== undefined && seq > max) max = seq
+  }
+  return max
+}
+
+/**
+ * 把 GIA 的「容器模板组 + 容器节点 + 各控件模板」落成 root9 记录。
+ *
+ * 前置：目标图必须有 ClientUI 层级根（族 87/88），否则编辑器打开时会自建并把子树一起丢掉。
+ * 落完只造**模板侧**——要进布局还得再走 `instantiateContainerTemplate`（与编辑器行为一致）。
+ */
+export function importGiaContainerTemplate(
+  bytes: Uint8Array,
+  options: ImportGiaTemplatesOptions
+): ImportGiaTemplatesResult {
+  const roots = clientUiRootStatus(bytes)
+  if (roots.missing.length > 0) {
+    throw new Error(
+      '[error] 目标地图缺少 ClientUI 层级根（族 87/88）：编辑器打开时会自建并把容器子树一起丢掉'
+    )
+  }
+  const parsed = parseRoot9(bytes)
+  const inputs: GiaRecordInput[] = [options.group, options.containerNode, ...options.templates]
+  const ids = allocateRun(parsed, inputs.length, options.startId)
+  const idMap = new Map<number, number>()
+  inputs.forEach((input, index) => idMap.set(input.guid, ids[index]))
+
+  let seq = maxTemplateSeqOf(bytes)
+  const templateSeqs: number[] = []
+  const renames: Array<{ from: string; to: string }> = []
+  const taken = new Set(parsed.records.map((record) => record.name))
+  const outRecords: Uint8Array[] = []
+
+  inputs.forEach((input, index) => {
+    // 只有模板组（首条）与各控件模板带模板序号；容器节点没有
+    const wantsSeq = index === 0 || index >= 2
+    const fields = parseWireMessage(input.content)
+    if (!fields) throw new Error(`[error] GIA content 解析失败 guid=${input.guid}`)
+    let cloned = cloneFields(fields, idMap)
+    if (options.scriptIdMap !== undefined) cloned = remapMountGuids(cloned, options.scriptIdMap)
+    if (wantsSeq) {
+      seq += 1
+      cloned = withTemplateSeq(cloned, seq)
+      templateSeqs.push(seq)
+    }
+    let emitted = emitWireMessage(cloned)
+    // 重名去重只作用于进模板列表的记录（模板组 + 控件模板）；
+    // 容器节点编辑器不去重（实测：同图已有 3 个「容器节点」，导入的仍叫「容器节点」）
+    if (wantsSeq) {
+      const currentName = recordNameInFields(cloned) ?? ''
+      let unique = currentName
+      for (let suffix = 1; taken.has(unique); suffix += 1) unique = `${currentName}_${suffix}`
+      if (unique !== currentName) {
+        emitted = withName(emitted, unique)
+        renames.push({ from: currentName, to: unique })
+      }
+      taken.add(unique)
+    }
+    outRecords.push(emitted)
+  })
+
+  const out = withRoot9Section(bytes, (section) => {
+    insertRecords(section, outRecords)
+    // 模板组 / 容器节点 / 控件模板都没有 f504 → 全是森林根 → 全部进 f501 索引
+    appendIndexEntries(section, ids)
+  })
+  const [groupId, nodeId] = ids
+  return {
+    bytes: out,
+    groupId,
+    nodeId,
+    templateIds: ids.slice(2),
+    idMap,
+    renames,
+    templateSeqs
+  }
+}
