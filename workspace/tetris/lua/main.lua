@@ -4175,7 +4175,9 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       local nextS = SHAPES[g.nextName or 'T']
       local savedBoard = g.board
       local k = S.idx
-      local budget = 2
+      -- v4.0 ④：2-ply 精化的每帧候选预算。2 太慢（hard 每块 2.03s、ai-battle 里精化赶不上 1.2s 节奏
+      -- ⇒ 退回 1-ply 结果，垃圾行 0）；提到 5 让它在一帧预算内跑完，节奏回到 1.5s 级。
+      local budget = 5
       while k <= n and budget > 0 do
         local cand = top[k]
         local sim = {}

@@ -89,7 +89,7 @@ local NUM = {
     { name = 'normal', tier = 2, ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
       pieceMin = 0.80, pieceMax = 2.40, moveMin = 0.08, moveMax = 0.25,
       obsMin = 0.30, targetLo = 1.40, targetHi = 2.00 },
-    { name = 'hard',   tier = 3, ply = 1, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
+    { name = 'hard',   tier = 3, ply = 2, hold = 1, pMistake = 0, topK = 1, nudgePct = 0,
       pieceMin = 0.55, pieceMax = 1.60, moveMin = 0.05, moveMax = 0.16,
       obsMin = 0.30, targetLo = 0.80, targetHi = 1.20 },
   },

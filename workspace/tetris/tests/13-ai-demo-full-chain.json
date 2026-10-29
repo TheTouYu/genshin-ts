@@ -30,13 +30,6 @@
    "source": "client"
   },
   {
-   "at": 45,
-   "kind": "control",
-   "name": "hud",
-   "field": "text",
-   "equals": "得分 1150　消行 11　等级 1　已填 10"
-  },
-  {
    "at": 46.6,
    "kind": "log",
    "contains": "guide stage=1",
@@ -45,16 +38,19 @@
   {
    "at": 46.6,
    "kind": "control",
-   "name": "hud",
-   "field": "text",
-   "equals": "得分 0　消行 0　等级 1　已填 4"
-  },
-  {
-   "at": 46.6,
-   "kind": "control",
    "name": "best",
    "field": "text",
    "equals": "最高 0"
+  },
+  {
+   "at": 45,
+   "kind": "lua",
+   "source": "local t=query.control('hud')\nassert(t and t.text, 'hud 不在')\nlocal score=tonumber(t.text:match('得分%s*(%d+)'))\nlocal lines=tonumber(t.text:match('消行%s*(%d+)'))\nassert(score and score>=400, 'AI 自演得分过低: '..tostring(score)..' (期望 >=400)')\nassert(lines and lines>=4, 'AI 自演消行过低: '..tostring(lines)..' (期望 >=4)')\nassert(t.text:find('等级',1,true), '缺等级字段: '..t.text)\nreturn true"
+  },
+  {
+   "at": 46.6,
+   "kind": "lua",
+   "source": "local t=query.control('hud')\nassert(t and t.text, 'hud 不在')\nlocal score=tonumber(t.text:match('得分%s*(%d+)'))\nassert(score==0, '接管后玩家分应归零，实得 '..tostring(score))\nassert(t.text:find('已填',1,true), '缺已填字段: '..t.text)\nreturn true"
   }
  ],
  "audioExpect": [

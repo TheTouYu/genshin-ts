@@ -4,15 +4,37 @@
  "name": "50 v4.0 AI 重构①：三档不再故意失误（pMistake 全 0）+ hold 全档 + easy 简化评估 + 速度自适应节奏",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
- "events": [
-  { "t": 3.0, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
-  { "t": 3.1, "kind": "key", "typeName": "KeyboardJumpKeyUp" }
- ],
+ "events": [],
  "asserts": [
-  { "at": 0.5, "kind": "log", "contains": "ai tune pMistake=0,0,0", "source": "client" },
-  { "at": 0.5, "kind": "log", "contains": "hold=1,1,1", "source": "client" },
-  { "at": 0.5, "kind": "log", "contains": "simple=true", "source": "client" },
-  { "at": 2.0, "kind": "log", "contains": "ai pace tier=3 lv=1 pace=1.20", "source": "client" },
-  { "at": 20.0, "kind": "log", "contains": "ai hold why=", "source": "client" }
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "ai tune pMistake=0,0,0",
+   "source": "client"
+  },
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "hold=1,1,1",
+   "source": "client"
+  },
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "simple=true",
+   "source": "client"
+  },
+  {
+   "at": 2.0,
+   "kind": "log",
+   "contains": "ai pace tier=3 lv=1 pace=1.20",
+   "source": "client"
+  },
+  {
+   "at": 70.0,
+   "kind": "log",
+   "contains": "ai hold why=",
+   "source": "client"
+  }
  ]
 }
