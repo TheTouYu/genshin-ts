@@ -51,7 +51,9 @@ const S_COOLDOWN = 1207959568n // 抢断/解围后的带球抑制截止拍（tic
 const CARRIER_GUID = 1082130445n
 
 // ———— 物理常数（7.5Hz 实测拍频标定）————
-const DT = 0.1333
+// 真实步长：载体技能 CD 让内核实际跑 14~27Hz，而固定按 7.5Hz 标定的 DT 会让模拟时间跑快 2~3.5 倍
+// （用户 2026-10-29 体感「高吊球整个过程光速完成」）。服务端 kitListen 每秒校准一次写 fb_dt。
+const DT_FALLBACK = 0.1333
 const GRAVITY = 9.8
 // 草皮表面 y≈0（场地线 y=0.01 / 门横梁 2.5 / 球初始 0.25 三处互证）。
 // GROUND_Y 语义 = **球心贴地时的高度** = 表面 + 球半径 0.25（用户 2026-10-27 指出：漏算半径会半个球埋地）
@@ -73,9 +75,9 @@ const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴
 const ROLL_SPEED = 3.0 // 贴地速度高于此 ⇒ 进入滚动
 const DRIBBLE_R = 2.4
 const DRIBBLE_AHEAD = 1.3
-// 带球跟随增益：每拍吃掉 55% 位置误差 ⇒ K = 0.55/DT ≈ 4.125 /s（几何收敛，无过冲）
+// 带球跟随增益：每拍吃掉 55% 位置误差 ⇒ K = 0.55/dt（几何收敛，无过冲）
 const DRIBBLE_FOLLOW = 0.55
-const DRIBBLE_K = DRIBBLE_FOLLOW / DT
+// 带球增益每拍按真实步长折算（v = 0.55·ddx/dt + 前馈），见下方 vdesX/vdesZ
 const PLAYER_SPEED_CAP = 8.0
 const WARMUP_TICKS = 75n // 开局建图期不做物理
 // 载体停放策略：**x/z 跟随玩家 + y 固定在支撑空模型内部**
@@ -93,16 +95,16 @@ const POST_R = 0.35 // 门柱判定的碰撞半径（视觉柱径 0.12，留余�
 const WALL_REST = 0.6 // 边界反弹保留系数
 const CENTER_Y = GROUND_Y // 球静止时的球心高度（表面 0 + 半径 0.25）
 
-const CARRIER_Y = -5.1
+const CARRIER_Y = -4.21 // = 旧 -5.1 + 0.893（草地地基 y 由 -5.5→-4.607，保持同一相对埋深）
 
 // 踢法：[水平速度, 上挑, 自旋Y]
 const KICK_LIGHT_SPD = 10.0
-const KICK_LIGHT_LIFT = 1.2
+const KICK_LIGHT_LIFT = 3.2
 const KICK_HEAVY_SPD = 16.0
-const KICK_HEAVY_LIFT = 2.0
+const KICK_HEAVY_LIFT = 4.5
 const KICK_HEAVY_SPIN = 10.0
 const KICK_LOB_SPD = 7.0
-const KICK_LOB_LIFT = 7.0
+const KICK_LOB_LIFT = 9.0
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
   const tick = chanIncr(f, SLOT_TICK)
@@ -128,6 +130,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     }
   )
   const keyRaw = f.getCustomVariable(carrier, 'fb_key').asType('int')
+  // 真实步长（服务端 kitListen 每秒校准写入；0 或越界时回退到 7.5Hz 标定值）
+  const dtRaw = f.getCustomVariable(carrier, 'fb_dt').asType('float')
+  const dtv = f.localVariable('float')
+  f.doubleBranch(
+    f.logicalAndOperation(f.greaterThan(dtRaw, 0.004), f.lessThan(dtRaw, 0.25)),
+    () => {
+      dtv.set(dtRaw)
+    },
+    () => {
+      dtv.set(DT_FALLBACK)
+    }
+  )
   const lastSeq = f.dataTypeConversion(f.querySkillVariableValue(S_LASTSEQ), 'int')
   const kickNow = f.greaterThan(drv.value, lastSeq)
 
@@ -163,9 +177,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 玩家速度前馈（位置差分，>8m/s 视为瞬移置 0）————
   const vpVec = f.create3dVector(
-    f.division(f.subtraction(pPx, f.querySkillVariableValue(S_PPX)), DT),
+    f.division(f.subtraction(pPx, f.querySkillVariableValue(S_PPX)), dtv.value),
     0.0,
-    f.division(f.subtraction(pPz, f.querySkillVariableValue(S_PPZ)), DT)
+    f.division(f.subtraction(pPz, f.querySkillVariableValue(S_PPZ)), dtv.value)
   )
   const vp = f.split3dVector(vpVec)
   const vpOK = f.logicalAndOperation(
@@ -247,7 +261,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 () => {
                   vx.set(f.multiplication(dirX, 10.0))
                   vz.set(f.multiplication(dirZ, 10.0))
-                  vy.set(1.2)
+                  vy.set(KICK_LIGHT_LIFT)
                   wy.set(0.0)
                 },
                 () => {}
@@ -255,9 +269,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 2n),
                 () => {
-                  vx.set(f.multiplication(dirX, 16.0))
-                  vz.set(f.multiplication(dirZ, 16.0))
-                  vy.set(2.0)
+                  vx.set(f.multiplication(dirX, KICK_HEAVY_SPD))
+                  vz.set(f.multiplication(dirZ, KICK_HEAVY_SPD))
+                  vy.set(KICK_HEAVY_LIFT)
                   wy.set(10.0)
                 },
                 () => {}
@@ -265,9 +279,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 3n),
                 () => {
-                  vx.set(f.multiplication(dirX, 7.0))
-                  vz.set(f.multiplication(dirZ, 7.0))
-                  vy.set(7.0)
+                  vx.set(f.multiplication(dirX, KICK_LOB_SPD))
+                  vz.set(f.multiplication(dirZ, KICK_LOB_SPD))
+                  vy.set(KICK_LOB_LIFT)
                   wy.set(0.0)
                 },
                 () => {}
@@ -277,7 +291,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 () => {
                   vx.set(f.multiplication(dirX, 12.0))
                   vz.set(f.multiplication(dirZ, 12.0))
-                  vy.set(0.3)
+                  vy.set(0.8)
                   wy.set(0.0)
                 },
                 () => {}
@@ -292,7 +306,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                   f.doubleBranch(odd, () => { sign.set(1.0) }, () => { sign.set(-1.0) })
                   vx.set(f.multiplication(dirX, 14.0))
                   vz.set(f.multiplication(dirZ, 14.0))
-                  vy.set(1.5)
+                  vy.set(4.0)
                   wy.set(f.multiplication(sign.value, 14.0))
                 },
                 () => {}
@@ -306,7 +320,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 () => {
                   vx.set(f.multiplication(dirX, 7.0))
                   vz.set(f.multiplication(dirZ, 7.0))
-                  vy.set(1.5)
+                  vy.set(4.0)
                   wy.set(0.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
                   mode.set(0n)
@@ -318,7 +332,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 () => {
                   vx.set(f.multiplication(dirX, 20.0))
                   vz.set(f.multiplication(dirZ, 20.0))
-                  vy.set(4.0)
+                  vy.set(5.0)
                   wy.set(0.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
                   mode.set(0n)
@@ -368,12 +382,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         dribble,
         () => {
           // 带球：**位置式跟随**（2026-10-29 第二轮修「运动不正常/抖」）
-          // 旧写法 v ← 0.45v + 0.55·(ddx·8 + ff) 是速度环套位置环，闭环增益 ≈ 0.55·8·DT ≈ 0.586/拍
+          // 旧写法 v ← 0.45v + 0.55·(ddx·8 + ff) 是速度环套位置环，闭环增益 ≈ 0.586/拍
           // 外加 0.45 惯性 ⇒ 欠阻尼。真机日志 3411 实证：tick 81 速度 4.99，随后在 x≈−2.2 附近
           // 以 0.1~0.6 m/s 来回抖（过冲→回拉），玩家已走远球还留在原地打转。
-          // 新写法：**每拍吃掉 55% 位置误差**（v = 0.55·ddx/DT + 玩家速度前馈），几何收敛、无过冲。
-          const vdesX = f.addition(f.multiplication(ddx, DRIBBLE_K), ffx.value)
-          const vdesZ = f.addition(f.multiplication(ddz, DRIBBLE_K), ffz.value)
+          // 新写法：**每拍吃掉 55% 位置误差**（v = 0.55·ddx/dt + 玩家速度前馈），几何收敛、无过冲。
+          const vdesX = f.addition(
+            f.multiplication(ddx, f.division(DRIBBLE_FOLLOW, dtv.value)),
+            ffx.value
+          )
+          const vdesZ = f.addition(
+            f.multiplication(ddz, f.division(DRIBBLE_FOLLOW, dtv.value)),
+            ffz.value
+          )
           vx.set(vdesX)
           vy.set(0.0)
           vz.set(vdesZ)
@@ -385,8 +405,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           //   tick 98→658 六个字段 pos 恒 (0,0.25,1.5)、vel 恒 (0,0,-1.6006)、state 恒 5）。
           //   带球帧是「球跟着玩家」的帧，必须自己推进位置；y 钉地面（带球不离开地面）。
           by.set(GROUND_Y)
-          bx.set(f.addition(bx.value, f.multiplication(vx.value, DT)))
-          bz.set(f.addition(bz.value, f.multiplication(vz.value, DT)))
+          bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
+          bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
           mode.set(5n)
         },
         () => {}
@@ -419,7 +439,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         f.logicalAndOperation(notDribble, f.logicalNotOperation(onGround)),
         () => {
-          vy.set(f.subtraction(vy.value, GRAVITY * DT))
+          vy.set(f.subtraction(vy.value, f.multiplication(GRAVITY, dtv.value)))
           const magVec = f._3dVectorZoom(
             MAGNUS_K,
             f._3dVectorCrossProduct(
@@ -428,9 +448,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             )
           )
           const ms = f.split3dVector(magVec)
-          vx.set(f.addition(vx.value, f.multiplication(ms.xComponent, DT)))
-          vy.set(f.addition(vy.value, f.multiplication(ms.yComponent, DT)))
-          vz.set(f.addition(vz.value, f.multiplication(ms.zComponent, DT)))
+          vx.set(f.addition(vx.value, f.multiplication(ms.xComponent, dtv.value)))
+          vy.set(f.addition(vy.value, f.multiplication(ms.yComponent, dtv.value)))
+          vz.set(f.addition(vz.value, f.multiplication(ms.zComponent, dtv.value)))
         },
         () => {}
       )
@@ -443,9 +463,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           wx.set(f.multiplication(wx.value, SPIN_DECAY))
           wy.set(f.multiplication(wy.value, SPIN_DECAY))
           wz.set(f.multiplication(wz.value, SPIN_DECAY))
-          bx.set(f.addition(bx.value, f.multiplication(vx.value, DT)))
-          by.set(f.addition(by.value, f.multiplication(vy.value, DT)))
-          bz.set(f.addition(bz.value, f.multiplication(vz.value, DT)))
+          bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
+          by.set(f.addition(by.value, f.multiplication(vy.value, dtv.value)))
+          bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
         },
         () => {}
       )
@@ -459,7 +479,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           by.set(GROUND_Y)
           const vyIn = vy.value
           const hitting = f.lessThan(vyIn, -SETTLE_VY)
-          const jn = f.localVariable('float') // 法向冲量当量（m/s）：撞击=(1+e)|vy|，静息=g·DT
+          const jn = f.localVariable('float') // 法向冲量当量（m/s）：撞击=(1+e)|vy|，静息=g·dt
           f.doubleBranch(
             hitting,
             () => {
@@ -471,7 +491,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             },
             () => {
               vy.set(0.0)
-              jn.set(f.multiplication(GRAVITY, DT))
+              jn.set(f.multiplication(GRAVITY, dtv.value))
             }
           )
           // 接触点滑移：v_slip = v + ω×r_c，r_c=(0,−R,0) ⇒ (vx + wz·R, 0, vz − wx·R)

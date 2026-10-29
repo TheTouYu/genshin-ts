@@ -30,6 +30,35 @@ const graph = g
     const pLoc = f.split3dVector(f.getEntityLocationAndRotation(player0).location)
     f.setCustomVariable(owner, 'fbvx', pLoc.xComponent, false)
     f.setCustomVariable(owner, 'fbvz', pLoc.zComponent, false)
+    // ———— 每拍真实步长校准（2026-10-29）————
+    // 载体技能 CD 让内核实际跑 14~27Hz（客户端越忙越慢），而内核按 7.5Hz 标定的 DT 积分
+    // ⇒ 模拟时间跑快 2~3.5 倍（用户体感「高吊球整个过程光速完成」）。这里用「游戏已进行时间(秒)」
+    // 数每秒钟收到几拍，折算成真实步长写 fb_dt，客户端每拍读。
+    const nowSec = f.queryGameTimeElapsed()
+    const lastSec = f.getCustomVariable(owner, 'fb_sec').asType('int')
+    const cnt = f.getCustomVariable(owner, 'fb_cnt').asType('int')
+    f.doubleBranch(
+      f.equal(nowSec, lastSec),
+      () => {
+        f.setCustomVariable(owner, 'fb_cnt', f.addition(cnt, 1n), false)
+      },
+      () => {
+        const cntF = f.dataTypeConversion(cnt, 'float')
+        const safe = f.localVariable('float')
+        f.doubleBranch(
+          f.lessThan(cntF, 1.0),
+          () => {
+            safe.set(1.0)
+          },
+          () => {
+            safe.set(cntF)
+          }
+        )
+        f.setCustomVariable(owner, 'fb_dt', f.division(1.0, safe.value), false)
+        f.setCustomVariable(owner, 'fb_cnt', 0n, false)
+        f.setCustomVariable(owner, 'fb_sec', nowSec, false)
+      }
+    )
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,

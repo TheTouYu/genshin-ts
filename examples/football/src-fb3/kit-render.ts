@@ -13,6 +13,8 @@ const TELEPORT_DIST = 5.0
 // 运动器时长 = 一拍（内核 7.5Hz ⇒ 0.1333s；取 0.14 略长一点，保证下一拍到来前已走完，无空档）
 // 2026-10-29 修：原来 0.25s + FixedSpeed，运动器比拍长一倍 ⇒ 每拍都在"重启"未完成的运动，
 //   实测（日志 3412）tick 61 之后球实体一直停在 (0,0,1.5) 不动，而内核目标已走到 3m 外。
+// 运动器时长 = 一拍。内核实际步长随客户端负载在 0.037~0.07s 之间变（14~27Hz），
+// 固定 0.14s 会让球永远慢半拍 ⇒ 每拍从载体变量 fb_dt 读真实步长（读不到用 0.14 兜底）。
 const DRIVE_DUR = 0.14
 
 g
@@ -30,14 +32,28 @@ g
       f.equal(evt.params.tag, 'B'),
       () => {
         const ball = f.getSelfEntity()
-        const pos = evt.params.pos
+        // 真实步长（kitListen 每秒校准写入载体变量）
+    const dtRaw = f
+      .getCustomVariable(f.queryEntityByGuid(1082130445n), 'fb_dt')
+      .asType('float')
+    const driveDur = f.localVariable('float')
+    f.doubleBranch(
+      f.logicalAndOperation(f.greaterThan(dtRaw, 0.004), f.lessThan(dtRaw, 0.25)),
+      () => {
+        driveDur.set(dtRaw)
+      },
+      () => {
+        driveDur.set(DRIVE_DUR)
+      }
+    )
+    const pos = evt.params.pos
         const spin = evt.params.spin
         const loc = f.getEntityLocationAndRotation(ball).location
         const delta = f._3dVectorSubtraction(pos, loc)
         const dist = f._3dVectorModuloOperation(delta)
         // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
         //   「直线设备的 velocity 显式算成 (target-current)/duration，可同时拿到精确到点与不漂移」）
-        const velToTarget = f._3dVectorZoom(delta, f.division(1.0, DRIVE_DUR))
+        const velToTarget = f._3dVectorZoom(delta, f.division(1.0, driveDur.value))
         // 大跳用定点器瞬移（§10：定点器仍可用于 INSTANT_MOVEMENT，别全盘禁用）
         f.doubleBranch(
           f.greaterThan(dist, new float(TELEPORT_DIST)),
@@ -53,7 +69,7 @@ g
             //   「定点器匀速直线 + 旋转设备」= 直线设备被秒停、实体位置纹丝不动、只剩微量自旋。
             //   本轮真机日志 3412 复现同形态：参数照发、实体停在 (0,0.25,1.5)。
             // 参数：add_uniform_basic_linear_motion_device(实体, 设备名, 时长(秒), 速度向量(m/s))
-            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', DRIVE_DUR, velToTarget)
+            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', driveDur.value, velToTarget)
           }
         )
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
@@ -72,7 +88,7 @@ g
             const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', DRIVE_DUR, angVel, localAxis)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', driveDur.value, angVel, localAxis)
           },
           () => {}
         )
