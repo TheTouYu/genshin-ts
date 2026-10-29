@@ -9,7 +9,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = '1793185354383'
+T.BUILD_ID = '1793250631252'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -4940,7 +4940,7 @@ T.discoverTemplates = function()
   end
   if #missing == 0 then return true end
   T.log('discover missing=' .. table.concat(missing, ','))
-  local ranges = { { 1073741825, 1073742050 }, { 1073742100, 1073742150 } }
+  local ranges = { { 1073741825, 1073742050 }, { 1073742100, 1073742150 }, { 1073742400, 1073742600 } }
   for _, r in ipairs(ranges) do
     for guid = r[1], r[2] do
       for i = #missing, 1, -1 do

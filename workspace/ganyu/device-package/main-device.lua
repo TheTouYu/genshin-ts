@@ -9,7 +9,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = 'device-1793186489328'
+T.BUILD_ID = 'device-1793250631534'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -327,7 +327,7 @@ T.SHAPE_ID = {
 -- 每屏固定顺序：背景图 → 内容图 → 全部文字 → hits → 焦点框（finishScreen）。
 -- ============================================================================
 T = T or {}
-T.tpl = { prim = 1073741930, label = 1073741931, hit = 1073741932 }
+T.tpl = { prim = 1073742504, label = 1073742505, hit = 1073742506 }
 T.ev = {}
 T.controls, T.texts, T.items, T.hits = {}, {}, {}, {}
 T.tweens, T.anims, T.pos = {}, {}, {}
@@ -4940,7 +4940,7 @@ T.discoverTemplates = function()
   end
   if #missing == 0 then return true end
   T.log('discover missing=' .. table.concat(missing, ','))
-  local ranges = { { 1073741825, 1073742050 }, { 1073742100, 1073742150 } }
+  local ranges = { { 1073741825, 1073742050 }, { 1073742100, 1073742150 }, { 1073742400, 1073742600 } }
   for _, r in ipairs(ranges) do
     for guid = r[1], r[2] do
       for i = #missing, 1, -1 do
