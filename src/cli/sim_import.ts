@@ -34,6 +34,8 @@ import { resyncMap } from './maps.js'
 import { saveLevelDirOf, syncGilToTemp } from './gil_paths.js'
 import { registerScriptInPayload, updateScriptInPayload } from './gil_scripts.js'
 import {
+  clientUiRootStatus,
+  ensureClientUiHierarchyRoots,
   importGiaContainerTemplate,
   instantiateContainerTemplate
 } from '../../ui/src/container-subtree.js'
@@ -505,6 +507,7 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
   let layoutArg: string | undefined
   let outputPath: string | undefined
   let startId: number | undefined
+  let rootDonor: string | undefined
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
     if (a === '--gia') giaPath = args[++i]
@@ -517,6 +520,7 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
     else if (a === '--layout') layoutArg = args[++i]
     else if (a === '--output') outputPath = args[++i]
     else if (a === '--start-id') startId = Number(args[++i])
+    else if (a === '--root-donor') rootDonor = args[++i]
     else if (a === '--help' || a === '-h') {
       deps.log(
         [
@@ -561,6 +565,7 @@ export async function runSimImport(args: string[], deps: { log: (s: string) => v
       yes,
       remapScript,
       startId,
+      rootDonor,
       jsonMode,
       log: deps.log,
       err: deps.err
@@ -865,6 +870,8 @@ interface ApplyCliOptions {
   yes: boolean
   remapScript: boolean
   startId?: number
+  /** 目标图缺 ClientUI 层级根（族 87/88）时，从这张地图克隆两条根补上 */
+  rootDonor?: string
   jsonMode: boolean
   log: (message: string) => void
   err: (message: string) => void
@@ -878,8 +885,29 @@ function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOption
   if (gia.scripts.length === 0) {
     options.log('提示：该包不含脚本，UI 只会落模板（不会有运行时实例化逻辑）')
   }
-  const targetBytes = new Uint8Array(readFileSync(options.gilPath))
-  const sourceHash = sha256Bytes(targetBytes)
+  const diskBytes: Uint8Array = new Uint8Array(readFileSync(options.gilPath))
+  const diskHash = sha256Bytes(diskBytes)
+  let targetBytes: Uint8Array = diskBytes
+  // 前置：ClientUI 层级根（族 87/88）。CLI 新建的地图没有（编辑器首开会自建），
+  // 缺了就直接落地，编辑器打开时会自建并把整棵子树一起丢掉 → 这里先补齐。
+  const rootStatus = clientUiRootStatus(targetBytes)
+  const rootNotes: string[] = []
+  if (rootStatus.missing.length > 0) {
+    if (options.rootDonor === undefined) {
+      options.err(
+        `[error] 目标地图缺少 ClientUI 层级根（族 ${rootStatus.missing.join('/')}）。` +
+          '给 --root-donor <含 87/88 的地图.gil> 让 CLI 补，或先在编辑器里打开保存一次。'
+      )
+      return 2
+    }
+    const ensured = ensureClientUiHierarchyRoots(targetBytes, {
+      donor: new Uint8Array(readFileSync(options.rootDonor))
+    })
+    targetBytes = ensured.bytes
+    rootNotes.push(`已从 donor 补齐 ClientUI 层级根：${ensured.added.map((a) => `${a.family}#${a.id}`).join(',')}`)
+  }
+  // 写回比对必须用**磁盘原始字节**的 hash（root 修复后 targetBytes 已不是磁盘内容）
+  const sourceHash = diskHash
   const parsed = parseRoot9(targetBytes)
   const layouts = parsed.records.filter((r) => r.kind === 'layout')
   let layout = layouts[0]
@@ -906,6 +934,7 @@ function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOption
     options.err(error instanceof Error ? error.message : String(error))
     return 1
   }
+  for (const note of rootNotes) result.notes.unshift(note)
   const problems = checkRoot9Invariants(result.bytes)
   const nextHash = sha256Bytes(result.bytes)
 
@@ -915,7 +944,7 @@ function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOption
         {
           schemaVersion: 2,
           kind: 'gsts.sim-import-apply',
-          source: { path: options.gilPath, sha256: sourceHash, bytes: targetBytes.length },
+          source: { path: options.gilPath, sha256: sourceHash, bytes: diskBytes.length },
           candidate: { sha256: nextHash, bytes: result.bytes.length },
           layout: layout !== undefined ? { id: layout.id, name: layout.name } : null,
           created: {
@@ -935,7 +964,7 @@ function runApply(giaBytes: Uint8Array, gia: GiaPackage, options: ApplyCliOption
       ) + '\n'
     )
   } else {
-    options.log(`源: ${options.gilPath}（${targetBytes.length} B sha=${sourceHash.slice(0, 16)}）`)
+    options.log(`源: ${options.gilPath}（${diskBytes.length} B sha=${sourceHash.slice(0, 16)}）`)
     options.log(
       `布局: ${layout !== undefined ? `${layout.name}#${layout.id}` : '(无)'}` +
         ` · 模板序号 ${result.templateIds.length + 1} 个新分配`
