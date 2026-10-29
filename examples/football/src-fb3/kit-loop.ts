@@ -741,20 +741,26 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
   // ———— 自检探针（tag='Q'）————
-  // 目的：把**客户端算出来的玩家坐标**送进服务端日志（客户端 print 不落 .gia，且不想开客户端图日志）。
-  // 载荷：pos = (pPx, pPz, 子实体列表长度)，服务端帧会原样打出 OUT5:Vector。
+  // 一条消息打包四个待验通道，服务端帧日志会原样打出 OUT5/OUT6/OUT7：
+  //   pos  = 玩家模板实体 1086324737 的坐标
+  //   vel  = 角色编辑实体 1090519041 的坐标
+  //   spin = (玩家模板的子实体数, 角色编辑的子实体数, 内核实际用的 pPx)
+  const probeA = f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1086324737n)))
+  const probeB = f.split3dVector(f.getEntityLocation(f.queryEntityByGuid(1090519041n)))
+  const probeSubA = f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1086324737n)))
+  const probeSubB = f.getListLength(f.getSubEntityList(f.queryEntityByGuid(1090519041n)))
   chanSendState6(
     f,
     KitSignal.kit_state,
     'Q',
     tick,
+    f.create3dVector(probeA.xComponent, probeA.yComponent, probeA.zComponent),
+    f.create3dVector(probeB.xComponent, probeB.yComponent, probeB.zComponent),
     f.create3dVector(
-      pPxV.value,
-      pPzV.value,
-      f.dataTypeConversion(pSubLen, 'float')
+      f.dataTypeConversion(probeSubA, 'float'),
+      f.dataTypeConversion(probeSubB, 'float'),
+      pPxV.value
     ),
-    f.create3dVector(0.0, 0.0, 0.0),
-    f.create3dVector(0.0, 0.0, 0.0),
     0n
   )
   chanSendState6(
