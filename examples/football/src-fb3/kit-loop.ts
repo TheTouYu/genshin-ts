@@ -66,7 +66,9 @@ const GROUND_FRICTION = 0.82 // 触地切向摩擦（事件型）
 const AIR_DRAG = 0.995 // 每拍空气阻力
 const ROLL_FRICTION = 0.985 // 旧值（已不再使用，保留常量避免其它引用断裂）
 const ROLL_MU = 0.06 // 滚动阻力系数：减速度 = 0.06·9.8 ≈ 0.59 m/s²（草地量级）
-const FRICTION_LOSS = 0.9 // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
+const FRICTION_LOSS = 0.9
+const AIR_DRAG_K = 0.05 // 空气阻力速率（1/s）：v *= 1−0.05·dt
+const SPIN_K = 0.15 // 自旋衰减速率（1/s） // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
 const SPIN_DECAY = 0.985 // 每拍自旋衰减（空中）
 const SPIN_GROUND = 0.85 // 触地自旋衰减
 const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
@@ -488,11 +490,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         notDribble,
         () => {
-          vx.set(f.multiplication(vx.value, AIR_DRAG))
-          vz.set(f.multiplication(vz.value, AIR_DRAG))
-          wx.set(f.multiplication(wx.value, SPIN_DECAY))
-          wy.set(f.multiplication(wy.value, SPIN_DECAY))
-          wz.set(f.multiplication(wz.value, SPIN_DECAY))
+          // 空气阻力/自旋衰减：**速率无关**（旧写法 ×0.995/拍 在 10Hz 与 26Hz 下差 2.6 倍）
+          const airK = f.subtraction(1.0, f.multiplication(AIR_DRAG_K, dtv.value))
+          vx.set(f.multiplication(vx.value, airK))
+          vz.set(f.multiplication(vz.value, airK))
+          wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
+          wx.set(f.multiplication(wx.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
+          wz.set(f.multiplication(wz.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
           bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
           by.set(f.addition(by.value, f.multiplication(vy.value, dtv.value)))
           bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
@@ -544,14 +548,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             }
           )
           // 消滑移冲量（实心球 I=2/5·mR² 解得）：a=(γ/5.25)(sx+2.5sz), b=(γ/5.25)(sz+2.5sx)
-          const a = f.division(
-            f.multiplication(gamma.value, f.addition(sx, f.multiplication(2.5, sz))),
-            5.25
-          )
-          const b = f.division(
-            f.multiplication(gamma.value, f.addition(sz, f.multiplication(2.5, sx))),
-            5.25
-          )
+          // ⚠️ 2026-10-30 定谳（符号错误）：接触点滑移对一次冲量的响应是**解耦**的
+          //   Δs = (7/2)·a , (7/2)·b  （sympy 推导：sx2=vx+a+wz·R+2.5a 等）
+          //   ⇒ 清零滑移所需 a = −(2/7)·sx、b = −(2/7)·sz。
+          //   旧式子 a=γ(sx+2.5sz)/5.25 在 sx、sz 同号时给出**正号**冲量 ⇒ 每拍把滑移放大 3.3 倍 ⇒
+          //   自旋与速度双双发散（日志 3425：无按键时速度 11.97→17.44、自旋 7→78 rad/s）。
+          const a = f.division(f.multiplication(gamma.value, sx), -3.5)
+          const b = f.division(f.multiplication(gamma.value, sz), -3.5)
           // 摩擦冲量带损耗（2026-10-30：实测球速每拍不衰减 —— 无损消滑移冲量把自旋能量
           // 全转成前进速度，球"越磨越快"；真实摩擦必须耗能 ⇒ 系数 0.9）
           const aD = f.multiplication(a, FRICTION_LOSS)
