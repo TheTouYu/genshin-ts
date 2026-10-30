@@ -16,6 +16,7 @@ function M.new(env)
   local game = env.game
   local setText, trySet, tryCall, addCursor = env.setText, env.trySet, env.tryCall, env.addCursor
   local ROSTER = env.roster
+
   -- ROSTER 由 main 注入（同一张表，外部也读它）
   FN.rosterDestroy = function()
     if ROSTER.savedTop or ROSTER.savedBot then
@@ -43,8 +44,13 @@ function M.new(env)
       FN.rosterDestroy()
       ROSTER.on = false
       print('roster close')
+      -- 关页后把标题展台建回来（打开时被拆掉了，见下）
+      if env.rebuildMenu then env.rebuildMenu() end
       return
     end
+    -- 层序铁律：想盖住已有控件，只能在它们之后建。标题页的展台（入口卡/模式卡/底部提示）
+    -- 是更早建的一批实例，且 SetAsLastSibling 不可靠 ⇒ 开页前先把展台拆掉，关页再建。
+    if env.teardownMenu then env.teardownMenu() end
     FN.rosterBuild()
   end
 
@@ -165,6 +171,9 @@ function M.new(env)
   end
 
   FN.rosterBuild = function(keepSel, keepTab)
+    if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
+    -- 组件工厂是懒创建的（main 的 MS.build 里才建）⇒ 每次构建时现取
+    local CTL = env.ctl and env.ctl() or nil
     FN.rosterDestroy()
     local W, H = env.canvas()
     local CP = FN.COPY
@@ -199,8 +208,6 @@ function M.new(env)
     R.rule = BOX('charRule', PW - u(80), u(2), THEME.gold)
     R.title = TXT('charTitle', '角色档案 · 契约与技能', u(620), 32, THEME.textMain, 'Left')
     R.sub = TXT('charHint', '左边点角色 · 右边切页签　·　I / F 关闭 · 右上角「合上」也行', u(620), 17, THEME.textSub, 'Left')
-    R.closePill = BOX('charClose', u(150), u(50), THEME.gold)
-    R.closeTx = TXT('charCloseTx', '合上', u(146), 20, THEME.textMain)
     -- 左列：四人
     local rows = {}
     for i, role in ipairs(roles) do
@@ -208,20 +215,13 @@ function M.new(env)
       local open = SKG().unlocked and SKG().unlocked[role] == true
       local inParty = false
       for _, rr in ipairs(SKG().party or {}) do if rr == role then inParty = true end end
-      local chip = BOX('charChip' .. i, u(360), u(96), (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244))
-      local bar = BOX('charBar' .. i, u(8), u(76), open and (e.color or C(127, 207, 106)) or C(206, 198, 204, 214))
-      local nm = TXT('charName' .. i, (e.name or role) .. (inParty and ' ▲' or ''), u(300), 24,
-        open and THEME.textMain or THEME.textSub, 'Left')
-      local st = TXT('charState' .. i, open and (inParty and ('台前 · Lv' .. tostring(snap.lv or 1)) or '已缔结 · 后台')
-        or '未缔结 · 点开看解锁条件', u(300), 16, open and (e.color2 or THEME.textMain) or THEME.textSub, 'Left')
-      local hit = UI4.hit('charHit' .. i, u(360), u(96))
-      if hit then
-        add(hit)
-        local idx = i
-        addCursor(hit, 'CursorDown', function() FN.charShow(idx) end)
-      end
-      -- 选中态用「左竖条 + 浅色底」表达即可；不另建描金边盒子（曾因未摆位飘到右栏）
-      rows[i] = { chip = chip, bar = bar, nm = nm, st = st, hit = hit }
+      -- v5.23（用户：角色页那么多按钮，为什么不用我们现在这套组件）：角色行改由
+      -- controls.lua 的 CTL.btn 生成 —— 胶囊底/文字版式/键帽/热区/命中注册/三态+音效 全在组件里，
+      -- 这里只给坐标与文案。
+      rows[i] = { role = role, name = (e.name or role) .. (inParty and ' ▲' or ''),
+        state = open and (inParty and ('台前 · Lv' .. tostring(snap.lv or 1)) or '已缔结 · 后台')
+          or '未缔结 · 点开看解锁条件',
+        color = e.color, color2 = e.color2, open = open, idx = i }
     end
     -- 中列：立绘区（角色主题色大色块 + 名字/元素/称号 + 台词）+ 状态
     local d = charData(roles[sel])
@@ -241,21 +241,8 @@ function M.new(env)
     -- 右列：页签 + 内容
     local tabs, tabsHit = {}, {}
     for i = 1, 5 do
-      tabs[i] = BOX('charTab' .. i, u(96), u(46), (i == tab) and (e.color or C(127, 207, 106)) or C(240, 244, 244, 246))
-      tabs[i .. 't'] = TXT('charTabT' .. i, CHAR_TAB_NAME[i], u(92), 18,
-        (i == tab) and C(255, 255, 255, 255) or THEME.textMain)
-      -- v5.6（用户二轮三-3「标签页点不了」）：热区放大到 104×58 并把动作同时挂 Click——
-      -- 触屏上 Down 时机在按下瞬间，重建整页会吃掉后续事件；Click（抬起后）更稳。
-      local h = UI4.hit('charTabHit' .. i, u(104), u(58))
-      if h then
-        add(h)
-        tabsHit[i] = h
-        local ti = i
-        addCursor(h, 'CursorDown', function()
-          print('char tab tap ' .. tostring(ti))
-          FN.rosterBuild(sel, ti)
-        end)
-      end
+      -- v5.23：页签已改由 CTL.btn 在布局阶段生成（胶囊+热区+命中注册+三态+音效），
+      -- 这里不再建 BOX/TXT/热区 —— 残留的未摆位控件会漂到画面中央（实测那块白方块就是它）。
     end
     -- 内容条目（每条：图标 + 名称 + 正文）
     local items = {}
@@ -460,19 +447,30 @@ function M.new(env)
     at(R.rule, 0, PH / 2 - u(94), PW - u(80), u(2))
     put(R.title, PL + u(40), PH / 2 - u(46), u(560), th(32))
     put(R.sub, PL + u(40), PH / 2 - u(78), u(560), th(17))
-    at(R.closePill, PR - u(110), PH / 2 - u(46), u(150), u(50))
-    at(R.closeTx, PR - u(110), PH / 2 - u(46), u(146), th(20))
+    if CTL then
+      CTL.btn({ id = 'roster.close', x = PR - u(110), y = PH / 2 - u(46), w = u(150), h = u(50),
+        label = '合上', fs = 20, preset = 'gold',
+        onClick = function() if FN.rosterToggle then FN.rosterToggle() end end })
+    end
     local listX = PL + u(40)
     for i = 1, #rows do
       local r = rows[i]
       local y = u(200) - (i - 1) * u(108)
-      if r.chip then trySet(r.chip, 'imageColor', (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244)) end
-      at(r.chip, listX + u(180), y, u(360), u(96))
-      at(r.bar, listX + u(4), y, u(8), u(76))
-      put(r.nm, listX + u(22), y + u(18), u(320), th(24))
-      put(r.st, listX + u(22), y - u(18), u(320), th(16))
-      -- 命中区必须自己摆位（建出来默认在 (0,0)），且 cursor 的 y 轴与图片相反 ⇒ 取负
-      if r.hit then at(r.hit, listX + u(180), -y, u(360), u(96)) end
+      if CTL then
+        local fill = (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244)
+        local b = CTL.btn({
+          id = 'roster.row' .. i, x = listX + u(180), y = y, w = u(360), h = u(96),
+          label = r.name, sub = r.state, fs = 22, subFs = 15, pad = 26, titleDy = 16, subDy = 20,
+          fill = fill, hoverColor = C(252, 246, 250, 246), pressColor = C(246, 236, 244, 250),
+          ink = r.open and THEME.textMain or THEME.textSub,
+          subInk = r.open and (r.color2 or THEME.textMain) or THEME.textSub,
+          onClick = function() FN.charShow(r.idx) end,
+        })
+        if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
+        -- 左竖条（角色色/未缔结灰）：组件不管内容标识，调用方自己叠
+        local bar = BOX('charBar' .. i, u(8), u(76), r.open and (r.color or C(127, 207, 106)) or C(206, 198, 204, 214))
+        at(bar, listX + u(4), y, u(8), u(76))
+      end
     end
     -- 中列立绘区
     local midX = PL + u(430)
@@ -482,19 +480,27 @@ function M.new(env)
     put(R.pName, midX + u(20), u(160), midW - u(40), th(40))
     put(R.pElem, midX + u(20), u(112), midW - u(40), th(20))
     put(R.pLv, midX + u(20), u(80), midW - u(40), th(18))
-    put(R.pSay, midX + u(10), -u(60), midW + u(40), th(18))
-    put(R.pSay2, midX + u(10), -u(96), midW + u(40), th(18))
-    put(R.pSay3, midX + u(10), -u(134), midW + u(40), th(17))
-    put(R.pSay4, midX + u(10), -u(168), midW + u(40), th(17))
+    put(R.pSay, midX + u(16), -u(60), midW - u(32), th(18))
+    put(R.pSay2, midX + u(16), -u(96), midW - u(32), th(18))
+    put(R.pSay3, midX + u(16), -u(134), midW - u(32), th(17))
+    put(R.pSay4, midX + u(16), -u(168), midW - u(32), th(17))
     put(R.pSkill, midX + u(10), -u(300), midW + u(40), th(18))
     -- 右列：页签 + 条目
     local rightX = PL + u(860)
     local rightW = u(500)
     for i = 1, 5 do
       local tx = rightX + (i - 1) * u(100)
-      at(tabs[i], tx + u(48), u(232), u(96), u(46))
-      at(tabs[i .. 't'], tx + u(48), u(232), u(92), th(18))
-      if tabsHit[i] then at(tabsHit[i], tx + u(48), -u(232), u(96), u(46)) end
+      if CTL then
+        local on = (i == tab)
+        local b = CTL.btn({ id = 'roster.tab' .. i, x = tx + u(48), y = u(232), w = u(96), h = u(46),
+          label = CHAR_TAB_NAME[i], fs = 18, pad = 10, lift = 3,
+          fill = on and (e.color or C(127, 207, 106)) or C(240, 244, 244, 246),
+          hoverColor = on and (e.color or C(127, 207, 106)) or C(232, 238, 240, 250),
+          pressColor = on and (e.color or C(127, 207, 106)) or C(224, 232, 236, 252),
+          ink = on and C(255, 255, 255, 255) or THEME.textMain,
+          onClick = function() print('char tab tap ' .. tostring(i)) FN.rosterBuild(sel, i) end })
+        if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
+      end
     end
     local yy = u(150)
     for idx, row in ipairs(itemRows) do

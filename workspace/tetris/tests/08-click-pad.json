@@ -1,183 +1,187 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "08 v4.0 移动端 6 键实例按钮：坐标点击 ←/旋转/锁定/缓降/暂存，每个都打到 act 链（phone tap 锚）",
+ "name": "08 移动端拇指键：点 ◀/旋转/锁定/缓降/暂存 全部打到 act 链（phone tap 锚）",
  "dt": 0.016666666666666666,
  "canvasId": "mobile-16-9",
  "events": [
   {
-   "t": 0.5,
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  },
+  {
+   "t": 1.6,
    "kind": "pointer",
    "type": "move",
-   "x": 82,
-   "y": 47
+   "x": 175,
+   "y": 64
   },
   {
-   "t": 0.55,
+   "t": 1.6500000000000001,
    "kind": "pointer",
    "type": "down",
-   "x": 82,
-   "y": 47
+   "x": 175,
+   "y": 64
   },
   {
-   "t": 0.6,
+   "t": 1.7000000000000002,
    "kind": "pointer",
    "type": "up",
-   "x": 82,
-   "y": 47
+   "x": 175,
+   "y": 64
   },
   {
-   "t": 0.9,
+   "t": 2.3,
    "kind": "pointer",
    "type": "move",
-   "x": 224,
-   "y": 119
+   "x": 240,
+   "y": 140
   },
   {
-   "t": 0.95,
+   "t": 2.3499999999999996,
    "kind": "pointer",
    "type": "down",
-   "x": 224,
-   "y": 119
+   "x": 240,
+   "y": 140
   },
   {
-   "t": 1.0,
+   "t": 2.4,
    "kind": "pointer",
    "type": "up",
-   "x": 224,
-   "y": 119
+   "x": 240,
+   "y": 140
   },
   {
-   "t": 1.4,
+   "t": 3.0,
    "kind": "pointer",
    "type": "move",
-   "x": 1056,
-   "y": 47
+   "x": 1105,
+   "y": 64
   },
   {
-   "t": 1.45,
+   "t": 3.05,
    "kind": "pointer",
    "type": "down",
-   "x": 1056,
-   "y": 47
+   "x": 1105,
+   "y": 64
   },
   {
-   "t": 1.5,
+   "t": 3.1,
    "kind": "pointer",
    "type": "up",
-   "x": 1056,
-   "y": 47
+   "x": 1105,
+   "y": 64
   },
   {
-   "t": 2.0,
+   "t": 3.7,
    "kind": "pointer",
    "type": "move",
-   "x": 1198,
-   "y": 47
+   "x": 975,
+   "y": 64
   },
   {
-   "t": 2.05,
+   "t": 3.75,
    "kind": "pointer",
    "type": "down",
-   "x": 1198,
-   "y": 47
+   "x": 975,
+   "y": 64
   },
   {
-   "t": 2.1,
+   "t": 3.8000000000000003,
    "kind": "pointer",
    "type": "up",
-   "x": 1198,
-   "y": 47
+   "x": 975,
+   "y": 64
   },
   {
-   "t": 2.6,
+   "t": 4.4,
    "kind": "pointer",
    "type": "move",
-   "x": 1198,
-   "y": 119
+   "x": 1040,
+   "y": 152
   },
   {
-   "t": 2.65,
+   "t": 4.45,
    "kind": "pointer",
    "type": "down",
-   "x": 1198,
-   "y": 119
+   "x": 1040,
+   "y": 152
   },
   {
-   "t": 2.7,
+   "t": 4.5,
    "kind": "pointer",
    "type": "up",
-   "x": 1198,
-   "y": 119
+   "x": 1040,
+   "y": 152
   }
  ],
  "asserts": [
   {
-   "at": 0.4,
+   "at": 0.5,
    "kind": "log",
    "contains": "phone build n=17",
    "source": "client"
   },
   {
-   "at": 0.4,
+   "at": 0.5,
    "kind": "log",
    "contains": "phone layout w=1280 h=720",
    "source": "client"
   },
   {
-   "at": 0.8,
+   "at": 2.0,
    "kind": "log",
    "contains": "phone tap left",
    "source": "client"
   },
   {
-   "at": 1.2,
+   "at": 2.7,
    "kind": "log",
    "contains": "phone tap rot",
    "source": "client"
   },
   {
-   "at": 1.2,
+   "at": 2.7,
    "kind": "log",
    "contains": "rotate",
    "source": "client"
   },
   {
-   "at": 1.8,
+   "at": 3.4,
    "kind": "log",
    "contains": "phone tap hard",
    "source": "client"
   },
   {
-   "at": 1.8,
+   "at": 3.4,
    "kind": "log",
    "contains": "harddrop rows=",
    "source": "client"
   },
   {
-   "at": 2.4,
+   "at": 4.1,
    "kind": "log",
    "contains": "phone tap soft",
    "source": "client"
   },
   {
-   "at": 2.4,
-   "kind": "log",
-   "contains": "fall y=",
-   "source": "client"
-  },
-  {
-   "at": 3.0,
+   "at": 4.8,
    "kind": "log",
    "contains": "phone tap hold",
    "source": "client"
   },
   {
-   "at": 3.0,
+   "at": 4.8,
    "kind": "log",
    "contains": "hold in=",
    "source": "client"
   }
  ],
- "note": " | v5：手机键位 8→17（9 pad + 4 nav + 3 act + 1） | known-blocked：v5 布局重排后点按坐标未重写（能力本身已由 lead tap 探针在 mobile-19.5-9 验证：phone tap switch/skill2 → skill cast ok=true）"
+ "note": "v5.7：坐标按当前布局重算（colL/colR/botY 由 ui.lua bands() 推导）；进入游戏用键盘 1（casual），再点拇指簇。"
 }

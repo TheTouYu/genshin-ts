@@ -92,6 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
+BUILD_TAG = 'v5.23 · 10-30 19:2x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -303,6 +304,7 @@ local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.appl
 -- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
 -- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
 local function setText(ctl, value)
+  if FN.textLayerHidden then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
@@ -2236,9 +2238,12 @@ local function buildHelpLayer()
     -- 让它停在关闭胶囊的左侧，两者各占一段；行右缘留出按钮宽度（196/2+24 ≈ 122 设计单位）。
     t('helpHint', S.hint, 268, 396, 380, 17, SUB, 'Right')
     -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
-    rrect('helpBubble', 300, 344, 676, 60, 30, GOLD)
-    rrect('helpBubble2', 300, 344, 668, 52, 26, CARD)
-    t('helpPaimon', S.paimon, 300, 344, 630, 19, INK, 'Middle')
+    -- v5.19（用户 2026-10-30 图2 红框）：气泡右端原本伸到 x=638，正好压在右上角
+    -- 「合上手册」胶囊（x 542..738）下面 ⇒ 缩到 560 宽并左移中心到 230（右端 510），
+    -- 两个元素彻底分开；字号降到 17 并在文案里去掉括号补充（见 config.HELP.paimon）。
+    rrect('helpBubble', 230, 344, 560, 56, 28, GOLD)
+    rrect('helpBubble2', 230, 344, 552, 48, 24, CARD)
+    t('helpPaimon', S.paimon, 230, 344, 524, 17, INK, 'Middle')
     -- 左栏：通用按键
     -- 行表起点 208（键帽 34 高 ⇒ 上沿 191）；标题放 252 才不会压到第一行键帽
     t('helpKeysTitle', S.keysTitle, -550, 252, 300, 22, INK, 'Left')
@@ -2652,6 +2657,10 @@ MS.build = function()
     MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], THEME.textMain)
   end
   MS.segX = { -290, 0, 290 }
+  -- v5.13：标题页右下角打**版本水印** —— 以后"你看到的是哪一版"不用再靠猜/靠日志。
+  -- 用户 2026-10-30：「我刚刚去模拟器网页核验了，还是不行」——三次争议都源于没法一眼分辨新旧包。
+  MS.addText('menuBuildTag', BUILD_TAG, (CANVAS_W or 1280) / 2 - 120, -((CANVAS_H or 720) / 2 - 16),
+    220, 22, 13, THEME.textSub)
   MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
   MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
   -- ===== v5.13 控件组件工厂（用户 2026-10-30：「按钮就该是组件，10 秒一个、可定制」）=====
@@ -2696,22 +2705,28 @@ MS.build = function()
     -- 全部内置。新增同类按钮只需改 spec 里的七八个字段（下面两张卡各占 5 行）。
     local rosterBtn = CTL and CTL.btn({
       id = 'menu.entryRoster', screen = 'menu', x = ex, y = ey, w = 290, h = 96,
-      label = '角色档案', sub = IS_MOBILE and '点我看契约与技能' or 'I 键 · 点我看契约与技能',
-      key = 'I', preset = 'gold', fs = 22, dx = 46,
-      onClick = function() keyConsumedFrame = frameSeq FN.rosterToggle() end,
+      label = '角色档案', sub = IS_MOBILE and '点我看契约与技能' or 'I 键 · 契约与技能',
+      -- 不再画键帽：左侧要放四色点，键帽会和色点/标题挤在一起（用户截图那处溢出）；
+      -- 按键信息由副标文字承担（PC），手机上副标只说「点我看…」。
+      preset = 'gold', fs = 22, pad = 86, padSub = 16, titleDy = 18,
+      -- 诊断锚：入口卡的三态/点击各打一行日志 —— 用户实测"没反应"时可直接从日志区分
+      -- 「指针根本没到」「到了但视觉没变」「点了但回调没跑」三种情况。
+      onEnter = function() print('entry hover roster') end,
+      onClick = function() print('entry click roster') keyConsumedFrame = frameSeq FN.rosterToggle() end,
     })
     -- 四色点：装饰件（按钮组件不管内容插画，调用方自己叠）
     local dots = { { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 } }
     for i = 1, #dots do
       local d = dots[i]
-      MS.addCell('menuEntryDot' .. i, ex - 118 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
+      MS.addCell('menuEntryDot' .. i, ex - 136 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
     end
     local hx = ex - 240
     MS.entryHelpX = hx
     local helpBtn = CTL and CTL.btn({
-      id = 'menu.entryHelp', screen = 'menu', x = hx, y = ey - 18, w = 156, h = 66,
+      id = 'menu.entryHelp', screen = 'menu', x = hx, y = ey, w = 176, h = 78,
       label = '说明', sub = IS_MOBILE and '点我看规则' or 'H 键 · 全部规则',
-      key = 'H', preset = 'gold', fs = 20, dx = 30, subFs = 13,
+      preset = 'gold', fs = 20, subFs = 12, titleDy = 18, subDy = 20,
+      onEnter = function() print('entry hover help') end,
       onClick = function()
         keyConsumedFrame = frameSeq
         print('menu help card tap')
@@ -2733,6 +2748,7 @@ MS.build = function()
   -- 是两块画布（1280×720 / 1600×900）都空着的唯一横带，且与左列卡片同列、宽度装得下一行 18 号字。
   -- 动效在 MS.tick 里（淡入 0.5s → 停 5s → 淡出 0.6s，颜色走 fontColor 的 A 通道=真机已验证通道）。
   MS.note = MS.addText('menuNote', '', -420, -215, 380, 40, 18, THEME.textSub)
+  MS.stageOn = true
   print('menu stage n=' .. #MS.parts)
   return true
 end
@@ -2767,7 +2783,59 @@ MS.focusLock = function(idx, mname)
   end
 end
 -- 展台退场（进局那一刻）：拆零件 + 把服务端两条横幅的颜色还给游戏（A 通道是真机通道）
+-- ===== 展台（标题页那套墙/框/卡片/提示条）的存在条件——**全工程唯一判据** =====
+-- 为什么要有这条：引擎层序 = 创建顺序，且 SetAsLastSibling 不可靠 ⇒
+--   「浮层开在展台之后建」才盖得住；任何一条路径在浮层打开后又重建了展台
+--   （关帮助、画布变化、U.sync 触发重建…），展台就会压回浮层上面。
+--   用户 2026-10-30 连报三轮「角色页/说明层被首页卡片压住」就是这一类。
+-- 对策不是到处补 teardown，而是**让展台的存在由状态推导**：每帧比对一次，
+--   该在就建、不该在就拆。所有入口（键盘/鼠标/手机/倒计时）自动一致。
+FN.stageWanted = function()
+  if guideStage ~= 0 then return false end          -- 非标题页：展台从不该在
+  if helpOpen then return false end                 -- 说明层
+  if ROSTER and ROSTER.on then return false end     -- 角色页
+  if UI4 and UI4.noteOn then return false end       -- 手机双人提示浮层
+  if MODE_OVER then return false end                -- 结算
+  return true
+end
+FN.syncStage = function()
+  local want = FN.stageWanted()
+  local has = (MS and MS.stageOn) and true or false
+  if want and not has then
+    if buildMenuCards then pcall(buildMenuCards) end
+  elseif (not want) and has then
+    if MS.teardown then pcall(MS.teardown) end
+  end
+  -- 服务端 textbox 永远在运行时实例层之下 ⇒ 浮层盖不住它们，只能清文字。
+  -- 判据同上（标题页且浮层开）：开→清空 9 个文字位，关→由 buildMenuCards/renderHud 重写。
+  -- 注意：角色页/帮助页打开时 guideStage 会被改成 2（时停），所以判据只看「展台该不该在」，
+  -- 不能再要求 guideStage==0 —— 那一条正是「清了但底部还在」的根因（实测 hide 恒 false）。
+  local hide = not want
+  if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
+  FN.textLayerHidden = hide and true or false
+  if hide then
+    -- 每轮都清（不是只在翻转时）：标题页常驻提示是**每帧重写**的（showPersistTip/renderHud），
+    -- 清一次会被下一帧写回来 —— 这是「清了但还在」的原因。
+    for i = 1, 9 do
+      local c = ({ topBanner, botBanner, hint, hud, best, hudNext, keyA, keyB, keyC })[i]
+      if c then setText(c, '') end
+    end
+    if HUD_INST then
+      -- 实例份直接写 .text（setTextRaw 走的是服务端 textbox 的通道，对实例不生效）；
+      -- 实测残留在底部那行就是实例 ibotBanner。
+      for _, k in ipairs({ 'hint', 'botBanner', 'topBanner', 'hud', 'best', 'hudNext', 'keyA', 'keyB', 'keyC' }) do
+        local c = HUD_INST[k]
+        if c then pcall(function() c.text = '' end) end
+      end
+    end
+  elseif FN.textLayerWasHidden then
+    if guideStage == 0 and buildMenuCards then pcall(buildMenuCards) end
+    if renderHud then pcall(renderHud) end
+  end
+  FN.textLayerWasHidden = hide and true or false
+end
 MS.teardown = function()
+  MS.stageOn = false
   if #MS.parts == 0 then return end
   MS.destroy()
   trySet(topBanner, 'fontColor', C_GOLD2)
@@ -3398,6 +3466,8 @@ end
 -- ===== v2.8 ⑤：HUD 实例双写（背景池 wash 全屏实例盖住服务端 textbox——层序铁律，
 -- 修法=HUD 文字走运行时实例；textbox 份双写保留（断言/降级保底））=====
 HUD_INST.txt = function(box, txt)
+  -- 浮层开着时**抑制写入者**（只清一次没用：常驻提示每帧都写回来）——见 FN.syncStage
+  if FN.textLayerHidden then return end
   setText(box, txt)
   local inst = box and HUD_INST[box.name]
   if inst then pcall(function() inst.text = txt end) end
@@ -4360,6 +4430,8 @@ do
   local RM = loadModule('roster')
   local okm = RM and RM.new({
     FN = FN, C = C, THEME = THEME, CP = FN.COPY, sk = function() return SK end,
+    -- CTL 是懒创建的（在 MS.build 里），必须用 getter 传，否则模块拿到的是 nil
+    ctl = function() return CTL end,
     SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
     game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
     roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
@@ -6441,6 +6513,16 @@ function OnUpdate(dt)
   if d <= 0 then return end
   FN.canvasPoll = (FN.canvasPoll or 0) + 1
   if FN.canvasPoll % 20 == 0 then pcall(FN.pollCanvasSize) end
+  -- 展台存在性每 6 帧对一次（只在状态真的翻转时才建/拆，成本≈0）
+  FN.stagePoll = (FN.stagePoll or 0) + 1
+  if FN.stagePoll % 6 == 0 then
+    if not FN.syncStage then
+      if not FN.dbgNoSync then FN.dbgNoSync = true print('syncStage MISSING') end
+    else
+      local ok2, err2 = pcall(FN.syncStage)
+      if not ok2 and not FN.dbgSyncErr then FN.dbgSyncErr = true print('syncStage ERR :: ' .. tostring(err2)) end
+    end
+  end
   -- v4.0：触屏连发与手柄摇杆必须在"帮助页时停"早退**之前**推进——否则帮助页开着时
   -- 移动端「合上」按钮和手柄的返回键都按不动（旧代码在 helpOpen 时整帧 return，正是这个坑）。
   if UI4.tick then UI4.tick(d) end

@@ -83,14 +83,23 @@ function M.new(env)
     local parts = API.pill(name, x, y, w, h, fill.normal)
     -- 文字：左对齐留出键帽位；没有 sub 时单行居中
     local hasKey = spec.key ~= nil
-    -- dx：内容整体偏移（例如左侧还要放四色点/图标时，把文字让到右半边）
-    local tx = x + (spec.dx or 0) + (hasKey and 26 or 0) - (spec.sub and 30 or 0)
+    -- 版式（v5.16，修用户「文字溢出了」）：键帽**收进胶囊内**，文字只吃剩余宽度并居中。
+    --   左侧内边距 16 → 键帽 34×34 → 间隙 10 → 文字区；右侧内边距 16。
+    local pad = spec.pad or 16
+    local cw0 = hasKey and 34 or 0
+    local textLeft = x - w / 2 + pad + (hasKey and (cw0 + 10) or 0) + (spec.dx or 0)
+    local padSub = spec.padSub or pad
+    local textW = w - pad * 2 - (hasKey and (cw0 + 10) or 0)
+    local textWSub = w - padSub * 2
+    if textW < 40 then textW = 40 end
+    local tx = textLeft + textW / 2
     local fs = spec.fs or 22
-    local title = addText(name .. 'T', spec.label or '', tx, y + (spec.sub and 14 or 0),
-      w - (hasKey and 60 or 24), 0, fs, spec.ink or p.ink)
+    local title = addText(name .. 'T', spec.label or '', tx, y + (spec.sub and (spec.titleDy or 16) or 0),
+      textW, 0, fs, spec.ink or p.ink)
     local sub = nil
     if spec.sub then
-      sub = addText(name .. 'S', spec.sub, tx, y - 20, w - (hasKey and 60 or 24), 0,
+      sub = addText(name .. 'S', spec.sub, (spec.padSub and (x - w / 2 + padSub + textWSub / 2) or tx),
+        y - (spec.subDy or 18), textWSub, 0,
         spec.subFs or math.max(12, fs - 9), spec.subInk or env.subInk)
     end
     for _, c in ipairs({ title, sub }) do if c then onPart(c) end end
@@ -98,7 +107,7 @@ function M.new(env)
     local chip = nil
     if hasKey then
       local cw, ch = 34, 34
-      local cx = x - w / 2 + cw / 2 + 12
+      local cx = x - w / 2 + pad + cw / 2
       chip = API.pill(name .. 'K', cx, y, cw, ch, env.over(env.wall, env.ink, 0.10))
       for i = 1, #chip do onPart(chip[i].ctl) end
       local kl = addText(name .. 'KT', tostring(spec.key), cx, y, cw, 0, 16, spec.ink or p.ink)
@@ -106,14 +115,20 @@ function M.new(env)
     end
 
     -- 热区：w/h 略放大 8px（手感），**坐标 y 取负**（cursor 轴与图片相反）
-    local zone = env.addHit(name .. 'Hit', w + 8, h + 8)
+    -- 热区比视觉略大（手感），并且**留足外扩**：用户连续两轮报"点不到"的排查里，
+    -- 首要嫌疑是"指针落点差几像素没进框"，所以外扩到 +40/+24（仍小于相邻卡间距，不会误吞）。
+    local zone = env.addHit(name .. 'Hit', w + (spec.padW or 40), h + (spec.padH or 24))
     if zone then
-      tryCall(zone, 'SetAnchoredPosition', x, -y)
+      -- ⚠ 2026-10-30 真机/网页实测定谳：命中区的 anchored y 必须与视觉件**同号**。
+      -- 老注释「cursor 的 y 轴与图片相反 ⇒ 取负」只在早年代码形态下成立；现在取负会把热区
+      -- 镜像到画布另一侧（入口卡在顶部 y=302 → 热区跑到 y=-302、屏幕底缘），
+      -- 表现为「卡面看得见、鼠标移上去没反应、点也点不到」——用户连着报了三次的就是这个。
+      tryCall(zone, 'SetAnchoredPosition', x, y)
       onPart(zone)
     end
 
-    local texts = { { c = title, x = tx, y = y + (spec.sub and 14 or 0) } }
-    if sub then texts[#texts + 1] = { c = sub, x = tx, y = y - 20 } end
+    local texts = { { c = title, x = tx, y = y + (spec.sub and (spec.titleDy or 16) or 0) } }
+    if sub then texts[#texts + 1] = { c = sub, x = tx, y = y - (spec.subDy or 18) } end
     if chip then
       for i = 1, #chip do texts[#texts + 1] = { c = chip[i].ctl, x = chip[i].x, y = chip[i].y } end
       if chip.label then texts[#texts + 1] = chip.label end
