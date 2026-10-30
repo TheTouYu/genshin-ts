@@ -48,7 +48,7 @@
   {
    "at": 1.0,
    "kind": "lua",
-   "source": "local n=query.control('btnroster.row2T')\nassert(n and n.text, 'btnroster.row2T 不在')\nassert(n.text:find('刻晴',1,true), '第二行不是刻晴: '..n.text)\n-- v5.3：角色页改成官方式四页签（技能/机制/数值/解锁），断言改成页签 + 条目 + 数值行\nfor i=1,4 do\n  local t=query.control('btnroster.tab'..i..'T')\n  assert(t and t.text and #t.text>0, '页签 '..i..' 缺失')\nend\nlocal it=query.control('charItemNm1')\nassert(it and it.text and it.text:find('所闻遍计',1,true), '第一条不是所闻遍计天赋: '..tostring(it and it.text))\nlocal v2=query.control('charItemNm2')\nassert(v2 and v2.text and #v2.text>0, '第二条天赋名缺失')\nlocal sk=query.control('charPSkill')\nassert(sk and sk.text and sk.text:find('技能',1,true), '中列技能行缺失')\nreturn true"
+   "source": "local n=query.control('btnroster.row2T')\nassert(n and n.text, 'btnroster.row2T 不在')\nassert(n.text:find('刻晴',1,true), '第二行不是刻晴: '..n.text)\n-- v5.3：角色页改成官方式四页签（技能/机制/数值/解锁），断言改成页签 + 条目 + 数值行\nfor i=1,4 do\n  local t=query.control('btnroster.tab'..i..'T')\n  assert(t and t.text and #t.text>0, '页签 '..i..' 缺失')\nend\nlocal it=query.control('charItemNm1')\nassert(it and it.text and it.text:find('所闻遍计',1,true), '第一条不是所闻遍计天赋: '..tostring(it and it.text))\nlocal v2=query.control('charItemNm2')\nassert(v2 and v2.text and #v2.text>0, '第二条天赋名缺失')\nlocal sk=query.control('charPanelF')\nassert(sk and sk.text and sk.text:find('技能',1,true), '中列技能行缺失')\nreturn true"
   },
   {
    "at": 2.2,
