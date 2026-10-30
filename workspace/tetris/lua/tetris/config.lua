@@ -758,6 +758,9 @@ NUM.PHONE = {
     { id = 'hard',   label = '锁定', act = 'hard',   slot = 'R1' },
     { id = 'soft',   label = '缓降', act = 'soft',   slot = 'R2', rep = true },
     { id = 'hold',   label = '暂存', act = 'hold',   slot = 'R3' },
+    -- v5.32（用户：移动端左右都要有旋转和暂存，方便单手操作）：冗余键，act 与主键相同
+    { id = 'rot2',   label = '旋转', act = 'rot',    slot = 'L3b' },
+    { id = 'hold2',  label = '暂存', act = 'hold',   slot = 'R3b' },
     { id = 'skill1', label = '技能1', act = 'skill1', slot = 'M1' },
     { id = 'skill2', label = '技能2', act = 'skill2', slot = 'M2' },
     { id = 'switch', label = '换人', act = 'switch', slot = 'M3' },

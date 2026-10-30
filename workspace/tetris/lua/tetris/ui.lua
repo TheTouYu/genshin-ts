@@ -300,12 +300,17 @@ M.new = function(spec)
       ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC
       -- 拇指簇：左 [◀ ▶] 一行 + 旋转 上方；右 [锁定 缓降] + 暂存（镜像）
       local bw, bh = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
+      -- v5.32（用户：手机端左右两边都要有「旋转」和「暂存」）：
+      --   左簇上排 = 旋转(rot) + 暂存(hold2)；右簇上排 = 暂存(hold) + 旋转(rot2)。
+      --   两侧对称，单手都能按到；act 与主键相同，逻辑零改动。
       slots[#slots + 1] = B('left', colL - 65, g5.botY + 34, bw, bh, KIT.FS)
       slots[#slots + 1] = B('right', colL + 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot', colL, g5.botY + 110, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot', colL - 65, g5.botY + 110, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold2', colL + 65, g5.botY + 110, bw, bh, KIT.FS)
       slots[#slots + 1] = B('hard', colR + 65, g5.botY + 34, bw, bh, KIT.FS)
       slots[#slots + 1] = B('soft', colR - 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold', colR, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold', colR - 65, g5.botY + 110, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot2', colR + 65, g5.botY + 110, bw, bh, KIT.FS)
       -- 中下技能行（棋盘正下方 60px 带里）
       local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
       -- 技能三键：**右列竖排**（底部中间被 fx 的角色名卡占住 —— lead 2026-10-29 复核：
