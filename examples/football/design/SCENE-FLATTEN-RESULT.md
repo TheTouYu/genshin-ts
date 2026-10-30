@@ -1,6 +1,6 @@
 # SCENE-FLATTEN-RESULT — 空模型压扁 + 装饰物补偿（地图 1073741827）
 
-> doc-type: R · status: done · updated: 2026-10-30 · tool: examples/football/scripts/flatten-empty-model.ts
+> doc-type: R · status: done（结构层已验证，视觉待用户确认） · updated: 2026-10-30 · tool: examples/football/scripts/flatten-empty-model.ts
 
 ## 结论
 
@@ -273,3 +273,14 @@ f11.f3=scale（fixed32 全量 15B）。实体侧挂接 f5{f1=40}.f50.f501 正向
 | 1073742623 | 10009001 | 0.01 → 1 | 0.02 → 2 |
 | 1073742624 | 10009001 | 0.01 → 1 | 0.02 → 2 |
 | 1073742625 | 10009001 | 0.01 → 1 | 0.02 → 2 |
+
+## 附：技能配置修复（2026-10-30）
+
+子代理在修模板时把**生产技能配置 1191182341 的绑定图改成了测试图 1082130440**（导致 "切回生产" 实际仍跑测试图）。
+已修复：`assets:skill-config delete --id 1191182341` → `create --id 1191182341 --name kitLoop丘丘人
+--template 自定义造物 --skill-type 瞬发 --graph-id 1082130436`，list 回读 `bind graphId=1082130436`。
+
+当前绑定：
+- 1191182341 kitLoop丘丘人 → 1082130436（生产图）
+- 1191182343 物理测试台造物 → 1082130440（测试图）
+- 载体 1082130445 技能条目 #1 → 1191182343（**当前处于测试态**）
