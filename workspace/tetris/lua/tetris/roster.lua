@@ -334,30 +334,46 @@ function M.new(env)
     local PER = math.max(12, math.floor((rightW - u(60)) / (15 * 1.55)))
     local itemRows = {}
     for idx, it in ipairs(items) do
-      local icon = BOX('charItemIcon' .. idx, u(34), u(34), it.icon or C(180, 180, 180))
-      -- 图标换成内置几何图元（评审：纯色小方块像占位符）：100002 圆 / 100004 四角星 / 100005 五角星 / 100003 三角 / 100006 圆环
+      -- 先算版式（行数决定卡高），再建**卡片底**，最后建文字 —— 层序=创建顺序，卡必须在字下面。
+      local src = (it.desc or '')
+      if it.desc2 and it.desc2 ~= '' then src = src .. (src ~= '' and '　' or '') .. it.desc2 end
+      local wrapped = wrapCJK(src, PER)
+      local CAP = 2
+      local shown = math.min(#wrapped, CAP)
+      local hasV = (it.val and it.val ~= '')
+      local cardH = u(34) + shown * u(22) + (hasV and u(22) or 0) + u(18)
+      -- 卡片底要比面板纸再深一档才看得出来（第一版只叠 7% 角色色，和纸面几乎同色 ⇒ 看不见）
+      -- 卡片底：用**组件工厂的胶囊**（圆角），与页面其他元素同一语汇；
+      -- 组件不可用时退回直角 BOX（不崩，只是不好看）。
+      local cardFill = (env.over and env.over(C(244, 236, 222, 255), e.color or C(127, 207, 106), 0.16))
+        or C(244, 238, 228, 255)
+      local card, cardParts
+      if CTL and CTL.pill then
+        cardParts = CTL.pill('charItemCard' .. idx, 0, 0, rightW - u(8), cardH - u(10), cardFill,
+          function(c) add(c) end)
+      else
+        card = BOX('charItemCard' .. idx, rightW - u(8), cardH - u(10), cardFill)
+      end
+      -- 不再画左侧色条：上次刚因为"圆角按钮外面多一条线"被打回，卡片本身已带角色色
+      local edge = nil
+      local icon = BOX('charItemIcon' .. idx, u(30), u(30), it.icon or C(180, 180, 180))
       if icon and Enum and Enum.ImageSource then
         local GLYPH = { 100002, 100004, 100005, 100003, 100006 }
         local gid = GLYPH[((idx - 1) % #GLYPH) + 1]
         pcall(function() icon:SetImage(Enum.ImageSource.StaticReference, gid) end)
       end
-      local nm = TXT('charItemNm' .. idx, it.nm, rightW - u(60), 19, THEME.textMain, 'Left')
+      local nm = TXT('charItemNm' .. idx, it.nm, rightW - u(84), 19, THEME.textMain, 'Left')
       local lines = {}
-      local src = (it.desc or '')
-      if it.desc2 and it.desc2 ~= '' then src = src .. (src ~= '' and '　' or '') .. it.desc2 end
-      local wrapped = wrapCJK(src, PER)
-      local CAP = 2                                    -- 列表里最多 2 行，其余点开看
-      for li = 1, math.min(#wrapped, CAP) do
+      for li = 1, shown do
         local lineTxt = wrapped[li]
-        if li == CAP and #wrapped > CAP then lineTxt = lineTxt .. '…' end
-        lines[li] = TXT('charItemL' .. idx .. '_' .. li, lineTxt, rightW - u(60), 15, THEME.textSub, 'Left')
+        if li == shown and #wrapped > shown then lineTxt = lineTxt .. '…' end
+        lines[li] = TXT('charItemL' .. idx .. '_' .. li, lineTxt, rightW - u(84), 15, THEME.textSub, 'Left')
       end
       local vv = nil
-      if it.val and it.val ~= '' then
-        vv = TXT('charItemV' .. idx, it.val, rightW - u(60), 15, e.color2 or THEME.textMain, 'Left')
+      if hasV then
+        vv = TXT('charItemV' .. idx, it.val, rightW - u(84), 15, e.color2 or THEME.textMain, 'Left')
       end
-      itemRows[idx] = { icon = icon, nm = nm, lines = lines, v = vv, it = it,
-        h = u(34) + #lines * u(22) + (vv and u(22) or 0) + u(12) }
+      itemRows[idx] = { card = card, cardParts = cardParts, edge = edge, icon = icon, nm = nm, lines = lines, v = vv, it = it, h = cardH }
       -- 整条当热区：点开看全文（放不下的长文案不再靠省略号）
       local ihit = add(UI4.hit('charItemHit' .. idx, rightW, u(60)))
       if ihit then
@@ -514,14 +530,22 @@ function M.new(env)
     end
     local yy = u(150)
     for idx, row in ipairs(itemRows) do
-      at(row.icon, rightX + u(16), yy - u(6), u(34), u(34))
-      put(row.nm, rightX + u(54), yy - u(4), rightW - u(60), th(19))
+      local ch = row.h or u(120)
+      if row.card then at(row.card, rightX + rightW / 2, yy - ch / 2 + u(6), rightW - u(8), ch - u(10)) end
+      if row.cardParts then
+        for ci = 1, #row.cardParts do
+          local q = row.cardParts[ci]
+          if q.ctl then tryCall(q.ctl, 'SetAnchoredPosition', q.x + rightX + rightW / 2, q.y + yy - ch / 2 + u(6)) end
+        end
+      end
+      at(row.icon, rightX + u(40), yy - u(6), u(30), u(30))
+      put(row.nm, rightX + u(76), yy - u(4), rightW - u(96), th(19))
       local ly = yy - u(30)
       for li, ln in ipairs(row.lines or {}) do
-        put(ln, rightX + u(54), ly, rightW - u(60), th(15))
+        put(ln, rightX + u(76), ly, rightW - u(96), th(15))
         ly = ly - u(22)
       end
-      if row.v then put(row.v, rightX + u(54), ly, rightW - u(60), th(14)) end
+      if row.v then put(row.v, rightX + u(76), ly, rightW - u(96), th(14)) end
       -- 整条热区（位置必须自己摆：建出来默认在 (0,0)）；cursor 的 y 轴与图片相反 ⇒ 取负
       if row.hit then
         tryCall(row.hit, 'SetSizeDelta', rightW, row.h or u(120))
