@@ -36,3 +36,26 @@ src-fb3/autotest/driver.ts   11 项初态表 + 计时/回卷 + tag='T' 回传
 - 生产图节点数 < 500，且**不含** `fb_autotest` 一类测试变量；
 - 同一场景下两张图输出的 `kit_state` 序列逐拍相等（除测试台生效的拍）；
 - 测试图卸载后生产行为不变（对照实验）。
+
+## 4. 使用方式（2026-10-30 已接线完毕）
+
+```bash
+# 切到测试图（载体技能条目 #1 → 技能配置 1191182342 → 图 1082130440）
+node examples/football/scripts/kittest.mjs on
+# 切回生产图（→ 技能配置 1191182341 → 图 1082130436）
+node examples/football/scripts/kittest.mjs off
+# 只读查看全部技能配置与绑定
+node examples/football/scripts/kittest.mjs status
+```
+
+测试开关：载体 1082130445 的自定义变量 `fb_autotest`（1 = 跑 11 项，0 = 不跑）。
+**生产图不读这个变量**——开关只存在于测试图。
+
+产物对照：
+
+| 项 | 生产 | 测试 |
+|---|---|---|
+| 源码 | `src-fb3/kit-loop.ts`（单一真源） | `src-fb3/kit-loop-test.ts`（由脚本生成） |
+| 图 | `_GSTS_kitLoop` 1082130436（611 节点） | `_GSTS_kitLoopTest` 1082130440（759 节点） |
+| 技能配置 | 1191182341 | 1191182342 |
+| 编译配置 | `gsts.kit3.config.ts`（主配置含全部生产图） | `gsts.kit3-test.config.ts`（独立，单图） |
