@@ -415,10 +415,9 @@ M.new = function(spec)
       -- 标题页：**不出游戏键**（旧实现把 ◀▶ 锁定 缓降 摆在标题页底角，压住提示条且毫无用处）
       p.slots = {}
       p.acts = {}
-      p.nav = {
-        B('help', halfW - pad - nw / 2, halfH - pad - nh / 2, nw, nh, KIT.FS),
-        B('roster', halfW - pad - nw * 1.5 - 12, halfH - pad - nh / 2, nw, nh, KIT.FS),
-      }
+      -- v5.7（用户：「移动端和 PC 不一致」）：标题页两端统一用**入口卡**（角色档案 + 说明），
+      -- 不再另开两颗导航按钮 —— 手机上那两颗小按钮既和卡片重复、又会压住卡片。
+      p.nav = {}
       -- v5.1（用户 2026-10-29：「主页看不到角色这个大模块的入口」）：PC 标题页也出导航按钮，
       -- 鼠标点 ≡ 键盘（H 说明 / 名册键 角色）。旧实现在 PC 上把 p.nav 清空，导致只有键盘路径。
       if isMobile then parkGroup(p, PARK_TEXT) parkGroup(p, PARK_SKILL) end

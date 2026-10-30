@@ -451,7 +451,8 @@ function M.new(env)
       tryCall(c, 'SetSizeDelta', w, h)
       tryCall(c, 'SetAnchoredPosition', x, y)
     end
-    local function th(size) local fs = math.floor(u(size) + 0.5) return math.max(math.floor(fs * 1.45 + 6), fs + 8) end
+    -- 文本行高：引擎 requiredHeight = fs×1.45 + 4，这里再留 2px 余量（算少 0.4px 就整条不画）
+    local function th(size) local fs = math.floor(u(size) + 0.5) return math.max(math.floor(fs * 1.5 + 10), fs + 12) end
     local function put(c, xLeft, y, w, h) at(c, xLeft + w / 2, y, w, h) end
     at(R.dim, 0, 0, W + 40, H + 40)
     at(R.card, 0, 0, PW, PH)

@@ -1548,12 +1548,13 @@ local function startIfWaiting()
     guideStage = 3
     GK.phase, GK.t, GK.count = 'keys', 0, 3
     -- v3.1 四-2：ai-battle=单人页——keyA 显示玩家键组（方向键系，非 WASD），keyB 只显示 AI 就绪
-    local keys2 = (MODE == 'coop')
+    -- 手机不用键盘：准备期只给触屏话术（键盘图例在手机上是 3 行字，塞不进 200×32 ⇒ 整条不画）
+    local keys2 = IS_MOBILE and '点击盘面开始' or (MODE == 'coop')
       and 'P1：W 旋转 · G 暂存'
       or (MODE == 'ai-battle')
         and '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存'
         or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
-    local keys2b = (MODE == 'ai-battle')
+    local keys2b = IS_MOBILE and 'AI 已就绪' or (MODE == 'ai-battle')
       and 'AI 已就绪 · 与你同规则对战'
       or (MODE ~= 'coop')
         and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
@@ -1580,7 +1581,7 @@ local function startIfWaiting()
     -- （textbox 在实例层下，显示=双份叠字或直接被 wash/格子吃掉，两个坑都踩过）
     trySet(keyA, 'fontSize', 20)
     trySet(keyA, 'fontColor', seat1)
-    tryCall(keyA, 'SetSizeDelta', 520, 40)
+    tryCall(keyA, 'SetSizeDelta', 520, 76)
     tryCall(keyA, 'SetAnchoredPosition', -280, rowY)
     HUD_INST.txt(keyA, keys2)
     trySet(keyB, 'fontSize', 20)
@@ -1592,14 +1593,15 @@ local function startIfWaiting()
     if HUD_INST.keyA then
       trySet(HUD_INST.keyA, 'fontSize', 20)
       trySet(HUD_INST.keyA, 'fontColor', seat1)
-      tryCall(HUD_INST.keyA, 'SetSizeDelta', seatW, 40)
+      -- ⚠ 高度 40 装 3 行 17 号字 ⇒ requiredHeight 73.3 > 40 ⇒ 引擎**整条不画**（手机准备期键位消失）
+      tryCall(HUD_INST.keyA, 'SetSizeDelta', seatW, 76)
       tryCall(HUD_INST.keyA, 'SetAnchoredPosition', -seatX, rowY)
       tryCall(HUD_INST.keyA, 'SetVisible', true)
     end
     if HUD_INST.keyB then
       trySet(HUD_INST.keyB, 'fontSize', 20)
       trySet(HUD_INST.keyB, 'fontColor', seat2)
-      tryCall(HUD_INST.keyB, 'SetSizeDelta', seatW, 40)
+      tryCall(HUD_INST.keyB, 'SetSizeDelta', seatW, 56)
       tryCall(HUD_INST.keyB, 'SetAnchoredPosition', seatX, rowY)
       tryCall(HUD_INST.keyB, 'SetVisible', true)
     end
@@ -2009,7 +2011,7 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角 说明 / 角色'
+  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
     or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
   -- v3.5 ④：回标题屏同样下架 HUD 实例（含横幅/下一个；标题页只看展台）
@@ -2516,6 +2518,11 @@ MS.addText = function(name, text, x, y, w, h, size, color, align)
   trySet(c, 'verticalAlignment', 'Middle')
   trySet(c, 'enableOutline', true)
   trySet(c, 'outlineColor', C(200, 255, 255, 255))   -- v3.0 浅底：浅色描边=柔光，深色描边像脏边
+  -- ⚠ 引擎排版硬规则（studio/play/text-layout.js）：requiredHeight = 行高(fontSize×1.2)
+  --   + blockInset(fontSize×0.25+4)；**requiredHeight > 框高 ⇒ fits=false ⇒ 整条文字一个字都不画**
+  --   （不是裁切，是消失）。2026-10-30 实测：「说明」胶囊 120×34 装 22 号字（需 35.9）⇒ 空胶囊。
+  --   这里统一兜底，调用方给的框高太小就抬到够用。
+  h = math.max(h or 0, math.floor((size or 20) * 1.45 + 6))
   tryCall(c, 'SetSizeDelta', w, h)
   tryCall(c, 'SetAnchoredPosition', x, y)
   MS.parts[#MS.parts + 1] = c
@@ -2628,10 +2635,11 @@ MS.build = function()
   -- v5.4 修 A6（4/5 份评审：「手机画布上仍是键盘话术」）：提示条按宿主分两套。
   -- 触屏没有 1-4 / H 键，手机端只写玩家真能做的两个动作：点卡片选模式、点右上角两个按钮。
   local segs = IS_MOBILE
-    and { { '点卡片选模式', -250, 340, 24 }, { '右上角：说明 / 角色', 250, 470, 24 } }
+    and { { '点卡片选模式', -250, 340, 24 }, { '右上角：角色 · 说明', 250, 470, 24 } }
     or { { MS.hintText[1], -290, 215, 26 }, { MS.hintText[2], 0, 250, 26 }, { MS.hintText[3], 290, 215, 26 } }
   for i = 1, #segs do
-    MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], MS.CYAN)
+    -- v5.7：底部操作提示用**墨色**（原来 textSub 在奶油底上几乎看不见，用户截图里像被裁掉的灰字）
+    MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], THEME.textMain)
   end
   MS.segX = { -290, 0, 290 }
   if not IS_MOBILE then
@@ -2655,13 +2663,13 @@ MS.build = function()
       ex + 26, ey - 20, 240, 30, 15, MS.CYAN)
     -- v5.6（用户二轮一-2「移动端有角色/说明按钮，PC 没有，严重的 UI 不一致」）：
     -- PC 端也补一颗「说明」入口，与角色卡并排，两端的入口从此一致（PC 额外标 H 键）。
-    if not IS_MOBILE then
-      local hx = ex - 240
-      MS.addCell('menuEntryHelpBg', hx, ey - 18, 150, 60, THEME.panel)
-      MS.addCell('menuEntryHelpEdge', hx, ey - 46, 150, 3, THEME.gold)
-      MS.addText('menuEntryHelpTitle', '说明', hx, ey - 12, 120, 34, 22, THEME.goldDeep)
-      MS.addText('menuEntryHelpSub', 'H 键 · 全部规则', hx, ey + 12, 150, 24, 14, MS.CYAN)
-    end
+    -- v5.7（用户：「图2 移动端和 PC 不一致」）：说明入口卡**两端都出**，手机不再靠右上角两颗小按钮
+    local hx = ex - 240
+    MS.entryHelpX = hx
+    MS.addCell('menuEntryHelpBg', hx, ey - 18, 150, 60, THEME.panel)
+    MS.addCell('menuEntryHelpEdge', hx, ey - 46, 150, 3, THEME.gold)
+    MS.addText('menuEntryHelpTitle', '说明', hx, ey + 12, 120, 36, 22, THEME.goldDeep)
+    MS.addText('menuEntryHelpSub', IS_MOBILE and '点我看规则' or 'H 键 · 全部规则', hx, ey - 16, 150, 28, 14, MS.CYAN)
     local dots = {
       { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 },
     }
@@ -2674,12 +2682,29 @@ MS.build = function()
       if okz and zh then
         zh.name = 'menuZoneRoster'
         tryCall(zh, 'SetSizeDelta', 290, 96)
-        tryCall(zh, 'SetAnchoredPosition', ex, ey)
+        -- ⚠ cursor 控件的 y 轴与图片**相反**（同 roster.lua 里的热区约定）⇒ 取负才是屏幕上的位置
+        tryCall(zh, 'SetAnchoredPosition', ex, -ey)
         addCursor(zh, 'CursorDown', function() sfx(SFX.hover, true) keyConsumedFrame = frameSeq end)
         addCursor(zh, 'CursorClick', function() keyConsumedFrame = frameSeq FN.rosterToggle() end)
         MC[#MC + 1] = zh
         MS.rosterZone = zh
         print('menu roster entry=ok')
+      end
+      -- 说明卡热区（与角色卡同一套：悬停音 + 点击=开说明页）
+      local okh2, zh2 = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+      if okh2 and zh2 then
+        zh2.name = 'menuZoneHelp'
+        tryCall(zh2, 'SetSizeDelta', 150, 60)
+        tryCall(zh2, 'SetAnchoredPosition', MS.entryHelpX, -(ey - 18))
+        addCursor(zh2, 'CursorDown', function() sfx(SFX.hover, true) keyConsumedFrame = frameSeq end)
+        addCursor(zh2, 'CursorClick', function()
+          keyConsumedFrame = frameSeq
+          print('menu help card tap')
+          if helpOpen then closeHelp() else toggleHelp() end
+        end)
+        MC[#MC + 1] = zh2
+        MS.helpZone2 = zh2
+        print('menu help card=ok')
       end
     end
   end
@@ -2737,7 +2762,8 @@ MS.tick = function()
   local t = introT
   local breathe = 0.5 + 0.5 * math.sin(t * 2.2)
   local size = 26 + math.floor(2 * breathe + 0.5)
-  local alpha = math.floor(150 + 70 * breathe)
+  -- v5.7：alpha 下限 150→190、颜色改成墨色 —— 用户截图里这条提示像"被裁掉的灰字"
+  local alpha = math.floor(190 + 60 * breathe)
   local k = size * 1000 + alpha
   if MS.hintKey[1] ~= k then
     MS.hintKey[1] = k
@@ -2745,7 +2771,7 @@ MS.tick = function()
       local ctl = MS.hint[i]
       if ctl then
         trySet(ctl, 'fontSize', size)
-        trySet(ctl, 'fontColor', C(alpha, 148, 163, 184))
+        trySet(ctl, 'fontColor', C(alpha, 46, 58, 74))
       end
     end
   end
@@ -5292,6 +5318,8 @@ UI4.label = function(name, text, w, h, size, color)
   trySet(c, 'verticalAlignment', 'Middle')
   trySet(c, 'enableOutline', true)
   trySet(c, 'outlineColor', C(190, 255, 255, 255))
+  -- 同 MS.addText：框高不够 ⇒ 引擎整条不画（fits=false），这里抬到该字号的最小可用高
+  h = math.max(h or 0, math.floor((size or 20) * 1.45 + 6))
   tryCall(c, 'SetSizeDelta', w, h)
   return c
 end
@@ -5723,7 +5751,7 @@ function OnStart()
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
   -- v2.1 ②：大视觉卡片承载模式选择；botBanner 呼吸提示改短句+H 说明入口
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角 说明 / 角色'
+  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
     or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
