@@ -1762,15 +1762,25 @@ end
 --  ② 执行像人：观察 → 分段横移（1~2 格一停）→ 途中偶尔小落 → 到位犹豫 / 再看一眼 →
 --     最后 50% 软降逐格落 / 50% 硬降，全程打 `demo pace` / `demo act` 日志。
 local AI_OBSERVE_MAX = 0.70                         -- 观察上限（下限 obsMin 是档位参数，见 NUM.AI_LEVELS）
-local AI_ROT_MIN, AI_ROT_MAX = 0.15, 0.25           -- 旋转本身
-local AI_ROTGAP_MIN, AI_ROTGAP_MAX = 0.10, 0.20     -- 两次旋转之间
-local AI_HOVER_MIN, AI_HOVER_MAX = 0.20, 0.40       -- 落定前"再看一眼"
-local AI_SOFT_MIN, AI_SOFT_MAX = 0.06, 0.12         -- 软降一格
--- T5：单块时长带 pieceMin/Max、横移间隔带 moveMin/Max、观察下限 obsMin、目标带 targetLo/Hi
--- 全部改读 NUM.AI_LEVELS 档位参数（docs/v2-ai-design.md §四）；上面五个不分档的保留 local。
-local AI_RESET_ROWS = 12                            -- 堆到这么高就清盘重开
-local W_WALL, W_WELL = 0.06, 0.9                    -- 贴墙奖励 / 深井惩罚系数
-local WELL_DEPTH = 3                                -- 1 列宽凹槽多深才算"深井"
+-- ⚠ main chunk 的 **local 数量**贴着 Lua 5.3 硬上限（200）：真机编译期
+-- `too many local variables (limit is 200) in main function` 会直接拒载整个脚本。
+-- 所以常量一律**收拢成表**（10 个 local → 1 个），新加常量只能往 AIC 里塞字段。
+local AIC = {
+  ROT_MIN = 0.15, ROT_MAX = 0.25,           -- 旋转本身
+  ROTGAP_MIN = 0.10, ROTGAP_MAX = 0.20,     -- 两次旋转之间
+  HOVER_MIN = 0.20, HOVER_MAX = 0.40,       -- 落定前「再看一眼」
+  SOFT_MIN = 0.06, SOFT_MAX = 0.12,         -- 软降一格
+  -- T5：单块时长带/横移间隔带/观察下限/目标带全部改读 NUM.AI_LEVELS（docs/v2-ai-design.md §四）
+  RESET_ROWS = 12,                          -- 堆到这么高就清盘重开
+  W_WALL = 0.06, W_WELL = 0.9,              -- 贴墙奖励 / 深井惩罚系数
+  WELL_DEPTH = 3,                           -- 1 列宽凹槽多深才算「深井」
+}
+-- 兼容别名：正文里仍按旧名读（一次替换省掉几百处改动，代价=0 个 local）
+AI_ROT_MIN, AI_ROT_MAX = AIC.ROT_MIN, AIC.ROT_MAX
+AI_ROTGAP_MIN, AI_ROTGAP_MAX = AIC.ROTGAP_MIN, AIC.ROTGAP_MAX
+AI_HOVER_MIN, AI_HOVER_MAX = AIC.HOVER_MIN, AIC.HOVER_MAX
+AI_SOFT_MIN, AI_SOFT_MAX = AIC.SOFT_MIN, AIC.SOFT_MAX
+AI_RESET_ROWS, W_WALL, W_WELL, WELL_DEPTH = AIC.RESET_ROWS, AIC.W_WALL, AIC.W_WELL, AIC.WELL_DEPTH
 
 -- 自演专用小随机：独立 LCG，不动方块袋那条序列 ⇒ 用例/出图仍可复现
 local aiSeed = 20261024
@@ -7015,8 +7025,10 @@ end
 -- **重进关卡/切分辨率**后才反映新值。旧实现只在 OnStart 读一次 ⇒ 之后拿到的一直是开局那个
 -- 1600×900，背景 wash 只铺 1620×920，两侧露出世界场景（用户截图：左右各有约 60px 风景）。
 -- 修法：每 20 帧问一次画布尺寸，变了就整套重排（layout + 背景 + HUD + 控件树）。
-local canvasPoll = 0
-local function pollCanvasSize()
+-- ⚠ main chunk 贴着 Lua 5.3 的 **200 local 硬上限**（真机编译期直接报
+-- `too many local variables (limit is 200) in main function`）。所以这段不能再占 local，
+-- 全部挂到 FN 表上（新增 2 个 local 就会炸真机）。
+FN.pollCanvasSize = function()
   local ok, w, h = pcall(function() return game.GetUICanvasSize() end)
   if not ok or type(w) ~= 'number' or type(h) ~= 'number' then return end
   if math.abs(w - (CANVAS_W or 0)) < 2 and math.abs(h - (CANVAS_H or 0)) < 2 then return end
@@ -7035,8 +7047,8 @@ end
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
-  canvasPoll = canvasPoll + 1
-  if canvasPoll % 20 == 0 then pcall(pollCanvasSize) end
+  FN.canvasPoll = (FN.canvasPoll or 0) + 1
+  if FN.canvasPoll % 20 == 0 then pcall(FN.pollCanvasSize) end
   -- v4.0：触屏连发与手柄摇杆必须在"帮助页时停"早退**之前**推进——否则帮助页开着时
   -- 移动端「合上」按钮和手柄的返回键都按不动（旧代码在 helpOpen 时整帧 return，正是这个坑）。
   if UI4.tick then UI4.tick(d) end

@@ -2,6 +2,7 @@
 // 从默认工程出发，用 patch op 组装 Tetris 工程，产出 tetris.save.json 与 device-package GIA。
 // 用法：node qxqy/build.mjs
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createStudio, importGia } from '/home/h/miliastra-beyond-simulator/studio/index.js'
@@ -163,6 +164,23 @@ export function buildStudio() {
     .replaceAll('__GUID_HIT__', String(hitGuid))
     .replaceAll('__GUID_SETTLE__', String(settleGuid))
     .replaceAll('__GUID_STEXT__', String(stextGuid))
+  // ===== 真机 Lua 5.3 编译闸门（2026-10-30 事故：main chunk 局部变量超 200 上限，
+  // 模拟器能跑、真机报 `too many local variables (limit is 200) in main function` 拒载）。
+  // 模拟器用 Fengari，不执行这条硬限 ⇒ 必须在构建期用真正的 luac5.3 过一遍。
+  {
+    const files = ['lua/main.lua', ...readdirSync(join(root, 'lua/tetris'))
+      .filter((f) => f.endsWith('.lua')).map((f) => `lua/tetris/${f}`)]
+    const bad = []
+    for (const f of files) {
+      const r = spawnSync('luac5.3', ['-p', f], { cwd: root, encoding: 'utf8' })
+      if (r.status !== 0) bad.push(`${f}: ${(r.stderr || r.stdout || '').trim()}`)
+    }
+    if (bad.length) {
+      console.error('LUA COMPILE FAILED::\n' + bad.join('\n'))
+      process.exit(1)
+    }
+    console.log('lua compile   : ok (' + files.length + ' files, luac5.3)')
+  }
   const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))
   patch({
     op: 'addScript',
