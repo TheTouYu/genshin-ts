@@ -229,10 +229,14 @@ function M.new(env)
     local e = d.e
     local open = SKG().unlocked and SKG().unlocked[roles[sel]] == true
     R.portraitEdge = BOX('charPortraitEdge', u(408), u(438), THEME.gold)
-    R.portrait = BOX('charPortrait', u(400), u(430), FN.skillDark and FN.skillDark(e.color or C(127, 207, 106), 150) or C(127, 207, 106))
-    R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, C(255, 255, 255, 255))
-    R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, C(255, 250, 244, 246))
-    R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, C(255, 250, 244, 240))
+    -- v5.27（用户：中间展示文字的区域要做成好看的组件，好看第一）：饱和色块换成**淡彩卡片**
+    -- —— 底色 = 奶油 + 角色色 22%，文字用深墨/角色深色档，对比度从 ~2:1 提到 ~7:1。
+    R.portrait = BOX('charPortrait', u(400), u(430),
+      env.over and env.over(C(252, 250, 244, 255), e.color or C(127, 207, 106), 0.22)
+        or C(240, 250, 240, 255))
+    R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, e.color2 or THEME.textMain)
+    R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, THEME.textMain)
+    R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, THEME.textSub)
     R.pSay = TXT('charPSay', d.says[1] or (d.help[1] or ''), u(420), 18, THEME.textMain, 'Left')
     R.pSay2 = TXT('charPSay2', d.says[2] or (d.help[2] or ''), u(420), 18, THEME.textSub, 'Left')
     R.pSay3 = TXT('charPSay3', d.says[3] or '', u(420), 17, THEME.textSub, 'Left')
@@ -467,15 +471,14 @@ function M.new(env)
           label = r.name, sub = r.state, fs = 22, subFs = 15, pad = 26, titleDy = 16, subDy = 20,
           fill = fill, hoverColor = C(252, 246, 250, 246), pressColor = C(246, 236, 244, 250),
           ink = on and C(255, 255, 255, 255) or (r.open and THEME.textMain or THEME.textSub),
-          subInk = on and C(255, 248, 236, 240) or (r.open and (r.color2 or THEME.textMain) or THEME.textSub),
+          subInk = on and (r.color2 or C(70, 90, 80, 255))
+            or (r.open and (r.color2 or THEME.textMain) or THEME.textSub),
           onPart = function(c) add(c) end,   -- 归本页清理表，别进 MS.parts
           onClick = function() FN.charShow(r.idx) end,
         })
         if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
-        -- 左竖条（角色色/未缔结灰）：组件不管内容标识，调用方自己叠
-        local bar = BOX('charBar' .. i, u(8), u(76), on and C(255, 255, 255, 255)
-          or (r.open and (r.color or C(127, 207, 106)) or C(206, 198, 204, 214)))
-        at(bar, listX + u(4), y, u(8), u(76))
+        -- v5.27（用户：「明明就是个圆角按钮，多出来一条线像什么话」）：删掉左竖条。
+        -- 角色色已经由选中行的实底表达，外挂竖条只会破坏胶囊轮廓。
       end
     end
     -- 中列立绘区
