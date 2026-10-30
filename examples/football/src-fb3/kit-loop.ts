@@ -529,6 +529,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           const airK = f.subtraction(1.0, f.multiplication(AIR_DRAG_K, dtv.value))
           vx.set(f.multiplication(vx.value, airK))
           vz.set(f.multiplication(vz.value, airK))
+          // 垂直分量也要有空气阻力（报告 FAIL⑤：旧实现只对水平分量施加）
+          vy.set(f.multiplication(vy.value, airK))
           // ⚠️ 2026-10-30 数据修正（PHYSICS-DATA-REPORT slot7：ω −44.9%/1.12s 而 v 只 −21%）
           // 滚动状态下 ω 必须跟着 v 走（ω=v/R），再额外乘 SPIN_K 就会「越滚越不转」。
           // ⇒ 只对**竖直轴自旋 wy**（弧线球的自旋）施加 SPIN_K；wx/wz 交给摩擦约束，只加很小的空气衰减。
