@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.23 · 10-30 19:2x'
+BUILD_TAG = 'v5.24 · 10-30 19:4x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -2799,6 +2799,14 @@ FN.stageWanted = function()
   return true
 end
 FN.syncStage = function()
+  -- 安全网：角色页只允许在标题页存在。局内（guideStage≠0）若它还在，说明被某条路径
+  -- 漏关 —— 强制关掉，否则会出现「棋盘之上飘着一张角色页文字」的混合态（用户 2026-10-30 图一）。
+  -- 判据用**屏幕**而不是 guideStage（标题页 guideStage 也可能是 1，实测会误关）：
+  -- 只有真的进了对局屏（UI4.screen=='game'）却还挂着角色页，才是混合态。
+  if ROSTER and ROSTER.on and UI4 and UI4.screen == 'game' and FN.rosterToggle then
+    pcall(FN.rosterToggle)
+    print('roster force close (screen=game)')
+  end
   local want = FN.stageWanted()
   local has = (MS and MS.stageOn) and true or false
   if want and not has then

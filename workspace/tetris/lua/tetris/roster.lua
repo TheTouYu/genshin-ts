@@ -450,6 +450,7 @@ function M.new(env)
     if CTL then
       CTL.btn({ id = 'roster.close', x = PR - u(110), y = PH / 2 - u(46), w = u(150), h = u(50),
         label = '合上', fs = 20, preset = 'gold',
+        onPart = function(c) add(c) end,
         onClick = function() if FN.rosterToggle then FN.rosterToggle() end end })
     end
     local listX = PL + u(40)
@@ -464,6 +465,7 @@ function M.new(env)
           fill = fill, hoverColor = C(252, 246, 250, 246), pressColor = C(246, 236, 244, 250),
           ink = r.open and THEME.textMain or THEME.textSub,
           subInk = r.open and (r.color2 or THEME.textMain) or THEME.textSub,
+          onPart = function(c) add(c) end,   -- 归本页清理表，别进 MS.parts
           onClick = function() FN.charShow(r.idx) end,
         })
         if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
@@ -498,6 +500,7 @@ function M.new(env)
           hoverColor = on and (e.color or C(127, 207, 106)) or C(232, 238, 240, 250),
           pressColor = on and (e.color or C(127, 207, 106)) or C(224, 232, 236, 252),
           ink = on and C(255, 255, 255, 255) or THEME.textMain,
+          onPart = function(c) add(c) end,
           onClick = function() print('char tab tap ' .. tostring(i)) FN.rosterBuild(sel, i) end })
         if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
       end

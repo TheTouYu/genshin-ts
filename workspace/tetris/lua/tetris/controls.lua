@@ -52,7 +52,7 @@ function M.new(env)
   local API = { PRESET = PRESET }
 
   -- ① 胶囊：中段矩形 + 左右半圆。返回 parts（含坐标），三态靠逐块换色+位移实现
-  function API.pill(name, x, y, w, h, fill)
+  function API.pill(name, x, y, w, h, fill, partSink)
     local body = math.max(2, w - h)
     local parts = {
       { ctl = addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill }), x = x, y = y },
@@ -61,7 +61,8 @@ function M.new(env)
       { ctl = addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill }),
         x = x + body / 2, y = y },
     }
-    for i = 1, #parts do if parts[i].ctl then onPart(parts[i].ctl) end end
+    local sink = partSink or onPart
+    for i = 1, #parts do if parts[i].ctl then sink(parts[i].ctl) end end
     return parts
   end
 
@@ -80,7 +81,11 @@ function M.new(env)
     local x, y = spec.x or 0, spec.y or 0
     local name = 'btn' .. spec.id
 
-    local parts = API.pill(name, x, y, w, h, fill.normal)
+    -- 生命周期归属由调用方决定：标题页的按钮归 MS.parts（随展台拆），
+    -- 角色页/帮助页的按钮必须归各自页面的清理表 —— 否则展台一拆就把别人的按钮带走
+    -- （实测：开角色页时 syncStage 拆展台 → 角色页的行/页签胶囊全消失，只剩文字）。
+    local sink = spec.onPart or onPart
+    local parts = API.pill(name, x, y, w, h, fill.normal, sink)
     -- 文字：左对齐留出键帽位；没有 sub 时单行居中
     local hasKey = spec.key ~= nil
     -- 版式（v5.16，修用户「文字溢出了」）：键帽**收进胶囊内**，文字只吃剩余宽度并居中。
@@ -102,16 +107,16 @@ function M.new(env)
         y - (spec.subDy or 18), textWSub, 0,
         spec.subFs or math.max(12, fs - 9), spec.subInk or env.subInk)
     end
-    for _, c in ipairs({ title, sub }) do if c then onPart(c) end end
+    for _, c in ipairs({ title, sub }) do if c then sink(c) end end
     -- 键帽：小圆角胶囊 + 字母
     local chip = nil
     if hasKey then
       local cw, ch = 34, 34
       local cx = x - w / 2 + pad + cw / 2
       chip = API.pill(name .. 'K', cx, y, cw, ch, env.over(env.wall, env.ink, 0.10))
-      for i = 1, #chip do onPart(chip[i].ctl) end
+      for i = 1, #chip do sink(chip[i].ctl) end
       local kl = addText(name .. 'KT', tostring(spec.key), cx, y, cw, 0, 16, spec.ink or p.ink)
-      if kl then onPart(kl); chip.label = { ctl = kl, x = cx, y = y } end
+      if kl then sink(kl); chip.label = { ctl = kl, x = cx, y = y } end
     end
 
     -- 热区：w/h 略放大 8px（手感），**坐标 y 取负**（cursor 轴与图片相反）
@@ -124,7 +129,7 @@ function M.new(env)
       -- 镜像到画布另一侧（入口卡在顶部 y=302 → 热区跑到 y=-302、屏幕底缘），
       -- 表现为「卡面看得见、鼠标移上去没反应、点也点不到」——用户连着报了三次的就是这个。
       tryCall(zone, 'SetAnchoredPosition', x, y)
-      onPart(zone)
+      sink(zone)
     end
 
     local texts = { { c = title, x = tx, y = y + (spec.sub and (spec.titleDy or 16) or 0) } }
