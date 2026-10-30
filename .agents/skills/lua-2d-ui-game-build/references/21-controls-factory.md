@@ -26,7 +26,10 @@
 
 ---
 
-## 2. 工厂 API（`lua/tetris/controls.lua`，本项目已落地）
+## 2. 工厂 API（可直接复制的模板：`references/templates/controls.lua`）
+
+> 模板文件里带了完整的 `env` 接线示例和"懒创建 ⇒ 用 getter 取"的提醒；新工程复制即用。
+> 本项目内的落地版在 `workspace/tetris/lua/tetris/controls.lua`。
 
 ```lua
 -- ① 接一次模块（main 里全局 CTL，不新增 local —— main chunk 有 200 local 硬限）
