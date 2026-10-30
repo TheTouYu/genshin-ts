@@ -3,7 +3,7 @@
  跑法：cd /home/h/genshin-ts/examples/football && lua5.3 tests-lua/hud_test.lua
  判据：退出码 0 = 全绿；任一 FAIL ⇒ 打印得到/期望 + 退出码 1
  说明：纯 Lua 5.3。用假控件/假 game/假 script 触发真实脚本逻辑，验证 L1 逻辑层
-      （文案、计时、横幅生命周期、按键→信号、全局变量读取、缺控件兜底）。
+      （文案、计时、横幅生命周期、按键→信号、缺控件兜底）。
       它证明"逻辑算得对"，不证明"真机画得出来"（渲染仍需真机）。
 =========================================================================]]
 
@@ -168,21 +168,9 @@ ok(w.controls.hud_toast.text:find('① 推射', 1, true) == 1, '0.6s 横幅仍�
 OnUpdate(0.7)
 eq(w.controls.hud_toast.text, '', '1.3s 横幅自清')
 
--- ⑤ 全局自定义变量读取（服务端写 fb_score_a/b → OnStart 读到）
-local w2 = makeWorld()
-w2.globals.fb_score_a = 3
-w2.globals.fb_score_b = 2
-install(w2)
-for _, k in ipairs({ 'OnStart', 'OnUpdate', 'OnDestroy', 'OnInit', 'setScore' }) do _G[k] = nil end
-dofile(SRC)
-OnStart()
-eq(w2.controls.hud_score.text, '3 : 2', '启动即读到全局变量 3:2')
-ok(w2.handlers.fb_score_a ~= nil, '注册了 fb_score_a 变化回调')
--- 服务端改值 → 回调刷新
-w2.globals.fb_score_a = 4
-w2.handlers.fb_score_a()
-eq(w2.controls.hud_score.text, '4 : 2', '变量变化回调刷新 4:2')
-
+-- ⑤ 已删除（2026-10-30）：比分通道从未接线（服务端进球事件→全局变量→Lua 轮询），
+--    属于死代码，已从 fb-input.lua 移除；setScore(a,b) 仍作为对外接口保留。
+--    等通道真正接上时，这里的断言与 Lua 侧实现一起恢复。
 -- ⑥ 外部 setScore（进球事件驱动）
 setScore(5, 4)
 eq(w2.controls.hud_score.text, '5 : 4', 'setScore 改比分')

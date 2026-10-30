@@ -181,44 +181,8 @@ local function setState(line)
   setText(STYLE.state.name, line)
 end
 
--- 全局自定义变量读取（服务端「设置自定义变量」写玩家变量 → 这里刷新）
-local function readGlobal(name)
-  local ok, v = pcall(function()
-    local et = Enum and Enum.CustomVariableEntityType and Enum.CustomVariableEntityType.PlayerSelf
-    if et == nil then return nil end
-    return game.GetGlobalCustomVariableValue(et, name)
-  end)
-  if ok then return v end
-  return nil
-end
-
-local function applyGlobals()
-  local a = readGlobal('fb_score_a')
-  local b = readGlobal('fb_score_b')
-  if type(a) == 'number' and type(b) == 'number' then
-    a = math.floor(a)
-    b = math.floor(b)
-    if a ~= G.scoreA or b ~= G.scoreB then
-      G.scoreA = a
-      G.scoreB = b
-      renderScore()
-    end
-  end
-end
-
-local function listenGlobals()
-  local et = Enum and Enum.CustomVariableEntityType and Enum.CustomVariableEntityType.PlayerSelf
-  if et == nil then log('globals unavailable (no enum)'); return end
-  local list = { 'fb_score_a', 'fb_score_b' }
-  for _, name in ipairs(list) do
-    local ok, err = pcall(function()
-      script:RegisterCustomVariableChangedHandler(et, name, function() applyGlobals() end)
-    end)
-    if ok then G.globals = G.globals + 1 else log('globals fail ' .. name .. ' ' .. tostring(err)) end
-  end
-  log('globals listen n=' .. tostring(G.globals))
-end
-
+-- 比分通道（未接线，标死）：服务端进球事件还没接到 HUD。
+-- 现只保留 setScore(a,b) 作为对外接口，等通道接上再调用；轮询全局变量的旧实现已删除（无消费者）。
 local function setStatic()
   setText(STYLE.title.name, '⚽ 千星足球 · 技能演练')
   for i, slot in ipairs(SLOTS) do
@@ -289,8 +253,6 @@ function OnStart()
   log('onstart v2')
   applyStyles()
   setStatic()
-  listenGlobals()
-  applyGlobals()
   send(0, 100 + countHud())       -- 心跳 1：100+HUD 命中数（11 = 全部找到）
   local n = 0
   for _, k in ipairs(KEYS) do if listen(k) then n = n + 1 end end

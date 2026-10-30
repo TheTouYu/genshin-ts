@@ -62,21 +62,15 @@ const SURFACE_Y = 0.0
 const GROUND_Y = SURFACE_Y + BALL_R
 const MAX_SPEED = 18.0
 const RESTITUTION = 0.5
-const GROUND_FRICTION = 0.82 // 触地切向摩擦（事件型）
-const AIR_DRAG = 0.995 // 每拍空气阻力
-const ROLL_FRICTION = 0.985 // 旧值（已不再使用，保留常量避免其它引用断裂）
 const ROLL_MU = 0.06 // 滚动阻力系数：减速度 = 0.06·9.8 ≈ 0.59 m/s²（草地量级）
 const FRICTION_LOSS = 0.9
 const AIR_DRAG_K = 0.05 // 空气阻力速率（1/s）：v *= 1−0.05·dt
 const SPIN_K = 0.15 // 自旋衰减速率（1/s） // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
-const SPIN_DECAY = 0.985 // 每拍自旋衰减（空中）
-const SPIN_GROUND = 0.85 // 触地自旋衰减
 const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
 const SETTLE_VY = 1.0 // 触地 |vy| 低于此 ⇒ 直接贴地不再弹
 const REST_SPEED = 0.35
 const GROUND_MU = 0.8 // 库仑摩擦系数（接触冲量与滑移的比值上限）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴地速度低于此 ⇒ 静止
-const ROLL_SPEED = 3.0 // 贴地速度高于此 ⇒ 进入滚动
 const DRIBBLE_R = 2.4 // 保留：按键时的「有球」判定半径（射门/传球资格）
 const TOUCH_R = 1.7 // 触球半径：球进到这个圈里才会被脚带到
 const KEEP_R = 2.8 // 带球显示半径（只影响状态=5 的 HUD 反馈，不参与运动）
