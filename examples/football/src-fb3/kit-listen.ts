@@ -48,11 +48,21 @@ const graph = g
       },
       () => {}
     )
-    // —— 每拍只做这两件事：读缓存实体位置 + 写出去（缓存为空时读到的是空实体，写入 0，内核会退回兜底）——
-    const l = f.split3dVector(f.getEntityLocationAndRotation(cached).location)
-    f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
-    f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
-    f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
+    // —— 位置写回（2026-10-30 负载优化）：隔 2 条信号写一次 ——
+    // 每条信号写 3 个自定义变量 = 3 次 set_custom_variable；内核 15Hz 读一次位置，
+    // 隔一条信号写完全够用（≈7.5Hz），直接省掉一半写操作。
+    const tickPos = f.getCustomVariable(owner, 'fb_pos_tick').asType('int')
+    f.doubleBranch(
+      f.greaterThanOrEqualTo(f.subtraction(evt.params.tick, tickPos), 2n),
+      () => {
+        const l = f.split3dVector(f.getEntityLocationAndRotation(cached).location)
+        f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
+        f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
+        f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
+        f.setCustomVariable(owner, 'fb_pos_tick', evt.params.tick, false)
+      },
+      () => {}
+    )
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,

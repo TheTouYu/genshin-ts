@@ -43,8 +43,17 @@ g
       },
       () => {}
     )
+    // ———— 早退闸（2026-10-30 负载优化）————
+    // 服务端每条信号都要付「派发 + 变量读 + 一堆计算」。设备只需每 4 个 tick 下发一次，
+    // 于是把「是否到点」提到**所有计算之前**：不到点的信号只走 3~4 个节点就结束，
+    // 避免每条信号都白跑预测位/轴换算/分支。
+    const tickEarly = evt.params.tick
+    const dueEarly = f.greaterThanOrEqualTo(
+      f.subtraction(tickEarly, f.get('fb_lin_tick')),
+      4n
+    )
     f.doubleBranch(
-      f.equal(evt.params.tag, 'B'),
+      f.logicalAndOperation(f.equal(evt.params.tag, 'B'), dueEarly),
       () => {
         const ball = f.getSelfEntity()
         // 真实步长（kitListen 每秒校准写入载体变量）
