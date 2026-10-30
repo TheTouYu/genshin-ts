@@ -1204,15 +1204,40 @@ function runDelete(bytes: Uint8Array, gil: string, args: Args): void {
   const top = parseWireMessage(payload)
   if (!top) throw new Error('[error] cannot parse GIL payload')
   let removedGraphs = 0
+  let removedMeta = 0
   let removedFolder = 0
   const rebuilt: Array<{ number: number; wire: number; value: number | Uint8Array }> = []
   for (const f of top) {
     if (f.number === 10 && f.wire === 2) {
       const root10 = parseWireMessage(f.value as Uint8Array)
       if (root10) {
+        // 2026-10-30 修：图记录不只在 root10.f1（服务端图）——还有 root10.f4 一桶
+        // （旧渲染/客户端碎片，实测 1610710043/1610710044 就在这里）。按**记录内容**判图 id，
+        // 不再限定字段号，否则这类图永远"not found in root 10"、删不掉。
+        // 判定分两类（2026-10-30 实测：同一张图在 root10 里有两份记录）：
+        //   ① 图本体记录（f1 里有 ng.f1 = 图 id 消息）→ 按 id 删
+        //   ② 图的**元记录**（同 id 但 graphIdOf 返回 undefined，例如 f2 桶里的 f100/f101/f200 属性块）
+        //      → 内容含该 id 的也一并删，否则删完图会留下孤儿元记录（实测残留 1 处）
+        const idBytes = (() => {
+          const out: number[] = []
+          let n = graphId
+          for (;;) {
+            const byte = n & 0x7f
+            n >>>= 7
+            if (n) out.push(byte | 0x80)
+            else { out.push(byte); break }
+          }
+          return Buffer.from(out)
+        })()
         const kept = root10.filter((x) => {
-          if (x.number === 1 && x.wire === 2 && graphIdOf(x.value as Uint8Array) === graphId) {
+          if (typeof x.value === 'number') return true
+          const rec = new Uint8Array(x.value as Uint8Array)
+          if (graphIdOf(rec) === graphId) {
             removedGraphs += 1
+            return false
+          }
+          if (graphIdOf(rec) === undefined && Buffer.from(rec).includes(idBytes)) {
+            removedMeta += 1
             return false
           }
           return true
