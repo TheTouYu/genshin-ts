@@ -183,6 +183,42 @@ end
 
 -- 比分通道（未接线，标死）：服务端进球事件还没接到 HUD。
 -- 现只保留 setScore(a,b) 作为对外接口，等通道接上再调用；轮询全局变量的旧实现已删除（无消费者）。
+-- ══════════ 物理自动测试台提示（2026-10-30）══════════
+-- 内核每拍发 tag='T' → 服务端写到**关卡实体**变量 fb_test_id → 这里读出来显示名字。
+-- Lua 读全局变量：Enum.CustomVariableEntityType.Level（关卡实体）。
+local TEST_NAMES = {
+  [0]  = '测试① 静止球（零速不漂移）',
+  [1]  = '测试② 轻射：前 10 + 抬 3.2',
+  [2]  = '测试③ 重射：前 16 + 抬 4.5 + 侧旋',
+  [3]  = '测试④ 高吊：前 7 + 抬 9',
+  [4]  = '测试⑤ 弧线：马格努斯（侧旋 14）',
+  [5]  = '测试⑥ 自由落体 3m：重力+反弹+反弹后自旋',
+  [6]  = '测试⑦ 斜落弹地：前 6 + 落 5',
+  [7]  = '测试⑧ 高速擦地 18：限速+滚动阻力',
+  [8]  = '测试⑨ 纯自旋 25：滑移摩擦把自旋转成前进',
+  [9]  = '测试⑩ 门柱碰撞：右门柱旁 9m/s',
+  [10] = '测试⑪ 边界反弹：贴边线 9m/s'
+}
+
+local lastTest = -1
+local function pollTest()
+  local ok, v = pcall(function()
+    local et = Enum and Enum.CustomVariableEntityType and Enum.CustomVariableEntityType.Level
+    if et == nil then return nil end
+    return game.GetGlobalCustomVariableValue(et, 'fb_test_id')
+  end)
+  if not ok or type(v) ~= 'number' then return end
+  v = math.floor(v)
+  if v == lastTest then return end
+  lastTest = v
+  local name = TEST_NAMES[v]
+  if name ~= nil then
+    setState(name)
+    showToast(name, 1.6, COL.warm)
+    log('autotest ' .. tostring(v))
+  end
+end
+
 local function setStatic()
   setText(STYLE.title.name, '⚽ 千星足球 · 技能演练')
   for i, slot in ipairs(SLOTS) do
@@ -274,6 +310,11 @@ function OnUpdate(dt)
   if s ~= G.sec then
     G.sec = s
     renderTimer()
+  end
+  G.pollAcc = (G.pollAcc or 0) + step
+  if G.pollAcc >= 0.5 then
+    G.pollAcc = 0
+    pollTest()
   end
   if G.toastT > 0 then
     G.toastT = G.toastT - step

@@ -278,6 +278,114 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
 
+  // ══════════════ 物理自动测试台（2026-10-30，用户令）══════════════
+  // 开关：载体变量 fb_autotest（0=关，1=开；CLI 改它即可开机）
+  // 节奏：开局 5s 后开始；每个测试点 30 拍（≈2s），先落地重置到该点初态，再让它自由演算；
+  // 无状态推进：slot = floor((tick-75)/30)，local = (tick-75) - slot*30，local==0 时施加初态。
+  // 覆盖：静止 / 轻射 / 重射 / 高吊 / 弧线 / 自由落体 / 斜落弹地 / 高速擦地 / 纯自旋 / 门柱 / 边界。
+  const AUTO_START = 75n // 5s @15Hz
+  const AUTO_LEN = 30n // 每点 30 拍 ≈2s
+  const autoOn = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fb_autotest').asType('int')
+  const autoPhase = f.subtraction(tick, AUTO_START)
+  const autoActive = f.logicalAndOperation(
+    f.equal(autoOn, 1n),
+    f.greaterThanOrEqualTo(autoPhase, 0n)
+  )
+  const autoSlot = f.division(autoPhase, AUTO_LEN)
+  const autoLocal = f.subtraction(autoPhase, f.multiplication(autoSlot, AUTO_LEN))
+  const autoFresh = f.equal(autoLocal, 0n)
+  // 把当前测试编号回传（tag='T'，pos.x=编号、pos.y=剩余拍），服务端转写到关卡变量供 Lua 显示
+  f.doubleBranch(
+    autoActive,
+    () => {
+      chanSendState6(
+        f,
+        KitSignal.kit_state,
+        'T',
+        tick,
+        f.create3dVector(
+          f.dataTypeConversion(autoSlot, 'float'),
+          f.dataTypeConversion(autoLocal, 'float'),
+          0.0
+        ),
+        f.create3dVector(0.0, 0.0, 0.0),
+        f.create3dVector(0.0, 0.0, 0.0),
+        0n
+      )
+      f.doubleBranch(
+        autoFresh,
+        () => {
+          // 每个测试点的初态（位置固定在中圈附近，避免受上一次轨迹影响）
+          const baseX = 0.0
+          const baseZ = 0.0
+          // slot 0：静止球（检验零速不漂移）
+          f.doubleBranch(f.equal(autoSlot, 0n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+          }, () => {})
+          // slot 1：轻射（有抬升）
+          f.doubleBranch(f.equal(autoSlot, 1n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(10.0); vy.set(3.2); vz.set(0.0); wx.set(0.0); wy.set(0.0)
+            wz.set(f.division(10.0, BALL_R))
+          }, () => {})
+          // slot 2：重射 + 侧旋
+          f.doubleBranch(f.equal(autoSlot, 2n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(16.0); vy.set(4.5); vz.set(0.0); wx.set(0.0); wy.set(10.0)
+            wz.set(f.division(16.0, BALL_R))
+          }, () => {})
+          // slot 3：高吊
+          f.doubleBranch(f.equal(autoSlot, 3n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(7.0); vy.set(9.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+          }, () => {})
+          // slot 4：弧线（马格努斯）
+          f.doubleBranch(f.equal(autoSlot, 4n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(14.0); vy.set(4.0); vz.set(0.0); wx.set(0.0); wy.set(14.0); wz.set(0.0)
+          }, () => {})
+          // slot 5：3m 自由落体（检验重力+反弹+反弹后自旋）
+          f.doubleBranch(f.equal(autoSlot, 5n), () => {
+            bx.set(baseX); by.set(3.25); bz.set(baseZ)
+            vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+          }, () => {})
+          // slot 6：斜落弹地（带前向速度）
+          f.doubleBranch(f.equal(autoSlot, 6n), () => {
+            bx.set(baseX); by.set(2.0); bz.set(baseZ)
+            vx.set(6.0); vy.set(-5.0); vz.set(0.0); wx.set(0.0); wy.set(0.0)
+            wz.set(f.division(6.0, BALL_R))
+          }, () => {})
+          // slot 7：高速擦地滚动（限速+滚动阻力）
+          f.doubleBranch(f.equal(autoSlot, 7n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(18.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0)
+            wz.set(f.division(18.0, BALL_R))
+          }, () => {})
+          // slot 8：纯自旋不移动（检验滑移摩擦把自旋转成前进）
+          f.doubleBranch(f.equal(autoSlot, 8n), () => {
+            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+            vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(25.0)
+          }, () => {})
+          // slot 9：门柱碰撞（放到右门柱旁往里打）
+          f.doubleBranch(f.equal(autoSlot, 9n), () => {
+            bx.set(f.subtraction(PITCH_X, 1.2)); by.set(GROUND_Y)
+            bz.set(f.subtraction(GOAL_HALF, 0.9))
+            vx.set(9.0); vy.set(0.5); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+          }, () => {})
+          // slot 10：边界反弹（贴边线打出去）
+          f.doubleBranch(f.equal(autoSlot, 10n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(f.subtraction(PITCH_Z, 1.0))
+            vx.set(0.0); vy.set(0.0); vz.set(9.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+          }, () => {})
+        },
+        () => {}
+      )
+    },
+    () => {}
+  )
+  // ══════════════════════════════════════════════════════════════
+
   const warm = f.lessThanOrEqualTo(tick, WARMUP_TICKS)
   f.doubleBranch(
     warm,

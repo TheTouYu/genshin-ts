@@ -22,6 +22,21 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
+    // ———— 自动测试台：把内核回传的测试编号转写到关卡实体变量，供 Lua 读名显示 ————
+    // 内核每拍发 tag='T'，pos.x = 测试编号、pos.y = 该点剩余拍数。
+    f.doubleBranch(
+      f.equal(evt.params.tag, 'T'),
+      () => {
+        const levelE = f.queryEntityByGuid(1094713345n)
+        f.setCustomVariable(
+          levelE,
+          'fb_test_id',
+          f.dataTypeConversion(f.split3dVector(evt.params.pos).xComponent, 'int'),
+          false
+        )
+      },
+      () => {}
+    )
     // ———— 玩家角色位置（2026-10-30 终版：**开局解析一次，之后缓存复用**）————
     // 设计依据（用户 2026-10-30）：角色实体一局内不会变 ⇒ 每拍重跑四步链是浪费。
     // 缓存：载体变量 fb_char_e（entity 类型）。失效判据 = queryGuidByEntity(缓存) == 0
