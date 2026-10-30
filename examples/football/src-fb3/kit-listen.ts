@@ -114,7 +114,17 @@ const graph = g
         f.setCustomVariable(owner, 'fb_seq', seq, false)
         f.setCustomVariable(owner, 'fb_key', key, false)
         f.setCustomVariable(owner, 'fb_state', evt.params.state, false)
-        print('fb-key')
+        // 按键打点带键号（print 只能打字符串，所以按 1~6 分支打不同标记）
+        // ⑥ 也会走这里：之前无法把按键与服务端帧对时，只能靠猜
+        for (let i = 1; i <= 6; i += 1) {
+          f.doubleBranch(
+            f.equal(key, BigInt(i)),
+            () => {
+              print(`fb-k${i}`)
+            },
+            () => {}
+          )
+        }
       },
       () => {
       // key < 0 = Lua 时间同步（OnUpdate 累计的真实毫秒）；用它和内核 tick 差算真实步长。
