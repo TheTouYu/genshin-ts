@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.35 · 10-31 00:3x'
+BUILD_TAG = 'v5.36 · 10-31 00:5x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -2820,7 +2820,11 @@ FN.syncStage = function()
   -- 判据同上（标题页且浮层开）：开→清空 9 个文字位，关→由 buildMenuCards/renderHud 重写。
   -- 注意：角色页/帮助页打开时 guideStage 会被改成 2（时停），所以判据只看「展台该不该在」，
   -- 不能再要求 guideStage==0 —— 那一条正是「清了但底部还在」的根因（实测 hide 恒 false）。
-  local hide = not want
+  -- 🔴 v5.36 修回归：原来写 `hide = not want`，而 want 在**对局中恒为 false**（guideStage≠0）
+  -- ⇒ 局内也把文字层清空，HUD/得分/旁白全消失（用户：图片渲染失败了）。
+  -- 正确判据＝**只是浮层打开时**才藏文字层，对局中一律照常显示。
+  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER) and true or false
+  local hide = overlayNow
   if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
   FN.textLayerHidden = hide and true or false
   if hide then
