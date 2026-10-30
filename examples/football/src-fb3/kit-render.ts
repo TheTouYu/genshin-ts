@@ -3,7 +3,7 @@
 // 只做两件事：|delta| 太大 → INSTANT 瞬移；否则挂「线性(+可选旋转)」运动设备。
 // 关键：**用复合 fbDriveDirect**（老代码原样），线性设备与旋转设备由复合内部串好 exec 边。
 import { g } from 'genshin-ts/runtime/core'
-import { float } from 'genshin-ts/runtime/value'
+import { float, int } from 'genshin-ts/runtime/value'
 
 import { KitSignal } from './signals.js'
 import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/enum'
@@ -26,7 +26,14 @@ const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开�
 const DUR_MAX = 0.08 // 上限：帧率掉到 10Hz 时不要把一拍拉成 0.1s
 
 g
-  .server({ id: GRAPH_ID, name: '_GSTS_kitRender' })
+  .server({
+    id: GRAPH_ID,
+    name: '_GSTS_kitRender',
+    // 2026-10-30 设备 churn 降频：记录上一次下发设备的 tick 号。
+    // 线性/旋转设备各 0.2s 前瞻，隔 2~3 拍才重发一次即可连续覆盖，
+    // 而原来**每拍**都重发（15/s 线性 + 15/s 旋转 = 30 次设备创建/秒）是引擎负载大户之一。
+    variables: { fb_lin_tick: new int(0), fb_rot_tick: new int(0) }
+  })
   .onSignal(KitSignal.kit_state, (evt: any, f: any) => {
     // 进球事件日志（保留）
     f.doubleBranch(
@@ -100,8 +107,13 @@ g
         const velToTarget = f._3dVectorZoom(velRaw, velScale.value)
         // 大跳用定点器瞬移（§10：定点器仍可用于 INSTANT_MOVEMENT，别全盘禁用）
         // 位移极小（球基本静止）时不重发设备，减少每拍设备 churn
+        const tickNow = evt.params.tick
+        const linDue = f.greaterThanOrEqualTo(
+          f.subtraction(tickNow, f.get('fb_lin_tick')),
+          2n
+        )
         f.doubleBranch(
-          f.lessThan(dist, 0.012),
+          f.logicalAndOperation(f.lessThan(dist, 0.012), f.logicalNotOperation(linDue)),
           () => {},
           () => {
         f.doubleBranch(
@@ -118,6 +130,7 @@ g
             //   「定点器匀速直线 + 旋转设备」= 直线设备被秒停、实体位置纹丝不动、只剩微量自旋。
             //   本轮真机日志 3412 复现同形态：参数照发、实体停在 (0,0.25,1.5)。
             // 参数：add_uniform_basic_linear_motion_device(实体, 设备名, 时长(秒), 速度向量(m/s))
+            f.set('fb_lin_tick', tickNow)
             f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', LOOKAHEAD, velToTarget)
           }
         )
@@ -125,8 +138,12 @@ g
         // 用户指正（2026-10-27）：同时加多个运动器是可以的，**同名才会替换前者**。
         // ⇒ 位移设备与旋转设备名字必须不同且固定：fb_movex / fb_spinx（旧名 fb_phys 可能被历史设备占用）。
         const spd = f._3dVectorModuloOperation(spin)
+        const rotDue = f.greaterThanOrEqualTo(
+          f.subtraction(tickNow, f.get('fb_rot_tick')),
+          3n
+        )
         f.doubleBranch(
-          f.greaterThan(spd, new float(0.001)),
+          f.logicalAndOperation(f.greaterThan(spd, new float(0.001)), rotDue),
           () => {
             const axis = f._3dVectorNormalization(spin)
             // 视觉自旋夹紧（2026-10-30）：真实滚动 ω=v/R ⇒ 10m/s 时 40rad/s=2292°/s，
@@ -150,7 +167,8 @@ g
             const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', driveDur.value, angVel.value, localAxis)
+            f.set('fb_rot_tick', tickNow)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', LOOKAHEAD, angVel.value, localAxis)
           },
           () => {}
         )
