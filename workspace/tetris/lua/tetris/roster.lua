@@ -175,6 +175,7 @@ function M.new(env)
     -- 组件工厂是懒创建的（main 的 MS.build 里才建）⇒ 每次构建时现取
     local CTL = env.ctl and env.ctl() or nil
     FN.rosterDestroy()
+    if env.pollCanvas then pcall(env.pollCanvas) end   -- 先对齐真实画布，再算缩放
     local W, H = env.canvas()
     local CP = FN.COPY
     local roles = (SKG().roles and #SKG().roles > 0) and SKG().roles or { 'nahida', 'keqing', 'ganyu', 'columbina' }
