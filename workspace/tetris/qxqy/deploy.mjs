@@ -206,6 +206,8 @@ function deviceDeploy() {
   const a = sha(gilPath), b = sha(tempPath)
   console.log(`  双址：Save_Level=${a} Temp=${b} ${a === b && a !== 'MISSING' ? 'OK（编辑器/游戏读的是同一份）' : '⚠ 不一致'}`)
   console.log('\n下一步：真机里直接切到这张图（' + MAP_ID + '）试玩；不用再开编辑器导入。')
+  console.log('网页试玩注意：**正在运行的试玩不会热更 Lua** —— 存档更新只会刷新预览画面；'
+    + '要让新代码生效必须点「■ 停止 / ↻ 重新开始」重启一次试玩（或按 R 不行，R 只是游戏内重开）。')
 }
 
 console.log(`构建：GIA ${gia.length} B  模板 cell=${cellGuid} hit=${hitGuid}  Lua ${injectedLua.length} B`)

@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.36 · 10-31 00:5x'
+BUILD_TAG = 'v5.38 · 10-31 02:1x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -2847,6 +2847,35 @@ FN.syncStage = function()
     if renderHud then pcall(renderHud) end
   end
   FN.textLayerWasHidden = hide and true or false
+  -- 手机按键同源收口：浮层开 ⇒ 整排按键收走（否则压着角色页/说明页）
+  -- ⚠ 判据必须表达它自己那件事：`want`（展台该不该在）只对标题页有意义，
+  -- 用它当"有没有浮层"会在**局内**恒为 true ⇒ 一开一关角色页后按键永远收着（本轮实测）。
+  local overlayOn = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER)
+    and true or false
+  -- 预览/暂存槽（12 颗格子在棋盘外左/右栏）：浮层期间也收走，否则角色页左侧会露出
+  -- 一块紫色小方块与一条深色竖条（用户 2026-10-30 截图里那两个残留点）。
+  if overlayOn ~= FN.prevParkedNow then
+    FN.prevParkedNow = overlayOn
+    if g and g.preview then
+      for i = 1, #g.preview do
+        local c = g.preview[i]
+        if c then
+          if overlayOn then
+            pcall(function() c:SetAnchoredPosition(0, -4000) end)
+          elseif renderNext then
+            pcall(renderNext)
+          end
+        end
+      end
+    end
+  end
+  if UI4 and UI4.padVisible and overlayOn ~= FN.padHiddenNow then
+    FN.padHiddenNow = overlayOn
+    pcall(UI4.padVisible, not overlayOn)
+    -- 关浮层回局内：让 ui.lua 用**当前屏**的 plan 完整重摆一次（标签/几何/三态一起回来）。
+    -- 只还原坐标是不够的——浮层那次 plan 已经把按键文字清空过（本轮实测的残留）。
+    if not overlayOn and guideStage ~= 0 and UI4.layout then pcall(UI4.layout) end
+  end
 end
 MS.teardown = function()
   MS.stageOn = false
@@ -3459,6 +3488,17 @@ FN.layoutDual = function()
     tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
     tryCall(HUD_INST.hudNext, 'SetVisible', true)
   end
+  -- ③b「暂存」标签（v5.37：左列 hold 槽原来没有任何标签，方块孤零零飘着 —— 用户报"渲染失败"）
+  if HUD_INST.holdLab then
+    tryCall(HUD_INST.holdLab, 'SetSizeDelta', 200, 44)
+    tryCall(HUD_INST.holdLab, 'SetAnchoredPosition', -(halfW - 230), 255)
+    tryCall(HUD_INST.holdLab, 'SetVisible', true)
+    pcall(function() HUD_INST.holdLab.text = '暂存' end)
+    trySet(HUD_INST.holdLab, 'fontSize', 22)
+    trySet(HUD_INST.holdLab, 'horizontalAlignment', 'Middle')
+    trySet(HUD_INST.holdLab, 'verticalAlignment', 'Middle')
+    trySet(HUD_INST.holdLab, 'fontColor', THEME.textMain)
+  end
   -- ④ 引导/准备提示（hint）：中缝一行，压在底栏常驻之上（1600 画布：y=-340 → ypx770..810，
   --    底栏常驻 ypx852..892，互不相压；宽 260 只占中缝，不再横穿两侧键位卡）
   if hint then
@@ -3493,7 +3533,7 @@ HUD_INST.build = function()
   -- v3.2 ①：botBanner/topBanner 也入双写（用户打回：PERSIST_TIP/H 提示/接管文案
   -- 被 wash 盖住——服务端 textbox 永远在实例层下，凡常驻文字一律实例份）
   -- v3.3 ②：textbox 份建完即隐藏（此前实例+textbox 双份叠字；断言读 text 字段，不受 visible 影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext', 'holdLab' }) do
     local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
     if ok and c then
       c.name = 'i' .. nm
@@ -4450,6 +4490,7 @@ do
     SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
     game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
     roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
+    canvasH = function() return CANVAS_H or 900 end,
   })
   if not okm then print('roster module FAIL（角色页禁用）') end
 end
@@ -5392,6 +5433,11 @@ do
   else
     print('ui module FAIL（移动端按钮将缺失；PC 布局仍走本文件的旧路径）')
   end
+end
+-- v5.38：手机按键整体收/放（浮层打开时用）。UI4 是 main 侧的壳表，模块方法要显式转发，
+-- 否则 FN.syncStage 里 `UI4.padVisible` 恒为 nil ⇒ 按键不会被收走（角色页底部残留「合上」）。
+UI4.padVisible = function(show)
+  if FN.U and FN.U.padVisible then return FN.U.padVisible(show) end
 end
 UI4.regScreen = function(name)
   UI4.cur = name
@@ -6696,7 +6742,9 @@ function OnUpdate(dt)
       -- 技能横幅正在播（FN.SK.topT>0）时，闲置提示让位：否则会看到"小草神看着你的盘面"
       -- 把刻晴/甘雨的名卡顶掉（2026-10-29 出图实测，0.1s 帧上就能看到）
       local bannerBusy = (FN.SK.topT or 0) > 0
-      if TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
+      -- v5.38：NUM.TK_PLAY_S = nil ⇒ 这条链整体关闭（不再有「停手 3s 出提示 → 再 3s AI 接管」）。
+      -- 接管只走纳西妲 E 技能（FN.skillCast → ai-takeover）。恢复旧行为把 config 里两个常量改回 3。
+      if NUM.TK_PLAY_S and TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
         TK.state, TK.t = 'hint', 0
         if not bannerBusy then
           if ROSTER and ROSTER.on then return end
@@ -6707,7 +6755,7 @@ function OnUpdate(dt)
           trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
         end
         print('takeover hint')
-      elseif TK.state == 'hint' and TK.t >= NUM.TK_HINT_S then
+      elseif NUM.TK_HINT_S and TK.state == 'hint' and TK.t >= NUM.TK_HINT_S then
         TK.state, TK.t = 'ai', 0
         if not bannerBusy then
           FN.topBannerStyle(24)

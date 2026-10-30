@@ -400,7 +400,10 @@ M.new = function(spec)
   -- 逐屏：title / help / settle / roster 只出本屏要用的键
   -- 把一组控件整体挪出画布（真机 SetVisible 对实例不可靠 ⇒ "藏"的唯一实现是坐标）
   local PARK_TEXT = { 'hud', 'best', 'hint', 'hudNext', 'keyA', 'keyB', 'keyC' }
-  local PARK_SKILL = { 'skRole', 'sk1name', 'sk1state', 'sk1bar', 'sk2name', 'sk2state', 'sk2bar' }
+  -- v5.38：技能卡是**实例侧**的一组贴片（card/strip/barBg），原来只停了文字份，
+  -- 于是角色页左侧会露出那条 6×68 的深色竖条与卡片底（用户截图那两个残留）。
+  local PARK_SKILL = { 'skRole', 'sk1name', 'sk1state', 'sk1bar', 'sk1barBg', 'sk1card', 'sk1strip',
+    'sk2name', 'sk2state', 'sk2bar', 'sk2barBg', 'sk2card', 'sk2strip' }
   local function parkGroup(p, names)
     for _, nm in ipairs(names) do
       local r = p.text and p.text[nm]
@@ -472,7 +475,9 @@ M.new = function(spec)
     if screen == 'roster' then
       p.slots = {}
       p.acts = {}
-      p.nav = isMobile and { B('close', 0, -(halfH - pad - nh / 2), nw + 24, nh, KIT.FS) } or {}
+      -- v5.38：角色页**自带右上角「合上」**（CTL.btn）⇒ 不再额外给一颗底部导航键，
+      -- 否则手机上会多出一个叠在面板下沿的假按钮（用户截图里那颗没内容的「合上」）。
+      p.nav = {}
       if isMobile then parkGroup(p, PARK_TEXT) parkGroup(p, PARK_SKILL) end
       return p
     end
@@ -526,7 +531,7 @@ M.new = function(spec)
   local function makeBtn(def, w, h, fs, group)
     local id = def.id
     local gp = group or ''
-    local b = { id = id, act = def.act, w = w, h = h, rep = def.rep, fs = fs }
+    local b = { id = id, act = def.act, w = w, h = h, rep = def.rep, fs = fs, label = def.label }
     -- 名字带分组前缀（pad/nav/act）：`home` 在帮助页与结算页各有一颗，重名会让按名锚定的
     -- 巡检抓到两个不同坐标（qa-shots 报 `phhome×2`）
     b.edge = pill('pe' .. gp .. id, w + (KIT.EDGE or 3) * 2, h + (KIT.EDGE or 3) * 2, COL.btnEdge)
@@ -665,6 +670,8 @@ M.new = function(spec)
       -- （测试拿它算点击坐标，别再手写会漂移的魔数）
       if r and b.hit then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
     end
+    -- 唯一收口：任何一次摆位（apply/reapply/navRecreate 都走这里）之后，若浮层开着就再收一次。
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     if U.mobile and U.dump then pcall(U.dump, U.cur or 'game') end
   end
 
@@ -820,7 +827,59 @@ M.new = function(spec)
       for _, b in ipairs(list) do if b then U.allBtns[#U.allBtns + 1] = b end end
     end
     U.reapply()
+    -- 重建出来的导航键默认在屏幕上 ⇒ 浮层期间必须再收一次（角色页底部那颗「合上」就是它）
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     print('phone nav recreate n=' .. #U.navBtns)
+  end
+
+  -- v5.38：浮层（角色页/说明页/结算）打开时把手机按键整体收走 —— 否则它们会浮在浮层上
+  -- （用户截图：角色页底部多出一颗「合上」、左侧还留着绿色圆点与黑条）。
+  -- park=true 全部挪到 y=-4000；false 用最后一次 plan 摆回来（不改任何状态）。
+  U.padVisible = function(show)
+    if not U.mobile then return end
+    U.padHidden = not show
+    -- 不依赖 b.x/b.y（那套字段只有 applyButtons 分支会写）：直接**读控件当前位置**再存/还，
+    -- 这样 pad/nav/act 三组、以及 pen* 边缘胶囊都能一起收放（角色页底部残留「合上」就是这个漏的）。
+    -- 权威清单 = U.allBtns（applyButtons 就是按它摆的）；三组表会漏掉按 plan 现造的导航键
+    -- （角色页底部那颗「合上」= plan.nav 的 close，不在三组里 ⇒ 一直收不走）
+    local function each(fn)
+      if U.allBtns and #U.allBtns > 0 then
+        for _, b in ipairs(U.allBtns) do fn(b) end
+        return
+      end
+      for _, tbl in ipairs({ U.btns or {}, U.navBtns or {}, U.actBtns or {} }) do
+        for _, b in ipairs(tbl) do fn(b) end
+      end
+    end
+    local function parkOne(c)
+      if not c then return nil end
+      local x, y = U.pos(c)
+      tryCall(c, 'SetAnchoredPosition', 0, -4000)
+      return { c = c, x = x, y = y }
+    end
+    if not show then
+      U.padSaved = {}
+      each(function(b)
+        local t = parkOne(b.txt)
+        if t then t.label = b.label end
+        U.padSaved[#U.padSaved + 1] = { parkOne(b.edge), parkOne(b.bg), t, parkOne(b.hit) }
+      end)
+    else
+      -- 还原**必须按存档坐标**，不能用 applyButtons(U.lastPlan)：那时 lastPlan 是角色页的
+      -- （没有 pad 的 label）⇒ 一还原就把所有按键文字清空（本轮实测的二次回归）。
+      for _, rec in ipairs(U.padSaved or {}) do
+        for i = 1, #rec do
+          local v = rec[i]
+          if v then
+            tryCall(v.c, 'SetAnchoredPosition', v.x, v.y)
+            -- 位置回来了但**文字被上一次 plan（角色页没有 pad 标签）清空**过 ⇒ 一并写回标签
+            if v.label and v.c then pcall(function() v.c.text = v.label end) end
+          end
+        end
+      end
+      U.padSaved = nil
+    end
+    print('pad visible=' .. tostring(show) .. ' n=' .. #(U.padSaved or {}))
   end
 
   U.apply = function(screen, dual, mode, guide)
@@ -830,6 +889,8 @@ M.new = function(spec)
     applyText(p)
     U.lastPlan = p
     applyButtons(p)
+    -- 浮层期间的重排会把刚收走的按键摆回来（角色页底部残留「合上」的真因）⇒ 重排后再收一次
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     if p.rightCX and spec.setRightCX then spec.setRightCX(p.rightCX) end
     if U.mobile then
       print('phone layout w=' .. math.floor(W) .. ' h=' .. math.floor(H)

@@ -186,7 +186,9 @@ function M.new(env)
     local tab = keepTab or FN.charTab or 1
     if tab < 1 or tab > 5 then tab = 1 end
     FN.charTab = tab
-    local k = math.min(W / 1600, H / 900)
+    -- v5.38（手机实测：角色页内容溢到画布下沿外，最低件到 screen y=699 / 画布 720）
+    -- 设计稿按 1600×900 画，但页面内容比卡片高 ⇒ 高度按 980 收口，给上下各留 ~28px 安全边。
+    local k = math.min(W / 1600, H / 980)
     if k <= 0 then k = 1 end
     local function u(v) return v * k end
     local add
@@ -201,7 +203,10 @@ function M.new(env)
     end
     local R = {}
     -- 面板：1400×800
-    local PW, PH = u(1400), u(800)
+    -- v5.38 修「手机画布上角色页溢出画布下沿」（1560×720 实测：面板 1120×640 居中后底边到 -320，
+    -- 页脚在 -PH/2+28 仍超屏）⇒ 面板高度按**画布实际高度**收口，页脚永远留 28 内边距。
+    local PW = u(1400)
+    local PH = math.min(u(800), (env.canvasH and env.canvasH() or 900) - u(56))
     local PL, PR = -PW / 2, PW / 2          -- 面板左右沿（设计单位）
     R.dim = BOX('charDim', W + 40, H + 40, C(176, 20, 34, 50))
     R.card = BOX('charCard', PW, PH, C(252, 250, 244, 252))
