@@ -19,7 +19,7 @@ const DRIVE_DUR = 0.14
 // 线性运动器的**前瞻时长**（2026-10-30 平滑性二修）：
 //   内核只 15Hz，若每段只覆盖一拍（0.066s），球速每秒被硬切 15 次 ⇒ 60fps 下就是"一顿一顿"。
 //   改成每段朝「0.2s 后的预测位」走：段更长、速度更连续，视觉平滑由引擎内部补间完成。
-const LOOKAHEAD = 0.25 // 设备时长**比下发间隔（0.2s）长**，容忍时序抖动（用户口径）
+const LOOKAHEAD = 0.35 // 设备时长：必须 > 下发间隔（信号 7.5Hz ⇒ 2 条≈0.27s），留余量容忍抖动
 const VEL_CAP = 25.0 // 速度上限，防预测位把球吹飞（内核限速 18，留余量）
 const VIS_SPIN_CAP = 540.0 // 视觉自旋上限（度/秒）
 const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开、观感发顿
@@ -110,7 +110,7 @@ g
         const tickNow = evt.params.tick
         const linDue = f.greaterThanOrEqualTo(
           f.subtraction(tickNow, f.get('fb_lin_tick')),
-          3n
+          4n
         )
         f.doubleBranch(
           f.logicalAndOperation(f.lessThan(dist, 0.012), f.logicalNotOperation(linDue)),
@@ -140,7 +140,7 @@ g
         const spd = f._3dVectorModuloOperation(spin)
         const rotDue = f.greaterThanOrEqualTo(
           f.subtraction(tickNow, f.get('fb_rot_tick')),
-          3n
+          4n
         )
         f.doubleBranch(
           f.logicalAndOperation(f.greaterThan(spd, new float(0.001)), rotDue),

@@ -771,7 +771,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
 
-  // ———— 每拍回传（服务端 kitRender 每拍驱一次运动器）————
+  // ———— 降频回传（2026-10-30 负载修复）————
+  // 服务端每收到一条 kit_state 要付：信号派发(6.7) + 变量读 + 运动器下发(51.7)。
+  // 客户端物理继续按 15Hz 跑，但**回传改成隔一拍发一次**（≈7.5Hz），
+  // 服务端负载直接减半；渲染设备时长 0.25s 足以覆盖 0.13s 的下发间隔。
+  const sendEven = f.equal(
+    f.subtraction(tick, f.multiplication(f.division(tick, 2n), 2n)),
+    1n
+  )
+  f.doubleBranch(
+    sendEven,
+    () => {
+
   // pos=球位置 vel=球速度 spin=自旋 state=状态机 mode
   // 进球时额外发一条 tag='G'（服务端 kitRender 打 fb-goal，供离线判读）
   f.doubleBranch(
@@ -801,5 +812,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     f.create3dVector(vx.value, vy.value, vz.value),
     f.create3dVector(wx.value, wy.value, wz.value),
     mode.value
+  )
+    },
+    () => {}
   )
 })
