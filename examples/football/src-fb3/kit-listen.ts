@@ -22,29 +22,37 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
-    // ———— 玩家角色位置（2026-10-30 定谳：抄奇域资产中心复合节点「玩家，角色，关卡」）————
-    // 那份复合节点的内部链（反解自 .gia）正是四步：
-    //   ① Get_Player_GUID_by_Player_ID（玩家序号 → 玩家 GUID）  ← 我一直漏掉的就是这一步
-    //   ② Query_Entity_by_GUID（GUID → 玩家实体）
-    //   ③ Get_All_Character_Entities_of_Specified_Player（玩家实体 → 角色列表）
-    //   ④ Get_Corresponding_Value_From_List（列表 + 序号 → 角色实体）→ 读位置
-    // 之前失败的原因：用「在场玩家实体列表[0]」当玩家（那是控制器，坐标恒 0，日志 3416 实证），
-    // 又试过 int→guid 的类型转换（平台不支持），却没用这个专门的「按玩家序号取 GUID」节点。
-    const playerGuid = f.getPlayerGuidByPlayerId(1n)
-    const playerE = f.queryEntityByGuid(playerGuid)
-    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+    // ———— 玩家角色位置（2026-10-30 终版：**开局解析一次，之后缓存复用**）————
+    // 设计依据（用户 2026-10-30）：角色实体一局内不会变 ⇒ 每拍重跑四步链是浪费。
+    // 缓存：载体变量 fb_char_e（entity 类型）。失效判据 = queryGuidByEntity(缓存) == 0
+    //   （角色倒下销毁/换人时会变 0 ⇒ 自动重解析一次）。
+    // 解析链（抄奇域资产中心复合节点「玩家，角色，关卡」）：
+    //   getPlayerGuidByPlayerId(序号) → queryEntityByGuid → getAllCharacterEntitiesOfSpecifiedPlayer → [0]
+    const cached = f.getCustomVariable(owner, 'fb_char_e').asType('entity')
+    const cachedGuid = f.queryGuidByEntity(cached)
     f.doubleBranch(
-      f.greaterThan(f.getListLength(chars), 0n),
+      f.equal(cachedGuid, 0n),
       () => {
-        const l = f.split3dVector(
-          f.getEntityLocationAndRotation(f.getCorrespondingValueFromList(chars, 0n)).location
+        // —— 只在缓存失效时走这条（正常一局只跑 1~2 次）——
+        const playerGuid = f.getPlayerGuidByPlayerId(1n)
+        const playerE = f.queryEntityByGuid(playerGuid)
+        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+        f.doubleBranch(
+          f.greaterThan(f.getListLength(chars), 0n),
+          () => {
+            const c = f.getCorrespondingValueFromList(chars, 0n)
+            f.setCustomVariable(owner, 'fb_char_e', c, false)
+          },
+          () => {}
         )
-        f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
-        f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
-        f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
       },
       () => {}
     )
+    // —— 每拍只做这两件事：读缓存实体位置 + 写出去（缓存为空时读到的是空实体，写入 0，内核会退回兜底）——
+    const l = f.split3dVector(f.getEntityLocationAndRotation(cached).location)
+    f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
+    f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
+    f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
