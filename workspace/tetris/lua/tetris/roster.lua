@@ -228,21 +228,25 @@ function M.new(env)
     local d = charData(roles[sel])
     local e = d.e
     local open = SKG().unlocked and SKG().unlocked[roles[sel]] == true
-    R.portraitEdge = BOX('charPortraitEdge', u(408), u(438), THEME.gold)
-    -- v5.27（用户：中间展示文字的区域要做成好看的组件，好看第一）：饱和色块换成**淡彩卡片**
-    -- —— 底色 = 奶油 + 角色色 22%，文字用深墨/角色深色档，对比度从 ~2:1 提到 ~7:1。
-    R.portrait = BOX('charPortrait', u(400), u(430),
-      env.over and env.over(C(252, 250, 244, 255), e.color or C(127, 207, 106), 0.22)
-        or C(240, 250, 240, 255))
-    R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, e.color2 or THEME.textMain)
-    R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, THEME.textMain)
-    R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, THEME.textSub)
-    R.pSay = TXT('charPSay', d.says[1] or (d.help[1] or ''), u(420), 18, THEME.textMain, 'Left')
-    R.pSay2 = TXT('charPSay2', d.says[2] or (d.help[2] or ''), u(420), 18, THEME.textSub, 'Left')
-    R.pSay3 = TXT('charPSay3', d.says[3] or '', u(420), 17, THEME.textSub, 'Left')
-    R.pSay4 = TXT('charPSay4', d.says[4] or '', u(420), 17, THEME.textSub, 'Left')
-    R.pSkill = TXT('charPSkill', '技能「' .. d.skill .. '」　冷却 ' .. tostring(d.cd) .. ' 秒' .. (d.cost > 0 and ('　耗能 ' .. tostring(d.cost)) or ''),
-      u(420), 18, e.color2 or THEME.textMain, 'Left')
+    -- v5.29（用户：语音文案那块四行字做成组件了吗）——整块交给 CTL.textPanel：
+    -- 圆角卡片 + 顶部主题色细带 + 角色名/元素称号/本局等级 + 描金分隔线 + 4 行台词 + 页脚技能行
+    local midX, midW, midH = PL + u(430), u(380), u(430)
+    if CTL and CTL.textPanel then
+      local panel = CTL.textPanel({
+        id = 'charPanel', x = midX + midW / 2, y = u(30), w = midW, h = midH,
+        accent = e.color2 or e.color or C(127, 207, 106),
+        cardFill = (env.over and env.over(C(252, 250, 244, 255), e.color or C(127, 207, 106), 0.20))
+          or C(244, 246, 240, 255),
+        title = e.name or roles[sel], titleFs = 38, titleInk = e.color2 or THEME.textMain,
+        subtitle = (e.element or '') .. '元素 · ' .. (e.title or '') .. '　｜　本局 Lv' .. tostring(d.lv)
+          .. '　' .. (open and '已缔结' or '未缔结'),
+        lines = { d.says[1] or (d.help[1] or ''), d.says[2] or (d.help[2] or ''),
+          d.says[3] or '', d.says[4] or '' },
+        footer = '技能「' .. d.skill .. '」　冷却 ' .. tostring(d.cd) .. ' 秒',
+        fs = 18, lineGap = 36, onPart = function(c) add(c) end,
+      })
+      R.panel = panel
+    end
     -- 右列：页签 + 内容
     local tabs, tabsHit = {}, {}
     for i = 1, 5 do
@@ -500,16 +504,6 @@ function M.new(env)
     -- 中列立绘区
     local midX = PL + u(430)
     local midW = u(380)
-    at(R.portraitEdge, midX + midW / 2, u(30), midW + u(8), u(438))
-    at(R.portrait, midX + midW / 2, u(30), midW, u(430))
-    put(R.pName, midX + u(20), u(160), midW - u(40), th(40))
-    put(R.pElem, midX + u(20), u(112), midW - u(40), th(20))
-    put(R.pLv, midX + u(20), u(80), midW - u(40), th(18))
-    put(R.pSay, midX + u(16), -u(60), midW - u(32), th(18))
-    put(R.pSay2, midX + u(16), -u(96), midW - u(32), th(18))
-    put(R.pSay3, midX + u(16), -u(134), midW - u(32), th(17))
-    put(R.pSay4, midX + u(16), -u(168), midW - u(32), th(17))
-    put(R.pSkill, midX + u(10), -u(300), midW + u(40), th(18))
     -- 右列：页签 + 条目
     local rightX = PL + u(860)
     local rightW = u(500)

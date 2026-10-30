@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.28 · 10-30 21:3x'
+BUILD_TAG = 'v5.30 · 10-30 22:2x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -2671,7 +2671,7 @@ MS.build = function()
     CTL = (m and m.new) and m.new({
       trySet = trySet, tryCall = tryCall, addCursor = addCursor, sfx = sfx, SFX = SFX,
       addShape = function(n, sp) return MS.addShape(n, sp) end,
-      addText = function(n, txt, x, y, w, h, fs, col) return MS.addText(n, txt, x, y, w, h, fs, col) end,
+      addText = function(n, txt, x, y, w, h, fs, col, al) return MS.addText(n, txt, x, y, w, h, fs, col, al) end,
       addHit = function(n, w, h)
         local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
         if not ok or not z then return nil end
@@ -2685,6 +2685,7 @@ MS.build = function()
       wall = MS.WALL, gold = THEME.gold, goldDeep = THEME.goldDeep,
       cyan = MS.CYAN, cyanDeep = THEME.cyanDeep, ink = THEME.textMain, subInk = THEME.textSub,
       over = function(base, c, k) return MS.over(base, c, k) end,
+    scale = function() return math.min((CANVAS_W or 1600) / 1600, (CANVAS_H or 900) / 900) end,
       print = print,
     }) or nil
     if not CTL then print('controls module FAIL（按钮回退到手写实现）') end

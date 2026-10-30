@@ -36,6 +36,8 @@ function M.new(env)
   local regAdd, regScreen = env.regAdd, env.regScreen
   local onPart = env.onPart or function() end
   local trySet, tryCall = env.trySet, env.tryCall
+  -- 设计单位 → 画布像素：与各页面同一个基准（1600×900）
+  local function u(v) return v * (env.scale and env.scale() or 1) end
   local ln = env.print or print
 
   -- 预设色板：一套语汇，别每个按钮自己调
@@ -180,6 +182,54 @@ function M.new(env)
 
     return { id = spec.id, parts = parts, texts = texts, zone = zone, style = style,
       set = function(st) style(st) end }
+  end
+
+
+  -- ⑥ 文字面板组件（大段文案专用）：圆角卡片 + 顶部主题色细带 + 标题/副标 + 分隔线 + 正文多行 + 页脚
+  --    spec = { id, x, y, w, h, accent, cardFill, title, subtitle, lines={..}, footer,
+  --             fs=18, subFs=16, footFs=15, lineGap=34, titleDy, ... }
+  --    返回 { parts = 卡片三块, texts = {..}, title, subtitle, lines[], footer }
+  function API.textPanel(spec)
+    if not spec then return nil end
+    local id = spec.id or ('panel' .. tostring(math.random(100000)))
+    local x, y = spec.x or 0, spec.y or 0
+    local w, h = spec.w or 380, spec.h or 420
+    local accent = spec.accent or env.gold
+    local fill = spec.cardFill or env.over(env.wall, accent, 0.14)
+    local sink = spec.onPart or onPart
+    local parts = API.pill(id, x, y, w, h, fill, sink)
+    local top = y + h / 2 - 8
+    local texts = {}
+    local function put(ctl, ty)
+      if ctl then sink(ctl); texts[#texts + 1] = { c = ctl, x = x, y = ty } end
+      return ctl
+    end
+    local title = nil
+    if spec.title then
+      title = put(addText(id .. 'T', spec.title, x, top - u(spec.titleDy or 46), w - u(40), 0,
+        spec.titleFs or 38, spec.titleInk or accent, 'Middle'), top - u(spec.titleDy or 46))
+    end
+    if spec.subtitle then
+      put(addText(id .. 'S', spec.subtitle, x, top - u((spec.titleDy or 46) + 40), w - u(40), 0,
+        spec.subFs or 16, spec.subInk or env.subInk, 'Middle'), top - u((spec.titleDy or 46) + 40))
+    end
+    -- 分隔线（描金细条）
+    local rule = addShape(id .. 'R', { s = 'rect', x = x, y = top - u((spec.titleDy or 46) + 64),
+      w = w - u(56), h = 2, c = accent })
+    if rule then sink(rule) end
+    local ln = {}
+    local base = top - u((spec.titleDy or 46) + 100)
+    for i, line in ipairs(spec.lines or {}) do
+      local ty = base - (i - 1) * u(spec.lineGap or 34)
+      ln[i] = put(addText(id .. 'L' .. i, line, x, ty, w - u(48), 0, spec.fs or 18,
+        spec.ink or env.ink, 'Left'), ty)
+    end
+    local footer = nil
+    if spec.footer then
+      footer = put(addText(id .. 'F', spec.footer, x, y - h / 2 + u(26), w - u(40), 0,
+        spec.footFs or 15, spec.accent or accent, 'Middle'), y - h / 2 + u(26))
+    end
+    return { id = id, parts = parts, texts = texts, title = title, lines = ln, footer = footer }
   end
 
   return API
