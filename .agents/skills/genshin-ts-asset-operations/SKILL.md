@@ -207,7 +207,9 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
   ——按名字删容器条目后重建容器（拒绝删空：至少留一个变量）；
   `gsts assets:scripts remove --script <guid> [--force] [--output x.gil | --write]`
   ——删 f50 登记表条目，**默认拒绝删除仍被挂载的脚本**（先 `assets:scripts unmount`），`--force` 才强删；
-  删图用 `assets:node-graphs delete --graph <id> [--write]`（默认 dry-run）。
+  删图用 `assets:node-graphs delete --graph <id> [--write]`（默认 dry-run）；
+  **2026-10-30 起它扫 root10 全部桶**（f1 服务端图 / f4 旧渲染碎片 / f2 元记录），
+  不再只认 f1 —— 老图删不掉时先看它是否在 f4；删完核对「图 id 的变长编码在原图里出现 0 次」。
   三者都在写回前给出 `sourceShas/candidateShas`，配套 `tools/gil-guard.py` 复核。
 - **死资产普查一条命令**：`gsts assets:mounts list --map-id <id>`（不带目标 id）= 全量普查，
   打印全部图 / 定义 / 场景实体及其挂载，末尾还有 `graphs not mounted anywhere` 清单 —— 
