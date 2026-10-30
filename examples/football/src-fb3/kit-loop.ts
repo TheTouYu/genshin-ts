@@ -72,9 +72,10 @@ const REST_SPEED = 0.35
 const GROUND_MU = 0.8 // 库仑摩擦系数（接触冲量与滑移的比值上限）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴地速度低于此 ⇒ 静止
 const DRIBBLE_R = 2.4 // 保留：按键时的「有球」判定半径（射门/传球资格）
-const TOUCH_R = 1.7 // 触球半径：球进到这个圈里才会被脚带到
+const TOUCH_R = 2.0 // 触球半径：球进到这个圈里才会被脚带到
 const KEEP_R = 2.8 // 带球显示半径（只影响状态=5 的 HUD 反馈，不参与运动）
-const TOUCH_FACTOR = 1.15 // 触球后球速 = 玩家速度 × 这个系数（略快于玩家，才追得上）
+const TOUCH_BOOST = 0.7 // 触球后球速 = 玩家速度 + 常数（用固定差值而不是倍率：
+// 倍率 1.15 在 5m/s 时要等球掉 1.5m/s（0.59m/s² ⇒ 2.5s）才触发下一脚，手感就是"高延时"）
 const TOUCH_MIN_SPD = 2.0 // 玩家速度低于此值时用朝向兜底推一小步
 const TOUCH_LIFT = 0.35 // 触球时给一点抬升，视觉上像被脚"点"了一下
 const DRIBBLE_AHEAD = 1.3
@@ -257,6 +258,26 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const dirX = f.division(dx, horizLen)
   const dirZ = f.division(dz, horizLen)
 
+  // ———— 6 键复位（提到物理体之前，2026-10-30 三修）————
+  // 之前它在物理体深处，日志 3426 里 kickNow=True、fb_key 读到 6，但球位置没变 ⇒ 疑为分支没进。
+  // 移到最外层：只要本拍有新票且键值=6，无条件把球放到玩家正前方 1.5m。
+  f.doubleBranch(
+    f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
+    () => {
+      bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
+      by.set(GROUND_Y)
+      bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
+      vx.set(0.0)
+      vy.set(0.0)
+      vz.set(0.0)
+      wx.set(0.0)
+      wy.set(0.0)
+      wz.set(0.0)
+      mode.set(98n) // 诊断标记：98 = 6 键复位执行过（99 预留给旧位置，避免与历史日志混淆）
+    },
+    () => {}
+  )
+
   const warm = f.lessThanOrEqualTo(tick, WARMUP_TICKS)
   f.doubleBranch(
     warm,
@@ -426,7 +447,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             f.lessThan(ballToPlayerNow, TOUCH_R),
             f.logicalAndOperation(
               f.greaterThan(playerSpd, TOUCH_MIN_SPD),
-              f.lessThan(ballSpdH, f.multiplication(playerSpd, 0.85))
+              f.lessThan(ballSpdH, f.addition(playerSpd, 0.25))
             )
           )
         )
@@ -437,10 +458,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // 触球方向 = **玩家速度方向**（比「玩家→球」的方向靠谱：球绕到侧面也会被带向前）
           const ux = f.division(ffx.value, playerSpd)
           const uz = f.division(ffz.value, playerSpd)
-          const kickSpd = f.addition(
-            f.multiplication(playerSpd, TOUCH_FACTOR),
-            TOUCH_MIN_SPD
-          )
+          const kickSpd = f.addition(playerSpd, TOUCH_BOOST)
           vx.set(f.multiplication(ux, kickSpd))
           vz.set(f.multiplication(uz, kickSpd))
           vy.set(TOUCH_LIFT)
@@ -617,26 +635,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         },
         () => {}
       )
-      // ———— ⑦ 重置键：把球放回角色正前方 1.5m（测试用手感按钮）————
-      f.doubleBranch(
-        f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
-        () => {
-          // 诊断打点（2026-10-30）：客户端图不能用 print（CLIENT_HELPER_UNAVAILABLE），
-          // 改用「把状态置 99」——99 不在六态里，服务端帧日志里一眼能看出这条分支有没有进。
-          bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
-          by.set(f.addition(0.0, CENTER_Y))
-          bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
-          vx.set(0.0)
-          vy.set(0.0)
-          vz.set(0.0)
-          wx.set(0.0)
-          wy.set(0.0)
-          wz.set(0.0)
-          mode.set(99n)
-        },
-        () => {}
-      )
-
       // ———— ⑧ 进球判定：越过门线(|x|>52.5) + 门洞内(|z|<3.6) + 低于横梁(y<2.5) ————
       const overLine = f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0)), PITCH_X - 0.05)
       const inMouth = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), GOAL_HALF)

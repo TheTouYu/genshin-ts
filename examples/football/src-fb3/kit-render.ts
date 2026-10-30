@@ -16,6 +16,9 @@ const TELEPORT_DIST = 5.0
 // 运动器时长 = 一拍。内核实际步长随客户端负载在 0.037~0.07s 之间变（14~27Hz），
 // 固定 0.14s 会让球永远慢半拍 ⇒ 每拍从载体变量 fb_dt 读真实步长（读不到用 0.14 兜底）。
 const DRIVE_DUR = 0.14
+const VIS_SPIN_CAP = 540.0 // 视觉自旋上限（度/秒）
+const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开、观感发顿
+const DUR_MAX = 0.08 // 上限：帧率掉到 10Hz 时不要把一拍拉成 0.1s
 
 g
   .server({ id: GRAPH_ID, name: '_GSTS_kitRender' })
@@ -40,7 +43,23 @@ g
     f.doubleBranch(
       f.logicalAndOperation(f.greaterThan(dtRaw, 0.004), f.lessThan(dtRaw, 0.25)),
       () => {
-        driveDur.set(dtRaw)
+        f.doubleBranch(
+          f.lessThan(dtRaw, DUR_MIN),
+          () => {
+            driveDur.set(DUR_MIN)
+          },
+          () => {
+            f.doubleBranch(
+              f.greaterThan(dtRaw, DUR_MAX),
+              () => {
+                driveDur.set(DUR_MAX)
+              },
+              () => {
+                driveDur.set(dtRaw)
+              }
+            )
+          }
+        )
       },
       () => {
         driveDur.set(DRIVE_DUR)
@@ -80,7 +99,20 @@ g
           f.greaterThan(spd, new float(0.001)),
           () => {
             const axis = f._3dVectorNormalization(spin)
-            const angVel = f.multiplication(spd, 57.29578)
+            // 视觉自旋夹紧（2026-10-30）：真实滚动 ω=v/R ⇒ 10m/s 时 40rad/s=2292°/s，
+            // 14Hz 渲染下每拍要转 164° ⇒ 观感是乱转。夹到 540°/s 内，保留方向感又不糊。
+            // 物理侧的内核 ω 不受影响。
+            const angRaw = f.multiplication(spd, 57.29578)
+            const angVel = f.localVariable('float')
+            f.doubleBranch(
+              f.greaterThan(angRaw, VIS_SPIN_CAP),
+              () => {
+                angVel.set(VIS_SPIN_CAP)
+              },
+              () => {
+                angVel.set(angRaw)
+              }
+            )
             const r = f.split3dVector(f.getEntityLocationAndRotation(ball).rotate)
             const negX = f.multiplication(r.xComponent, -1)
             const negY = f.multiplication(r.yComponent, -1)
@@ -88,7 +120,7 @@ g
             const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', driveDur.value, angVel, localAxis)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', driveDur.value, angVel.value, localAxis)
           },
           () => {}
         )
