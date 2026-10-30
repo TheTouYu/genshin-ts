@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.25 · 10-30 20:1x'
+BUILD_TAG = 'v5.26 · 10-30 20:3x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -3998,8 +3998,9 @@ FN.skillHud = function()
   if not (SK and SKILLS and SKILLS.snapshot) then return end
   -- 只有局内才写技能 HUD 文字：标题/结算/名册页把文字清空（控件本身的显隐由 ui.lua 的逐屏布局负责，
   -- 但真机 SetVisible 对实例靠不住，所以这里至少保证"文字不会留在标题页上"）
-  if guideStage ~= 1 then
-    -- 局外：不仅清字，**整簇挪出画布**（实测 4:3 标题页上 sk1card 那块白板压在「2 AI 对抗」卡上，
+  if guideStage ~= 1 or (FN.overlayOpen and FN.overlayOpen()) then
+    -- 局外**或浮层打开**（角色页/帮助页/结算）：不仅清字，**整簇挪出画布**
+    -- —— 用户 2026-10-30 图上那根"最右边的线"就是 skRole 的底条，guideStage==1 时没被 park。（实测 4:3 标题页上 sk1card 那块白板压在「2 AI 对抗」卡上，
     -- 因为 ui.lua 的 title 计划没有 park 技能簇）。ui.lua 在进局时按 screen 重新摆位，回来不受影响。
     for i = 1, 2 do
       local pre = (i == 1) and 'sk1' or 'sk2'

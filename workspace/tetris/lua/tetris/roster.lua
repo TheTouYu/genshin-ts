@@ -459,19 +459,22 @@ function M.new(env)
       local r = rows[i]
       local y = u(200) - (i - 1) * u(108)
       if CTL then
-        local fill = (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244)
+        -- 选中行＝角色主题色实底 + 白字（用户：选甘雨却没高亮、还留着草神的绿）
+        local on = (i == sel)
+        local fill = on and (r.color or C(127, 207, 106)) or C(240, 250, 252, 244)
         local b = CTL.btn({
           id = 'roster.row' .. i, x = listX + u(180), y = y, w = u(360), h = u(96),
           label = r.name, sub = r.state, fs = 22, subFs = 15, pad = 26, titleDy = 16, subDy = 20,
           fill = fill, hoverColor = C(252, 246, 250, 246), pressColor = C(246, 236, 244, 250),
-          ink = r.open and THEME.textMain or THEME.textSub,
-          subInk = r.open and (r.color2 or THEME.textMain) or THEME.textSub,
+          ink = on and C(255, 255, 255, 255) or (r.open and THEME.textMain or THEME.textSub),
+          subInk = on and C(255, 248, 236, 240) or (r.open and (r.color2 or THEME.textMain) or THEME.textSub),
           onPart = function(c) add(c) end,   -- 归本页清理表，别进 MS.parts
           onClick = function() FN.charShow(r.idx) end,
         })
         if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
         -- 左竖条（角色色/未缔结灰）：组件不管内容标识，调用方自己叠
-        local bar = BOX('charBar' .. i, u(8), u(76), r.open and (r.color or C(127, 207, 106)) or C(206, 198, 204, 214))
+        local bar = BOX('charBar' .. i, u(8), u(76), on and C(255, 255, 255, 255)
+          or (r.open and (r.color or C(127, 207, 106)) or C(206, 198, 204, 214)))
         at(bar, listX + u(4), y, u(8), u(76))
       end
     end
