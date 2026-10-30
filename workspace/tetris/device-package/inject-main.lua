@@ -84,7 +84,15 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 
 
 -- 确定性随机（LCG）：用例可复现，不依赖 os / math.random
-local seed = 20261023
+-- ============================================================================
+-- ⚠ 以下状态改成**脚本全局**（去掉 local）而不是文件局部变量：
+-- main chunk 有 Lua 5.3 的 200-local 硬上限（真机编译期拒载整份脚本，
+-- 报 `too many local variables (limit is 200) in main function`）。
+-- 这份脚本有自己的 _ENV（模块契约 docs/research/lua-module-contract.md），
+-- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
+-- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
+-- ============================================================================
+seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
   return (seed // 65536) % n + 1
@@ -105,19 +113,19 @@ local g                                  -- 当前实例引用（=G[1]；双屏�
 local ACTIVE = { 1 }                     -- 激活实例下标表：单屏={1}；双屏={1,2}（T6 模式入口设置）
 -- T6 四模式：casual=休闲（默认，AI 自演+玩家接管+局中 5s 无操作 AI 代打）|
 -- ai-battle=双屏 AI 对战 | pvp=双屏双人 | coop=双人合作对抗 AI（旋转手+行动手，裁决①）
-local MODE = 'casual'
+MODE = 'casual'
 -- v2.1 ②：标题屏四模式大视觉卡片（用户原话「真正花了大力气做的东西要让玩家看到」）。
 -- pendingMode/pendingT = 按 Digit 后的模式名大字动画窗（0.5s，introT 渐变手法），窗后 enterMode 开局。
-local MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
-local pendingMode, pendingT = nil, 0
+MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
+pendingMode, pendingT = nil, 0
 -- v2.1 ③：H 游戏说明层（v2.7 起改成独立整页 + 常驻入口；任意键=先关层不开局）
-local HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
+HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
 local SETTLE_HOTS = {}                 -- v2.8 ④：结算三键鼠标热区（settleDestroy 一并销毁）
 -- v2.8 ④：结算三动作挂表（200-local 红线，D612 先例）——实现在 OnStart 赋值，showGameOver 热区引用
 local SETTLE_ACT = {}
-local helpOpen = false
-local helpFromStage = 1                -- 开层前的 guideStage（关层时恢复；说明页期间 2=暂停）
-local helpPage = 1                     -- （保留：单页版恒 1；多页时按 ←/→ 切换）
+helpOpen = false
+helpFromStage = 1                -- 开层前的 guideStage（关层时恢复；说明页期间 2=暂停）
+helpPage = 1                     -- （保留：单页版恒 1；多页时按 ←/→ 切换）
 local toggleHelp                       -- 前向声明（实现见 UI 段；startIfWaiting/H 键都在更早处调用）
 local closeHelp                        -- 前向声明（v2.7：act()/R/V 等按键回调先关页）
 local buildMenuCards, destroyMenuCards -- 前向声明（实现见 UI 段；startIfWaiting/demoLoopReset/OnStart 都在更早处调用）
@@ -130,7 +138,7 @@ local PERSIST_TIP = ''
 local showPersistTip                   -- 前向声明（实现见 enterMode 前）
 -- v2.2 ③：模式终局标志——双屏任一盘 gameOver 即置位：冻结两盘（输入/重力/AI 全停，
 -- OnUpdate 只推结算动画），胜负走全屏结算层，R=回菜单复位。casual 不置位（v1 语义不变）。
-local MODE_OVER = false
+MODE_OVER = false
 -- v2.1 ①：双人/对抗模式开局引导态（guideStage=3）——phase 'keys'（键位说明，任意键确认）
 -- → 'count'（3-2-1 倒计时，每 1s，topBanner 大字）→ guideStage=1 开局。casual 不经此态（旧用例直进）。
 local GK = { phase = 'keys', t = 0, count = 3, p1ready = false, p2ready = false }
@@ -142,7 +150,7 @@ local MIRRORQ = {}
 local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
 local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘控件复用，T6b-2）
 local TPL_HIT       -- v2.7：cursor（光标检测区）模板 guid —— 标题页四模式三态热区用
-local IS_MOBILE = true   -- OnStart 探测后写入；菜单选择/热区逻辑在模块级函数里也要读它
+IS_MOBILE = true   -- OnStart 探测后写入；菜单选择/热区逻辑在模块级函数里也要读它
 -- v2.7 ⑤：标题页模式选择（键盘 Digit 与鼠标点击共用一条入口；实现见菜单段）
 local menuSelectMode
 
@@ -219,16 +227,17 @@ end
 -- 前向声明（局部化，避免污染全局表）：控件句柄类里，棋盘四件（cells/preview/frames/抖动基准）
 -- 已收进实例表 g；服务端单份控件（title/hud/.../横幅）全局保留——双屏共用一份，双屏 per-player
 -- HUD 走客户端实例化（v2 设计书 §1.4）。
-local root
-local title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner
-local guideStage, bannerTimer = 0, 0    -- 全局流程阶段（0=AI 演出/1=游戏/2=键位表）与全局横幅计时
+root = nil
+title, hud, hudNext, best, hint, keyA, keyB, keyC, topBanner, botBanner =
+  nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+guideStage, bannerTimer = 0, 0    -- 全局流程阶段（0=AI 演出/1=游戏/2=键位表）与全局横幅计时
 -- ⚠ 初值不能留 nil：OnStart 一旦提前报错，OnUpdate 的 `bannerTimer > 0` 会每帧崩（实测 2026-10-29）
-local introT, overlay
-local introFont, introPulse
-local CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
+introT, overlay = nil, nil
+introFont, introPulse = nil, nil
+CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
 local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
 local layout                              -- 布局函数前向声明（exitToMenu 在它定义之前就调用）
-local bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
+bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
 -- v2.4 ① 标题页「展台」实例表（MS）：这里只声明空表 + 配色/文案常量，
 -- 方法（build/destroy/tick/focusLock/teardown）在「v2.3 卡片」段附近挂上——
 -- 那个位置 trySet/TPL_TEXT/probeSettleTextbox 都在作用域内；而 startIfWaiting（更早）
@@ -273,8 +282,8 @@ end
 -- 注意：这两个 local 与 UI_STYLE 必须声明在模块 wiring **之前**——注入进模块的闭包
 -- （frameOf / styleOf）是词法的，引用「声明在后面的 local」会退化成全局变量，运行时读到 nil
 -- （2026-10-28 实测：lua/tetris/widgets:94 attempt to index a nil value (global 'UI_STYLE')）。
-local frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
-local keyConsumedFrame = -1 -- 同帧「按键已被某个动作消费」标记（43 键兜底必须让位给真动作）
+frameSeq = 0          -- OnUpdate 每帧 +1；按键回调都落在同一帧号内
+keyConsumedFrame = -1 -- 同帧「按键已被某个动作消费」标记（43 键兜底必须让位给真动作）
 local UI_STYLE              -- 文字样式表（真机新建控件没有样式，全部由 Lua 运行时写）；定义见本文件后面
 
 -- ===== v2.7 ⑨ 控件工具箱 + 音效引擎（实现见 lua/tetris/widgets.lua / audio.lua）=====
@@ -306,7 +315,7 @@ local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.p
 -- v4.0 ③ 角色技能：纯逻辑在 lua/tetris/skills.lua（111 断言单测），这里只持状态 + 派发效果。
 -- 设计见 docs/characters-design.md；局外养成 v1 = 会话内跨盘（真持久化是缺口，见 05-open）。
 local SKILLS = loadModule('skills')
-local SK = nil
+SK = nil    -- 脚本全局（OnStart 里由 skills.new 创建；模块用 getter 惰性读）
 
 -- v5.0 技能反馈的两块新资产（缺任何一个都继续跑：技能机制照旧生效，只是少了文案/特效；
 -- 日志锚 `fx=on|off copy=on|off` 说明当前走哪条通道）。
@@ -1794,341 +1803,25 @@ local function aiFmt(x) return string.format('%.2f', x) end
 -- 堆叠高度：最高一列已填的行数（0 = 空盘）
 -- v4.0 ④：靠墙井深（1 列宽）——留 I 块四消的前提条件。
 -- 只看两侧靠墙列：depth = 邻列高度 - 本列高度（>0 才是井）。
-local function colHeight(c)
-  if not g.board then return 0 end
-  for r = 1, ROWS do
-    if g.board[r][c] ~= 0 then return ROWS - r + 1 end
-  end
-  return 0
-end
+-- 旧 El-Tetris 权重：evalNext（2-ply 备用）仍在 main 里引用；拆模块时随块被带走，
+-- 这里恢复成**脚本全局**（不占 local —— main chunk 的 local 是硬上限）。
+W_AGG, W_LINE, W_HOLE, W_BUMP = -0.510066, 0.760666, -0.35663, -0.184483
+-- ===== BCTS 棋盘评估已拆到 lua/tetris/aieval.lua（main chunk 的 200-local 上限逼的）=====
+-- 调用点从 AEVX.colHeight(...) 改成 AEV(....)：动态加载失败时整体降级为空实现，不炸主流程。
+local AEV = loadModule('aieval')
+local AEVX = (AEV and AEV.new) and AEV.new({
+  rows = ROWS, cols = COLS, num = NUM,
+  board = function() return g end,
+  collides = function(cells, x, y) return collides(cells, x, y) end,
+}) or nil
+if not AEVX then print('aieval module FAIL（棋盘评估降级：AI 只会随机落子）') end
+AEVX = AEVX or {
+  colHeight = function() return 0 end,
+  wellDepth = function() return 0 end,
+  stackHeight = function() return 0 end,
+  evalBoard = function() return nil end,
+}
 
-local function wellDepth()
-  if not g.board then return 0 end
-  local h = {}
-  for c = 1, COLS do
-    h[c] = 0
-    for r = 1, ROWS do
-      if g.board[r][c] ~= 0 then h[c] = ROWS - r + 1 break end
-    end
-  end
-  -- 右墙井（第 COLS 列）：只算这一侧，与 AI 选井口径一致（左墙第 1 列填不到 I，见 aiTickCore 注释）
-  local d = h[COLS - 1] - h[COLS]
-  if d < 0 then d = 0 end
-  return d
-end
-
-local function stackHeight()
-  for r = 1, ROWS do
-    for c = 1, COLS do
-      if g.board[r][c] ~= 0 then return ROWS - r + 1 end
-    end
-  end
-  return 0
-end
-
--- 评估「cells 放到 x 列、自然落地」之后：返回 分数 / 落点高度 / 消行数；放不进返回 nil
--- 四项（El-Tetris / Lee 2013 公开权重，原样）+ 两项"像人"的小修正：
---   -0.06 × 离最近墙的列距（贴边偏好，只做同分/近似分的 tie-breaker）
---   -0.9  × 深度，对每个 1 列宽、深度 >= 3 的中间凹槽（不许为了塞竖 I 在中间挖井）
--- ===== BCTS 评估函数（v2.4 AI 强度重做）=====
--- 信源【论文】Christophe Thiery & Bruno Scherrer, "Building Controllers for Tetris",
--- ICGA Journal 32(1) 2009, §4（HAL: https://hal.science/inria-00418954；本地 /tmp/bcts.pdf）。
--- BCTS=2008 强化学习竞赛冠军，1-ply 无前瞻 + 交叉熵优化权重 ⇒ 简化 Tetris 3500 万行
--- （真 Tetris 保守下界 91 万行）。8 特征定义（论文 Table 1，社区标准实现口径）：
---   Landing height=落块四格平均高度；Eroded piece cells=消行数×落块在消行中的格数（Lee 实现口径）；
---   Row/Column transitions=水平/垂直邻接 满空 跳变数（行边界视为满、列顶空/列底满）；
---   Holes=被实格覆盖的空格数；Cumulative wells=Σ d*(d+1)/2 每口井（墙视为 ROWS 高）；
---   Hole depth=每洞上方实格数之和；Rows with holes=含≥1 洞的行数。
--- 权重【论文】原值（交叉熵优化结果，不手调）；量纲：Landing~0-20、trans~20-80、wells~0-40。
-local W_AGG, W_LINE, W_HOLE, W_BUMP = -0.510066, 0.760666, -0.35663, -0.184483  -- 旧 El-Tetris（evalNext 兼容保留）
-local function evalBoard(cells, x)
-  if collides(cells, x, 1) then return nil end
-  local y = 1
-  while y < ROWS and not collides(cells, x, y + 1) do y = y + 1 end
-  -- BCTS：模拟盘（落块标 2 以识别 eroded 归属）——第一层每块只跑 ~34 次，分配量级安全
-  local sim = {}
-  for r = 1, ROWS do
-    local row = {}
-    for c = 1, COLS do row[c] = g.board[r][c] end
-    sim[r] = row
-  end
-  local lhSum = 0
-  for i = 1, 4 do
-    local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
-    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      sim[br][bc] = 2
-      lhSum = lhSum + (ROWS - br + 1)
-    end
-  end
-  local lh = lhSum / 4                                   -- Landing height：四格平均
-  -- 消行 + Eroded piece cells（消行数 × 落块在消行中的格数）
-  local erodedCells = 0
-  local complete = 0
-  local r = ROWS
-  while r >= 1 do
-    local row = sim[r]
-    local full = true
-    for c = 1, COLS do
-      if row[c] == 0 then full = false break end
-    end
-    if full then
-      for c = 1, COLS do
-        if row[c] == 2 then erodedCells = erodedCells + 1 end
-      end
-      table.remove(sim, r)
-      local nrow = {}
-      for c = 1, COLS do nrow[c] = 0 end
-      table.insert(sim, 1, nrow)
-      complete = complete + 1
-    else
-      r = r - 1
-    end
-  end
-  local epc = erodedCells * complete
-  -- Row transitions（左右边界视为满）
-  local rt = 0
-  for rr = 1, ROWS do
-    local row = sim[rr]
-    local prev = true
-    for c = 1, COLS do
-      local cur = row[c] ~= 0
-      if cur ~= prev then rt = rt + 1 end
-      prev = cur
-    end
-    if not prev then rt = rt + 1 end
-  end
-  -- Column transitions + Holes + Hole depth + Rows with holes + heights（一次列扫描）
-  local ct = 0
-  local holes = 0
-  local hdepth = 0
-  local rowsWithHoles = 0
-  local heights = {}
-  local top = 0
-  local rowHasHole = {}
-  for c = 1, COLS do
-    local prev = false
-    local seen = false
-    local filledAbove = 0
-    local colH = 0
-    for rr = 1, ROWS do
-      local cur = sim[rr][c] ~= 0
-      if cur ~= prev then ct = ct + 1 end
-      prev = cur
-      if cur then
-        if not seen then colH = ROWS - rr + 1 seen = true end
-        filledAbove = filledAbove + 1
-      elseif seen then
-        holes = holes + 1
-        hdepth = hdepth + filledAbove         -- Hole depth：洞上方实格数
-        rowHasHole[rr] = true
-      end
-    end
-    if not prev then ct = ct + 1 end          -- 列底视为满：底空收尾 +1
-    heights[c] = colH
-    if colH > top then top = colH end
-  end
-  for rr = 1, ROWS do
-    if rowHasHole[rr] then rowsWithHoles = rowsWithHoles + 1 end
-  end
-  -- Cumulative wells：Σ d*(d+1)/2（1+2+…+d），墙视为 ROWS 高（BCTS/Dellacherie 标准口径）
-  local cw = 0
-  for c = 1, COLS do
-    local left = ROWS + 1
-    if c > 1 then left = heights[c - 1] end
-    local right = ROWS + 1
-    if c < COLS then right = heights[c + 1] end
-    local nb = left
-    if right < nb then nb = right end
-    local d = nb - heights[c]
-    if d > 0 then cw = cw + d * (d + 1) / 2 end
-  end
-  -- v4.0 ④：easy 档走**简化评估**（"想得少"，不是"故意摆错"——后者是用户点名反对的）
-  local BW = NUM.AI_SIMPLE and NUM.BW_SIMPLE or NUM.BW
-  -- v4.0 ④-b：留井模式（AI_WELL>0）下**宽容井惩罚**——BCTS 的 CW=-10.49 会让"保留 4 深井"
-  -- 付出 -105 分，任何留井奖励都抵不过 ⇒ AI 永远不敢攒井打四消（实测 120 块 0 次四消）。
-  -- 缩到 35% 后，I 块四消的正收益（ER=+6.6×4行×4格=+105.6 加 attack 加成）才压得住。
-  local cwW = BW.CW
-  if (NUM.AI_WELL or 0) > 0 then cwW = cwW * 0.35 end
-  local sc = BW.LH * lh + BW.ER * epc + BW.RT * rt + BW.CT * ct
-    + BW.HO * holes + cwW * cw + BW.HD * hdepth + BW.RH * rowsWithHoles
-  -- ④-a 多消行（对抗模式）：对手快死时把 2+ 行的收益按 n² 放大 ⇒ AI 才会"攒着一次消"造垃圾
-  local atk = NUM.AI_ATK or 0
-  if atk > 0 then
-    if complete and complete >= 2 then
-      sc = sc + atk * complete * complete
-    end
-    -- ④-a2 **攒行**：把"9/10 格满的行"当资产。1-ply 看不到"下一块就能消 2 行"，
-    -- 只能给"接近满行"直接加分 ⇒ AI 才肯把多行同时推到临门一脚。
-    local nearFull = 0
-    for rr = 1, ROWS do
-      local empty = 0
-      for c = 1, COLS do if sim[rr][c] == 0 then empty = empty + 1 end end
-      if empty == 1 then nearFull = nearFull + 1 end
-    end
-    if nearFull > 0 then sc = sc + atk * 0.9 * nearFull end
-    -- ④-a3 造井（attack + 井模式）：为了让"攒 4 行"真的发生，必须**暂时不急着消行**。
-    -- 做法：消行权重压到 30%，并给"井旁那一列"的堆高（上限 6 行）直接加分。
-    -- 这是有意的策略切换：对手快死时用整洁度换垃圾行（用户：「积累然后一次消除更多的行」）。
-    -- 实测（2026-10-29）：把消行权重压到 30% + 邻列堆高奖励，仍然**堆不出深井**
-    -- （`ai well col=10 base=6 depth=0`：预留列每块都被填上去，depth 恒 0）。
-    -- 结论：预留一列需要"连续 4 步都不碰它"的规划力，1-ply 做不到 ⇒ 这里只保留很轻的
-    -- 邻列堆高倾向（1.5 分/行，上限 6），把"攒行"交给 nearFull 项；真正的四消等 2-ply。
-    if (NUM.AI_WELL or 0) > 0 then
-      local hNear = heights[COLS - 1] or 0
-      if hNear > 6 then hNear = 6 end
-      sc = sc + 1.5 * hNear
-    end
-  end
-  -- ④-b 留井：靠墙 1 列宽、深 ≥3 的井是 I 块四消的落点（给一点正向分，避免 AI 顺手填平）
-  local wellW = NUM.AI_WELL or 0
-  if wellW > 0 then
-    local dl = (heights[2] or 0) - (heights[1] or 0)
-    local dr = (heights[COLS - 1] or 0) - (heights[COLS] or 0)
-    if dl >= 3 or dr >= 3 then sc = sc + wellW end
-    -- ④-c 井纪律：指定井列除非"这一手直接四消"，否则不许往里放块。
-    -- 为什么必须硬约束：1-ply 评估看不到"攒 4 行再放 I"的收益，只能像人一样先占住一列不用。
-    local wc, base = NUM.AI_WELLCOL or 0, NUM.AI_WELLBASE or 0
-    if wc > 0 then
-      local afterH = 0
-      for rr = 1, ROWS do
-        if sim[rr][wc] ~= 0 then afterH = ROWS - rr + 1 break end
-      end
-      if afterH > base and not (complete and complete >= 3) then
-        sc = sc - 45
-      end
-    end
-  end
-  return sc, top, complete
-end
-
--- [v1 时代的旧 El-Tetris 评估体已整体替换为上方 BCTS；evalNext（第二层零分配版）
---  仍用旧 W_* 权重供 2-ply 实验备用，v2.4 全档 ply=1 不再调用]
-local function evalBoardLegacy_unused(cells, x)
-  local occ = {}
-  for i = 1, 4 do
-    local br, bc = y + cells[i][1] - 1, x + cells[i][2] - 1
-    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      occ[(br - 1) * COLS + bc] = true
-    end
-  end
-  local solid = function(r, c)
-    if r < 1 or r > ROWS or c < 1 or c > COLS then return false end
-    return occ[(r - 1) * COLS + c] == true or g.board[r][c] ~= 0
-  end
-  -- 先认满行（消掉），再用「消行后的棋盘」算高度/洞/崎岖
-  local keep = {}
-  local complete = 0
-  for r = 1, ROWS do
-    local full = true
-    for c = 1, COLS do
-      if not solid(r, c) then
-        full = false
-        break
-      end
-    end
-    if full then
-      complete = complete + 1
-    else
-      keep[#keep + 1] = r
-    end
-  end
-  local floorRows = #keep
-  local function solidFinal(r, c)
-    local src = keep[r]
-    if not src then return false end
-    return solid(src, c)
-  end
-  local heights = {}
-  local agg, holes = 0, 0
-  for c = 1, COLS do
-    local h, seen = 0, false
-    for r = 1, floorRows do            -- 从上往下扫：第一个实心格才是堆顶（从底扫会恒得 1）
-      if solidFinal(r, c) then
-        h = floorRows - r + 1
-        break
-      end
-    end
-    heights[c] = h
-    agg = agg + h
-    for r = 1, floorRows do
-      if solidFinal(r, c) then
-        seen = true
-      elseif seen then
-        holes = holes + 1
-      end
-    end
-  end
-  local bump = 0
-  for c = 1, COLS - 1 do
-    local d = heights[c] - heights[c + 1]
-    if d < 0 then d = -d end
-    bump = bump + d
-  end
-  -- T5 Dellacherie 特征（docs/v2-ai-design.md §三）：行/列转移（消行后棋盘上的空实边界数）。
-  -- 性能短路（v2.1 修复「卡的要死」）：三特征每次 evalBoard 各全盘扫（~400 次 solidFinal
-  -- 闭包调用 × ~34 候选/帧），而校准定论权重=0（负贡献）——算完乘 0 扔掉。
-  -- 权重全 0 时跳过全部扫描；将来启用任一特征（权重≠0）才付这笔钱。
-  local rowtrans, coltrans = 0, 0
-  if NUM.W_ROWTRANS ~= 0 or NUM.W_COLTRANS ~= 0 or NUM.W_WELLSUM ~= 0 then
-    for r = 1, floorRows do
-      local prev = true                       -- 行扫描左边界视为实心（标准口径）
-      for c = 1, COLS do
-        local cur = solidFinal(r, c)
-        if cur ~= prev then rowtrans = rowtrans + 1 end
-        prev = cur
-      end
-      if not prev then rowtrans = rowtrans + 1 end  -- 右边界收尾（空→实边界）
-    end
-    for c = 1, COLS do
-      local prev = false                      -- 列扫描顶视为空
-      for r = 1, floorRows do
-        local cur = solidFinal(r, c)
-        if cur ~= prev then coltrans = coltrans + 1 end
-        prev = cur
-      end
-      if not prev then coltrans = coltrans + 1 end  -- 列底视为实（空列收尾 +1）
-    end
-  end
-  -- 井深累加（所有 1 宽凹槽，含浅井：d*(d-1)/2 浅井轻罚；墙边空列不算——竖 I 贴墙合法）
-  local wellsum = 0
-  for c = 2, COLS - 1 do
-    local nb = heights[c - 1]
-    if heights[c + 1] < nb then nb = heights[c + 1] end
-    local d = nb - heights[c]
-    if d >= 2 then wellsum = wellsum + d * (d - 1) / 2 end
-  end
-  -- 深井：只数"被两边夹住"的 1 列宽凹槽（墙边的空列不算井——竖 I 贴墙是允许且鼓励的）
-  local wells = 0
-  for c = 2, COLS - 1 do
-    local nb = heights[c - 1]
-    if heights[c + 1] < nb then nb = heights[c + 1] end
-    local d = nb - heights[c]
-    if d >= WELL_DEPTH then wells = wells + W_WELL * d end
-  end
-  -- 贴墙奖励：离最近墙的列距越小越好
-  local wmax = 1
-  for i = 1, 4 do
-    if cells[i][2] > wmax then wmax = cells[i][2] end
-  end
-  local wallDist = x - 1
-  local rightDist = COLS - (x + wmax - 1)
-  if rightDist < wallDist then wallDist = rightDist end
-  local top = 0
-  for c = 1, COLS do
-    if heights[c] > top then top = heights[c] end
-  end
-  local landing = ROWS - y                                 -- 落点高度（0=贴底，越大越高）——Dellacherie 首特征
-  -- 【实验C 结论】动态消行奖励（高堆放大 W_LINE）实测不改决策——高堆时刻消行候选本就是 best，已删。
-  local wWall = W_WALL
-  if NUM.AI_LEVEL >= 3 then wWall = 0 end   -- hard 档关拟人贴墙奖励（决策纯化，实验 F：ρ 0.26→0.30）
-  return W_AGG * agg + W_LINE * complete + W_HOLE * holes + W_BUMP * bump
-    + NUM.W_ROWTRANS * rowtrans + NUM.W_COLTRANS * coltrans + NUM.W_WELLSUM * wellsum
-    + NUM.W_LANDING * landing - wWall * wallDist - wells, top, complete
-end
-evalBoardLegacy_unused = nil
-
--- 选位：4 朝向 × 每个合法列，三层优先级（能消行且不超高 > 不超高 > 清盘）；
--- 同分先取离墙更近的列（像人贴着边放），再取离当前列更近的，最后取更靠左的。
 local function aiChoose()
   if not g.piece then return nil end
   local cands = {}
@@ -2141,7 +1834,7 @@ local function aiChoose()
       if cells[i][2] > wmax then wmax = cells[i][2] end
     end
     for x = 1, COLS - wmax + 1 do
-      local sc, h, complete = evalBoard(cells, x)
+      local sc, h, complete = AEVX.evalBoard(cells, x)
       if sc then
         local leftDist = x - 1
         local rightDist = COLS - (x + wmax - 1)
@@ -2160,7 +1853,7 @@ local function aiChoose()
   -- 为什么必须显式：1-ply 评估把"现在消 1 行"算得比"等等消 4 行"高，永远选不到四消。
   -- I 块竖放 = rot1（cells 全在盒内第 2 列），落点 x = COLS-1 ⇒ 占第 COLS 列。
   if (NUM.AI_WELL or 0) > 0 and g.piece and g.piece.name == 'I' and g.piece.n == 4 then
-    local wd = wellDepth()
+    local wd = AEVX.wellDepth()
     if wd >= 2 then
       for _, c in ipairs(cands) do
         if c.rot == 1 and c.x == COLS - 1 and (c.clear or 0) >= 2 then
@@ -4326,7 +4019,7 @@ FN.skillCast = function(slot)
     for rr = 1, ROWS do if g.board[rr] and g.board[rr][cc] ~= 0 then h2 = h2 + 1 end end
     if emptyBestH < 0 or h2 < emptyBestH then emptyBestH, emptyBest = h2, cc end
   end
-  local res = SKILLS.cast(SK, role, { mode = MODE, boardH = stackHeight(), oppH = oppH,
+  local res = SKILLS.cast(SK, role, { mode = MODE, boardH = AEVX.stackHeight(), oppH = oppH,
     now = g.elapsed or 0, col = curCol, holdSec = holdSec, longestEmptyCol = emptyBest,
     keyHold = (FN.skillKeyHoldSec or 0) })
   print('skill cast slot=' .. tostring(slot) .. ' role=' .. role .. ' ok=' .. tostring(res.ok)
@@ -4579,426 +4272,20 @@ end
 -- ===== v4.0 ③ 角色名册（契约与解锁进度）=====
 -- 用户口径：「四个角色，初始就只解锁小草神的部分机制吧，剩下的设计一定的条件在解锁」
 -- ⇒ 条件判定在 skills.lua，本层负责**让人看得见**（不然玩家永远不知道自己差多少）。
-local ROSTER = { on = false, items = {} }
-FN.rosterDestroy = function()
-  if ROSTER.savedTop or ROSTER.savedBot then
-    setText(topBanner, ROSTER.savedTop or '')
-    setText(botBanner, ROSTER.savedBot or '')
-    ROSTER.savedTop, ROSTER.savedBot = nil, nil
-  end
-  for i = #ROSTER.items, 1, -1 do
-    pcall(function() game.DestroyClientUIControl(ROSTER.items[i]) end)
-    ROSTER.items[i] = nil
-  end
+-- ===== 角色档案页已拆到 lua/tetris/roster.lua（main chunk 的 200-local 上限逼的）=====
+-- ROSTER 仍是 main 的脚本全局（浮层判定/画布轮询/输入守卫都在读它），模块只是往这张表里填函数。
+ROSTER = { on = false, items = {} }
+do
+  local RM = loadModule('roster')
+  local okm = RM and RM.new({
+    FN = FN, C = C, THEME = THEME, CP = FN.COPY, sk = function() return SK end,
+    SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
+    game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
+    roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
+  })
+  if not okm then print('roster module FAIL（角色页禁用）') end
 end
 
--- ===== 角色 · 契约与技能（v5.1 用户反馈：主页看不到"角色"这个大模块的入口，
---        玩家无法"所见所得"地了解四个角色各自的机制/技能/主题）
--- 交互：左侧四人列表（点一行切换）→ 右侧详情（主题色/元素/技能名/机制 3 行/键位/解锁条件/当前等级）。
--- 关闭：同键（Key16 / 名册按钮）或「合上」按钮。
-FN.charSel = 1
-FN.charAnim = 0
-FN.charPulse = nil
-
-FN.rosterToggle = function()
-  if not (SK and SKILLS) then print('roster skip (no skills)') return end
-  if ROSTER.on then
-    FN.rosterDestroy()
-    ROSTER.on = false
-    print('roster close')
-    return
-  end
-  FN.rosterBuild()
-end
-
--- ===== 角色图鉴（v5.3：对齐官方角色页的做法 —— 左页签/中立绘/右天赋清单 + 详情 + 数值）=====
--- 用户 2026-10-29 反馈：①没用心做 UI 审美 ②这里是消费角色文案的绝佳位置，却没文案
--- ③技能和机制介绍不全（主动技能之外，被动/机制/数值/解锁都要讲） ④要学官方角色页
---   （每个天赋都有图标、名称、等级、长文介绍、详细数值，升级还有数值变化预览）
-FN.charTab = 1        -- 1 技能 / 2 机制 / 3 数值 / 4 解锁
-FN.charSel = 1
-
-local CHAR_TAB_NAME = { '技能', '机制', '数值', '解锁', '规则' }
-
--- 取某角色的详情页数据（纯数据，渲染层只读）
-local function charData(role)
-  local CP = FN.COPY
-  local e = (CP and CP.of and CP.of(role)) or {}
-  local s = SK or {}
-  local lv = tonumber(s.lv and s.lv[role]) or 1
-  local pr = {}
-  if SKILLS and SKILLS.params then
-    local ok, v = pcall(SKILLS.params, s, role)
-    if ok and type(v) == 'table' then pr = v end
-  end
-  -- 下一级参数（构造一个等级 +1 的临时 state）
-  local nx = {}
-  if SKILLS and SKILLS.params then
-    local lvT = {}
-    for k, v in pairs(s.lv or {}) do lvT[k] = v end
-    lvT[role] = lv + 1
-    local ok, v = pcall(SKILLS.params, { lv = lvT, nodes = s.nodes }, role)
-    if ok and type(v) == 'table' then nx = v end
-  end
-  local N = (SKILLS and SKILLS.NUM) or {}
-  local cd = (N.CD and N.CD[role]) or 0
-  local cost = (N.COST and N.COST[role]) or 0
-  local skillNm = tostring(e.skill or '技能')
-  local d = { role = role, e = e, lv = lv, pr = pr, nx = nx, cd = cd, cost = cost,
-    skill = skillNm, help = (CP and CP.help and CP.help(role)) or {},
-    tips = (CP and CP.tips and CP.tips(role)) or {} }
-  -- 台词：取该角色的 cast/hold 文案（官方角色页也有语音台词区）
-  local says = {}
-  if CP and CP.sayList then
-    local okL, list = pcall(CP.sayList, role, 10)
-    if okL and type(list) == 'table' then
-      for i2 = 1, #list do
-        local it = list[i2]
-        if type(it) == 'table' and it.body then says[#says + 1] = tostring(it.body) end
-      end
-    end
-  end
-  d.says = says
-  -- 技能详情（技能页第 1 条）
-  local durTxt = ''
-  if role == 'nahida' then durTxt = '接管 ' .. tostring(math.floor((pr.aiDur or 0) + 0.5)) .. ' 秒 · AI 档位 ' .. tostring(pr.aiTier or 1)
-  elseif role == 'ganyu' then durTxt = '冻结 ' .. tostring(pr.freezeRows or 0) .. ' 行 · ' .. tostring(pr.freezeSec or 0) .. ' 秒'
-  elseif role == 'keqing' then
-    local KL = ((N.KEQING or {}).LOCK) or { 0.2 }
-    durTxt = '瞬落锁定 ' .. string.format('%.2f', KL[1] or 0.2) .. ' 秒'
-  elseif role == 'columbina' then durTxt = '给对手压 ' .. tostring(#((N.COLUMBINA or {}).LAYERS or { 2 })) .. ' 档层数 · 削锁定延迟 ' .. tostring(math.floor(pr.holdCutMs or 0)) .. ' 毫秒'
-  end
-  d.durTxt = durTxt
-  return d
-end
-
-FN.charShow = function(sel)
-  FN.charSel = sel or FN.charSel or 1
-  FN.rosterBuild(FN.charSel, FN.charTab)
-end
-
-FN.rosterToggle = function()
-  if not (SK and SKILLS) then print('roster skip (no skills)') return end
-  if ROSTER.on then
-    FN.rosterDestroy()
-    ROSTER.on = false
-    print('roster close')
-    return
-  end
-  FN.rosterBuild()
-end
-
--- CJK 折行：引擎的单行 textbox 不会自动换行，长文案必须自己拆成多行
-local function wrapCJK(txt, per)
-  txt = tostring(txt or '')
-  local out, line, n = {}, {}, 0
-  local chars = {}
-  local ok = pcall(function()
-    for _, cp in utf8.codes(txt) do chars[#chars + 1] = utf8.char(cp) end
-  end)
-  if not ok then
-    for i = 1, #txt do chars[#chars + 1] = txt:sub(i, i) end
-  end
-  for _, ch in ipairs(chars) do
-    if ch == '\n' then
-      out[#out + 1] = table.concat(line); line, n = {}, 0
-    else
-      line[#line + 1] = ch; n = n + 1
-      if n >= per then
-        -- 断行禁则（评审：0.05 秒断成 0./05、skills.lua 断成 ski/lls）：
-        -- 从行尾回退到最近的一个"安全断点"——ASCII 字母数字串整体不拆，句读不落行首
-        local tail = {}
-        local back = 0
-        while #line - back > 1 do
-          local c = line[#line - back]
-          if c:match('[%w%.%%]') then back = back + 1 else break end
-        end
-        if back > 0 and back < #line then
-          for b = #line - back + 1, #line do tail[#tail + 1] = line[b] end
-          for b = #line, #line - back + 1, -1 do line[b] = nil end
-        end
-        out[#out + 1] = table.concat(line)
-        line, n = tail, #tail
-      end
-    end
-  end
-  if #line > 0 then out[#out + 1] = table.concat(line) end
-  if #out == 0 then out[1] = '' end
-  return out
-end
-
-FN.rosterBuild = function(keepSel, keepTab)
-  FN.rosterDestroy()
-  local W, H = CANVAS_W or 1600, CANVAS_H or 900
-  local CP = FN.COPY
-  local roles = (SK.roles and #SK.roles > 0) and SK.roles or { 'nahida', 'keqing', 'ganyu', 'columbina' }
-  local snap = (SKILLS.snapshot and SKILLS.snapshot(SK)) or {}
-  local sel = keepSel or FN.charSel or 1
-  if sel < 1 or sel > #roles then sel = 1 end
-  FN.charSel = sel
-  local tab = keepTab or FN.charTab or 1
-  if tab < 1 or tab > 5 then tab = 1 end
-  FN.charTab = tab
-  local k = math.min(W / 1600, H / 900)
-  if k <= 0 then k = 1 end
-  local function u(v) return v * k end
-  local add
-  add = function(c) if c then ROSTER.items[#ROSTER.items + 1] = c end return c end
-  local function BOX(name, w, h, color) return add(UI4.pill(name, w, h, color)) end
-  local function TXT(name, txt, w, size, color, align)
-    local fs = math.floor(u(size) + 0.5)          -- ⚠ 字号必须整数，否则静默回落 24 号
-    local hh = math.max(math.floor(fs * 1.45 + 6), fs + 8)
-    local c = UI4.label(name, tostring(txt), w, hh, fs, color)
-    if c and align then trySet(c, 'horizontalAlignment', align) end
-    return add(c)
-  end
-  local R = {}
-  -- 面板：1400×800
-  local PW, PH = u(1400), u(800)
-  local PL, PR = -PW / 2, PW / 2          -- 面板左右沿（设计单位）
-  R.dim = BOX('charDim', W + 40, H + 40, C(176, 20, 34, 50))
-  R.card = BOX('charCard', PW, PH, C(252, 250, 244, 252))
-  R.top = BOX('charTop', PW, u(92), C(255, 250, 240, 246))
-  R.rule = BOX('charRule', PW - u(80), u(2), THEME.gold)
-  R.title = TXT('charTitle', '角色档案 · 契约与技能', u(620), 32, THEME.textMain, 'Left')
-  R.sub = TXT('charHint', '左边点角色 / 右边切页签　·　F 或同键关闭', u(620), 17, THEME.textSub, 'Left')
-  R.closePill = BOX('charClose', u(150), u(50), THEME.gold)
-  R.closeTx = TXT('charCloseTx', '合上', u(146), 20, THEME.textMain)
-  -- 左列：四人
-  local rows = {}
-  for i, role in ipairs(roles) do
-    local e = (CP and CP.of and CP.of(role)) or {}
-    local open = SK.unlocked and SK.unlocked[role] == true
-    local inParty = false
-    for _, rr in ipairs(SK.party or {}) do if rr == role then inParty = true end end
-    local chip = BOX('charChip' .. i, u(360), u(96), (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244))
-    local bar = BOX('charBar' .. i, u(8), u(76), open and (e.color or C(127, 207, 106)) or C(206, 198, 204, 214))
-    local nm = TXT('charName' .. i, (e.name or role) .. (inParty and ' ▲' or ''), u(300), 24,
-      open and THEME.textMain or THEME.textSub, 'Left')
-    local st = TXT('charState' .. i, open and (inParty and ('台前 · Lv' .. tostring(snap.lv or 1)) or '已缔结 · 后台')
-      or '未缔结 · 点开看解锁条件', u(300), 16, open and (e.color2 or THEME.textMain) or THEME.textSub, 'Left')
-    local hit = UI4.hit('charHit' .. i, u(360), u(96))
-    if hit then
-      add(hit)
-      local idx = i
-      addCursor(hit, 'CursorDown', function() FN.charShow(idx) end)
-    end
-    -- 选中态用「左竖条 + 浅色底」表达即可；不另建描金边盒子（曾因未摆位飘到右栏）
-    rows[i] = { chip = chip, bar = bar, nm = nm, st = st, hit = hit }
-  end
-  -- 中列：立绘区（角色主题色大色块 + 名字/元素/称号 + 台词）+ 状态
-  local d = charData(roles[sel])
-  local e = d.e
-  local open = SK.unlocked and SK.unlocked[roles[sel]] == true
-  R.portraitEdge = BOX('charPortraitEdge', u(408), u(438), THEME.gold)
-  R.portrait = BOX('charPortrait', u(400), u(430), FN.skillDark and FN.skillDark(e.color or C(127, 207, 106), 150) or C(127, 207, 106))
-  R.portraitBand1 = BOX('charPortraitBand1', u(360), u(3), C(120, 255, 250, 240))
-  R.portraitBand2 = BOX('charPortraitBand2', u(360), u(1), C(90, 255, 250, 240))
-  R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, C(255, 255, 255, 255))
-  R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, C(255, 250, 244, 246))
-  R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, C(255, 250, 244, 240))
-  R.pSay = TXT('charPSay', d.says[1] or (d.help[1] or ''), u(420), 18, THEME.textMain, 'Left')
-  R.pSay2 = TXT('charPSay2', d.says[2] or (d.help[2] or ''), u(420), 18, THEME.textSub, 'Left')
-  R.pSay3 = TXT('charPSay3', d.says[3] or '', u(420), 17, THEME.textSub, 'Left')
-  R.pSay4 = TXT('charPSay4', d.says[4] or '', u(420), 17, THEME.textSub, 'Left')
-  R.pSkill = TXT('charPSkill', '技能「' .. d.skill .. '」　冷却 ' .. tostring(d.cd) .. ' 秒' .. (d.cost > 0 and ('　耗能 ' .. tostring(d.cost)) or ''),
-    u(420), 18, e.color2 or THEME.textMain, 'Left')
-  -- 右列：页签 + 内容
-  local tabs, tabsHit = {}, {}
-  for i = 1, 5 do
-    tabs[i] = BOX('charTab' .. i, u(96), u(46), (i == tab) and (e.color or C(127, 207, 106)) or C(240, 244, 244, 246))
-    tabs[i .. 't'] = TXT('charTabT' .. i, CHAR_TAB_NAME[i], u(92), 18,
-      (i == tab) and C(255, 255, 255, 255) or THEME.textMain)
-    -- v5.6（用户二轮三-3「标签页点不了」）：热区放大到 104×58 并把动作同时挂 Click——
-    -- 触屏上 Down 时机在按下瞬间，重建整页会吃掉后续事件；Click（抬起后）更稳。
-    local h = UI4.hit('charTabHit' .. i, u(104), u(58))
-    if h then
-      add(h)
-      tabsHit[i] = h
-      local ti = i
-      addCursor(h, 'CursorDown', function()
-        print('char tab tap ' .. tostring(ti))
-        FN.rosterBuild(sel, ti)
-      end)
-    end
-  end
-  -- 内容条目（每条：图标 + 名称 + 正文）
-  local items = {}
-  local function entry(iconCol, nm, desc, desc2, valTxt)
-    items[#items + 1] = { icon = iconCol, nm = nm, desc = desc, desc2 = desc2, val = valTxt }
-  end
-  if tab == 1 then
-    -- 被动清单改为读 skills.lua 的 M.talents（v6：每角色 4 条，文案与数值同源，
-    -- 不再在 main 里硬编码一份 —— 硬编码那份就是"四个角色被动看着一样"的根因）
-    local tal = (SKILLS.talents and SKILLS.talents(SK, d.role)) or {}
-    local talMax = math.min(#tal, 4)   -- 面板高度只放得下 4 条（第 5 条在「数值」页有）
-    for ti = 1, talMax do
-      local t = tal[ti]
-      local live = ''
-      if type(t.live) == 'table' then
-        local parts = {}
-        for kk, vv in pairs(t.live) do parts[#parts + 1] = tostring(kk) .. ' ' .. tostring(vv) end
-        live = table.concat(parts, '　')
-      elseif t.live ~= nil then
-        live = tostring(t.live)
-      end
-      local body = FN.utf8Cut(t.map or t.desc or '', 60)
-      if live == '' then live = tostring(t.official or t.verify or '天赋已生效') end
-      live = FN.utf8Cut(live, 44)
-      entry(t.accent or e.accent or e.color2, tostring(t.name or ('天赋 ' .. ti)), body, live)
-    end
-  elseif tab == 5 then
-    entry(e.accent or e.color2, '成长与编成（全角色通用）',
-      '每个角色独立计经验：施放 +10、有效收益 +25、前台每 10 块 +15、后台每 10 块 +5；等级越高天赋数值越强。',
-      'Y 键换台前，冷却 ' .. tostring((SKILLS.NUM and SKILLS.NUM.SWITCH_CD) or 8) .. ' 秒；一局最多 '
-        .. tostring((SKILLS.NUM and SKILLS.NUM.PARTY_MAX) or 2) .. ' 个可前台发力的主动角色。')
-    entry(e.accent or e.color2, '与对手的交互',
-      '对战/合作里垃圾行由消行数决定（消 2/3/4 行 → 送 1/2/4 行），技能可以拦截或反向。',
-      'AI 盘使用同一套规则（同样的出块序列、同样的垃圾结算），不存在作弊路径。')
-    entry(e.color2 or C(150, 150, 150), '局外与解锁',
-      '角色初始只解锁纳西妲；其余按累计条件开放（见「解锁」页）。',
-      '局内等级是会话内成长，跨局不继承——目前的养成只发生在「一局之内」。')
-  else
-    local req = (SKILLS.NUM and SKILLS.NUM.UNLOCK and SKILLS.NUM.UNLOCK[d.role]) or nil
-    local cnt = SK.cnt or {}
-    local function need(k, v) return tostring(k) .. ' ' .. tostring(cnt[k] or 0) .. '/' .. tostring(v) end
-    local KEYNAME = { lines = '累计消行', games = '总局数', pvp = '对战局数', tetris = '四消次数', time = '累计时长(秒)' }
-    if req then
-      local parts = {}
-      for _, kk in ipairs({ 'lines', 'games', 'pvp', 'tetris', 'time' }) do
-        if req[kk] then
-          parts[#parts + 1] = (KEYNAME[kk] or kk) .. ' ' .. tostring(cnt[kk] or 0) .. ' / ' .. tostring(req[kk])
-        end
-      end
-      entry(e.accent or e.color2, '解锁进度（满足任一条即缔结）',
-        table.concat(parts, '　·　'),
-        open and '已达成，可直接使用。' or '两条通道任选其一：打出更多行，或打更多局。')
-    end
-    entry(e.color or C(127, 207, 106), open and '已缔结' or '未缔结',
-      open and ('你已经和' .. tostring(e.name or d.role) .. '立下契约，可直接在局内使用她的技能。')
-        or '满足下面任意一条即可缔结（自动解锁，不需要额外操作）：',
-      req and ((req.lines and ('累计消行 ' .. tostring(cnt.lines or 0) .. '/' .. tostring(req.lines)) or '')
-        .. '　' .. (req.games and ('总局数 ' .. tostring(cnt.games or 0) .. '/' .. tostring(req.games)) or '')
-        .. '　' .. (req.pvp and ('对战局数 ' .. tostring(cnt.pvp or 0) .. '/' .. tostring(req.pvp)) or '')
-        .. '　' .. (req.tetris and ('四消次数 ' .. tostring(cnt.tetris or 0) .. '/' .. tostring(req.tetris)) or '')
-        .. '　' .. (req.time and ('累计时长 ' .. tostring(cnt.time or 0) .. '/' .. tostring(req.time) .. ' 秒') or ''))
-        or '无解锁条件（初始角色）')
-    entry(e.accent or e.color2, '当前累计（全角色共用）',
-      '累计消行 ' .. tostring(cnt.lines or 0) .. '　局数 ' .. tostring(cnt.games or 0) ..
-      '　对战 ' .. tostring(cnt.pvp or 0) .. '　四消 ' .. tostring(cnt.tetris or 0) ..
-      '　时长 ' .. tostring(cnt.time or 0) .. 's',
-      '这些计数跨局累积，存在本例存档里；换存档会重置。')
-    entry(e.accent or e.color2, '编成规则',
-      '一局最多 ' .. tostring((SKILLS.NUM and SKILLS.NUM.PARTY_MAX) or 2) .. ' 个可前台发力的主动角色；初始只有纳西妲。',
-      '解锁顺序：纳西妲 → 刻晴 → 甘雨 → 少女（按条件达成先后）。')
-  end
-  -- 渲染条目：图标 + 名称 + 正文（自动折行）+ 数值行
-  local rightX = PL + u(840)
-  local rightW = u(470)
-  local PER = 30
-  local itemRows = {}
-  for idx, it in ipairs(items) do
-    local icon = BOX('charItemIcon' .. idx, u(34), u(34), it.icon or C(180, 180, 180))
-    -- 图标换成内置几何图元（评审：纯色小方块像占位符）：100002 圆 / 100004 四角星 / 100005 五角星 / 100003 三角 / 100006 圆环
-    if icon and Enum and Enum.ImageSource then
-      local GLYPH = { 100002, 100004, 100005, 100003, 100006 }
-      local gid = GLYPH[((idx - 1) % #GLYPH) + 1]
-      pcall(function() icon:SetImage(Enum.ImageSource.StaticReference, gid) end)
-    end
-    local nm = TXT('charItemNm' .. idx, it.nm, rightW - u(60), 19, THEME.textMain, 'Left')
-    local lines = {}
-    local src = (it.desc or '')
-    if it.desc2 and it.desc2 ~= '' then src = src .. (src ~= '' and '　' or '') .. it.desc2 end
-    local wrapped = wrapCJK(src, PER)
-    for li, lineTxt in ipairs(wrapped) do
-      lines[li] = TXT('charItemL' .. idx .. '_' .. li, lineTxt, rightW - u(60), 15, THEME.textSub, 'Left')
-    end
-    local vv = nil
-    if it.val and it.val ~= '' then
-      vv = TXT('charItemV' .. idx, it.val, rightW - u(60), 15, e.color2 or THEME.textMain, 'Left')
-    end
-    itemRows[idx] = { icon = icon, nm = nm, lines = lines, v = vv,
-      h = u(34) + #lines * u(22) + (vv and u(22) or 0) + u(12) }
-  end
-  R.foot = TXT('charFoot', '与四位角色缔结契约，她们会在你手忙脚乱时替你守住棋盘——按名册键随时回来看看。',
-    u(1260), 17, THEME.hint)
-  -- ── 摆位 ──（约定：TXTL 传的是**左沿**，内部再换算成框中心，避免"左对齐文字跑到画布外"）
-  local function at(c, x, y, w, h)
-    if not c then return end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-  end
-  local function th(size) local fs = math.floor(u(size) + 0.5) return math.max(math.floor(fs * 1.45 + 6), fs + 8) end
-  local function put(c, xLeft, y, w, h) at(c, xLeft + w / 2, y, w, h) end
-  at(R.dim, 0, 0, W + 40, H + 40)
-  at(R.card, 0, 0, PW, PH)
-  at(R.top, 0, PH / 2 - u(46), PW, u(92))
-  at(R.rule, 0, PH / 2 - u(94), PW - u(80), u(2))
-  put(R.title, PL + u(40), PH / 2 - u(46), u(560), th(32))
-  put(R.sub, PL + u(40), PH / 2 - u(78), u(560), th(17))
-  at(R.closePill, PR - u(110), PH / 2 - u(46), u(150), u(50))
-  at(R.closeTx, PR - u(110), PH / 2 - u(46), u(146), th(20))
-  local listX = PL + u(40)
-  for i = 1, #rows do
-    local r = rows[i]
-    local y = u(200) - (i - 1) * u(108)
-    if r.chip then trySet(r.chip, 'imageColor', (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244)) end
-    at(r.chip, listX + u(180), y, u(360), u(96))
-    at(r.bar, listX + u(4), y, u(8), u(76))
-    put(r.nm, listX + u(22), y + u(18), u(320), th(24))
-    put(r.st, listX + u(22), y - u(18), u(320), th(16))
-    -- 命中区必须自己摆位（建出来默认在 (0,0)），且 cursor 的 y 轴与图片相反 ⇒ 取负
-    if r.hit then at(r.hit, listX + u(180), -y, u(360), u(96)) end
-  end
-  -- 中列立绘区
-  local midX = PL + u(430)
-  local midW = u(380)
-  at(R.portraitEdge, midX + midW / 2, u(30), midW + u(8), u(438))
-  at(R.portrait, midX + midW / 2, u(30), midW, u(430))
-  at(R.portraitBand1, midX + midW / 2, u(30) - u(96), midW - u(40), u(3))
-  at(R.portraitBand2, midX + midW / 2, u(30) - u(112), midW - u(40), u(1))
-  put(R.pName, midX + u(20), u(160), midW - u(40), th(40))
-  put(R.pElem, midX + u(20), u(112), midW - u(40), th(20))
-  put(R.pLv, midX + u(20), u(80), midW - u(40), th(18))
-  put(R.pSay, midX + u(10), -u(60), midW + u(40), th(18))
-  put(R.pSay2, midX + u(10), -u(96), midW + u(40), th(18))
-  put(R.pSay3, midX + u(10), -u(134), midW + u(40), th(17))
-  put(R.pSay4, midX + u(10), -u(168), midW + u(40), th(17))
-  put(R.pSkill, midX + u(10), -u(300), midW + u(40), th(18))
-  -- 右列：页签 + 条目
-  local rightX = PL + u(860)
-  local rightW = u(500)
-  for i = 1, 5 do
-    local tx = rightX + (i - 1) * u(100)
-    at(tabs[i], tx + u(48), u(232), u(96), u(46))
-    at(tabs[i .. 't'], tx + u(48), u(232), u(92), th(18))
-    if tabsHit[i] then at(tabsHit[i], tx + u(48), -u(232), u(96), u(46)) end
-  end
-  local yy = u(150)
-  for idx, row in ipairs(itemRows) do
-    at(row.icon, rightX + u(16), yy - u(6), u(34), u(34))
-    put(row.nm, rightX + u(54), yy - u(4), rightW - u(60), th(19))
-    local ly = yy - u(30)
-    for li, ln in ipairs(row.lines or {}) do
-      put(ln, rightX + u(54), ly, rightW - u(60), th(15))
-      ly = ly - u(22)
-    end
-    if row.v then put(row.v, rightX + u(54), ly, rightW - u(60), th(14)) end
-    yy = yy - (row.h or u(120))
-  end
-  put(R.foot, PL + u(70), -PH / 2 + u(28), PW - u(140), th(17))
-  -- 服务端 textbox 永远在运行时实例之上 ⇒ 打开面板必须把横幅清空，否则"纳西妲：再不动手…"会压在面板上
-  ROSTER.savedTop = tostring(topBanner and topBanner.text or '')
-  ROSTER.savedBot = tostring(botBanner and botBanner.text or '')
-  setText(topBanner, '')
-  setText(botBanner, '')
-  bannerTimer = 0
-  ROSTER.on = true
-  print('char codex open n=' .. #ROSTER.items .. ' sel=' .. tostring(roles[sel]) .. ' tab=' .. tostring(tab)
-    .. ' items=' .. tostring(#items))
-end
-
--- @region ui-roster END (writer: ui-mobile)
 FN.enterMode = function()
   -- v5.4 修「准备屏上残留标题演示的角色名卡」：标题页 demo 循环会放技能（名卡/环波），
   -- 玩家选中模式后这些特效还有 0.5~1.2s 才自然到期 ⇒ 准备态画面左下角挂着一块「少女」空卡，
@@ -5150,10 +4437,10 @@ FN.aiDrop = function()
   g.AI.dur = 0
   if g.AI.count % 10 == 0 then
     print('demo auto n=' .. g.AI.count .. ' avg=' .. aiFmt(g.AI.sumSec / g.AI.count)
-      .. 's stack=' .. stackHeight() .. ' rho=' .. aiFmt(RHO.lines / math.max(RHO.pieces, 1))
+      .. 's stack=' .. AEVX.stackHeight() .. ' rho=' .. aiFmt(RHO.lines / math.max(RHO.pieces, 1))
       .. ' pieces=' .. RHO.pieces)
   end
-  local h = stackHeight()
+  local h = AEVX.stackHeight()
   -- v2.7（用户反馈①⑧）：这段堆高看门狗**只属于 stage0 入场自演**（吸引模式，盘面砸了就重来）。
   -- 旧实现无条件执行 ⇒ casual 接管/对家盘堆高时也被拽回标题页（demoLoopReset 会把 guideStage 归 0），
   -- 于是"AI 死了不像玩家死"：没有结算页、直接跳回菜单。接管/对家盘的死亡一律交给 spawn 顶死判定。
@@ -5338,7 +4625,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
   -- ⚠ 井列只能取**右墙第 COLS 列**：I 块竖放时占的是"盒内第 2 列"，x∈[1,COLS-1] ⇒ 真正能填的
   -- 列是 2..COLS，第 1 列根本填不到（2026-10-29 实测：选左墙井 ⇒ 永远等不到四消）。
   if NUM.AI_WELL > 0 and tune.wellPlan then
-    NUM.AI_WELLCOL, NUM.AI_WELLBASE = COLS, colHeight(COLS)
+    NUM.AI_WELLCOL, NUM.AI_WELLBASE = COLS, AEVX.colHeight(COLS)
   else
     NUM.AI_WELLCOL, NUM.AI_WELLBASE = 0, 0
   end
@@ -5346,7 +4633,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
   if NUM.AI_WELL > 0 and g.AI.wellLog ~= g.piece then
     g.AI.wellLog = g.piece            -- v5.0：每块一条（旧实现每 5 帧一条 = 6 条/秒刷屏）
     print('ai well col=' .. tostring(NUM.AI_WELLCOL) .. ' base=' .. tostring(NUM.AI_WELLBASE)
-      .. ' depth=' .. tostring(wellDepth()))
+      .. ' depth=' .. tostring(AEVX.wellDepth()))
   end
   if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
     g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
@@ -5504,7 +4791,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
           local wmax = 1
           for i = 1, 4 do if cells[i][2] > wmax then wmax = cells[i][2] end end
           for ax = 1, COLS - wmax + 1 do
-            local sc, h = evalBoard(cells, ax)
+            local sc, h = AEVX.evalBoard(cells, ax)
             if sc and h <= AI_RESET_ROWS and (not bestAlt or sc > bestAlt) then bestAlt = sc end
           end
           cells = rotateCells(cells, altS.n)
@@ -5517,7 +4804,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
         -- 留 I 块（attack 模式）：井快成型 + 手里是 I ⇒ 存进槽（槽里是别的块就先换出来摆掉）
         if (not g.AI.search.doHoldAfter) and tune.saveI and tune.saveI[tier]
           and g.piece and g.piece.name == 'I' then
-          local wd = wellDepth()
+          local wd = AEVX.wellDepth()
           if wd >= (tune.wellDepth or 4) - 1 and (g.st.name ~= 'I') then
             g.AI.search.doHoldAfter = true
             print('ai hold why=saveI well=' .. tostring(wd) .. ' slot=' .. tostring(g.st.name or '-'))
@@ -5526,7 +4813,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
         -- 井已够深 + 槽里正躺着 I ⇒ 换出 I 立刻四消（这是"会利用多消行"的最后一环）
         if (not g.AI.search.doHoldAfter) and tune.saveI and tune.saveI[tier]
           and g.st.name == 'I' and g.piece and g.piece.name ~= 'I' then
-          local wd = wellDepth()
+          local wd = AEVX.wellDepth()
           if wd >= (tune.wellDepth or 4) then
             g.AI.search.doHoldAfter = true
             print('ai hold why=fireI well=' .. tostring(wd))

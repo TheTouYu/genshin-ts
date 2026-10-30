@@ -179,6 +179,22 @@ export function buildStudio() {
       console.error('LUA COMPILE FAILED::\n' + bad.join('\n'))
       process.exit(1)
     }
+    // 局部变量预算：main chunk 的 local 上限是 200（Lua 5.3 硬限，超了真机整份脚本拒载）。
+    // 这里读 luac 的汇编统计行 `0+ params, N slots, 1 upvalue, N locals, ...` 做**提前预警**：
+    // 超过 190 就报红并中止，别等真机编译失败才发现（模拟器 Fengari 不执行这条限制）。
+    {
+      const r = spawnSync('luac5.3', ['-p', '-l', '-l', 'lua/main.lua'], { cwd: root, encoding: 'utf8' })
+      const m = /(\d+) locals/.exec(r.stdout || '')
+      if (m) {
+        const n = Number(m[1])
+        console.log('main locals   : ' + n + '/200（余量 ' + (200 - n) + '）')
+        if (n > 190) {
+          console.error('MAIN LOCALS TOO CLOSE TO LIMIT: ' + n + ' > 190（Lua 5.3 硬限 200，'
+            + '真机会报 too many local variables 并拒载整份脚本）')
+          process.exit(1)
+        }
+      }
+    }
     console.log('lua compile   : ok (' + files.length + ' files, luac5.3)')
   }
   const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))

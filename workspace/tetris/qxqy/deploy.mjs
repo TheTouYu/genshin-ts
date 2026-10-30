@@ -15,7 +15,7 @@
 //   只复制 external_lua_file 里的文件不改 f5 内联源码与 Temp ⇒ 真机读到的还是旧逻辑（而且不报错）。
 //
 // 需要环境变量 GSTS_LOCALLOW_DIR（缺省按本机路径推断；须指到 .../AppData/LocalLow/miHoYo/原神）
-import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
 import crypto from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -118,7 +118,9 @@ if (existsSync(dirname(externalLua))) {
   // 后果不是报错而是**静默用旧数值**（NUM.PHONE/AI_TUNE 缺失、aiPace 不存在）。
   const modDir = join(dirname(externalLua), 'tetris')
   mkdirSync(modDir, { recursive: true })
-  const mods = ['config.lua', 'widgets.lua', 'audio.lua', 'skills.lua']
+  // ⚠ 这里原本写死 4 个模块 —— 新增 aieval/roster 时真机上直接缺失（main 的 loadModule 静默降级）。
+  // 改成**扫目录**：lua/tetris/*.lua 全量同步，新增模块零改动。
+  const mods = readdirSync(join(root, 'lua/tetris')).filter((f) => f.endsWith('.lua')).sort()
   for (const m of mods) {
     const src = join(root, 'lua/tetris', m)
     if (!existsSync(src)) { console.log(`部署：模块缺失 ${m}（跳过）`); continue }
@@ -165,9 +167,9 @@ function deviceDeploy() {
   // ② 模块脚本（require 按路径读 external，但登记表里同步一份更稳）
   // v5.0：模块清单必须与 main.lua 的 loadModule 列表逐一对齐，否则新模块只在仓库里、
   // 真机上 require 失败 ⇒ 技能没有文案/特效、手机没有布局（"部署了但界面崩"的老坑）。
-  const mods = [['tetris_config', 'config.lua'], ['tetris_widgets', 'widgets.lua'],
-    ['tetris_audio', 'audio.lua'], ['tetris_skills', 'skills.lua'],
-    ['tetris_copy', 'copy.lua'], ['tetris_fx', 'fx.lua'], ['tetris_ui', 'ui.lua']]
+  // 同理：登记表也按目录生成（脚本名 = tetris_<文件名>），别再写死
+  const mods = readdirSync(join(root, 'lua/tetris')).filter((f) => f.endsWith('.lua')).sort()
+    .map((f) => ['tetris_' + f.replace(/\.lua$/, ''), f])
   // ⚠ 模块源码里也有 __GUID_*__ 占位（TPL_GUIDS 在 config.lua）。build 会给 GIA 里的模块源码注入，
   // 但这里直写 external 时用的是**仓库源文件**——不注入就等于把字符串当 guid 传下去（2026-10-29 真机实测：
   // `cell 模板 guid 都不可用，候选=3` 就是这么来的）。
