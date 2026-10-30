@@ -24,7 +24,7 @@
 | 项 | 值 |
 |---|---|
 | 现役地图 | **`1073741827`「真实足球v3」**（v3 从零重构，赛道级减法路线） |
-| 退役/只读 | 1825「真实足球」（票 24 终版，只读备件）；donor `3231`（只读行为基线，禁止写入） |
+| 退役/只读 | 1825「真实足球」（票 24 终版，只读备件）；donor `3231`（只读行为基线，禁止写入）；**1908「真实足球」**（2026-10-30 自 Win11 侧 `/mnt/wingames/Users/touyu/…/Save_Level/1073741908/` 恢复，1,063,782 B sha `59b8b964…`，2026-09-25 版） |
 | 源码 | `examples/football/`（`src-fb/` 保留器件只重装配；`src-zaowu/` 造物三图） |
 | 必读 | `examples/football/AGENTS.md`（8 条不变量 + 写回纪律 + 白模配色铁律）、`REBUILD-HANDOFF.md`、`.scratch/football-v2/BOARD.md` |
 | 环境 | 每条 shell 先 `export GSTS_LOCALLOW_DIR=<…>/AppData/LocalLow`；存档双址（`Save_Level` + `Temp`）写后必查同 sha |
