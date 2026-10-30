@@ -1,114 +1,147 @@
-  // ══════════════ 物理自动测试台（2026-10-30，用户令）══════════════
-  // 开关：载体变量 fb_autotest（0=关，1=开；CLI 改它即可开机）
-  // 节奏：开局 5s 后开始；每个测试点 30 拍（≈2s），先落地重置到该点初态，再让它自由演算；
-  // 无状态推进：slot = floor((tick-75)/30)，local = (tick-75) - slot*30，local==0 时施加初态。
-  // 覆盖：静止 / 轻射 / 重射 / 高吊 / 弧线 / 自由落体 / 斜落弹地 / 高速擦地 / 纯自旋 / 门柱 / 边界。
-  const AUTO_START = 75n // 5s @15Hz
-  const AUTO_LEN = 30n // 每点 30 拍 ≈2s
-  const AUTO_COUNT = 11n // 测试项总数（到这里回卷）
+  // ══════════════ 物理自动测试台（2026-10-30 v2：**状态驱动**）══════════════
+  // 用户口径：每个测试点「给初态 → 交给物理系统 → 等它自己静止 → 休息 → 下一项」，
+  // 而不是固定 2 秒切片（2 秒连一次自由落体都跑不完）。
+  // 状态槽（技能变量，测试配置专用）：at_slot=1207959569 / at_phase=1207959570 / at_wait=1207959571
+  //   phase 0：取 slot 初态并施加 → phase=1, wait=0
+  //   phase 1：演算；球静止（速度<0.35 且触地，且已过 10 拍）或超时 180 拍 → phase=2, wait=0
+  //   phase 2：休息 30 拍（≈2s）→ slot=(slot+1)%11, phase=0, wait=0
+  const atSlotV = f.dataTypeConversion(f.querySkillVariableValue(1207959569n), 'int')
+  const atPhaseV = f.dataTypeConversion(f.querySkillVariableValue(1207959570n), 'int')
+  const atWaitV = f.dataTypeConversion(f.querySkillVariableValue(1207959571n), 'int')
   const autoOn = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fb_autotest').asType('int')
-  const autoPhase = f.subtraction(tick, AUTO_START)
-  const autoActive = f.logicalAndOperation(
-    f.equal(autoOn, 1n),
-    f.greaterThanOrEqualTo(autoPhase, 0n)
-  )
-  const autoSlotRaw = f.division(autoPhase, AUTO_LEN)
-  const autoSlot = f.subtraction(
-    autoSlotRaw,
-    f.multiplication(f.division(autoSlotRaw, AUTO_COUNT), AUTO_COUNT)
-  )
-  const autoLocal = f.subtraction(autoPhase, f.multiplication(autoSlot, AUTO_LEN))
-  const autoFresh = f.equal(autoLocal, 0n)
-  // 把当前测试编号回传（tag='T'，pos.x=编号、pos.y=剩余拍），服务端转写到关卡变量供 Lua 显示
+  const autoRun = f.logicalAndOperation(f.equal(autoOn, 1n), f.greaterThanOrEqualTo(tick, 75n))
+  const speedBall = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
   f.doubleBranch(
-    autoActive,
+    autoRun,
     () => {
+      // 回传：pos=(slot, phase, 球速)；服务端转写关卡变量供 Lua 显示
       chanSendState6(
         f,
         KitSignal.kit_state,
         'T',
         tick,
         f.create3dVector(
-          f.dataTypeConversion(autoSlot, 'float'),
-          f.dataTypeConversion(autoLocal, 'float'),
-          0.0
+          f.dataTypeConversion(atSlotV, 'float'),
+          f.dataTypeConversion(atPhaseV, 'float'),
+          speedBall
         ),
         f.create3dVector(0.0, 0.0, 0.0),
         f.create3dVector(0.0, 0.0, 0.0),
         0n
       )
       f.doubleBranch(
-        autoFresh,
+        f.equal(atPhaseV, 0n),
         () => {
-          // 每个测试点的初态（位置固定在中圈附近，避免受上一次轨迹影响）
-          const baseX = 0.0
-          const baseZ = 0.0
           // slot 0：静止球（检验零速不漂移）
-          f.doubleBranch(f.equal(autoSlot, 0n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 0n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
           // slot 1：轻射（有抬升）
-          f.doubleBranch(f.equal(autoSlot, 1n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 1n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(10.0); vy.set(3.2); vz.set(0.0); wx.set(0.0); wy.set(0.0)
             wz.set(f.division(10.0, BALL_R))
           }, () => {})
           // slot 2：重射 + 侧旋
-          f.doubleBranch(f.equal(autoSlot, 2n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 2n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             // ⚠️ 2026-10-30 定谳：这一行原来漏了 wz ⇒ 继承上一项（slot1 滚动）的 wz=40，
             //   与 wy=10 组成 ω=(0,10,40)，马格努斯 ω×v 的 y 分量达 640 ⇒ 每拍给球 +1.3 竖直加速度，
             //   球被"吹"到 6.59m（日志 3439 slot2）。测试台初态必须把六个分量**全部**清零再赋值。
             vx.set(16.0); vy.set(4.5); vz.set(0.0); wx.set(0.0); wy.set(10.0); wz.set(0.0)
           }, () => {})
           // slot 3：高吊
-          f.doubleBranch(f.equal(autoSlot, 3n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 3n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(7.0); vy.set(9.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
           // slot 4：弧线（马格努斯）
-          f.doubleBranch(f.equal(autoSlot, 4n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 4n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(14.0); vy.set(4.0); vz.set(0.0); wx.set(0.0); wy.set(14.0); wz.set(0.0)
           }, () => {})
           // slot 5：3m 自由落体（检验重力+反弹+反弹后自旋）
-          f.doubleBranch(f.equal(autoSlot, 5n), () => {
-            bx.set(baseX); by.set(3.25); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 5n), () => {
+            bx.set(0.0); by.set(3.25); bz.set(12.0)
             vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
           // slot 6：斜落弹地（带前向速度）
-          f.doubleBranch(f.equal(autoSlot, 6n), () => {
-            bx.set(baseX); by.set(2.0); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 6n), () => {
+            bx.set(0.0); by.set(2.0); bz.set(12.0)
             vx.set(6.0); vy.set(-5.0); vz.set(0.0); wx.set(0.0); wy.set(0.0)
             wz.set(f.division(6.0, BALL_R))
           }, () => {})
           // slot 7：高速擦地滚动（限速+滚动阻力）
-          f.doubleBranch(f.equal(autoSlot, 7n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 7n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(18.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0)
             wz.set(f.division(18.0, BALL_R))
           }, () => {})
           // slot 8：纯自旋不移动（检验滑移摩擦把自旋转成前进）
-          f.doubleBranch(f.equal(autoSlot, 8n), () => {
-            bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
+          f.doubleBranch(f.equal(atSlotV, 8n), () => {
+            bx.set(0.0); by.set(GROUND_Y); bz.set(12.0)
             vx.set(0.0); vy.set(0.0); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(25.0)
           }, () => {})
           // slot 9：门柱碰撞（放到右门柱旁往里打）
-          f.doubleBranch(f.equal(autoSlot, 9n), () => {
+          f.doubleBranch(f.equal(atSlotV, 9n), () => {
             bx.set(f.subtraction(PITCH_X, 1.2)); by.set(GROUND_Y)
             bz.set(f.subtraction(GOAL_HALF, 0.9))
             vx.set(9.0); vy.set(0.5); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
           // slot 10：边界反弹（贴边线打出去）
-          f.doubleBranch(f.equal(autoSlot, 10n), () => {
+          f.doubleBranch(f.equal(atSlotV, 10n), () => {
             bx.set(0.0); by.set(GROUND_Y); bz.set(f.subtraction(PITCH_Z, 1.0))
             vx.set(0.0); vy.set(0.0); vz.set(9.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
+          f.setSkillVariable(1207959570n, 1.0)
+          f.setSkillVariable(1207959571n, 0.0)
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.equal(atPhaseV, 1n),
+        () => {
+          const w = f.addition(atWaitV, 1n)
+          f.setSkillVariable(1207959571n, f.dataTypeConversion(w, 'float'))
+          const grounded = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.03))
+          const stopNow = f.logicalAndOperation(
+            f.greaterThan(w, 10n),
+            f.logicalAndOperation(grounded, f.lessThan(speedBall, REST_SPEED))
+          )
+          const timeout = f.greaterThanOrEqualTo(w, 180n)
+          f.doubleBranch(
+            f.logicalOrOperation(stopNow, timeout),
+            () => {
+              f.setSkillVariable(1207959570n, 2.0)
+              f.setSkillVariable(1207959571n, 0.0)
+            },
+            () => {}
+          )
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.equal(atPhaseV, 2n),
+        () => {
+          const w2 = f.addition(atWaitV, 1n)
+          f.setSkillVariable(1207959571n, f.dataTypeConversion(w2, 'float'))
+          f.doubleBranch(
+            f.greaterThanOrEqualTo(w2, 30n),
+            () => {
+              const nxt = f.subtraction(
+                f.addition(atSlotV, 1n),
+                f.multiplication(f.division(f.addition(atSlotV, 1n), 11n), 11n)
+              )
+              f.setSkillVariable(1207959569n, f.dataTypeConversion(nxt, 'float'))
+              f.setSkillVariable(1207959570n, 0.0)
+              f.setSkillVariable(1207959571n, 0.0)
+            },
+            () => {}
+          )
         },
         () => {}
       )
     },
     () => {}
   )
-  // ══════════════════════════════════════════════════════════════

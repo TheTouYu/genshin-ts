@@ -12,7 +12,7 @@ const cli = path.join(root, 'dist/src/cli/gsts.js')
 const MAP = '1073741827'
 const TARGET = '1082130445'
 const PROD = '1191182341'
-const TEST = '1191182342'
+const TEST = '1191182343' // template=28(自定义造物)，与载体原技能条目同模板；1191182342 是 36(普通技能)，绑上去不会执行
 
 const run = (args) =>
   execFileSync('node', [cli, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })

@@ -476,7 +476,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const vDotN = f.addition(f.multiplication(vx.value, nX), f.multiplication(vz.value, nZ))
       const hitBody = f.logicalAndOperation(
         f.greaterThan(speed0, 6.0),
-        f.logicalAndOperation(f.lessThan(ballToPlayer, 0.9), f.lessThan(vDotN, 0.0))
+        f.logicalAndOperation(f.lessThan(ballToPlayer, 0.55), f.lessThan(vDotN, 0.0))
       )
       f.doubleBranch(
         f.logicalAndOperation(f.logicalNotOperation(touch), hitBody),
