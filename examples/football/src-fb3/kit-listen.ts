@@ -114,17 +114,25 @@ const graph = g
         f.setCustomVariable(owner, 'fb_seq', seq, false)
         f.setCustomVariable(owner, 'fb_key', key, false)
         f.setCustomVariable(owner, 'fb_state', evt.params.state, false)
-        // 按键打点带键号（print 只能打字符串，所以按 1~6 分支打不同标记）
-        // ⑥ 也会走这里：之前无法把按键与服务端帧对时，只能靠猜
-        for (let i = 1; i <= 6; i += 1) {
-          f.doubleBranch(
-            f.equal(key, BigInt(i)),
-            () => {
-              print(`fb-k${i}`)
-            },
-            () => {}
-          )
-        }
+        // 按键打点带键号（print 只打字符串，按 1~6 分支打标记，便于与服务端帧对时）
+        f.doubleBranch(f.equal(key, 1n), () => {
+          print('fb-k1')
+        }, () => {})
+        f.doubleBranch(f.equal(key, 2n), () => {
+          print('fb-k2')
+        }, () => {})
+        f.doubleBranch(f.equal(key, 3n), () => {
+          print('fb-k3')
+        }, () => {})
+        f.doubleBranch(f.equal(key, 4n), () => {
+          print('fb-k4')
+        }, () => {})
+        f.doubleBranch(f.equal(key, 5n), () => {
+          print('fb-k5')
+        }, () => {})
+        f.doubleBranch(f.equal(key, 6n), () => {
+          print('fb-k6')
+        }, () => {})
       },
       () => {
       // key < 0 = Lua 时间同步（OnUpdate 累计的真实毫秒）；用它和内核 tick 差算真实步长。
