@@ -303,14 +303,16 @@ M.new = function(spec)
       -- v5.32（用户：手机端左右两边都要有「旋转」和「暂存」）：
       --   左簇上排 = 旋转(rot) + 暂存(hold2)；右簇上排 = 暂存(hold) + 旋转(rot2)。
       --   两侧对称，单手都能按到；act 与主键相同，逻辑零改动。
-      slots[#slots + 1] = B('left', colL - 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('right', colL + 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot', colL - 65, g5.botY + 110, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold2', colL + 65, g5.botY + 110, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hard', colR + 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('soft', colR - 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold', colR - 65, g5.botY + 110, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot2', colR + 65, g5.botY + 110, bw, bh, KIT.FS)
+      -- v5.35（用户：按钮直接重叠了）：原间距 130/76 对 120×72 的键只留 10/4px，
+      -- 再加上描边外扩 2px ⇒ 相邻两键贴死甚至视觉重叠。改成 144/92（净距 20/16）。
+      slots[#slots + 1] = B('left', colL - 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('right', colL + 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot', colL - 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold2', colL + 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hard', colR + 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('soft', colR - 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold', colR - 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot2', colR + 72, g5.botY + 122, bw, bh, KIT.FS)
       -- 中下技能行（棋盘正下方 60px 带里）
       local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
       -- 技能三键：**右列竖排**（底部中间被 fx 的角色名卡占住 —— lead 2026-10-29 复核：
