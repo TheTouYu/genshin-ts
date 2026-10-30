@@ -92,7 +92,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.30 · 10-30 22:2x'
+BUILD_TAG = 'v5.31 · 10-30 22:4x'
 seed = 20261023
 local function rand(n)
   seed = (seed * 1103515245 + 12345) % 2147483648
@@ -2257,7 +2257,8 @@ local function buildHelpLayer()
       -- ⚠ text() 的第 3 个实参是**框中心**（不是左沿）：Left 对齐时左沿 = 中心 - 宽/2。
       -- 键帽行：左沿 -560、宽 380 ⇒ 中心 -370（键帽最右 -572，留 12px）；整句行：左沿 -700、宽 900 ⇒ 中心 -250。
       if hasCaps then
-        t('helpKey' .. i, k.label, -460, y, 200, 21, INK, 'Left')
+        -- v5.31（用户：左边那个箭头和文字重叠了）：键帽组最右约 -572，标签左沿必须再往右
+        t('helpKey' .. i, k.label, -410, y, 230, 21, INK, 'Left')
       else
         t('helpKey' .. i, k.label, -250, y, 900, 21, THEME.textMain, 'Left')
       end
@@ -2289,8 +2290,8 @@ local function buildHelpLayer()
         if row == 1 and S.modes[col] then bar = S.modes[col].color end
         local fill = CARD
         if row == 1 and S.modes[col] then fill = S.modes[col].tint end
-        rect('helpChip' .. row .. col, cx, y, 340, 52, fill)
-        rect('helpChipA' .. row .. col, cx - 166, y, 5, 52, bar)
+        -- v5.31（用户：「下面的还是没做圆款」）：算分条改成**圆角胶囊**，与外层卡片同一语汇
+        rrect('helpChip' .. row .. col, cx, y, 340, 52, 26, fill)
         t('helpChipT' .. row .. col, S.score[row][col], cx + 6, y, 312, 19, INK, 'Middle')
       end
     end
