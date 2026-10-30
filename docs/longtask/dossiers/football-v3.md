@@ -143,12 +143,7 @@ Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
   草地地基 1077936161 pos y=−5.5 scale y=1 ⇒ 占 y∈[−5.5,−4.5]，取 **−5.1**（有支撑 + 被地形遮住 + 离玩家 ≤1m）。
 - 反例：`(0,−12,0)` 下方无支撑会直接掉下去（用户当场打回）。
 
-### 断点（下一轮从这里接）
-
-1. **真机确认丘丘人是否施放**（本轮最大未知）：若日志有 `kitLoop` 记录 ⇒ 15Hz 载体成立，可删史莱姆；
-   若 0 条 ⇒ 一行命令回滚（`assets:creations skill add --target 1082130442 --skill-config 1191182338 --cd 0.03 --ignore-public-cd --write`）。
-2. 真机确认 Lua 三键链路（`[fb-in] onstart` / `listen … via enum|string` / `key …` + 服务端 `fb-key`）。
-3. 真机确认运动器渲染观感（线性补间是否平滑、滚转是否可见、大跳变是否用瞬时定点）。
+- 上述三条「真机确认」（丘丘人施放 / Lua 键链 / 运动器观感）已于 2026-10-29~30 全部拿到读数并闭环，结论见下文 10-30 节。
 
 ---
 
@@ -168,22 +163,32 @@ Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
   external Lua 10848B（含 BOM）；Save_Level == Temp sha `7893105f…`。
 - **技能配置链**（复读确认）：打手丘丘人 1082130445 skills=1 → config `1191182341`（instant）→ `graphId=1082130436`
   = `_GSTS_kitLoop`；decision=1082130438（20007）。真足球 1077936135 挂 kitRender 1073741828。
-- **UI 控件的样式编辑能力边界**（本轮新判据）：`assets:ui update --font-size/--align` 只支持
-  `textbox/input-box/message-queue`；**client-textbox 不支持**（文本样式在记录 `f505(501=64/f502=84)→f503→f74→f75`），
-  `--position/--size` 有效。⇒ 字号/颜色/对齐/文案一律由 Lua 运行时赋值。
-- **客户端容器加控件的可用路径**：`assets:ui create --on container:<节点>` 对客户端容器**不成立**
-  （报「不属于任何悬浮页」/「缺少 f503 成员列表」）；用 `assets:ui clone <同容器控件> --on container:<节点> --id/--name/--position/--size`。
+- **UI 控件能力边界**：client-textbox 的字号/颜色/对齐/文案 CLI 改不了（Lua 运行时赋值）；加控件只能
+  `assets:ui clone`（`create --on container:` 不成立）。细节见 `examples/football/design/HUD-v1.md`。
 
-### 行为层（零证据，本轮最重要的发现）
+### 行为层
 
-- 近 32 份 `Beyond_Debug_Log/*.gia` 中**没有任何一份含 `[fb-in]`**（Lua 从未在带日志的试玩里跑过），
-  `fb-heartbeat` 只在 2026-10-28 07:22 那份 256B 短日志出现过一次。
-- ⇒ 物理内核 v2 / Lua 输入桥 / HUD **三层都只有结构层证据**；`VERIFY-PHYSICS.md` 给出「一条试玩周期验四条链」的步骤与失败分支。
+- 2026-10-29 前：近 32 份日志无 `[fb-in]`（**那是读错字段**：Lua print 落 f23，`text` 子命令只解 f22；详见
+  `debug-log-investigator`）。2026-10-30 起行为层读数齐备（见下方 10-30 节）。
 
-### 断点（下一轮从这里接）
+- 旧断点（一条试玩验四链 / M1-a 通道实验 / HUD v2）已并入 10-30 节，步骤见 `VERIFY-PHYSICS.md` 与 `HUD-v1.md`。
 
-1. **一条试玩周期验四条链**（用户执行，约 3 分钟）：重开地图 1073741827 → 试玩 → 站 3 秒 → 按 ①~⑥ → 带球 5 秒 → 射门三次 → 退出；
-   我解析新日志判 V1~V4（见 `examples/football/design/VERIFY-PHYSICS.md` §2/§4）。
-2. **M1-a 通道实验（10 分钟）**：服务端写玩家自定义变量 → Lua `GetGlobalCustomVariableValue(PlayerSelf, …)` 读到值；
-   成立后进 M1-b（kitMatch 比赛图：计时/比分/开球/结束/重开）。
-3. HUD 视觉 v2（底板图像控件、技能条双态高亮）——依赖 M1 数据通道，排在后面。
+## 2026-10-30 现状读数（行为层首次成形）
+
+- **玩家角色位置正解**：玩家序号 → `getPlayerGuidByPlayerId` → `queryEntityByGuid` →
+  `getAllCharacterEntitiesOfSpecifiedPlayer` → `[0]` → 位置（抄奇域资产中心复合节点「玩家，角色，关卡」，
+  反解见 `docs/game-engine-knowledge/entity-acquisition.md`）。
+- **四条死路**：控制器实体坐标恒 `(0,y,0)`；角色列表[0] 常是掉场实体（与球距离中位 26.5m）；
+  `int→guid` 不支持；20008 图无 `getCurrentCharacter` 一类节点。
+- **步长**：内核实跑 14~27Hz，固定 DT=0.1333（7.5Hz 标定）⇒ 模拟时间快 3.5 倍；`queryGameTimeElapsed` 是游戏时钟不能当墙钟。
+  现由 Lua `OnUpdate(dt)` 每 2 帧上报，服务端折 `fb_dt`。
+- **运动器**：定点器 + 旋转设备同链叠加会让直线设备秒停（`motion-devices.md` §10）；平移改
+  `add_uniform_basic_linear_motion_device`，时长取 `fb_dt`。
+- **接触模型**：改为法向冲量 + 库仑上限 + 消滑移冲量（`I=2/5mR²`，v 与 ω 同步）。
+
+图与挂载（地图 1073741827）：`kitLoop` 1082130436（载体 20008，物理）／`kitRender` 1073741828（真足球，渲染 +
+选项卡锁存 `fbc_e`）／`kitListen` 1073741826（载体，输入中继 + 四步链写 `fbvx/fbvz/fbvy` + `fb_dt`）／
+`kitPpos` 1073741829（玩家槽 1086324737..745 实体层，备用）／`kitStatus` `kitDecision` 1082130437/38。
+探针：内核每拍发 `tag='Q1'..'Q5'` 把 10 个固定 GUID 候选坐标塞进服务端日志（客户端 print 不落 .gia）。
+
+**断点**：①等本轮试玩日志（`fbvx/fbvz` 是否随动、`tag=B` 球状态、`tag=Q*` 候选）②4v4 多玩家把玩家序号做成参数。
