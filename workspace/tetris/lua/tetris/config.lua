@@ -729,15 +729,18 @@ NUM.UI_KIT = {
   MIN_W = 96, MIN_H = 56,     -- 命中区下限（1280 宽基准；ui.lua 会按 min(W/1280,1) 收缩前先夹住）
   FS = 22, FS_MIN = 20,       -- 按钮字号 / 全 UI 最小字号
   PRESS_DY = 4,               -- 按下态下沉像素（三态统一的唯一定义）
-  EDGE = 3,                   -- 描边细边宽度
+  EDGE = 2,                   -- 描边细边宽度（v5.34：3→2，配合淡描边更轻盈）
   GAP = 14, MARGIN = 18,      -- 簇内间距 / 距画布边距
   HOLD_DELAY = 0.26, HOLD_RATE = 0.075,   -- 触屏连发：按下 0.26s 后每 0.075s 一次
 }
 
 -- ── UI 配色（按钮/能量条/引导浮层；与 THEME 同源，改风格变体时自动跟随）──────
 NUM.UI_COL = {
-  btnBg = THEME.btnBg, btnHover = THEME.card, btnPress = THEME.gold,
-  btnEdge = THEME.goldDeep, btnText = THEME.textMain,
+  -- v5.34（用户：边框颜色要跟主题适配，'好看和舒适'优先）：原来 btnEdge = 深金 + 3px 描边，
+  -- 在浅色纸面上像旧时代的高亮边框；改成**淡暖描边 2px + 暖奶油底**，默认不抢眼，
+  -- 悬停才稍微提亮、按下略微沉一点（不再用整块金色当按下态）。
+  btnBg = C(255, 250, 243, 253), btnHover = C(255, 253, 248, 253), btnPress = C(255, 243, 230, 253),
+  btnEdge = C(188, 200, 176, 150), btnText = THEME.textMain,
   barBg = C(255, 226, 234, 244), barFill = THEME.hint,
   panel = THEME.panel, dim = C(160, 30, 46, 66),
 }
