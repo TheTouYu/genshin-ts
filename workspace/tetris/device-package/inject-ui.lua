@@ -649,7 +649,11 @@ M.new = function(spec)
         for _, rr in ipairs(p.nav or {}) do if rr.id == 'page' then r = rr end end
       end
       placeBtn(b, r)
+      -- 注册到巡检表：`ctl dump screen=game` 会打印每颗拇指键的**实际屏幕坐标**
+      -- （测试拿它算点击坐标，别再手写会漂移的魔数）
+      if r and b.hit then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
     end
+    if U.mobile and U.dump then pcall(U.dump, U.cur or 'game') end
   end
 
   ----------------------------------------------------------------------------

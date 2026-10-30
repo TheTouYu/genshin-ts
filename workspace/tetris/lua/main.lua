@@ -2562,6 +2562,15 @@ MS.addShape = function(name, spec)
   if not ok then pcall(function() c:SetImage('StaticReference', img) end) end
   return c
 end
+-- 胶囊零件（圆角面板）：中段矩形 + 左右两个半圆。返回三块坐标，便于整体位移/换色。
+MS.pillParts = function(name, x, y, w, h, fill)
+  local body = math.max(2, w - h)
+  return {
+    { ctl = MS.addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill }), x = x, y = y },
+    { ctl = MS.addShape(name .. 'L', { s = 'circle', x = x - body / 2, y = y, w = h, h = h, c = fill }), x = x - body / 2, y = y },
+    { ctl = MS.addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill }), x = x + body / 2, y = y },
+  }
+end
 -- 胶囊（圆角面板）：矩形 + 两端半圆 = 圆润可爱的主体语汇（真机没有圆角矩形图元）
 MS.addPill = function(name, x, y, w, h, fill)
   local body = math.max(2, w - h)
@@ -2620,8 +2629,9 @@ MS.build = function()
   local titleY = math.min(winTop + (halfH - winTop) * 0.5 + 2, halfH - 48)
   local bannerH = titleSize + 20
   MS.addPill('menuBanner', 0, titleY, 580, bannerH, MS.over(MS.WALL, THEME.gold, 0.34))
-  MS.addCell('menuBannerRule', 0, titleY + bannerH / 2 - 3, 240, 3, THEME.goldDeep)
-  MS.addCell('menuBannerRule2', 0, titleY - bannerH / 2 + 2, 240, 3, THEME.goldDeep)
+  -- v5.11（用户：「这个质量能交付吗」）：去掉上下两条横贯金线 —— 它们比文字宽、又贴在胶囊边上，
+  -- 读起来像一条误入的边框线。标题只留胶囊本身。
+  MS.addCell('menuBannerRule', 0, titleY - bannerH / 2 + 6, 150, 3, THEME.goldDeep)
   -- 框高硬判据 h >= fontSize*1.45+4（52 号要 79.4；旧写法 +26 在 PC 画布上少 1.4px ⇒ 整行不画）
   MS.big = MS.addText('menuBig', '俄罗斯方块', 0, titleY, 660, math.floor(titleSize * 1.45 + 12), titleSize, THEME.goldDeep)
   trySet(topBanner, 'fontColor', C(0, 255, 194, 76))
@@ -2634,17 +2644,41 @@ MS.build = function()
   MS.lineY = lineY
   -- v5.4 修 A6（4/5 份评审：「手机画布上仍是键盘话术」）：提示条按宿主分两套。
   -- 触屏没有 1-4 / H 键，手机端只写玩家真能做的两个动作：点卡片选模式、点右上角两个按钮。
-  local segs = IS_MOBILE
-    and { { '点卡片选模式', -250, 340, 24 }, { '右上角：角色 · 说明', 250, 470, 24 } }
-    or { { MS.hintText[1], -290, 215, 26 }, { MS.hintText[2], 0, 250, 26 }, { MS.hintText[3], 290, 215, 26 } }
+  -- v5.8（用户 2026-10-30：「新加的最下面两个就是废话，还原为之前的版本」）：
+  -- 底部提示条恢复三段键盘话术，两端一致；手机端也不再单独换文案。
+  local segs = { { MS.hintText[1], -290, 215, 26 }, { MS.hintText[2], 0, 250, 26 }, { MS.hintText[3], 290, 215, 26 } }
   for i = 1, #segs do
     -- v5.7：底部操作提示用**墨色**（原来 textSub 在奶油底上几乎看不见，用户截图里像被裁掉的灰字）
     MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], THEME.textMain)
   end
   MS.segX = { -290, 0, 290 }
-  if not IS_MOBILE then
-    MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
-    MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
+  MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
+  MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
+  -- ===== v5.13 控件组件工厂（用户 2026-10-30：「按钮就该是组件，10 秒一个、可定制」）=====
+  -- 六件套：胶囊形状 / 文字高度 / 键帽 / cursor 热区(y 取负) / **UI4.regAdd 命中注册** / 三态+音效。
+  -- 历史事故：入口卡漏了 regAdd ⇒ 画得漂亮但指针完全够不到（无悬停音、无高亮、点击死）。
+  if not CTL then
+    local m = loadModule('controls')
+    CTL = (m and m.new) and m.new({
+      trySet = trySet, tryCall = tryCall, addCursor = addCursor, sfx = sfx, SFX = SFX,
+      addShape = function(n, sp) return MS.addShape(n, sp) end,
+      addText = function(n, txt, x, y, w, h, fs, col) return MS.addText(n, txt, x, y, w, h, fs, col) end,
+      addHit = function(n, w, h)
+        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+        if not ok or not z then return nil end
+        z.name = n
+        tryCall(z, 'SetSizeDelta', w, h)
+        return z
+      end,
+      onPart = function(c) MS.parts[#MS.parts + 1] = c end,
+      regAdd = function(n, c, w, h) UI4.regAdd(n, c, w, h) end,
+      regScreen = function(n) UI4.regScreen(n) end,
+      wall = MS.WALL, gold = THEME.gold, goldDeep = THEME.goldDeep,
+      cyan = MS.CYAN, cyanDeep = THEME.cyanDeep, ink = THEME.textMain, subInk = THEME.textSub,
+      over = function(base, c, k) return MS.over(base, c, k) end,
+      print = print,
+    }) or nil
+    if not CTL then print('controls module FAIL（按钮回退到手写实现）') end
   end
   -- v5.4 修用户 2026-10-30 反馈 一-1「开局没有看到角色相关的模块图标设计」：
   -- 标题页右上角补一张**角色档案入口卡**（四角色色点 + I 键 + 可点热区）。
@@ -2655,58 +2689,43 @@ MS.build = function()
     local CW, CH = CANVAS_W or 1280, CANVAS_H or 720
     local ex = math.min(520, CW / 2 - 169)
     local ey = IS_MOBILE and (CH / 2 - 138) or 302
-    MS.addCell('menuEntryRosterBg', ex, ey, 290, 96, THEME.panel)
-    MS.addCell('menuEntryRosterEdge', ex, ey - 49, 290, 3, THEME.gold)
-    MS.addCell('menuEntryRosterBar', ex - 142, ey, 6, 96, THEME.goldDeep)
-    MS.addText('menuEntryRosterTitle', '角色档案', ex + 26, ey + 14, 210, 40, 24, THEME.goldDeep)
-    MS.addText('menuEntryRosterSub', IS_MOBILE and '点我看契约与技能' or 'I 键 · 点我看契约与技能',
-      ex + 26, ey - 20, 240, 30, 15, MS.CYAN)
-    -- v5.6（用户二轮一-2「移动端有角色/说明按钮，PC 没有，严重的 UI 不一致」）：
-    -- PC 端也补一颗「说明」入口，与角色卡并排，两端的入口从此一致（PC 额外标 H 键）。
-    -- v5.7（用户：「图2 移动端和 PC 不一致」）：说明入口卡**两端都出**，手机不再靠右上角两颗小按钮
-    local hx = ex - 240
-    MS.entryHelpX = hx
-    MS.addCell('menuEntryHelpBg', hx, ey - 18, 150, 60, THEME.panel)
-    MS.addCell('menuEntryHelpEdge', hx, ey - 46, 150, 3, THEME.gold)
-    MS.addText('menuEntryHelpTitle', '说明', hx, ey + 12, 120, 36, 22, THEME.goldDeep)
-    MS.addText('menuEntryHelpSub', IS_MOBILE and '点我看规则' or 'H 键 · 全部规则', hx, ey - 16, 150, 28, 14, MS.CYAN)
-    local dots = {
-      { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 },
-    }
+    -- v5.10（用户：「角色和帮助不还是没有圆角吗」）：两张入口卡改成**同款胶囊**（三块圆角），
+    -- 与四张模式卡同一套视觉语汇；去掉了那条横贯的金线（直角面板才需要它）。
+    -- ===== v5.13：两张入口卡改由**组件工厂**生成（原来是手写四遍里的第三遍）=====
+    -- 一个按钮 = CTL.btn{...}：胶囊形状 / 文字高度 / 键帽 / 热区(y 取负) / regAdd 命中注册 / 三态+音效
+    -- 全部内置。新增同类按钮只需改 spec 里的七八个字段（下面两张卡各占 5 行）。
+    local rosterBtn = CTL and CTL.btn({
+      id = 'menu.entryRoster', screen = 'menu', x = ex, y = ey, w = 290, h = 96,
+      label = '角色档案', sub = IS_MOBILE and '点我看契约与技能' or 'I 键 · 点我看契约与技能',
+      key = 'I', preset = 'gold', fs = 22, dx = 46,
+      onClick = function() keyConsumedFrame = frameSeq FN.rosterToggle() end,
+    })
+    -- 四色点：装饰件（按钮组件不管内容插画，调用方自己叠）
+    local dots = { { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 } }
     for i = 1, #dots do
       local d = dots[i]
-      MS.addCell('menuEntryDot' .. i, ex - 108 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
+      MS.addCell('menuEntryDot' .. i, ex - 118 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
     end
-    if TPL_HIT then
-      local okz, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-      if okz and zh then
-        zh.name = 'menuZoneRoster'
-        tryCall(zh, 'SetSizeDelta', 290, 96)
-        -- ⚠ cursor 控件的 y 轴与图片**相反**（同 roster.lua 里的热区约定）⇒ 取负才是屏幕上的位置
-        tryCall(zh, 'SetAnchoredPosition', ex, -ey)
-        addCursor(zh, 'CursorDown', function() sfx(SFX.hover, true) keyConsumedFrame = frameSeq end)
-        addCursor(zh, 'CursorClick', function() keyConsumedFrame = frameSeq FN.rosterToggle() end)
-        MC[#MC + 1] = zh
-        MS.rosterZone = zh
-        print('menu roster entry=ok')
-      end
-      -- 说明卡热区（与角色卡同一套：悬停音 + 点击=开说明页）
-      local okh2, zh2 = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-      if okh2 and zh2 then
-        zh2.name = 'menuZoneHelp'
-        tryCall(zh2, 'SetSizeDelta', 150, 60)
-        tryCall(zh2, 'SetAnchoredPosition', MS.entryHelpX, -(ey - 18))
-        addCursor(zh2, 'CursorDown', function() sfx(SFX.hover, true) keyConsumedFrame = frameSeq end)
-        addCursor(zh2, 'CursorClick', function()
-          keyConsumedFrame = frameSeq
-          print('menu help card tap')
-          if helpOpen then closeHelp() else toggleHelp() end
-        end)
-        MC[#MC + 1] = zh2
-        MS.helpZone2 = zh2
-        print('menu help card=ok')
-      end
+    local hx = ex - 240
+    MS.entryHelpX = hx
+    local helpBtn = CTL and CTL.btn({
+      id = 'menu.entryHelp', screen = 'menu', x = hx, y = ey - 18, w = 156, h = 66,
+      label = '说明', sub = IS_MOBILE and '点我看规则' or 'H 键 · 全部规则',
+      key = 'H', preset = 'gold', fs = 20, dx = 30, subFs = 13,
+      onClick = function()
+        keyConsumedFrame = frameSeq
+        print('menu help card tap')
+        if helpOpen then closeHelp() else toggleHelp() end
+      end,
+    })
+    -- 兼容旧引用（别处只用到这两个字段做摆位/校验）
+    MS.rosterZone = rosterBtn and rosterBtn.zone or nil
+    MS.helpZone2 = helpBtn and helpBtn.zone or nil
+    MS.entryHover = function(which, st)
+      local b = (which == 'roster') and rosterBtn or helpBtn
+      if b then b.style(st) end
     end
+    print('menu entries via CTL ok=' .. tostring(rosterBtn ~= nil) .. '/' .. tostring(helpBtn ~= nil))
   end
   -- v3.2 原神文案：标题屏「旅行者手记」轮播位。
   -- 为什么走实例文字：服务端 textbox 被展台墙（menuWall*）压在下面，标题页文案只能靠实例；
@@ -2852,16 +2871,27 @@ MS.modes = function()
       local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
       local leftX = cx + 30                      -- 列内统一左缘（不贴画布边）
       -- v3.0：胶囊卡（圆润）+ 元素宝珠（圆点）+ 星芒（右上），字压在卡上（先建底、后建字）
-      local pill = MS.addPill('menuPill' .. i, cx + 10, cy, 400, 100,
-        MS.over(MS.WALL, info.color, 0.17))
+      -- v5.9：胶囊拆成三块并**逐块记坐标**（旧写法 addPill 没有返回值 ⇒ sel.pill 恒 nil ⇒
+      -- 卡面颜色从不跟三态变，用户看到的"没有三种样式"就是这个）。三块一起动才不会散架。
+      local pw, ph = 400, 100
+      local pbody = math.max(2, pw - ph)
+      local pillFill = MS.over(MS.WALL, info.color, 0.17)
+      local pillParts = {
+        { ctl = MS.addShape('menuPillB' .. i, { s = 'rect', x = cx + 10, y = cy, w = pbody, h = ph, c = pillFill }), x = cx + 10, y = cy },
+        { ctl = MS.addShape('menuPillL' .. i, { s = 'circle', x = cx + 10 - pbody / 2, y = cy, w = ph, h = ph, c = pillFill }), x = cx + 10 - pbody / 2, y = cy },
+        { ctl = MS.addShape('menuPillR' .. i, { s = 'circle', x = cx + 10 + pbody / 2, y = cy, w = ph, h = ph, c = pillFill }), x = cx + 10 + pbody / 2, y = cy },
+      }
       local bead = MS.addShape('menuBead' .. i, { s = 'circle', x = cx - 160, y = cy, w = 22, h = 22, c = info.colorDeep })
       local star = MS.addShape('menuStar' .. i, { s = 'fourstar', x = cx + 178, y = cy, w = 26, h = 26, c = mcRGB(info.color, 150) })
       MS.sel[i] = {
-        pill = pill, bead = bead, star = star,
+        pillParts = pillParts, bead = bead, star = star,
         title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name,
           leftX, cy + 18, 330, 70, 38, THEME.textMain, 'Left'),
         desc = mcText('menuDesc' .. i, info.desc,
           leftX, cy - 30, 330, 32, 15, THEME.textSub, 'Left'),
+        -- 三态需要"整卡位移"：记下每个零件的基准坐标，cardStyle 再按状态加 dy
+        base = { pill = { cx + 10, cy }, bead = { cx - 160, cy }, star = { cx + 178, cy },
+                 title = { leftX, cy + 18 }, desc = { leftX, cy - 30 } },
       }
     end
   elseif MENU_STYLE == 'B' then
@@ -2967,24 +2997,42 @@ MS.cardStyle = function(i, state)
   local hover = (state == 'hover')
   local press = (state == 'press')
   local hot = hover or press
+  -- v5.8（用户：「鼠标悬浮 / 静止 / 按住要三种样式」）：
+  -- 悬浮=整卡**抬起 6px** + 卡底更实 + 标题放大一号；按下=**压下 6px** + 卡底更深 + 标题再收回来。
+  -- 只改颜色用户看不出来（旧实现只动 alpha 0.17→0.26），位移才是能一眼读到的状态差。
+  local dy = press and -6 or (hover and 6 or 0)
+  if sel.pillParts then
+    local fill = MS.over(MS.WALL, info.color, press and 0.46 or (hover and 0.32 or 0.17))
+    for k = 1, #sel.pillParts do
+      local part = sel.pillParts[k]
+      if part.ctl then
+        trySet(part.ctl, 'imageColor', fill)
+        tryCall(part.ctl, 'SetAnchoredPosition', part.x, part.y + dy)
+      end
+    end
+    -- 字/宝珠/星芒跟着整卡一起上下（原来只动颜色，位移读不出来）
+    local b = sel.base
+    if b then
+      local function mv(ctl, xy) if ctl and xy then tryCall(ctl, 'SetAnchoredPosition', xy[1], xy[2] + dy) end end
+      mv(sel.bead, b.bead) mv(sel.star, b.star) mv(sel.title, b.title) mv(sel.desc, b.desc)
+    end
+  end
   if sel.title then
-    trySet(sel.title, 'fontSize', press and 42 or (hover and 40 or 38))
+    trySet(sel.title, 'fontSize', press and 40 or (hover and 44 or 38))
     trySet(sel.title, 'fontColor', hot and info.colorDeep or THEME.textMain)
   end
   if sel.desc then
     trySet(sel.desc, 'fontColor', hot and THEME.textMain or THEME.textSub)
   end
   if sel.bead then
-    local d = press and 30 or (hover and 26 or 22)
+    local d = press and 26 or (hover and 30 or 22)
     tryCall(sel.bead, 'SetSizeDelta', d, d)
     trySet(sel.bead, 'imageColor', hot and info.colorDeep or info.color)
   end
   if sel.star then
     trySet(sel.star, 'imageColor', mcRGB(info.color, hot and 230 or 150))
   end
-  if sel.pill then
-    trySet(sel.pill, 'imageColor', MS.over(MS.WALL, info.color, press and 0.42 or (hover and 0.26 or 0.17)))
-  end
+
 end
 MS.hoverCard = function(i)
   if helpOpen or pendingMode or FN.overlayOpen() then return end
@@ -3032,6 +3080,12 @@ MS.buildHoverZones = function()
     MS.zones[i] = z
     UI4.regAdd('menu.mode' .. i, z, 416, 108)
   end
+  -- v5.12（用户：「四个模式鼠标经过有音效和高亮，角色和说明却没有」）：
+  -- 根因=**热区没进 UI4 的命中注册表**。模式卡在下面这行 `UI4.regAdd('menu.mode'..i, ...)` 里登记，
+  -- 而入口卡当初只建了 cursor 控件、没 regAdd ⇒ 模拟器/真机的 pointer 派发根本看不到它们：
+  -- 没有 Enter/Exit（所以没悬停音、没高亮），连点击也是死的。
+  if MS.rosterZone then UI4.regAdd('menu.entryRoster', MS.rosterZone, 290, 96) end
+  if MS.helpZone2 then UI4.regAdd('menu.entryHelp', MS.helpZone2, 150, 60) end
   -- v2.7 ④ 用户要求「H 按钮常驻」：底栏第三段「H 游戏说明」本身做成可点热区（键盘 H/E 之外的鼠标入口）
   local okH, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
   if okH and zh then
@@ -3050,7 +3104,8 @@ MS.buildHoverZones = function()
   else
     print('menu help zone=none（仅键盘 H/E 可开说明页）')
   end
-  print('menu zones n=' .. (#MS.zones + (MS.helpZone and 1 or 0)))
+  print('menu zones n=' .. (#MS.zones + (MS.helpZone and 1 or 0)
+    + (MS.rosterZone and 1 or 0) + (MS.helpZone2 and 1 or 0)))
   UI4.dump('menu')
   return true
 end
