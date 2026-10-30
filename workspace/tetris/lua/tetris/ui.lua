@@ -645,6 +645,9 @@ M.new = function(spec)
     if b.txt then
       tryCall(b.txt, 'SetSizeDelta', r.w, r.h)
       tryCall(b.txt, 'SetAnchoredPosition', r.x, r.y)
+      -- park(b) 会把文字清空（plan 里没有这颗键时）⇒ 重新摆位时把标签写回，
+      -- 否则「进局正常、点一次就全空」（用户实测的根因）。
+      if b.label then pcall(function() b.txt.text = b.label end) end
     end
     if b.hit then
       tryCall(b.hit, 'SetSizeDelta', r.w, r.h)
@@ -835,51 +838,13 @@ M.new = function(spec)
   -- v5.38：浮层（角色页/说明页/结算）打开时把手机按键整体收走 —— 否则它们会浮在浮层上
   -- （用户截图：角色页底部多出一颗「合上」、左侧还留着绿色圆点与黑条）。
   -- park=true 全部挪到 y=-4000；false 用最后一次 plan 摆回来（不改任何状态）。
+  -- v5.39：**停用**按键收拢（保留函数名，调用方不用改）。
+  -- 起因：收拢/还原会把按键文字弄丢（还原后是空胶囊），复现路径是"进局→开说明→关说明"。
+  -- 代价：浮层期间手机会看到按键仍浮着（下一版改成"浮层时把手机按键整组隐藏"再做，
+  -- 需要先把按钮的 label/几何做成单一真源，不能靠搬坐标）。
   U.padVisible = function(show)
-    if not U.mobile then return end
     U.padHidden = not show
-    -- 不依赖 b.x/b.y（那套字段只有 applyButtons 分支会写）：直接**读控件当前位置**再存/还，
-    -- 这样 pad/nav/act 三组、以及 pen* 边缘胶囊都能一起收放（角色页底部残留「合上」就是这个漏的）。
-    -- 权威清单 = U.allBtns（applyButtons 就是按它摆的）；三组表会漏掉按 plan 现造的导航键
-    -- （角色页底部那颗「合上」= plan.nav 的 close，不在三组里 ⇒ 一直收不走）
-    local function each(fn)
-      if U.allBtns and #U.allBtns > 0 then
-        for _, b in ipairs(U.allBtns) do fn(b) end
-        return
-      end
-      for _, tbl in ipairs({ U.btns or {}, U.navBtns or {}, U.actBtns or {} }) do
-        for _, b in ipairs(tbl) do fn(b) end
-      end
-    end
-    local function parkOne(c)
-      if not c then return nil end
-      local x, y = U.pos(c)
-      tryCall(c, 'SetAnchoredPosition', 0, -4000)
-      return { c = c, x = x, y = y }
-    end
-    if not show then
-      U.padSaved = {}
-      each(function(b)
-        local t = parkOne(b.txt)
-        if t then t.label = b.label end
-        U.padSaved[#U.padSaved + 1] = { parkOne(b.edge), parkOne(b.bg), t, parkOne(b.hit) }
-      end)
-    else
-      -- 还原**必须按存档坐标**，不能用 applyButtons(U.lastPlan)：那时 lastPlan 是角色页的
-      -- （没有 pad 的 label）⇒ 一还原就把所有按键文字清空（本轮实测的二次回归）。
-      for _, rec in ipairs(U.padSaved or {}) do
-        for i = 1, #rec do
-          local v = rec[i]
-          if v then
-            tryCall(v.c, 'SetAnchoredPosition', v.x, v.y)
-            -- 位置回来了但**文字被上一次 plan（角色页没有 pad 标签）清空**过 ⇒ 一并写回标签
-            if v.label and v.c then pcall(function() v.c.text = v.label end) end
-          end
-        end
-      end
-      U.padSaved = nil
-    end
-    print('pad visible=' .. tostring(show) .. ' n=' .. #(U.padSaved or {}))
+    return true
   end
 
   U.apply = function(screen, dual, mode, guide)

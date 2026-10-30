@@ -2874,7 +2874,12 @@ FN.syncStage = function()
     pcall(UI4.padVisible, not overlayOn)
     -- 关浮层回局内：让 ui.lua 用**当前屏**的 plan 完整重摆一次（标签/几何/三态一起回来）。
     -- 只还原坐标是不够的——浮层那次 plan 已经把按键文字清空过（本轮实测的残留）。
-    if not overlayOn and guideStage ~= 0 and UI4.layout then pcall(UI4.layout) end
+    -- 关浮层回局内：用 **game 屏**的 plan 完整重摆（标签/几何/三态一起回来）。
+    -- 只调 layout 不够——U.screen 可能还停在 help/roster，那套 plan 没有 pad 标签，
+    -- 一摆就把按键文字清空（用户实测：进局正常、点一次就全空）。
+    if not overlayOn and guideStage ~= 0 and UI4.apply then
+      pcall(UI4.apply, 'game', (G[2] and true or false), MODE, guideStage)
+    end
   end
 end
 MS.teardown = function()
