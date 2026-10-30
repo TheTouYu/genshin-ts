@@ -66,14 +66,26 @@ g
       }
     )
     const pos = evt.params.pos
-        const spin = evt.params.spin
+    const vel = evt.params.vel
+    const spin = evt.params.spin
         const loc = f.getEntityLocationAndRotation(ball).location
-        const delta = f._3dVectorSubtraction(pos, loc)
+        // ———— 预测目标（2026-10-30 平滑性修复）————
+        // 旧做法直接把「内核上一拍的 pos」当目标：内核只 15Hz，目标天然落后一拍，
+        // 于是每拍算出的 (target−cur) 忽大忽小 ⇒ 运动器每拍被换成速度不一致的一段
+        // ⇒ 60fps 下看就是一顿一顿。改成朝 **pos + vel×dt**（预测位）走，
+        // 相邻两段的衔接才连续。
+        const predicted = f._3dVectorAddition(pos, f._3dVectorZoom(vel, driveDur.value))
+        const delta = f._3dVectorSubtraction(predicted, loc)
         const dist = f._3dVectorModuloOperation(delta)
         // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
         //   「直线设备的 velocity 显式算成 (target-current)/duration，可同时拿到精确到点与不漂移」）
         const velToTarget = f._3dVectorZoom(delta, f.division(1.0, driveDur.value))
         // 大跳用定点器瞬移（§10：定点器仍可用于 INSTANT_MOVEMENT，别全盘禁用）
+        // 位移极小（球基本静止）时不重发设备，减少每拍设备 churn
+        f.doubleBranch(
+          f.lessThan(dist, 0.012),
+          () => {},
+          () => {
         f.doubleBranch(
           f.greaterThan(dist, new float(TELEPORT_DIST)),
           () => {
@@ -121,6 +133,9 @@ g
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
             f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', driveDur.value, angVel.value, localAxis)
+          },
+          () => {}
+        )
           },
           () => {}
         )

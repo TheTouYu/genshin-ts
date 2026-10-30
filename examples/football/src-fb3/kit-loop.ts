@@ -749,9 +749,26 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   // 用户 2026-10-27：y 必须固定死、不许出现在草地上（此前用「玩家 y−1.8」求相对高度，
   //   一旦玩家位置读回异常就会浮到地面）。⇒ 现在用**常量坐标**，不依赖任何读回值。
   // 频率读数（2026-10-27 18:13 试玩日志）：389 条 kitLoop / 53s ≈ 7.3/s，停在地下不影响施放频率。
-  f.complexCreationTeleport(
-    f.create3dVector(pPxV.value, CARRIER_Y, pPzV.value),
-    f.create3dVector(0.0, 0.0, 0.0)
+  // 载体跟随（2026-10-30 性能修复）：原来**每拍**都 complexCreationTeleport，
+  // 15~27 次/秒的传送对引擎是重操作（重建空间索引 + 重绑 AI/技能）。
+  // 改成「离玩家超过 1.5m 才传送」：载体只是算力中心，滞后 1.5m 无感；玩家静止时 0 次/秒。
+  const carrierNow = f.split3dVector(f.getEntityLocation(f.getSelfEntity()))
+  const carrierLag = f._3dVectorModuloOperation(
+    f.create3dVector(
+      f.subtraction(pPxV.value, carrierNow.xComponent),
+      0.0,
+      f.subtraction(pPzV.value, carrierNow.zComponent)
+    )
+  )
+  f.doubleBranch(
+    f.greaterThan(carrierLag, 1.5),
+    () => {
+      f.complexCreationTeleport(
+        f.create3dVector(pPxV.value, CARRIER_Y, pPzV.value),
+        f.create3dVector(0.0, 0.0, 0.0)
+      )
+    },
+    () => {}
   )
 
   // ———— 每拍回传（服务端 kitRender 每拍驱一次运动器）————
