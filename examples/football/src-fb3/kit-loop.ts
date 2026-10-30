@@ -64,7 +64,9 @@ const MAX_SPEED = 18.0
 const RESTITUTION = 0.5
 const GROUND_FRICTION = 0.82 // 触地切向摩擦（事件型）
 const AIR_DRAG = 0.995 // 每拍空气阻力
-const ROLL_FRICTION = 0.985 // 每拍滚动摩擦
+const ROLL_FRICTION = 0.985 // 旧值（已不再使用，保留常量避免其它引用断裂）
+const ROLL_MU = 0.06 // 滚动阻力系数：减速度 = 0.06·9.8 ≈ 0.59 m/s²（草地量级）
+const FRICTION_LOSS = 0.9 // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
 const SPIN_DECAY = 0.985 // 每拍自旋衰减（空中）
 const SPIN_GROUND = 0.85 // 触地自旋衰减
 const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
@@ -550,13 +552,30 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             f.multiplication(gamma.value, f.addition(sz, f.multiplication(2.5, sx))),
             5.25
           )
-          vx.set(f.addition(vx.value, a))
-          vz.set(f.addition(vz.value, b))
-          wx.set(f.addition(wx.value, f.division(f.multiplication(-2.5, b), BALL_R)))
-          wz.set(f.addition(wz.value, f.division(f.multiplication(2.5, a), BALL_R)))
-          // 滚动阻力（地面接触始终存在）
-          vx.set(f.multiplication(vx.value, ROLL_FRICTION))
-          vz.set(f.multiplication(vz.value, ROLL_FRICTION))
+          // 摩擦冲量带损耗（2026-10-30：实测球速每拍不衰减 —— 无损消滑移冲量把自旋能量
+          // 全转成前进速度，球"越磨越快"；真实摩擦必须耗能 ⇒ 系数 0.9）
+          const aD = f.multiplication(a, FRICTION_LOSS)
+          const bD = f.multiplication(b, FRICTION_LOSS)
+          vx.set(f.addition(vx.value, aD))
+          vz.set(f.addition(vz.value, bD))
+          wx.set(f.addition(wx.value, f.division(f.multiplication(-2.5, bD), BALL_R)))
+          wz.set(f.addition(wz.value, f.division(f.multiplication(2.5, aD), BALL_R)))
+          // 滚动阻力：**恒定减速度**（ROLL_MU·g），与帧率无关
+          //   旧写法 v*=0.985/拍 在 10Hz 与 26Hz 下衰减速率差 2.6 倍，且几乎没有阻尼
+          const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
+          const decel = f.multiplication(f.multiplication(ROLL_MU, GRAVITY), dtv.value)
+          const keepF = f.localVariable('float')
+          f.doubleBranch(
+            f.greaterThan(spH, decel),
+            () => {
+              keepF.set(f.division(f.subtraction(spH, decel), spH))
+            },
+            () => {
+              keepF.set(0.0)
+            }
+          )
+          vx.set(f.multiplication(vx.value, keepF.value))
+          vz.set(f.multiplication(vz.value, keepF.value))
           const spG = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
           f.doubleBranch(
             f.lessThan(spG, REST_SPEED),
