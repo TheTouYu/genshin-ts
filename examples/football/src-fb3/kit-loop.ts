@@ -403,11 +403,17 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const distTarget = f._3dVectorModuloOperation(
         f.create3dVector(ddx, f.subtraction(GROUND_Y, by.value), ddz)
       )
+      // 触发条件用「球到**玩家**的距离」（2026-10-30 修）：原来用 distTarget（球到"玩家身前 1.3m 目标点"），
+      // 等于要求球已经站在目标点上才允许带球 —— 日志 3426 实证：球在玩家 2.4m 内共 89 拍，
+      // 带球状态 0 拍（球贴脚却永远不进入带球）。
+      const ballToPlayerNow = f._3dVectorModuloOperation(
+        f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))
+      )
       const dribble = f.logicalAndOperation(
         f.logicalNotOperation(kickNow),
         f.logicalAndOperation(
           canDribbleAfterTackle,
-          f.logicalAndOperation(f.lessThan(distTarget, DRIBBLE_R), f.lessThan(speed0, 8.0))
+          f.logicalAndOperation(f.lessThan(ballToPlayerNow, DRIBBLE_R), f.lessThan(speed0, 8.0))
         )
       )
       f.doubleBranch(
@@ -613,6 +619,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
         () => {
+          // 诊断打点（2026-10-30）：客户端图不能用 print（CLIENT_HELPER_UNAVAILABLE），
+          // 改用「把状态置 99」——99 不在六态里，服务端帧日志里一眼能看出这条分支有没有进。
           bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
           by.set(f.addition(0.0, CENTER_Y))
           bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
@@ -622,7 +630,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           wx.set(0.0)
           wy.set(0.0)
           wz.set(0.0)
-          mode.set(4n)
+          mode.set(99n)
         },
         () => {}
       )
