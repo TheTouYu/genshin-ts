@@ -136,6 +136,7 @@ type Args = {
   write: boolean
   outputPath?: string
   json: boolean
+  count: number
 }
 
 function usage(exitCode = 1): never {
@@ -151,7 +152,8 @@ function usage(exitCode = 1): never {
     '  --map-id <id>     target map ID',
     '  --gil <file>      explicit GIL source',
     '  --id <id>         技能变量配置 ID（段起点 1207959553，按创建顺延）',
-    '  --name <string>   变量名（默认「技能变量」；写入 f4.kind=1.f11.f1 UTF-8）',
+    '  --name <string>   变量名（默认「技能变量」）；--count>1 时按 <name><序号> 顺延（序号从 1）',
+    '  --count <n>       一次建 n 个（id 从 --id 起顺延；一次写回、一次备份）',
     '  --output <file>   候选输出（不覆盖）',
     '  --write           备份后写回源 GIL（并同步 Temp）',
     '  --json            list：机器可读',
@@ -167,6 +169,7 @@ function parseArgs(argv: string[]): Args {
   let gil = ''
   let write = false
   let json = false
+  let count = 1
   let id: number | undefined
   let name: string | undefined
   let outputPath: string | undefined
@@ -188,6 +191,7 @@ function parseArgs(argv: string[]): Args {
     else if (arg === '--output') outputPath = next()
     else if (arg === '--write') write = true
     else if (arg === '--json') json = true
+    else if (arg === '--count') count = Number(next())
     else usage()
   }
   if (write && outputPath) throw new Error('[error] --write 与 --output 互斥')
@@ -196,7 +200,8 @@ function parseArgs(argv: string[]): Args {
   }
   if (!gil) throw new Error('[error] 需要 --gil，或 --config + --map-id')
   if (sub === 'create' && (!id || !Number.isSafeInteger(id))) throw new Error('[error] create 需要 --id')
-  return { sub, gil, id, name, write, outputPath, json }
+  if (!Number.isSafeInteger(count) || count < 1) throw new Error('[error] --count 必须是正整数')
+  return { sub, gil, id, name, write, outputPath, json, count }
 }
 
 /**
@@ -252,10 +257,18 @@ export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
     return
   }
 
-  const next = appendSkillVariable(payload, { id: args.id!, name: args.name ?? '技能变量' })
+  let next: Uint8Array = payload
+  for (let i = 0; i < args.count; i++) {
+    const id = args.id! + i
+    const baseName = args.name ?? '技能变量'
+    const name = args.count > 1 ? `${baseName}${i + 1}` : baseName
+    next = appendSkillVariable(next, { id, name })
+  }
   const check = listSkillVariables(next)
-  if (!check.some((v) => v.id === args.id)) {
-    throw new Error('[error] 回读失败：create 后 root15 里找不到该技能变量')
+  for (let i = 0; i < args.count; i++) {
+    if (!check.some((v) => v.id === args.id! + i)) {
+      throw new Error(`[error] 回读失败：create 后 root15 里找不到 ${args.id! + i}`)
+    }
   }
   const newFile = buildGilFile(sourceBytes, next)
   assertHeaderInvariants(newFile)
@@ -288,7 +301,8 @@ export async function runAssetsSkillVariables(argv: string[]): Promise<void> {
     console.log(`preview=${gil}`)
   }
   console.log(
-    `command=create id=${args.id} name=${args.name ?? '技能变量'} ` +
+    `command=create id=${args.id}${args.count > 1 ? `..${args.id! + args.count - 1}` : ''} ` +
+      `count=${args.count} name=${args.name ?? '技能变量'} ` +
       `sourceBytes=${sourceBytes.length} candidateBytes=${newFile.length}`
   )
 }

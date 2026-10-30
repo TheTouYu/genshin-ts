@@ -995,6 +995,47 @@ export function readEntityCustomVariables(params: {
   return { entityId: params.entityId, variables }
 }
 
+/**
+ * 删除场景实体上已声明的自定义变量（2026-10-30 新增：清理死变量）。
+ *
+ * 做法：定位实体变量容器（root5.1[entity].7.11.1.*），按名字过滤条目后重建容器。
+ * 只删容器里的声明条目；变量值随条目一起消失（编辑器里等同"删变量"）。
+ */
+export function removeEntityCustomVariableDeclarations(params: {
+  gilPath: string
+  entityId: number
+  names: readonly string[]
+}): { bytes: Uint8Array; removed: string[]; kept: number } {
+  const source = fs.readFileSync(params.gilPath)
+  const { payload, fields } = readGilPayloadFields(params.gilPath)
+  const owner = entityOwnerFor(payload, fields, params.entityId)
+  if (!owner) throw new Error(`[error] scene entity not found: ${params.entityId}`)
+  const container = variableContainerFor(fields, owner, ENTITY_PATH)
+  if (!container) throw new Error(`[error] custom variable container not found: entity ${params.entityId}`)
+  const wanted = new Set(params.names)
+  const entries = variableFieldsFor(fields, owner, ENTITY_PATH)
+  const keptChunks: Buffer[] = []
+  const removed: string[] = []
+  for (const entry of entries) {
+    const definition = parseDefinition(payload, entry)
+    if (definition && wanted.has(definition.name)) {
+      removed.push(definition.name)
+      continue
+    }
+    // LenField.dataStart/dataEnd 指向**值**（不含 tag+长度前缀），重建时要补回 1 号长度字段
+    keptChunks.push(Buffer.from(encodeLengthField(1, payload.subarray(entry.dataStart, entry.dataEnd))))
+  }
+  if (removed.length === 0) return { bytes: source, removed, kept: entries.length }
+  if (keptChunks.length === 0)
+    throw new Error('[error] refusing to remove every custom variable (leaves an empty container)')
+  const nextPayload = applyReplacement(payload, fields, container, Buffer.concat(keptChunks))
+  return {
+    bytes: rebuildGilFileFromSource(source, nextPayload),
+    removed,
+    kept: entries.length - removed.length
+  }
+}
+
 /** 更新场景实体上已存在自定义变量的初始值（root5.1[entity].7.11）。 */
 export function applyEntityCustomVariableUpdates(params: {
   gilPath: string

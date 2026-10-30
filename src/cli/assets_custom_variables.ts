@@ -15,6 +15,7 @@ import { resolveGilTarget, saveLevelDirOf } from './gil_paths.js'
 import {
   applyCustomPrefabInitialCustomVariableDeclarations,
   applyEntityCustomVariableDeclarations,
+  removeEntityCustomVariableDeclarations,
   decodeCustomVariableValue,
   readCustomPrefabInitialCustomVariables,
   readEntityCustomVariables,
@@ -31,7 +32,7 @@ function usage(): never {
     [
       'Usage: npm run assets:custom-variables -- [--config <file>] [--map-id <id> | --gil <file>]',
       '       [--write | --output <file>] [--operation <index>]',
-      '       [--entity <id> --vars "a=1;b=[x,y];d:dict=k1=[a,b]&k2=3"] [--list] [--format json]'
+      '       [--entity <id> --vars "a=1;b=[x,y];d:dict=k1=[a,b]&k2=3"] [--list] [--delete "a;b"] [--format json]'
     ].join('\n')
   )
   process.exit(1)
@@ -46,6 +47,7 @@ function parseArgs(argv: readonly string[]) {
   let operation: number | undefined
   let entityId: number | undefined
   let varsSpec: string | undefined
+  let deleteSpec: string | undefined
   let list = false
   let format: 'text' | 'json' = 'text'
   for (let i = 0; i < argv.length; i++) {
@@ -61,7 +63,11 @@ function parseArgs(argv: readonly string[]) {
       if (!Number.isSafeInteger(entityId) || entityId < 0) {
         throw new Error('[error] --entity must be a non-negative safe integer')
       }
-    } else if (arg === '--vars') varsSpec = argv[++i] ?? usage()
+    } else if (arg === '--vars') {
+      varsSpec = argv[++i] ?? usage()
+    } else if (arg === '--delete') {
+      deleteSpec = argv[++i] ?? usage()
+    }
     else if (arg === '--list') list = true
     else if (arg === '--format') {
       const raw = argv[++i]
@@ -75,13 +81,17 @@ function parseArgs(argv: readonly string[]) {
   if (operation !== undefined && (!Number.isInteger(operation) || operation < 0)) {
     throw new Error('[error] --operation must be a non-negative integer')
   }
-  if (entityId !== undefined && (varsSpec !== undefined) === list) {
-    throw new Error('[error] --entity requires exactly one of --vars or --list')
+  const modes = [varsSpec !== undefined, list, deleteSpec !== undefined].filter(Boolean).length
+  if (entityId !== undefined && modes !== 1) {
+    throw new Error('[error] --entity requires exactly one of --vars / --list / --delete')
   }
-  if (entityId === undefined && (varsSpec !== undefined || list)) {
-    throw new Error('[error] --vars/--list require --entity <id>')
+  if (entityId === undefined && modes > 0) {
+    throw new Error('[error] --vars/--list/--delete require --entity <id>')
   }
-  return { configPath, mapId, gilPath, outputPath, write, operation, entityId, varsSpec, list, format }
+  return {
+    configPath, mapId, gilPath, outputPath, write, operation, entityId,
+    varsSpec, deleteSpec, list, format
+  }
 }
 
 async function loadConfig(configPath: string): Promise<GstsConfig> {
@@ -363,7 +373,22 @@ export async function runAssetsCustomVariables(argv: readonly string[] = process
     let changed = 0
     let synchronized = 0
     let operations = 0
-    if (args.entityId !== undefined && args.varsSpec !== undefined) {
+    if (args.entityId !== undefined && args.deleteSpec !== undefined) {
+      const names = args.deleteSpec
+        .split(';')
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0)
+      if (names.length === 0) throw new Error('[error] --delete needs at least one variable name')
+      const result = removeEntityCustomVariableDeclarations({
+        gilPath: temporary,
+        entityId: args.entityId,
+        names
+      })
+      fs.writeFileSync(temporary, result.bytes)
+      changed += result.removed.length
+      operations = 1
+      console.log(`delete: entity=${args.entityId} removed=${result.removed.join(',') || '(none)'} kept=${result.kept}`)
+    } else if (args.entityId !== undefined && args.varsSpec !== undefined) {
       const declarations = parseVarsSpec(args.varsSpec)
       let result: ApplyCustomVariableUpdatesResult
       try {

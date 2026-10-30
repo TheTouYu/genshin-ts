@@ -202,6 +202,16 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 - 任意场景实体变量（含新建实体）：`gsts assets:custom-variables --entity <id> --vars "name:type=value;..." --write`，回读用 `--list --format json`。declaration 是 upsert：同名同类型更新，缺失追加，不会动其它变量。
   - **每条 entry 必须带 `=值`（09-03 实证）**：`name:entity` 无值形态报 `invalid --vars entry`；entity/guid 等引用型写 `name:entity=0`（0=空引用占位，运行时由图 `setCustomVariable` 动态赋值——实体 GUID 不硬编码进资产初始值）。
   - **CLI 无变量删除命令**（全 upsert）——需要撤销时走通用流程 step 4 的最早备份恢复，勿手写 wire 删除。
+- **删变量 / 删脚本条目（2026-10-30 新增，清理死资产用）**：
+  `gsts assets:custom-variables --entity <id> --delete "a;b" [--output x.gil | --write]`
+  ——按名字删容器条目后重建容器（拒绝删空：至少留一个变量）；
+  `gsts assets:scripts remove --script <guid> [--force] [--output x.gil | --write]`
+  ——删 f50 登记表条目，**默认拒绝删除仍被挂载的脚本**（先 `assets:scripts unmount`），`--force` 才强删；
+  删图用 `assets:node-graphs delete --graph <id> [--write]`（默认 dry-run）。
+  三者都在写回前给出 `sourceShas/candidateShas`，配套 `tools/gil-guard.py` 复核。
+- **死资产普查一条命令**：`gsts assets:mounts list --map-id <id>`（不带目标 id）= 全量普查，
+  打印全部图 / 定义 / 场景实体及其挂载，末尾还有 `graphs not mounted anywhere` 清单 —— 
+  排查"未服役的图"先用它，不要逐个实体 `mounts list <id>`（26 个实体 = 26 次调用）。
 - 元件/玩家/角色初始变量：`gsts.config.ts` 的 `assets.customVariables` 声明，`assets:custom-variables --write`（无 `--entity` 时走配置路径）；`syncInstances: true` 会补齐明确引用模板的实例容器（玩家模板通常需要“顶层定义 + 实例容器同步”两处都写才可见）。
 - **推荐串联**：`assets:entities import` 建实体（自动继承元件定义变量容器）→ `assets:custom-variables --entity <id> --vars ...` 写变量 → `--list` 回读。
 - dict 语法：`name:dict=k1=abc&k2=[a,b]&k3=[1.5,2.5]&k4=[1,2,3]|4,5,6`；dict 值支持 str/int/float/str_list/int_list/bool_list/float_list/vec3_list。marker 公式与完整表见 reference。

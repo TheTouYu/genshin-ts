@@ -310,6 +310,61 @@ export function updateScriptInPayload(
   return { payload: emitWireMessage(newTop), entry }
 }
 
+/**
+ * 从登记表里删除一条脚本（2026-10-30 新增：清理死脚本条目）。
+ *
+ * 只删登记表（f50）条目；已挂载的引用由调用方先用 unmount 解除。
+ * 删除前会检查该 guid 是否还挂在任何宿主节点上，挂载中直接拒绝（避免留下悬空挂载）。
+ */
+export function removeScriptFromPayload(
+  payload: Uint8Array,
+  options: { guid?: number; name?: string; force?: boolean }
+): { payload: Uint8Array; removed: ScriptRegistryEntry } {
+  const top = parseWireMessage(payload)
+  if (!top) throw new Error('[error] malformed GIL payload')
+  const container = registryContainerFields(payload)
+  if (!container) throw new Error('[error] no script registry (f50) in this map')
+  let hitIndex = -1
+  let removed: ScriptRegistryEntry | undefined
+  for (let i = 0; i < container.length; i++) {
+    const field = container[i]
+    if (field.number !== 1 || field.wire !== 2) continue
+    const body = parseWireMessage(field.value as Uint8Array)
+    if (!body) continue
+    const candidate = entryOfFields(body)
+    if (!candidate) continue
+    const matched =
+      options.guid !== undefined ? candidate.guid === options.guid : candidate.name === options.name
+    if (matched) {
+      hitIndex = i
+      removed = candidate
+      break
+    }
+  }
+  if (hitIndex < 0 || !removed) {
+    throw new Error(`[error] script not found: ${options.guid ?? options.name}`)
+  }
+  if (!options.force) {
+    const mounted = parseScriptMounts(payload).filter((mount) => mount.scriptGuid === removed!.guid)
+    if (mounted.length > 0) {
+      throw new Error(
+        `[error] script ${removed.guid} is still mounted on host(s) ${mounted
+          .map((mount) => mount.hostGuid)
+          .join(',')}; unmount first (or pass --force)`
+      )
+    }
+  }
+  const newContainer = container.filter((_, index) => index !== hitIndex)
+  const registryIndex = top.findIndex((f) => f.number === SCRIPT_REGISTRY_FIELD && f.wire === 2)
+  const newTop = [...top]
+  newTop[registryIndex] = {
+    number: SCRIPT_REGISTRY_FIELD,
+    wire: 2,
+    value: emitWireMessage(newContainer)
+  }
+  return { payload: emitWireMessage(newTop), removed }
+}
+
 // ── 脚本挂载（2026-10-16 真机定谳，D268）────────────────────────────────────
 // 挂载条目 = 11B 模式：f502{f1{f1:<script guid varint>}}。
 // 挂载列表 = host 节点 record（f9.f502）内 data 组件链中的 f74 LEN 字段：

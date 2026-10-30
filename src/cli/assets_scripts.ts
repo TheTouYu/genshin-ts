@@ -17,6 +17,7 @@ import {
   parseScriptRegistry,
   registerScriptInPayload,
   unmountScriptInPayload,
+  removeScriptFromPayload,
   updateScriptInPayload,
   SCRIPT_PATH_PREFIX,
   type ScriptRegistryEntry
@@ -37,6 +38,7 @@ type Args = {
   script?: number
   output?: string
   write?: boolean
+  force?: boolean
   format?: string
   yes?: boolean
 }
@@ -194,7 +196,7 @@ async function execute(argv: readonly string[], projectConfig?: GstsConfig): Pro
   const log = (message: string): void => {
     if (!jsonMode) console.log(message)
   }
-  const knownCommands = ['list', 'register', 'update', 'mounts', 'mount', 'unmount'] as const
+  const knownCommands = ['list', 'register', 'update', 'remove', 'mounts', 'mount', 'unmount'] as const
   if (!knownCommands.includes(args.command as (typeof knownCommands)[number])) {
     console.log(USAGE.join('\n'))
     if (!args.command) return
@@ -229,6 +231,47 @@ async function execute(argv: readonly string[], projectConfig?: GstsConfig): Pro
       )
     }
     if (jsonMode) process.stdout.write(stableJson(summary))
+    return
+  }
+
+  if (args.command === 'remove') {
+    if (args.script === undefined && !args.name) {
+      throw new Error('[error] remove requires --script <guid> or --name <name>')
+    }
+    const result = removeScriptFromPayload(payload, {
+      guid: args.script,
+      name: args.name,
+      force: args.force === true
+    })
+    const candidate = buildFile(result.payload, {
+      schema: readUint32BE(sourceBytes, 4),
+      headTag: readUint32BE(sourceBytes, 8),
+      fileType: readUint32BE(sourceBytes, 12),
+      tailTag: readUint32BE(sourceBytes, sourceBytes.length - 4)
+    })
+    log(`gil=${gilPath}`)
+    log(`remove: guid=${result.removed.guid} name=${result.removed.name} path=${result.removed.filePath}`)
+    log(`candidateBytes=${candidate.length} (source=${sourceBytes.length})`)
+    if (args.output) {
+      const absolute = path.resolve(args.output)
+      fs.mkdirSync(path.dirname(absolute), { recursive: true })
+      fs.writeFileSync(absolute, candidate)
+      log(`output=${absolute}`)
+      return
+    }
+    if (!args.write) {
+      log('dry-run: pass --write to write back (backup + Temp sync)')
+      return
+    }
+    const currentHash = sha256(new Uint8Array(fs.readFileSync(gilPath)))
+    if (currentHash !== sha256(sourceBytes)) {
+      throw new Error('[error] source changed during operation; re-run')
+    }
+    const backup = backupPath(gilPath)
+    fs.copyFileSync(gilPath, backup)
+    fs.writeFileSync(gilPath, candidate)
+    log(`backup=${backup}`)
+    log(`written=${gilPath}`)
     return
   }
 
