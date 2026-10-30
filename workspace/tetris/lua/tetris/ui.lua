@@ -497,6 +497,11 @@ M.new = function(spec)
     for _, sx in ipairs({ -1, 1 }) do
       local cap = spec.instCell(name .. (sx < 0 and 'l' or 'r'))
       if cap then
+        -- v5.33（用户：圆角设计哦）：半圆必须把图元换成 **circle(100002)**，否则虽然尺寸是方的
+        -- 也照样画成一个方块 ⇒ 胶囊两端是直角（实测手机按钮全是直角，就是这个原因）。
+        if Enum and Enum.ImageSource then
+          pcall(function() cap:SetImage(Enum.ImageSource.StaticReference, 100002) end)
+        end
         tryCall(cap, 'SetSizeDelta', h, h)
         trySet(cap, 'imageColor', color)
         parts[#parts + 1] = cap
