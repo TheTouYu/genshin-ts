@@ -16,6 +16,11 @@ const TELEPORT_DIST = 5.0
 // 运动器时长 = 一拍。内核实际步长随客户端负载在 0.037~0.07s 之间变（14~27Hz），
 // 固定 0.14s 会让球永远慢半拍 ⇒ 每拍从载体变量 fb_dt 读真实步长（读不到用 0.14 兜底）。
 const DRIVE_DUR = 0.14
+// 线性运动器的**前瞻时长**（2026-10-30 平滑性二修）：
+//   内核只 15Hz，若每段只覆盖一拍（0.066s），球速每秒被硬切 15 次 ⇒ 60fps 下就是"一顿一顿"。
+//   改成每段朝「0.2s 后的预测位」走：段更长、速度更连续，视觉平滑由引擎内部补间完成。
+const LOOKAHEAD = 0.2
+const VEL_CAP = 25.0 // 速度上限，防预测位把球吹飞（内核限速 18，留余量）
 const VIS_SPIN_CAP = 540.0 // 视觉自旋上限（度/秒）
 const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开、观感发顿
 const DUR_MAX = 0.08 // 上限：帧率掉到 10Hz 时不要把一拍拉成 0.1s
@@ -74,12 +79,25 @@ g
         // 于是每拍算出的 (target−cur) 忽大忽小 ⇒ 运动器每拍被换成速度不一致的一段
         // ⇒ 60fps 下看就是一顿一顿。改成朝 **pos + vel×dt**（预测位）走，
         // 相邻两段的衔接才连续。
-        const predicted = f._3dVectorAddition(pos, f._3dVectorZoom(vel, driveDur.value))
+        const predicted = f._3dVectorAddition(pos, f._3dVectorZoom(vel, LOOKAHEAD))
         const delta = f._3dVectorSubtraction(predicted, loc)
         const dist = f._3dVectorModuloOperation(delta)
         // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
         //   「直线设备的 velocity 显式算成 (target-current)/duration，可同时拿到精确到点与不漂移」）
-        const velToTarget = f._3dVectorZoom(delta, f.division(1.0, driveDur.value))
+        const velRaw = f._3dVectorZoom(delta, f.division(1.0, LOOKAHEAD))
+        // 速度夹紧
+        const velLen = f._3dVectorModuloOperation(velRaw)
+        const velScale = f.localVariable('float')
+        f.doubleBranch(
+          f.greaterThan(velLen, VEL_CAP),
+          () => {
+            velScale.set(f.division(VEL_CAP, velLen))
+          },
+          () => {
+            velScale.set(1.0)
+          }
+        )
+        const velToTarget = f._3dVectorZoom(velRaw, velScale.value)
         // 大跳用定点器瞬移（§10：定点器仍可用于 INSTANT_MOVEMENT，别全盘禁用）
         // 位移极小（球基本静止）时不重发设备，减少每拍设备 churn
         f.doubleBranch(
@@ -100,7 +118,7 @@ g
             //   「定点器匀速直线 + 旋转设备」= 直线设备被秒停、实体位置纹丝不动、只剩微量自旋。
             //   本轮真机日志 3412 复现同形态：参数照发、实体停在 (0,0.25,1.5)。
             // 参数：add_uniform_basic_linear_motion_device(实体, 设备名, 时长(秒), 速度向量(m/s))
-            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', driveDur.value, velToTarget)
+            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', LOOKAHEAD, velToTarget)
           }
         )
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
