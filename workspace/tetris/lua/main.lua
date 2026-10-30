@@ -4182,12 +4182,16 @@ FN.skillHud = function()
       local qReady = (cost2 > 0) and (cd <= 0) and (en >= cost2)
       local cardCtl = findIn(root, { sfx1 .. 'card' })
       if cardCtl then
-        trySet(cardCtl, 'imageColor', active and C(255, 253, 250, 252) or C(255, 236, 238, 244))
+        -- 卡面必须真的看得出是"一张卡"（浅底近白在浅底背景上等于没有）：
+        -- 台前=奶油白 + 实底；台后=同色但压暗 8%，靠亮度差表达前后台
+        trySet(cardCtl, 'imageColor', active and C(255, 252, 246, 252) or C(255, 234, 231, 244))
       end
       local stripCtl = findIn(root, { sfx1 .. 'strip' })
       if stripCtl then
         trySet(stripCtl, 'imageColor', qReady and THEME.gold
           or (active and FN.skillInk(role) or C(255, 186, 192, 202)))
+        -- 左侧竖条加宽到 8px、贴到卡片左沿（6px 时被卡片边吃掉，看不出是"角色色标签"）
+        tryCall(stripCtl, 'SetSizeDelta', 8, 76)
       end
       if cName then
         -- v5.5（用户 2026-10-30 二轮反馈：「前后台和已就绪的说明增加玩家负担，用特效和动画区分」）：
