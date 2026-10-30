@@ -77,7 +77,12 @@ const REST_SPEED = 0.35
 const GROUND_MU = 0.8 // 库仑摩擦系数（接触冲量与滑移的比值上限）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴地速度低于此 ⇒ 静止
 const ROLL_SPEED = 3.0 // 贴地速度高于此 ⇒ 进入滚动
-const DRIBBLE_R = 2.4
+const DRIBBLE_R = 2.4 // 保留：按键时的「有球」判定半径（射门/传球资格）
+const TOUCH_R = 1.7 // 触球半径：球进到这个圈里才会被脚带到
+const KEEP_R = 2.8 // 带球显示半径（只影响状态=5 的 HUD 反馈，不参与运动）
+const TOUCH_FACTOR = 1.15 // 触球后球速 = 玩家速度 × 这个系数（略快于玩家，才追得上）
+const TOUCH_MIN_SPD = 2.0 // 玩家速度低于此值时用朝向兜底推一小步
+const TOUCH_LIFT = 0.35 // 触球时给一点抬升，视觉上像被脚"点"了一下
 const DRIBBLE_AHEAD = 1.3
 // 带球跟随增益：每拍吃掉 55% 位置误差 ⇒ K = 0.55/dt（几何收敛，无过冲）
 const DRIBBLE_FOLLOW = 0.55
@@ -409,43 +414,45 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const ballToPlayerNow = f._3dVectorModuloOperation(
         f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))
       )
-      const dribble = f.logicalAndOperation(
+      // 触球式带球（2026-10-30 用户选型 B）：
+      //   ① 带球区（HUD 用）：球在 KEEP_R 内且这一拍没按键 ⇒ 状态记 5
+      //   ② 可触球：球在 TOUCH_R 内、球比玩家慢（说明球落后了、需要再带一脚）、玩家在动
+      //   触球只给**一次冲量**，之后球走正常物理（摩擦/滚动/反弹），不再是"位置吸附"。
+      const playerSpd = f._3dVectorModuloOperation(f.create3dVector(ffx.value, 0.0, ffz.value))
+      const ballSpdH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
+      const inZone = f.logicalAndOperation(
+        f.logicalNotOperation(kickNow),
+        f.lessThan(ballToPlayerNow, KEEP_R)
+      )
+      const touch = f.logicalAndOperation(
         f.logicalNotOperation(kickNow),
         f.logicalAndOperation(
           canDribbleAfterTackle,
-          f.logicalAndOperation(f.lessThan(ballToPlayerNow, DRIBBLE_R), f.lessThan(speed0, 8.0))
+          f.logicalAndOperation(
+            f.lessThan(ballToPlayerNow, TOUCH_R),
+            f.logicalAndOperation(
+              f.greaterThan(playerSpd, TOUCH_MIN_SPD),
+              f.lessThan(ballSpdH, f.multiplication(playerSpd, 0.85))
+            )
+          )
         )
       )
       f.doubleBranch(
-        dribble,
+        touch,
         () => {
-          // 带球：**位置式跟随**（2026-10-29 第二轮修「运动不正常/抖」）
-          // 旧写法 v ← 0.45v + 0.55·(ddx·8 + ff) 是速度环套位置环，闭环增益 ≈ 0.586/拍
-          // 外加 0.45 惯性 ⇒ 欠阻尼。真机日志 3411 实证：tick 81 速度 4.99，随后在 x≈−2.2 附近
-          // 以 0.1~0.6 m/s 来回抖（过冲→回拉），玩家已走远球还留在原地打转。
-          // 新写法：**每拍吃掉 55% 位置误差**（v = 0.55·ddx/dt + 玩家速度前馈），几何收敛、无过冲。
-          const vdesX = f.addition(
-            f.multiplication(ddx, f.division(DRIBBLE_FOLLOW, dtv.value)),
-            ffx.value
+          // 触球方向 = **玩家速度方向**（比「玩家→球」的方向靠谱：球绕到侧面也会被带向前）
+          const ux = f.division(ffx.value, playerSpd)
+          const uz = f.division(ffz.value, playerSpd)
+          const kickSpd = f.addition(
+            f.multiplication(playerSpd, TOUCH_FACTOR),
+            TOUCH_MIN_SPD
           )
-          const vdesZ = f.addition(
-            f.multiplication(ddz, f.division(DRIBBLE_FOLLOW, dtv.value)),
-            ffz.value
-          )
-          vx.set(vdesX)
-          vy.set(0.0)
-          vz.set(vdesZ)
+          vx.set(f.multiplication(ux, kickSpd))
+          vz.set(f.multiplication(uz, kickSpd))
+          vy.set(TOUCH_LIFT)
           wx.set(f.division(vz.value, BALL_R))
           wy.set(0.0)
           wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
-          // ⚠️ 2026-10-29 修复「球原地旋转」：位置积分原来只写在 notDribble 分支里，
-          //   带球帧速度在变、位置却一动不动 ⇒ 球钉在原地按 spin 自转（试玩日志 3410 实证：
-          //   tick 98→658 六个字段 pos 恒 (0,0.25,1.5)、vel 恒 (0,0,-1.6006)、state 恒 5）。
-          //   带球帧是「球跟着玩家」的帧，必须自己推进位置；y 钉地面（带球不离开地面）。
-          by.set(GROUND_Y)
-          bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
-          bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
-          mode.set(5n)
         },
         () => {}
       )
@@ -460,7 +467,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         f.logicalAndOperation(f.lessThan(ballToPlayer, 0.9), f.lessThan(vDotN, 0.0))
       )
       f.doubleBranch(
-        f.logicalAndOperation(f.logicalNotOperation(dribble), hitBody),
+        f.logicalAndOperation(f.logicalNotOperation(touch), hitBody),
         () => {
           // v' = v − 1.6·(v·n)·n，再整体 0.7 衰减（身体挡球，不是满弹）
           vx.set(f.multiplication(f.subtraction(vx.value, f.multiplication(f.multiplication(vDotN, 1.6), nX)), 0.7))
@@ -472,7 +479,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
 
       // ———— ③ 力与积分（非带球帧；每步独立守卫，扁平结构，避免深嵌套触发转换器问题）————
-      const notDribble = f.logicalNotOperation(dribble)
+      // 触球式带球后，物理**每拍都跑**（不再有"带球帧跳过物理"这条旁路）
+      const notDribble = f.logicalNotOperation(f.equal(1n, 2n))
       // 重力 + 马格努斯：非带球 且 在空中
       f.doubleBranch(
         f.logicalAndOperation(notDribble, f.logicalNotOperation(onGround)),
@@ -705,6 +713,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1))))
           vx.set(f.multiplication(vx.value, -WALL_REST))
           mode.set(1n)
+        },
+        () => {}
+      )
+
+      // 带球区状态（只影响 HUD/日志，不参与运动）：球在 KEEP_R 内且这一拍没按键 ⇒ 记 5
+      f.doubleBranch(
+        inZone,
+        () => {
+          mode.set(5n)
         },
         () => {}
       )
