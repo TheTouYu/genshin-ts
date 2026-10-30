@@ -2,37 +2,52 @@
 
 export const CustomPrefab = {
   /**
-   * Based on prefabId 1000000
+   * 基于 prefabId 1000000
    */
   默认模版: 1086324737,
 
   /**
-   * Based on prefabId 1000001
+   * 基于 prefabId 1000001
    */
   '默认模版(角色编辑)': 1090519041,
 
   /**
-   * Based on prefabId 10005018
+   * 基于 prefabId 10005018
    */
   足球场: 1077936129,
 
   /**
-   * Based on prefabId 10005018
+   * 基于 prefabId 10005018
    */
   足球门: 1077936130,
 
   /**
-   * Based on prefabId 10005018
+   * 基于 prefabId 10005018
    */
-  足球操作台: 1077936136,
+  白模_球场设施: 1077936142,
 
   /**
-   * Based on prefabId 10005018
+   * 基于 prefabId 10005018
+   */
+  景观_外围: 1077936148,
+
+  /**
+   * 基于 prefabId 10005018
    */
   足球_1: 1077936138,
 
   /**
-   * Based on prefabId 30007001
+   * 基于 prefabId 30007001
    */
-  算力丘丘: 1082130433
+  打手丘丘人: 1082130433,
+
+  /**
+   * 基于 prefabId 10005018
+   */
+  草地地基: 1077936160,
+
+  /**
+   * 基于 prefabId 30007006
+   */
+  水史莱姆: 1082130434
 }

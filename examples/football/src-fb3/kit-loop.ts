@@ -111,37 +111,33 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
 
   // ———— 玩家位置：从载体实体变量读（服务端 kitRender 每拍写 fb_px/fb_pz）————
   // 不用 getListOfPlayerEntitiesOnTheField：那是玩家控制器实体，读位置恒 0（2026-10-17 定谳）。
-  // ———— 玩家坐标（2026-10-29 五修：选项卡锁存升为主路径）————
-  // 依据：D318 实测「whenTabIsSelected 载荷 selectorEntity = 触发选项卡的**角色实体**，坐标是真的」；
-  // 而 getListOfPlayerEntitiesOnTheField 给的是玩家控制器实体，坐标恒 (0,y,0)（日志 3416 实证）；
-  // getSubEntityList(玩家模板 1086324737) 在真机上返回空（子实体数探针 3418 后确认）。
+  // ———— 玩家坐标（2026-10-30 定谳）————
+  // 服务端 kitListen 用「按玩家序号取玩家 GUID → 玩家实体 → 角色列表 → [0] 位置」写 fbvx/fbvz/fbvy
+  // （这条链抄自奇域资产中心复合节点「玩家，角色，关卡」，内部四步已反解确认）。
+  // 内核只负责读；选项卡锁存实体 fbc_e 作为兜底（万一服务端链没拿到）。
   const carrierE = f.queryEntityByGuid(1082130445n)
+  const srvX = f.getCustomVariable(carrierE, 'fbvx').asType('float')
+  const srvZ = f.getCustomVariable(carrierE, 'fbvz').asType('float')
   const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
   const pPxV = f.localVariable('float')
   const pPzV = f.localVariable('float')
   f.doubleBranch(
-    f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+    f.greaterThan(f.addition(f._3dVectorModuloOperation(f.create3dVector(srvX, 0.0, srvZ)), 0.0), 0.01),
     () => {
-      const l = f.split3dVector(f.getEntityLocation(charE))
-      pPxV.set(l.xComponent)
-      pPzV.set(l.zComponent)
+      pPxV.set(srvX)
+      pPzV.set(srvZ)
     },
     () => {
-      // 兜底 1：玩家模板实体的子实体（若平台把角色挂在模板下）
-      const subs = f.getSubEntityList(f.queryEntityByGuid(1086324737n))
       f.doubleBranch(
-        f.greaterThan(f.getListLength(subs), 0n),
+        f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
         () => {
-          const l2 = f.split3dVector(
-            f.getEntityLocation(f.getCorrespondingValueFromList(0n, subs))
-          )
-          pPxV.set(l2.xComponent)
-          pPzV.set(l2.zComponent)
+          const l = f.split3dVector(f.getEntityLocation(charE))
+          pPxV.set(l.xComponent)
+          pPzV.set(l.zComponent)
         },
         () => {
-          // 兜底 2：服务端写的 fbvx/fbvz
-          pPxV.set(f.getCustomVariable(carrierE, 'fbvx').asType('float'))
-          pPzV.set(f.getCustomVariable(carrierE, 'fbvz').asType('float'))
+          pPxV.set(0.0)
+          pPzV.set(0.0)
         }
       )
     }

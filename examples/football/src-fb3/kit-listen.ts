@@ -22,8 +22,29 @@ const graph = g
     // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
     // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
     const owner = f.getSelfEntity()
-    // 玩家位置改由**客户端内核**自取（服务端没有「获取子实体列表」节点，只有客户端有）：
-    //   固定 GUID 玩家模板实体 1086324737 → 子实体[0]（角色） → 位置。
+    // ———— 玩家角色位置（2026-10-30 定谳：抄奇域资产中心复合节点「玩家，角色，关卡」）————
+    // 那份复合节点的内部链（反解自 .gia）正是四步：
+    //   ① Get_Player_GUID_by_Player_ID（玩家序号 → 玩家 GUID）  ← 我一直漏掉的就是这一步
+    //   ② Query_Entity_by_GUID（GUID → 玩家实体）
+    //   ③ Get_All_Character_Entities_of_Specified_Player（玩家实体 → 角色列表）
+    //   ④ Get_Corresponding_Value_From_List（列表 + 序号 → 角色实体）→ 读位置
+    // 之前失败的原因：用「在场玩家实体列表[0]」当玩家（那是控制器，坐标恒 0，日志 3416 实证），
+    // 又试过 int→guid 的类型转换（平台不支持），却没用这个专门的「按玩家序号取 GUID」节点。
+    const playerGuid = f.getPlayerGuidByPlayerId(1n)
+    const playerE = f.queryEntityByGuid(playerGuid)
+    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+    f.doubleBranch(
+      f.greaterThan(f.getListLength(chars), 0n),
+      () => {
+        const l = f.split3dVector(
+          f.getEntityLocationAndRotation(f.getCorrespondingValueFromList(chars, 0n)).location
+        )
+        f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
+        f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
+        f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
+      },
+      () => {}
+    )
     const isCommit = f.equal(evt.params.tag, 'P')
     f.doubleBranch(
       isCommit,
