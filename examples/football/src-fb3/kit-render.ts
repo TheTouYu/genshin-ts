@@ -16,10 +16,15 @@ const TELEPORT_DIST = 5.0
 // 运动器时长 = 一拍。内核实际步长随客户端负载在 0.037~0.07s 之间变（14~27Hz），
 // 固定 0.14s 会让球永远慢半拍 ⇒ 每拍从载体变量 fb_dt 读真实步长（读不到用 0.14 兜底）。
 const DRIVE_DUR = 0.14
+const GROUND_Y_MIN = 0.25 // 球心贴地高度（= 球半径），预测位不得低于它
 // 线性运动器的**前瞻时长**（2026-10-30 平滑性二修）：
 //   内核只 15Hz，若每段只覆盖一拍（0.066s），球速每秒被硬切 15 次 ⇒ 60fps 下就是"一顿一顿"。
 //   改成每段朝「0.2s 后的预测位」走：段更长、速度更连续，视觉平滑由引擎内部补间完成。
-const LOOKAHEAD = 0.35 // 设备时长：必须 > 下发间隔（信号 7.5Hz ⇒ 2 条≈0.27s），留余量容忍抖动
+// 2026-10-30 数据定谳（PHYSICS-DATA-REPORT 第一节）：
+//   运动器下发间隔 0.16s（隔 4 拍），而 duration 曾设 0.35s ⇒ 每个补间只走完 46% 就被重启，
+//   观感就是"动一下停一下"（实体当拍位移 0.0000m，下一窗跳 3~4.5m）。
+//   ⇒ duration **等于下发间隔**，让每个窗口走完再被替换。
+const LOOKAHEAD = 0.16
 const VEL_CAP = 25.0 // 速度上限，防预测位把球吹飞（内核限速 18，留余量）
 const VIS_SPIN_CAP = 540.0 // 视觉自旋上限（度/秒）
 const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开、观感发顿
@@ -95,7 +100,23 @@ g
         // 于是每拍算出的 (target−cur) 忽大忽小 ⇒ 运动器每拍被换成速度不一致的一段
         // ⇒ 60fps 下看就是一顿一顿。改成朝 **pos + vel×dt**（预测位）走，
         // 相邻两段的衔接才连续。
-        const predicted = f._3dVectorAddition(pos, f._3dVectorZoom(vel, LOOKAHEAD))
+        const predictedRaw = f._3dVectorAddition(pos, f._3dVectorZoom(vel, LOOKAHEAD))
+        // 预测位必须钳制在地面之上（数据实证：不钳制时实体 y 最低 −1.99m，球钻到地下）
+        const predY = f.localVariable('float')
+        f.doubleBranch(
+          f.lessThan(f.split3dVector(predictedRaw).yComponent, GROUND_Y_MIN),
+          () => {
+            predY.set(GROUND_Y_MIN)
+          },
+          () => {
+            predY.set(f.split3dVector(predictedRaw).yComponent)
+          }
+        )
+        const predicted = f.create3dVector(
+          f.split3dVector(predictedRaw).xComponent,
+          predY.value,
+          f.split3dVector(predictedRaw).zComponent
+        )
         const delta = f._3dVectorSubtraction(predicted, loc)
         const dist = f._3dVectorModuloOperation(delta)
         // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
