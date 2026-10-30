@@ -5803,6 +5803,12 @@ function OnStart()
       if helpOpen then closeHelp() return end
       -- v5.6：角色页 / 手机引导浮层开着时，游戏键一律吞掉（否则会在浮层后面操作棋盘）
       if (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) then
+        -- F（InteractKey）当成"关闭浮层"，其余键继续吞掉（v5.7）
+        if ROSTER and ROSTER.on and keyName == 'KeyboardInteractKeyDown' then
+          keyConsumedFrame = frameSeq
+          if FN.rosterToggle then FN.rosterToggle() end
+          return
+        end
         print('key blocked by overlay ' .. tostring(keyName))
         return
       end
@@ -6124,12 +6130,28 @@ function OnStart()
   local function skillKeyUpWatch(name)
     listen(name, function() FN.skillKeyHoldSec = 0 end)
   end
-  local function skillKey(fn)
+  local function skillKey(fn, keyName)
     return function()
       FN.skillKeyHoldSec = tonumber(FN.skillKeyHoldSec) or 0
       if helpOpen then closeHelp() return end
+      -- v5.7（用户 2026-10-30「兄弟一堆 bug」）：角色页开着时，**同一颗开关键必须还能关**。
+      -- 之前 skillKey 不看 ROSTER.on、act() 又把所有键吞掉 ⇒ 只能鼠标点「合上」，
+      -- 键盘玩家直接**卡在角色页里出不来**（真机日志：连续 30+ 条 key blocked by overlay，零条 roster close）。
+      if ROSTER and ROSTER.on then
+        if keyName == 'KeyboardCraftspersonKey16Down' then
+          keyConsumedFrame = frameSeq
+          if FN.rosterToggle then FN.rosterToggle() end
+        else
+          print('key blocked by overlay ' .. tostring(keyName))
+        end
+        return
+      end
       startIfWaiting()
-      if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then return end
+      -- 角色页/说明页**不要求** guideStage==1：它们从标题页就能开，也就必须能关
+      if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then
+        if keyName == 'KeyboardCraftspersonKey16Down' and FN.rosterToggle then FN.rosterToggle() end
+        return
+      end
       fn()
     end
   end
@@ -6151,7 +6173,7 @@ function OnStart()
       skillKey(function() FN.skillCast(1) end)()
     end
   end)
-  listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end))
+  listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end, 'KeyboardCraftspersonKey11Down'))
   listen('KeyboardCraftspersonKey13Down', skillKey(function()
     -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
     if not (SK and SK.party and #SK.party > 0) then return end
@@ -6160,7 +6182,7 @@ function OnStart()
     FN.skillHud()
     print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
   end))
-  listen('KeyboardCraftspersonKey16Down', skillKey(function() FN.rosterToggle() end))
+  listen('KeyboardCraftspersonKey16Down', skillKey(function() FN.rosterToggle() end, 'KeyboardCraftspersonKey16Down'))
   -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
   listen('KeyboardCraftspersonKey30Down', skillKey(function()
     if not (SK and SKILLS) then return end

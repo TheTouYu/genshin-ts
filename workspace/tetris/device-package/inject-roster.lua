@@ -198,7 +198,7 @@ function M.new(env)
     R.top = BOX('charTop', PW, u(92), C(255, 250, 240, 246))
     R.rule = BOX('charRule', PW - u(80), u(2), THEME.gold)
     R.title = TXT('charTitle', '角色档案 · 契约与技能', u(620), 32, THEME.textMain, 'Left')
-    R.sub = TXT('charHint', '左边点角色 / 右边切页签　·　F 或同键关闭', u(620), 17, THEME.textSub, 'Left')
+    R.sub = TXT('charHint', '左边点角色 · 右边切页签　·　I / F 关闭 · 右上角「合上」也行', u(620), 17, THEME.textSub, 'Left')
     R.closePill = BOX('charClose', u(150), u(50), THEME.gold)
     R.closeTx = TXT('charCloseTx', '合上', u(146), 20, THEME.textMain)
     -- 左列：四人
@@ -229,8 +229,6 @@ function M.new(env)
     local open = SKG().unlocked and SKG().unlocked[roles[sel]] == true
     R.portraitEdge = BOX('charPortraitEdge', u(408), u(438), THEME.gold)
     R.portrait = BOX('charPortrait', u(400), u(430), FN.skillDark and FN.skillDark(e.color or C(127, 207, 106), 150) or C(127, 207, 106))
-    R.portraitBand1 = BOX('charPortraitBand1', u(360), u(3), C(120, 255, 250, 240))
-    R.portraitBand2 = BOX('charPortraitBand2', u(360), u(1), C(90, 255, 250, 240))
     R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, C(255, 255, 255, 255))
     R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, C(255, 250, 244, 246))
     R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, C(255, 250, 244, 240))
@@ -261,8 +259,9 @@ function M.new(env)
     end
     -- 内容条目（每条：图标 + 名称 + 正文）
     local items = {}
-    local function entry(iconCol, nm, desc, desc2, valTxt)
-      items[#items + 1] = { icon = iconCol, nm = nm, desc = desc, desc2 = desc2, val = valTxt }
+    local function entry(iconCol, nm, desc, desc2, valTxt, full)
+      items[#items + 1] = { icon = iconCol, nm = nm, desc = desc, desc2 = desc2, val = valTxt,
+        full = full or desc }
     end
     if tab == 1 then
       -- 被动清单改为读 skills.lua 的 M.talents（v6：每角色 4 条，文案与数值同源，
@@ -279,10 +278,17 @@ function M.new(env)
         elseif t.live ~= nil then
           live = tostring(t.live)
         end
-        local body = FN.utf8Cut(t.map or t.desc or '', 60)
+        -- v5.7：列表摘要 = 按框宽折行的**前两行**（放不下就点开看全文）
+        -- ⚠ 旧实现按"字节"截 + PER=34 固定值，而 410px 的框在 15 号字下只放得下约 17 个汉字
+        --   ⇒ 文字被引擎自己补「…」（这就是满屏省略号的真正来源，不是 utf8Cut）。
+        local rawBody = tostring(t.map or t.desc or '')
+        local body = rawBody          -- 全文交给渲染层按框宽折行、只留前 2 行 + 点开看全文
         if live == '' then live = tostring(t.official or t.verify or '天赋已生效') end
-        live = FN.utf8Cut(live, 44)
-        entry(t.accent or e.accent or e.color2, tostring(t.name or ('天赋 ' .. ti)), body, live)
+        local rawLive = live
+        live = FN.utf8Cut(live, 96)
+        -- 数值/读数单独一行（不参与折行截断），正文只留前 2 行 + 点开看全文
+        entry(t.accent or e.accent or e.color2, tostring(t.name or ('天赋 ' .. ti)), body, nil, live,
+          rawBody .. '\n' .. rawLive)
       end
     elseif tab == 5 then
       entry(e.accent or e.color2, '成长与编成（全角色通用）',
@@ -332,7 +338,8 @@ function M.new(env)
     -- 渲染条目：图标 + 名称 + 正文（自动折行）+ 数值行
     local rightX = PL + u(840)
     local rightW = u(470)
-    local PER = 30
+    -- 每行能放几个汉字：CJK 在 15 号字下约占 1.55×字号宽 ⇒ PER = 可用宽 / 23.2
+    local PER = math.max(12, math.floor((rightW - u(60)) / (15 * 1.55)))
     local itemRows = {}
     for idx, it in ipairs(items) do
       local icon = BOX('charItemIcon' .. idx, u(34), u(34), it.icon or C(180, 180, 180))
@@ -347,16 +354,95 @@ function M.new(env)
       local src = (it.desc or '')
       if it.desc2 and it.desc2 ~= '' then src = src .. (src ~= '' and '　' or '') .. it.desc2 end
       local wrapped = wrapCJK(src, PER)
-      for li, lineTxt in ipairs(wrapped) do
+      local CAP = 2                                    -- 列表里最多 2 行，其余点开看
+      for li = 1, math.min(#wrapped, CAP) do
+        local lineTxt = wrapped[li]
+        if li == CAP and #wrapped > CAP then lineTxt = lineTxt .. '…' end
         lines[li] = TXT('charItemL' .. idx .. '_' .. li, lineTxt, rightW - u(60), 15, THEME.textSub, 'Left')
       end
       local vv = nil
       if it.val and it.val ~= '' then
         vv = TXT('charItemV' .. idx, it.val, rightW - u(60), 15, e.color2 or THEME.textMain, 'Left')
       end
-      itemRows[idx] = { icon = icon, nm = nm, lines = lines, v = vv,
+      itemRows[idx] = { icon = icon, nm = nm, lines = lines, v = vv, it = it,
         h = u(34) + #lines * u(22) + (vv and u(22) or 0) + u(12) }
+      -- 整条当热区：点开看全文（放不下的长文案不再靠省略号）
+      local ihit = add(UI4.hit('charItemHit' .. idx, rightW, u(60)))
+      if ihit then
+        tryCall(ihit, 'SetSizeDelta', rightW, u(60))
+        addCursor(ihit, 'CursorClick', function() if FN.charDetail then FN.charDetail(idx) end end)
+        itemRows[idx].hit = ihit
+      end
     end
+    -- ===== 条目详情浮层（v5.7 用户：「文案不要出现省略号，放不下就点击展开」）=====
+    -- 做法：每条天赋压成 2 行摘要 + 一颗覆盖整条的 cursor 热区；点开 = 一整块奶油面板放全文。
+    ROSTER.detail = nil
+    local DK = {}                                  -- 浮层控件（随 rosterDestroy 一起走：都进 ROSTER.items）
+    FN.charDetail = function(idx)
+      local it = items[idx]
+      if not it then return end
+      -- 先拆上一块
+      if ROSTER.detail then
+        for i = #ROSTER.detail, 1, -1 do
+          pcall(function() game.DestroyClientUIControl(ROSTER.detail[i]) end)
+          ROSTER.detail[i] = nil
+        end
+      end
+      local acc = it.icon or C(150, 150, 150)
+      local dw, dh = u(760), u(460)
+      local parts = {}
+      parts[#parts + 1] = UI4.pill('charDetailDim', W + 40, H + 40, C(150, 16, 24, 40))
+      parts[#parts + 1] = UI4.pill('charDetailCard', dw, dh, C(252, 250, 244, 253))
+      parts[#parts + 1] = UI4.pill('charDetailBar', dw, u(6), acc)
+      parts[#parts + 1] = UI4.label('charDetailTitle', tostring(it.nm or ''), dw - u(60),
+        math.floor(u(22) * 1.45 + 6), math.floor(u(22)), THEME.textMain)
+      local body = tostring(it.desc or '')
+      if it.desc2 and it.desc2 ~= '' then body = body .. '\n' .. tostring(it.desc2) end
+      if it.val and it.val ~= '' then body = body .. '\n' .. tostring(it.val) end
+      local wrapped = wrapCJK(body, math.max(14, math.floor((dw - u(70)) / (16 * 1.55))))
+      for li = 1, math.min(#wrapped, 12) do
+        parts[#parts + 1] = UI4.label('charDetailL' .. li, wrapped[li], dw - u(70),
+          math.floor(u(16) * 1.45 + 6), math.floor(u(16)), THEME.textSub)
+        trySet(parts[#parts], 'horizontalAlignment', 'Left')
+      end
+      parts[#parts + 1] = UI4.label('charDetailTip', '点击任意处关闭', dw - u(60),
+        math.floor(u(14) * 1.45 + 6), math.floor(u(14)), THEME.hint)
+      -- 摆位（浮层压在最上层：后建即在上面）
+      local seq = 1
+      local function place(c, x, y, w, h)
+        if not c then return end
+        tryCall(c, 'SetSizeDelta', w, h)
+        tryCall(c, 'SetAnchoredPosition', x, y)
+        ROSTER.items[#ROSTER.items + 1] = c
+      end
+      place(parts[1], 0, 0, W + 40, H + 40)
+      place(parts[2], 0, 0, dw, dh)
+      place(parts[3], 0, dh / 2 - u(3), dw, u(6))
+      place(parts[4], 0, dh / 2 - u(38), dw - u(60), math.floor(u(22) * 1.45 + 6))
+      local y = dh / 2 - u(76)
+      for li = 5, #parts - 1 do
+        place(parts[li], -dw / 2 + u(35) + (dw - u(70)) / 2, y, dw - u(70), math.floor(u(16) * 1.45 + 6))
+        y = y - u(26)
+      end
+      place(parts[#parts], 0, -dh / 2 + u(26), dw - u(60), math.floor(u(14) * 1.45 + 6))
+      ROSTER.detail = parts
+      -- 点任意处关闭：整块面板当热区
+      local hit = add(UI4.hit('charDetailHit', dw + 200, dh + 120))
+      if hit then
+        tryCall(hit, 'SetSizeDelta', dw + 200, dh + 120)
+        tryCall(hit, 'SetAnchoredPosition', 0, 0)
+        addCursor(hit, 'CursorClick', function()
+          for i = #ROSTER.detail, 1, -1 do
+            pcall(function() game.DestroyClientUIControl(ROSTER.detail[i]) end)
+            ROSTER.detail[i] = nil
+          end
+          ROSTER.detail = nil
+        end)
+        ROSTER.detail[#ROSTER.detail + 1] = hit
+      end
+      print('char detail open ' .. tostring(it.nm))
+    end
+
     R.foot = TXT('charFoot', '与四位角色缔结契约，她们会在你手忙脚乱时替你守住棋盘——按名册键随时回来看看。',
       u(1260), 17, THEME.hint)
     -- ── 摆位 ──（约定：TXTL 传的是**左沿**，内部再换算成框中心，避免"左对齐文字跑到画布外"）
@@ -392,8 +478,6 @@ function M.new(env)
     local midW = u(380)
     at(R.portraitEdge, midX + midW / 2, u(30), midW + u(8), u(438))
     at(R.portrait, midX + midW / 2, u(30), midW, u(430))
-    at(R.portraitBand1, midX + midW / 2, u(30) - u(96), midW - u(40), u(3))
-    at(R.portraitBand2, midX + midW / 2, u(30) - u(112), midW - u(40), u(1))
     put(R.pName, midX + u(20), u(160), midW - u(40), th(40))
     put(R.pElem, midX + u(20), u(112), midW - u(40), th(20))
     put(R.pLv, midX + u(20), u(80), midW - u(40), th(18))
@@ -421,6 +505,11 @@ function M.new(env)
         ly = ly - u(22)
       end
       if row.v then put(row.v, rightX + u(54), ly, rightW - u(60), th(14)) end
+      -- 整条热区（位置必须自己摆：建出来默认在 (0,0)）；cursor 的 y 轴与图片相反 ⇒ 取负
+      if row.hit then
+        tryCall(row.hit, 'SetSizeDelta', rightW, row.h or u(120))
+        tryCall(row.hit, 'SetAnchoredPosition', rightX + rightW / 2, -(yy - (row.h or u(120)) / 2))
+      end
       yy = yy - (row.h or u(120))
     end
     put(R.foot, PL + u(70), -PH / 2 + u(28), PW - u(140), th(17))
