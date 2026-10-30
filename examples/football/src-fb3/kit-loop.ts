@@ -285,13 +285,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   // 覆盖：静止 / 轻射 / 重射 / 高吊 / 弧线 / 自由落体 / 斜落弹地 / 高速擦地 / 纯自旋 / 门柱 / 边界。
   const AUTO_START = 75n // 5s @15Hz
   const AUTO_LEN = 30n // 每点 30 拍 ≈2s
+  const AUTO_COUNT = 11n // 测试项总数（到这里回卷）
   const autoOn = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fb_autotest').asType('int')
   const autoPhase = f.subtraction(tick, AUTO_START)
   const autoActive = f.logicalAndOperation(
     f.equal(autoOn, 1n),
     f.greaterThanOrEqualTo(autoPhase, 0n)
   )
-  const autoSlot = f.division(autoPhase, AUTO_LEN)
+  const autoSlotRaw = f.division(autoPhase, AUTO_LEN)
+  const autoSlot = f.subtraction(
+    autoSlotRaw,
+    f.multiplication(f.division(autoSlotRaw, AUTO_COUNT), AUTO_COUNT)
+  )
   const autoLocal = f.subtraction(autoPhase, f.multiplication(autoSlot, AUTO_LEN))
   const autoFresh = f.equal(autoLocal, 0n)
   // 把当前测试编号回传（tag='T'，pos.x=编号、pos.y=剩余拍），服务端转写到关卡变量供 Lua 显示
@@ -332,8 +337,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // slot 2：重射 + 侧旋
           f.doubleBranch(f.equal(autoSlot, 2n), () => {
             bx.set(baseX); by.set(GROUND_Y); bz.set(baseZ)
-            vx.set(16.0); vy.set(4.5); vz.set(0.0); wx.set(0.0); wy.set(10.0)
-            wz.set(f.division(16.0, BALL_R))
+            // ⚠️ 2026-10-30 定谳：这一行原来漏了 wz ⇒ 继承上一项（slot1 滚动）的 wz=40，
+            //   与 wy=10 组成 ω=(0,10,40)，马格努斯 ω×v 的 y 分量达 640 ⇒ 每拍给球 +1.3 竖直加速度，
+            //   球被"吹"到 6.59m（日志 3439 slot2）。测试台初态必须把六个分量**全部**清零再赋值。
+            vx.set(16.0); vy.set(4.5); vz.set(0.0); wx.set(0.0); wy.set(10.0); wz.set(0.0)
           }, () => {})
           // slot 3：高吊
           f.doubleBranch(f.equal(autoSlot, 3n), () => {
@@ -713,7 +720,14 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           )
           vx.set(f.multiplication(vx.value, keepF.value))
           vz.set(f.multiplication(vz.value, keepF.value))
-          const spG = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
+          // ⚠️ 2026-10-30 真 bug 修复（日志 3439 slot5 实证）：
+          //   静止判据原来只看**水平速度** |（vx,0,vz)| < 0.35 —— 于是「竖直下落到底」的球
+          //   水平分量本来就是 0 ⇒ 触发这个分支 ⇒ vy 被清零 ⇒ **3m 自由落体落地后完全不反弹**
+          //   （日志：y 3.23→0.27→0.25 后 v 恒 0，e=0.5 本该弹到 ~1.9m）。
+          //   现在用**三维速度**判定静止，且竖直速度必须确实很小。
+          const spG = f._3dVectorModuloOperation(
+            f.create3dVector(vx.value, vy.value, vz.value)
+          )
           f.doubleBranch(
             f.lessThan(spG, REST_SPEED),
             () => {
@@ -813,15 +827,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1))))
           vx.set(f.multiplication(vx.value, -WALL_REST))
           mode.set(1n)
-        },
-        () => {}
-      )
-
-      // 带球区状态（只影响 HUD/日志，不参与运动）：球在 KEEP_R 内且这一拍没按键 ⇒ 记 5
-      f.doubleBranch(
-        inZone,
-        () => {
-          mode.set(5n)
         },
         () => {}
       )
