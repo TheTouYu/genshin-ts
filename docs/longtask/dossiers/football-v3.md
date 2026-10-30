@@ -171,7 +171,6 @@ Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
 - 2026-10-29 前：近 32 份日志无 `[fb-in]`（**那是读错字段**：Lua print 落 f23，`text` 子命令只解 f22；详见
   `debug-log-investigator`）。2026-10-30 起行为层读数齐备（见下方 10-30 节）。
 
-- 旧断点（一条试玩验四链 / M1-a 通道实验 / HUD v2）已并入 10-30 节，步骤见 `VERIFY-PHYSICS.md` 与 `HUD-v1.md`。
 
 ## 2026-10-30 现状读数（行为层首次成形）
 
@@ -190,5 +189,12 @@ Lua fb-input.lua（挂容器节点 1073741846，3 个基础键 + 心跳）
 选项卡锁存 `fbc_e`）／`kitListen` 1073741826（载体，输入中继 + 四步链写 `fbvx/fbvz/fbvy` + `fb_dt`）／
 `kitPpos` 1073741829（玩家槽 1086324737..745 实体层，备用）／`kitStatus` `kitDecision` 1082130437/38。
 探针：内核每拍发 `tag='Q1'..'Q5'` 把 10 个固定 GUID 候选坐标塞进服务端日志（客户端 print 不落 .gia）。
+
+**死资产清理（2026-10-30）**：删孤儿图 `_GSTS_kitPpos`(1073741829)+源文件；载体变量 14→8
+（删 fb_state/fb_sec/fb_cnt/fb_mslast/fb_ticklast/fb_char）；脚本登记表 2→1（删已 unmount 的 fb-input2）；
+kit-loop 删 6 个无消费常量；新 CLI `custom-variables --delete` / `scripts remove` 已落地并写进技能。
+**仍存疑**：`1610710043/1610710044` 两张无名图（旧渲染碎片，fb_phys 设备名，各只被自身记录引用 2 次）
+不在 root10，`node-graphs delete` 找不到 → 删除需另开客户端图路径；`kitStatus/kitDecision` 是 2 节点占位图，
+仍被造物配置引用（refs 5/4），删前必须先解绑。
 
 **断点**：①等本轮试玩日志（`fbvx/fbvz` 是否随动、`tag=B` 球状态、`tag=Q*` 候选）②4v4 多玩家把玩家序号做成参数。
