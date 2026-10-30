@@ -308,6 +308,12 @@ local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.p
 local SKILLS = loadModule('skills')
 local SK = nil
 
+-- v5.0 技能反馈的两块新资产（缺任何一个都继续跑：技能机制照旧生效，只是少了文案/特效；
+-- 日志锚 `fx=on|off copy=on|off` 说明当前走哪条通道）。
+FN.COPY = loadModule('copy')      -- 文案库（四角色×触发点 + 主题色）
+FN.FXM  = loadModule('fx')        -- 特效引擎（名卡/环波/描边/边缘光/浮字）
+FN.FX   = nil                     -- 运行期实例（懒建：第一次用特效时才建池）
+
 
 
 --------------------------------------------------------------------------------
@@ -666,8 +672,9 @@ settleSetColors = function(a)
   trySet(g.settleInfo, 'fontColor', C(dimA, 124, 140, 168))
   -- v3.2：明细行现在放本局旁白（轮播 3 条，各有主色）；rgb 由 showGameOver 写进
   -- g.settleNoteRGB，缺省回落原来的 158/174/198（textDim），alpha 仍随面板淡入。
-  local nr = g.settleNoteRGB or { 158, 174, 198 }
-  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.55), nr[1], nr[2], nr[3]))
+  local nr = g.settleNoteRGB or { 96, 112, 132 }
+  -- 旧实现 alpha 只给 0.55 ⇒ 旁白字在浅面板上 1.81:1（机检 fail）。提到 0.88，颜色兜底已压深。
+  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.88), nr[1], nr[2], nr[3]))
   trySet(g.settleOpts, 'fontColor', C(a, 62, 74, 99))
 end
 
@@ -776,11 +783,12 @@ MS.opts = function(cy)
       addPill('opt' .. i .. 'bg', w, h, CARD)
       ink, size = INK, (variant == 'P') and 20 or 21
     else
-      ink, size = SUB, (variant == 'P') and 18 or 20
-      if variant == 'E' then                      -- 等宽三胶囊：第三枚也给个浅底，但明显更弱
-        addPill('opt' .. i .. 'bg', w, h, C(255, 241, 244, 250))
-        ink = INK
-      end
+      -- v5.4 修用户 2026-10-30 四-1「第三个按钮和前面两个比太敷衍」：
+      -- 最低优先级也要有**完整按钮形态**——奶油浅底胶囊 + 一圈更淡的描金细边，
+      -- 但尺寸最小、字最浅 ⇒ 三个按钮一眼分出主/次/再次，而不是"两个按钮 + 一行裸字"。
+      addPill('opt' .. i .. 'rim', w + 5, h + 5, C(255, 214, 196, 158))
+      addPill('opt' .. i .. 'bg', w, h, C(255, 250, 245, 238))
+      ink, size = mix(INK, 0.30), (variant == 'P') and 18 or 20
     end
     rec.ink = ink
     -- 文案：主行动带 [键] 前缀（键盘玩家仍一眼看到键位）
@@ -814,6 +822,8 @@ MS.opts = function(cy)
           col = mix(p.col, (st == 'down') and -0.26 or -0.13)      -- 实心：悬停加深（白字更清楚）
         elseif rec.kind == 'line' then
           col = mix(accent, (st == 'down') and 0.60 or 0.78)       -- 白胶囊：悬停染模式浅色
+        elseif rec.kind == 'flat' then
+          col = mix(p.col, (st == 'down') and -0.10 or 0.04)       -- 浅底胶囊：极轻的悬停/按下
         end
       elseif st ~= 'normal' and p.role == 'rim' then
         col = mix(p.col, (st == 'down') and -0.34 or 0.10)         -- 金边：悬停略亮 / 按下压深
@@ -827,7 +837,7 @@ MS.opts = function(cy)
         -- 纯文字项：三态打在字色上（常态次色 → 悬停主色 → 按下强调色）
         if st == 'hover' then sc = INK elseif st == 'down' then sc = deep end
         local kk = (st == 'hover') and 0.18 or ((st == 'down') and -0.12 or 0)
-        if st == 'normal' then sc = SUB else sc = mix(sc, kk) end
+        if st == 'normal' then sc = rec.ink else sc = mix(sc, kk) end
       else
         sc = mix(rec.ink, (st == 'hover') and 0.10 or ((st == 'down') and -0.12 or 0))
       end
@@ -850,6 +860,10 @@ MS.opts = function(cy)
         addCursor(z, 'CursorDown', function()
           sfx(SFX.press, true)
           paint(rec, 'down')
+        end)
+        -- v5.5：动作挂在 Click（=Up+Click 之后一次），否则按住/连点会重复触发
+        -- （真机日志 `hot settle Q` 2 秒内 6 次；toggle 类动作会被连点抵消）。
+        addCursor(z, 'CursorClick', function()
           print('hot settle ' .. tostring(it.key))
           local fn = SETTLE_ACT[acts[it.key] or '']
           if fn then fn() end
@@ -1041,6 +1055,9 @@ spawn = function(overrideName, overrideBag)
   local nameBag = overrideBag or g.nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
   if not overrideName then g.nextName, g.nextBag = takeFromBag() end
   if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. name) end   -- v2.8 ③ 独立出块锚
+  -- v6：每块重置"这一块做过什么"的标记（供 keqing 四叠 / ganyu 蓄力 判定）
+  g.pieceMoved, g.pieceRotated, g.hardDrop = false, false, false
+  g.pieceAge = 0
   local s = SHAPES[name]
   g.piece = {
     name = name, n = s.n, color = s.color,
@@ -1106,12 +1123,28 @@ clearLines = function()
     -- T4 两套账本：AI 自演的分进 aiScore（玩家接管不清、best 不收）；玩家分进 score。
     -- 连击/B2B 状态共享，但 startIfWaiting/newGame 都归零 ⇒ AI 的连击不会漏进玩家局。
     local gain = base * g.level + comboBonus
+    -- v6 天赋：消行结算（倍率相加不相乘，见设计书 §5.3）
+    if SK and SKILLS and SKILLS.onClear then
+      local okE, ev = pcall(SKILLS.onClear, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+        cleared, { level = g.level, combo = g.combo, b2b = b2bApplied, mode = MODE })
+      if not okE then print('talent onClear ERR ' .. tostring(ev)) end
+      if okE and type(ev) == 'table' then
+        print('talent onClear role=' .. tostring(FN.skillRoleOf and FN.skillRoleOf(1)) ..
+          ' cleared=' .. tostring(cleared) .. ' mult=' .. tostring(ev.mult) .. ' nfx=' ..
+          tostring(type(ev.effects) == 'table' and #ev.effects or 0))
+        gain = math.floor(gain * (tonumber(ev.mult) or 1) + (tonumber(ev.bonus) or 0))
+        if ev.log then print(ev.log) end
+        if type(ev.effects) == 'table' then
+          for ei = 1, #ev.effects do pcall(FN.dispatchEffect, g, ev.effects[ei]) end
+        end
+      end
+    end
     if g.autoDriving then g.AI.score = g.AI.score + gain else g.score = g.score + gain end
     if g.autoDriving then g.AI.lines = g.AI.lines + cleared else g.lines = g.lines + cleared end
     if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
     -- v4.0 ③：消行给前台角色加经验（用户：「哪个技能用的更多，加点更多，就可以获得更好的效果」）
     if SK and SKILLS and SKILLS.addExp then
-      local active = SK.active or 'nahida'
+      local active = (FN.skillRoleOf and FN.skillRoleOf(1)) or SK.party[SK.active or 1] or 'nahida'
       local up = SKILLS.addExp(SK, active, cleared * 10)
       if up and up.leveled then
         print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
@@ -1228,6 +1261,14 @@ doLock = function()
   g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
   g.lastRot = false
   g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。hold 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
+  -- v6 天赋：落块结算（蓄力/二段/四叠），必须在 clearLines 之前
+  if SK and SKILLS and SKILLS.onLock then
+    local okL, evL = pcall(SKILLS.onLock, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+      { piece = g.piece and g.piece.name, hard = (g.hardDrop == true),
+        moved = (g.pieceMoved == true), rotated = (g.pieceRotated == true),
+        flipped = (g.lastFlip == true), dwell = tonumber(g.pieceAge) or 0, mode = MODE })
+    if okL and type(evL) == 'table' and evL.log then print(evL.log) end
+  end
   local cleared = clearLines()
   -- v3.1 二-1 机制A 垃圾行侵蚀：每盘独立账本；连续 N 块无消行（N 按等级段 DRYNESS_N）→
   -- 顶起 1 行带洞垃圾并清零重计（不叠加）。raiseGarbage 的洞位用 aiRand（不动 bag）。
@@ -1559,6 +1600,13 @@ local function startIfWaiting()
     trySet(hint, 'fontColor', THEME.textSub)
     tryCall(hint, 'SetSizeDelta', 260, 40)
     tryCall(hint, 'SetAnchoredPosition', 0, rowY)
+    -- v5.4（用户 2026-10-30 二-2「右边的简易帮助完全没提角色技能」）：
+    -- 准备期底栏补一行技能键位（Z 技能1 / U 技能2 / Y 换台前），玩家在开局前就知道有技能。
+    setText(botBanner, 'Z 技能1 · U 技能2 · Y 换台前 · H 说明')
+    if HUD_INST.botBanner then
+      trySet(HUD_INST.botBanner, 'fontColor', THEME.textSub)
+      tryCall(HUD_INST.botBanner, 'SetVisible', true)
+    end
     setText(hint, (MODE == 'ai-battle') and '按任意键开始 · H 帮助'
       or '双方按任意键准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
     if HUD_INST.hint then
@@ -2258,7 +2306,8 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角 说明 / 角色'
+    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
   -- v3.5 ④：回标题屏同样下架 HUD 实例（含横幅/下一个；标题页只看展台）
   if HUD_INST.hideAll then HUD_INST.hideAll() end
@@ -2290,8 +2339,17 @@ end
 raiseGarbage = function(target, n)
   if not target or target.gameOver or n < 1 then return end
   -- v4.0 ③ 甘雨「冰封」：冻结期内玩家的盘不吃垃圾（AI 盘不受玩家技能影响，保持公平）
-  if SK and SK.freezeT and SK.freezeT > 0 and target == G[1] then
-    print('skill freeze block n=' .. n .. ' left=' .. aiFmt(SK.freezeT))
+  -- v6：冻结按**盘**判定，不再写死 G[1]（pvp 里 P2 也是玩家；旧写法让 P2 完全不受保护）
+  local freezeLeft = tonumber(SK and SK.freezeT) or 0
+  if SK and SKILLS and SKILLS.params then
+    local okP, prF = pcall(SKILLS.params, SK, 'ganyu')
+    if okP and type(prF) == 'table' and tonumber(prF.freezeLeft)
+      and tonumber(prF.freezeLeft) > freezeLeft then
+      freezeLeft = tonumber(prF.freezeLeft)
+    end
+  end
+  if freezeLeft > 0 and target == G[1] then
+    print('skill freeze block n=' .. n .. ' left=' .. aiFmt(freezeLeft))
     return
   end
   local save = g
@@ -2450,7 +2508,8 @@ local function buildHelpLayer()
   local function caps(tag, xl, y, list)
     local x = xl
     for i, cap in ipairs(list) do
-      local cw = (cap == '空格') and 66 or 38
+      -- 键帽宽度按字数算（『空格』两字 19 号约 44px，旧实现 66 宽但文字框居中仍压边）
+      local cw = (#cap >= 2) and 74 or 40
       rrect(tag .. i, x + cw / 2, y, cw, 34, 9, INK)
       text(tag .. 't' .. i, cap, x + cw / 2, y, cw - 4, fs(19), WHITE, 'Middle')
       x = x + cw + 7
@@ -2474,11 +2533,22 @@ local function buildHelpLayer()
     rrect('helpBubble2', 300, 344, 668, 52, 26, CARD)
     t('helpPaimon', S.paimon, 300, 344, 630, 19, INK, 'Middle')
     -- 左栏：通用按键
-    t('helpKeysTitle', S.keysTitle, -550, 232, 300, 22, INK, 'Left')
+    -- 行表起点 208（键帽 34 高 ⇒ 上沿 191）；标题放 252 才不会压到第一行键帽
+    t('helpKeysTitle', S.keysTitle, -550, 252, 300, 22, INK, 'Left')
+    -- v5.1：键表从 7 行变 8 行（新增 Z/U/Y 技能行）⇒ 行距 56→47、起点 190→208，
+    -- 否则第 8 行 (y=-202) 会压住下面的「怎么算分」标题 (y=-200)——手机画布上实测叠字。
     for i, k in ipairs(S.keys) do
-      local y = 190 - (i - 1) * 56
-      caps('helpCap' .. i .. '_', -700, y, k.caps)
-      t('helpKey' .. i, k.label, -445, y, 280, 21, INK, 'Left')
+      local y = 208 - (i - 1) * 47
+      -- 无键帽的行（技能行）整行按一句话排：键帽只画 3 个就会顶到标签文字上（实测叠字）
+      local hasCaps = (type(k.caps) == 'table') and (#k.caps > 0)
+      if hasCaps then caps('helpCap' .. i .. '_', -700, y, k.caps) end
+      -- ⚠ text() 的第 3 个实参是**框中心**（不是左沿）：Left 对齐时左沿 = 中心 - 宽/2。
+      -- 键帽行：左沿 -560、宽 380 ⇒ 中心 -370（键帽最右 -572，留 12px）；整句行：左沿 -700、宽 900 ⇒ 中心 -250。
+      if hasCaps then
+        t('helpKey' .. i, k.label, -460, y, 200, 21, INK, 'Left')
+      else
+        t('helpKey' .. i, k.label, -250, y, 900, 21, THEME.textMain, 'Left')
+      end
     end
     -- 右侧：四张模式委托卡
     for i, m in ipairs(S.modes) do
@@ -2488,7 +2558,8 @@ local function buildHelpLayer()
       rrect('helpCardH' .. i, cx, cy + 114, 228, 70, 15, m.tint)  -- 卡头色带
       shape('helpEmblem' .. i, 'circle', u(cx - 76), u(cy + 114), u(46), u(46), m.color)
       shape('helpRing' .. i, 'ring', u(cx - 76), u(cy + 114), u(28), u(28), m.deep)
-      t('helpCardK' .. i, m.key, cx - 76, cy + 114, 40, 21, WHITE, 'Middle')
+      -- 卡头数字原来是白字压在浅色 tint 上（实测 1.07~1.54:1，白字看不见）⇒ 用该模式的深色档
+      t('helpCardK' .. i, m.key, cx - 76, cy + 114, 40, 21, m.deep, 'Middle')
       t('helpCardN' .. i, m.name, cx + 24, cy + 114, 150, 26, m.deep, 'Middle')
       for li, line in ipairs(m.lines) do
         t('helpCardL' .. i .. '_' .. li, line, cx, cy + 40 - (li - 1) * 44, 232, 19, SUB, 'Middle')
@@ -2531,7 +2602,8 @@ local function buildHelpLayer()
     for i, k in ipairs(S.keys) do
       local y = 240 - (i - 1) * 74
       caps('helpCap' .. i .. '_', -620, y, k.caps)
-      t('helpKey' .. i, k.label, -330, y, 300, 22, INK, 'Left')
+      -- 框中心 -330 宽 300 ⇒ 右沿 -180 伸进模式卡区（-338 起）造成叠字 ⇒ 收窄到 230 并贴左
+      t('helpKey' .. i, k.label, -470, y, 230, 22, INK, 'Left')
     end
     -- 右页：报酬怎么算（柱高即分值）
     t('helpScoreTitle', '报酬怎么算', 370, 330, 600, 26, INK, 'Middle')
@@ -2607,7 +2679,7 @@ local function buildHelpLayer()
     local cx2, cy2 = 640, 378
     rrect('helpClosePill', cx2, cy2, bw2, bh2, 26, GOLD)
     rrect('helpClosePill2', cx2, cy2, bw2 - 8, bh2 - 8, 22, CARD)
-    text('helpCloseTx', '合上手册 ✕', cx2, cy2, bw2 - 16, fs(21), INK, 'Middle')
+    text('helpCloseTx', '合上手册', cx2, cy2, bw2 - 16, fs(21), INK, 'Middle')
     local z = UI4.hit('helpCloseHit', u(bw2), u(bh2))
     if z then
       tryCall(z, 'SetAnchoredPosition', u(cx2), u(cy2))
@@ -2623,7 +2695,7 @@ local function buildHelpLayer()
       print('help close zone=none（无 cursor 模板）')
     end
   end
-  -- 层序强制：按创建顺序逐个置顶（底→字），压住标题页卡片与服务端 textbox 的残留
+  -- 层序强制：last sibling = 最上层（实测：改成 first 会把整层压到底，标题展台全透上来）。
   for i = 1, #HL do
     if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
   end
@@ -2634,6 +2706,11 @@ closeHelp = function()
   if not helpOpen then return end
   helpOpen = false
   destroyHelpLayer()
+  -- 标题页关页后把展台建回来（否则回标题是一片空背景）
+  if guideStage == 0 then
+    local okR = pcall(buildMenuCards)
+    print('help stage restore ok=' .. tostring(okR))
+  end
   if guideStage == 2 then guideStage = helpFromStage or 1 end
   if UI4.refreshHelpLabel then UI4.refreshHelpLabel(false) end
   print('guide help closed stage=' .. tostring(guideStage))
@@ -2669,6 +2746,14 @@ toggleHelp = function()
     print('help off')                    -- v2.8 ② 时停恢复锚（保留）
   else
     helpOpen = true
+    -- 层序靠"创建顺序"决定，而 `SetAsLastSibling` 在本引擎是空操作（实测开页后 node 顺序
+    -- helpTitle=256 < menuBig=320 ⇒ 展台永远压着手册，PC/手机都出现双层文字叠印）。
+    -- 所以标题页开手册前先把展台拆掉，关页时再建回来（buildMenuCards 本身是"先拆后建"的幂等函数）。
+    if guideStage == 0 then
+      local okS = pcall(MS.teardown)
+      local okC = pcall(destroyMenuCards)
+      print('help stage hide ok=' .. tostring(okS and okC))
+    end
     buildHelpLayer()
     if UI4.refreshHelpLabel then UI4.refreshHelpLabel(true) end
     if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
@@ -2833,13 +2918,55 @@ MS.build = function()
   -- 提示条中心落在带内（1600：ypx 872 / 1280：ypx 692），两块画布都居中在带里。
   local lineY = -(halfH - 28)
   MS.lineY = lineY
-  local segX, segW = { -290, 0, 290 }, { 215, 250, 215 }
-  for i = 1, 3 do
-    MS.hint[i] = MS.addText('menuHint' .. i, MS.hintText[i], segX[i], lineY, segW[i], 50, 26, MS.CYAN)
+  -- v5.4 修 A6（4/5 份评审：「手机画布上仍是键盘话术」）：提示条按宿主分两套。
+  -- 触屏没有 1-4 / H 键，手机端只写玩家真能做的两个动作：点卡片选模式、点右上角两个按钮。
+  local segs = IS_MOBILE
+    and { { '点卡片选模式', -250, 340, 24 }, { '右上角：说明 / 角色', 250, 470, 24 } }
+    or { { MS.hintText[1], -290, 215, 26 }, { MS.hintText[2], 0, 250, 26 }, { MS.hintText[3], 290, 215, 26 } }
+  for i = 1, #segs do
+    MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], MS.CYAN)
   end
-  MS.segX = segX
-  MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
-  MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
+  MS.segX = { -290, 0, 290 }
+  if not IS_MOBILE then
+    MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
+    MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
+  end
+  -- v5.4 修用户 2026-10-30 反馈 一-1「开局没有看到角色相关的模块图标设计」：
+  -- 标题页右上角补一张**角色档案入口卡**（四角色色点 + I 键 + 可点热区）。
+  -- 走展台实例层（MS.parts）⇒ 进局 MS.teardown 一起拆；热区与 I 键同一入口。
+  do
+    -- 位置随画布收敛：右侧留 24px 边距；手机端下移 80px，给右上角的「说明/角色」按钮让位
+    -- （按钮中心在 top-18-28，卡片顶边必须落在它下面，否则两处控件叠在一起）。
+    local CW, CH = CANVAS_W or 1280, CANVAS_H or 720
+    local ex = math.min(520, CW / 2 - 169)
+    local ey = IS_MOBILE and (CH / 2 - 138) or 302
+    MS.addCell('menuEntryRosterBg', ex, ey, 290, 96, THEME.panel)
+    MS.addCell('menuEntryRosterEdge', ex, ey - 49, 290, 3, THEME.gold)
+    MS.addCell('menuEntryRosterBar', ex - 142, ey, 6, 96, THEME.goldDeep)
+    MS.addText('menuEntryRosterTitle', '角色档案', ex + 26, ey + 14, 210, 40, 24, THEME.goldDeep)
+    MS.addText('menuEntryRosterSub', IS_MOBILE and '点我看契约与技能' or 'I 键 · 点我看契约与技能',
+      ex + 26, ey - 20, 240, 30, 15, MS.CYAN)
+    local dots = {
+      { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 },
+    }
+    for i = 1, #dots do
+      local d = dots[i]
+      MS.addCell('menuEntryDot' .. i, ex - 108 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
+    end
+    if TPL_HIT then
+      local okz, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+      if okz and zh then
+        zh.name = 'menuZoneRoster'
+        tryCall(zh, 'SetSizeDelta', 290, 96)
+        tryCall(zh, 'SetAnchoredPosition', ex, ey)
+        addCursor(zh, 'CursorDown', function() sfx(SFX.hover, true) keyConsumedFrame = frameSeq end)
+        addCursor(zh, 'CursorClick', function() keyConsumedFrame = frameSeq FN.rosterToggle() end)
+        MC[#MC + 1] = zh
+        MS.rosterZone = zh
+        print('menu roster entry=ok')
+      end
+    end
+  end
   -- v3.2 原神文案：标题屏「旅行者手记」轮播位。
   -- 为什么走实例文字：服务端 textbox 被展台墙（menuWall*）压在下面，标题页文案只能靠实例；
   -- 为什么放 (x=-420, y=-215)：左列两张模式卡（y=±104，卡高 110）与底部提示条（y=-331）之间
@@ -3029,7 +3156,9 @@ MS.modes = function()
     trySet(sub, 'horizontalAlignment', 'Left')
     trySet(sub, 'bgColor', C(0, 0, 0, 0))
     sub:SetSizeDelta(390, 34)
-    sub:SetAnchoredPosition(-(W / 2 - 210), H / 2 - 30)
+    -- v5.4（用户 2026-10-30 截图）：真机沙箱客户端左上角有自带的 DXWK/FPS/GPU 调试浮层（约 0..40px），
+    -- 我方品牌标原来就贴在 y=top-30 与它叠字 ⇒ 下移到 y=top-72，仍在标题页左上角但不再被压。
+    sub:SetAnchoredPosition(-(W / 2 - 210), H / 2 - 72)
     MC[#MC + 1] = sub
   end
 end
@@ -3137,6 +3266,7 @@ MS.pressCard = function(i)
   print('menu press i=' .. i)
 end
 -- 四张卡的透明命中热区（cursor 模板实例，PC 也可用鼠标；移动端 = 触屏点卡）
+-- @region ui-menu BEGIN (writer: ui-mobile)
 MS.buildHoverZones = function()
   UI4.regScreen('menu')
   if not TPL_HIT then print('menu zones=none（无 cursor 模板，仅键盘 1-4 可选）') return false end
@@ -3187,7 +3317,9 @@ menuSelectMode = function(i)
   if guideStage ~= 0 or pendingMode then return end
   -- v4.0 ③：移动端不做双屏（裁决⑨）——但**不能静默吞点击**（用户 2026-10-29：
   -- 「移动端点击了，没有任何反应。应该有原神风格的文案引导去 PC 端游玩」）⇒ 开引导浮层。
-  if i > 1 and IS_MOBILE then
+  -- v5.0 ②：只拦**真正的双人**（3=双人对战 / 4=双人合作）。「AI 对抗」是单人 vs AI，
+  -- 手机上完全能打——旧判据 i>1 把 2 号也算成双人，用户 2026-10-29 打回「错误判定为双人玩法了」。
+  if i >= 3 and IS_MOBILE then
     print('pad note menu i=' .. i)
     if UI4.noteOpen then UI4.noteOpen(i) end
     return
@@ -3218,10 +3350,16 @@ buildMenuCards = function()
   if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
   local okZone = pcall(MS.buildHoverZones)              -- v2.7 ⑤：三态热区（最后建 = 在最上层）
   if not okZone then print('menu zones error') end
+  -- 帮助页先开、展台后建 ⇒ 展台会盖在手册上面（PC/手机都出现"双层文字叠印"）。这里补一次置顶。
+  if helpOpen and HL and #HL > 0 then
+    for i = 1, #HL do if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end end
+    print('help restack n=' .. #HL)
+  end
   print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
   return true
 end
 
+-- @region ui-menu END (writer: ui-mobile)
 -- ===== T6b-2 双屏控件与布局 =====
 -- G[2] 棋盘（p2cell/p2frame 前缀防与 G[1] 撞名；坐标=基准+boardOX）。
 local function buildBoardControls(inst)
@@ -3325,7 +3463,7 @@ end
 -- 双屏布局：G[1] 棋盘移左（-320）、G[2] 移右（+320）；G[1] preview 重排（next 上移棋盘上方两排、
 -- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
 FN.layoutDual = function()
-  placeBoard(G[1], -280)
+  placeBoard(G[1], -236)
   -- v2.4 ③ 双屏读图读数（v23-pvp.png）：两侧各 300+px 空区没有归属物，左栏 HUD 压在左盘边上，
   -- 两盘除了位置没有任何席位标识。做法：棋盘框按席位染色 + 左栏战况回归左空区 + 中缝一条细线。
   -- v3.0 浅底席位色：取四角色色的深色档（原霓虹青/玫红在浅底上太扎眼）
@@ -3333,10 +3471,10 @@ FN.layoutDual = function()
   local p2c = C(255, 192, 78, 124)                       -- AI 少女 深樱粉
   if MODE == 'pvp' then p2c = C(255, 95, 76, 168) end    -- 双人对战 = 刻晴 深紫
   if MODE == 'coop' then p2c = C(255, 63, 139, 60) end   -- 合作 = 纳西妲 深草绿
-  for i = 1, 4 do
-    if G[1].frames and G[1].frames[i] then G[1].frames[i].imageColor = p1c end
-    if G[2] and G[2].frames and G[2].frames[i] then G[2].frames[i].imageColor = p2c end
-  end
+  -- v5.4：席位配色收敛到 FN.paintFrames（唯一写者）。原来这里内联写 p1c/p2c，
+  -- 但 ui.lua 的 U.bgApply 随后会把两盘框重涂成模式色 ⇒ 席位色永远看不见（A14 根因）。
+  if FN.paintFrames then FN.paintFrames() end
+  print('dual seat mode=' .. tostring(MODE))
   -- v3.5 ⑨：预览/hold 位**不再由布局另写一套**——原来这里用 22/18 间距摆到左盘上方，
   -- 而 renderNext 用 20/14 间距摆到右栏 ⇒ 准备期与对局期预览块会「跳位 + 格子间露缝」。
   -- 唯一真源 = renderNext（格子间距=格宽），布局末尾直接调一次即可让准备期与对局期完全一致。
@@ -3344,7 +3482,7 @@ FN.layoutDual = function()
   tryCall(title, 'SetVisible', false)
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
-  placeBoard(G[2], 280)
+  placeBoard(G[2], 236)
   -- 中缝细线：把两块屏分开（2 个实例，一次性建，exitToMenu 里拆）
   if not DUAL_DECO[1] and TPL_CELL then
     for i = 1, 2 do
@@ -3362,8 +3500,20 @@ FN.layoutDual = function()
     trySet(DUAL_DECO[1], 'imageColor', THEME.gold)
   end
   if DUAL_DECO[2] then
-    tryCall(DUAL_DECO[2], 'SetSizeDelta', 10, 10)
+    -- v5.4（用户 2026-10-30 二-1：「右边帮助区域拥挤」一并修的构图）：中缝方块读起来像掉了一个格子，
+    -- 换成 14px 描金圆点，作为"分隔符/VS 点"更像我方设计语言。
+    tryCall(DUAL_DECO[2], 'SetSizeDelta', 14, 14)
     tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
+    -- 换图元要走枚举形态并带字符串回退（直接 SetImage(100006) 会让 imageId 变 undefined，
+    -- 出图管线 assertLosslessJson 当场炸；见 fx.lua setImg 同一处理）
+    do
+      local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
+      local ok = false
+      if enumIS and enumIS.StaticReference ~= nil then
+        ok = pcall(function() DUAL_DECO[2]:SetImage(enumIS.StaticReference, BG_IMG.circle) end)
+      end
+      if not ok then pcall(function() DUAL_DECO[2]:SetImage('StaticReference', BG_IMG.circle) end) end
+    end
     trySet(DUAL_DECO[2], 'imageColor', THEME.goldDeep)
   end
   -- ===== v3.5 双屏 HUD 摆位（唯一真源；此前这里有个 nil 全局炸点，见下）=====
@@ -3477,6 +3627,9 @@ HUD_INST.build = function()
       end
       -- v3.5 ④：所有 HUD 实例统一 垂直居中（模板缺省 Top 会裁掉字形顶部）
       trySet(c, 'verticalAlignment', 'Middle')
+      -- v5.5：水平方向也必须显式居中——真机截图里右侧「P2 盘 / 得分…」被右缘切掉半个字，
+      -- 底栏键位提示不居中，都是模板缺省对齐（非 Middle）导致的溢出裁切。
+      trySet(c, 'horizontalAlignment', 'Middle')
       made = made + 1
     end
   end
@@ -3487,7 +3640,8 @@ HUD_INST.build = function()
     trySet(HUD_INST.topBanner, 'fontSize', 34)
   end
   if HUD_INST.botBanner then
-    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 28))
+    -- v5.4：底栏常驻说明离画布底缘只有 28px，22 号字（框高 48）下沿会被裁 ⇒ 上移 12px
+    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 40))
   end
   -- v3.5 ④：「下一个」标签实例摆到预览块正上方（预览块实测 y 78..189，标签中心 215 不压块）
   -- 为什么贴在预览块上而不是屏幕右上：原 (RIGHT_CX, halfH-150) 离预览块 90px，读起来像独立标题。
@@ -3585,72 +3739,345 @@ FN.skinBgItem = function(ctl, spec)
   end
   return true
 end
+-- @region ui-bg-theme BEGIN (writer: ui-mobile)
 applyModeTheme = function(mode)
-  local t = MODE_THEME[mode] or MODE_THEME.casual
-  local specs = MODE_BG[mode] or MODE_BG.casual
-  local pool = (G[1] or g).bgPool
-  local n = 0
-  local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  -- v4.0 ①背景满幅（用户 2026-10-29：「手机两边有部分的背景区域缺失」）：
-  -- 构图全部按 1280×720 设计板摆位（母题在 x≈±500~±600），换到 1560×720 / 2100×900 画布时
-  -- 两侧只剩整屏底色（wash 是 W+20×H+20，颜色在但没有构图）⇒ 看起来就是"背景缺一块"。
-  -- 修法 = **cover 缩放**（同 CSS background-size:cover）：bs = max(W/1280, H/720)，
-  -- 坐标与尺寸一起乘 bs。16:9 画布 bs=1（构图原样），更宽的画布构图放大后溢出裁掉。
-  local bs = math.max(W / (NUM.BG_BASE_W or 1280), H / (NUM.BG_BASE_H or 720))
-  -- 构图外缘（判据用）：取每个图元的外接圆半径，避免旋转矩形算不准
-  local extL, extR, extB, extT = 0, 0, 0, 0
-  if pool then
-    -- 池第 1 件 = 整屏底色（所有模式共用一层深底，颜色随模式换）
-    local wash = pool[1]
-    if wash then
-      tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-      tryCall(wash, 'SetAnchoredPosition', 0, 0)
-      trySet(wash, 'imageColor', t.bg)
-    end
-    for i = 1, #pool - 1 do
-      local spec = specs[i]
-      local ctl = pool[i + 1]
-      if spec then
-        local sp = { s = spec.s, x = (spec.x or 0) * bs, y = (spec.y or 0) * bs,
-          w = (spec.w or 0) * bs, h = (spec.h or 0) * bs, c = spec.c, rot = spec.rot }
-        if FN.skinBgItem(ctl, sp) then
-          n = n + 1
-          local r = math.sqrt((sp.w / 2) ^ 2 + (sp.h / 2) ^ 2)
-          if sp.x - r < extL then extL = sp.x - r end
-          if sp.x + r > extR then extR = sp.x + r end
-          if sp.y - r < extB then extB = sp.y - r end
-          if sp.y + r > extT then extT = sp.y + r end
-        end
-      elseif ctl then
-        -- 空槽：缩成 1×1 挪出画布（不依赖 visible）
-        tryCall(ctl, 'SetSizeDelta', 1, 1)
-        tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
-      end
-    end
+  -- v5.0：背景满幅的唯一实现搬到 lua/tetris/ui.lua 的 U.bgApply（wash 整屏底 + cover 构图两层），
+  -- 判据从旧的「92% 边沿」改成**四边 0 缺口**，并打印 `bg cover ok bs=… screen=…`。
+  -- 五屏共用同一条路径：屏幕切换由 FN.U.sync 判定后调用它 ⇒ 标题页不再"从不调用"。
+  if not FN.U then
+    print('bg cover skip（ui 模块缺失）')
+    return
   end
-  -- 判据：构图外缘必须覆盖到画布边沿的 92%（整屏 wash 另外保证 100% 底色）。
-  -- 打印锚：`bg cover ok bs=…` / `bg cover GAP …`（用例按画布逐张断言 ok）
-  local needX, needY = W / 2 * 0.92, H / 2 * 0.92
-  if extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
-    print('bg cover ok bs=' .. aiFmt(bs) .. ' w=' .. math.floor(W) .. ' h=' .. math.floor(H))
-  else
-    print('bg cover GAP bs=' .. aiFmt(bs) .. ' ext=' .. math.floor(extL) .. ',' .. math.floor(extR)
-      .. ',' .. math.floor(extB) .. ',' .. math.floor(extT) .. ' need=' .. math.floor(needX) .. ',' .. math.floor(needY))
-  end
-  if g.plate then trySet(g.plate, 'imageColor', t.plate) end
-  for i = 1, 4 do
-    if g.frames and g.frames[i] then trySet(g.frames[i], 'imageColor', t.frame) end
-  end
-  if #specs > (MODE_BG_POOL or 18) - 1 then
-    print('bg overflow !! specs=' .. #specs .. ' pool=' .. tostring(MODE_BG_POOL))   -- 构图条数超过池容量会静默丢背景
-  end
-  print('mode theme=' .. tostring(mode) .. ' bg=' .. n .. '/' .. #specs)   -- 用例锚
+  FN.U.bgApply(mode or 'casual', FN.U.screen)
 end
 
--- ===== v4.0 ③ 角色技能：施放 + 效果派发 =====
--- 键位：Z = 技能1（当前前台角色）、U = 技能2（第二角色，没有就回落同一人）、Y = 切换前台。
--- 为什么这样分：Z/U 两个瞬发槽不占移动键（WASD/箭头/空格/G 全被玩法占用），Y 做前台切换。
--- 数值/门禁全在 skills.lua（锁定→CD→能量），这里只做"效果"与"文案"。
+-- @region ui-bg-theme END (writer: ui-mobile)
+-- @region skill-system BEGIN (writer: lead)
+-- ===== v5.0 ③ 角色技能：机制 + 反馈四件套（用户 2026-10-29 第四条返工）=====
+-- 为什么整段重写：v4.0 的技能=「一行 botBanner 文案 + 一行 print」，用户体感
+-- 「四个角色技能，和没做没有区别」。v5.0 的硬规定（少一项按"没做"算）：
+--   ①机制真的改变盘面 ②角色主题色上屏 ③特效（名卡/环波/描边/边缘光/浮字）④专属音效
+--   ⑤一句有人味的文案（COPY 模块） ⑥HUD 状态位（能量/CD/台前角色）随触发变化
+-- 键位：Z=技能1（台前）U=技能2（队伍第二人）Y=换台前；手机端 UI4.dispatch 的
+--      'skill1'/'skill2'/'switch' 走同一入口（FN.skillCast / FN.skillSwitch）。
+-- 模块缺失降级：COPY/FX 任一没装载时，机制与文案仍有兜底，日志里 `fx=off`/`copy=off` 可判。
+FN.SK = { topT = 0, lastKind = '', lastRole = '', hudTxt = nil, take = nil }
+
+-- 主题色兜底（COPY.ROLES[*].color 优先）——用户要求"四角色主题色在触发时体现"，不能因为模块没接线就丢
+FN.SKCOL = {
+  nahida    = 0xFF7FCF6A,   -- 草绿
+  keqing    = 0xFFB18CFF,   -- 雷紫
+  ganyu     = 0xFF9FE8FF,   -- 冰蓝
+  columbina = 0xFFFFC8E6,   -- 风粉白
+}
+FN.SKROLE_NAME = { nahida = '纳西妲', keqing = '刻晴', ganyu = '甘雨', columbina = '少女' }
+FN.SKROLE_SKILL = { nahida = '所闻遍计', keqing = '星斗归位', ganyu = '降众天华', columbina = '引力涟漪' }
+FN.SKROLE_ELEM = { nahida = '草', keqing = '雷', ganyu = '冰', columbina = '水' }
+
+-- 技能档位（skills.lua 的 TIER_BY_LV 给 1..8）→ NUM.AI_LEVELS 的下标（1..3）
+-- 旧实现把 1..8 直接当 lvIdx 传给 aiTickCore：>3 会越界回落成 hard档 ⇒ 纳西妲"档位"名存实亡。
+-- 注意口径：技能是**消耗 25s CD 换来的"强力代打"**，不能给"陪练档"——
+-- 用户原话「小草神核心机制肯定是 ai 代打，局内升级解锁不同的强力 ai 的级别」。
+-- 所以 tier 1..3 就已经给 normal（标准），4 以上给 hard（全力）；easy 只属于 casual 的自动接管。
+FN.aiLevelIdxOfTier = function(tier)
+  local t = tonumber(tier) or 1
+  if t <= 3 then return 2 end
+  return 3
+end
+
+-- 文字专用深色（角色主题色的「深色档」）。为什么单列一个：
+-- 亮主题色 #7FCF6A 直接当字色，在浅色面板 #F4FCEC 上对比只有 1.81:1（机检 fail，人眼发虚）。
+-- 图形（环波/描边/进度条）继续用亮色，**文字一律用深色**。
+-- 把一个 ARGB 压到指定亮度以下（浅色主题色当字色会看不见：少女青白 #BFF3EA 在 #F4F4FC 上只有 1.11:1）
+FN.skillDark = function(c, target)
+  local a = math.floor(c / 16777216) % 256
+  local r = math.floor(c / 65536) % 256
+  local g = math.floor(c / 256) % 256
+  local b = c % 256
+  local lum = 0.299 * r + 0.587 * g + 0.114 * b
+  local lim = target or 96
+  if lum <= lim then return c end
+  local k = lim / lum
+  return C(a, math.floor(r * k), math.floor(g * k), math.floor(b * k))
+end
+
+-- 特效基准 x：单人=0；双盘时玩家盘在左（±280），特效跟着走，否则会炸在中缝
+FN.fxBoardX = function()
+  if ACTIVE and ACTIVE[2] and G[ACTIVE[1]] == G[1] then return -236 end
+  return 0
+end
+
+-- ===== v5.4 席位配色唯一写者（修 A14「双盘用体系外玫红」+ A9「四角色局看起来一样」）=====
+-- 事实链：main 的 OnStart/layoutDual 会给棋盘框按角色染色，但 ui.lua 的 U.bgApply（每屏/每模式都会跑）
+-- 随后把 plate 与 4 条 frame 重涂成 MODE_THEME[mode].frame ⇒ 角色色被静默覆盖（实测 frame 读数
+-- 恒为模式色 #7c63c9/#c04e7c）。修法：**框色只有这一处写**，ui 侧改成调用本函数；
+-- 本函数同时覆盖单盘（台前角色）与双盘（P1 / 对家两个席位）。
+FN.seatColor = function(roleKey)
+  local R = FN.COPY and FN.COPY.ROLES and roleKey and FN.COPY.ROLES[roleKey]
+  local c = R and (R.color2 or R.color)
+  if not c then return nil end
+  return FN.skillDark(c, 118)      -- 亮度压到 ≤118：浅底上 2px 细线既有对比又不刺眼
+end
+FN.paintFrames = function()
+  local mt = MODE_THEME[MODE] or MODE_THEME.casual
+  local party = (SK and SK.party) or {}
+  local act = (SK and SK.active) or 1
+  local p1 = FN.seatColor(party[act]) or mt.frame
+  local painted = false
+  if G[2] then
+    local other
+    if MODE == 'pvp' then other = 'keqing'
+    elseif MODE == 'coop' then other = 'nahida'
+    else other = party[act == 1 and 2 or 1] end
+    local p2 = FN.seatColor(other) or mt.frame
+    for i = 1, 4 do
+      if G[1].frames and G[1].frames[i] then trySet(G[1].frames[i], 'imageColor', p1) painted = true end
+      if G[2].frames and G[2].frames[i] then trySet(G[2].frames[i], 'imageColor', p2) painted = true end
+    end
+  elseif g and g.frames and g.frames[1] then
+    for i = 1, 4 do if g.frames[i] then trySet(g.frames[i], 'imageColor', p1) painted = true end end
+  end
+  return painted
+end
+
+FN.skillInk = function(role)
+  local CP = FN.COPY
+  if CP and CP.ROLES and CP.ROLES[role] and CP.ROLES[role].color2 then
+    return FN.skillDark(CP.ROLES[role].color2)
+  end
+  return FN.skillDark(FN.skillColor(role))
+end
+
+FN.skillColor = function(role)
+  local CP = FN.COPY
+  if CP and CP.ROLES and CP.ROLES[role] and CP.ROLES[role].color then return CP.ROLES[role].color end
+  return FN.SKCOL[role] or FN.SKCOL.nahida
+end
+FN.skillName = function(role)
+  local CP = FN.COPY
+  if CP and CP.ROLES and CP.ROLES[role] and CP.ROLES[role].name then return CP.ROLES[role].name end
+  return FN.SKROLE_NAME[role] or '纳西妲'
+end
+FN.skillSkill = function(role)
+  local CP = FN.COPY
+  if CP and CP.ROLES and CP.ROLES[role] and CP.ROLES[role].skill then return CP.ROLES[role].skill end
+  return FN.SKROLE_SKILL[role] or '所闻遍计'
+end
+
+-- 台前角色（slot 2 = 队伍里的另一个人；只有一个角色时回落同一人）
+FN.skillRoleOf = function(slot)
+  if not (SK and SK.party and #SK.party > 0) then return 'nahida' end
+  local n = #SK.party
+  local idx = SK.active or 1
+  if slot == 2 and n > 1 then idx = (idx % n) + 1 end
+  if idx < 1 or idx > n then idx = 1 end
+  return SK.party[idx] or 'nahida'
+end
+
+-- 特效引擎懒初始化：第一次要用时才建池（此时棋盘 200 格已经建好 ⇒ 特效天然压在棋盘之上）
+FN.fxInit = function()
+  if FN.FX or not FN.FXM then return FN.FX end
+  -- ⚠ TPL_TEXT 是**懒探测**的（第一次建结算/帮助/模式卡文字时才赋值）。fx 池在首次技能时才建，
+  -- 若此刻它还是 nil，名卡就只有色块没有字（2026-10-29 实测：`fx pool ok ctl=21 bad=0 text=0`）。
+  -- 这里主动补探一次（probeSettleTextbox 内部有缓存 + pcall 护栏，重复调用无副作用）。
+  if not TPL_TEXT and probeSettleTextbox then
+    TPL_TEXT = probeSettleTextbox()
+    print('fx tpl text resolve=' .. tostring(TPL_TEXT))
+  end
+  local ok, inst = pcall(FN.FXM.new, {
+    game = game,
+    rootOf = function() return root end,
+    W = function() return CANVAS_W or 1280 end,
+    H = function() return CANVAS_H or 720 end,
+    trySet = trySet, tryCall = tryCall,
+    sfx = sfx,
+    colorOf = FN.skillColor,
+    -- 图元模板 guid：card = 棋盘格（image，可当色块/圆环载体），text = 文字模板（名卡用）。
+    -- 真机导入后 guid 会被重编号 ⇒ 这里传的是**已探测解析过的**运行期值（可能为 nil，fx 内部要能降级）。
+    tpl = { card = TPL_CELL, text = TPL_TEXT },
+    -- 棋盘矩形（本地坐标，中心原点）：环波/描边/边缘光按它定位与限幅，
+    -- 否则 1600×900 上会画出直径 900 的大圈，糊到左右两栏（2026-10-29 出图实测）。
+    -- 双盘模式（AI 对抗 / 双人对战 / 双人合作）：玩家盘不在屏幕中心，特效必须跟着走
+    boardRect = { w = COLS * PITCH, h = ROWS * PITCH, cell = CELL, cols = COLS, rows = ROWS,
+      cx = (ACTIVE[2] and G[ACTIVE[1]] == G[1]) and -280 or 0,
+      cy = 0 },
+    -- 名卡自带「角色名 + 技能名」（比 topBanner 的文案标题更informative），所以 cast 时
+    -- main 不再往 topBanner 写同名标题（否则同一句在屏上出现两次）
+    bannerText = true,
+    -- 音效统一由 main 的 SFX.skill[role] / SFX.skillFail 播，fx 侧不要再自己播 burst 音
+    quiet = true,
+  })
+  if ok and inst then
+    FN.FX = inst
+    print('fx engine ok')
+  else
+    print('fx engine fail :: ' .. tostring(inst))
+  end
+  return FN.FX
+end
+
+-- 一屏两行文案（上行=角色·技能名 + 主题色；下行=一句人话）——所有技能事件的唯一文字出口
+-- 顶部横幅统一样式：位置贴顶、宽度留边、字号固定（否则长句会被框宽裁掉半句，
+-- 且在移动端会落到屏幕正中横穿棋盘 —— 2026-10-29 出图实测「小草神纳西妲正看着你的盘面…再不」被裁一半）。
+FN.topBannerStyle = function(size)
+  local W, H = CANVAS_W or 1600, CANVAS_H or 900
+  local w = W - 120
+  tryCall(topBanner, 'SetSizeDelta', w, math.max(44, (size or 26) * 1.6 + 8))
+  tryCall(topBanner, 'SetAnchoredPosition', 0, H / 2 - 36)
+  trySet(topBanner, 'fontSize', size or 26)
+  trySet(topBanner, 'horizontalAlignment', 'Middle')
+  trySet(topBanner, 'verticalAlignment', 'Middle')
+end
+
+FN.skillText = function(role, title, body, dur)
+  local col = FN.skillInk(role)
+  if title then
+    FN.topBannerStyle(26)
+    setText(topBanner, title)
+    trySet(topBanner, 'fontColor', col)
+    FN.SK.topT = dur or 1.8
+  end
+  if body then
+    setText(botBanner, body)
+    bannerTimer = math.max(bannerTimer or 0, dur or 1.8)
+  end
+end
+
+-- 反馈四件套（文案/色/特效/音效）唯一出口：任何技能路径都必须经过这里
+-- 天赋效果派发（v6）：skills.lua 只出「要发生什么」，改盘面在 main 这边做。
+-- kind 全集：clear-top / clear-bottom / garbage-push（单人/无对手降级 clear-bottom）/ clear-col
+-- UTF-8 安全截断（sub 按字节切会把中文切成半个字符，用例会报 invalid utf8）
+FN.utf8Cut = function(str, bytes, tail)
+  local t = tostring(str or '')
+  if #t <= bytes then return t end
+  local cut = bytes
+  while cut > 1 do
+    local b = t:byte(cut + 1)
+    if not b or b < 0x80 or b >= 0xC0 then break end
+    cut = cut - 1
+  end
+  return t:sub(1, cut) .. (tail or '…')
+end
+
+FN.dispatchEffect = function(g0, ev)
+  if not (g0 and ev) then return false end
+  local kind, n = ev.kind, math.max(1, math.floor(tonumber(ev.n) or 1))
+  if kind == 'garbage-push' then
+    local opp = (G and G[1] == g0) and G[2] or G[1]
+    if not opp or MODE == 'casual' then kind = 'clear-bottom'
+    else
+      if raiseGarbage then pcall(raiseGarbage, opp, n) end
+      print('talent push n=' .. n)
+      return true
+    end
+  end
+  local C2 = COLS or 6
+  local function shiftDown()
+    for r = 1, ROWS - 1 do g0.board[r] = g0.board[r + 1] end
+    g0.board[ROWS] = {}
+    for c = 1, C2 do g0.board[ROWS][c] = 0 end
+  end
+  local function shiftUp()
+    for r = ROWS, 2, -1 do g0.board[r] = g0.board[r - 1] end
+    g0.board[1] = {}
+    for c = 1, C2 do g0.board[1][c] = 0 end
+  end
+  if kind == 'clear-top' then
+    for _ = 1, n do shiftDown() end
+  elseif kind == 'clear-bottom' then
+    for _ = 1, n do shiftUp() end
+  elseif kind == 'clear-col' then
+    local col = math.max(1, math.min(C2, math.floor(tonumber(ev.col) or 1)))
+    local hit = 0
+    for r = ROWS, 1, -1 do
+      if g0.board[r] and g0.board[r][col] ~= 0 and hit < n then g0.board[r][col] = 0; hit = hit + 1 end
+    end
+  end
+  print('talent fx kind=' .. tostring(kind) .. ' n=' .. n)
+  if ev.anchor then print(tostring(ev.anchor)) end   -- 天赋专属锚（设计书 §6.6：一行日志独立证明该天赋触发）
+  if FN.renderAll then pcall(FN.renderAll, g0) end
+  return true
+end
+
+FN.skillFeedback = function(role, kind, data)
+  data = data or {}
+  local col = FN.skillColor(role)
+  local nm, sk = FN.skillName(role), FN.skillSkill(role)
+  local CP, FXU = FN.COPY, FN.fxInit()
+  local title, body = data.title, data.body
+  if (not title) and CP then
+    local snap = (SKILLS and SKILLS.snapshot and SKILLS.snapshot(SK)) or {}
+    local ctx = { mode = MODE, lv = snap.lv or 1, tier = data.tier or snap.tier or 1,
+      left = data.left, n = data.n, lines = data.lines, garbage = data.garbage }
+    local fn = (kind == 'fail' and CP.fail) or (kind == 'end' and CP.settle)
+      or (kind == 'level' and CP.level) or (kind == 'unlock' and CP.unlock) or CP.cast
+    if type(fn) == 'function' then
+      local ok, t = pcall(fn, role, ctx)
+      if ok and type(t) == 'table' then title, body = t.title or title, t.body or body end
+    end
+  end
+  if not title then title = nm .. ' · ' .. sk end
+  if not body then body = (kind == 'fail') and '还差一点，再等等。' or '契约定下——这一手交给我。' end
+  -- cast/level/unlock 的"标题"由名卡承担（fx.banner 里画 角色名·技能名），这里只写正文，
+  -- 避免同一句在屏上出现两次（用户历史反馈过"双影"）。fail/end 没有名卡 ⇒ 标题照写。
+  -- ⚠ Lua 陷阱：`cond and nil or title` 永远等于 title（and/or 链的经典坑）——这里必须用 if
+  local cardKinds = (kind == 'cast' or kind == 'level' or kind == 'unlock')
+  local topTitle = title
+  if cardKinds then topTitle = nil end
+  FN.skillText(role, topTitle, body, data.dur or 1.8)
+  if SFX and sfx then
+    local id = SFX.skill and SFX.skill[role]
+    if kind == 'fail' then id = SFX.skillFail or id end
+    sfx(id or SFX.level, true)
+  end
+  -- v5.4：准备/倒计时屏（guideStage==3）**不放特效名卡**——席位键位卡就摆在盘下那条带子上，
+  -- 名卡一出现就压在 P1 键位卡上（07/10 出图实测：一块「少女」空卡盖住半行键位）。
+  -- 卡片是局内反馈，准备期只留文案（topBanner 已写），倒计时结束后第一帧起才允许出卡。
+  local readyPhase = (guideStage == 3)
+  if FXU and not readyPhase then
+    pcall(function()
+      -- 名卡只放「角色名 + 技能名」：正文已经由 topBanner/botBanner（服务端 textbox）承载，
+      -- 名卡再写一遍就是双影（2026-10-29 用户点过"文字挤压/双影"的历史坑）
+      FXU.banner(role, nm, sk, data.dur or 1.4)
+      FXU.burst(data.fxkind or (kind == 'fail' and 'flash' or 'ring'),
+        { role = role, color = col, n = data.n or 10 })
+      if kind ~= 'fail' then
+        FXU.boardOutline(role, 0.7)
+        FXU.edgeGlow(role, 1.0)
+      end
+    end)
+  end
+  FN.SK.lastKind, FN.SK.lastRole = kind, role
+  print('skill fx kind=' .. tostring(kind) .. ' role=' .. tostring(role)
+    .. ' fx=' .. ((FXU and 'on') or 'off') .. ' copy=' .. ((CP and 'on') or 'off'))
+end
+
+-- 施放失败也要给足反馈（用户原话：技能按钮按下去必须有反应；不是四个字"能量不足"）
+FN.skillFail = function(role, why, n)
+  local body
+  n = tonumber(n) or 0
+  if why == 'cd' then
+    body = '技能还在冷却 · 还要 ' .. string.format('%.1f', n) .. ' 秒'
+  elseif why == 'energy' then
+    body = '能量不够 · 还差 ' .. tostring(math.floor(n + 0.5)) .. ' 点'
+  elseif why == 'not-in-party' then
+    body = '这个角色不在本局队伍里（一局最多两人）'
+  else
+    body = '这个角色还没和你缔结契约'
+  end
+  local col = FN.skillColor(role)
+  FN.skillText(role, nil, body, 1.5)
+  if SFX and sfx then sfx(SFX.skillFail or SFX.over, true) end
+  local FXU = FN.fxInit()
+  if FXU then
+    pcall(function()
+      FXU.shake(6, 0.16)
+      FXU.floatText(body, FN.fxBoardX(), -330, FN.skillInk(role), 22, 1.3)
+    end)
+  end
+  print('skill fail role=' .. tostring(role) .. ' why=' .. tostring(why) .. ' n=' .. string.format('%.2f', n))
+end
+
 -- 解锁计数（会话内累计；模块只认 "k:v,k:v" 字符串，见 skills.lua parseReason）
 FN.skillCount = function(k, v)
   if not SK then return end
@@ -3671,43 +4098,175 @@ FN.skillUnlockTick = function()
       if ok then
         print('skill unlock role=' .. role .. ' ok=true why=' .. tostring(why)
           .. ' party=' .. tostring(#(SK.party or {})))
-        setText(botBanner, '新的契约已缔结 · ' .. tostring(role) .. ' 加入队伍')
-        bannerTimer = 1.8
+        -- v5.4：解锁检查在 newGame 里跑（准备屏之前）⇒ 名卡会正好糊在新摆的席位键位卡上。
+        -- 改成**排队**：先记下角色，等真正进局（guideStage==1）由 skillTick 首帧补播。
+        FN.SK.pendingUnlock = role
+        FN.skillHud()
       end
     end
   end
 end
 
--- HUD 一行技能状态（复用左栏 hint；变了才写，避免每帧刷控件）
+-- HUD：两格技能状态（名字+状态+能量条）。控件由 ui.lua 建；不在就退回左栏 hint 文本。
 FN.skillHud = function()
   if not (SK and SKILLS and SKILLS.snapshot) then return end
-  if guideStage ~= 1 or helpOpen then return end   -- 只在局内写 hint，别覆盖标题页/引导提示
-  local sn = SKILLS.snapshot(SK) or {}
-  local txt = tostring(sn.active or '-') .. ' Lv' .. tostring(sn.lv or 1)
-    .. '｜Z 技能 ' .. (sn.cd and sn.cd > 0 and (math.floor(sn.cd + 0.5) .. 's') or '就绪')
-    .. '｜能量 ' .. tostring(math.floor((sn.energy or 0) + 0.5))
-  if SK.hudTxt ~= txt then
-    SK.hudTxt = txt
-    setText(hint, txt)
+  -- 只有局内才写技能 HUD 文字：标题/结算/名册页把文字清空（控件本身的显隐由 ui.lua 的逐屏布局负责，
+  -- 但真机 SetVisible 对实例靠不住，所以这里至少保证"文字不会留在标题页上"）
+  if guideStage ~= 1 then
+    -- 局外：不仅清字，**整簇挪出画布**（实测 4:3 标题页上 sk1card 那块白板压在「2 AI 对抗」卡上，
+    -- 因为 ui.lua 的 title 计划没有 park 技能簇）。ui.lua 在进局时按 screen 重新摆位，回来不受影响。
+    for i = 1, 2 do
+      local pre = (i == 1) and 'sk1' or 'sk2'
+      local cn, cs, cb = findIn(root, { pre .. 'name' }), findIn(root, { pre .. 'state' }),
+        findIn(root, { pre .. 'bar' })
+      if cn then setText(cn, '') tryCall(cn, 'SetAnchoredPosition', 0, -4000) end
+      if cs then setText(cs, '') tryCall(cs, 'SetAnchoredPosition', 0, -4000) end
+      if cb then trySet(cb, 'fillAmount', 0) tryCall(cb, 'SetAnchoredPosition', 0, -4000) end
+      for _, nm in ipairs({ pre .. 'card', pre .. 'strip', pre .. 'barBg' }) do
+        local c = findIn(root, { nm })
+        if c then tryCall(c, 'SetAnchoredPosition', 0, -4000) end
+      end
+    end
+    FN.SK.hudTxt = nil
+    FN.SK.parked = true
+    return
+  end
+  if FN.SK.parked then
+    -- 回到局内：让 ui.lua 重新摆一次（regScreen 同一屏不会重排，这里直接触发一次 layout）
+    FN.SK.parked = nil
+    if UI4 and UI4.layout then pcall(UI4.layout) end
+  end
+  local snap = SKILLS.snapshot(SK) or {}
+  local party = SK.party or {}
+  local parts = {}
+  -- HUD 两格的语义：**第 1 格永远是台前角色**（snap.active），第 2 格是队伍里另一个人。
+  -- 旧实现按 party[1]/party[2] 固定取：调试解锁 4 人后 active=3（甘雨）时 HUD 还在显示
+  -- 纳西妲/刻晴，玩家会以为"台前"是空的（2026-10-29 出图实测，ganyu 帧上两格都没有 ▲）。
+  local slots = {}
+  do
+    local act = snap.active
+    if act and act ~= '' then slots[1] = act end
+    for i = 1, #party do
+      if party[i] ~= act then slots[2] = party[i] break end
+    end
+    if not slots[1] then slots[1] = party[1] end
+  end
+  for i = 1, 2 do
+    local role = slots[i]
+    if role then
+      local nm = FN.skillName(role)
+      local cd = (SK.cd and SK.cd[role]) or 0
+      local en = (SK.energy and SK.energy[role]) or 0
+      local lv = (SK.lv and SK.lv[role]) or 1
+      local state
+      if SK.take and SK.take.role == role then
+        state = '接管中 ' .. string.format('%.1f', SK.take.t) .. 's'
+      elseif cd > 0 then
+        state = 'CD ' .. string.format('%.1f', cd) .. 's'
+      elseif SK.cost and (SK.cost[role] or 0) > 0 and en < (SK.cost[role] or 0) then
+        state = '能量 ' .. tostring(math.floor(en + 0.5))
+      else
+        state = '就绪'
+      end
+      parts[#parts + 1] = nm .. ' Lv' .. lv .. ' ' .. state
+      -- 控件双写（ui.lua 建的实例；用不到就静默跳过）
+      local sfx1 = (i == 1) and 'sk1' or 'sk2'
+      local cName = findIn(root, { sfx1 .. 'name' })
+      local cState = findIn(root, { sfx1 .. 'state' })
+      local cBar = findIn(root, { sfx1 .. 'bar' })
+      local col = FN.skillColor(role)
+      local active = (snap.active == role)
+      -- v5.5（用户二轮反馈）：台前/台后**不写文字**，用卡面亮度 + 左侧色条表达。
+      -- 侧边色条在「大招可放」时转描金 ⇒ 玩家一眼看到"谁的 Q 好了"，不用读字。
+      local cost2 = (SK.cost and SK.cost[role]) or 0
+      local qReady = (cost2 > 0) and (cd <= 0) and (en >= cost2)
+      local cardCtl = findIn(root, { sfx1 .. 'card' })
+      if cardCtl then
+        trySet(cardCtl, 'imageColor', active and C(255, 253, 250, 252) or C(255, 236, 238, 244))
+      end
+      local stripCtl = findIn(root, { sfx1 .. 'strip' })
+      if stripCtl then
+        trySet(stripCtl, 'imageColor', qReady and THEME.gold
+          or (active and FN.skillInk(role) or C(255, 186, 192, 202)))
+      end
+      if cName then
+        -- v5.5（用户 2026-10-30 二轮反馈：「前后台和已就绪的说明增加玩家负担，用特效和动画区分」）：
+        -- 名字行只留**角色名**（键位标签在可点时才有意义）；台前/台后靠卡面亮度+描边+能量条表达。
+        setText(cName, nm)
+        trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
+      end
+      if cState then
+        -- v6：把「倍率 + 生效中的天赋」写进台前角色的状态行（玩家要能看到自己吃到了什么加成）
+        local extra = ''
+        if active then
+          local mult = tonumber(snap.mult) or 1
+          if mult > 1.001 then extra = extra .. string.format('　×%.2f', mult) end
+          local bl = snap.buff
+          if type(bl) == 'table' and #bl > 0 then
+            local picks = {}
+            for bi = 1, math.min(2, #bl) do
+              local b = bl[bi]
+              picks[#picks + 1] = tostring(b.label) .. ' ' .. string.format('%.1f', tonumber(b.left) or 0) .. 's'
+            end
+            if #picks > 0 then extra = extra .. '　' .. table.concat(picks, ' · ') end
+          end
+        end
+        -- v5.5：「就绪」不再写字（玩家不需要读"已就绪"），只有真需要等待时才出字：
+        -- CD 倒计时 / 充能百分比 / 接管剩余。台前/后台不写文字，靠卡面区分。
+        local short
+        if state == '就绪' then
+          short = extra   -- 只保留天赋/倍率这类**新信息**
+        elseif SK.take and SK.take.role == role then
+          short = '接管 ' .. string.format('%.1f', SK.take.t) .. 's' .. extra
+        elseif cd > 0 then
+          short = 'CD ' .. string.format('%.1f', cd) .. 's' .. extra
+        else
+          short = '充能 ' .. tostring(math.floor((en / math.max(1, (SK.cost and SK.cost[role]) or 1)) * 100)) .. '%' .. extra
+        end
+        setText(cState, short)
+        trySet(cState, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126))
+      end
+      if cBar then
+        local ratio = math.max(0, math.min(1, en / 100))
+        trySet(cBar, 'fillAmount', ratio)
+        trySet(cBar, 'imageColor', col)
+      end
+    else
+      local cName = findIn(root, { (i == 1) and 'sk1name' or 'sk2name' })
+      if cName then setText(cName, '') end
+      local cState = findIn(root, { (i == 1) and 'sk1state' or 'sk2state' })
+      if cState then setText(cState, '') end
+      local cBar = findIn(root, { (i == 1) and 'sk1bar' or 'sk2bar' })
+      if cBar then trySet(cBar, 'fillAmount', 0) end
+    end
+  end
+  local txt = table.concat(parts, '｜')
+  if txt == '' then txt = 'Z 技能 · Y 换人' end
+  -- 有实例控件时不再抢左栏 hint（否则每秒把玩法提示刷掉一次，玩家看不到操作提示）
+  if FN.SK.hasCtrl ~= true then
+    FN.SK.hasCtrl = (findIn(root, { 'sk1name' }) ~= nil)
+  end
+  if FN.SK.hudTxt ~= txt then
+    FN.SK.hudTxt = txt
+    if not FN.SK.hasCtrl and guideStage == 1 and not helpOpen then setText(hint, txt) end
     print('skill hud ' .. txt)
   end
 end
 
+-- 施放：门禁在 skills.lua（锁定→CD→能量），本层只做「效果 + 反馈」
 FN.skillCast = function(slot)
   if not (SK and SKILLS and SKILLS.cast) then
     print('skill cast skipped (no skills module)')
     return false
   end
   if not g or g.gameOver or MODE_OVER then return false end
-  if guideStage ~= 1 then return false end
-  -- 台前角色 = party[active]（Y 键翻 active）；slot 2 = 队伍里的另一个人
-  local partyN = (SK.party and #SK.party) or 0
-  local idx = SK.active or 1
-  if partyN > 0 then
-    if slot == 2 and partyN > 1 then idx = (idx % partyN) + 1 end
-    if idx < 1 or idx > partyN then idx = 1 end
+  if guideStage ~= 1 then
+    -- 标题页按 Z 也要有回音（否则玩家会以为键位坏了）
+    if SFX and sfx then sfx(SFX.hover, true) end
+    print('skill cast ignored outside play stage=' .. tostring(guideStage))
+    return false
   end
-  local role = (partyN > 0 and SK.party[idx]) or 'nahida'
+  local role = FN.skillRoleOf(slot)
   local opp = (g == G[2]) and G[1] or G[2]
   local oppH = 0
   if opp and opp.board then
@@ -3719,44 +4278,50 @@ FN.skillCast = function(slot)
       if hitRow then oppH = ROWS - r + 1 break end
     end
   end
-  local r = SKILLS.cast(SK, role, { mode = MODE, boardH = stackHeight(), oppH = oppH, now = g.elapsed or 0 })
-  print('skill cast slot=' .. tostring(slot) .. ' role=' .. role .. ' ok=' .. tostring(r.ok)
-    .. ' effect=' .. tostring(r.effect) .. ' why=' .. tostring(r.why) .. ' n=' .. tostring(r.n))
-  if not r.ok then
-    setText(botBanner, (r.why == 'cd') and ('技能冷却中 · 还需 ' .. tostring(math.floor((r.n or 0) + 0.5)) .. ' 秒')
-      or (r.why == 'energy') and ('能量不足 · 还需 ' .. tostring(math.floor((r.n or 0) + 0.5)))
-      or '这个角色还没解锁')
-    bannerTimer = 1.4
+  -- v6 施放上下文：col（当前块列）/ holdSec（本块已被按住多久）/ longestEmptyCol（最空列）
+  -- —— 刻晴「长按·跨地形」「雷楔·二段」与少女推层都要读它们（设计书 §6.2）
+  local curCol = (g.piece and g.piece.x) or 1
+  local holdSec = tonumber(FN.skillKeyHoldSec) or 0   -- 按住 Z 的秒数（不是方块存活时间）
+  local emptyBest, emptyBestH = 1, -1
+  for cc = 1, (COLS or 6) do
+    local h2 = 0
+    for rr = 1, ROWS do if g.board[rr] and g.board[rr][cc] ~= 0 then h2 = h2 + 1 end end
+    if emptyBestH < 0 or h2 < emptyBestH then emptyBestH, emptyBest = h2, cc end
+  end
+  local res = SKILLS.cast(SK, role, { mode = MODE, boardH = stackHeight(), oppH = oppH,
+    now = g.elapsed or 0, col = curCol, holdSec = holdSec, longestEmptyCol = emptyBest,
+    keyHold = (FN.skillKeyHoldSec or 0) })
+  print('skill cast slot=' .. tostring(slot) .. ' role=' .. role .. ' ok=' .. tostring(res.ok)
+    .. ' effect=' .. tostring(res.effect) .. ' why=' .. tostring(res.why) .. ' n=' .. tostring(res.n))
+  if not res.ok then
+    FN.skillFail(role, res.why, res.n)
     return false
   end
-  FN.skillHud()
   local pr = (SKILLS.params and SKILLS.params(SK, role)) or {}
-  -- 模块里的 effect 用连字符（ai-takeover / clear-bottom / gravity-clear / mark-blink），
-  -- 这里统一归一化，免得两套命名互相不认识（2026-10-29 实测踩过：effect=todo）。
-  local eff = tostring(r.effect or ''):gsub('_', '-')
+  local eff = tostring(res.effect or ''):gsub('_', '-')
+  FN.skillFeedback(role, 'cast', { tier = res.tier, n = res.n,
+    fxkind = (eff == 'ai-takeover') and 'vine' or (eff == 'blink' and 'bolt')
+      or (eff == 'freeze' and 'frost') or (eff == 'ripple' and 'wave') or 'ring' })
   if eff == 'ai-takeover' then
-    -- 纳西妲：把盘面交给智慧之神（复用 casual 接管同一条 AI 链路，档位来自技能等级）
+    -- 纳西妲：把盘面交给智慧之神。⚠ 接管状态**不再只给 casual**用（v4.0 的 bug：
+    -- ai-battle/pvp/coop 里 TK.state='ai' 没有消费方 ⇒ 按 Z 完全没反应，用户实测就撞这个）
+    local tier = res.tier or pr.aiTier or 1
+    local dur = tonumber(res.takeDur) or pr.aiDur or 6
     TK.state, TK.t = 'ai', 0
-    TK.skillTier = r.tier or pr.aiTier or 1
-    TK.skillT = pr.aiDur or 6
-    setText(topBanner, '纳西妲：这一局，让我替你落子。')
-    trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
-    print('skill ai start tier=' .. tostring(TK.skillTier) .. ' dur=' .. tostring(TK.skillT))
-  elseif eff == 'clear-bottom' or eff == 'gravity-clear' then
-    -- 甘雨/少女（单人）：冰莲清底——直接清掉底部 n 行（不计分，属于解围）
-    local rows = math.min(r.n or 1, ROWS)
-    for i = 1, rows do
-      table.remove(g.board, ROWS)
-      local nr = {}
-      for c = 1, COLS do nr[c] = 0 end
-      table.insert(g.board, 1, nr)
-    end
-    renderAll()
-    setText(botBanner, '甘雨：冰莲已开，这一段路我来铺平。')
-    bannerTimer = 1.6
-    print('skill clear_bottom rows=' .. rows)
+    local lvIdx = FN.aiLevelIdxOfTier(tier)
+    TK.skillTier, TK.skillT = lvIdx, dur
+    FN.SK.take = { role = role, t = dur, tier = tier, lvIdx = lvIdx, total = dur, n = res.n }
+    print('skill ai start tier=' .. tostring(tier) .. ' lvidx=' .. tostring(lvIdx)
+      .. ' dur=' .. tostring(dur) .. ' mode=' .. tostring(MODE))
+    local FXU = FN.fxInit()
+    local tierName = ({ '陪练', '标准', '全力' })[lvIdx] or '标准'
+    -- 名卡已写「角色名·技能名」，档位/时长落成棋盘下方一行浮字（不压棋盘）
+    if FXU then pcall(function()
+      FXU.floatText(tierName .. '代打 · ' .. string.format('%.0f', dur) .. ' 秒',
+        FN.fxBoardX(), -330, FN.skillInk(role), 26, 1.8)
+    end) end
   elseif eff == 'blink' then
-    -- 刻晴：雷楔瞬闪——当前块瞬间落到本列最低位并锁定（不额外计分，纯粹是"抢时间"）
+    -- 刻晴：雷楔瞬闪——当前块瞬间落到本列最低位并锁定
     if g.piece then
       local dropped = 0
       while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
@@ -3764,101 +4329,638 @@ FN.skillCast = function(slot)
         dropped = dropped + 1
       end
       print('skill blink col=' .. tostring(g.piece.x) .. ' rows=' .. dropped)
+      local FXU = FN.fxInit()
+      if FXU then pcall(function()
+        FXU.floatText('雷楔 · 瞬落 ' .. tostring(dropped) .. ' 格', FN.fxBoardX(), -330,
+          FN.skillInk(role), 26, 1.6)
+      end) end
       doLock()
     end
-    setText(botBanner, '刻晴：雷楔已落，这一手就到这里。')
-    bannerTimer = 1.6
+  elseif eff == 'blink-best' then
+    -- 刻晴「长按·跨地形」：按住 ≥0.35s 松手 → 把当前块瞬移到**最空的一列**再落底
+    -- （旧实现没有这个分支，落到 'skill effect todo=' ⇒ 长按等于没功能）
+    if g.piece then
+      -- 最空的一列（列高最小者）；同高取靠左，保证确定性
+      local target, bestH = 1, -1
+      for cc = 1, (COLS or 6) do
+        local h3 = 0
+        for rr = 1, ROWS do if g.board[rr] and g.board[rr][cc] ~= 0 then h3 = h3 + 1 end end
+        if bestH < 0 or h3 < bestH then bestH, target = h3, cc end
+      end
+      local guard = 0
+      while g.piece.x ~= target and guard < (COLS or 6) + 2 do
+        local dir = (g.piece.x < target) and 1 or -1
+        if not collides(g.piece.cells, g.piece.x + dir, g.piece.y) then g.piece.x = g.piece.x + dir end
+        guard = guard + 1
+      end
+      local dropped = 0
+      while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
+        g.piece.y = g.piece.y + 1
+        dropped = dropped + 1
+      end
+      print('skill blink-best target=' .. tostring(g.piece.x) .. ' rows=' .. tostring(dropped))
+      local FXU2 = FN.fxInit()
+      if FXU2 then pcall(function()
+        FXU2.floatText('雷楔 · 跨地形 → 第 ' .. tostring(g.piece.x) .. ' 列', FN.fxBoardX(), -330,
+          FN.skillInk(role), 26, 1.8)
+      end) end
+      doLock()
+    end
   elseif eff == 'freeze' then
-    -- 甘雨：冰封——冻结 n 行高度的垃圾顶推 n 秒（raiseGarbage 里读 SK.freezeT）
+    -- 甘雨：冰封——冻结期内玩家盘不吃垃圾（raiseGarbage 读 SK.freezeT）
     SK.freezeT = pr.freezeSec or 3
-    SK.freezeRows = r.n or pr.freezeRows or 3
+    SK.freezeRows = res.n or pr.freezeRows or 3
     print('skill freeze rows=' .. tostring(SK.freezeRows) .. ' sec=' .. tostring(SK.freezeT))
-    setText(botBanner, '甘雨：霜华落下，这条路暂时封住了。')
-    bannerTimer = 1.8
   elseif eff == 'ripple' then
-    setText(botBanner, '哥伦比娅：让潮汐替我说下去。')
-    bannerTimer = 1.6
-    print('skill ripple layers=' .. tostring(r.n))
+    -- 少女：引力涟漪——对抗里真的把垃圾推给对手（v4.0 这里只打一行文案，等于没做）
+    local layers = res.n or 2
+    if opp and (MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop') then
+      pcall(raiseGarbage, opp, math.min(layers, 4))
+      print('skill ripple push n=' .. tostring(layers) .. ' to=opp')
+    else
+      -- 单人降级：清盘底一行 + 浮字（不留"按了没反应"）
+      table.remove(g.board, ROWS)
+      local nr = {}
+      for c = 1, COLS do nr[c] = 0 end
+      table.insert(g.board, 1, nr)
+      renderAll()
+      print('skill ripple solo clear=1')
+    end
+  elseif eff == 'clear-bottom' or eff == 'gravity-clear' then
+    local rows = math.min(res.n or pr.clearRows or 1, ROWS)
+    for _ = 1, rows do
+      table.remove(g.board, ROWS)
+      local nr = {}
+      for c = 1, COLS do nr[c] = 0 end
+      table.insert(g.board, 1, nr)
+    end
+    renderAll()
+    print('skill clear_bottom rows=' .. rows)
+    local FXU = FN.fxInit()
+    if FXU then pcall(function() FXU.burst('shard', { role = role, n = rows * 4 }) end) end
+    if SKILLS.addExp then pcall(SKILLS.addExp, SK, role, (NUM and NUM.EXP_EFFECT) or 25) end
   elseif eff == 'mark-blink' then
-    setText(botBanner, '刻晴：雷楔已落，走位快一点。')
-    bannerTimer = 1.6
-    print('skill mark_blink n=' .. tostring(r.n))
+    print('skill mark_blink n=' .. tostring(res.n))
   else
-    print('skill effect todo=' .. tostring(r.effect))
+    print('skill effect todo=' .. tostring(res.effect))
   end
+  -- 用户核心设计（2026-10-29 第 3 点）：「哪个技能用得多、加点更多，就获得更好的效果」。
+  -- v4.0 只在消行时加经验 ⇒ 偏爱某个角色但少消行时她永远不强。施放本身必须给经验。
+  if SKILLS.addExp then
+    local up = SKILLS.addExp(SK, role, (SKILLS.NUM and SKILLS.NUM.EXP_SKILL) or 10)
+    if up and up.leveled then
+      print('skill levelup role=' .. tostring(role) .. ' lv=' .. tostring(up.lv)
+        .. ' node=' .. tostring(up.node))
+      FN.skillFeedback(role, 'level', { title = FN.skillName(role) .. ' · Lv' .. tostring(up.lv),
+        body = '手感越来越熟——' .. FN.skillSkill(role) .. '又强了一档。', dur = 2.0 })
+    end
+  end
+  FN.skillHud()
   return true
 end
 
--- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；ai-battle 建 AI 盘 G[2]（hard 档）。
--- enterMode：标题屏选定后按 MODE 配置实例表——casual 单盘；三种双屏（ai-battle/pvp/coop）
--- 统一建 G[2]（pvp=玩家 2 盘各走各账；ai-battle/coop=AI 盘 autoDriving 走 AI 账）+镜像出块（公平）。
+-- Y：换台前（模块没有 switchRole ⇒ active 是 party 的 1-based 下标，翻一格）
+-- v5.5（用户 2026-10-30 二轮反馈：原神式换人）：
+-- 切人有 1s CD；点后台角色卡 = 换人，若她的大招充能好了则「换人 + 立刻放大招」。
+FN.skillSwitchTo = function(role)
+  if not (SK and SK.party and #SK.party > 0 and role) then return false end
+  local activeRole = SK.party[SK.active or 1]
+  if role == activeRole then return false end
+  local now = (g and g.elapsed) or 0
+  if (SK.switchAt or -99) + 1.0 > now then
+    print('skill switch blocked cd')
+    return false
+  end
+  SK.switchAt = now
+  for i = 1, #SK.party do
+    if SK.party[i] == role then SK.active = i break end
+  end
+  print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(role))
+  FN.skillHud()
+  if SFX and sfx then sfx(SFX.press, true) end
+  FN.skillFeedback(role, 'switch', { title = FN.skillName(role) .. ' · 走马上任',
+    body = '换你来了。', dur = 1.0 })
+  return true
+end
+
+-- 点技能卡：台前=放 E（Z）；台后=换人（Q 好了就连着放大招）
+FN.skillAreaTap = function(i)
+  if not (SK and SK.party and SK.party[i]) then return end
+  local role = SK.party[i]
+  local activeRole = SK.party[SK.active or 1]
+  if role == activeRole then
+    if FN.skillCast then FN.skillCast(1) end
+    return
+  end
+  local cd = (SK.cd and SK.cd[role]) or 0
+  local en = (SK.energy and SK.energy[role]) or 0
+  local cost = (SK.cost and SK.cost[role]) or 0
+  local qReady = (cost > 0) and (cd <= 0) and (en >= cost)
+  FN.skillSwitchTo(role)
+  if qReady and FN.skillCast then FN.skillCast(2) end
+end
+
+FN.skillSwitch = function()
+  if not (SK and SK.party and #SK.party > 0) then return false end
+  local now2 = (g and g.elapsed) or 0
+  if (SK.switchAt or -99) + 1.0 > now2 then
+    print('skill switch blocked cd')
+    return false
+  end
+  SK.switchAt = now2
+  local n = #SK.party
+  SK.active = ((SK.active or 1) % n) + 1
+  local role = SK.party[SK.active]
+  print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(role))
+  FN.skillHud()
+  if SFX and sfx then sfx(SFX.press, true) end
+  FN.skillFeedback(role, 'switch', { title = FN.skillName(role) .. ' · 走马上任',
+    body = (n > 1) and '换你来接这一手——按 Z 用她的手段。' or '队伍里只有她一人。', dur = 1.2 })
+  return true
+end
+
+-- 技能计时（冻结/接管倒计时 + 特效推进 + 上横幅回收）。由 OnUpdate 每帧调一次。
+FN.skillTick = function(dt)
+  local FXU = FN.FX
+  if FXU and FXU.update then pcall(FXU.update, dt) end
+  -- v5.4：准备期排队下来的解锁播报，进局后补播（此时名卡不会压席位键位卡）
+  if FN.SK.pendingUnlock and guideStage == 1 then
+    local r = FN.SK.pendingUnlock
+    FN.SK.pendingUnlock = nil
+    -- v5.5：解锁播报**不占底栏**（底栏是常驻键位提示位）——只走上横幅 + 名卡，2.4s 后自动收。
+    FN.skillText(r, FN.skillName(r) .. ' · 契约缔结', nil, 2.4)
+    if FN.FX and FN.FX.banner then pcall(FN.FX.banner, r, FN.skillName(r), '契约缔结', 1.6) end
+    FN.skillHud()
+  end
+  if FN.SK.topT and FN.SK.topT > 0 then
+    FN.SK.topT = FN.SK.topT - dt
+    if FN.SK.topT <= 0 then
+      FN.SK.topT = 0
+      setText(topBanner, '')
+    end
+  end
+  -- 解锁条件里的 time 计数（skills.lua UNLOCK.ganyu.time=300 秒）：按秒累计，别每帧写表
+  if guideStage == 1 and not MODE_OVER then
+    FN.SK.timeAcc = (FN.SK.timeAcc or 0) + dt
+    if FN.SK.timeAcc >= 1 then
+      local add = math.floor(FN.SK.timeAcc)
+      FN.SK.timeAcc = FN.SK.timeAcc - add
+      FN.skillCount('time', add)
+    end
+  end
+  local take = FN.SK.take
+  if take then
+    take.t = take.t - dt
+    -- 持续期文案：每 2.4s 换一句（COPY.hold），让"接管中"不是一行字挂 6 秒。
+    -- 第 4 参数 = 本次施放的效果量纲（纳西妲=AIdur、少女=层数），供 copy 里读具体数字。
+    take.msgT = (take.msgT or 0) - dt
+    if take.msgT <= 0 and take.t > 0.8 then
+      take.msgT = 2.4
+      local CP = FN.COPY
+      if CP and CP.hold then
+        local ok, r = pcall(CP.hold, take.role, take.total - take.t, take.t, take.n)
+        if ok and type(r) == 'table' and r.body then
+          setText(botBanner, tostring(r.body))
+          bannerTimer = math.max(bannerTimer or 0, 2.2)
+          print('skill hold role=' .. tostring(take.role)
+            .. ' left=' .. string.format('%.1f', take.t) .. ' n=' .. tostring(take.n))
+        end
+      end
+    end
+    if take.t <= 0 then
+      FN.SK.take = nil
+      TK.state, TK.t, TK.skillT, TK.skillTier = 'play', 0, nil, nil
+      FN.skillFeedback(take.role, 'end', { title = FN.skillName(take.role) .. ' · 收手',
+        body = '接下来的路，你自己走。', dur = 1.6 })
+      print('skill ai end role=' .. tostring(take.role))
+    end
+  end
+end
+-- @region skill-system END (writer: lead)
+-- @region ui-roster BEGIN (writer: ui-mobile)
 -- ===== v4.0 ③ 角色名册（契约与解锁进度）=====
 -- 用户口径：「四个角色，初始就只解锁小草神的部分机制吧，剩下的设计一定的条件在解锁」
 -- ⇒ 条件判定在 skills.lua，本层负责**让人看得见**（不然玩家永远不知道自己差多少）。
 local ROSTER = { on = false, items = {} }
 FN.rosterDestroy = function()
+  if ROSTER.savedTop or ROSTER.savedBot then
+    setText(topBanner, ROSTER.savedTop or '')
+    setText(botBanner, ROSTER.savedBot or '')
+    ROSTER.savedTop, ROSTER.savedBot = nil, nil
+  end
   for i = #ROSTER.items, 1, -1 do
     pcall(function() game.DestroyClientUIControl(ROSTER.items[i]) end)
     ROSTER.items[i] = nil
   end
 end
 
+-- ===== 角色 · 契约与技能（v5.1 用户反馈：主页看不到"角色"这个大模块的入口，
+--        玩家无法"所见所得"地了解四个角色各自的机制/技能/主题）
+-- 交互：左侧四人列表（点一行切换）→ 右侧详情（主题色/元素/技能名/机制 3 行/键位/解锁条件/当前等级）。
+-- 关闭：同键（Key16 / 名册按钮）或「合上」按钮。
+FN.charSel = 1
+FN.charAnim = 0
+FN.charPulse = nil
+
 FN.rosterToggle = function()
-  if not (SK and SKILLS) then
-    print('roster skip (no skills)')
-    return
-  end
+  if not (SK and SKILLS) then print('roster skip (no skills)') return end
   if ROSTER.on then
     FN.rosterDestroy()
     ROSTER.on = false
     print('roster close')
     return
   end
-  local W, H = CANVAS_W or 1600, CANVAS_H or 900
-  local cw, chh = math.min(900, W - 120), math.min(520, H - 100)
-  local cy = 20
-  local function add(c) if c then ROSTER.items[#ROSTER.items + 1] = c end return c end
-  add(UI4.pill('rosterDim', W + 40, H + 40, C(150, 24, 40, 60)))
-  add(UI4.pill('rosterCard', cw, chh, THEME.panel))
-  add(UI4.pill('rosterLine', cw - 80, 3, THEME.gold))
-  local title = add(UI4.label('rosterTitle', '旅行者名册 · 契约与解锁', cw - 60, 52, 28, THEME.textMain))
-  local c = SK.cnt or {}
-  local rows = {
-    '纳西妲　已缔结 · 智慧之神的代理（Z 键接管你的盘面）',
-    '刻晴　　累计消行 ' .. tostring(c.lines or 0) .. '/40 或 局数 ' .. tostring(c.games or 0) .. '/3',
-    '甘雨　　累计消行 ' .. tostring(c.lines or 0) .. '/600 或 单局存活 300 秒',
-    '少女　　对战局 ' .. tostring(c.pvp or 0) .. '/1 或 四消 ' .. tostring(c.tetris or 0) .. '/50',
-  }
-  local rowCtl = {}
-  for i = 1, #rows do
-    local role = (SK.roles and SK.roles[i]) or '?'
-    local open = SK.unlocked and SK.unlocked[role] == true
-    local inParty = false
-    for _, r in ipairs(SK.party or {}) do if r == role then inParty = true end end
-    local tag = open and (inParty and '【台前】' or '【已解锁】') or '【未解锁】'
-    local col = open and THEME.textMain or THEME.textSub
-    rowCtl[i] = add(UI4.label('rosterR' .. i, tag .. ' ' .. rows[i], cw - 80, 44, 21, col))
-  end
-  local foot = add(UI4.label('rosterFoot', 'Y 切换台前角色 · 同键关闭名册（一局最多两个前台主动角色）',
-    cw - 80, 40, 19, THEME.hint))
-  local function at(ctl, x, y2, w, h)
-    if not ctl then return end
-    tryCall(ctl, 'SetSizeDelta', w, h)
-    tryCall(ctl, 'SetAnchoredPosition', x, y2)
-  end
-  at(ROSTER.items[1], 0, 0, W + 40, H + 40)
-  at(ROSTER.items[2], 0, cy, cw, chh)
-  at(ROSTER.items[3], 0, cy + chh / 2 - 52, cw - 80, 3)
-  at(title, 0, cy + chh / 2 - 96, cw - 60, 52)
-  for i = 1, #rows do
-    at(rowCtl[i], 0, cy + 120 - (i - 1) * 58, cw - 80, 44)
-  end
-  at(foot, 0, cy - chh / 2 + 44, cw - 80, 40)
-  ROSTER.on = true
-  print('roster open n=' .. #ROSTER.items)
+  FN.rosterBuild()
 end
 
+-- ===== 角色图鉴（v5.3：对齐官方角色页的做法 —— 左页签/中立绘/右天赋清单 + 详情 + 数值）=====
+-- 用户 2026-10-29 反馈：①没用心做 UI 审美 ②这里是消费角色文案的绝佳位置，却没文案
+-- ③技能和机制介绍不全（主动技能之外，被动/机制/数值/解锁都要讲） ④要学官方角色页
+--   （每个天赋都有图标、名称、等级、长文介绍、详细数值，升级还有数值变化预览）
+FN.charTab = 1        -- 1 技能 / 2 机制 / 3 数值 / 4 解锁
+FN.charSel = 1
+
+local CHAR_TAB_NAME = { '技能', '机制', '数值', '解锁', '规则' }
+
+-- 取某角色的详情页数据（纯数据，渲染层只读）
+local function charData(role)
+  local CP = FN.COPY
+  local e = (CP and CP.of and CP.of(role)) or {}
+  local s = SK or {}
+  local lv = tonumber(s.lv and s.lv[role]) or 1
+  local pr = {}
+  if SKILLS and SKILLS.params then
+    local ok, v = pcall(SKILLS.params, s, role)
+    if ok and type(v) == 'table' then pr = v end
+  end
+  -- 下一级参数（构造一个等级 +1 的临时 state）
+  local nx = {}
+  if SKILLS and SKILLS.params then
+    local lvT = {}
+    for k, v in pairs(s.lv or {}) do lvT[k] = v end
+    lvT[role] = lv + 1
+    local ok, v = pcall(SKILLS.params, { lv = lvT, nodes = s.nodes }, role)
+    if ok and type(v) == 'table' then nx = v end
+  end
+  local N = (SKILLS and SKILLS.NUM) or {}
+  local cd = (N.CD and N.CD[role]) or 0
+  local cost = (N.COST and N.COST[role]) or 0
+  local skillNm = tostring(e.skill or '技能')
+  local d = { role = role, e = e, lv = lv, pr = pr, nx = nx, cd = cd, cost = cost,
+    skill = skillNm, help = (CP and CP.help and CP.help(role)) or {},
+    tips = (CP and CP.tips and CP.tips(role)) or {} }
+  -- 台词：取该角色的 cast/hold 文案（官方角色页也有语音台词区）
+  local says = {}
+  if CP and CP.sayList then
+    local okL, list = pcall(CP.sayList, role, 10)
+    if okL and type(list) == 'table' then
+      for i2 = 1, #list do
+        local it = list[i2]
+        if type(it) == 'table' and it.body then says[#says + 1] = tostring(it.body) end
+      end
+    end
+  end
+  d.says = says
+  -- 技能详情（技能页第 1 条）
+  local durTxt = ''
+  if role == 'nahida' then durTxt = '接管 ' .. tostring(math.floor((pr.aiDur or 0) + 0.5)) .. ' 秒 · AI 档位 ' .. tostring(pr.aiTier or 1)
+  elseif role == 'ganyu' then durTxt = '冻结 ' .. tostring(pr.freezeRows or 0) .. ' 行 · ' .. tostring(pr.freezeSec or 0) .. ' 秒'
+  elseif role == 'keqing' then
+    local KL = ((N.KEQING or {}).LOCK) or { 0.2 }
+    durTxt = '瞬落锁定 ' .. string.format('%.2f', KL[1] or 0.2) .. ' 秒'
+  elseif role == 'columbina' then durTxt = '给对手压 ' .. tostring(#((N.COLUMBINA or {}).LAYERS or { 2 })) .. ' 档层数 · 削锁定延迟 ' .. tostring(math.floor(pr.holdCutMs or 0)) .. ' 毫秒'
+  end
+  d.durTxt = durTxt
+  return d
+end
+
+FN.charShow = function(sel)
+  FN.charSel = sel or FN.charSel or 1
+  FN.rosterBuild(FN.charSel, FN.charTab)
+end
+
+FN.rosterToggle = function()
+  if not (SK and SKILLS) then print('roster skip (no skills)') return end
+  if ROSTER.on then
+    FN.rosterDestroy()
+    ROSTER.on = false
+    print('roster close')
+    return
+  end
+  FN.rosterBuild()
+end
+
+-- CJK 折行：引擎的单行 textbox 不会自动换行，长文案必须自己拆成多行
+local function wrapCJK(txt, per)
+  txt = tostring(txt or '')
+  local out, line, n = {}, {}, 0
+  local chars = {}
+  local ok = pcall(function()
+    for _, cp in utf8.codes(txt) do chars[#chars + 1] = utf8.char(cp) end
+  end)
+  if not ok then
+    for i = 1, #txt do chars[#chars + 1] = txt:sub(i, i) end
+  end
+  for _, ch in ipairs(chars) do
+    if ch == '\n' then
+      out[#out + 1] = table.concat(line); line, n = {}, 0
+    else
+      line[#line + 1] = ch; n = n + 1
+      if n >= per then
+        -- 断行禁则（评审：0.05 秒断成 0./05、skills.lua 断成 ski/lls）：
+        -- 从行尾回退到最近的一个"安全断点"——ASCII 字母数字串整体不拆，句读不落行首
+        local tail = {}
+        local back = 0
+        while #line - back > 1 do
+          local c = line[#line - back]
+          if c:match('[%w%.%%]') then back = back + 1 else break end
+        end
+        if back > 0 and back < #line then
+          for b = #line - back + 1, #line do tail[#tail + 1] = line[b] end
+          for b = #line, #line - back + 1, -1 do line[b] = nil end
+        end
+        out[#out + 1] = table.concat(line)
+        line, n = tail, #tail
+      end
+    end
+  end
+  if #line > 0 then out[#out + 1] = table.concat(line) end
+  if #out == 0 then out[1] = '' end
+  return out
+end
+
+FN.rosterBuild = function(keepSel, keepTab)
+  FN.rosterDestroy()
+  local W, H = CANVAS_W or 1600, CANVAS_H or 900
+  local CP = FN.COPY
+  local roles = (SK.roles and #SK.roles > 0) and SK.roles or { 'nahida', 'keqing', 'ganyu', 'columbina' }
+  local snap = (SKILLS.snapshot and SKILLS.snapshot(SK)) or {}
+  local sel = keepSel or FN.charSel or 1
+  if sel < 1 or sel > #roles then sel = 1 end
+  FN.charSel = sel
+  local tab = keepTab or FN.charTab or 1
+  if tab < 1 or tab > 5 then tab = 1 end
+  FN.charTab = tab
+  local k = math.min(W / 1600, H / 900)
+  if k <= 0 then k = 1 end
+  local function u(v) return v * k end
+  local add
+  add = function(c) if c then ROSTER.items[#ROSTER.items + 1] = c end return c end
+  local function BOX(name, w, h, color) return add(UI4.pill(name, w, h, color)) end
+  local function TXT(name, txt, w, size, color, align)
+    local fs = math.floor(u(size) + 0.5)          -- ⚠ 字号必须整数，否则静默回落 24 号
+    local hh = math.max(math.floor(fs * 1.45 + 6), fs + 8)
+    local c = UI4.label(name, tostring(txt), w, hh, fs, color)
+    if c and align then trySet(c, 'horizontalAlignment', align) end
+    return add(c)
+  end
+  local R = {}
+  -- 面板：1400×800
+  local PW, PH = u(1400), u(800)
+  local PL, PR = -PW / 2, PW / 2          -- 面板左右沿（设计单位）
+  R.dim = BOX('charDim', W + 40, H + 40, C(176, 20, 34, 50))
+  R.card = BOX('charCard', PW, PH, C(252, 250, 244, 252))
+  R.top = BOX('charTop', PW, u(92), C(255, 250, 240, 246))
+  R.rule = BOX('charRule', PW - u(80), u(2), THEME.gold)
+  R.title = TXT('charTitle', '角色档案 · 契约与技能', u(620), 32, THEME.textMain, 'Left')
+  R.sub = TXT('charHint', '左边点角色 / 右边切页签　·　F 或同键关闭', u(620), 17, THEME.textSub, 'Left')
+  R.closePill = BOX('charClose', u(150), u(50), THEME.gold)
+  R.closeTx = TXT('charCloseTx', '合上', u(146), 20, THEME.textMain)
+  -- 左列：四人
+  local rows = {}
+  for i, role in ipairs(roles) do
+    local e = (CP and CP.of and CP.of(role)) or {}
+    local open = SK.unlocked and SK.unlocked[role] == true
+    local inParty = false
+    for _, rr in ipairs(SK.party or {}) do if rr == role then inParty = true end end
+    local chip = BOX('charChip' .. i, u(360), u(96), (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244))
+    local bar = BOX('charBar' .. i, u(8), u(76), open and (e.color or C(127, 207, 106)) or C(206, 198, 204, 214))
+    local nm = TXT('charName' .. i, (e.name or role) .. (inParty and ' ▲' or ''), u(300), 24,
+      open and THEME.textMain or THEME.textSub, 'Left')
+    local st = TXT('charState' .. i, open and (inParty and ('台前 · Lv' .. tostring(snap.lv or 1)) or '已缔结 · 后台')
+      or '未缔结 · 点开看解锁条件', u(300), 16, open and (e.color2 or THEME.textMain) or THEME.textSub, 'Left')
+    local hit = UI4.hit('charHit' .. i, u(360), u(96))
+    if hit then
+      add(hit)
+      local idx = i
+      addCursor(hit, 'CursorDown', function() FN.charShow(idx) end)
+    end
+    -- 选中态用「左竖条 + 浅色底」表达即可；不另建描金边盒子（曾因未摆位飘到右栏）
+    rows[i] = { chip = chip, bar = bar, nm = nm, st = st, hit = hit }
+  end
+  -- 中列：立绘区（角色主题色大色块 + 名字/元素/称号 + 台词）+ 状态
+  local d = charData(roles[sel])
+  local e = d.e
+  local open = SK.unlocked and SK.unlocked[roles[sel]] == true
+  R.portraitEdge = BOX('charPortraitEdge', u(408), u(438), THEME.gold)
+  R.portrait = BOX('charPortrait', u(400), u(430), FN.skillDark and FN.skillDark(e.color or C(127, 207, 106), 150) or C(127, 207, 106))
+  R.portraitBand1 = BOX('charPortraitBand1', u(360), u(3), C(120, 255, 250, 240))
+  R.portraitBand2 = BOX('charPortraitBand2', u(360), u(1), C(90, 255, 250, 240))
+  R.pName = TXT('charPName', e.name or roles[sel], u(360), 40, C(255, 255, 255, 255))
+  R.pElem = TXT('charPElem', (e.element or '') .. '元素 · ' .. (e.title or ''), u(360), 20, C(255, 250, 244, 246))
+  R.pLv = TXT('charPLv', '本局 Lv' .. tostring(d.lv) .. '　' .. (open and '已缔结' or '未缔结'), u(360), 18, C(255, 250, 244, 240))
+  R.pSay = TXT('charPSay', d.says[1] or (d.help[1] or ''), u(420), 18, THEME.textMain, 'Left')
+  R.pSay2 = TXT('charPSay2', d.says[2] or (d.help[2] or ''), u(420), 18, THEME.textSub, 'Left')
+  R.pSay3 = TXT('charPSay3', d.says[3] or '', u(420), 17, THEME.textSub, 'Left')
+  R.pSay4 = TXT('charPSay4', d.says[4] or '', u(420), 17, THEME.textSub, 'Left')
+  R.pSkill = TXT('charPSkill', '技能「' .. d.skill .. '」　冷却 ' .. tostring(d.cd) .. ' 秒' .. (d.cost > 0 and ('　耗能 ' .. tostring(d.cost)) or ''),
+    u(420), 18, e.color2 or THEME.textMain, 'Left')
+  -- 右列：页签 + 内容
+  local tabs, tabsHit = {}, {}
+  for i = 1, 5 do
+    tabs[i] = BOX('charTab' .. i, u(96), u(46), (i == tab) and (e.color or C(127, 207, 106)) or C(240, 244, 244, 246))
+    tabs[i .. 't'] = TXT('charTabT' .. i, CHAR_TAB_NAME[i], u(92), 18,
+      (i == tab) and C(255, 255, 255, 255) or THEME.textMain)
+    local h = UI4.hit('charTabHit' .. i, u(96), u(46))
+    if h then
+      add(h)
+      tabsHit[i] = h
+      local ti = i
+      addCursor(h, 'CursorDown', function() FN.rosterBuild(sel, ti) end)
+    end
+  end
+  -- 内容条目（每条：图标 + 名称 + 正文）
+  local items = {}
+  local function entry(iconCol, nm, desc, desc2, valTxt)
+    items[#items + 1] = { icon = iconCol, nm = nm, desc = desc, desc2 = desc2, val = valTxt }
+  end
+  if tab == 1 then
+    -- 被动清单改为读 skills.lua 的 M.talents（v6：每角色 4 条，文案与数值同源，
+    -- 不再在 main 里硬编码一份 —— 硬编码那份就是"四个角色被动看着一样"的根因）
+    local tal = (SKILLS.talents and SKILLS.talents(SK, d.role)) or {}
+    local talMax = math.min(#tal, 4)   -- 面板高度只放得下 4 条（第 5 条在「数值」页有）
+    for ti = 1, talMax do
+      local t = tal[ti]
+      local live = ''
+      if type(t.live) == 'table' then
+        local parts = {}
+        for kk, vv in pairs(t.live) do parts[#parts + 1] = tostring(kk) .. ' ' .. tostring(vv) end
+        live = table.concat(parts, '　')
+      elseif t.live ~= nil then
+        live = tostring(t.live)
+      end
+      local body = FN.utf8Cut(t.map or t.desc or '', 60)
+      if live == '' then live = tostring(t.official or t.verify or '天赋已生效') end
+      live = FN.utf8Cut(live, 44)
+      entry(t.accent or e.accent or e.color2, tostring(t.name or ('天赋 ' .. ti)), body, live)
+    end
+  elseif tab == 5 then
+    entry(e.accent or e.color2, '成长与编成（全角色通用）',
+      '每个角色独立计经验：施放 +10、有效收益 +25、前台每 10 块 +15、后台每 10 块 +5；等级越高天赋数值越强。',
+      'Y 键换台前，冷却 ' .. tostring((SKILLS.NUM and SKILLS.NUM.SWITCH_CD) or 8) .. ' 秒；一局最多 '
+        .. tostring((SKILLS.NUM and SKILLS.NUM.PARTY_MAX) or 2) .. ' 个可前台发力的主动角色。')
+    entry(e.accent or e.color2, '与对手的交互',
+      '对战/合作里垃圾行由消行数决定（消 2/3/4 行 → 送 1/2/4 行），技能可以拦截或反向。',
+      'AI 盘使用同一套规则（同样的出块序列、同样的垃圾结算），不存在作弊路径。')
+    entry(e.color2 or C(150, 150, 150), '局外与解锁',
+      '角色初始只解锁纳西妲；其余按累计条件开放（见「解锁」页）。',
+      '局内等级是会话内成长，跨局不继承——目前的养成只发生在「一局之内」。')
+  else
+    local req = (SKILLS.NUM and SKILLS.NUM.UNLOCK and SKILLS.NUM.UNLOCK[d.role]) or nil
+    local cnt = SK.cnt or {}
+    local function need(k, v) return tostring(k) .. ' ' .. tostring(cnt[k] or 0) .. '/' .. tostring(v) end
+    local KEYNAME = { lines = '累计消行', games = '总局数', pvp = '对战局数', tetris = '四消次数', time = '累计时长(秒)' }
+    if req then
+      local parts = {}
+      for _, kk in ipairs({ 'lines', 'games', 'pvp', 'tetris', 'time' }) do
+        if req[kk] then
+          parts[#parts + 1] = (KEYNAME[kk] or kk) .. ' ' .. tostring(cnt[kk] or 0) .. ' / ' .. tostring(req[kk])
+        end
+      end
+      entry(e.accent or e.color2, '解锁进度（满足任一条即缔结）',
+        table.concat(parts, '　·　'),
+        open and '已达成，可直接使用。' or '两条通道任选其一：打出更多行，或打更多局。')
+    end
+    entry(e.color or C(127, 207, 106), open and '已缔结' or '未缔结',
+      open and ('你已经和' .. tostring(e.name or d.role) .. '立下契约，可直接在局内使用她的技能。')
+        or '满足下面任意一条即可缔结（自动解锁，不需要额外操作）：',
+      req and ((req.lines and ('累计消行 ' .. tostring(cnt.lines or 0) .. '/' .. tostring(req.lines)) or '')
+        .. '　' .. (req.games and ('总局数 ' .. tostring(cnt.games or 0) .. '/' .. tostring(req.games)) or '')
+        .. '　' .. (req.pvp and ('对战局数 ' .. tostring(cnt.pvp or 0) .. '/' .. tostring(req.pvp)) or '')
+        .. '　' .. (req.tetris and ('四消次数 ' .. tostring(cnt.tetris or 0) .. '/' .. tostring(req.tetris)) or '')
+        .. '　' .. (req.time and ('累计时长 ' .. tostring(cnt.time or 0) .. '/' .. tostring(req.time) .. ' 秒') or ''))
+        or '无解锁条件（初始角色）')
+    entry(e.accent or e.color2, '当前累计（全角色共用）',
+      '累计消行 ' .. tostring(cnt.lines or 0) .. '　局数 ' .. tostring(cnt.games or 0) ..
+      '　对战 ' .. tostring(cnt.pvp or 0) .. '　四消 ' .. tostring(cnt.tetris or 0) ..
+      '　时长 ' .. tostring(cnt.time or 0) .. 's',
+      '这些计数跨局累积，存在本例存档里；换存档会重置。')
+    entry(e.accent or e.color2, '编成规则',
+      '一局最多 ' .. tostring((SKILLS.NUM and SKILLS.NUM.PARTY_MAX) or 2) .. ' 个可前台发力的主动角色；初始只有纳西妲。',
+      '解锁顺序：纳西妲 → 刻晴 → 甘雨 → 少女（按条件达成先后）。')
+  end
+  -- 渲染条目：图标 + 名称 + 正文（自动折行）+ 数值行
+  local rightX = PL + u(840)
+  local rightW = u(470)
+  local PER = 30
+  local itemRows = {}
+  for idx, it in ipairs(items) do
+    local icon = BOX('charItemIcon' .. idx, u(34), u(34), it.icon or C(180, 180, 180))
+    -- 图标换成内置几何图元（评审：纯色小方块像占位符）：100002 圆 / 100004 四角星 / 100005 五角星 / 100003 三角 / 100006 圆环
+    if icon and Enum and Enum.ImageSource then
+      local GLYPH = { 100002, 100004, 100005, 100003, 100006 }
+      local gid = GLYPH[((idx - 1) % #GLYPH) + 1]
+      pcall(function() icon:SetImage(Enum.ImageSource.StaticReference, gid) end)
+    end
+    local nm = TXT('charItemNm' .. idx, it.nm, rightW - u(60), 19, THEME.textMain, 'Left')
+    local lines = {}
+    local src = (it.desc or '')
+    if it.desc2 and it.desc2 ~= '' then src = src .. (src ~= '' and '　' or '') .. it.desc2 end
+    local wrapped = wrapCJK(src, PER)
+    for li, lineTxt in ipairs(wrapped) do
+      lines[li] = TXT('charItemL' .. idx .. '_' .. li, lineTxt, rightW - u(60), 15, THEME.textSub, 'Left')
+    end
+    local vv = nil
+    if it.val and it.val ~= '' then
+      vv = TXT('charItemV' .. idx, it.val, rightW - u(60), 15, e.color2 or THEME.textMain, 'Left')
+    end
+    itemRows[idx] = { icon = icon, nm = nm, lines = lines, v = vv,
+      h = u(34) + #lines * u(22) + (vv and u(22) or 0) + u(12) }
+  end
+  R.foot = TXT('charFoot', '与四位角色缔结契约，她们会在你手忙脚乱时替你守住棋盘——按名册键随时回来看看。',
+    u(1260), 17, THEME.hint)
+  -- ── 摆位 ──（约定：TXTL 传的是**左沿**，内部再换算成框中心，避免"左对齐文字跑到画布外"）
+  local function at(c, x, y, w, h)
+    if not c then return end
+    tryCall(c, 'SetSizeDelta', w, h)
+    tryCall(c, 'SetAnchoredPosition', x, y)
+  end
+  local function th(size) local fs = math.floor(u(size) + 0.5) return math.max(math.floor(fs * 1.45 + 6), fs + 8) end
+  local function put(c, xLeft, y, w, h) at(c, xLeft + w / 2, y, w, h) end
+  at(R.dim, 0, 0, W + 40, H + 40)
+  at(R.card, 0, 0, PW, PH)
+  at(R.top, 0, PH / 2 - u(46), PW, u(92))
+  at(R.rule, 0, PH / 2 - u(94), PW - u(80), u(2))
+  put(R.title, PL + u(40), PH / 2 - u(46), u(560), th(32))
+  put(R.sub, PL + u(40), PH / 2 - u(78), u(560), th(17))
+  at(R.closePill, PR - u(110), PH / 2 - u(46), u(150), u(50))
+  at(R.closeTx, PR - u(110), PH / 2 - u(46), u(146), th(20))
+  local listX = PL + u(40)
+  for i = 1, #rows do
+    local r = rows[i]
+    local y = u(200) - (i - 1) * u(108)
+    if r.chip then trySet(r.chip, 'imageColor', (i == sel) and C(255, 238, 246, 240) or C(240, 250, 252, 244)) end
+    at(r.chip, listX + u(180), y, u(360), u(96))
+    at(r.bar, listX + u(4), y, u(8), u(76))
+    put(r.nm, listX + u(22), y + u(18), u(320), th(24))
+    put(r.st, listX + u(22), y - u(18), u(320), th(16))
+    -- 命中区必须自己摆位（建出来默认在 (0,0)），且 cursor 的 y 轴与图片相反 ⇒ 取负
+    if r.hit then at(r.hit, listX + u(180), -y, u(360), u(96)) end
+  end
+  -- 中列立绘区
+  local midX = PL + u(430)
+  local midW = u(380)
+  at(R.portraitEdge, midX + midW / 2, u(30), midW + u(8), u(438))
+  at(R.portrait, midX + midW / 2, u(30), midW, u(430))
+  at(R.portraitBand1, midX + midW / 2, u(30) - u(96), midW - u(40), u(3))
+  at(R.portraitBand2, midX + midW / 2, u(30) - u(112), midW - u(40), u(1))
+  put(R.pName, midX + u(20), u(160), midW - u(40), th(40))
+  put(R.pElem, midX + u(20), u(112), midW - u(40), th(20))
+  put(R.pLv, midX + u(20), u(80), midW - u(40), th(18))
+  put(R.pSay, midX + u(10), -u(60), midW + u(40), th(18))
+  put(R.pSay2, midX + u(10), -u(96), midW + u(40), th(18))
+  put(R.pSay3, midX + u(10), -u(134), midW + u(40), th(17))
+  put(R.pSay4, midX + u(10), -u(168), midW + u(40), th(17))
+  put(R.pSkill, midX + u(10), -u(300), midW + u(40), th(18))
+  -- 右列：页签 + 条目
+  local rightX = PL + u(860)
+  local rightW = u(500)
+  for i = 1, 5 do
+    local tx = rightX + (i - 1) * u(100)
+    at(tabs[i], tx + u(48), u(232), u(96), u(46))
+    at(tabs[i .. 't'], tx + u(48), u(232), u(92), th(18))
+    if tabsHit[i] then at(tabsHit[i], tx + u(48), -u(232), u(96), u(46)) end
+  end
+  local yy = u(150)
+  for idx, row in ipairs(itemRows) do
+    at(row.icon, rightX + u(16), yy - u(6), u(34), u(34))
+    put(row.nm, rightX + u(54), yy - u(4), rightW - u(60), th(19))
+    local ly = yy - u(30)
+    for li, ln in ipairs(row.lines or {}) do
+      put(ln, rightX + u(54), ly, rightW - u(60), th(15))
+      ly = ly - u(22)
+    end
+    if row.v then put(row.v, rightX + u(54), ly, rightW - u(60), th(14)) end
+    yy = yy - (row.h or u(120))
+  end
+  put(R.foot, PL + u(70), -PH / 2 + u(28), PW - u(140), th(17))
+  -- 服务端 textbox 永远在运行时实例之上 ⇒ 打开面板必须把横幅清空，否则"纳西妲：再不动手…"会压在面板上
+  ROSTER.savedTop = tostring(topBanner and topBanner.text or '')
+  ROSTER.savedBot = tostring(botBanner and botBanner.text or '')
+  setText(topBanner, '')
+  setText(botBanner, '')
+  bannerTimer = 0
+  ROSTER.on = true
+  print('char codex open n=' .. #ROSTER.items .. ' sel=' .. tostring(roles[sel]) .. ' tab=' .. tostring(tab)
+    .. ' items=' .. tostring(#items))
+end
+
+-- @region ui-roster END (writer: ui-mobile)
 FN.enterMode = function()
+  -- v5.4 修「准备屏上残留标题演示的角色名卡」：标题页 demo 循环会放技能（名卡/环波），
+  -- 玩家选中模式后这些特效还有 0.5~1.2s 才自然到期 ⇒ 准备态画面左下角挂着一块「少女」空卡，
+  -- 正好压在新摆的 P1 键位卡上（07/10 出图实测）。进模式即清场，特效池全部归位。
+  if FN.FX then pcall(FN.FX.clear) end
   if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
     if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
     G[2] = newInst()
@@ -4097,6 +5199,35 @@ end
 
 -- v2.5：lvIdx=强制档位（演示/接管场景传 3=hard——AI 代打要展示最强/帮玩家续命，不故意失误；
 -- ai-battle 对抗盘不传=用玩家选的难度档做对抗强度）。NUM.AI_LEVEL 仍是玩家侧难度语义。
+-- @region ai-demo BEGIN (writer: ai-strength)
+-- ===== v5.0 ① 动作队列清洗（统一路径 / 去掉"悬停·犹豫"演出）=====
+-- 为什么挂 NUM 表而不是 local function：main chunk 贴着 200 个 local 上限（D591/D612 实测），
+-- 这里再加一个 local 会直接 `too many local variables (limit is 200)`。
+-- buildQueue 是拟人外壳，会塞两类**不产生决策价值**的段：
+--   ① hover（40% 概率 0.20~0.40s）：落定前"再看一眼"⇒ 方块悬在落点上方干等；
+--   ② 回退一格再移回来（20% 概率，0.10~0.20s×2）：到位后犹豫。
+-- 用户 2026-10-29 打回原话「思考的时候方块不动」——这类段正是"不动"的可见来源之一。
+-- 统一后 demo 与 AI 盘不再各有一套"规划动画"，只剩：思考（重力照落）→ 转/移 → 下落。
+NUM.aiStripQueue = function(q, info)
+  local out = {}
+  local i, n = 1, #q
+  while i <= n do
+    local a = q[i]
+    local nxt = q[i + 1]
+    if a.kind == 'hover' then
+      i = i + 1
+    elseif a.kind == 'move' and nxt and nxt.kind == 'move'
+      and (a.cells or 0) == 1 and (nxt.cells or 0) == 1 and nxt.dir == -a.dir then
+      i = i + 2                                  -- 回退一格 + 移回来：净位移 0，整对删除
+    else
+      out[#out + 1] = a
+      i = i + 1
+    end
+  end
+  if info then info.hover = 0 end
+  return out, info
+end
+
 FN.aiTickCore = function(dt, onOver, lvIdx)
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
@@ -4112,6 +5243,21 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
   local tune = NUM.AI_TUNE or {}
   local tier = lv.tier or 2
   local pace = NUM.aiPace(tier, g.level)
+  -- v5.4 修用户 2026-10-30 一-2「开局展示的 AI，移动和选择速度还是太快」：
+  -- 标题页自演（onOver=='demo'）是**给玩家看的橱窗**，不是对局强度——统一放慢 1.8 倍，
+  -- 让"看一眼方块怎么被搬走"能跟得上。局内 AI 盘/接管节奏不受影响（真打不该变慢）。
+  -- v5.5（修正 v5.4 的口径）：只放慢**看得见的搬块动作**（横移/旋转/犹豫的 wait），
+  -- 不放慢出块节奏 pace —— 后者会改变 AI 吞吐（用例 20/21 在固定窗口中数块数：
+  -- hard 100 块 / easy 80 块），把「观感调整」变成「AI 变弱」。
+  -- 只对 hard（标题页自演实际跑的档）放慢：弱档本来就慢，再放慢会把「AI 吞吐」类用例的
+  -- 窗口块数压到验收线以下（21-ai-easy-rho：235s 内需 ≥80 块，实测放慢后刚好掉到 78）。
+  local demoMul = (onOver == 'demo' and tier >= 3) and 1.8 or 1.0
+  -- v5.1 热身：一局/一段自演的头 4 块按 1.35 倍时长（用户："就算想加速也不能一上来就这么逆天"）。
+  -- 只放宽节奏，不改决策——算法强度不变，只是动作看着像人。
+  do
+    local seen = (g.AI.pieces or 0)
+    if seen < 4 then pace = pace * 1.35 end
+  end
   local obsMin = lv.obsMin or 0.30
   if obsMin > pace * 0.45 then obsMin = pace * 0.45 end
   local pieceMax = lv.pieceMax or 2.0
@@ -4130,11 +5276,19 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
     end
   end
   local atkOn = oppH >= (tune.attackHeight or 8)
-  if g.AI.atk ~= atkOn then
-    g.AI.atk = atkOn
-    print('ai attack=' .. tostring(atkOn) .. ' oppH=' .. tostring(oppH) .. ' tier=' .. tostring(tier))
+  -- v5.0 ③：**有对手就进基线进攻态**。旧实现只有 oppH ≥ attackHeight（对手快死）才开
+  -- ⇒ 前 90% 对局从不攒多消行（实测：多消行 5%、garbage 0.55 行/分）。
+  -- 单人局（opp=nil：casual 接管 / 标题页自演）恒 0 —— 攻击权重只在双盘模式生效。
+  local atkBase = 0
+  if opp then atkBase = (tune.attackBaseline or 0.6) * (tune.attackBonus or 9) * (tier / 3) end
+  NUM.AI_ATK = atkOn and (atkBase * 1.6) or atkBase
+  local atkMode = 'off'
+  if NUM.AI_ATK > 0 then atkMode = atkOn and 'burst' or 'baseline' end
+  if g.AI.atkMode ~= atkMode then
+    g.AI.atkMode = atkMode
+    print('ai attack=' .. tostring(atkOn) .. ' oppH=' .. tostring(oppH) .. ' tier=' .. tostring(tier)
+      .. ' mode=' .. atkMode .. ' atk=' .. aiFmt(NUM.AI_ATK))
   end
-  NUM.AI_ATK = atkOn and ((tune.attackBonus or 9) * (tier / 3)) or 0
   -- 井模式**只在对抗进攻态开**（用户原话：「积累然后一次消除更多的行来给对手制造垃圾」）：
   -- 单人对局没有对手，攒井只会降低自己的容错 ⇒ 那时保持干净盘面（ρ 不损失）。
   NUM.AI_WELL = (atkOn and tune.saveI and tune.saveI[tier]) and ((tune.attackBonus or 9) * 0.7) or 0
@@ -4146,12 +5300,10 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
     NUM.AI_WELLCOL, NUM.AI_WELLBASE = 0, 0
   end
   NUM.AI_SIMPLE = (lv.simple == true)
-  if NUM.AI_WELL > 0 then
-    g.AI.wellDbg = (g.AI.wellDbg or 0) + 1
-    if g.AI.wellDbg % 5 == 1 then
-      print('ai well col=' .. tostring(NUM.AI_WELLCOL) .. ' base=' .. tostring(NUM.AI_WELLBASE)
-        .. ' depth=' .. tostring(wellDepth()))
-    end
+  if NUM.AI_WELL > 0 and g.AI.wellLog ~= g.piece then
+    g.AI.wellLog = g.piece            -- v5.0：每块一条（旧实现每 5 帧一条 = 6 条/秒刷屏）
+    print('ai well col=' .. tostring(NUM.AI_WELLCOL) .. ' base=' .. tostring(NUM.AI_WELLBASE)
+      .. ' depth=' .. tostring(wellDepth()))
   end
   if g.AI.piece and g.AI.piece ~= g.piece then          -- 方块换了（清盘/重开/Hold 换块）
     g.AI.phase, g.AI.t, g.AI.queue, g.AI.qi, g.AI.piece, g.AI.search = 'thinking', 0, nil, 1, nil, nil
@@ -4359,14 +5511,40 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       local ly = 1
       while ly < ROWS and not collides(probe, final.x, ly + 1) do ly = ly + 1 end
       local plan = { rot = final.rot - 1, x = final.x, landingY = ly }
+      -- v5.0 ②：**决策档与执行档对齐**。旧实现：决策用 lvIdx（demo/技能接管强制 3），
+      -- 但 buildQueue 的横移间隔读玩家侧 NUM.AI_LEVEL ⇒ 会出现"hard 的决策 + easy 的手速"。
+      -- 只在这几行临时切，buildQueue 返回立刻还原（双盘/接管之间不许残留）。
+      local savedAiLevel = NUM.AI_LEVEL
+      NUM.AI_LEVEL = lvIdx or NUM.AI_LEVEL
       local q, info = buildQueue(plan)
+      NUM.AI_LEVEL = savedAiLevel
+      -- v5.0 ②：**只对 hard 生效**。easy/normal 的"慢"是设计（用例 21 契约 avg≥2.2s 必须保住），
+      -- 所以弱档完全保留 buildQueue 原样（含悬停/回退演出），节奏不动。
+      if tier >= 3 then
+        q, info = NUM.aiStripQueue(q, info)      -- 删悬停/回退两类"规划动画"段
+        local qk = (tune.queueK and tune.queueK[tier]) or 0.45
+        local qcap = (tune.queueCap and tune.queueCap[tier]) or 0.06
+        for i = 1, #q do
+          local w = (q[i].wait or 0) * qk
+          if w > qcap then w = qcap end          -- 旋转原始 0.15~0.45s 是最大单笔（实测 0.17s/次）
+          if w < 0.03 then w = 0.03 end
+          q[i].wait = w
+        end
+      end
+      if demoMul ~= 1.0 then
+        for i = 1, #q do q[i].wait = (q[i].wait or 0) * demoMul end
+        if info then info.hover = (info.hover or 0) * demoMul end
+      end
       g.AI.queue, g.AI.info, g.AI.qi = q, info, 1
       local rest = 0
       for _, a in ipairs(q) do rest = rest + (a.wait or 0) end
       local target = aiRange(pace * 0.85, pace)   -- v4.0 ④：目标用时随速度收紧
       g.AI.softPer = 0
+      -- v5.0 ②：hard 档一律硬降——软降 18 行 × 0.06~0.12s/行 = 1~2s，是每块用时里最大的一笔；
+      -- 弱档保留软降演出（"想得慢"本来就该慢）。
       local dropKind = 'hard'
-      if aiRand(100) <= 50 then dropKind = 'soft' end
+      -- hard 档一律硬降（省 1~2s/块）；弱档保持旧概率 50%（用例 21 的慢档契约）
+      if tier < 3 and aiRand(100) <= 50 then dropKind = 'soft' end
       local rows = (info.landingY or g.piece.y) - g.piece.y
       if rows < 1 then rows = 1 end
       local dropTime = 0
@@ -4382,9 +5560,19 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       if dropKind == 'soft' and (rest + dropTime + obsMin) > pieceMax + 0.2 then
         dropKind, dropTime, g.AI.softPer = 'hard', 0, 0
       end
-      local think = target - rest - dropTime
+      -- v5.0 ②：**扣掉已经花掉的搜索时间**。plan 是在 refineSearch 之后才建的，
+      -- g.AI.t 此刻已经攒了 ~0.27s（1-ply + 2-ply 精化），旧实现不扣 ⇒ 每块实际 =
+      -- target + 0.27s（实测 1.20~1.33s，而 target 只有 0.81~0.95s）。
+      -- v5.0 ②：**只对 hard 扣搜索时间**（弱档保持旧预算，契约 avg≥2.2s 靠它）。
+      local spent = 0
+      if tier >= 3 then spent = (g.AI.t or 0) end
+      local think = target - rest - dropTime - spent
       if think < obsMin then think = obsMin end
-      if think > 1.2 then think = 1.2 end
+      -- 思考等待上限：hard 1.2s（人手观感护栏）；弱档 1.6s——easy 的"慢"是设计，
+      -- 旧实现用同一条 1.2s 上限把 easy 从 2.5s 压到 ~2.1s（用例 21 契约 avg≥2.2s）。
+      local thinkCap = 1.2
+      if tier < 3 then thinkCap = 1.6 end
+      if think > thinkCap then think = thinkCap end
       g.AI.wait = think
       g.AI.t = 0
       g.AI.pace = { think = think, rot = info.rot, cells = info.cells,
@@ -4514,6 +5702,12 @@ autoTick = function(dt)
   -- v2.5：stage0 自演=演示，默认最强摆位。v4.0 起改成读 NUM.AI_LEVEL（默认 3=hard）：
   -- 这样调试切档键（SwitchToWalkOrRun）对**自演**也生效，用例才能分别量到三档的真实 ρ。
   FN.aiTickCore(dt, 'demo', NUM.AI_LEVEL or 3)
+  -- v5.0 ①：**路径统一**——标题页自演从此和 AI 盘/玩家盘走同一条重力+锁定链。
+  -- 旧实现只调 aiTickCore；重力只存在于 OnUpdate 帧末的 tickInstance 循环（guideStage==1 才到），
+  -- 于是 demo 的 thinking 期方块悬在顶部不动（用户 2026-10-29：「思考的时候方块不动，
+  -- 和其他路径的 AI 还不一样」）。全仓重力推进点只有 tickInstance 一处（g.tickCount % SPEED），
+  -- 这里补一次不会产生第二重力源（判据：demo 每格下落 0.50s@Lv1，探针见 qxqy/measure-ai.mjs）。
+  FN.tickInstance(dt)
 end
 
 --------------------------------------------------------------------------------
@@ -4569,6 +5763,132 @@ end
 -- dump 出来的画布坐标逐个点，点完必须出现新日志，否则判"死控件"。
 -- 每个屏幕（menu/play/help/settle/note）各自一份，重建即清空（防止旧屏幕的坐标被当成活的）。
 UI4.reg = {}
+-- @region ai-demo END (writer: ai-strength)
+-- @region ui-mobile BEGIN (writer: ui-mobile)
+-- ===== v5.0 UI 布局唯一实现（lua/tetris/ui.lua）=====
+-- 契约：main 只提供**访问器**（画布尺寸 / 模板 / 屏幕状态），几何、配色、三态全在模块里算。
+-- 为什么这样分：用户 2026-10-29 打回「移动端按键位置不合理，没有去每个画面核验美观和大小」——
+-- 一屏一套坐标只能靠"每种屏 × 每种画布"真的算一遍并审计；单点收口才可能被机检。
+FN.U = nil
+do
+  local uimod = loadModule('ui')
+  if uimod and uimod.new then
+    FN.U = uimod.new({
+      game = game,
+      cfg = CFG,
+      widgets = WIDGETS,
+      canvas = function() return CANVAS_W or 1280, CANVAS_H or 720 end,
+      mobile = function() return IS_MOBILE end,
+      pool = function() local inst = G[1] or g return inst and inst.bgPool end,
+      plate = function() local inst = G[1] or g return inst and inst.plate end,
+      frames = function() local inst = G[1] or g return inst and inst.frames end,
+      -- v5.4：框色归 FN.paintFrames（席位身份），ui 侧不再用模式色覆盖
+      paintFrames = function() return FN.paintFrames and FN.paintFrames() end,
+      -- v5.4：技能卡可点（三-1）。ui.lua 只负责建热区与摆位，动作仍回到 main 的唯一入口。
+      makeHit = function(nm, w, h) return UI4.hit(nm, w, h) end,
+      bindCursor = function(ctl, ev, fn) return addCursor(ctl, ev, fn) end,
+      onSkillArea = function(i)
+        keyConsumedFrame = frameSeq
+        if FN.skillAreaTap then FN.skillAreaTap(i) end
+      end,
+      theme = function() return THEME end,
+      mode = function() return MODE end,
+      tb = function(nm)
+        if nm == 'title' then return title
+        elseif nm == 'hud' then return hud
+        elseif nm == 'hudNext' then return hudNext
+        elseif nm == 'best' then return best
+        elseif nm == 'hint' then return hint
+        elseif nm == 'keyA' then return keyA
+        elseif nm == 'keyB' then return keyB
+        elseif nm == 'keyC' then return keyC
+        elseif nm == 'topBanner' then return topBanner
+        elseif nm == 'botBanner' then return botBanner
+        end
+        return nil
+      end,
+      instHud = function(nm) return HUD_INST[nm] end,
+      instCell = function(nm)
+        local c = instInto(TPL_GUIDS.cell, root, nil)
+        if c then c.name = nm end
+        return c
+      end,
+      instText = function(nm, txt, w, h, fs)
+        if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
+        if not TPL_TEXT then return nil end
+        local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+        if not ok or not c then return nil end
+        c.name = nm
+        trySet(c, 'text', txt or '')
+        trySet(c, 'fontSize', fs or 20)
+        trySet(c, 'fontColor', THEME.textMain)
+        trySet(c, 'bgColor', C(0, 0, 0, 0))
+        trySet(c, 'enableOutline', true)
+        trySet(c, 'outlineColor', C(215, 255, 255, 255))
+        tryCall(c, 'SetSizeDelta', w, h)
+        return c
+      end,
+      -- 热区必须走**直连路径**（与标题页模式卡 menuZone 同一条，已被点击用例验证）：
+      -- instInto 的能力探测在真机会销毁重建，模拟器里探测过的实例坐标读回正常却收不到光标事件。
+      instHit2 = function(nm, w, h)
+        if not TPL_HIT then return nil end
+        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+        if not ok or not z then return nil end
+        z.name = nm
+        tryCall(z, 'SetSizeDelta', w, h)
+        return z
+      end,
+      instHit = function(nm, w, h)
+        if not TPL_HIT then return nil end
+        local z = instInto({ TPL_HIT }, root, true)
+        if not z then return nil end
+        z.name = nm
+        tryCall(z, 'SetSizeDelta', w, h)
+        return z
+      end,
+      setRightCX = function(v) RIGHT_CX = v end,
+      state = function()
+        return {
+          guideStage = guideStage, helpOpen = helpOpen, roster = ROSTER.on,
+          settle = (g and g.settleReady) or false, mode = MODE,
+          dual = (G[2] ~= nil), page = FN.U and FN.U.page or 1,
+        }
+      end,
+      party = function() return (SK and SK.party and #SK.party) or 1 end,
+      sfx = function() sfx(SFX.press, true) end,
+    })
+    -- 触屏动作派发：本层先吃掉"本模块自己新增的 act"（关页/回标题/翻页/技能），其余交给 UI4.dispatch
+    FN.U.dispatch = function(action, id, rep)
+      if action == 'closeHelp' then
+        if UI4.helpToggle then UI4.helpToggle() end
+        return
+      end
+      if action == 'closeRoster' then
+        if FN.rosterToggle then FN.rosterToggle() end
+        return
+      end
+      if action == 'home' then
+        if FN.exitToMenu then FN.exitToMenu() end
+        return
+      end
+      if action == 'page' then
+        FN.U.page = (FN.U.page == 2) and 1 or 2
+        print('help page ' .. tostring(FN.U.page))
+        FN.U.sig = nil            -- 强制下一帧重排（页码进签名）
+        return
+      end
+      if action == 'skill1' then if FN.skillCast then FN.skillCast(1) end return end
+      if action == 'skill2' then if FN.skillCast then FN.skillCast(2) end return end
+      if action == 'switch' then if FN.skillSwitch then FN.skillSwitch() end return end
+      if UI4.dispatch then UI4.dispatch(action, id, rep) end
+    end
+    -- 临时诊断（定位热区为何收不到事件；拿完读数即删）
+    if type(game.InstantiateClientUIControl) == 'function' then end
+    print('ui module ok layout=v5.0 screens=5')
+  else
+    print('ui module FAIL（移动端按钮将缺失；PC 布局仍走本文件的旧路径）')
+  end
+end
 UI4.regScreen = function(name)
   UI4.cur = name
   for i = #UI4.reg, 1, -1 do
@@ -4649,162 +5969,42 @@ UI4.hit = function(name, w, h)
   return z
 end
 
--- 按钮三态（底图色 + 点击下沉 3px）；文字始终墨色（浅底才读得清）
+-- ===== v5.0：按钮/布局的**唯一实现**搬到 lua/tetris/ui.lua（FN.U）=====
+-- 旧的 UI4.paint/makeBtn/stopRep/tick/build/layout/syncVisible 职责全部由模块接管，这里只留薄封装。
+-- 为什么必须搬：用户 2026-10-29「移动端按键位置不合理，没有去每个画面核验美观和大小」——
+-- 一套坐标走到底；只有把「plan(屏) → apply(plan)」收口到一处，才可能对 5 屏 × 5 画布逐个机检。
 UI4.paint = function(b, st)
-  local bg = THEME.btnBg
-  if st == 'hover' then bg = THEME.card end
-  if st == 'down' then bg = THEME.gold end
-  trySet(b.bg, 'imageColor', bg)
-  local dy = (st == 'down') and -3 or 0
-  if b.x and b.y then
-    tryCall(b.bg, 'SetAnchoredPosition', b.x, b.y + dy)
-    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', b.x, b.y + dy) end
-  end
+  if FN.U then FN.U.paint(b, st) end
 end
-
--- 一个按钮 = 底图 + 文字 + 光标热区（三者同尺寸同位置；热区最后建 ⇒ 命中优先）
-UI4.makeBtn = function(id, label, act, w, h, size)
-  local b = { id = id, act = act, w = w, h = h }
-  b.bg = UI4.pill('pbtn' .. id, w, h, THEME.btnBg)
-  b.txt = UI4.label('pbtn' .. id .. 't', label, w, h, size or 24, THEME.textMain)
-  b.hit = UI4.hit('pbtn' .. id .. 'hit', w, h)
-  if not (b.bg and b.hit) then return nil end
-  UI4.regAdd('phone.' .. id, b.hit, w, h)
-  addCursor(b.hit, 'CursorEnter', function() UI4.paint(b, 'hover') end)
-  addCursor(b.hit, 'CursorExit', function() UI4.paint(b, 'normal') end)
-  addCursor(b.hit, 'CursorUp', function()
-    UI4.paint(b, 'hover')
-    UI4.stopRep(b)
-  end)
-  addCursor(b.hit, 'CursorDown', function()
-    sfx(SFX.press, true)
-    UI4.paint(b, 'down')
-    print('phone tap ' .. b.id)
-    if UI4.dispatch then UI4.dispatch(b.act, b.id) end
-    if b.rep then UI4.rep = { b = b, t = 0, n = 0 } end
-  end)
-  return b
-end
-
 UI4.stopRep = function(b)
-  local r = UI4.rep
-  if not r then return end
-  if b and r.b ~= b then return end
-  if (r.n or 0) >= 2 then print('phone rep done id=' .. r.b.id .. ' n=' .. r.n) end
-  UI4.rep = nil
+  if FN.U then FN.U.stopRep(b) end
 end
-
--- 连发（触屏长按 ←/→/缓降）：只在按住期间推进，松开/移出即停（触屏版 DAS）
+-- 每帧：屏幕/模式/画布签名变化 ⇒ 重排；连发推进也在模块里
 UI4.tick = function(dt)
-  local r = UI4.rep
-  if not r then return end
-  local P = NUM.PHONE or {}
-  r.t = r.t + dt
-  if r.t >= (P.HOLD_DELAY or 0.26) then
-    r.t = r.t - (P.HOLD_RATE or 0.075)
-    r.n = (r.n or 0) + 1
-    if r.n == 1 then print('phone rep start id=' .. r.b.id) end
-    if UI4.dispatch then UI4.dispatch(r.b.act, r.b.id, true) end
-  end
+  if FN.U then FN.U.sync(dt) end
 end
-
 UI4.build = function(mobile)
-  UI4.mobile = mobile and true or false
-  UI4.btns = {}
-  UI4.regScreen('play')   -- 登记屏幕切换：按钮都归 play 屏（dump 时才按屏过滤）
-  if not UI4.mobile then
-    print('phone build skip device=pc')
+  if not FN.U then
+    print('phone build skip (ui module missing)')
     return
   end
-  local P = NUM.PHONE or {}
-  local n = 0
-  for _, it in ipairs(P.items or {}) do
-    local b = UI4.makeBtn(it.id, it.label, it.act, P.W, P.H, 24)
-    if b then
-      b.side, b.col, b.row, b.rep = it.side, it.col, it.row, it.rep
-      UI4.btns[#UI4.btns + 1] = b
-      n = n + 1
-    end
-  end
-  -- 说明键：移动端没有 H 键，帮助页必须能自己开、也要能自己关（用户 2026-10-29 反馈 d）
-  UI4.helpBtn = UI4.makeBtn('help', '说明', 'help', P.HELP_W or 108, P.HELP_H or 52, 22)
-  if UI4.helpBtn then n = n + 1 end
-  -- 名册键（顶部右侧第二颗）：手机上没有 Key16，名册必须能有触屏入口
-  UI4.rosterBtn = UI4.makeBtn('roster', '名册', 'roster', P.HELP_W or 108, P.HELP_H or 52, 22)
-  if UI4.rosterBtn then n = n + 1 end
-  print('phone build n=' .. n .. ' help=' .. (UI4.helpBtn and 'ok' or 'none'))
-  if CANVAS_W and CANVAS_H then UI4.layout(CANVAS_W, CANVAS_H) end
-  UI4.dump('play')   -- 必须在 layout 之后：dump 读的是控件实时坐标
+  FN.U.padBuild(mobile)   -- 排队：真正建控件在第一帧（OnStart 期建的实例收不到光标事件）
 end
-
--- 布局：左右两簇贴屏幕下角（2 列 × 2 行），说明键贴右上角。全按画布尺寸现算。
 UI4.layout = function(W, H)
-  if not UI4.mobile then return end
-  local P = NUM.PHONE or {}
-  local halfW, halfH = W / 2, H / 2
-  local bw, bh, gp, m = P.W, P.H, P.GAP, P.MARGIN
-  local function place(c, x, y, w, h)
-    if not c then return end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-  end
-  for _, b in ipairs(UI4.btns) do
-    local x
-    if b.side == 'L' then
-      x = -(halfW - m - bw / 2) + (b.col or 0) * (bw + gp)
-    else
-      x = (halfW - m - bw / 2) - (b.col or 0) * (bw + gp)
-    end
-    local y = -(halfH - m - bh / 2) + (b.row or 0) * (bh + gp)
-    b.x, b.y = x, y
-    place(b.bg, x, y, bw, bh)
-    place(b.txt, x, y, bw, bh)
-    place(b.hit, x, y, bw, bh)
-  end
-  local hb = UI4.helpBtn
-  local hw, hh = P.HELP_W or 108, P.HELP_H or 52
-  if hb then
-    local x, y = halfW - m - hw / 2, halfH - m - hh / 2
-    hb.x, hb.y = x, y
-    place(hb.bg, x, y, hw, hh)
-    place(hb.txt, x, y, hw, hh)
-    place(hb.hit, x, y, hw, hh)
-  end
-  local rb = UI4.rosterBtn
-  if rb then
-    local x, y = halfW - m - hw - 10 - hw / 2, halfH - m - hh / 2
-    rb.x, rb.y = x, y
-    place(rb.bg, x, y, hw, hh)
-    place(rb.txt, x, y, hw, hh)
-    place(rb.hit, x, y, hw, hh)
-  end
-  print('phone layout w=' .. math.floor(W) .. ' h=' .. math.floor(H) .. ' n=' .. #UI4.btns)
+  if not FN.U then return end
+  FN.U.apply(nil, (G[2] ~= nil), MODE, (guideStage == 3))
 end
-
--- 结算/终局时把按钮整排挪出画布（真机 SetVisible 对实例不生效，只信坐标；2026-10-25 实证）
+-- 结算/终局：屏切换由 FN.U.sync 按屏幕状态静默重排（藏 = 挪出画布，不依赖 SetVisible）
 UI4.syncVisible = function(dead)
-  if not UI4.mobile or not UI4.btns then return end
   if UI4.dead == dead then return end
   UI4.dead = dead
-  local y = dead and -4000 or 0
-  for _, b in ipairs(UI4.btns) do
-    local yy = dead and -4000 or (b.y or 0)
-    tryCall(b.bg, 'SetAnchoredPosition', b.x or 0, yy)
-    tryCall(b.txt, 'SetAnchoredPosition', b.x or 0, yy)
-    tryCall(b.hit, 'SetAnchoredPosition', b.x or 0, yy)
-  end
-  if UI4.helpBtn then
-    local yy = dead and -4000 or (UI4.helpBtn.y or 0)
-    tryCall(UI4.helpBtn.bg, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
-    tryCall(UI4.helpBtn.txt, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
-    tryCall(UI4.helpBtn.hit, 'SetAnchoredPosition', UI4.helpBtn.x or 0, yy)
-  end
   print('phone play bar=' .. tostring(not dead))
 end
-
 UI4.refreshHelpLabel = function(open)
-  if UI4.helpBtn and UI4.helpBtn.txt then
-    UI4.helpBtn.txt.text = open and '合上' or '说明'
+  if not FN.U then return end
+  for _, b in ipairs(FN.U.navBtns or {}) do
+    -- 帮助页开着时把「说明」键改成「合上」：触屏没有 H 键，必须有一眼能认的关闭入口
+    if b.id == 'help' and b.txt then b.txt.text = open and '合上' or '说明' end
   end
 end
 
@@ -4968,35 +6168,19 @@ end
 
 layout = function(W, H)
   CANVAS_W, CANVAS_H = W, H
-  local halfW, halfH = W / 2, H / 2
-  local panelW = 420
-  local leftCX, rightCX = -(halfW - panelW / 2 - 20), halfW - panelW / 2 - 20
-  RIGHT_CX = rightCX
-  local function place(ctl, x, y, w, h)
-    if not ctl then return end
-    tryCall(ctl, 'SetSizeDelta', w, h)
-    tryCall(ctl, 'SetAnchoredPosition', x, y)
+  -- v5.0：布局唯一实现 = lua/tetris/ui.lua（FN.U）。这里只做三件事：
+  -- ① 文字样式基线（applyStyle 先跑，模块再按屏覆盖字号/位置）② 退役的 6 个服务端按钮藏掉
+  -- ③ 结算层与抖屏复位（它们的几何仍在本文件，因为成员表挂在实例 g 上）。
+  -- PC 的 rect 与 v4.0 逐字相同（FN.U 的 planPC 抄的就是这一套数值）⇒ PC 观感不变。
+  applyStyle('title', title) applyStyle('hud', hud) applyStyle('hudNext', hudNext)
+  applyStyle('best', best) applyStyle('hint', hint)
+  applyStyle('keyA', keyA) applyStyle('keyB', keyB) applyStyle('keyC', keyC)
+  applyStyle('topBanner', topBanner) applyStyle('botBanner', botBanner)
+  if FN.U then
+    local okU, errU = pcall(FN.U.apply, nil, (G[2] ~= nil), MODE)
+    if not okU then print('ui layout error :: ' .. tostring(errU)) end
   end
-  -- 框高硬判据（渲染器实测）：h >= fontSize*1.45 + 4 才画这一行，否则整行静默不画。
-  -- 64 号 -> >=96.8（h=96 曾整块消失）、34 -> >=53.3、26 -> >=41.7、22 -> >=35.9。
-  -- 左栏：标题/统计/最高/提示 作为一个整组垂直居中（贴顶贴底会显得散）
-  place(title, leftCX, 130, panelW, 100)             -- 64 号
-  place(hud, leftCX, 40, panelW + 40, 40)            -- 20 号：22 号时尾部一个字被裁，实测
-  place(best, leftCX, -10, panelW, 36)               -- 20 号
-  place(hint, leftCX, -95, panelW, 150)              -- 22 号
-  -- v3.5 ④：「下一个」贴在预览块正上方（预览块实测 y 78..189）——原 halfH-150 在 1600 画布上
-  -- 离块 90px 且 valign=Top 裁掉字形顶部；改 y=215 + 框高 44 + valign=Middle（UI_STYLE）
-  place(hudNext, rightCX, 255, 200, 44)              -- 22 号
-  if HUD_INST.hudNext then
-    tryCall(HUD_INST.hudNext, 'SetSizeDelta', 200, 44)
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', rightCX, 255)
-  end
-  place(keyA, rightCX, -40, panelW, 38)              -- 22 号
-  place(keyB, rightCX, -80, panelW, 38)              -- 22 号
-  place(keyC, rightCX, -120, panelW, 38)             -- 22 号
-  -- v4.0：老的 6 个服务端按钮（btnA..btnF）退役——移动端按钮改成客户端实例层（UI4.btns，
-  -- 位置按画布现算、自带三态与连发）。这里只负责把服务端那 6 个 textbox 永久藏掉
-  -- （真机 SetVisible 不生效时再挪出画布，双保险），否则会和实例按钮叠成两排。
+  -- v4.0 退役：老的 6 个服务端按钮（btnA..btnF）。真机 SetVisible 不可靠 ⇒ 再挪出画布兜底。
   for _, nm in ipairs({ 'btnA', 'btnB', 'btnC', 'btnD', 'btnE', 'btnF' }) do
     local ctl = find(nm)
     if ctl then
@@ -5004,39 +6188,6 @@ layout = function(W, H)
       tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
     end
   end
-  if UI4.layout then
-    local okUI, errUI = pcall(UI4.layout, W, H)
-    if not okUI then print('phone layout error :: ' .. tostring(errUI)) end
-  end
-  applyStyle('title', title) applyStyle('hud', hud) applyStyle('hudNext', hudNext)
-  applyStyle('best', best) applyStyle('hint', hint)
-  applyStyle('keyA', keyA) applyStyle('keyB', keyB) applyStyle('keyC', keyC)
-  applyStyle('topBanner', topBanner) applyStyle('botBanner', botBanner)
-  -- 横幅框高按判据算「同时装得下的最大字号」：入场标题会长到 40、结算大字 40（都需 62）
-  -- ⇒ topBanner 给 64；旧实现 56 高，标题长过 35 号就整行静默消失（实测）。
-  -- 纵向位置：框 64 居中在屏幕上 4..68 那条带子里（棋盘顶框在 59，40 号墨迹 16..56 不压框）
-  place(topBanner, 0, halfH - 36, W - 180, 64)
-  -- 底行：结算 26 号（需 41.7）、入场呼吸 22~23 号 ⇒ 给 48
-  place(botBanner, 0, -(halfH - 28), W - 180, 48)
-  -- v3.5 ②：实例份与 textbox 份同位（真机层序铁律 ⇒ 看得见的文字只能是实例份；
-  -- textbox 份保持同步只为断言读 text/anchoredPositionX。这里补齐单屏位，双屏位由 layoutDual 覆盖）
-  local function placeInst(nm, x, y, w, h, fs)
-    local inst = HUD_INST[nm]
-    if not inst then return end
-    if w then tryCall(inst, 'SetSizeDelta', w, h) end
-    if fs then trySet(inst, 'fontSize', fs) end
-    tryCall(inst, 'SetAnchoredPosition', x, y)
-  end
-  placeInst('hud', leftCX, 40, panelW + 40, 40, 20)
-  placeInst('best', leftCX, -10, panelW, 36, 20)
-  placeInst('hint', leftCX, -95, panelW, 150, 22)
-  placeInst('hudNext', rightCX, 255, 240, 44, 22)
-  placeInst('keyA', rightCX, -40, panelW, 38, 22)
-  placeInst('keyB', rightCX, -80, panelW, 38, 22)
-  placeInst('keyC', rightCX, -120, panelW, 38, 22)
-  placeInst('topBanner', 0, halfH - 36, W - 180, 64, 34)
-  placeInst('botBanner', 0, -(halfH - 28), W - 180, 48, 22)
-
   if g.settleReady then layoutSettle(W, H) end
   -- 抖动状态必须能被 layout 覆盖后复位：重排后基准坐标仍是创建时那套，直接停抖并写回基准
   if g.shakeT > 0 then stopShake(true) end
@@ -5090,6 +6241,12 @@ function OnStart()
     error('tetris: cell 模板 guid 都不可用，候选=' .. #TPL_GUIDS.cell
       .. '（导入后跑 node qxqy/deploy.mjs --calibrate）')
   end
+  -- 🔴 v5.4 定位 A13「棋盘左上角恒有一块灰方块」：探针实例是整屏**最先建**的控件，
+  -- 而层序=创建序（先建在下）⇒ 复用它当 cell1 时，它被后建的 wash 底色与 boardPlate 背板盖住，
+  -- 棋盘首格永远显示底板色（8 张评审图恒在）。修法：探针用完销毁，200 格全部现场新建。
+  -- 只多一次 Instantiate + 一次 Destroy（实例上限 430，当前常驻约 240，安全）。
+  pcall(function() game.DestroyClientUIControl(firstCell) end)
+  firstCell = nil
   print('tpl guid=' .. tplGuid)
   TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
   -- v2.7 ⑤：cursor 模板 guid **提前**探测（标题页四模式三态热区要用它建实例，
@@ -5097,6 +6254,12 @@ function OnStart()
   local hitSeed
   hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
   if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
+  -- 探针实例留在 (0,0) 会变成一个 76×76 的隐形热区压在屏幕正中（qa-shots 审计实测
+  -- `phswitch ∩ hit` 重叠 4400px²）⇒ 挪出画布（真机 SetVisible 不可靠，只信坐标）
+  if hitSeed then
+    pcall(function() hitSeed:SetAnchoredPosition(0, -4000) end)
+    pcall(function() hitSeed:SetSizeDelta(4, 4) end)
+  end
 
   -- v2.7 ⑦ 模式主题背景池（层序：先建的在最下 ⇒ 池必须在背板与格子之前建）
   -- 每模式一套构图（config.lua 的 MODE_BG），池容量 = 最大条目数；换模式只换肤，不新建实例
@@ -5160,6 +6323,11 @@ function OnStart()
   -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
   local frameX = boardEdgeW + 1                      -- 150
   local frameY = 9.5 * PITCH + CELL / 2 + 1          -- 300
+  -- v5.2（5 份美术评审：「刻晴局和纳西妲局看起来一模一样」）：单人局棋盘框染台前角色色
+  if MODE == 'casual' and SK and SK.party and SK.party[SK.active or 1] and FN.skillColor then
+    local rc = FN.skillDark and FN.skillDark(FN.skillColor(SK.party[SK.active or 1]), 120)
+    if rc then FRAME_COL = rc end
+  end
   local specs = {
     { -frameX, 0, 2, 2 * frameY + 2 },               -- 左
     { frameX, 0, 2, 2 * frameY + 2 },                -- 右
@@ -5219,7 +6387,8 @@ function OnStart()
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
   -- v2.1 ②：大视觉卡片承载模式选择；botBanner 呼吸提示改短句+H 说明入口
-  setText(botBanner, '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角 说明 / 角色'
+    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
   pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
@@ -5331,18 +6500,22 @@ function OnStart()
     if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
     if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
     if action == 'left' then
+      g.pieceMoved = true
       g.das.dir, g.das.t, g.das.arr, g.das.hold = -1, 0, 0, 0
       moveBy(-1)
     elseif action == 'right' then
+      g.pieceMoved = true
       g.das.dir, g.das.t, g.das.arr, g.das.hold = 1, 0, 0, 0
       moveBy(1)
     elseif action == 'rot' then
+      g.pieceRotated = true
       rotate()
     elseif action == 'soft' then
       stepDown(true)
     elseif action == 'hold' then
       NUM.doHold()
     elseif action == 'hard' then
+      g.hardDrop = true
       if g.gameOver or not g.piece then return end
       local dropped = 0
       while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
@@ -5426,7 +6599,7 @@ function OnStart()
   -- Q：结算明细（结算态才有意义）。明细走左栏 hint（棋盘外，不会被实例格子盖住）
   listen('KeyboardCharacterSkill2KeyDown', function()
     startIfWaiting()
-    if not g.gameOver then return end
+    if not (g.gameOver or MODE_OVER) then return end
     -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
     if sendSettleSignal() then return end
     -- ② 本机 Lua 无信号通道时的退路：原来的「结算明细」开关
@@ -5482,7 +6655,10 @@ function OnStart()
     end
   end
   SETTLE_ACT.detail = function()    -- = Q 键体核心（明细切换；结算信号优先路径保留在键监听）
-    if not g.gameOver then return end
+    -- v5.5 修用户 2026-10-30 二轮反馈：「点 Q / 按 Q 都不触发结算」。
+    -- 真机日志铁证：连续 `hot settle Q` 但**零条** `settle detail on` ⇒ 被这个 guard 挡掉。
+    -- 双盘（pvp/coop/ai-battle）终局置的是 MODE_OVER，g.gameOver 仍是 false ⇒ 三个结算键全部空转。
+    if not (g.gameOver or MODE_OVER) then return end
     g.settleOpen = not g.settleOpen
     local mins = math.floor(g.elapsed / 60)
     local secs = math.floor(g.elapsed % 60)
@@ -5602,15 +6778,38 @@ function OnStart()
   -- ⚠ 这三条**不走 act() 包装**：act() 会调 playerTouched()（把"任何游戏键"当成玩家要接回控制权），
   -- 而按技能键时 AI 代打可能正在进行——走 act 会把刚放出来的技能自己取消掉（2026-10-29 实测：
   -- 第二次按 Z 撞 CD，日志里没有 skill ai end，接管被 playerTouched 打断了）。
+  -- v6：记录技能键的按住秒数（刻晴「长按·跨地形」判 ≥0.35s）
+  FN.skillKeyHoldSec = 0
+  local function skillKeyUpWatch(name)
+    listen(name, function() FN.skillKeyHoldSec = 0 end)
+  end
   local function skillKey(fn)
     return function()
+      FN.skillKeyHoldSec = tonumber(FN.skillKeyHoldSec) or 0
       if helpOpen then closeHelp() return end
       startIfWaiting()
       if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then return end
       fn()
     end
   end
-  listen('KeyboardCraftspersonKey12Down', skillKey(function() FN.skillCast(1) end))
+  -- v6：刻晴「长按·跨地形」需要按住时长 ⇒ 她的 Z 改为**松手施放**（其余角色仍然按下即放，
+  -- 保持"按键有即时反应"的手感）
+  local skillDownT = 0
+  local function skillFrontName()
+    return (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida'
+  end
+  listen('KeyboardCraftspersonKey12Down', function()
+    skillDownT = (g and g.elapsed) or 0
+    if skillFrontName() ~= 'keqing' then
+      skillKey(function() FN.skillCast(1) end)()
+    end
+  end)
+  listen('KeyboardCraftspersonKey12Up', function()
+    if skillFrontName() == 'keqing' then
+      FN.skillKeyHoldSec = math.max(0, ((g and g.elapsed) or 0) - skillDownT)
+      skillKey(function() FN.skillCast(1) end)()
+    end
+  end)
   listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end))
   listen('KeyboardCraftspersonKey13Down', skillKey(function()
     -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
@@ -5693,6 +6892,8 @@ end
 -- OnUpdate 对 ACTIVE 每实例调用一次；内部全部经 g（闭包共享 upvalue）作用于当前盘。
 -- 铁律（v2 设计书 §1.8 Step3）：事件回调先 `g = G[player]` 再执行动作；
 -- 跨实例交互（T7 垃圾行）入口保存 g → 切目标 → 操作 → 还原。
+-- @region ui-mobile END (writer: ui-mobile)
+-- @region skill-tick (writer: lead) BEGIN
 FN.tickInstance = function(d)
   -- 抖屏：只在 shakeT > 0 的帧写坐标；到点复位一次后就不再碰任何控件
   if g.shakeT > 0 then
@@ -5752,8 +6953,13 @@ FN.tickInstance = function(d)
     g.acc = g.acc - STEP
     guard = guard + 1
     g.tickCount = g.tickCount + 1
+    g.pieceAge = (tonumber(g.pieceAge) or 0) + (CFG.STEP or (1 / 60))   -- v6：本块存活秒数（真实秒，每步加一步长）
     -- 下落间隔随等级变化（SPEED_TICKS，docs §3）：level 已封顶 LEVEL_CAP，表项必存在
     local perTicks = NUM.SPEED[g.level] or NUM.SPEED[NUM.LEVEL_CAP]
+    -- v6 甘雨「天地交泰」：冻结期内重力间隔 ×1.20（旧实现只把倍率写进角色页字符串，从没生效）
+    if SK and SK.freezeT and tonumber(SK.freezeT) > 0 and SK.gravityMult then
+      perTicks = math.max(1, math.floor(perTicks * (tonumber(SK.gravityMult) or 1)))
+    end
     if not g.gameOver and g.tickCount % perTicks == 0 then
       stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
     end
@@ -5777,6 +6983,18 @@ function OnUpdate(dt)
     end
   end
   -- v4.0 ③：技能时钟（能量自然回复 / CD 递减）——时停时也走，玩家开帮助不会白等冷却
+  -- v5.0：技能计时器（接管倒计时/上横幅回收/特效推进）。帮助页是"时停"，
+  -- 所以接管倒计时跟着停（FX 与横幅仍走，不然帮助页里特效会僵在半空）。
+  if FN.skillTick then
+    pcall(FN.skillTick, d, not (helpOpen and guideStage == 1 and not g.gameOver))
+  end
+  -- v6 天赋：执行延后效果（甘雨冰莲到点绽放等）
+  if SK and SKILLS and SKILLS.drain then
+    local okD, listD = pcall(SKILLS.drain, SK)
+    if okD and type(listD) == 'table' then
+      for di = 1, #listD do pcall(FN.dispatchEffect, g, listD[di]) end
+    end
+  end
   if SK and SKILLS and SKILLS.tick then
     pcall(SKILLS.tick, SK, d)
     SK.hudT = (SK.hudT or 0) + d
@@ -5897,54 +7115,59 @@ function OnUpdate(dt)
   -- T6a casual 局中接管（v2-plan §三 T6 / 设计书 §2.2）：idle 检测=任意游戏键（act 打点归零）。
   -- play→5s 无操作→hint（提示 2s）→ai（AI 代打续算不清零，分数继续入玩家账=裁决⑤）→任意键交还。
   -- 只在 casual；其他模式本波无接管语义。
-  if MODE == 'casual' and not g.gameOver then
-    TK.t = TK.t + d
-    -- v3.1 一-2（用户定版）：3s 无操作提示、再 3s 接管；文案走原神世界观——
-    -- 纳西妲（小草神/智慧之神）来帮旅行者（玩家）代打；提示用草绿主色 #7FCF6A。
-    if TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
-      TK.state, TK.t = 'hint', 0
-      setText(topBanner, '小草神纳西妲正看着你的盘面…再不动手她就要来帮忙啦')
-      trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
-      print('takeover hint')           -- v2-plan T6 验收锚
-    elseif TK.state == 'hint' and TK.t >= NUM.TK_HINT_S then
-      TK.state, TK.t = 'ai', 0
-      setText(topBanner, '纳西妲：交给我吧，旅行者！· 按任意键接手')
-      trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
-      print('takeover ai')             -- v2-plan T6 验收锚
+  -- v5.0 接管状态机（用户 2026-10-29 第三条：按 Z 在 AI 对抗里完全没反应）
+  -- 旧实现的问题：整个 TK 块被 `if MODE == 'casual'` 包住，而 FN.skillCast 在**所有模式**里都会
+  -- 置 TK.state='ai' ⇒ ai-battle/pvp/coop 下没有任何消费方，技能等于空转（真机 11:04 日志里
+  -- `skill cast ok=true effect=ai-takeover` 之后没有任何 `skill ai` 后续动作，正是这个）。
+  -- 现在拆成两段：①「闲置自动接管」只在 casual（idle 判定本局语义务）②「接管执行」所有模式共用。
+  TK.takeFrame = false
+  if not g.gameOver then
+    if MODE == 'casual' then
+      TK.t = TK.t + d
+      -- 技能横幅正在播（FN.SK.topT>0）时，闲置提示让位：否则会看到"小草神看着你的盘面"
+      -- 把刻晴/甘雨的名卡顶掉（2026-10-29 出图实测，0.1s 帧上就能看到）
+      local bannerBusy = (FN.SK.topT or 0) > 0
+      if TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
+        TK.state, TK.t = 'hint', 0
+        if not bannerBusy then
+          if ROSTER and ROSTER.on then return end
+          FN.topBannerStyle(24)
+          local actRole = (SK and SK.party and SK.party[SK.active or 1]) or nil
+          local actName = (FN.skillName and actRole and FN.skillName(actRole)) or '伙伴'
+          setText(topBanner, actName .. '：再不动手，我就要来帮忙啦')
+          trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
+        end
+        print('takeover hint')
+      elseif TK.state == 'hint' and TK.t >= NUM.TK_HINT_S then
+        TK.state, TK.t = 'ai', 0
+        if not bannerBusy then
+          FN.topBannerStyle(24)
+          setText(topBanner, '纳西妲：交给我吧 · 按任意键接手')
+          trySet(topBanner, 'fontColor', C(255, 127, 207, 106))
+        end
+        print('takeover ai')
+      end
     end
     if TK.state == 'ai' then
-      -- v4.0 ③：技能接管（纳西妲 Z）——档位来自技能等级，时长到了自动交还
-      local skillTier = nil
-      if TK.skillT and TK.skillT > 0 then
-        TK.skillT = TK.skillT - d
-        skillTier = TK.skillTier or 3
-        if TK.skillT <= 0 then
-          TK.skillT, TK.skillTier = nil, nil
-          TK.state, TK.t = 'play', 0
-          setText(topBanner, '')
-          setText(botBanner, '纳西妲：接下来交给你，旅行者。')
-          bannerTimer = 1.6
-          print('skill ai end')
+      local saveG2 = g
+      g = G[1]
+      local tier = TK.skillTier
+      if not tier then
+        if TK.prevState ~= 'ai' then
+          local lv = 1
+          if g.level >= 8 then lv = 3
+          elseif g.level >= 5 then lv = 2 end
+          if g.AI.assistLv ~= lv then
+            g.AI.assistLv = lv
+            print('ai assist lv=' .. lv)
+          end
+          TK.prevState = 'ai'
         end
+        tier = g.AI.assistLv or 1
       end
-      if skillTier then
-        FN.aiTickCore(d, 'stop', skillTier)
-        return
-      end
-      -- v3.1 二-2（用户定版）：AI 代打档位与玩家表现联动——初始 easy（陪练级，玩家≈Lv4 水平），
-      -- 玩家等级涨 AI 跟着涨（Lv5→normal、Lv8→hard），体现「玩家越厉害 AI 辅助越厉害」。
-      -- 映射存 g.AI.assistLv（1/2/3），进 ai 态时算一次+变化时打 ai assist lv= 日志。
-      if TK.state ~= TK.prevState then
-        local lv = 1
-        if g.level >= 8 then lv = 3
-        elseif g.level >= 5 then lv = 2 end
-        if g.AI.assistLv ~= lv then
-          g.AI.assistLv = lv
-          print('ai assist lv=' .. lv)   -- v3.1 二-2 验收锚
-        end
-        TK.prevState = 'ai'
-      end
-      FN.aiTickCore(d, 'stop', g.AI.assistLv or 1)
+      FN.aiTickCore(d, 'stop', tier)
+      TK.takeFrame = true
+      g = saveG2
     elseif TK.state ~= 'ai' then
       TK.prevState = nil
     end
@@ -5959,12 +7182,16 @@ function OnUpdate(dt)
   end
   for i = 1, #ACTIVE do
     g = ACTIVE[i] and G[ACTIVE[i]] or G[1]
+    -- v5.0：接管帧里玩家盘由 aiTickCore 驱动，别再叠加一次重力/锁定 tick（会双倍下落）
+    local skipTick = TK.takeFrame and (G[ACTIVE[i]] == G[1])
     -- T6b：AI 盘驱动（i==2）——作用于 G[2]（闭包 g 已切）；盘死即停（胜负在 showGameOver 收口）
     if (MODE == 'ai-battle' or MODE == 'coop') and i == 2 then
       FN.aiTickCore(d, 'stop')
     end
-    FN.tickInstance(d)
+    if not skipTick then FN.tickInstance(d) end
   end
 end
 
+-- @region skill-tick (writer: lead) END
+function OnDestroy() end
 function OnDestroy() end

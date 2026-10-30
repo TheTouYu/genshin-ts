@@ -19,6 +19,11 @@
    "t": 1.9,
    "kind": "key",
    "typeName": "KeyboardCraftspersonKey12Down"
+  },
+  {
+   "t": 1.94,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Up"
   }
  ],
  "asserts": [
@@ -52,5 +57,6 @@
    "contains": "skill blink col=",
    "source": "client"
   }
- ]
+ ],
+ "note": "| v6：刻晴的 Z 改为松手施放（长按=跨地形），用例补 Key12Up"
 }

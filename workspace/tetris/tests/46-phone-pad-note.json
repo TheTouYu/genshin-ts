@@ -1,24 +1,56 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "46 v4.0 移动端选多人模式 → 原神风「请回 PC」引导浮层（不再静默吞点击）；点「知道了」关闭",
+ "name": "46 v5 移动端模式入口规则：3 号卡（双人对战）弹「请回 PC」浮层并可关闭；2 号卡（AI 对抗）直接进局、不再弹浮层",
  "dt": 0.016666666666666666,
- "canvasId": "mobile-16-9",
+ "canvasId": "mobile-19.5-9",
  "events": [
-  { "t": 0.5, "kind": "pointer", "type": "move", "x": 230, "y": 256 },
-  { "t": 0.55, "kind": "pointer", "type": "down", "x": 230, "y": 256 },
-  { "t": 0.6, "kind": "pointer", "type": "up", "x": 230, "y": 256 },
-  { "t": 1.6, "kind": "pointer", "type": "move", "x": 640, "y": 292 },
-  { "t": 1.65, "kind": "pointer", "type": "down", "x": 640, "y": 292 },
-  { "t": 1.7, "kind": "pointer", "type": "up", "x": 640, "y": 292 },
-  { "t": 2.4, "kind": "pointer", "type": "move", "x": 1056, "y": 47 },
-  { "t": 2.45, "kind": "pointer", "type": "down", "x": 1056, "y": 47 },
-  { "t": 2.5, "kind": "pointer", "type": "up", "x": 1056, "y": 47 }
+  {
+   "t": 0.8,
+   "kind": "click",
+   "name": "menuZone3"
+  },
+  {
+   "t": 1.8,
+   "kind": "click",
+   "name": "padNoteBtnHit"
+  },
+  {
+   "t": 3.0,
+   "kind": "click",
+   "name": "menuZone2"
+  }
  ],
  "asserts": [
-  { "at": 1.0, "kind": "log", "contains": "pad note menu i=2", "source": "client" },
-  { "at": 1.0, "kind": "log", "contains": "pad note open which=2", "source": "client" },
-  { "at": 2.1, "kind": "log", "contains": "pad note close", "source": "client" },
-  { "at": 3.0, "kind": "log", "contains": "phone tap hard", "source": "client" }
- ]
+  {
+   "at": 1.4,
+   "kind": "log",
+   "contains": "pad note open which=3",
+   "source": "client"
+  },
+  {
+   "at": 1.4,
+   "kind": "tree",
+   "name": "padNoteBtnHit",
+   "exists": true
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "pad note close which=3",
+   "source": "client"
+  },
+  {
+   "at": 4.0,
+   "kind": "log",
+   "contains": "mode=ai-battle",
+   "source": "client"
+  },
+  {
+   "at": 4.0,
+   "kind": "lua",
+   "source": "local opens,mode=0,0 for _,l in ipairs(query.logs()) do if l:find('pad note open',1,true) then opens=opens+1 end if l:find('mode=ai-battle',1,true) then mode=mode+1 end end assert(mode>=1, '点 2 号卡没有进 ai-battle') assert(opens==1, 'pad note 开了 '..opens..' 次（v5 规则：只有 3/4 号卡该弹，2 号卡不进浮层）') return true"
+  }
+ ],
+ "note": "v5 规则：移动端 i=1 休闲 / i=2 AI 对抗 直接进局；i=3 双人对战 / i=4 双人合作 弹「请回 PC」浮层（pad note open which=3），可点 padNoteBtnHit（知道了）关闭。旧的「点 2 号卡弹浮层」断言已作废（那是 v4 的 bug 行为）。AI 对抗进局的完整链路另见 tests/60-mobile-ai-battle-entry.json"
 }

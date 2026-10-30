@@ -1,0 +1,41 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "63 v5 ④技能施放有音效 + 有文案（audioExpect 40441 + fx/copy on + 文案真的上屏）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Down"
+  },
+  {
+   "t": 0.85,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.3,
+   "kind": "log",
+   "contains": "skill fx kind=cast role=nahida fx=on copy=on",
+   "source": "client"
+  },
+  {
+   "at": 1.3,
+   "kind": "lua",
+   "source": "local function txt(n) local c=query.control(n) return c and c.text or nil end local body = txt('ibotBanner') or txt('botBanner') assert(body and #body>0, '技能正文为空（ibotBanner/botBanner 都空）') local isHint = body:find('移动',1,true) and body:find('旋转',1,true) assert(not isHint, '正文还是键位提示，不是技能文案：'..body) assert(#body>=4, '正文过短：'..body) return true"
+  },
+  {
+   "at": 1.3,
+   "kind": "lua",
+   "source": "local c=query.control('stext') assert(c and c.text and #c.text>0, 'FX 名卡没有文字（stext 空）') return true"
+  }
+ ],
+ "audioExpect": [
+  40441
+ ],
+ "note": "文案通道实证：人味正文写进 FX 实例 ibotBanner（本次实测「还在落，别急，我数着。」），名卡标题写进 FX 池的 stext 实例（「纳西妲」+「标准代打 · 6 秒」）；服务端布局层 topBanner/botBanner 在实战里可能为空，所以断言按「任一通道有字 + 排除还是键位提示」写。标题的具体字面由出图 frame-f012.png 人工核对（「纳西妲 · 替手」）。"
+}

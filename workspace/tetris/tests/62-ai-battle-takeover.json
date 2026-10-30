@@ -1,0 +1,60 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "62 v5 ③AI 对抗下按 Z，接管真的运行（cast 成功 + ai start + 之后有落子动作 + 到点 ai end）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey2Down"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey5Down"
+  },
+  {
+   "t": 6.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Down"
+  },
+  {
+   "t": 6.25,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey12Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 6.6,
+   "kind": "log",
+   "contains": "skill cast slot=1 role=nahida ok=true effect=ai-takeover",
+   "source": "client"
+  },
+  {
+   "at": 6.6,
+   "kind": "log",
+   "contains": "skill ai start tier=",
+   "source": "client"
+  },
+  {
+   "at": 6.8,
+   "kind": "lua",
+   "source": "local hit=nil for _,l in ipairs(query.logs()) do if l:find('skill ai start',1,true) then hit=l end end assert(hit, '没有 skill ai start') assert(hit:find('mode=ai-battle',1,true), 'ai start 行里没有 mode=ai-battle：'..hit) return true"
+  },
+  {
+   "at": 9.6,
+   "kind": "lua",
+   "source": "local logs=query.logs() local idx=nil for i,l in ipairs(logs) do if l:find('skill ai start',1,true) then idx=i end end assert(idx,'无 ai start') local n=0 for i=idx+1,#logs do if logs[i]:find('demo act',1,true) then n=n+1 end end assert(n>=3, 'cast 之后没有落子动作 n='..n) return true"
+  },
+  {
+   "at": 13.2,
+   "kind": "log",
+   "contains": "skill ai end role=nahida",
+   "source": "client"
+  }
+ ],
+ "note": "时序实测：Key2@0.8 → Key5(未映射键=anyKeyStart)@1.4 → 倒计时 → guide stage=1 @5.33 → Z@6.2 → ai start mode=ai-battle；demo act 在 ai-battle 里对手盘也会打（单看它不排他），skill ai end 才是接管被逐帧消费的硬证据"
+}

@@ -27,7 +27,7 @@
   {
    "at": 2.0,
    "kind": "log",
-   "contains": "ai pace tier=3 lv=1 pace=1.20",
+   "contains": "ai pace tier=3 lv=1 pace=",
    "source": "client"
   },
   {
@@ -36,5 +36,6 @@
    "contains": "ai hold why=",
    "source": "client"
   }
- ]
+ ],
+ "note": "v5：NUM.AI_TUNE.paceK/paceMax 收紧（用户「AI 没变强」整改），hard Lv1 pace 1.20→0.95 | v5.1：AI 节奏改成\"循序渐进\"（Lv1 1.60s/块 + 前 4 块 ×1.35 热身 = 2.16s），断言只锚档位与字段名，具体数值由 docs/v5-ai-plan.md 的曲线表约束"
 }

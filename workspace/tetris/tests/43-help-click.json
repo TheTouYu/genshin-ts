@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "43 v2.7 ④ 底栏「H 游戏说明」热区：鼠标点开规则页、再点关闭（常驻入口，PC 也可点）",
+ "name": "43 帮助页：点顶栏导航开页 + H 关页（各两次），标题页关页后展台重建",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -27,25 +27,45 @@
    "y": 28
   },
   {
-   "t": 1.4,
+   "t": 1.5,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Down"
+  },
+  {
+   "t": 1.52,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Up"
+  },
+  {
+   "t": 2.2,
    "kind": "pointer",
    "type": "move",
    "x": 1090,
    "y": 28
   },
   {
-   "t": 1.5,
+   "t": 2.3,
    "kind": "pointer",
    "type": "down",
    "x": 1090,
    "y": 28
   },
   {
-   "t": 1.6,
+   "t": 2.4,
    "kind": "pointer",
    "type": "up",
    "x": 1090,
    "y": 28
+  },
+  {
+   "t": 3.0,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Down"
+  },
+  {
+   "t": 3.02,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey15Up"
   }
  ],
  "asserts": [
@@ -56,22 +76,23 @@
    "source": "client"
   },
   {
-   "at": 1.8,
+   "at": 1.9,
    "kind": "log",
    "contains": "guide help closed stage=0",
    "source": "client"
   },
   {
-   "at": 2.2,
+   "at": 2.7,
    "kind": "log",
    "contains": "guide help on n=",
    "source": "client"
   },
   {
-   "at": 2.8,
+   "at": 3.4,
    "kind": "log",
    "contains": "guide help closed stage=0",
    "source": "client"
   }
- ]
+ ],
+ "note": "v5：标题页开手册会先拆标题展台（修\"双层文字叠印\"），导航热区随展台销毁 ⇒ 关页改用 H 键（帮助层自带「合上手册」按钮的点击路径由 49-help-close-pc 覆盖）。断言仍是 on/closed 两态各两次。"
 }

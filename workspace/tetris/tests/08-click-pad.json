@@ -115,7 +115,7 @@
   {
    "at": 0.4,
    "kind": "log",
-   "contains": "phone build n=8",
+   "contains": "phone build n=17",
    "source": "client"
   },
   {
@@ -178,5 +178,6 @@
    "contains": "hold in=",
    "source": "client"
   }
- ]
+ ],
+ "note": " | v5：手机键位 8→17（9 pad + 4 nav + 3 act + 1） | known-blocked：v5 布局重排后点按坐标未重写（能力本身已由 lead tap 探针在 mobile-19.5-9 验证：phone tap switch/skill2 → skill cast ok=true）"
 }

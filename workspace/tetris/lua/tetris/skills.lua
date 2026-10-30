@@ -178,7 +178,9 @@ M.NUM = {
     FULL_SOLO_ADD    = 1,         -- [官→换] 单人降级：满辉时清底行数 +1（= 1 行 → 2 行）
     LURE_MAX         = 3,         -- [官] 月诱至多 3 层
     LURE_BONUS       = 0.05,      -- [官] 每层暴击率 +5% ⇒ 本作译作得分 +5%/层
-    LURE_DUR         = 10,        -- [官] 月诱持续 10 秒
+    -- [裁决 B，2026-10-29] 官方是 10 秒，但本作施放 CD=17s、整组共用计时 ⇒ 10s 内永远叠不到 3 层
+    -- （数学不可达，核验文档 v6-talent-verify 已实测）。取 34s 覆盖两次 CD 间隔，层数才可能到 3。
+    LURE_DUR         = 34,        -- [官 10 → 换 34] 理由见上
     LAW_CHANCE       = 0.33,      -- [官] 新月自己的法则：月感电 33% 概率额外雷击
     DOMAIN_LIFE      = 20,        -- [官] 她的乡愁·月之领域持续 20.0 秒
     DOMAIN_GAIN      = 1.13,      -- [官] 月曜反应伤害 +13.0% ⇒ 本作译作领域内引力值积攒 ×1.13
@@ -667,7 +669,8 @@ M.cast = function(state, role, ctx)
 
   elseif role == 'keqing' then
     -- P2 长按·跨地形：按住 ≥0.35s ⇒ 目标改为「最空列」，effect 换成 blink-best
-    local longPress = holdSec >= M.NUM.KEQING.LONG_PRESS
+    -- v6.1：优先读专用字段 keyHold（按住主动键的秒数）；holdSec 兜底（老调用方）
+  local longPress = numOr(ctx.keyHold, holdSec) >= M.NUM.KEQING.LONG_PRESS
     effect = longPress and 'blink-best' or 'blink'
     n = pick3(M.NUM.KEQING.LOCK, n3)          -- 封锁秒数
     useCd = pick3(M.NUM.KEQING.BLINK_CD, n2)  -- N2 缩短 CD
@@ -1145,6 +1148,10 @@ M.onClear = function(state, role, cleared, info)
       pushEff(res, eff('clear-top', N.GANYU.LOTUS_BROKEN_ROWS, role, 'ganyu.lotus', '冰莲·提前绽放',
         'frost', 'talent', 'talent ganyu-lotus early n=' .. tostring(N.GANYU.LOTUS_BROKEN_ROWS)))
       notes[#notes + 1] = 'lotus=early'
+    end
+    -- 天地交泰：冻结期内才成立（字段是 freezeT，不是 fieldT —— 写错会让整个甘雨分支抛错被 pcall 吞掉）
+    if numOr(t.freezeT, 0) > 0 then
+      notes[#notes + 1] = 'field=1'
     end
 
   elseif role == 'columbina' then

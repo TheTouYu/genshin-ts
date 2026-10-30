@@ -1,0 +1,53 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "61 v5 ②移动画布真的建出手机按钮（phone build n>=9 且 pad>=9 + 点得到：phone tap left）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-19.5-9",
+ "events": [
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
+  },
+  {
+   "t": 0.65,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  },
+  {
+   "t": 1.2,
+   "kind": "pointer",
+   "type": "down",
+   "x": 245,
+   "y": 64
+  },
+  {
+   "t": 1.3,
+   "kind": "pointer",
+   "type": "up",
+   "x": 245,
+   "y": 64
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.0,
+   "kind": "log",
+   "contains": "phone build n=",
+   "source": "client"
+  },
+  {
+   "at": 1.0,
+   "kind": "lua",
+   "source": "local line=nil for _,l in ipairs(query.logs()) do if l:find('phone build n=',1,true) then line=l end end assert(line, '没有 phone build 行') local n=tonumber(line:match('phone build n=(%d+)')) local pad=tonumber(line:match('pad=(%d+)')) assert(n and n>=9, 'phone build n='..tostring(n)..' < 9 （行：'..line..'）') assert(pad and pad>=9, 'pad='..tostring(pad)..' < 9 （行：'..line..'）') assert(not query.logContains('phone build skip device=pc'), '存档被当成 PC 设备，手机按钮没建') return true"
+  },
+  {
+   "at": 1.8,
+   "kind": "log",
+   "contains": "phone tap left",
+   "source": "client"
+  }
+ ],
+ "note": "判据分两层：①**稳定层**=日志锚 `phone build n=N (pad=P nav=… act=…)`（N>=9、P>=9）——按钮命名改了也不影响；②**行为层**=在 ◀ 键中心 (245,64) 真点一下 → `phone tap left`（证明按钮建出来且命中区可达）。不再逐名断言 ph*/php*：v5 期间名字已漂过三次（pbtn* → ph* → php*），逐名断言只会制造假红；命名漂移由 audit-ui 的 expect 检查负责报警（发现 ph* 全不在期望清单时 fail）。"
+}

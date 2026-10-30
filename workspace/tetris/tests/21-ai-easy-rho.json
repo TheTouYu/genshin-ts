@@ -24,5 +24,5 @@
    "source": "local logs = query.logs()\nlocal rho, pieces, avg = nil, 0, nil\nfor _, l in ipairs(logs) do\n  local r, n, a = l:match('rho=([%d%.]+) pieces=(%d+)')\n  if r and tonumber(n) >= 80 then rho, pieces = tonumber(r), tonumber(n) end\n  local x = l:match('avg=([%d%.]+)s')\n  if x then avg = tonumber(x) end\nend\nassert(rho, 'no rho>=80 pieces (easy 档跑得慢，窗口内应到 80+ 块)')\nassert(rho >= 0.10 and rho <= 0.18, 'easy rho=' .. rho .. ' 出验收带 [0.10,0.18]')\nassert(avg and avg >= 2.2, 'easy 每块用时=' .. tostring(avg) .. 's，应 ≥2.2s（慢档）')\nreturn true"
   }
  ],
- "note": "v2.5 语义更新：stage0 自演恒 hard（aiTickCore 第三参）后，切档键只影响对抗盘强度。本用例回归两点：①demo level=easy 日志生效（档位切换链路）；②自演 rho 仍=0.35（hard 值——强制档未被切档破坏）。easy 档对抗强度（ρ0.17）由 ai-battle 场景承接。"
+ "note": "v2.5 语义更新：stage0 自演恒 hard（aiTickCore 第三参）后，切档键只影响对抗盘强度。本用例回归两点：①demo level=easy 日志生效（档位切换链路）；②自演 rho 仍=0.35（hard 值——强制档未被切档破坏）。easy 档对抗强度（ρ0.17）由 ai-battle 场景承接。 | 待更新：easy 档每块用时 1.78s（v5 收紧 pace 后），断言应改 ≥1.6s 的区间——留给 AI 负责人定新基线"
 }

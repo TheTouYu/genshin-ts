@@ -1,0 +1,21 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "64 v5 ⑤标题页 demo 每块用时 < 4s（demo pace total 读数）+ 确实在落子",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [],
+ "asserts": [
+  {
+   "at": 9.0,
+   "kind": "lua",
+   "source": "local n,hits=0,{} for _,l in ipairs(query.logs()) do local t=l:match('demo pace.-total=(%d+%.?%d*)') if t then n=n+1 hits[#hits+1]=tonumber(t) end end assert(n>=2, 'demo pace 行不足：'..n) for _,v in ipairs(hits) do assert(v<4.0, '某块用时 '..v..'s >= 4s') end return true"
+  },
+  {
+   "at": 9.0,
+   "kind": "lua",
+   "source": "local n=0 for _,l in ipairs(query.logs()) do if l:find('demo act',1,true) then n=n+1 end end assert(n>=6, 'title demo 落子动作不足：'..n) return true"
+  }
+ ],
+ "note": "每一块用时来自 main.lua 的 demo pace total= 读数；「无 >0.4s 完全静止」runner 读不到帧，由 qxqy/probe-skill.mjs --mode title --frames 90 判：docs/shots/demo-title/summary.json 读数 90 帧中 20 帧在变、最长完全静止 12 帧 = 0.40s（没有 >0.4s 的段，但正好贴阈值）"
+}

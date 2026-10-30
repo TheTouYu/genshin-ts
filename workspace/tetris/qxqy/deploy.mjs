@@ -163,8 +163,11 @@ function deviceDeploy() {
   for (const line of upd.split('\n')) if (/sourceBytes|temp-sync|backup=|writePerformed/.test(line)) console.log('  ' + line.trim())
 
   // ② 模块脚本（require 按路径读 external，但登记表里同步一份更稳）
+  // v5.0：模块清单必须与 main.lua 的 loadModule 列表逐一对齐，否则新模块只在仓库里、
+  // 真机上 require 失败 ⇒ 技能没有文案/特效、手机没有布局（"部署了但界面崩"的老坑）。
   const mods = [['tetris_config', 'config.lua'], ['tetris_widgets', 'widgets.lua'],
-    ['tetris_audio', 'audio.lua'], ['tetris_skills', 'skills.lua']]
+    ['tetris_audio', 'audio.lua'], ['tetris_skills', 'skills.lua'],
+    ['tetris_copy', 'copy.lua'], ['tetris_fx', 'fx.lua'], ['tetris_ui', 'ui.lua']]
   // ⚠ 模块源码里也有 __GUID_*__ 占位（TPL_GUIDS 在 config.lua）。build 会给 GIA 里的模块源码注入，
   // 但这里直写 external 时用的是**仓库源文件**——不注入就等于把字符串当 guid 传下去（2026-10-29 真机实测：
   // `cell 模板 guid 都不可用，候选=3` 就是这么来的）。

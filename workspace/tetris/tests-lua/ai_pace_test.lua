@@ -56,8 +56,8 @@ local okc = pcall(function() NUM.aiPace(nil, nil) return NUM.aiPace(9, 99) end)
 ok(okc, '6.1 非法 tier/level 不抛错（回落到默认档与封顶速度）')
 -- 7) 具体读数（写给报告用，同时是回归锚）
 local h1, h12 = NUM.aiPace(3, 1), NUM.aiPace(3, NUM.LEVEL_CAP)
-ok(math.abs(h1 - 1.20) < 0.02, '7.1 hard Lv1 = 1.20s', h1)
-ok(math.abs(h12 - 0.42) < 0.02, '7.2 hard Lv12 = 0.42s（满级比 1 级收紧 65%）', h12)
+ok(math.abs(h1 - 1.60) < 0.02, '7.1 hard Lv1 = 1.60s', h1)
+ok(math.abs(h12 - 0.37) < 0.02, '7.2 hard Lv12 = 0.37s（满级比 1 级收紧 65%）', h12)
 
 print(string.format('\n----\n%s  %d/%d assertions passed', fail == 0 and 'ALL GREEN' or 'FAILED', pass, pass + fail))
 os.exit(fail == 0 and 0 or 1)

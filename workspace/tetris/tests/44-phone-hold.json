@@ -1,63 +1,74 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "44 v4.0 触屏长按连发：按住 ← 0.9s 应连发（phone rep start/done），松手后不再移动",
+ "name": "44 v5 触屏长按连发：按住 ◀ 0.9s 应连发（phone tap/rep start/done），松手后不再移动（v5 坐标 815,296）",
  "dt": 0.016666666666666666,
  "canvasId": "mobile-16-9",
  "events": [
   {
-   "t": 0.4,
-   "kind": "pointer",
-   "type": "move",
-   "x": 82,
-   "y": 47
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Down"
   },
   {
-   "t": 0.45,
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey1Up"
+  },
+  {
+   "t": 4.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 815,
+   "y": 296
+  },
+  {
+   "t": 4.65,
    "kind": "pointer",
    "type": "down",
-   "x": 82,
-   "y": 47
+   "x": 815,
+   "y": 296
   },
   {
-   "t": 1.35,
+   "t": 5.55,
    "kind": "pointer",
    "type": "up",
-   "x": 82,
-   "y": 47
+   "x": 815,
+   "y": 296
   },
   {
-   "t": 2.6,
+   "t": 6.2,
    "kind": "pointer",
    "type": "move",
-   "x": 640,
+   "x": 1200,
    "y": 600
   }
  ],
  "asserts": [
   {
-   "at": 0.7,
+   "at": 4.9,
    "kind": "log",
    "contains": "phone tap left",
    "source": "client"
   },
   {
-   "at": 1.2,
+   "at": 5.3,
    "kind": "log",
    "contains": "phone rep start id=left",
    "source": "client"
   },
   {
-   "at": 1.6,
+   "at": 5.8,
    "kind": "log",
    "contains": "phone rep done id=left",
    "source": "client"
   },
   {
-   "at": 2.4,
+   "at": 6.4,
    "kind": "log",
    "contains": "move x=",
    "source": "client"
   }
- ]
+ ],
+ "note": "v5：先按 1 进 casual（旧版靠\"任意键\"隐式进局，v5 需要显式进局等 guideStage=1 后按钮才在 game 屏生效），再在实测屏幕坐标 (815,296) 按住 ◀ 0.9s；日志锚不变 | known-blocked：同上（长按连发逻辑未改，按钮坐标在 v5 布局下未重定位成功）"
 }

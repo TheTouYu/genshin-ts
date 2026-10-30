@@ -1,0 +1,33 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "60 v5 ①移动画布点「AI 对抗」必须真的进局（不是弹「请回 PC」浮层）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-19.5-9",
+ "events": [
+  {
+   "t": 0.8,
+   "kind": "click",
+   "name": "menuZone2"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.6,
+   "kind": "log",
+   "contains": "mode=ai-battle",
+   "source": "client"
+  },
+  {
+   "at": 1.6,
+   "kind": "lua",
+   "source": "assert(not query.logContains('pad note open'), '仍弹出「请回 PC」浮层（pad note open）⇒ 移动端 i>1 被拦') return true"
+  },
+  {
+   "at": 4.6,
+   "kind": "lua",
+   "source": "local ok=false for _,l in ipairs(query.logs()) do if l:find('ai pace',1,true) then ok=true end end assert(ok, 'AI 盘没有 pace 日志 ⇒ 双盘未进场') return true"
+  }
+ ],
+ "note": "移动端点卡片=click menuZone2；旧实现 main.lua menuSelectMode 里 i>1 and IS_MOBILE 直接开浮层并 return"
+}
