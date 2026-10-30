@@ -2527,7 +2527,9 @@ local function buildHelpLayer()
     t('helpTitle', S.title, -420, 344, 560, 40, INK, 'Left')
     t('helpSub', S.sub, -420, 304, 560, 19, SUB, 'Left')
     rect('helpRule', 0, 278, 1400, 2, GOLD)
-    t('helpHint', S.hint, 292, 396, 470, 17, SUB, 'Right')
+    -- v5.6（用户二轮二-1：右上角「合上手册」按钮与这行提示重叠）：提示改为**右对齐并整体左移**，
+    -- 让它停在关闭胶囊的左侧，两者各占一段；行右缘留出按钮宽度（196/2+24 ≈ 122 设计单位）。
+    t('helpHint', S.hint, 268, 396, 380, 17, SUB, 'Right')
     -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
     rrect('helpBubble', 300, 344, 676, 60, 30, GOLD)
     rrect('helpBubble2', 300, 344, 668, 52, 26, CARD)
@@ -2710,6 +2712,8 @@ closeHelp = function()
   if guideStage == 0 then
     local okR = pcall(buildMenuCards)
     print('help stage restore ok=' .. tostring(okR))
+    -- v5.6：展台是新建的（在上层）⇒ 导航键要重建才能重新浮到可见层（用户二-3）
+    if UI4.navRecreate then pcall(UI4.navRecreate) end
   end
   if guideStage == 2 then guideStage = helpFromStage or 1 end
   if UI4.refreshHelpLabel then UI4.refreshHelpLabel(false) end
@@ -2946,6 +2950,15 @@ MS.build = function()
     MS.addText('menuEntryRosterTitle', '角色档案', ex + 26, ey + 14, 210, 40, 24, THEME.goldDeep)
     MS.addText('menuEntryRosterSub', IS_MOBILE and '点我看契约与技能' or 'I 键 · 点我看契约与技能',
       ex + 26, ey - 20, 240, 30, 15, MS.CYAN)
+    -- v5.6（用户二轮一-2「移动端有角色/说明按钮，PC 没有，严重的 UI 不一致」）：
+    -- PC 端也补一颗「说明」入口，与角色卡并排，两端的入口从此一致（PC 额外标 H 键）。
+    if not IS_MOBILE then
+      local hx = ex - 240
+      MS.addCell('menuEntryHelpBg', hx, ey - 18, 150, 60, THEME.panel)
+      MS.addCell('menuEntryHelpEdge', hx, ey - 46, 150, 3, THEME.gold)
+      MS.addText('menuEntryHelpTitle', '说明', hx, ey - 12, 120, 34, 22, THEME.goldDeep)
+      MS.addText('menuEntryHelpSub', 'H 键 · 全部规则', hx, ey + 12, 150, 24, 14, MS.CYAN)
+    end
     local dots = {
       { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 },
     }
@@ -3245,21 +3258,21 @@ MS.cardStyle = function(i, state)
   end
 end
 MS.hoverCard = function(i)
-  if helpOpen or pendingMode then return end
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
   if MS.sel_i and MS.sel_i ~= i then return end   -- 已有选中项时不再抢样式
   MS.hover_i = i
   MS.cardStyle(i, 'hover')
   print('menu hover i=' .. i)
 end
 MS.hoverOut = function(i)
-  if helpOpen or pendingMode then return end
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
   if MS.sel_i and MS.sel_i ~= i then return end
   if MS.hover_i == i then MS.hover_i = nil end
   if MS.sel_i ~= i then MS.cardStyle(i, 'normal') end
   print('menu hover out i=' .. i)
 end
 MS.pressCard = function(i)
-  if helpOpen or pendingMode then return end
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
   if MS.sel_i and MS.sel_i ~= i then return end
   MS.press_i = i
   MS.cardStyle(i, 'press')
@@ -3313,8 +3326,19 @@ MS.buildHoverZones = function()
   return true
 end
 -- 键盘 Digit 与鼠标点击共用的选模式入口（v2.7：原逻辑内联在 listen 回调里，抽出来两处复用）
+-- 浮层（说明页/角色页/手机引导页）开着时，底层的任何输入都要被吞掉。
+-- 用户 2026-10-30 二-2：「打开了新的帮助页面，却可以和前一个页面交互、触发音效、还能直接游玩」。
+FN.overlayOpen = function()
+  return (helpOpen and true) or (ROSTER and ROSTER.on and true)
+    or (UI4 and UI4.noteOn and true) or false
+end
+
 menuSelectMode = function(i)
   if guideStage ~= 0 or pendingMode then return end
+  if FN.overlayOpen() then
+    print('menu blocked by overlay')
+    return
+  end
   -- v4.0 ③：移动端不做双屏（裁决⑨）——但**不能静默吞点击**（用户 2026-10-29：
   -- 「移动端点击了，没有任何反应。应该有原神风格的文案引导去 PC 端游玩」）⇒ 开引导浮层。
   -- v5.0 ②：只拦**真正的双人**（3=双人对战 / 4=双人合作）。「AI 对抗」是单人 vs AI，
@@ -4775,12 +4799,17 @@ FN.rosterBuild = function(keepSel, keepTab)
     tabs[i] = BOX('charTab' .. i, u(96), u(46), (i == tab) and (e.color or C(127, 207, 106)) or C(240, 244, 244, 246))
     tabs[i .. 't'] = TXT('charTabT' .. i, CHAR_TAB_NAME[i], u(92), 18,
       (i == tab) and C(255, 255, 255, 255) or THEME.textMain)
-    local h = UI4.hit('charTabHit' .. i, u(96), u(46))
+    -- v5.6（用户二轮三-3「标签页点不了」）：热区放大到 104×58 并把动作同时挂 Click——
+    -- 触屏上 Down 时机在按下瞬间，重建整页会吃掉后续事件；Click（抬起后）更稳。
+    local h = UI4.hit('charTabHit' .. i, u(104), u(58))
     if h then
       add(h)
       tabsHit[i] = h
       local ti = i
-      addCursor(h, 'CursorDown', function() FN.rosterBuild(sel, ti) end)
+      addCursor(h, 'CursorDown', function()
+        print('char tab tap ' .. tostring(ti))
+        FN.rosterBuild(sel, ti)
+      end)
     end
   end
   -- 内容条目（每条：图标 + 名称 + 正文）
@@ -5863,6 +5892,12 @@ do
     })
     -- 触屏动作派发：本层先吃掉"本模块自己新增的 act"（关页/回标题/翻页/技能），其余交给 UI4.dispatch
     FN.U.dispatch = function(action, id, rep)
+      -- v5.6：浮层开着时，除关闭/切换浮层外的按钮动作一律无效
+      if FN.overlayOpen() and action ~= 'closeHelp' and action ~= 'closeRoster'
+        and action ~= 'help' and action ~= 'roster' then
+        print('pad blocked by overlay ' .. tostring(action))
+        return
+      end
       if action == 'closeHelp' then
         if UI4.helpToggle then UI4.helpToggle() end
         return
@@ -6469,6 +6504,11 @@ function OnStart()
     return function()
       -- v2.7：说明页开着时任意游戏键=先关页（不动作、不开局）——关页优先级高于一切玩法动作
       if helpOpen then closeHelp() return end
+      -- v5.6：角色页 / 手机引导浮层开着时，游戏键一律吞掉（否则会在浮层后面操作棋盘）
+      if (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) then
+        print('key blocked by overlay ' .. tostring(keyName))
+        return
+      end
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
         -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
@@ -6970,9 +7010,33 @@ FN.tickInstance = function(d)
   end
 end
 
+-- ===== v5.6 画布尺寸轮询（用户 2026-10-30 移动端一-1「背景没覆盖全部画面」的根因）=====
+-- 真机上 UI 分辨率由设备决定（官方教程：16:9 / 21:9 会变），而 GetUICanvasSize 只有在
+-- **重进关卡/切分辨率**后才反映新值。旧实现只在 OnStart 读一次 ⇒ 之后拿到的一直是开局那个
+-- 1600×900，背景 wash 只铺 1620×920，两侧露出世界场景（用户截图：左右各有约 60px 风景）。
+-- 修法：每 20 帧问一次画布尺寸，变了就整套重排（layout + 背景 + HUD + 控件树）。
+local canvasPoll = 0
+local function pollCanvasSize()
+  local ok, w, h = pcall(function() return game.GetUICanvasSize() end)
+  if not ok or type(w) ~= 'number' or type(h) ~= 'number' then return end
+  if math.abs(w - (CANVAS_W or 0)) < 2 and math.abs(h - (CANVAS_H or 0)) < 2 then return end
+  local oldW, oldH = CANVAS_W or 0, CANVAS_H or 0
+  CANVAS_W, CANVAS_H = w, h
+  print('canvas resize from=' .. oldW .. 'x' .. oldH .. ' to=' .. w .. 'x' .. h)
+  pcall(function() layout(w, h) end)
+  pcall(function() applyModeTheme(MODE) end)
+  if UI4 and UI4.sync then pcall(UI4.sync, true) end
+  if FN.skillHud then pcall(FN.skillHud) end
+  if HUD_INST and HUD_INST.build then pcall(HUD_INST.build) end
+  if ROSTER and ROSTER.on and FN.rosterBuild then pcall(FN.rosterBuild) end
+  if helpOpen then pcall(buildHelpLayer) end
+end
+
 function OnUpdate(dt)
   local d = tonumber(dt) or 0
   if d <= 0 then return end
+  canvasPoll = canvasPoll + 1
+  if canvasPoll % 20 == 0 then pcall(pollCanvasSize) end
   -- v4.0：触屏连发与手柄摇杆必须在"帮助页时停"早退**之前**推进——否则帮助页开着时
   -- 移动端「合上」按钮和手柄的返回键都按不动（旧代码在 helpOpen 时整帧 return，正是这个坑）。
   if UI4.tick then UI4.tick(d) end

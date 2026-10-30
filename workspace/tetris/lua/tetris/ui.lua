@@ -770,11 +770,50 @@ M.new = function(spec)
   ----------------------------------------------------------------------------
   -- ⑤ 应用一屏（唯一入口）：背景 + 文字 + 按钮 + 预览列心
   ----------------------------------------------------------------------------
+  -- v5.6：帮助页关闭后 main 会重建整套展台（新实例=更上层），导航键虽在却会被盖住
+  -- （用户二-3「关掉帮助后角色/说明看不见了但仍可点」）。引擎层序=创建序且 SetAsLastSibling
+  -- 在模拟器不分层，唯一可靠做法=**销毁重建**这两颗键，再按最后一次 plan 摆回去。
+  U.reapply = function()
+    if U.lastPlan then pcall(applyButtons, U.lastPlan) end
+  end
+  U.navRecreate = function()
+    if not U.mobile then return end
+    local function kill(c)
+      if c then pcall(function() game.DestroyClientUIControl(c) end) end
+    end
+    local function killPill(pl)
+      if not pl then return end
+      for _, c in ipairs(pl.parts or {}) do kill(c) end
+    end
+    local keep = {}
+    for _, b in ipairs(U.navBtns or {}) do
+      if b.id == 'help' or b.id == 'roster' then
+        killPill(b.edge) killPill(b.bg) kill(b.txt) kill(b.hit)
+      else
+        keep[#keep + 1] = b
+      end
+    end
+    U.navBtns = keep
+    for _, it in ipairs(NUM.PHONE.nav or {}) do
+      if it.id == 'help' or it.id == 'roster' then
+        local b = makeBtn(it, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
+        if b then U.navBtns[#U.navBtns + 1] = b end
+      end
+    end
+    U.allBtns = {}
+    for _, list in ipairs({ U.btns or {}, U.navBtns or {}, { U.pageBtn }, U.actBtns or {} }) do
+      for _, b in ipairs(list) do if b then U.allBtns[#U.allBtns + 1] = b end end
+    end
+    U.reapply()
+    print('phone nav recreate n=' .. #U.navBtns)
+  end
+
   U.apply = function(screen, dual, mode, guide)
     if screen then U.screen = screen end
     local W, H = canvas()
     local p = U.plan(U.screen, dual, guide)
     applyText(p)
+    U.lastPlan = p
     applyButtons(p)
     if p.rightCX and spec.setRightCX then spec.setRightCX(p.rightCX) end
     if U.mobile then
