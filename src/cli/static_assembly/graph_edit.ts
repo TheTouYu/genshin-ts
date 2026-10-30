@@ -21,6 +21,7 @@
  *   VarBase {1:class, 2:alreadySetVal, 4:itemType{1:1,100:{1:VarType}},
  *            101:bId, 102:bInt, 104:bFloat, 105:bString, 106:bEnum, 107:bVector}
  */
+import { CLIENT_NODE_METADATA } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import { applyReplacement, buildFile, parseMessage, readUint32BE } from '../../injector/binary.js'
 import type { LenField } from '../../injector/types.js'
 import { emitWireMessage, parseWireMessage, type WireField } from './wire.js'
@@ -2510,8 +2511,25 @@ export function nodeInputConcreteType(nodeId: number, concreteId: number | undef
   return inner === undefined ? undefined : INPUT_TYPE[inner]
 }
 
+// 客户端/造物类图节点（20007 决策图、20009 状态图等）不在服务端 RECORDS 里，
+// 旧实现只查 RECORDS ⇒ read 输出成 `API#200126` 这种没语义的编号，
+// 2026-10-30 我因此把「切状态+执行技能」的驱动链误判成"空占位图"，差点删掉。
+// ⇒ 回退查客户端节点元数据的 displayName（genericId → 中文名）。
+let clientNodeNames: Map<number, string> | undefined
+function clientNodeNameMap(): Map<number, string> {
+  if (!clientNodeNames) {
+    clientNodeNames = new Map()
+    for (const metadata of CLIENT_NODE_METADATA) {
+      if (!clientNodeNames.has(metadata.genericId)) {
+        clientNodeNames.set(metadata.genericId, metadata.displayName)
+      }
+    }
+  }
+  return clientNodeNames
+}
+
 export function nodeName(nodeId: number): string | undefined {
-  return RECORDS.find((r) => r.id === nodeId)?.name
+  return RECORDS.find((r) => r.id === nodeId)?.name ?? clientNodeNameMap().get(nodeId)
 }
 
 /** 节点是否是复合实例（SysGraph 22001）。 */
