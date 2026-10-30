@@ -85,9 +85,10 @@
           }, () => {})
           // slot 9：门柱碰撞（放到右门柱旁往里打）
           f.doubleBranch(f.equal(atSlotV, 9n), () => {
+            // 门柱碰撞：从**门洞外**沿 −z 打向门柱（原来从门洞内往外打 ⇒ 直接进球被复位，测错对象）
             bx.set(f.subtraction(PITCH_X, 1.2)); by.set(GROUND_Y)
-            bz.set(f.subtraction(GOAL_HALF, 0.9))
-            vx.set(9.0); vy.set(0.5); vz.set(0.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
+            bz.set(f.addition(GOAL_HALF, 1.5))
+            vx.set(0.0); vy.set(0.2); vz.set(-9.0); wx.set(0.0); wy.set(0.0); wz.set(0.0)
           }, () => {})
           // slot 10：边界反弹（贴边线打出去）
           f.doubleBranch(f.equal(atSlotV, 10n), () => {

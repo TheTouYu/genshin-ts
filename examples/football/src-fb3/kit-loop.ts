@@ -65,7 +65,8 @@ const RESTITUTION = 0.5
 const ROLL_MU = 0.06 // 滚动阻力系数：减速度 = 0.06·9.8 ≈ 0.59 m/s²（草地量级）
 const FRICTION_LOSS = 0.9
 const AIR_DRAG_K = 0.05 // 空气阻力速率（1/s）：v *= 1−0.05·dt
-const SPIN_K = 0.15 // 自旋衰减速率（1/s） // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
+const SPIN_K = 0.15 // 竖直轴自旋（弧线球）衰减速率（1/s）
+const SPIN_AIR_K = 0.02 // 水平轴自旋的空气衰减（1/s）——滚动分量靠摩擦约束，不能再额外衰减 // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
 const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
 const SETTLE_VY = 1.0 // 触地 |vy| 低于此 ⇒ 直接贴地不再弹
 const REST_SPEED = 0.35
@@ -163,7 +164,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   )
   const keyRaw = f.getCustomVariable(carrier, 'fb_key').asType('int')
   // 真实步长（服务端 kitListen 每秒校准写入；0 或越界时回退到 7.5Hz 标定值）
-  const dtRaw = f.getCustomVariable(carrier, 'fb_dt').asType('float')
+  // 步长标定（2026-10-30 数据：PHYSICS-DATA-REPORT 附录「时间膨胀 0.60×」）
+  // 服务端写的 fb_dt 是 **Lua 帧时长**（≈0.04s@25Hz），而内核实际 66.5ms/拍 ⇒ 物理只跑到真实时间的 60%。
+  // 两者都由客户端帧率驱动，比例稳定 ⇒ 用标定系数换算成"每内核 tick 的秒数"。
+  // 标定方法：日志里 墙钟秒差 / tick 差 = 真实每拍秒数；实测 0.0665 / 0.04 ≈ 1.66。
+  const DT_CALIB = 1.66
+  const dtRaw = f.multiplication(
+    f.getCustomVariable(carrier, 'fb_dt').asType('float'),
+    DT_CALIB
+  )
   const dtv = f.localVariable('float')
   f.doubleBranch(
     f.logicalAndOperation(f.greaterThan(dtRaw, 0.004), f.lessThan(dtRaw, 0.25)),
@@ -520,9 +529,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           const airK = f.subtraction(1.0, f.multiplication(AIR_DRAG_K, dtv.value))
           vx.set(f.multiplication(vx.value, airK))
           vz.set(f.multiplication(vz.value, airK))
+          // ⚠️ 2026-10-30 数据修正（PHYSICS-DATA-REPORT slot7：ω −44.9%/1.12s 而 v 只 −21%）
+          // 滚动状态下 ω 必须跟着 v 走（ω=v/R），再额外乘 SPIN_K 就会「越滚越不转」。
+          // ⇒ 只对**竖直轴自旋 wy**（弧线球的自旋）施加 SPIN_K；wx/wz 交给摩擦约束，只加很小的空气衰减。
+          const spinAir = f.subtraction(1.0, f.multiplication(SPIN_AIR_K, dtv.value))
+          wx.set(f.multiplication(wx.value, spinAir))
+          wz.set(f.multiplication(wz.value, spinAir))
           wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
-          wx.set(f.multiplication(wx.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
-          wz.set(f.multiplication(wz.value, f.subtraction(1.0, f.multiplication(SPIN_K, dtv.value))))
           bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
           by.set(f.addition(by.value, f.multiplication(vy.value, dtv.value)))
           bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
