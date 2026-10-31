@@ -245,8 +245,13 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const drv = f.localVariable('int')
   drv.set(seqStd)
   const keyRaw = f.getCustomVariable(carrierE, 'fb_key').asType('int')
-  const lastSeq = f.dataTypeConversion(f.querySkillVariableValue(S_LASTSEQ), 'int')
-  const kickNow = f.greaterThan(drv.value, lastSeq)
+  // ⚠️ 多消费点必须物化：kickNow 在「动作分支 / 踢球自旋 / 拦截 / 带球助力」四处被消费，
+  //   而本图会在动作分支里写回 S_LASTSEQ。数据节点是**执行到才求值**的——若 kickNow 直接
+  //   引用 `querySkillVariableValue(S_LASTSEQ)`，后三处会读到刚写入的新值 ⇒ 恒 false。
+  //   实测指纹：踢球当拍自旋块被跳过，球速 10m/s 但 spin 恒 (0,0,0)，落地靠摩擦才转起来。
+  const lastSeqV = f.localVariable('int')
+  lastSeqV.set(f.dataTypeConversion(f.querySkillVariableValue(S_LASTSEQ), 'int'))
+  const kickNow = f.greaterThan(drv.value, lastSeqV.value)
 
   // 外部施力通道（载体变量，单位质量力 m/s²）
   const extFx = f.getCustomVariable(carrierE, 'fb_fx').asType('float')
@@ -624,11 +629,14 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             }
           )
           // 撞击时刻的速度：v(t*) = v_拍末 − a·dt·(1−t*)（重力还在往下加，不能拿拍末速度当撞击速度）
-          const vyHit = f.subtraction(vy.value, f.multiplication(f.multiplication(accY.value, dt.value), f.subtraction(1.0, tHit.value)))
-          const vyOut = f.multiplication(f.multiplication(vyHit, -1.0), E)
+          // ⚠️ 必须先物化：vyHit 被 vyOut 与 jn 两处消费，而中间有 `vy.set(vyOut)`；
+          //   延迟求值会让 jn 读到反弹后的 vy ⇒ jn 负 ⇒ gamma 负 ⇒ 摩擦加能量（实测弹跳 +20~29%）。
+          const vyHitV = f.localVariable('float')
+          vyHitV.set(f.subtraction(vy.value, f.multiplication(f.multiplication(accY.value, dt.value), f.subtraction(1.0, tHit.value))))
+          const vyOut = f.multiplication(f.multiplication(vyHitV.value, -1.0), E)
           by.set(f.addition(GROUND_Y, f.multiplication(f.multiplication(vyOut, dt.value), f.subtraction(1.0, tHit.value))))
           vy.set(vyOut)
-          jn.set(f.multiplication(f.multiplication(vyHit, -1.0), f.addition(1.0, E)))
+          jn.set(f.multiplication(f.multiplication(vyHitV.value, -1.0), f.addition(1.0, E)))
           contact.set(2n)
         },
         () => {}
@@ -961,11 +969,16 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   f.doubleBranch(
     f.equal(resetFlag.value, 1n),
     () => {
-      const dirX = f.division(f.subtraction(bx.value, pPxV.value), f.addition(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))), 0.0001))
-      const dirZ = f.division(f.subtraction(bz.value, pPzV.value), f.addition(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))), 0.0001))
-      bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
+      const relX = f.subtraction(bx.value, pPxV.value)
+      const relZ = f.subtraction(bz.value, pPzV.value)
+      const relLen = f.addition(f._3dVectorModuloOperation(f.create3dVector(relX, 0.0, relZ)), 0.0001)
+      const dirXV = f.localVariable('float')
+      const dirZV = f.localVariable('float')
+      dirXV.set(f.division(relX, relLen))
+      dirZV.set(f.division(relZ, relLen))
+      bx.set(f.addition(pPxV.value, f.multiplication(dirXV.value, 1.5)))
       by.set(GROUND_Y)
-      bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
+      bz.set(f.addition(pPzV.value, f.multiplication(dirZV.value, 1.5)))
       vx.set(0.0)
       vy.set(0.0)
       vz.set(0.0)
