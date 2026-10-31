@@ -722,20 +722,15 @@ local function sendSettleSignal()
 end
 
 -- ② 单控件（textbox）模板：只探 guid（探针实例用完就销毁——否则它先造出来会被后造的遮罩盖住）
-local function probeSettleTextbox()
+-- 文字模板：必须按**能力**探测（通用探测会挑到没有 text 字段的 guid）
+function probeTextRaw()
   for _, g in ipairs(TPL_GUIDS.settleText) do
     local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
-    if ok and ctl then
-      local okc, kids = pcall(function() return ctl:GetChildren() end)
-      print('settle try text tpl=' .. g .. ' -> ok kids='
-        .. ((okc and type(kids) == 'table') and #kids or -1))
-      pcall(function() game.DestroyClientUIControl(ctl) end)
-      return g
-    end
-    print('settle try text tpl=' .. g .. ' -> nil')
+    if ok and ctl then pcall(function() game.DestroyClientUIControl(ctl) end) return g end
   end
   return nil
 end
+local function probeSettleTextbox() return TEMPLATES and TEMPLATES:text() or nil end
 
 -- 结算动画（0→0.9s）：①0→0.45s 文字 alpha 淡入 + 棋盘压到 45% 亮度
 -- ②0.15s 起标题自上滑入（0.35s ease-out）③0.55s 起标题脉冲 44→48→44
@@ -4753,7 +4748,10 @@ function OnStart()
       .. ' cell_cand=' .. tostring(#TPL_GUIDS.cell) .. ' hit_cand=' .. tostring(#TPL_GUIDS.hit)
       .. ' first_cell_guid=' .. tostring(TPL_GUIDS.cell[1]))
   end
-  local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
+  -- v6.6：模板探测集中到 templates 模块（返回一张表 + 每个失败都有明确日志与降级清单）
+  TEMPLATES = loadModule('templates').new({ guids = TPL_GUIDS, probeOne = probeTemplate,
+    probeTextOne = probeTextRaw, log = print })
+  local firstCell, tplGuid = TEMPLATES:probeCell()
   if not firstCell then
     error('tetris: cell 模板 guid 都不可用，候选=' .. #TPL_GUIDS.cell
       .. '（导入后跑 node qxqy/deploy.mjs --calibrate）')
@@ -4764,13 +4762,13 @@ function OnStart()
   -- 只多一次 Instantiate + 一次 Destroy（实例上限 430，当前常驻约 240，安全）。
   pcall(function() game.DestroyClientUIControl(firstCell) end)
   firstCell = nil
-  print('tpl guid=' .. tplGuid)
   TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
   -- v2.7 ⑤：cursor 模板 guid **提前**探测（标题页四模式三态热区要用它建实例，
   -- 而 buildMenuCards 在本函数中段就跑；原来这段探测在按钮段，太晚）。探针实例复用给手机热区。
   local hitSeed
-  hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
-  if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
+  hitSeed, TPL_HIT = TEMPLATES:probeHit()
+  TPL_TEXT = TEMPLATES:probeText()
+  TEMPLATES:report()
   -- 探针实例留在 (0,0) 会变成一个 76×76 的隐形热区压在屏幕正中（qa-shots 审计实测
   -- `phswitch ∩ hit` 重叠 4400px²）⇒ 挪出画布（真机 SetVisible 不可靠，只信坐标）
   if hitSeed then
