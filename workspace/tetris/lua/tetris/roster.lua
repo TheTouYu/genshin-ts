@@ -127,7 +127,7 @@ function M.new(env)
   -- 需要的注入面（缺任一则自动回落旧实现并打一行 skip 日志，游戏不会坏）：
   --   env.platform(PT) / env.render(RENDER_M) / env.layers(VIEW_LAYERS_M) /
   --   env.config(CFG) / env.kit(VIEW_KIT_M.new{layers}) / env.viewRoster(view_roster 模块)
-  local ROSTERV = { R = nil, S = nil, D = nil, live = false, nodes = nil }
+  local ROSTERV = { R = nil, S = nil, D = nil, live = false, nodes = nil, dopen = false }
   local function v2able()
     return env.platform and env.render and env.layers and env.config and env.kit
       and env.viewRoster
@@ -191,7 +191,10 @@ function M.new(env)
   -- ===== 条目详情浮层：第二份描述 + 第二个 render 实例（modal 层压住档案页）=====
   FN.rosterV2DetailClose = function()
     if ROSTERV.D then ROSTERV.D.clear() end
+    ROSTERV.dopen = false
   end
+  -- 给 main 的 Esc 用：一行判断"浮层是否开着"（打开时优先关浮层，别直接关整页）
+  FN.rosterV2DetailOpen = function() return ROSTERV.dopen == true end
 
   FN.rosterV2Detail = function(idx)
     if not v2able() then return false end
@@ -217,6 +220,7 @@ function M.new(env)
     ROSTERV.D.apply(nodes)
     local ctl = ROSTERV.D.get('charDetailHit')
     if ctl then env.addCursor(ctl, 'CursorClick', function() FN.rosterV2DetailClose() end) end
+    ROSTERV.dopen = true
     print('char detail v2 nodes=' .. #nodes .. ' idx=' .. tostring(idx)
       .. ' issues=' .. #ROSTERV.D.issues())
     return true

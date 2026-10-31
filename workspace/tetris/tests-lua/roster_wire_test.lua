@@ -203,6 +203,7 @@ do
   ok(dcount > 5 and cnt() == n0, 'F4 浮层实例 ' .. dcount .. ' 件，档案页实例仍 ' .. cnt() ..
     '（两份描述/两个实例互不干扰）')
   ok(dcount == #dnodes, 'F5 浮层实例数 == 描述节点数（无实例化失败）', dcount .. '/' .. #dnodes)
+  ok(FN.rosterV2DetailOpen() == true, 'F10 打开时 FN.rosterV2DetailOpen() == true')
   local hit = D.get('charDetailHit')
   ok(hit ~= nil and type(hit.__cursors) == 'table' and hit.__cursors['CursorClick'] ~= nil,
     'F6 浮层关闭热区挂上了 CursorClick')
@@ -210,6 +211,7 @@ do
   local d2 = 0
   for _ in pairs(D.controls()) do d2 = d2 + 1 end
   ok(d2 == 0 and cnt() == n0, 'F7 点任意处 ⇒ 浮层实例归零、档案页原封不动（' .. d2 .. '/' .. cnt() .. '）')
+  ok(FN.rosterV2DetailOpen() == false, 'F9 关闭后 FN.rosterV2DetailOpen() == false（给 main 的 Esc 一行判断用）')
   ok(env.layers.order('modal') > env.layers.order('card')
     and env.layers.order('modal') > env.layers.order('touch'),
     'F8 层号 modal(' .. env.layers.order('modal') .. ') > card(' .. env.layers.order('card') ..
