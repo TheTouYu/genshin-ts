@@ -201,6 +201,45 @@ M.new = function(spec)
     return R
   end
 
+  -- ===== 单节点按需增删（懒创建）=====
+  -- 场景：双屏中缝装饰、结算浮层里的临时贴片——它们不该常驻（真机 SetVisible(false) 对
+  -- 运行时实例不生效，常驻隐藏会露出来），也不能靠"重 apply 整屏"（那会把棋盘 200 格
+  -- 颜色重置成底色，因为描述里不带当前棋盘内容）。
+  -- 语义：spawn 只处理列表里这些 key（建或更新），**不做销毁扫描**；despawn 只销毁给定 key。
+  function R.spawn(list)
+    local arr = sorted(list)
+    for i = 1, #arr do
+      local n = arr[i]
+      local key = n.key or n.name
+      local ent = prev[key]
+      if ent then
+        applyFields(ent.ctl, n, ent.applied)
+        ent.node = n
+        stats.updated = stats.updated + 1
+      else
+        local ctl, applied = create(n)
+        if ctl then prev[key] = { ctl = ctl, applied = applied, node = n } end
+      end
+    end
+    return R
+  end
+
+  function R.despawn(keys)
+    if type(keys) == 'string' then keys = { keys } end
+    for i = 1, #keys do
+      local ent = prev[keys[i]]
+      if ent then
+        if ent.ctl then
+          P.destroy(ent.ctl)
+          stats.destroyed = stats.destroyed + 1
+          live = math.max(0, live - 1)
+        end
+        prev[keys[i]] = nil
+      end
+    end
+    return R
+  end
+
   function R.rebuild(list)
     for key, ent in pairs(prev) do
       if ent.ctl then P.destroy(ent.ctl) end

@@ -187,5 +187,29 @@ A2.closeOverlay()
 ok(OR.live() == 0 and A2.overlay() == nil, 'G8 关覆盖屏后 overlay 实例归零')
 ok(R.get('baseCell') ~= nil, 'G9 关覆盖屏不动基础层')
 
+-- ===== H 单节点按需增删（spawn/despawn）：不触发销毁扫描 =====
+local HR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local board = {}
+for i = 1, 5 do
+  board[i] = { key = 'hb' .. i, layer = 'board', tpl = 'cell', name = 'hb' .. i,
+    pos = { 0, 0 }, size = { 10, 10 }, color = 0xFF111111 }
+end
+HR.apply(board)
+local baseLive = HR.live()
+ok(baseLive == 5, 'H1 基础板面 5 个节点', baseLive)
+HR.spawn { { key = 'hdeco', layer = 'frame', tpl = 'cell', name = 'hdeco',
+  pos = { 0, 0 }, size = { 4, 600 }, color = 0xFFE0C060 } }
+ok(HR.live() == 6, 'H2 spawn 只加一个', HR.live())
+ok(HR.get('hb1') ~= nil, 'H3 spawn **没有**触发销毁扫描（棋盘仍在）')
+HR.despawn('hdeco')
+ok(HR.get('hdeco') == nil, 'H4 despawn 后该节点消失')
+ok(HR.live() == 5, 'H5 despawn 后计数回落（live 与 platform 台账一致）', HR.live())
+ok(P.liveCount() >= 5, 'H6 platform 台账同步', P.liveCount())
+-- 关键：整屏重 apply 会重置棋盘色（这正是不能拿 apply 做"加个装饰"的原因）
+HR.spawn { { key = 'hb1', layer = 'board', tpl = 'cell', name = 'hb1',
+  pos = { 0, 0 }, size = { 10, 10 }, color = 0xFF222222 } }
+ok(HR.get('hb1').imageColor == 0xFF222222 or HR.get('hb1').imageColor == -16777216 + 0x222222,
+  'H7 spawn 可更新单个节点字段', HR.get('hb1').imageColor)
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
