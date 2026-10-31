@@ -2869,6 +2869,8 @@ FN.syncStage = function()
       end
     end
   end
+  -- 每 6 帧兜底：结算键不属于局内/标题，一律收起（它们与手机按键位置重叠，会冒充成棕色按键）
+  if UI4 and UI4.parkActs and guideStage ~= 0 then pcall(UI4.parkActs) end
   if UI4 and UI4.padVisible and overlayOn ~= FN.padHiddenNow then
     FN.padHiddenNow = overlayOn
     pcall(UI4.padVisible, not overlayOn)

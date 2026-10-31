@@ -861,6 +861,15 @@ M.new = function(spec)
     print('pad visible=' .. tostring(show) .. ' n=' .. #(U.allBtns or {}))
   end
 
+  -- v5.41：结算键（再来一局/回主页/明细）只允许在 settle 屏出现。
+  -- 它们和手机按键在右下角**位置重叠**，一旦被上一次 settle plan 摆到画面上，
+  -- 玩家会看到"棕色的旋转/锁定"（棕色其实是结算键的描边胶囊 pe*，底胶囊 pb* 被 park 了）。
+  U.parkActs = function()
+    local keep = (U.screen == 'settle')
+    if keep then return end
+    for _, b in ipairs(U.actBtns or {}) do placeBtnNow(b, true) end
+  end
+
   U.apply = function(screen, dual, mode, guide)
     if screen then U.screen = screen end
     local W, H = canvas()
@@ -868,6 +877,7 @@ M.new = function(spec)
     applyText(p)
     U.lastPlan = p
     applyButtons(p)
+    pcall(U.parkActs)
     -- 浮层期间的重排会把刚收走的按键摆回来（角色页底部残留「合上」的真因）⇒ 重排后再收一次
     if U.padHidden and U.padVisible then U.padVisible(false) end
     if p.rightCX and spec.setRightCX then spec.setRightCX(p.rightCX) end
