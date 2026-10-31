@@ -115,9 +115,10 @@ node = {
 | 阶段 | 内容 | 判据 |
 |---|---|---|
 | P0 ✅ | 骨架：`platform` / `view_layers` / `view_node` / `render` / `view_board` + headless mock | `render_board_test` 20/20；与 tests/01 逐值相等 |
-| P1 | `core_*` 抽出纯逻辑（rng/pieces/board/score/state/ai/skills-rules） | headless 单测覆盖 + runner 01-06 绿 |
+| P0.5 ✅ | 棋盘接进**真实引擎**（runner 01-06 绿 + 30 图无回归）；`scenes` 场景栈；`app` 连接层；`view_kit` 六件套工厂；`view_hud` 文案契约；`view_layers/view_node` 静态检查；`gate.sh` 验证闸门 | `gate.sh` GATE PASS；headless 14/14 文件 |
+| P1 🔄 | `core_*` 纯逻辑：rng/pieces/board/state/ai/skills(+catalog)/progress/roster/takeover | 已交付 headless 单测：play 71 / ai 179 / skills 275 / input 85 / 其他见文件；接线进行中（rng+collides 已接） |
 | P2 | 场景机 `scenes.lua`（push/pop 显式栈，替代 helpOpen/MODE 隐式组合） | 任意屏可 headless 进入/退出 + lint 0 |
-| P3 | 屏逐个搬到 `scr_*`：标题 → 结算 → 说明页 → 角色档案 → 双屏 → 移动端 | 每屏：runner 对应子集绿 + 出图对比 |
+| P3 🔄 | 屏逐个搬到 `scr_*`：结算（进行中）→ 标题 → 说明页 → 角色档案 → 双屏 → 移动端 | 每屏：`view_*` 纯描述 + lint 断言 → runner 子集绿 → 出图对比 |
 | P4 | `main.lua` 瘦身成 boot + tick（目标 ≤300 行） | `luac5.3 -l -l` locals 大幅下降；全量 70 例 + 30 图绿 |
 | P5 | 删除旧模块与死代码 | 全仓无 `InstantiateClientUIControl`（platform 之外） |
 
@@ -126,3 +127,17 @@ node = {
 - 日志字面量是**测试契约**（如 `copy levelup lv=2`、`cellCount=200`）：可以包装，不可改原文。
 - 文案真源 = `copy.lua`；角色名/角色元数据只准一份。
 - 键位真源 = `input_map.lua`（P4 之前暂在 main.lua，但新增键位不许再散写）。
+
+## 9. 现状读数（2026-10-31 晚）
+
+| 项 | 读数 |
+|---|---|
+| 模块数 | `lua/tetris/` 30 个文件（含 core_* 9 个、view_* 5 个、input/app/scenes 各 1） |
+| headless 单测 | 14 个文件、~750 条断言、**0.05s**（`lua5.3 tests-lua/run_all.lua`） |
+| 模拟器用例 | 70 个；抽样 01/02/04/06/07/14 全绿；全量需 ~390s |
+| headless 用例驱动器 | `tests-lua/run_cases.lua`（进行中：引擎 shim，当前能跑出**精确差异**，未达全绿） |
+| main.lua | 6885 行 / locals 158（抽 core 前 6859 / 146）；接线进行中 |
+| 已消灭的重复 | 键位真源 5→1（含发现的第 6 份 `P2_KEYS`）；模板实例化 35 处 → 棋盘部分走 render |
+| 已发现的坏域（待修） | 技能 10 条（gravityMult 只读/mark-blink 只 print/SK.cost 0 写/36 句失败文案全死…）；AI 四消射击分支不可达；输入 6 键重复注册/2 条手柄死映射；层序假成功日志（已删） |
+
+**下一步（按依赖排序）**：① core-play 把 play 逻辑接线完毕（stepDown/move/rotate → 重力/锁定 → doLock/clear → spawn/newGame）② core-ai 接 AI（含把不可达的射击分支修成 opt-in）③ input-map 按 `input-wiring-plan.md` 收表（90 次注册→84，6 键重复归零）④ core-skills 接技能并补机制缺口 ⑤ 屏迁移（结算→标题→说明页→角色页→双屏→移动端）⑥ `main.lua` 瘦身成 boot+tick。

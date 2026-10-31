@@ -202,8 +202,12 @@ for i = 1, 43 do
 end
 
 if hasMapped then
-  ok(mappedCount == 10, 'B5 迁移前：main.lua 兜底排除表 10 条（1/2/3/4/15/22/36/37/38/39）', mappedCount)
-  ok(#mainFallback == 33, 'B6 迁移前：兜底循环注册 33 个键（43-10）', #mainFallback)
+  -- 10 条 = 历史形态；16 条 = 接线第 1 步把 6 个重复注册的键补进排除表后的形态
+  ok(mappedCount == 10 or mappedCount == 16,
+    'B5 迁移前：main.lua 兜底排除表 10 条（Step1 补 6 条后 = 16）（' .. mappedCount .. '）', mappedCount)
+  ok(#mainFallback == 43 - mappedCount,
+    'B6 迁移前：兜底循环注册 ' .. (43 - mappedCount) .. ' 个键（10 条时 = 33；Step1 后 = 27）',
+    #mainFallback)
 else
   ok(mainSrc:find('for i = 1, 43 do', 1, true) == nil,
     'B5 迁移后：43 键兜底循环已删除（改由 fallbackPool 自动派生）')
@@ -213,6 +217,13 @@ end
 
 local pool = imap.fallbackPool()
 ok(#pool == 27, 'B7 兜底池 27 个键（43 - 16 个已被动作认领；迁移前 main 是 33）', #pool)
+-- 迁移进度读数：main 的兜底比收表池多注册几个键。6 = 6 个重复注册还在（接线 Step1 前）；
+-- 0 = 已修。别的数字说明又冒出新的交叉，立刻红。
+if hasMapped then
+  local dupLeft = #mainFallback - #pool
+  ok(dupLeft == 0 or dupLeft == 6,
+    'B7b main 兜底比收表池多注册 ' .. dupLeft .. ' 个键（0=已修 / 6=待接线 Step1）', dupLeft)
+end
 
 local poolLeak = nil
 local I0 = imap.new { log = function() end }
@@ -307,8 +318,9 @@ ok(#imap.RETIRED == 6 and (newRegs + 6) == 90,
   'B17 90 - 84 = 6 = RETIRED 条数（重复注册正好被吃掉）', newRegs + #imap.RETIRED)
 if hasMapped and keymapDown == 10 then
   local oldRegs = #full + keymapDown + keymapUp + 4 + 24 + #mainFallback
-  ok(oldRegs == 90,
-    'B18 收表前注册 90 次（15 字面 + 10 键位 + 4 松开 + 4 模式 + 24 手柄 + 33 兜底）', oldRegs)
+  ok(oldRegs == 90 or oldRegs == 84,
+    'B18 现存注册次数 = 90（Step1 前）/ 84（Step1 补掉 6 个重复后 = 收表后）（' .. oldRegs .. '）',
+    oldRegs)
 else
   ok(keymapDown == 0 or keymapDown == 10,
     'B18 config.NUM.KEYMAP 处于迁移中（10 down）或已清空（0）——两条路都不许出现第三份键位',
