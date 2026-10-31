@@ -15,6 +15,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { float, int } from 'genshin-ts/runtime/value'
 
+import { fbDriveBall } from './fb-composites.js'
 import { KitSignal } from './signals.js'
 import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/enum'
 
@@ -104,26 +105,14 @@ g
             )
             const velToTarget = f._3dVectorZoom(velRaw, velScale.value)
             f.set('fb_lin_tick', evt.params.tick)
-            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', dur.value, velToTarget)
-            // ——— 旋转：直接用内核回传的角速度（物理唯一真值），世界轴 → 局部轴（YXZ 内旋）———
-            const spinAbs = f._3dVectorModuloOperation(spin)
-            f.doubleBranch(
-              f.greaterThan(spinAbs, SPIN_EPS),
-              () => {
-                const axis = f._3dVectorNormalization(spin)
-                const angVel = f.multiplication(spinAbs, RAD2DEG)
-                const r = f.split3dVector(f.getEntityLocationAndRotation(ball).rotate)
-                const negX = f.multiplication(r.xComponent, -1.0)
-                const negY = f.multiplication(r.yComponent, -1.0)
-                const negZ = f.multiplication(r.zComponent, -1.0)
-                const afterY = f._3dVectorRotation(f.create3dVector(0.0, negY, 0.0), axis)
-                const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
-                const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
-                f.set('fb_rot_tick', evt.params.tick)
-                f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', dur.value, angVel, localAxis)
-              },
-              () => {}
-            )
+            // 下发交给复合：线性 + 旋转同拍、同一段长（世界→局部轴换算在复合内）
+            f.callComposite(fbDriveBall, {
+              ball,
+              dur: dur.value,
+              vel: velToTarget,
+              spin,
+              spinEps: new float(SPIN_EPS)
+            })
           }
         )
       },

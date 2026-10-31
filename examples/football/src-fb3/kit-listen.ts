@@ -14,6 +14,7 @@
 //   · key<0 Lua 时间同步 → fb_dt（内核时间改为固定 1/15 s + 球实体 fb_dt，不再读 Lua 帧长）
 import { g } from 'genshin-ts/runtime/core'
 
+import { fbWritePlayerPos } from './fb-composites.js'
 import { KitSignal } from './signals.js'
 
 const graph = g
@@ -49,11 +50,8 @@ const graph = g
           () => {}
         )
         // ———— 每拍写玩家位置（内核下一拍差分算速度）————
-        const l = f.split3dVector(f.getEntityLocationAndRotation(cached).location)
-        f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
-        f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
-        f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
-        f.setCustomVariable(owner, 'fb_pos_tick', evt.params.tick, false)
+        // 位置写回交给复合（名字即契约）：读角色实体位置 → 写 fbvx/fbvz/fbvy/fb_pos_tick
+        f.callComposite(fbWritePlayerPos, { owner, char: cached, tick: evt.params.tick })
         // 整链通判据：日志里出现一次 kit-listener-armed + 至少一条 kit-p1
         f.doubleBranch(
           f.equal(evt.params.tick, 1n),

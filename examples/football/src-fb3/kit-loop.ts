@@ -182,28 +182,44 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const srvX = f.getCustomVariable(carrierE, 'fbvx').asType('float')
   const srvZ = f.getCustomVariable(carrierE, 'fbvz').asType('float')
   const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
+  // 优先级（2026-10-31 翻面）：**客户端读角色实体 > 服务端写变量 > 冻结上一拍**。
+  // 理由：服务端写→客户端读至少晚 1 拍（0.133s）；`fbc_e` 是服务端在玩家选中球选项卡时写一次的
+  // **角色实体句柄**，客户端拿 `getEntityLocation` 每拍自己读 = 0 延时（20008 白名单允许
+  // getEntityLocation，但不允许 getCurrentCharacter / getCharacterEntityOfSpecifiedPlayer，
+  // 所以句柄只能由服务端给一次，位置查询搬到客户端）。
+  // 两个来源都失效时**冻结上一拍位置**，绝不回 0：回 0 会让带球目标点跳到中圈、把球吸走。
   const pPxV = f.localVariable('float')
   const pPzV = f.localVariable('float')
+  pPxV.set(f.querySkillVariableValue(S_PPX))
+  pPzV.set(f.querySkillVariableValue(S_PPZ))
+  const posSrc = f.localVariable('int')
+  posSrc.set(0n)
   f.doubleBranch(
-    f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(srvX, 0.0, srvZ)), 0.01),
+    f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+    () => {
+      const cLoc = f.split3dVector(f.getEntityLocation(charE))
+      const cLen = f._3dVectorModuloOperation(f.create3dVector(cLoc.xComponent, 0.0, cLoc.zComponent))
+      f.doubleBranch(
+        f.greaterThan(cLen, 0.01),
+        () => {
+          pPxV.set(cLoc.xComponent)
+          pPzV.set(cLoc.zComponent)
+          posSrc.set(1n)
+        },
+        () => {}
+      )
+    },
+    () => {}
+  )
+  const srvLen = f._3dVectorModuloOperation(f.create3dVector(srvX, 0.0, srvZ))
+  f.doubleBranch(
+    f.logicalAndOperation(f.equal(posSrc.value, 0n), f.greaterThan(srvLen, 0.01)),
     () => {
       pPxV.set(srvX)
       pPzV.set(srvZ)
+      posSrc.set(2n)
     },
-    () => {
-      f.doubleBranch(
-        f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
-        () => {
-          const l = f.split3dVector(f.getEntityLocation(charE))
-          pPxV.set(l.xComponent)
-          pPzV.set(l.zComponent)
-        },
-        () => {
-          pPxV.set(0.0)
-          pPzV.set(0.0)
-        }
-      )
-    }
+    () => {}
   )
 
   // 玩家速度：位置差分 / dt（服务端每拍写 ⇒ 不存在隔拍混叠；单拍位移过大判瞬移）
