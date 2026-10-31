@@ -190,3 +190,21 @@ node = {
 - **一张动作表**：`input_map.lua` 的 22 动作 / 47 键（42 down + 5 up），`INPUT:bindAll(dispatch)` **一次注册**。
 - 实测 `listen ok=84 fail=0`（原 90；差的 6 个是 `CraftspersonKey{11,12,13,14,16,30}` 被"技能真动作"与"43 键兜底循环"各注册一次）。兜底池现在由 `fallbackPool()` 从动作表派生（27 条），不再手抄。
 - **未接**：触屏 dispatch 仍在 `UI4.dispatch → UI4.runAct`，因为 `act()/coopAllowed()` 用**键盘键名**判 P2 与 coop 越权——直接塞 `touch:left` 会被当越权吞掉。要接必须先改这两个函数的签名（接受"来源"与"键名"两个参数）。
+
+## 12. 服务端 textbox 的层序事实（2026-10-31 帧级实测，纠正旧注释）
+
+**服务端 textbox 在真机上压在运行时实例之上**，不是之下。
+取证：结算屏帧 `sk1name` 的 `z=42`，结算卡 `z=51–53`，而 **frame 里 z 小=在上** ⇒ 技能名压着结算卡。
+`qxqy/build.mjs:33` 的旧注释「服务端 textbox 永远在下面」只对**结算层那套 container+子 textbox 模板**成立（它们被实例化后是运行时实例），对 `n1` 下的裸 textbox 不成立。
+
+**后果**：遮罩（哪怕是 alpha=255 的 scrim）**盖不住**这些控件，唯一手段是"不让它有内容"。
+
+**踩坑清单（修这个 bug 花了 4 次尝试）**：
+1. 逐控件清空（`findIn` / `GetChild`）→ 无效，因为清空动作本身被 `setText` 的 guard 吞了；
+2. 写 `FN.skillHud` 早退 → 无效，问题不在写入源；
+3. 判定补 `SETTLEV.live` → 必要但不充分（`hide` 本来就是每帧为真的）；
+4. 真因 = `setText` 里**并列两条 guard**：①拦非空写入（对）②`if FN.textLayerHidden then return end`（把清空也拦了，错）。
+   `syncStage` 每帧置 `textForce=true` 再清，第①条放行、第②条拦回 ⇒ **每帧清、每帧被吞**。
+
+**判据**：同一函数里不要并列两条同义 guard——后加的"放行/例外"会被先加的那条吃掉。要放行就**合并成一条带例外位的判据**。
+**定位手法**：探针打在 guard **内部**，把 `hidden / force / value` 一起打出来 —— 一条日志就能分清"没清"与"清了被拦"。
