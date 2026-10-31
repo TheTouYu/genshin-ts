@@ -2654,8 +2654,39 @@ HUD_INST.build = function()
   if HUD_INST.hudNext then
     tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or 570, 255)
   end
+  -- v6.5 ①：技能列（sk1/sk2 的名字与状态）——**最后 4 个没有实例镜像、且可见**的常驻文字。
+  -- 它们压在覆盖屏之上（帧级实测 sk1name z=42 < 结算卡 z=51），此前只能靠 syncStage 每帧清空兜底，
+  -- 而 skillHud 又在同一帧后段把它们写回来（出图实测：结算帧里 sk1name 仍是「纳西妲」）。
+  -- 修法同 HUD 其它件：建镜像 + textbox 份隐藏 ⇒ 层号说话；内容同步仍走 setText 的双写。
+  local skillMade = 0
+  for _, nm in ipairs({ 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
+    local okF, box = pcall(findIn, root, { nm })
+    if okF and box then
+      local okC, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+      if okC and c then
+        c.name = 'i' .. nm
+        -- 几何/字号/对齐从 textbox **现读现拷**（这些由关卡 UI 定，硬编码会随布局漂移）
+        local sw = tonumber(PT and PT.get(box, 'sizeDeltaX')) or 210
+        local sh = tonumber(PT and PT.get(box, 'sizeDeltaY')) or 36
+        local sx, sy = 0, 0
+        local okP, px, py = pcall(function() return box:GetAnchoredPosition() end)
+        if okP then sx, sy = tonumber(px) or 0, tonumber(py) or 0 end
+        tryCall(c, 'SetSizeDelta', sw, sh)
+        tryCall(c, 'SetAnchoredPosition', sx, sy)
+        trySet(c, 'fontSize', tonumber(PT and PT.get(box, 'fontSize')) or 20)
+        trySet(c, 'fontColor', THEME.textMain)
+        trySet(c, 'verticalAlignment', 'Middle')
+        trySet(c, 'horizontalAlignment', 'Middle')
+        HUD_INST[nm] = c
+        made = made + 1
+        skillMade = skillMade + 1
+      end
+      tryCall(box, 'SetVisible', false)     -- textbox 份一律隐藏（断言读 text 字段，不受影响）
+    end
+  end
+  if skillMade > 0 then print('skill inst n=' .. skillMade .. ' (textbox hidden)') end
   -- v3.3 ②：textbox 份隐藏防双份（实例在上可见；断言只读 text 字段不受影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext', 'holdLab' }) do
     local box = (nm == 'hud' and hud) or (nm == 'best' and best) or (nm == 'keyA' and keyA)
       or (nm == 'keyB' and keyB) or (nm == 'keyC' and keyC) or (nm == 'botBanner' and botBanner)
       or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint) or (nm == 'hudNext' and hudNext)
@@ -2667,7 +2698,8 @@ end
 -- v3.5 ④：标题页/回菜单把 HUD 实例整体下架（`SetVisible(false)` 在真机对运行时实例不一定生效
 -- ⇒ 同时挪到画布外 y=-4000 兜底；进局由 startIfWaiting 把「位 + 显」一起还原）
 HUD_INST.hideAll = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext',
+    'holdLab', 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
     local inst = HUD_INST[nm]
     if inst then
       tryCall(inst, 'SetVisible', false)
@@ -2678,14 +2710,15 @@ end
 -- v3.5 ⑥：只下架「战况列」（结算遮罩半透明，那几行会从面板外透出来）；
 -- 横幅保留——结算层建不出来时走 topBanner/botBanner 兜底文案，把横幅一起藏掉等于兜底全黑。
 HUD_INST.hideStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'hint', 'hudNext' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'hint', 'hudNext',
+    'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
     local inst = HUD_INST[nm]
     if inst then tryCall(inst, 'SetVisible', false) end
   end
 end
 -- 与 hideStats 对称：结算期下架的站况列重新上架（casual 重开不走 startIfWaiting，必须显式还原）
 HUD_INST.showStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'hint', 'hudNext' }) do
+  for _, nm in ipairs({ 'hud', 'best', 'hint', 'hudNext', 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
     local inst = HUD_INST[nm]
     if inst then tryCall(inst, 'SetVisible', true) end
   end
@@ -3208,8 +3241,14 @@ FN.skillHud = function()
         FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'name'] = cName
         -- v5.5（用户 2026-10-30 二轮反馈：「前后台和已就绪的说明增加玩家负担，用特效和动画区分」）：
         -- 名字行只留**角色名**（键位标签在可点时才有意义）；台前/台后靠卡面亮度+描边+能量条表达。
-        setText(cName, nm)
-        trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
+        -- v6.5 ②：覆盖屏开着时**不写**（syncStage 每帧清空 textbox 份，这里再写回就等于没清——
+        -- 出图实测：结算帧里 sk1name 仍是「纳西妲」）。判据与 HUD_INST.txt 的抑制同源。
+        if not FN.textLayerHidden then
+          setText(cName, nm)
+          trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
+          local mi = HUD_INST[cName.name]
+          if mi then trySet(mi, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126)) end
+        end
       end
       if cState then
         FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'state'] = cState
@@ -3240,8 +3279,12 @@ FN.skillHud = function()
         else
           short = '充能 ' .. tostring(math.floor((en / math.max(1, (SK.cost and SK.cost[role]) or 1)) * 100)) .. '%' .. extra
         end
-        setText(cState, short)
-        trySet(cState, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126))
+        if not FN.textLayerHidden then          -- v6.5 ②：同上，覆盖屏期不写
+          setText(cState, short)
+          trySet(cState, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126))
+          local ms = HUD_INST[cState.name]
+          if ms then trySet(ms, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126)) end
+        end
       end
       if cBar then
         local ratio = math.max(0, math.min(1, en / 100))
