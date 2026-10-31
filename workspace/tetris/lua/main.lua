@@ -6335,6 +6335,15 @@ function OnStart()
     [15] = true,                                      -- H = 规则说明页（CraftspersonKey15='KeyH'）
     [22] = true,                                      -- V = 结算后回主页（CraftspersonKey22='KeyV'）
     [36] = true, [37] = true, [38] = true, [39] = true, -- ↑↓←→ = 旋转/软降/移动
+    -- v6.1：技能/Hold/档案/调试键也必须排除。它们在上面的 listen 里已有真动作，
+    -- 落进兜底就变成「同一个键两个监听」——行为取决于注册顺序，输入 bug 因此不可复现。
+    -- 兜底语义不丢：这六个动作的执行体自己都调 startIfWaiting()（见 FN.skillCast / act()）。
+    [11] = true,                                      -- U = 技能2
+    [12] = true,                                      -- Z = 技能1
+    [13] = true,                                      -- Y = 切台前角色
+    [14] = true,                                      -- G = 暂存
+    [16] = true,                                      -- 角色档案
+    [30] = true,                                      -- 调试：解锁全部角色
   }
   local anyKeyStart = function()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
