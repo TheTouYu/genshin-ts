@@ -1,0 +1,146 @@
+--[[==========================================================================
+ tests-lua/app_test.lua —— 应用外壳 headless 验收
+ 跑法：cd /home/h/genshin-ts/workspace/tetris && lua5.3 tests-lua/app_test.lua
+
+ 要证明的是「连接层」没有偷藏业务判断：
+   A tick = 场景 update + 视图合成 + 渲染（三件事，不多不少）
+   B 场景切换后旧节点被销毁（render 的 diff 通道成立）
+   C 输入按栈分发：栈顶消费 → 下层收不到；返回 false 才下传
+   D input_map 接上后每个键只注册一次，回调统一进 dispatch
+   E 渲染抛错不会打断 tick（真机一处抛错会中断整段回调，历史事故）
+   F stats() 能给出可审计读数（帧数/栈/渲染计数）
+========================================================================]]
+
+local ROOT = os.getenv('TETRIS_ROOT') or '.'
+local function load(path) return assert(loadfile(ROOT .. '/' .. path))() end
+
+local platformM = load('lua/tetris/platform.lua')
+local layers = load('lua/tetris/view_layers.lua')
+local renderM = load('lua/tetris/render.lua')
+local scenesM = load('lua/tetris/scenes.lua')
+local appM = load('lua/tetris/app.lua')
+
+local pass, fail = 0, 0
+local function ok(cond, name, extra)
+  if cond then
+    pass = pass + 1
+    print('PASS  ' .. name)
+  else
+    fail = fail + 1
+    print('FAIL  ' .. name .. (extra and (' :: ' .. tostring(extra)) or ''))
+  end
+end
+
+local logs = {}
+local P = platformM.new {
+  mock = true, canvas = { 1280, 720 },
+  templates = { cell = { kind = 'image' }, hit = { kind = 'cursor' }, stext = { kind = 'text' } },
+  logSink = function(m) logs[#logs + 1] = m end,
+}
+local R = renderM.new { platform = P, layers = layers }
+local S = scenesM.new { log = function(m) logs[#logs + 1] = m end }
+local A = appM.new { platform = P, render = R, scenes = S, layers = layers,
+  log = function(m) logs[#logs + 1] = m end }
+
+-- ===== 两个假场景 =====
+local aTicks, bTicks, aKeys, bKeys = 0, 0, {}, {}
+A.register {
+  name = 'a',
+  update = function() aTicks = aTicks + 1 end,
+  view = function()
+    return {
+      { key = 'aBoard', layer = 'board', tpl = 'cell', name = 'aBoard',
+        pos = { 0, 0 }, size = { 300, 600 }, color = 0 },
+    }
+  end,
+  onAction = function(_, action)
+    aKeys[#aKeys + 1] = action
+    return action == 'left'
+  end,
+}
+A.register {
+  name = 'b', opaque = true,
+  update = function() bTicks = bTicks + 1 end,
+  view = function()
+    return {
+      { key = 'bCard', layer = 'panel', tpl = 'cell', name = 'bCard',
+        pos = { 0, 0 }, size = { 780, 400 }, color = 0 },
+      { key = 'bBtn', layer = 'touch', tpl = 'hit', name = 'bBtn',
+        pos = { 0, -260 }, size = { 200, 64 }, color = 0, cursor = { 'Click' },
+        on = { Click = function() end } },
+    }
+  end,
+  onAction = function(_, action)
+    bKeys[#bKeys + 1] = action
+    return action == 'confirm'
+  end,
+}
+
+-- ===== A tick = 三件事 =====
+ok(A.start('a') == true, 'A1 启动场景 a')
+ok(R.get('aBoard') ~= nil, 'A2 start 之后视图已渲染（aBoard 在场）')
+local t0 = aTicks
+ok(A.tick(1 / 60) == true, 'A3 tick 返回渲染成功')
+ok(aTicks == t0 + 1, 'A4 场景 update 被调用一次', aTicks - t0)
+ok(A.stats().ticks == 1, 'A5 stats 记录 tick 数')
+
+-- ===== B 场景切换后旧节点销毁 =====
+S.push('b')
+A.render()
+ok(R.get('aBoard') == nil, 'B1 切到 opaque 场景后，下层节点被销毁（不残留）')
+ok(R.get('bCard') ~= nil and R.get('bBtn') ~= nil, 'B2 新场景节点已建')
+
+-- ===== C 输入按栈分发 =====
+local consumed = A.dispatch('confirm', 'K36')
+ok(consumed == true and #bKeys == 1 and #aKeys == 0, 'C1 栈顶消费后下层收不到')
+local notConsumed = A.dispatch('left', 'K38')
+ok(notConsumed == false and #bKeys == 2, 'C2 栈顶返回 false ⇒ 视为未消费（不阻塞全局兜底）')
+S.pop()
+A.render()
+A.dispatch('left', 'K38')
+ok(#aKeys == 1, 'C3 回到 a 后动作重新落到 a')
+
+-- ===== D input_map 接线：每键只注册一次 =====
+local pressed = {}
+local fakeInput = {
+  bindAll = function(dispatch)
+    -- 模拟两张动作表：left 有两个键名、confirm 一个
+    dispatch('left', 'KeyboardMoveLeftKeyDown')
+    dispatch('confirm', 'KeyboardCraftspersonKey36Down')
+    return true
+  end,
+}
+local extra = {}
+A.bindInput(fakeInput, function(action)
+  extra[#extra + 1] = action
+  return false
+end)
+ok(#aKeys >= 2, 'D1 bindInput 把动作送进场景栈（a 收到 left/confirm）', #aKeys)
+ok(#extra == 1, 'D2 未被消费的动作交给 extraAction（confirm 在 a 里不消费）', #extra)
+
+-- ===== E 渲染抛错不打断 tick =====
+A.register {
+  name = 'bad',
+  -- 故意用未注册的层名 ⇒ view_layers.order 抛错 ⇒ 整个 view 合成失败
+  view = function()
+    return { { key = 'x', layer = 'no-such-layer', tpl = 'cell', name = 'x',
+      pos = { 0, 0 }, size = { 1, 1 }, color = 0 } }
+  end,
+}
+S.push('bad')
+local okTick = A.tick(1 / 60)
+ok(okTick == false, 'E1 渲染失败时 tick 返回 false（不静默）')
+local sawFail = false
+for i = 1, #logs do
+  if tostring(logs[i]):find('app render fail', 1, true) then sawFail = true end
+end
+ok(sawFail, 'E2 渲染失败被记入日志（可审计）')
+S.pop()
+
+-- ===== F stats 可审计 =====
+local st = A.stats()
+ok(type(st) == 'table' and st.depth ~= nil and st.render ~= nil, 'F1 stats 含 栈深/渲染计数')
+ok(st.render.created and st.render.created > 0, 'F2 渲染计数可见', st.render and st.render.created)
+
+print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
+os.exit(fail == 0 and 0 or 1)
