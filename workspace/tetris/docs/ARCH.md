@@ -161,8 +161,27 @@ node = {
 | headless 单测 | 14 个文件、~750 条断言、**0.05s**（`lua5.3 tests-lua/run_all.lua`） |
 | 模拟器用例 | 70 个；抽样 01/02/04/06/07/14 全绿；全量需 ~390s |
 | headless 用例驱动器 | `tests-lua/run_cases.lua` —— **70 例 69/70 · 7.8s（jobs=8，模拟器 387s ⇒ 49×）**，仅 `57-copy-garbage` 留模拟器（见 §6.1）；`--jobs=1` 19.7s、`--source=save` 同源对照 |
-| main.lua | 6707 行 / locals 155；6 条玩法 reducer 已接（spawn/lockAndClear/step·move·rotate/newGame/hardDrop/gravity），全量待复跑 |
+| main.lua | ~6700 行 / locals 155；6 条玩法 reducer + 键位收表已接（90→84 次注册、0 重复），全量 70/70 · 376.6s（lead 复跑） |
+| 屏幕描述 | 5/6 已纯描述化：board / help / settle / title / preview / roster（合计 ~2650 行、~350 条 headless 断言）|
 | 已消灭的重复 | 键位真源 5→1（含发现的第 6 份 `P2_KEYS`）；模板实例化 35 处 → 棋盘部分走 render |
 | 已发现的坏域（待修） | 技能 10 条（gravityMult 只读/mark-blink 只 print/SK.cost 0 写/36 句失败文案全死…）；AI 四消射击分支不可达；输入 6 键重复注册/2 条手柄死映射；层序假成功日志（已删） |
 
 **下一步（按依赖排序）**：① core-play 把 play 逻辑接线完毕（stepDown/move/rotate → 重力/锁定 → doLock/clear → spawn/newGame）② core-ai 接 AI（含把不可达的射击分支修成 opt-in）③ input-map 按 `input-wiring-plan.md` 收表（90 次注册→84，6 键重复归零）④ core-skills 接技能并补机制缺口 ⑤ 屏迁移（结算→标题→说明页→角色页→双屏→移动端）⑥ `main.lua` 瘦身成 boot+tick。
+
+## 10. 两条新架构约束（2026-10-31 晚，踩过才写下的）
+
+**10.1 覆盖屏必须用独立 render 实例。**
+基础层（棋盘/预览/HUD）是「每帧增量更新同一张 key 表」；覆盖屏（帮助/结算/档案页/标题）是「整屏一次性重建」。
+共用一张表时，覆盖屏的 apply 会把基础层节点当成「不在列表里」全部销毁（表现是"开浮层时棋盘偶尔整片消失"，极难归因）。
+`app.openOverlay(name, def, nodes)` 已内建两条纪律：**先 clear 再 apply**（说明页 271–289 节点 + 常驻 240 ⇒ 撞引擎上限 430）、**close 只清自己那份**。
+
+**10.2 HUD 文本走服务端 textbox，不能纯描述化。**
+`renderHud()` 实际是往 12 个服务端 textbox 里写字符串（`hud`/`hudNext`/`best`/`keyA-C`），而**服务端 textbox 在真机上恒在运行时实例之下**（`SERVER_TEXT_CEILING=0`）。
+⇒ 想让 HUD 也吃 `view_layers` 的语义层号，必须先把它换成运行时实例（`view_hud.lua` 里的格式化函数就是为此准备的）；在那之前，HUD 保持现状、`view_hud` 只做文案契约。
+**别在没有这个前提的情况下把 HUD 塞进 render.apply** —— 它会和棋盘抢同一张 key 表。
+
+## 11. 键位（2026-10-31 收表结果）
+
+- **一张动作表**：`input_map.lua` 的 22 动作 / 47 键（42 down + 5 up），`INPUT:bindAll(dispatch)` **一次注册**。
+- 实测 `listen ok=84 fail=0`（原 90；差的 6 个是 `CraftspersonKey{11,12,13,14,16,30}` 被"技能真动作"与"43 键兜底循环"各注册一次）。兜底池现在由 `fallbackPool()` 从动作表派生（27 条），不再手抄。
+- **未接**：触屏 dispatch 仍在 `UI4.dispatch → UI4.runAct`，因为 `act()/coopAllowed()` 用**键盘键名**判 P2 与 coop 越权——直接塞 `touch:left` 会被当越权吞掉。要接必须先改这两个函数的签名（接受"来源"与"键名"两个参数）。
