@@ -181,7 +181,10 @@ function M.new(env)
           env.addCursor(ctl, 'CursorDown', function() paint(-0.12) end)
           env.addCursor(ctl, 'CursorUp', function() paint(-0.06) end)
         end
-        if ROSTERV.actions and ROSTERV.actions[hitName] then
+        -- 条目卡的热区在描述里已经带 on={CursorClick=…}（view_roster 的 hit 工厂会挂），
+        -- 这里再挂一次就会出现「点一次、开两次浮层」——实测日志连着两条 char detail open 1。
+        local hasOwnClick = n.on and n.on.CursorClick
+        if not hasOwnClick and ROSTERV.actions and ROSTERV.actions[hitName] then
           env.addCursor(ctl, 'CursorClick', ROSTERV.actions[hitName])
         end
       end
