@@ -1346,7 +1346,7 @@ local function stepDown(manual)
     g.piece.y = g.piece.y + 1
     if manual then g.score = g.score + NUM.SOFT end
     renderPiece()
-    print('fall y=' .. g.piece.y)
+    if CFG.VERBOSE then print('fall y=' .. g.piece.y) end
   else
     if manual then
       doLock()
@@ -5147,7 +5147,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
         g.AI.nudge = (aiRand(100) <= lv.nudgePct)   -- 软降途中顺手横调 1 格（hard 档 0%：落点不被噪声破坏）
         g.AI.nudgeAt = aiRand(3)
       end
-      print('demo act drop=' .. g.AI.pace.drop)
+      if CFG.VERBOSE then print('demo act drop=' .. g.AI.pace.drop) end
       return
     end
     if a.kind == 'rot' then
@@ -5158,7 +5158,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
           g.piece.cells = nc
           renderPiece()
         end
-        print('demo act rot x=' .. g.piece.x)
+        if CFG.VERBOSE then print('demo act rot x=' .. g.piece.x) end
       end
       if g.AI.t >= a.wait then nextAction() end
       return
@@ -5174,7 +5174,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
         renderPiece()
         g.AI.pace.gaps = g.AI.pace.gaps + 1
         g.AI.pace.sumGap = g.AI.pace.sumGap + (a.gap or 0)
-        print('demo act move x=' .. g.piece.x)
+        if CFG.VERBOSE then print('demo act move x=' .. g.piece.x) end
       end
       if g.AI.t >= a.wait then nextAction() end
       return
@@ -5194,7 +5194,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
             renderPiece()
           end
           a.left = a.left - 1
-          if a.left == 0 then print('demo act soft y=' .. g.piece.y) end
+          if CFG.VERBOSE then if a.left == 0 then print('demo act soft y=' .. g.piece.y) end end
         end
         return
       end
@@ -5203,7 +5203,7 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
       return
     end
     if a.kind == 'hover' then
-      if not a.done then a.done = true print('demo act hover ' .. aiFmt(a.wait)) end
+      if CFG.VERBOSE then if not a.done then a.done = true print('demo act hover ' .. aiFmt(a.wait)) end end
       if g.AI.t >= a.wait then nextAction() end
       return
     end

@@ -881,4 +881,8 @@ M.COL_EMPTY, M.COL_CYAN, M.COL_YELLOW, M.COL_PURPLE, M.COL_GREEN =
   COL_EMPTY, COL_CYAN, COL_YELLOW, COL_PURPLE, COL_GREEN
 M.COL_RED, M.COL_BLUE, M.COL_ORANGE, M.COL_BG, M.COL_GRAY =
   COL_RED, COL_BLUE, COL_ORANGE, COL_BG, COL_GRAY
+-- 真机日志瘦身（2026-10-31）：`demo act` / `fall y=` 属高频路径（25433 行里占 9465 行），
+-- 默认不打；需要复现 AI 节奏或下落轨迹时置 true。
+M.VERBOSE = false
+
 return M
