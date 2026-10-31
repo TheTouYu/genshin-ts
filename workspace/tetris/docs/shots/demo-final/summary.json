@@ -1,0 +1,965 @@
+{
+ "mode": "title",
+ "frames": 90,
+ "pixelChangedFrames": 24,
+ "firstPixelChangeFrame": 1,
+ "firstPixelChangeAt": 0.067,
+ "longestRun": 3,
+ "longestRunStartFrame": 3,
+ "changeSpanFrames": 88,
+ "maxIdleFrames": 12,
+ "maxIdleSeconds": 0.4,
+ "maxIdleStartFrame": 72,
+ "persistent": false,
+ "controlsTouched": [
+  {
+   "name": "menuHint3",
+   "changes": 78
+  },
+  {
+   "name": "menuHint2",
+   "changes": 78
+  },
+  {
+   "name": "menuHint1",
+   "changes": 78
+  },
+  {
+   "name": "cell46",
+   "changes": 4
+  },
+  {
+   "name": "cell45",
+   "changes": 3
+  },
+  {
+   "name": "cell44",
+   "changes": 3
+  },
+  {
+   "name": "cell25",
+   "changes": 6
+  },
+  {
+   "name": "cell37",
+   "changes": 5
+  },
+  {
+   "name": "cell35",
+   "changes": 6
+  },
+  {
+   "name": "cell48",
+   "changes": 3
+  },
+  {
+   "name": "cell47",
+   "changes": 3
+  },
+  {
+   "name": "cell39",
+   "changes": 3
+  },
+  {
+   "name": "cell38",
+   "changes": 3
+  },
+  {
+   "name": "cell36",
+   "changes": 6
+  },
+  {
+   "name": "cell58",
+   "changes": 3
+  },
+  {
+   "name": "cell57",
+   "changes": 3
+  },
+  {
+   "name": "cell49",
+   "changes": 3
+  },
+  {
+   "name": "cell68",
+   "changes": 3
+  },
+  {
+   "name": "cell67",
+   "changes": 3
+  },
+  {
+   "name": "cell59",
+   "changes": 3
+  },
+  {
+   "name": "cell78",
+   "changes": 3
+  },
+  {
+   "name": "cell77",
+   "changes": 3
+  },
+  {
+   "name": "cell69",
+   "changes": 3
+  },
+  {
+   "name": "cell79",
+   "changes": 3
+  },
+  {
+   "name": "cell70",
+   "changes": 3
+  },
+  {
+   "name": "next8",
+   "changes": 7
+  },
+  {
+   "name": "next7",
+   "changes": 7
+  },
+  {
+   "name": "next6",
+   "changes": 6
+  },
+  {
+   "name": "next5",
+   "changes": 6
+  },
+  {
+   "name": "next1",
+   "changes": 7
+  },
+  {
+   "name": "next4",
+   "changes": 7
+  },
+  {
+   "name": "next3",
+   "changes": 7
+  },
+  {
+   "name": "next2",
+   "changes": 6
+  },
+  {
+   "name": "cell189",
+   "changes": 2
+  },
+  {
+   "name": "cell188",
+   "changes": 3
+  },
+  {
+   "name": "cell180",
+   "changes": 3
+  },
+  {
+   "name": "cell179",
+   "changes": 3
+  },
+  {
+   "name": "cell16",
+   "changes": 7
+  },
+  {
+   "name": "cell15",
+   "changes": 7
+  },
+  {
+   "name": "cell14",
+   "changes": 6
+  },
+  {
+   "name": "cell5",
+   "changes": 4
+  },
+  {
+   "name": "hold4",
+   "changes": 3
+  },
+  {
+   "name": "hold3",
+   "changes": 3
+  },
+  {
+   "name": "hold2",
+   "changes": 3
+  },
+  {
+   "name": "hold1",
+   "changes": 3
+  },
+  {
+   "name": "cell4",
+   "changes": 3
+  },
+  {
+   "name": "cell26",
+   "changes": 5
+  },
+  {
+   "name": "cell24",
+   "changes": 5
+  },
+  {
+   "name": "cell34",
+   "changes": 5
+  },
+  {
+   "name": "cell33",
+   "changes": 3
+  },
+  {
+   "name": "cell23",
+   "changes": 3
+  },
+  {
+   "name": "cell32",
+   "changes": 3
+  },
+  {
+   "name": "cell31",
+   "changes": 3
+  },
+  {
+   "name": "cell21",
+   "changes": 3
+  },
+  {
+   "name": "cell43",
+   "changes": 3
+  },
+  {
+   "name": "cell42",
+   "changes": 3
+  },
+  {
+   "name": "cell41",
+   "changes": 3
+  },
+  {
+   "name": "cell53",
+   "changes": 3
+  },
+  {
+   "name": "cell52",
+   "changes": 3
+  },
+  {
+   "name": "cell51",
+   "changes": 3
+  },
+  {
+   "name": "cell63",
+   "changes": 3
+  },
+  {
+   "name": "cell62",
+   "changes": 3
+  },
+  {
+   "name": "cell61",
+   "changes": 3
+  },
+  {
+   "name": "cell193",
+   "changes": 3
+  },
+  {
+   "name": "cell192",
+   "changes": 3
+  },
+  {
+   "name": "cell191",
+   "changes": 2
+  },
+  {
+   "name": "cell181",
+   "changes": 3
+  },
+  {
+   "name": "cell17",
+   "changes": 3
+  },
+  {
+   "name": "cell27",
+   "changes": 3
+  },
+  {
+   "name": "frame4",
+   "changes": 1
+  },
+  {
+   "name": "frame3",
+   "changes": 1
+  },
+  {
+   "name": "frame2",
+   "changes": 1
+  },
+  {
+   "name": "frame1",
+   "changes": 1
+  },
+  {
+   "name": "cell200",
+   "changes": 1
+  },
+  {
+   "name": "cell199",
+   "changes": 2
+  },
+  {
+   "name": "cell198",
+   "changes": 2
+  },
+  {
+   "name": "cell197",
+   "changes": 1
+  },
+  {
+   "name": "cell196",
+   "changes": 1
+  },
+  {
+   "name": "cell195",
+   "changes": 1
+  },
+  {
+   "name": "cell194",
+   "changes": 1
+  },
+  {
+   "name": "cell190",
+   "changes": 2
+  },
+  {
+   "name": "cell187",
+   "changes": 1
+  },
+  {
+   "name": "cell186",
+   "changes": 1
+  },
+  {
+   "name": "cell185",
+   "changes": 1
+  },
+  {
+   "name": "cell184",
+   "changes": 1
+  },
+  {
+   "name": "cell183",
+   "changes": 1
+  },
+  {
+   "name": "cell182",
+   "changes": 1
+  },
+  {
+   "name": "cell178",
+   "changes": 1
+  },
+  {
+   "name": "cell177",
+   "changes": 1
+  },
+  {
+   "name": "cell176",
+   "changes": 1
+  },
+  {
+   "name": "cell175",
+   "changes": 1
+  },
+  {
+   "name": "cell174",
+   "changes": 1
+  },
+  {
+   "name": "cell173",
+   "changes": 1
+  },
+  {
+   "name": "cell172",
+   "changes": 1
+  },
+  {
+   "name": "cell171",
+   "changes": 1
+  },
+  {
+   "name": "cell170",
+   "changes": 1
+  },
+  {
+   "name": "cell169",
+   "changes": 1
+  },
+  {
+   "name": "cell168",
+   "changes": 1
+  },
+  {
+   "name": "cell167",
+   "changes": 1
+  },
+  {
+   "name": "cell166",
+   "changes": 1
+  },
+  {
+   "name": "cell165",
+   "changes": 1
+  },
+  {
+   "name": "cell164",
+   "changes": 1
+  },
+  {
+   "name": "cell163",
+   "changes": 1
+  },
+  {
+   "name": "cell162",
+   "changes": 1
+  },
+  {
+   "name": "cell161",
+   "changes": 1
+  },
+  {
+   "name": "cell160",
+   "changes": 1
+  },
+  {
+   "name": "cell159",
+   "changes": 1
+  },
+  {
+   "name": "cell158",
+   "changes": 1
+  },
+  {
+   "name": "cell157",
+   "changes": 1
+  },
+  {
+   "name": "cell156",
+   "changes": 1
+  },
+  {
+   "name": "cell155",
+   "changes": 1
+  },
+  {
+   "name": "cell154",
+   "changes": 1
+  },
+  {
+   "name": "cell153",
+   "changes": 1
+  },
+  {
+   "name": "cell152",
+   "changes": 1
+  },
+  {
+   "name": "cell151",
+   "changes": 1
+  },
+  {
+   "name": "cell150",
+   "changes": 1
+  },
+  {
+   "name": "cell149",
+   "changes": 1
+  },
+  {
+   "name": "cell148",
+   "changes": 1
+  },
+  {
+   "name": "cell147",
+   "changes": 1
+  },
+  {
+   "name": "cell146",
+   "changes": 1
+  },
+  {
+   "name": "cell145",
+   "changes": 1
+  },
+  {
+   "name": "cell144",
+   "changes": 1
+  },
+  {
+   "name": "cell143",
+   "changes": 1
+  },
+  {
+   "name": "cell142",
+   "changes": 1
+  },
+  {
+   "name": "cell141",
+   "changes": 1
+  },
+  {
+   "name": "cell140",
+   "changes": 1
+  },
+  {
+   "name": "cell139",
+   "changes": 1
+  },
+  {
+   "name": "cell138",
+   "changes": 1
+  },
+  {
+   "name": "cell137",
+   "changes": 1
+  },
+  {
+   "name": "cell136",
+   "changes": 1
+  },
+  {
+   "name": "cell135",
+   "changes": 1
+  },
+  {
+   "name": "cell134",
+   "changes": 1
+  },
+  {
+   "name": "cell133",
+   "changes": 1
+  },
+  {
+   "name": "cell132",
+   "changes": 1
+  },
+  {
+   "name": "cell131",
+   "changes": 1
+  },
+  {
+   "name": "cell130",
+   "changes": 1
+  },
+  {
+   "name": "cell129",
+   "changes": 1
+  },
+  {
+   "name": "cell128",
+   "changes": 1
+  },
+  {
+   "name": "cell127",
+   "changes": 1
+  },
+  {
+   "name": "cell126",
+   "changes": 1
+  },
+  {
+   "name": "cell125",
+   "changes": 1
+  },
+  {
+   "name": "cell124",
+   "changes": 1
+  },
+  {
+   "name": "cell123",
+   "changes": 1
+  },
+  {
+   "name": "cell122",
+   "changes": 1
+  },
+  {
+   "name": "cell121",
+   "changes": 1
+  },
+  {
+   "name": "cell120",
+   "changes": 1
+  },
+  {
+   "name": "cell119",
+   "changes": 1
+  },
+  {
+   "name": "cell118",
+   "changes": 1
+  },
+  {
+   "name": "cell117",
+   "changes": 1
+  },
+  {
+   "name": "cell116",
+   "changes": 1
+  },
+  {
+   "name": "cell115",
+   "changes": 1
+  },
+  {
+   "name": "cell114",
+   "changes": 1
+  },
+  {
+   "name": "cell113",
+   "changes": 1
+  },
+  {
+   "name": "cell112",
+   "changes": 1
+  },
+  {
+   "name": "cell111",
+   "changes": 1
+  },
+  {
+   "name": "cell110",
+   "changes": 1
+  },
+  {
+   "name": "cell109",
+   "changes": 1
+  },
+  {
+   "name": "cell108",
+   "changes": 1
+  },
+  {
+   "name": "cell107",
+   "changes": 1
+  },
+  {
+   "name": "cell106",
+   "changes": 1
+  },
+  {
+   "name": "cell105",
+   "changes": 1
+  },
+  {
+   "name": "cell104",
+   "changes": 1
+  },
+  {
+   "name": "cell103",
+   "changes": 1
+  },
+  {
+   "name": "cell102",
+   "changes": 1
+  },
+  {
+   "name": "cell101",
+   "changes": 1
+  },
+  {
+   "name": "cell100",
+   "changes": 1
+  },
+  {
+   "name": "cell99",
+   "changes": 1
+  },
+  {
+   "name": "cell98",
+   "changes": 1
+  },
+  {
+   "name": "cell97",
+   "changes": 1
+  },
+  {
+   "name": "cell96",
+   "changes": 1
+  },
+  {
+   "name": "cell95",
+   "changes": 1
+  },
+  {
+   "name": "cell94",
+   "changes": 1
+  },
+  {
+   "name": "cell93",
+   "changes": 1
+  },
+  {
+   "name": "cell92",
+   "changes": 1
+  },
+  {
+   "name": "cell91",
+   "changes": 1
+  },
+  {
+   "name": "cell90",
+   "changes": 1
+  },
+  {
+   "name": "cell89",
+   "changes": 1
+  },
+  {
+   "name": "cell88",
+   "changes": 1
+  },
+  {
+   "name": "cell87",
+   "changes": 1
+  },
+  {
+   "name": "cell86",
+   "changes": 1
+  },
+  {
+   "name": "cell85",
+   "changes": 1
+  },
+  {
+   "name": "cell84",
+   "changes": 1
+  },
+  {
+   "name": "cell83",
+   "changes": 1
+  },
+  {
+   "name": "cell82",
+   "changes": 1
+  },
+  {
+   "name": "cell81",
+   "changes": 1
+  },
+  {
+   "name": "cell80",
+   "changes": 1
+  },
+  {
+   "name": "cell76",
+   "changes": 1
+  },
+  {
+   "name": "cell75",
+   "changes": 1
+  },
+  {
+   "name": "cell74",
+   "changes": 1
+  },
+  {
+   "name": "cell73",
+   "changes": 1
+  },
+  {
+   "name": "cell72",
+   "changes": 1
+  },
+  {
+   "name": "cell71",
+   "changes": 1
+  },
+  {
+   "name": "cell66",
+   "changes": 1
+  },
+  {
+   "name": "cell65",
+   "changes": 1
+  },
+  {
+   "name": "cell64",
+   "changes": 1
+  },
+  {
+   "name": "cell60",
+   "changes": 1
+  },
+  {
+   "name": "cell56",
+   "changes": 1
+  },
+  {
+   "name": "cell55",
+   "changes": 1
+  },
+  {
+   "name": "cell54",
+   "changes": 1
+  },
+  {
+   "name": "cell50",
+   "changes": 1
+  },
+  {
+   "name": "cell40",
+   "changes": 1
+  },
+  {
+   "name": "cell30",
+   "changes": 1
+  },
+  {
+   "name": "cell29",
+   "changes": 1
+  },
+  {
+   "name": "cell28",
+   "changes": 1
+  },
+  {
+   "name": "cell22",
+   "changes": 1
+  },
+  {
+   "name": "cell20",
+   "changes": 1
+  },
+  {
+   "name": "cell19",
+   "changes": 1
+  },
+  {
+   "name": "cell18",
+   "changes": 1
+  },
+  {
+   "name": "cell13",
+   "changes": 1
+  },
+  {
+   "name": "cell12",
+   "changes": 1
+  },
+  {
+   "name": "cell11",
+   "changes": 1
+  },
+  {
+   "name": "cell10",
+   "changes": 1
+  },
+  {
+   "name": "cell9",
+   "changes": 1
+  },
+  {
+   "name": "cell8",
+   "changes": 1
+  },
+  {
+   "name": "cell7",
+   "changes": 1
+  },
+  {
+   "name": "cell6",
+   "changes": 2
+  },
+  {
+   "name": "cell3",
+   "changes": 1
+  },
+  {
+   "name": "cell2",
+   "changes": 1
+  },
+  {
+   "name": "cell1",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [],
+ "skillLogLines": [],
+ "castOk": false,
+ "aiStart": null,
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": null,
+ "skillEffect": "unknown（与对照无差异）",
+ "audio": {
+  "newCount": 4,
+  "ids": [
+   50872,
+   50883,
+   50917
+  ],
+  "sample": [
+   {
+    "instanceId": 2,
+    "audioId": 50872,
+    "startedAt": 2.1666666666666687,
+    "duration": 1.024,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 3,
+    "audioId": 50883,
+    "startedAt": 2.4333333333333345,
+    "duration": 0.151,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 50872,
+    "startedAt": 3.599999999999997,
+    "duration": 1.024,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 5,
+    "audioId": 50917,
+    "startedAt": 4.66666666666666,
+    "duration": 0.785,
+    "alive": true,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": null,
+ "slot": 1,
+ "canvas": {
+  "id": "pc-16-9",
+  "width": 1600,
+  "height": 900,
+  "mobile": false
+ },
+ "roleSwitch": null,
+ "elapsedMs": 15214,
+ "saveFreshness": {
+  "ok": true,
+  "stale": [],
+  "checked": 8
+ },
+ "keyFrames": [
+  "frame-f001.png",
+  "frame-f012.png",
+  "frame-f024.png",
+  "frame-f090.png"
+ ]
+}

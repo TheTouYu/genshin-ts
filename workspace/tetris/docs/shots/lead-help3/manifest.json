@@ -1,0 +1,123 @@
+{
+ "format": "qxqy-shots-v5",
+ "version": 1,
+ "generatedAt": "2026-10-29T07:53:19.771Z",
+ "out": "/home/h/genshin-ts/workspace/tetris/docs/shots/lead-help3",
+ "saveFreshness": {
+  "ok": true,
+  "stale": [],
+  "checked": 8
+ },
+ "canvases": {
+  "pc-16-9": {
+   "canvasId": "pc-16-9",
+   "preset": {
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "screens": {
+    "help": {
+     "canvasId": "pc-16-9",
+     "screen": "help",
+     "reached": true,
+     "note": "guide help on",
+     "png": "/home/h/genshin-ts/workspace/tetris/docs/shots/lead-help3/pc-16-9/help.png",
+     "pngBytes": 344785,
+     "size": {
+      "width": 1600,
+      "height": 900
+     },
+     "nodes": 595,
+     "textboxes": 77,
+     "zones": 601,
+     "textFitsBad": 0,
+     "readings": {
+      "mode": "off",
+      "bgCoverOk": true,
+      "bgCover": {
+       "bs": 1.25,
+       "w": 1600,
+       "h": 900
+      },
+      "bgCoverGap": null,
+      "phoneBuildN": null,
+      "phoneHelp": null,
+      "phoneBreakdown": null,
+      "padNoteWhich": null,
+      "gameOver": false,
+      "helpOpen": true,
+      "rosterOpen": false,
+      "skillCastOk": false,
+      "phonePlayBar": true,
+      "phoneZones": []
+     },
+     "texts": [
+      "合上手册 ✕",
+      "难度侵蚀：连续 14/10/7 块不消行 → 顶起一行垃圾　·　Lv5 起开局预置 1~3 行带洞障碍",
+      "连续两次四消 ×1.5　·　T 块三角落定额外 +400×行数×等级　·　新块出生位置被占满即判负",
+      "触底 0.5 秒内还能救",
+      "垃圾行 2/3/4 消 → 1/2/4 行",
+      "连击 +50×链×等级",
+      "× 等级：每 10 行 +1，上限 12",
+      "消 4 行 = 800 分",
+      "消 3 行 = 500 分",
+      "消 2 行 = 300 分",
+      "消 1 行 = 100 分",
+      "怎么算分",
+      "左盘顶满 = 失败",
+      "共守左盘 · 抗右盘 AI",
+      "P2 = 行动手（←→/↓/X）",
+      "P1 = 旋转手（W / G）",
+      "双人合作",
+      "4",
+      "先顶满的一方失败",
+      "互送垃圾行 · 同屏 PK",
+      "P2：← → 移动 · ↑ 旋转",
+      "P1：A D 移动 · W 旋转",
+      "双人对战",
+      "3",
+      "任一方顶满 = 分胜负",
+      "消 2/3/4 送它垃圾行",
+      "hard 档 AI 对战",
+      "双屏 · 镜像出块",
+      "AI 对抗",
+      "2",
+      "分数照记",
+      "再 3 秒 AI 代打",
+      "停手 3 秒出现提示",
+      "AI 陪练，随时接管",
+      "休闲",
+      "1",
+      "说明 · 局内暂停",
+      "H",
+      "重开 / 回标题",
+      "V",
+      "R",
+      "暂存",
+      "G",
+      "直落",
+      "空格",
+      "软降",
+      "↓",
+      "旋转",
+      "↑",
+      "移动",
+      "→",
+      "←",
+      "操作 · 须知",
+      "派蒙：左边是大家都用的按键，双人模式的分工写在各自的委托卡里！",
+      "H / E 合上手册 · 局内开页 = 暂停",
+      "四种玩法 · 全部规则 · 一页读完",
+      "旅行者手册",
+      "冒险家协会 · 委托板",
+      "TEYVAT SKY · 四元素街机",
+      "旋转手+行动手 · 共盘抗 AI"
+     ]
+    }
+   },
+   "sheet": null
+  }
+ },
+ "failures": []
+}

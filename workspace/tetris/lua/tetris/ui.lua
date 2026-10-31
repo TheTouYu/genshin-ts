@@ -637,8 +637,10 @@ M.new = function(spec)
   -- **立刻变 invalid**，再写就是 `attempt to call method ... on an invalid object`（模拟器不报）。
   -- 这里统一守卫：任何一件写失败就把整颗键标记 dead 并跳过，避免每帧刷错误。
   local function ok(c) return c ~= nil and b_pcall_ok(c) end
+  -- ⚠ 探活必须**只读**：用 SetAnchoredPosition 当探针会把控件真的挪到 (0,0)
+  -- （本轮实测：手机按钮热区全部落到画布中心 640,360，按键点不动）。
   b_pcall_ok = function(c)
-    local okk = pcall(function() c:SetAnchoredPosition(0, 0) end)
+    local okk = pcall(function() return c:GetAnchoredPosition() end)
     return okk
   end
   placeBtnNow = function(b, hidden)
@@ -646,9 +648,6 @@ M.new = function(spec)
     local x = b.gx or 0
     local y = hidden and PARK_Y or (b.gy or 0)
     local w, h = b.gw or 120, b.gh or 56
-    local alive = true
-    if b.bg and not b_pcall_ok(b.bg) then alive = false end
-    if not alive then b.dead = true return end
     placePill(b.edge, x, y)
     placePill(b.bg, x, y)
     if b.txt then

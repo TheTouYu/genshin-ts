@@ -1,0 +1,895 @@
+{{面包屑|刻晴|角色语音}}{{角色导航}}{{语音tab样式}}__notoc__
+<div class="resp-tabs" style="border-spacing: 0px;">
+<ul class="resp-tabs-list clearfix">
+<li class="active bili-list-style"><span class="tab-panel">角色语音</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素战技</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素爆发</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >打开宝箱</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >同伴生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >倒下</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >受击</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >加入队伍</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >其他</span></li>
+</ul>
+{{角色语音表头	
+|汉语CV=谢莹
+|日语CV=喜多村英梨
+|英语CV=凯莉·米尔斯
+|韩语CV=李甫熙
+}}	
+<div class="resp-tabs-container">
+<div class="resp-tab-content" style="display:block;">
+{{角色/语音
+|语音类型=初次见面…
+|语音文件={{player|刻晴_初次见面…}}
+|语音文件日语={{player|日_刻晴_初次见面…}}
+|语音文件英语={{player|英_刻晴_初次见面…}}
+|语音文件韩语={{player|韩_刻晴_初次见面…}}
+|语音内容=我是刻晴，璃月七星中的「玉衡」。变革的时机已经到来，维持了千年的秩序即将被改写。这历史性的时刻，你愿意和我一起见证吗?
+|语音内容日语=私は刻晴、璃月七星の「玉衡」よ。変革の時は来た、千年続いてきた秩序はついに終わる。この歴史的瞬間を、私と共に見届けるわよね？
+|语音内容英语=I am Keqing, Yuheng of the Liyue Qixing. We live in an era of change, as the old order that has existed for a thousand years is about to be rewritten. Join me. Let us bear witness to this historical moment together.
+|语音内容韩语=난 리월 칠성의 「옥형」 각청이라고 해. 변혁의 시대가 다가왔어. 이제 천 년을 이어온 질서가 곧 바뀔 거야. 이 역사적인 순간을 나와 함께 보지 않을래?
+}}
+{{角色/语音
+|语音类型=早上好…
+|语音文件={{player|刻晴_早上好…}}
+|语音文件日语={{player|日_刻晴_早上好…}}
+|语音文件英语={{player|英_刻晴_早上好…}}
+|语音文件韩语={{player|韩_刻晴_早上好…}}
+|语音内容=早安，早上的状态会为一天奠定基调，就算仍有困意，也要强迫自己打起精神来!
+|语音内容日语=おはよう、朝の状態は一日の良し悪しを左右するわ。だから眠くても元気出して起きるのよ！
+|语音内容英语=Morning. Time to set the tone for the rest of the day, so if you're still feeling sleepy, shake it off!
+|语音内容韩语=좋은 아침. 아침 컨디션은 하루의 기분을 결정하니까 피곤하더라도 정신 차리라구!
+}}
+{{角色/语音
+|语音类型=中午好…
+|语音文件={{player|刻晴_中午好…}}
+|语音文件日语={{player|日_刻晴_中午好…}}
+|语音文件英语={{player|英_刻晴_中午好…}}
+|语音文件韩语={{player|韩_刻晴_中午好…}}
+|语音内容=我没有午休的习惯，不过如果你累了，就去休息吧，三分钟之后我会叫醒你的。
+|语音内容日语=私にはお昼休みの習慣がないの。でも、もし疲れてるなら休んでもいいわよ。三分後に起こすから。
+|语音内容英语=I'm not in the habit of napping at noon, but don't let that stop you if you're feeling tired. I'll give you a wake-up call in, say, three minutes' time.
+|语音内容韩语=난 점심에도 쉬지 않아. 하지만 너는 피곤하면 가서 쉬어도 돼. 내가 3분 후에 깨워줄게
+}}
+{{角色/语音
+|语音类型=晚上好…
+|语音文件={{player|刻晴_晚上好…}}
+|语音文件日语={{player|日_刻晴_晚上好…}}
+|语音文件英语={{player|英_刻晴_晚上好…}}
+|语音文件韩语={{player|韩_刻晴_晚上好…}}
+|语音内容=夜幕降临，灯火初上。嗯——又是安宁祥和的一天呢。
+|语音内容日语=夜が訪れ、灯火がともる。うーん、今日も穏やかな一日だったわね。
+|语音内容英语=The lights are coming on now that the night is setting in. *yawn* Another delightful day draws to a close.
+|语音内容韩语=어둠이 내리니 등불이 켜지네. 음——오늘도 평온한 하루였어
+}}
+{{角色/语音
+|语音类型=晚安…
+|语音文件={{player|刻晴_晚安…}}
+|语音文件日语={{player|日_刻晴_晚安…}}
+|语音文件英语={{player|英_刻晴_晚安…}}
+|语音文件韩语={{player|韩_刻晴_晚安…}}
+|语音内容=祝你好梦。我吗？…嗯，还有十来件事要处理，做完就能休息了。
+|语音内容日语=おやすみ、いい夢を。私？…えっと、あと10件仕事が終わったら休めるわね。
+|语音内容英语=Sleep well. ...Me? Uh... I still have a handful of things on my to-do list, but I'll call it a night once they're done.
+|语音内容韩语=좋은 꿈 꿔. 나? …음, 아직 해야 할 일이 많아. 다해야 쉴 수 있어
+}}
+{{角色/语音
+|语音类型=闲聊·耽误
+|语音文件={{player|刻晴_闲聊·耽误}}
+|语音文件日语={{player|日_刻晴_闲聊·耽误}}
+|语音文件英语={{player|英_刻晴_闲聊·耽误}}
+|语音文件韩语={{player|韩_刻晴_闲聊·耽误}}
+|语音内容=耽误太多时间，事情可就做不完了。
+|语音内容日语=無駄な時間を過ごしてると、仕事が終わらないわよ。
+|语音内容英语=Come on. Enough procrastinating. Let's go.
+|语音内容韩语=시간을 지체했다간 일을 끝마치지 못할 거야
+}}
+{{角色/语音
+|语音类型=闲聊·放松
+|语音文件={{player|刻晴_闲聊·放松}}
+|语音文件日语={{player|日_刻晴_闲聊·放松}}
+|语音文件英语={{player|英_刻晴_闲聊·放松}}
+|语音文件韩语={{player|韩_刻晴_闲聊·放松}}
+|语音内容=劳逸结合是不错，但也别放松过头。
+|语音内容日语=休むことも大事だけど、気を抜きすぎてはダメよ。
+|语音内容英语=I'm all for work-life balance, but I think this is pushing it.
+|语音内容韩语=쉬면서 하는 것도 좋지만 긴장을 너무 늦춰선 안 돼
+}}
+{{角色/语音
+|语音类型=闲聊·机会
+|语音文件={{player|刻晴_闲聊·机会}}
+|语音文件日语={{player|日_刻晴_闲聊·机会}}
+|语音文件英语={{player|英_刻晴_闲聊·机会}}
+|语音文件韩语={{player|韩_刻晴_闲聊·机会}}
+|语音内容=无论是冒险还是做生意，机会都稍纵即逝。
+|语音内容日语=冒険も商売も、チャンスは一瞬なの。
+|语音内容英语=In adventuring, as in business, you always have to seize the opportunity while it's there.
+|语音内容韩语=모험이든 장사든, 방심했다간 기회는 사라져 버려
+}}
+{{角色/语音
+|语音类型=下雨的时候…
+|语音文件={{player|刻晴_下雨的时候…}}
+|语音文件日语={{player|日_刻晴_下雨的时候…}}
+|语音文件英语={{player|英_刻晴_下雨的时候…}}
+|语音文件韩语={{player|韩_刻晴_下雨的时候…}}
+|语音内容=好大的雨…真耽误事。所以说他们的工作，明明昨天就能做完，为什么要拖到今天？
+|语音内容日语=すごい大雨…困ったわね。そもそも、昨日終わるはずだった仕事を、どうしてあの人たちは今日まで引き伸ばしたのかしら？
+|语音内容英语=Quite a downpour... Nothing will get done until it clears. Let this be a lesson to those who yesterday said, "I'll do it tomorrow."
+|语音内容韩语=비가 많이 오네… 이러다 늦겠어. 그래서 말인데 사람들은 어째서 어제 해야 할 일을 오늘로 미루는 거야?
+}}
+{{角色/语音
+|语音类型=打雷的时候…
+|语音文件={{player|刻晴_打雷的时候…}}
+|语音文件日语={{player|日_刻晴_打雷的时候…}}
+|语音文件英语={{player|英_刻晴_打雷的时候…}}
+|语音文件韩语={{player|韩_刻晴_打雷的时候…}}
+|语音内容=电闪雷鸣虽然有点吓人，但璃月港的防雷防火工事是一流的，不用担心。
+|语音内容日语=雷は怖いものだけど、璃月港の避雷と防火対策は一流だから心配無用よ。
+|语音内容英语=Thunder and lightning can be quite frightening, but don't worry — Liyue's storm and fire defenses are second to none.
+|语音内容韩语=천둥번개가 치는 건 무섭지만 리월항의 낙뢰, 화재 보호 시설은 최고니까 걱정할 필요 없어
+}}
+{{角色/语音
+|语音类型=下雪的时候…
+|语音文件={{player|刻晴_下雪的时候…}}
+|语音文件日语={{player|日_刻晴_下雪的时候…}}
+|语音文件英语={{player|英_刻晴_下雪的时候…}}
+|语音文件韩语={{player|韩_刻晴_下雪的时候…}}
+|语音内容=没关系，继续前进吧。这种程度的雪，算不了什么。
+|语音内容日语=大丈夫、旅を続けましょう。この程度の雪、気にする必要ないわ。
+|语音内容英语=Don't worry, snowfall on this scale is no impediment. We can keep moving.
+|语音内容韩语=괜찮아, 계속 앞으로 가자. 이 정도 눈은 아무것도 아니야
+}}
+{{角色/语音
+|语音类型=阳光很好…
+|语音文件={{player|刻晴_阳光很好…}}
+|语音文件日语={{player|日_刻晴_阳光很好…}}
+|语音文件英语={{player|英_刻晴_阳光很好…}}
+|语音文件韩语={{player|韩_刻晴_阳光很好…}}
+|语音内容=啊…天气这么好，工作又正好告一段落，要不要…去逛逛街呢？
+|语音内容日语=良い天気ね、仕事も一段落したし…買い物にでも行こうかしら？
+|语音内容英语=Ah, the sun is out. Our work's done for the day... shall we take a stroll?
+|语音内容韩语=날씨가 정말 좋아. 마침 일도 다 끝나가는데… 쇼핑이나 할까?
+}}
+
+{{角色/语音
+|语音类型=关于刻晴自己·理念
+|语音文件={{player|刻晴_关于刻晴自己·理念}}
+|语音文件日语={{player|日_刻晴_关于刻晴自己·理念}}
+|语音文件英语={{player|英_刻晴_关于刻晴自己·理念}}
+|语音文件韩语={{player|韩_刻晴_关于刻晴自己·理念}}
+|语音内容=觉得自己是正确的，就要大声地说出来，坚决地去行动——这是我一直以来都贯彻的人生理念。
+|语音内容日语=自分が正しいと思ったことなら、声を大にして、思い切りやるの——これが私が今まで貫いてきた人生の理念よ。
+|语音内容英语=If you feel strongly about something, you should speak up and take action. That's the philosophy I live by.
+|语音内容韩语=자신이 옳다고 생각하면 큰소리로 말하고 단호하게 행동해야 해——이건 내가 그동안 관철해 온 인생의 이념이야
+}}
+{{角色/语音
+|语音类型=关于刻晴自己·本职
+|语音文件={{player|刻晴_关于刻晴自己·本职}}
+|语音文件日语={{player|日_刻晴_关于刻晴自己·本职}}
+|语音文件英语={{player|英_刻晴_关于刻晴自己·本职}}
+|语音文件韩语={{player|韩_刻晴_关于刻晴自己·本职}}
+|语音内容=我的本职工作，是管理土地与建设。璃月幅员辽阔，物产丰饶，但若是缺乏合理规划，只重视眼前利益，就没办法抵抗风险。
+|语音内容日语=私の本職は土地管理と建設よ。璃月は人が多くて、領土が広く資源も豊富だけど、計画性に欠いた事業で目先の利益に飛びついていたら、手痛いしっぺ返しをくらうことになるわ。
+|语音内容英语=My role is to manage real estate and construction in Liyue. Sure, Liyue is a vast place with abundant resources — but without proper planning, and if too much focus is placed on short-term profit, a great many things can go wrong.
+|语音内容韩语=내 본업은 토지와 건설을 관리하는 거야. 리월은 광활하고 물자가 풍부하지만, 합리적인 계획 없이 눈앞의 이익만을 중시한다면 많은 문제가 생길 거야
+}}
+{{角色/语音
+|语音类型=关于刻晴自己·质疑
+|语音文件={{player|刻晴_关于刻晴自己·质疑}}
+|语音文件日语={{player|日_刻晴_关于刻晴自己·质疑}}
+|语音文件英语={{player|英_刻晴_关于刻晴自己·质疑}}
+|语音文件韩语={{player|韩_刻晴_关于刻晴自己·质疑}}
+|语音内容=在你看来，支撑璃月走过千年，最重要的东西是什么？…帝君？…我不这么觉得，因为必须依靠努力才能生存下去的，终究是我们人类啊。高高在上的他却要介入一切。哼，说句不好听的，他真的什么都懂吗？
+|语音内容日语=千年の歴史がある璃月にとって、一番重要なのは何だと思う？
+帝君？…いいえ、私はそう思わない。だって、我々人類は自分の力で今まで生きてきたのよ。なのに、彼は偉ぶって色んなことに口出しする。はあ、言い方が悪いかもしれないけど、彼って本当に何でも知ってるの？
+|语音内容英语=What do you think has kept Liyue going over the last millennium? Rex Lapis? ...I disagree. We mortals have to fight for survival whatever happens. He just feels the need to come down here and poke his nose into everything that's going on for some reason... Hmph, people don't like to think about this, but should we really be trusting him to be an expert in everything?
+|语音内容韩语=넌 리월이 천 년을 버틸 수 있던 가장 큰 요인이 뭐라고 생각해?
+…암왕제군? …난 그렇게 생각하지 않아. 노력으로 살아남은 건 우리 인간들이야. 혼자 저 높은 곳에 있는 그가 밑바닥 사정을 제대로 알기나 하겠어? 웃기는 소리
+}}
+{{角色/语音
+|语音类型=关于刻晴自己·反思
+|语音文件={{player|刻晴_关于刻晴自己·反思}}
+|语音文件日语={{player|日_刻晴_关于刻晴自己·反思}}
+|语音文件英语={{player|英_刻晴_关于刻晴自己·反思}}
+|语音文件韩语={{player|韩_刻晴_关于刻晴自己·反思}}
+|语音内容=真的接手璃月的各种事务之后，才深感帝君千年来的辛劳。最近我遇上的棘手问题数不胜数，我总会不自觉地去想：「若是帝君，这时候会怎么做呢？」说不定，他真的什么都懂，是我太不成熟了…
+|语音内容日语=璃月の様々な事務に携わってから、初めて帝君の苦労を痛感したわ。最近、問題にぶつかるたびに「帝君なら、どうするかな？」って考えるようになったの。もしかしたら、本当に彼は何でも知っているのかもしれない。ああ、私ったらまだまだ甘いわね…
+|语音内容英语=After I took on the management of so many of Liyue's affairs, I had a new-found respect for Rex Lapis and all his hard work over the last millennium. Recently, every time I come up against a difficult problem with no obvious solution, I find myself thinking: What would Rex Lapis do? Maybe he really IS an expert in everything, and I've got more left to learn than I realized...
+|语音内容韩语=리월의 각종 업무를 맡아보니 이제야 암왕제군의 노고를 실감할 수 있는 것 같아. 요즘은 골치 아픈 문제가 셀 수 없이 많아서 나도 모르게 「이럴 때 암왕제군께선 어떻게 하셨을까?」라고 생각하게 된다니까? 아마 암왕제군께선 정말로 모든 걸 다 알고 계셨을 거야. 내가 너무 철이 없었지…
+}}
+{{角色/语音
+|语音类型=关于我们·追寻
+|语音文件={{player|刻晴_关于我们·追寻}}
+|语音文件日语={{player|日_刻晴_关于我们·追寻}}
+|语音文件英语={{player|英_刻晴_关于我们·追寻}}
+|语音文件韩语={{player|韩_刻晴_关于我们·追寻}}
+|语音内容=我很欣赏你，面对神明，不笃信，不盲从，随时保持独立思考，有问题就大胆问出来，没有答案就会一直追寻下去。别不好意思，这才是正确的态度，毕竟，谁又能保证，神就不会犯错呢？
+|语音内容日语=君のことは気に入ってるわ。神のことを100%信じることなく、盲従もしない。自分なりの考えを持ち、問題を提起して、答えが出るまで模索し続ける姿勢が素敵よ。ふふっ、恥ずかしがることないわ、それこそ正しい生き様だもの。だって、神が過ちを犯さないなんてこと誰も証明できないでしょ？
+|语音内容英语=You know why I like you? It's because you don't believe something just because it was said by a god. You make up your own mind. You ask the questions everyone else is too cowardly to ask, and when you don't get an answer, you keep looking till you find one. Oh don't worry — your way is definitely the right way. Who says gods don't make mistakes, anyway?
+|语音内容韩语=나는 네가 맘에 들어. 신명을 마주하고도 맹목적으로 신뢰하거나 따르지 않잖아. 그리고 항상 독립적인 사고로 의문을 제기하고, 답을 찾기 위해 끊임없이 노력하지. 쑥스러워하지 마, 그게 올바른 태도니까. 신은 실수하지 않는다고 누가 장담할 수 있겠어?
+}}
+{{角色/语音
+|语音类型=关于我们·尝试
+|语音文件={{player|刻晴_关于我们·尝试}}
+|语音文件日语={{player|日_刻晴_关于我们·尝试}}
+|语音文件英语={{player|英_刻晴_关于我们·尝试}}
+|语音文件韩语={{player|韩_刻晴_关于我们·尝试}}
+|语音内容=这没什么难的，你试试就知道了。如果试过以后还不行的话…？不，你从没让我失望过，所以我相信你不是那样的人。
+|语音内容日语=そう難しくないから、試しにやってみれば分かるわよ。それでもダメな場合…？ううん、君は私の期待を裏切ったことないから絶対行けるはずよ。
+|语音内容英语=It's not difficult, you'll see. Just give it a try. What if you try and it doesn't work out? ...No, I don't believe that will happen. You've never let me down before. You don't seem the type.
+|语音内容韩语=별로 어렵지 않아. 해보면 알 수 있을 거야. 해보고도 안되면…? 아니, 넌 한 번도 날 실망시킨 적이 없으니, 난 네가 해낼 수 있을 거라 믿어
+}}
+{{角色/语音
+|语音类型=关于我们·鼓励
+|语音文件={{player|刻晴_关于我们·鼓励}}
+|语音文件日语={{player|日_刻晴_关于我们·鼓励}}
+|语音文件英语={{player|英_刻晴_关于我们·鼓励}}
+|语音文件韩语={{player|韩_刻晴_关于我们·鼓励}}
+|语音内容=过去的我太天真了。想要和帝君相提并论，我…真的有这个资格吗？…欸？嗯…你说得对，明明在其他事情上都很有自信，为什么我会为这件事烦恼。与其在这里垂头丧气，不如多做多学，努力追上他
+|语音内容日语=私が甘かったわ。帝君みたいになるなんて、私に…できるかしら？えっ？うん…確かにそうね‥他のことには自信が持てるのに、こんなことで悩んでいられない。悩むよりも行動するのみ！努力し続ければ、いつか彼にだって追いつけるはずよ！
+|语音内容英语=I used to be so naive. I genuinely believed I was on a par with Rex Lapis... Seems I really overestimated myself. Hmm? Yes... You're right! I have plenty of self-confidence in other areas, so why not in this? ...I can catch up with him — I WILL catch up with him! I just need to keep my chin up, keep trying, and keep learning!
+|语音内容韩语=옛날엔 내가 너무 순진했지. 암왕제군님과 동등한 위치에 서려고 하다니, 애초에… 내게 그런 자격이 있긴 한 걸까? 어? 음… 네 말이 맞아. 분명 다른 일엔 자신감이 넘치는데 왜 이 일로 고민하고 있는지 모르겠어. 여기서 이렇게 의기소침해 있느니 차라리 더 많은 것을 배워 그를 따라잡기 위해 노력하겠어!
+}}
+{{角色/语音
+|语音类型=关于「神之眼」·质疑
+|语音文件={{player|刻晴_关于「神之眼」·质疑}}
+|语音文件日语={{player|日_刻晴_关于「神之眼」·质疑}}
+|语音文件英语={{player|英_刻晴_关于「神之眼」·质疑}}
+|语音文件韩语={{player|韩_刻晴_关于「神之眼」·质疑}}
+|语音内容=都说「神之眼」是神的认可，我才不需要这种东西。不如说我还有点生气呢！就像我一直以来的工作成果，都是多亏了神的力量一样。明明是我自己的功劳，和神才没什么关系。
+|语音内容日语=神の目は神に認められた証だってみんな言うけど、そんな物いらない。まるで今まで私がやってきた成果が神のおかげだって言われてるみたいじゃない。ああっ、もうムカつく！自分が努力した結果であって、神とは関係ないっていうのに！
+|语音内容英语=If a Vision means the approval of the gods, then I don't see why I should want one. In fact, I find it quite insulting... It's like trying to say everything I've ever achieved is all thanks to the gods looking out for me! Well, I got to where I am today through my own hard work. The gods had nothing to do with it.
+|语音内容韩语=신에게 인정을 받아야만 「신의 눈」을 가질 수 있다고들 하는데 난 그딴거 필요 없어. 오히려 화가 나. 내가 이룬 성과가 다 신의 힘 때문이라고 폄하 당하는 것 같아. 다 내가 노력해서 이룬 거라구. 신은 아무 상관 없어
+}}
+{{角色/语音
+|语音类型=关于「神之眼」·反思
+|语音文件={{player|刻晴_关于「神之眼」·反思}}
+|语音文件日语={{player|日_刻晴_关于「神之眼」·反思}}
+|语音文件英语={{player|英_刻晴_关于「神之眼」·反思}}
+|语音文件韩语={{player|韩_刻晴_关于「神之眼」·反思}}
+|语音内容=原来…帝君是想让我用超乎常人的力量，去带领大家。哼，就算没有这份认可，我也可以把工作做得很好！等…等着看吧！我不会让他失望的！
+|语音内容日语=帝君は私に…常人を超えた力でみんなを導いて欲しかったのね。ふん、たとえ神に認められていなくても、私は仕事を全うできるのに！ま…待ってなさいよ！彼の期待に応えてみせるんだから！
+|语音内容英语=Oh, so... Rex Lapis wanted me to have power beyond the average mortal so that I can be a great leader? Huh... I like to think I'd do an admirable job even without his blessing! Yeah, I'll show him... I won't give him any reason to be disappointed with me...
+|语音内容韩语=암왕제군께선 내 비범한 힘으로 사람들을 이끌길 바라신 거야. 근데 그렇게 기대하지 않아도 난 잘 해낼 수 있다고. 두고 봐, 절대 실망시키지 않을 테니
+}}
+{{角色/语音
+|语音类型=有什么想要分享·倡议
+|语音文件={{player|刻晴_有什么想要分享·倡议}}
+|语音文件日语={{player|日_刻晴_有什么想要分享·倡议}}
+|语音文件英语={{player|英_刻晴_有什么想要分享·倡议}}
+|语音文件韩语={{player|韩_刻晴_有什么想要分享·倡议}}
+|语音内容=除开「璃月七星」的工作，我也会做很多公益方面的事，大多数的反响都还不错。但类似「每天多工作一个时辰」这样的倡议，就遇到了不小的阻力…唉，看来想法还是太超前了，要不然，下次改成半个时辰试试吧。
+|语音内容日语=「璃月七星」の仕事以外に私は公益活動もしてるの。ほとんどの活動でいい反響をもらったけど、「毎日の勤務時間を2時間増やす」っていう活動だけは大勢の人に反対されたわ。時代を追い越すような提案だったのかな…今度は1時間にしよう。
+|语音内容英语=In addition to my work with the Liyue Qixing, I do a lot of work for the public, too. Mostly the feedback is positive, but whenever I propose something like adding an extra hour to the workday, I come up against very strong resistance... I'm too forward-thinking, I suppose. Maybe I should start with a half hour instead?
+|语音内容韩语=난 「리월 칠성」의 업무 말고도 공익적인 일에도 힘쓰고 있어. 대부분은 반응이 괜찮았는데 「하루에 한 시간씩 더 일하자」라는 제안은 많이들 반대하더라구…. 에휴, 생각이 너무 앞서나갔나, 다음엔 30분씩 더 일하자고 제안해봐야겠어
+
+}}
+{{角色/语音
+|语音类型=有什么想要分享·纪念品
+|语音文件={{player|刻晴_有什么想要分享·纪念品}}
+|语音文件日语={{player|日_刻晴_有什么想要分享·纪念品}}
+|语音文件英语={{player|英_刻晴_有什么想要分享·纪念品}}
+|语音文件韩语={{player|韩_刻晴_有什么想要分享·纪念品}}
+|语音内容=帝君的纪念品？你该不会觉得，我的房间里都是这种东西吧？我早就不是小女孩了！虽然…呃，确实是新买了几个帝君的土偶，但、但这些都是用来自我提醒的！和崇拜，仰慕什么的，通通没关系！
+|语音内容日语=帝君のグッズ？私の部屋にそんなものがいっぱいあるとでも？私はもう子供じゃないのよ！た、確かに最近、新しい帝君の土偶を買ったけど、あれは自分自身を律するためであって、崇拝とか憧れとかじゃないんだから！
+|语音内容英语=What do you mean, Geo Archon paraphernalia? ...You're not suggesting my bedroom is full of that stuff, surely? I'm not a child anymore! Although... Okay, I did buy a couple of Rex Lapis figurines recently, but — but, they're just to keep me on the straight and narrow. Look, just because I own an idol or two does not mean that I idolize him, okay!?
+|语音内容韩语=암왕제군의 기념품? 내 방이 그런 거로 꽉 차 있을 거라 생각하는 건 아니겠지? 난 이제 어린애가 아냐! 음… 암왕제군님의 조각상을 몇 개 산 건 맞지만 이, 이건 다 자아 성찰용이라구! 숭배나 흠모 같은 게 아냐!
+}}
+{{角色/语音
+|语音类型=感兴趣的见闻…
+|语音文件={{player|刻晴_感兴趣的见闻…}}
+|语音文件日语={{player|日_刻晴_感兴趣的见闻…}}
+|语音文件英语={{player|英_刻晴_感兴趣的见闻…}}
+|语音文件韩语={{player|韩_刻晴_感兴趣的见闻…}}
+|语音内容=我听过一则流传在蒙德的故事：勇气让小鸟学会了飞翔。不过，应该是先有对浩瀚天空无与伦比的向往，才会有振翅的冲动和勇气吧。对我来说，璃月，就是那片天空。
+|语音内容日语=勇気があったから鳥が空を飛べるようになった、というモンドの物語を聞いたことあるわ。でも、果てしない空への憧憬があったからこそ、彼らの翼を羽ばたかせ、勇気が生まれたんだと思う。私にとって、璃月はその果てしない空と一緒なのよ。
+|语音内容英语=I once heard a Mondstadt fable about courage being what it takes for birds to learn to fly. But I think that you must first possess a yearning for the boundless skies before you would have any inclination, let alone the courage, to spread your wings and try to fly. For me, Liyue is that boundless sky.
+|语音内容韩语=용기가 작은 새를 날아오르게 했다는 몬드의 전설을 들은 적이 있어. 하지만 하늘 높은 곳에 대한 열망이 먼저 있었기에 날고 싶다는 충동과 용기가 있게 된 거 아닐까? 나한텐 리월이 바로 그 하늘이야
+}}
+{{角色/语音
+|语音类型=关于钟离…
+|语音文件={{player|刻晴_关于钟离…}}
+|语音文件日语={{player|日_刻晴_关于钟离…}}
+|语音文件英语={{player|英_刻晴_关于钟离…}}
+|语音文件韩语={{player|韩_刻晴_关于钟离…}}
+|语音内容=那位「往生堂」的先生，确实博学多才，令人敬佩，但他的思维方式，终究还是太像帝君的那一套了…如果他更有主见的话，将他招揽到我的身边做事，一定会大有帮助。
+|语音内容日语=あの「往生堂」の先生、確かに博学多才で、尊敬に値するわ。それに彼の考え方は帝君に似ている気がするの…もし彼がもっと自分なりの見解を持ってくれたら、きっと私の力になるはず。そうなったら、彼をそばに置くのも悪くないわね。
+|语音内容英语=The gentleman from the Wangsheng Funeral Parlor? Clearly, he's an extremely learned individual, and I do have a lot of respect for him. But his mindset is too traditional for me — he thinks in the same tired old terms as Rex Lapis did... If he were more of an original thinker, I'm sure he'd be a great asset to me in reaching my objectives.
+|语音内容韩语=그 「왕생당」의 종려 씨? 박학다식하고 존경할만한 사람이긴 하지만, 사고방식이 너무 암왕제군을 빼닮았어…. 그가 뚜렷한 주관으로 내 곁에서 일해준다면 큰 도움이 될 텐데
+}}
+{{角色/语音
+|语音类型=关于北斗…
+|语音文件={{player|刻晴_关于北斗…}}
+|语音文件日语={{player|日_刻晴_关于北斗…}}
+|语音文件英语={{player|英_刻晴_关于北斗…}}
+|语音文件韩语={{player|韩_刻晴_关于北斗…}}
+|语音内容=这位船长总是漠视规则，性格令人头疼，可她的「南十字」船队，对璃月港来说又是必不可少的。如何平衡规则和利益，也是一门艺术。哎呀，只不过那位负责律法的「天权」，可有的忙了。
+|语音内容日语=あの船長はいつもルールを無視するし、豪快な性格にも頭を悩まされるわ。でも彼女の「南十字」武装船隊は璃月にとって欠かせない存在なの。ルールと利益、その均衡を保つすべは正に芸術ね。あっ、ただ法を担当する「天権」にとっては悩みの種でしょうけど。
+|语音内容英语=That captain is always flouting the rules, and her personality really rubs people the wrong way. That said, The Crux Fleet is indispensable to Liyue Harbor. It's a bit of an art, knowing when to enforce the rules and when it's in everyone's interests to be more lenient. Thing is, the Tianquan is supposed to be the one enforcing the rules, but she always seems to be too busy...
+|语音内容韩语=그 선장은 항상 규칙을 무시해서 골치 아파. 하지만 그녀의 「남십자」함대는 리월항에 꼭 필요한 존재야. 규칙과 이익 사이를 균형 있게 유지하는 것도 예술이라고 할 수 있지. 다만 율법을 담당하는 「천권」은 꽤 바빠지겠지만 말이야
+}}
+{{角色/语音
+|语音类型=关于凝光·矛盾
+|语音文件={{player|刻晴_关于凝光·矛盾}}
+|语音文件日语={{player|日_刻晴_关于凝光·矛盾}}
+|语音文件英语={{player|英_刻晴_关于凝光·矛盾}}
+|语音文件韩语={{player|韩_刻晴_关于凝光·矛盾}}
+|语音内容=我和她虽然是同事，但性子真的合不来。在她的眼里，璃月港不过是她的生意场，只要是能赚钱的事，她什么都做。这岂不是太没原则了？唔…还是说，这就是她的原则？
+|语音内容日语=彼女とは同僚よ、でも「そり」が合わないの。彼女にとって璃月は所詮ただの商売の場所。金儲けのためなら彼女は何でもするわ。本当に理念のない人よ。うん…それとも、それが彼女の理念なのかしら？
+|语音内容英语=We do work together, but we couldn't be more opposite personality-wise. To her, Liyue Harbor is nothing more than a marketplace, and she'll do anything as long as it makes money for her. Doesn't she have any principles? Hmm, or maybe turning a profit IS her principle?
+|语音内容韩语=그녀와 동료 사이이긴 하지만 성격이 잘 안 맞아. 그녀의 눈에 리월항은 단지 사업장에 불과해. 돈을 버는 일이라면 무엇이든 하지. 그건 너무 원칙 없는 거 아니야? 음… 아니면 그게 그녀의 원칙이려나?
+}}
+{{角色/语音
+|语音类型=关于凝光·合作
+|语音文件={{player|刻晴_关于凝光·合作}}
+|语音文件日语={{player|日_刻晴_关于凝光·合作}}
+|语音文件英语={{player|英_刻晴_关于凝光·合作}}
+|语音文件韩语={{player|韩_刻晴_关于凝光·合作}}
+|语音内容=帝君离开之后，我们难得地达成了很多共识。过去我对她的评价，确实有点偏颇。尽管根本的观念不同，但在现在的时局下，也只能把她视为战友了。
+|语音内容日语=帝君がいなくなって以来、私たちは色々と共通の念を持つようになったわ、珍しくね。以前の私は、彼女を偏った目で見て評価していた。でも、この時世になって、根本的な理念が違っていても、彼女とは戦友になることができたわ。
+|语音内容英语=Since Rex Lapis left us, we've actually found some common ground. I was quite judgmental of her in the past, and we still fundamentally disagree on a number of issues, but in the current climate I have to say I count her as a comrade in arms.
+|语音内容韩语=암왕제군께서 떠나신 뒤부터 그녀와 통하는 부분이 많아졌어. 예전엔 내가 너무 편파적으로 그녀를 평가했던 것 같아. 그녀와 근본적인 이념은 다르지만, 지금 이 상황에선 그녀와 함께 싸울 수밖에 없겠지
+}}
+{{角色/语音
+|语音类型=关于凝光·琐事
+|语音文件={{player|刻晴_关于凝光·琐事}}
+|语音文件日语={{player|日_刻晴_关于凝光·琐事}}
+|语音文件英语={{player|英_刻晴_关于凝光·琐事}}
+|语音文件韩语={{player|韩_刻晴_关于凝光·琐事}}
+|语音内容=话虽这么说！明星斋的「琉璃新月」，我提前三个月就预定了！结果去取货的时候才知道，凝光她用两倍的价钱，把这几个月里所有的「琉璃新月」都买走了！果然我还是受不了她！
+|语音内容日语=とは言え！明星斎の「琉璃新月」は私が3ヶ月も前に予約してたのに！実際にお店へ行ったら、彼女が二倍の値段でここ数ヶ月分の「琉璃新月」を買い占めてたの！やっぱり彼女とは「そり」が合わないわ！
+|语音内容英语=Ugh, having said that... I ordered a Lucent Crescent from Mingxing Jewelry three months in advance, and when it was finally time to pick it up, they told me Ningguang had bought up the last few months' worth of Lucent Crescents for herself by paying double the price! *sigh* She can be such a pain!
+|语音内容韩语=아무리 그렇다고 해도! 분명 난 3개월 전부터 명성재의 「유리신월」을 예약했는데! 물건을 찾으러 가서야 응광이 두 배 넘는 가격으로 몇 개월 치의 「유리신월」을 전부 사 갔다는 걸 알게 됐어! 역시 그녀랑은 잘 안 맞아!
+}}
+{{角色/语音
+|语音类型=关于辛焱…
+|语音文件={{player|刻晴_关于辛焱…}}
+|语音文件日语={{player|日_刻晴_关于辛焱…}}
+|语音文件英语={{player|英_刻晴_关于辛焱…}}
+|语音文件韩语={{player|韩_刻晴_关于辛焱…}}
+|语音内容=其实我也对她的「摇滚」很感兴趣。从传统文化的视角看，确实有点喧闹，但我不在乎。好听就是好听，好听的东西就应该发扬光大。
+|语音内容日语=私も彼女の「ロック」には興味があるの。伝統文化と比べたら確かにちょっとうるさいかもしれないけど、私は別に気にしてないわ。いい音楽はいい音楽だもの、もっと広まるべきよ。
+|语音内容英语=You know what, I think her music rocks. Too noisy by traditional standards, for sure, but I don't care. Good music is good music. And good music should reach the widest possible audience.
+|语音内容韩语=사실은 나도 그녀의 「로큰롤」을 좋아해. 리월의 전통 음악과 비교했을 때 좀 시끄러운 건 사실이지만, 딱히 상관없잖아? 듣기 좋으면 그만이지. 좋은 건 널리 알려야 한다고
+}}
+{{角色/语音
+|语音类型=关于白术…
+|语音文件={{player|刻晴_关于白术…}}
+|语音文件日语={{player|日_刻晴_关于白术…}}
+|语音文件英语={{player|英_刻晴_关于白术…}}
+|语音文件韩语={{player|韩_刻晴_关于白术…}}
+|语音内容=白术先生的医术备受居民的信赖，如果有什么疑难杂症，去找他肯定不会有错。你说…那些奇怪的传闻？我只知道有一件事是真的，他开的药，确实特别苦，不止是小孩子觉得…给我都留下了很深刻的印象。
+|语音内容日语=白朮先生の医術は住民から信頼されてるわ。もし難病に罹ったら、彼に診てもらえば間違いないわよ。うん？変な噂？一つだけ知ってるわね。白朮先生が処方する薬は本当に苦いの。子供に限らず、私にもその覚えがあるわ。
+|语音内容英语=Everyone has faith in Dr. Baizhu's medical skills. He's the right guy to go to when you can't figure out what's wrong with you. Oh... the rumors, you say? The only one that I know for a fact is true is how disgusting his medicine tastes. It's not just the kids who find it bitter, it's left me with some horrible memories, too!
+|语音内容韩语=백출 씨의 의술은 주민 모두가 신뢰하지. 아무리 고치기 어려운 병도 그를 찾아간다면 괜찮아질 거야. 그에 관한 이상한 소문들…? 다른 건 모르겠지만, 확실한 건 그가 처방하는 약은 아이들뿐만 아니라… 나한테도 쓸 정도라는 거야
+}}
+{{角色/语音
+|语音类型=关于香菱…
+|语音文件={{player|刻晴_关于香菱·}}
+|语音文件日语={{player|日_刻晴_关于香菱·}}
+|语音文件英语={{player|英_刻晴_关于香菱·}}
+|语音文件韩语={{player|韩_刻晴_关于香菱·}}
+|语音内容=「万民堂」的这位年轻掌勺，我知道她很有才华，但发挥还是太不稳定了。以前本来想找她定制几桌宴席的，可是尝过她蜥蜴还有史莱姆的试菜之后…我就打消了这个念头。
+|语音内容日语=「万民堂」の若いシェフね。彼女の才能は認めてるけど、腕前はまだ不安定よね。以前、彼女に宴会料理を作ってもらおうとしたんだけど、トカゲとスライムの料理を試食して私はその考えを捨てたわ。
+|语音内容英语=Yeah, the up-and-coming chef from Wanmin Restaurant... I get that she's gifted and everything, I just think her cooking can be a bit hit-or-miss. I was all ready to hire her for a small banquet once, and give her full control over the menu... but the amount of lizard and slime in her sample dishes quickly turned me off that idea!
+|语音内容韩语=「만민당」의 그 젊은 요리사? 그녀가 재능이 있다는 건 인정하지만 아직 너무 불안정해. 한번은 그녀에게 연회 요리를 맡기려고 했는데, 도마뱀이랑 슬라임으로 만든 그녀의 요리를 먹어보고 나서… 없던 일로 하기로 했어
+}}
+{{角色/语音
+|语音类型=关于行秋…
+|语音文件={{player|刻晴_关于行秋…}}
+|语音文件日语={{player|日_刻晴_关于行秋…}}
+|语音文件英语=
+|语音文件韩语={{player|韩_刻晴_关于行秋…}}
+|语音内容=我听说过他的故事，明明出身名门望族，却不爱家族事业，喜欢去外面行侠仗义。我很欣赏他，毕竟，把家里的条条框框丢到一边，执意去做心中认为正确的事，这种魄力，可不是谁都有的。
+|语音内容日语=話には聞いたことがあるわ。名家の出なのに、彼は一族の事業よりも義侠を重んじるって。素敵な人だと思う。一族の縛りを捨てて、自分が正しいと思うことを貫く人は滅多にいないもの。
+|语音内容英语=I've heard his story — he was born into a well-to-do family, but wasn't keen on the family business, so he now devotes his time to being an envoy of justice. I have huge respect for that! Not everyone has the guts to follow their dreams when it means breaking with a long-standing family tradition.
+|语音内容韩语=그에 대해 들은 적 있어. 명망 높은 집안 출신이지만 가문의 사업보단 밖에서 협행을 행하는 걸 좋아한다던데. 가문의 규율을 내팽개치고 자신이 옳다고 생각하는 일을 끝까지 고수하는 것. 이런 패기는 아무한테나 있는 게 아니거든. 그래서 난 그가 맘에 들어
+}}
+{{角色/语音
+|语音类型=关于魈…
+|语音文件={{player|刻晴_关于魈…}}
+|语音文件日语={{player|日_刻晴_关于魈…}}
+|语音文件英语={{player|英_刻晴_关于魈…}}
+|语音文件韩语={{player|韩_刻晴_关于魈…}}
+|语音内容=传闻中的少年仙人，现如今在这人治之世，也应该放下身上的重担了吧。人类已经不需要这样的守护了，就算遇上什么棘手的难题，我们也有自行解决的能力。
+|语音内容日语=伝説の少年仙人ね、人が世を治めるようになって、彼も肩の荷が下りたことでしょう。人類はもう護ってもらう必要がない。たとえ厄介な事件が起きたとしても、私たち人類は自分たちの力でなんとかできるから。
+|语音内容英语=I feel like now that we live in the age of mankind's rule, it's time for the legendary boy-adeptus to be released from duty. We no longer need a defender of that kind, because we are capable of working through the challenges we face on our own strength.
+|语音内容韩语=인간의 시대가 왔으니 그 젊은 선인도 이제 그만 막중한 부담을 덜어내도 되지 않을까? 인간은 더 이상 그런 보살핌이 필요하지 않아. 어떤 난제든 우리 스스로 해결할 수 있으니까
+}}
+{{角色/语音
+|语音类型=关于甘雨·质疑
+|语音文件={{player|刻晴_关于甘雨·质疑}}
+|语音文件日语={{player|日_刻晴_关于甘雨·质疑}}
+|语音文件英语={{player|英_刻晴_关于甘雨·质疑}}
+|语音文件韩语={{player|韩_刻晴_关于甘雨·质疑}}
+|语音内容=我也不知道帝君当年做了什么，才会让甘雨对他这么忠心耿耿。不过，没主见也有没主见的好处——至少，就算是心中颇有微词，她也会按我说的去做，很有职业素养。
+|语音内容日语=いったい帝君が何をしたのか知らないけど、甘雨があんなにも忠誠を尽くす理由が分からないわ。けど、自分の考えを持たない人にもいいところってあるのよ——例えば不満があったとしても、何も言わず指示に従うとことか。
+|语音内容英语=Who knows what Rex Lapis must have done to inspire such blind devotion from Ganyu... But her reluctance to be critical is not without its advantages. In the workplace, she'll carry out my instructions to the letter, even when I can tell she has her reservations. It's a good attitude to have as a career professional.
+|语音内容韩语=그때 암왕제군께서 무슨 일을 하셨길래 감우가 그토록 충성을 다하게 됐는진 모르겠지만, 주관이 없는 것도 꼭 나쁜 것만은 아니지——마음 속으론 불만이 있더라도 항상 내가 하라는 대로 따라주거든. 비서로선 최고야
+}}
+{{角色/语音
+|语音类型=关于甘雨·反思
+|语音文件={{player|刻晴_关于甘雨·反思}}
+|语音文件日语={{player|日_刻晴_关于甘雨·反思}}
+|语音文件英语={{player|英_刻晴_关于甘雨·反思}}
+|语音文件韩语={{player|韩_刻晴_关于甘雨·反思}}
+|语音内容=因为最近有很多事都拿不定主意，我经常去向她询问意见，毕竟，她可能是璃月最熟悉帝君的人了。唉，想起以前，在她面前说了很多得罪帝君的话，还是有点不好意思，不过，她似乎没那么介意，这让我松了口气…
+|语音内容日语=最近、私ひとりじゃ決断できないことがあったら、彼女の意見を聞きに行くの。彼女は璃月で最も帝君に詳しい人だからね。はぁ、昔、彼女の目の前で帝君の悪口を散々言ってしまったことを思うと何だか申し訳ないわ。幸い、彼女は特に気にしてないみたいだけど…
+|语音内容英语=I find myself getting a second opinion from her a lot these days. Lots of things come up that I just have no idea about, and of everyone in Liyue, she's probably the most familiar with Rex Lapis. Heh... I feel a bit awkward, though, because I used to be openly disparaging of Rex Lapis in front of her... But she doesn't seem to mind, so I guess I've got nothing to worry about...
+|语音内容韩语=그녀는 리월에서 암왕제군님에 대해 가장 잘 아는 사람일 거야. 그래서 요즘 결정하기 곤란한 일을 처리할 때면 그녀에게 의견을 묻곤 해. 휴, 예전에 그녀 앞에서 암왕제군을 안 좋게 얘기한 적이 많아서 낯뜨겁긴 하지만, 다행히 그녀는 별로 개의치 않는 것 같아…
+}}
+{{角色/语音
+|语音类型=关于云堇…
+|语音文件={{player|刻晴_关于云堇…}}
+|语音文件日语={{player|日_刻晴_关于云堇…}}
+|语音文件英语={{player|英_刻晴_关于云堇…}}
+|语音文件韩语={{player|韩_刻晴_关于云堇…}}
+|语音内容=路过和裕茶馆的时候，如果发现被围得水泄不通，那一定就是云堇正在台上唱戏。许多商人都觉得，只是为了云堇，就值得把整个茶馆都买下来。
+|语音内容日语=もし和裕茶館の前を通るときに大勢の人が集まっていたら、それは雲菫が演出する舞台がやっている証拠よ。雲菫のためだけに茶館を買収しようと考える商人も少なくないの。
+|语音内容英语=When you're passing by Heyu Tea House and have to squeeze your way through the biggest crowd you've seen in your life, that's when you know Yun Jin's on stage performing. There's not a merchant in Liyue who wouldn't buy up the place if they had the chance, and Yun Jin is the reason it would be worth every Mora.
+|语音内容韩语=화유다관 앞에 사람들이 몰려있다면 그건 운근이 공연을 하고 있다는 뜻이야. 많은 상인들이 운근을 위해서라면 찻집을 통째로라도 사겠다고 할 정도라니까
+}}
+{{角色/语音
+|语音类型=关于风之神…
+|语音文件={{player|刻晴_关于风之神…}}
+|语音文件日语={{player|日_刻晴_关于风之神…}}
+|语音文件英语={{player|英_刻晴_关于风之神…}}
+|语音文件韩语={{player|韩_刻晴_关于风之神…}}
+|语音内容=帝君离去之后，我一直都在思考，璃月港的未来该怎么走。除了参考帝君以前的行动，我还去研究了其他神明的治世手段。可是，邻国蒙德就让我很是困惑…像风之神这种做法，真的能让蒙德长久吗？
+|语音内容日语=帝君がいなくなって以来、璃月港の未来をどう描いていくべきかずっと考えてるの。帝君がこれまでにしてきたことや、別の神々の統治の手段も調べたわ。でも、隣国のモンドはちょっと変わってるわね…あの風神のやり方で、本当にモンドはこの先も繁栄できるのかしら？
+|语音内容英语=Since Rex Lapis left us, the question of Liyue's future has been on my mind constantly. In addition to reviewing his own past deeds, I've been researching the other archons' modes of governance, too. Mondstadt's god is the one who baffles me the most though — how exactly do any of his actions contribute to the longevity of Mondstadt? It's completely beyond me.
+|语音内容韩语=암왕제군께서 떠나신 뒤, 난 줄곧 리월의 방향성에 대해 생각해왔어. 암왕제군님의 이전 행보뿐만 아니라 다른 신명들이 어떻게 다스리는지도 연구해봤어. 근데 몬드가 참 당혹스럽단 말이야…. 바람의 신처럼 해서 몬드가 오래 갈 수 있을까?
+}}
+{{角色/语音1
+|语音类型=关于烟绯…
+|语音文件=player1-刻晴_关于烟绯…
+|语音内容=在我看来，律法是对过去「正确事物」的总结，但也具有时效性，需要不断完善和改进。璃月即将迎来剧变，熟知律法的人才不可多得，要是烟绯小姐愿意担任我的助手，许多麻烦就迎刃而解了。
+|语音内容日语=私にとって法律は、過去に起きた「正しい出来事」の要約ね。けど、時効という欠点も持ち合わせているから、まだまだ改善の余地があるわ。璃月が変革を遂げようとしている今、法律に詳しい人材はいくらいても足りない。もし煙緋が私の助手になってくれたら、厄介な案件をたくさん解決できると思うわ。
+|语音内容英语=The way I see it, the law is a summary of things done the right way in the past. However, it should also be continuously adapted and improved to match the needs of the present. Given that Liyue is about to undergo a radical transformation, legal talent is in great demand. With an assistant like Yanfei, I could spare myself a great deal of trouble.
+|语音内容韩语=법은 과거의 「옳은 일」들을 요약한 거지만, 시대마다 다르게 작용돼서 지속적인 개선이 필요하다고 생각해. 리월은 곧 격변을 맞이하게 될 텐데, 법에 대해 잘 아는 인재는 아주 드물지. 연비 씨가 내 조수가 되어준다면, 복잡한 문제도 다 쉽게 해결될 거야
+}}
+{{角色/语音1
+|语音类型=关于夜兰…
+|语音文件=player1-刻晴_关于夜兰…
+|语音内容=夜兰小姐的祖辈曾为七星效力，我的祖父也曾与她的家族有过学术合作。总体来说，她办事可靠，干净利落，时常为总务司提供重要的情报。虽然我也不清楚，夜兰小姐究竟是从哪听说这些消息的。
+|语音内容日语=夜蘭の先祖は七星に仕えていたわ。私の祖父も、彼女の家族とは学術的な付き合いがあったの。彼女のことをまとめると、物事をそつなくこなし、堅実で頼れる人ってところかしら。あと、総務司に重要な情報を提供してくれることもあるわ。ただ、夜蘭が一体どこから情報を仕入れているのか、私にも分からないけど。
+|语音内容英语=Ms. Yelan's ancestors used to serve the Qixing. My grandfather and her family have had academic collaborations in the past. All in all, she's reliable, efficient, and provides important intel to the Ministry of Civil Affairs. I can't say for sure how Ms. Yelan actually gets her intel, however...
+|语音内容韩语=과거 야란 씨의 선조는 칠성을 위해 일했어. 우리 할아버지도 야란 씨 가문과 학술적 협력을 한 적이 있지. 전반적으로 보면 일 처리가 깔끔하고 믿음직한 사람이야. 항상 총무부에 중요한 정보를 제공하기도 해. 야란 씨가 그런 정보를 어디서 얻었는지는 나도 잘 모르지만
+}}
+{{角色/语音1
+|语音类型=关于蓝砚…
+|语音文件=player1-刻晴_关于蓝砚…
+|语音内容=蓝师傅为人谦和，手艺精湛，往后总务司或有更多推广民间工艺的筹划，还要仰赖像她这样的手工大师支持。欸…抛开工作不谈？那自然也很欢迎她多来璃月港玩，我们应该挺聊得来的。
+|语音内容日语=藍硯は確かな腕前を持つ、謙虚な人よ。今後、総務司が民間工芸を広めるための企画をやるとなったら、彼女のような手工芸の達人に助けてもらわないといけないでしょうね。えっ…仕事の話は置いといて？もちろん仕事抜きでも、ぜひ璃月港に遊びに来てほしいわ。彼女とは話が合いそうだもの。
+|语音内容英语=Madame Lan is a lovely young lady and a very talented craftswoman. As the Ministry of Civil Affairs works to promote local craftmanship in the future, we will certainly consult masters like her. Oh, what about outside of work? Of course, she's welcome in Liyue Harbor any time. I find her company very enjoyable.
+|语音内容韩语=남 사부는 겸손하면서도 손재주가 대단한 사람이야. 앞으로 총무부에서 민간 공예를 더 홍보할지 모르는데, 이런 수공예 대가의 지원이 많이 필요할 거야. 어… 공적인 거 말고? 그야 물론 리월항에 언제든 놀러 와도 환영이지, 우린 꽤 잘 통할 것 같거든
+}}
+{{角色/语音
+|语音类型=想要了解刻晴·其一
+|语音文件={{player|刻晴_想要了解刻晴·其一}}
+|语音文件日语={{player|日_刻晴_想要了解刻晴·其一}}
+|语音文件英语={{player|英_刻晴_想要了解刻晴·其一}}
+|语音文件韩语={{player|韩_刻晴_想要了解刻晴·其一}}
+|语音内容=想要了解我？好啊，那我先把「玉衡」的工作原则讲给你听，等你熟记了这一百多条关键条目，就一定对我的理想了如指掌了！
+|语音内容日语=私のことを知りたいの？いいわよ、じゃあまず「玉衡」の仕事に関する理念を教えるわね。この100以上に及ぶ重要項目を覚えたら、きっと私の理想を知り尽くすことができるわよ。
+|语音内容英语=You want to know more about me? Sure. Let's start with the principles that are central to the role of Yuheng. Once you've memorized the hundred or more contractual obligations of the position, you'll know my hopes and dreams like the back of your hand!
+|语音内容韩语=나에 대해 알고 싶어? 좋아, 그럼 먼저 「옥형」의 업무 원칙을 소개해줄게. 이 백 가지 원칙을 숙지하고 나면 내가 추구하는 게 뭔지 확실히 알 수 있을 거야!
+}}
+{{角色/语音
+|语音类型=想要了解刻晴·其二
+|语音文件={{player|刻晴_想要了解刻晴·其二}}
+|语音文件日语={{player|日_刻晴_想要了解刻晴·其二}}
+|语音文件英语={{player|英_刻晴_想要了解刻晴·其二}}
+|语音文件韩语={{player|韩_刻晴_想要了解刻晴·其二}}
+|语音内容=万事万物都不可脱离联系独立存在，倘若一件事拖了后腿，与它联系的诸多事项也都会遭殃。所以，「今日事今日毕」。不是我性子急，而是事情本来就不能拖延。
+|语音内容日语=全ての物事は一つ一つ繋がっている。もし一つのことがダメになったら、それに関連する全てのことがダメになるわ。だから「今日のことは今日中に終わらす」っていうのは、私がせっかちだからじゃなくて、遅れることで物事が台無しになるからなの。
+|语音内容英语=You want to know more about me? Sure. Let's start with the principles that are central to the role of Yuheng. Once you've memorized the hundred or more contractual obligations of the position, you'll know my hopes and dreams like the back of your hand!
+|语音内容韩语=세상 모든 것들은 서로 연결돼있고 독립적으로 존재할 수 없어. 한 가지 일에 발목 잡힌다면 그것과 연관된 많은 일을 그르치게 되지. 그래서 「오늘 할 일은 오늘 끝내자」라는 말이 있는 거야. 내 성격이 급해서가 아니라 원래 일이라는 건 미루면 안 돼
+}}
+{{角色/语音
+|语音类型=想要了解刻晴·其三
+|语音文件={{player|刻晴_想要了解刻晴·其三}}
+|语音文件日语={{player|日_刻晴_想要了解刻晴·其三}}
+|语音文件英语={{player|英_刻晴_想要了解刻晴·其三}}
+|语音文件韩语={{player|韩_刻晴_想要了解刻晴·其三}}
+|语音内容=不用和我太客气，「玉衡」说到底只是虚名，我不希望你因为我的身份，而把想说的话藏在心里——因为有话直说，这才是你独一无二的地方，也是我最欣赏的地方。
+|语音内容日语=礼儀に拘る必要はないわよ。「玉衡」と言ってもただの肩書きに過ぎないもの。私の身分なんて気にせず本音を言ってちょうだい——物事をはっきりと言うところが君の唯一無二のところで、そして私が一番気に入ってるところなんだから。
+|语音内容英语=Never mince your words with me, okay? Yuheng's just a title. I'll not have you treading on eggshells around me just because of my status. Say what's on your mind, always — that's what makes you unique, and it's the thing I admire about you the most.
+|语音内容韩语=내 앞에서 너무 예의 차릴 필요 없어. 「옥형」은 그저 명색일 뿐이야. 네가 내 신분 때문에 하고 싶은 말을 담아두지 않았으면 좋겠어——직설적인 게 네 가장 큰 매력이거든
+}}
+{{角色/语音
+|语音类型=想要了解刻晴·其四
+|语音文件={{player|刻晴_想要了解刻晴·其四}}
+|语音文件日语={{player|日_刻晴_想要了解刻晴·其四}}
+|语音文件英语={{player|英_刻晴_想要了解刻晴·其四}}
+|语音文件韩语={{player|韩_刻晴_想要了解刻晴·其四}}
+|语音内容=和你一起冒险，已经很长时间了。我越来越觉得，你就是我理想中的那个人一一欸？这么吃惊干什么？为了建成我理想中的璃月，你的确是不可或缺的啊？
+|语音内容日语=君と一緒に冒険して、結構な時間が経ったわね。君こそが私の理想の人だとますます思えるようになってきたわ——えっ？そんなに驚くこと？私が理想とする璃月を築くには、君は欠かせない存在よ？
+|语音内容英语=We've been on our fair share of adventures together, haven't we? The more time we spend together, the more I think that you're the person of my dreams, and— Huh? Why so shocked? You're a crucial part of my dreams for the new Liyue.
+|语音内容韩语=너랑 함께 모험한 지도 꽤 오래됐네. 갈수록 네가 바로 내 이상 속의 사람이란 생각이 들어——어? 뭘 그렇게 놀래? 내 이상 속의 리월을 만들기 위해선 네가 꼭 필요하다구
+}}
+{{角色/语音
+|语音类型=想要了解刻晴·其五
+|语音文件={{player|刻晴_想要了解刻晴·其五}}
+|语音文件日语={{player|日_刻晴_想要了解刻晴·其五}}
+|语音文件英语={{player|英_刻晴_想要了解刻晴·其五}}
+|语音文件韩语={{player|韩_刻晴_想要了解刻晴·其五}}
+|语音内容=「想要在帝君的土地上，留下属于人类的印记。」这果然很不容易啊。但我想和你定下一个约定——等到新时代的璃月港落成之时，来看看吧，我来领路。只有让你亲眼见证这里的脱胎换骨，才不会辜负你对我的陪伴和支持。
+|语音内容日语=「帝君の土地に、人類が生きた証を残すこと」は…やっぱり簡単なことじゃない。でもね、君と約束したいの——新時代の璃月港が生まれた時、私に会いに来て。見せてあげたい。君との時間と君の支えがあったからこそできたことだろうから。
+|语音内容英语="The time has come for humanity to make its mark in the land of the Geo Archon"... Turns out that was quite an ambitious statement after all. But I want you to make me a promise: come and visit when the new Liyue Harbor is born. I will show you around. After all the help and support you've given me along the way, you deserve to see Liyue reborn with your own eyes. I owe you that much.
+|语音内容韩语=「암왕제군의 땅에 인간의 흔적을 남기는 것」, 쉽진 않겠지만 새로운 리월이 만들어지면 꼭 보러 오겠다고 약속해——내가 길을 안내할 테니. 네게 이곳의 변화를 직접 보여주는 것만이 네가 나에게 베푼 친절과 응원에 보답이라고 생각하거든
+}}
+{{角色/语音
+|语音类型=刻晴的爱好…
+|语音文件={{player|刻晴_刻晴的爱好…}}
+|语音文件日语={{player|日_刻晴_刻晴的爱好…}}
+|语音文件英语={{player|英_刻晴_刻晴的爱好…}}
+|语音文件韩语={{player|韩_刻晴_刻晴的爱好…}}
+|语音内容=这么多式样、这么多质地、这么多选择…啊，这就是「消费」呀，真是令人难以抵御的魅力。
+|语音内容日语=デザインも生地も商品の種類も、多種多様…それが「買い物」よ。ん～この魅力はたまらないわね。
+|语音内容英语=That indulgent feeling of being spoilt for choice between countless different varieties... That, to me, is the appeal of shopping.
+|语音内容韩语=이 다양한 스타일과 재질을 봐. 선택지가 이렇게 많다니…. 이게 바로 「돈 쓰는」 맛이지! 정말 참을 수 없다니까~
+}}
+{{角色/语音
+|语音类型=刻晴的烦恼…
+|语音文件={{player|刻晴_刻晴的烦恼…}}
+|语音文件日语={{player|日_刻晴_刻晴的烦恼…}}
+|语音文件英语={{player|英_刻晴_刻晴的烦恼…}}
+|语音文件韩语={{player|韩_刻晴_刻晴的烦恼…}}
+|语音内容=璃月人的生活越来越好，这确实没错，但不思进取，好吃懒做的人也越来越多了。唉，「璃月七星」很努力地改善社会福利，可不是为了养活这帮闲人啊。
+|语音内容日语=確かに、璃月の人の生活水準はどんどん良くなってるわ。でも怠け者も増えてるの。ああッ、もう「璃月七星」が頑張って暮らしを改善しているのは、この怠け者たちを養うためじゃないのに！
+|语音内容英语=It's great that the quality of life in Liyue is improving for everyone. But one downside is the growing number of people who are happy to reap the rewards without doing their fair share of the work. The Liyue Qixing did not put in all this effort to create a more prosperous society just so people like them can loaf around.
+|语音内容韩语=리월 사람들의 생활 수준이 점점 좋아지고 있긴 하지만, 현실에 안주하고 놀고먹으려는 사람들도 점점 많아지고 있어. 휴, 「리월 칠성」이 게으른 사람들을 먹여 살리려고 복지에 힘쓰는 건 아닌데
+}}
+{{角色/语音
+|语音类型=喜欢的食物…
+|语音文件={{player|刻晴_喜欢的食物…}}
+|语音文件日语={{player|日_刻晴_喜欢的食物…}}
+|语音文件英语={{player|英_刻晴_喜欢的食物…}}
+|语音文件韩语={{player|韩_刻晴_喜欢的食物…}}
+|语音内容=从道理上说，不应该对食物有什么贪欲，但唯独那一道美味的金丝虾球…总是让我忘不了。哪怕就吃一个，也能满足味蕾，扫清身上积累的所有压力。
+|语音内容日语=食べ物にはあまり執着しない方なんだけど、あのエビのポテト包み揚げだけは…忘れられないわ。たった一つ食べただけで、口の中が幸せで満たされて、溜まりに溜まったストレスが一気にふっ飛ぶの。
+|语音内容英语=It makes no logical sense to be greedy with food, but for me, all rationality goes out the window when there's Golden Shrimp Balls involved... They're just irresistible. The taste of a single Golden Shrimp Ball brings me so much joy that all the stress of work just melts away.
+|语音内容韩语=음식에 별로 욕심이 많은 것도 아닌데, 황금 새우볼만은… 잊을 수가 없어. 하나만 먹어도 미각을 만족시키고 몸에 쌓인 스트레스가 다 풀린다니까
+}}
+{{角色/语音
+|语音类型=讨厌的食物…
+|语音文件={{player|刻晴_讨厌的食物…}}
+|语音文件日语={{player|日_刻晴_讨厌的食物…}}
+|语音文件英语={{player|英_刻晴_讨厌的食物…}}
+|语音文件韩语={{player|韩_刻晴_讨厌的食物…}}
+|语音内容=每种菜肴都有最理想的味道，我不能接受除此以外的做法，尝试都不行。比如，咸味的杏仁豆腐，甜味的莲子禽蛋羹什么的…都是在暴殄天物！
+|语音内容日语=どんな料理にも理想的な味があると思うの。だからそれ以外の味を私は一切認めない。例えば塩味の杏仁豆腐とか、甘口のハスの実入り茶碗蒸しとか…食べ物を粗末にしないで欲しいわ！
+|语音内容英语=Everything has a certain way it should taste. I won't touch anything that tries to break the mold, so no salted Almond Tofu for me, and no sweetened Lotus Seed and Bird Egg Soup either. It's just a total waste of perfectly good ingredients.
+|语音内容韩语=모든 음식엔 이상적인 맛이란 게 있는 거야. 왜 다른 방법으로 시도를 하는 건지 이해가 안 돼. 예를 들어 짠맛이 나는 행인두부, 달콤한 연밥 계란찜 같은 거 있잖아…. 그건 음식을 낭비하는 거라구!
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其一
+|语音文件=player1-刻晴_收到赠礼·其一
+|语音内容=没错，正是我喜欢的。
+|语音内容日语=ええ、私の好物だわ。
+|语音内容英语=Yep, that's right. My favorite.
+|语音内容韩语=좋아, 내 취향이랑 딱 맞아
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其二
+|语音文件=player1-刻晴_收到赠礼·其二
+|语音内容=味道中规中矩，但你的努力值得肯定。
+|语音内容日语=味は普通だけど、君の努力は認めるわ。
+|语音内容英语=The taste is fairly standard, but I can see you worked hard at it.
+|语音内容韩语=맛은 평범하지만, 네 노력은 인정해 줄게
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其三
+|语音文件=player1-刻晴_收到赠礼·其三
+|语音内容=和理想中的味道有些差距…
+|语音内容日语=理想の味とは少し違うわね…
+|语音内容英语=It seems quite a ways off from how it's supposed to taste...
+|语音内容韩语=생각했던 맛이랑 좀 다르네…
+}}
+{{角色/语音1
+|语音类型=生日…
+|语音文件=player-刻晴_生日
+|语音内容=生日快乐！我为你准备了一份特别的礼物。别看这只是一盏普普通通的灯，只要有一点点雷元素力，就可以点亮很长时间。在你需要光的时候，就用它吧。
+|语音内容日语=お誕生日おめでとう！君に特別なプレゼントを用意したわ。普通の灯りに見えるけど、雷元素をちょっと加えれば長時間光るのよ。明かりが必要な時に使ってね。
+|语音内容英语=Happy birthday! I've got a very special gift for you. It might look like an ordinary old lantern, but this one runs on Electro energy and stays alight for a really long time. For those times when you need a little extra light in your life.
+|语音内容韩语=생일 축하해! 널 위해 특별한 선물을 준비했어. 이건 평범한 등불이 아니야. 약간의 번개 원소의 힘만 있다면 오랫동안 빛을 밝혀주지. 빛이 필요할 땐 이걸 써!
+}}
+{{角色/语音
+|语音类型=突破的感受·起
+|语音文件={{player|刻晴_突破的感受·起}}
+|语音文件日语={{player|日_刻晴_突破的感受·起}}
+|语音文件英语={{player|英_刻晴_突破的感受·起}}
+|语音文件韩语={{player|韩_刻晴_突破的感受·起}}
+|语音内容=心有所向，日复一日，必有精进。
+|语音内容日语=目標を定めて日々努力を重ねれば、いずれ成長するのよ。
+|语音内容英语=When your heart is set on something, you get closer to your goal with each passing day.
+|语音内容韩语=바라는 바를 이루려면 부지런히 노력해야 해
+}}
+{{角色/语音
+|语音类型=突破的感受·承
+|语音文件={{player|刻晴_突破的感受·承}}
+|语音文件日语={{player|日_刻晴_突破的感受·承}}
+|语音文件英语={{player|英_刻晴_突破的感受·承}}
+|语音文件韩语={{player|韩_刻晴_突破的感受·承}}
+|语音内容=很好，在需要随机应变的时候，又多了一种选择。
+|语音内容日语=良かった、これで臨機応変な対応が必要になった時の選択肢が1つ増えたわ。
+|语音内容英语=Great, having another trick up my sleeve gives me more flexibility in rapidly changing circumstances.
+|语音内容韩语=좋아, 임기응변이 필요할 때의 선택지가 하나 더 생겼어
+}}
+{{角色/语音
+|语音类型=突破的感受·转
+|语音文件={{player|刻晴_突破的感受·转}}
+|语音文件日语={{player|日_刻晴_突破的感受·转}}
+|语音文件英语={{player|英_刻晴_突破的感受·转}}
+|语音文件韩语={{player|韩_刻晴_突破的感受·转}}
+|语音内容=「昨天的经历都将成为明天的力量。」而这一切，都是与你同行的收获。
+|语音内容日语=「昨日の経験は明日の力になる」、この全ては君と共に手に入れたものよ。
+|语音内容英语=Yesterday's experiences make me stronger today. And most of those experiences are ones that I share with you.
+|语音内容韩语=「어제의 노력은 내일의 힘이 된다」. 이 모든 게 너와 함께 거둔 성과야
+}}
+{{角色/语音
+|语音类型=突破的感受·合
+|语音文件={{player|刻晴_突破的感受·合}}
+|语音文件日语={{player|日_刻晴_突破的感受·合}}
+|语音文件英语={{player|英_刻晴_突破的感受·合}}
+|语音文件韩语={{player|韩_刻晴_突破的感受·合}}
+|语音内容=能和你一路结伴而行，我感觉受益匪浅。如果真的有一天，我抵达了理想中的终点…我的身边，还会有你陪伴吗？
+|语音内容日语=君と共に旅をして、色々と勉強させてもらったわ。もしね、いつか私が理想の終着点に辿り着いた時…その時は、君も私の傍にいてくれるかな？
+|语音内容英语=I feel I have grown immensely from my travels with you. If, one day, I finally manage to make my dreams a reality... I wonder, will you still be there by my side?
+|语音内容韩语=너와의 동행을 통해 많은 걸 배웠어. 내 이상을 이루는 그날이 왔을 때도… 너는, 내 옆에 있을까?
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素战技·其一
+|语音文件=player1-刻晴_元素战技·其一
+|语音内容=去吧！
+|语音内容日语=行けっ！
+|语音内容英语=Incoming!
+|语音内容韩语=가자!
+}}
+{{角色/语音1
+|语音类型=元素战技·其二
+|语音文件=player1-刻晴_元素战技·其二
+|语音内容=迅影如剑！
+|语音内容日语=迅影の如く！
+|语音内容英语=Speed of light!
+|语音内容韩语=검과 같이 빠른 그림자!
+}}
+{{角色/语音1
+|语音类型=元素战技·其三
+|语音文件=player1-刻晴_元素战技·其三
+|语音内容=可别眨眼。
+|语音内容日语=瞬くまに。
+|语音内容英语=Don't blink.
+|语音内容韩语=눈 깜박이지 말라고
+}}
+{{角色/语音1
+|语音类型=元素战技·其四
+|语音文件=player1-刻晴_元素战技·其四
+|语音内容=喝啊——！
+|语音内容日语=ほあっ——！
+|语音内容英语=Hah—!
+|语音内容韩语=하앗——!
+}}
+{{角色/语音1
+|语音类型=元素战技·其五
+|语音文件=player1-刻晴_元素战技·其五
+|语音内容=嘿！
+|语音内容日语=へいっ！
+|语音内容英语=Hey!
+|语音内容韩语=흣!
+}}
+{{角色/语音1
+|语音类型=元素战技·其六
+|语音文件=player1-刻晴_元素战技·其六
+|语音内容=哈！
+|语音内容日语=はっ！
+|语音内容英语=Huh!
+|语音内容韩语=하!
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素爆发·其一
+|语音文件=player1-刻晴_元素爆发·其一
+|语音内容=无处可逃！
+|语音内容日语=逃さない！
+|语音内容英语=Nowhere to hide!
+|语音内容韩语=숨을 곳은 없어!
+}}
+{{角色/语音1
+|语音类型=元素爆发·其二
+|语音文件=player1-刻晴_元素爆发·其二
+|语音内容=剑出，影随——
+|语音内容日语=我が剣よ！影に従え——
+|语音内容英语=With sword comes shadow!
+|语音内容韩语=나와라, 검의 그림자——
+}}
+{{角色/语音1
+|语音类型=元素爆发·其三
+|语音文件=player1-刻晴_元素爆发·其三
+|语音内容=剑光如我，斩尽芜杂！
+|语音内容日语=剣光よ、世の乱れを斬り尽くせ！
+|语音内容英语=Cut to the chase!
+|语音内容韩语=모든 혼란을 베어버리겠다!
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=打开宝箱·其一
+|语音文件=player1-刻晴_打开宝箱·其一
+|语音内容=一份付出，一份收获。
+|语音内容日语=努力に見合う収穫ね。
+|语音内容英语=You give, you receive.
+|语音内容韩语=노력한 만큼 보상을 얻는 법이지
+}}
+{{角色/语音1
+|语音类型=打开宝箱·其二
+|语音文件=player1-刻晴_打开宝箱·其二
+|语音内容=不错的珍宝。
+|语音内容日语=悪くないお宝だわ。
+|语音内容英语=Not bad, as far as treasure is concerned...
+|语音内容韩语=꽤 괜찮은 보물이네
+}}
+{{角色/语音1
+|语音类型=打开宝箱·其三
+|语音文件=player1-刻晴_打开宝箱·其三
+|语音内容=收纳完毕，就重新出发吧。
+|语音内容日语=拾ったら、出発よ。
+|语音内容英语=That's everything, on to the next.
+|语音内容韩语=수납 완료. 다시 출발하자
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=生命值低·其一
+|语音文件=player1-刻晴_生命值低·其一
+|语音内容=以退为进…
+|语音内容日语=後退するのも作戦のひとつ…
+|语音内容英语=One step back, two forward...
+|语音内容韩语=일 보 후퇴…
+}}
+{{角色/语音1
+|语音类型=生命值低·其二
+|语音文件=player1-刻晴_生命值低·其二
+|语音内容=有点轻敌了。
+|语音内容日语=油断したっ。
+|语音内容英语=Stronger than I thought.
+|语音内容韩语=너무 얕봤군
+}}
+{{角色/语音1
+|语音类型=生命值低·其三
+|语音文件=player1-刻晴_生命值低·其三
+|语音内容=调整战略吧。
+|语音内容日语=作戦を立て直す必要があるわ。
+|语音内容英语=Change of plan.
+|语音内容韩语=전략을 바꿔야겠어
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=同伴生命值低·其一
+|语音文件=player1-刻晴_同伴生命值低·其一
+|语音内容=先避避风头，让我来！
+|语音内容日语=下がって、ここは私が！
+|语音内容英语=Take five, I'll take over.
+|语音内容韩语=내가 할 테니 일단 물러서!
+}}
+{{角色/语音1
+|语音类型=同伴生命值低·其二
+|语音文件=player1-刻晴_同伴生命值低·其二
+|语音内容=别太冒失了！
+|语音内容日语=ぼーっとしてたらダメ！
+|语音内容英语=Watch yourself!
+|语音内容韩语=조심해!
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=倒下·其一
+|语音文件=player1-刻晴_倒下·其一
+|语音内容=时机…不对。
+|语音内容日语=勝機を…間違えたわ。
+|语音内容英语=Right idea, wrong time...
+|语音内容韩语=타이밍이… 잘못 됐어
+}}
+{{角色/语音1
+|语音类型=倒下·其二
+|语音文件=player1-刻晴_倒下·其二
+|语音内容=太不甘心了…
+|语音内容日语=く…悔しい…
+|语音内容英语=I will not go quietly...
+|语音内容韩语=인정 못 해…
+}}
+{{角色/语音1
+|语音类型=倒下·其三
+|语音文件=player1-刻晴_倒下·其三
+|语音内容=辜负了…期待。
+|语音内容日语=期待に…応えられなかった。
+|语音内容英语=What a let-down...
+|语音内容韩语=기대를… 저버리다니
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=普通受击·其一
+|语音文件=player1-刻晴_普通受击·其一
+|语音内容=唔…可恶。
+|语音内容日语=くっ…
+|语音内容英语=Ugh.
+|语音内容韩语=윽… 젠장
+}}
+{{角色/语音1
+|语音类型=普通受击·其二
+|语音文件=player1-刻晴_普通受击·其二
+|语音内容=小伤而已。
+|语音内容日语=大した傷じゃない。
+|语音内容英语=I'll be fine.
+|语音内容韩语=이깟 상처쯤이야
+}}
+{{角色/语音1
+|语音类型=重受击·其一
+|语音文件=player1-刻晴_重受击·其一
+|语音内容=只是巧合…
+|语音内容日语=たまたまよ…
+|语音内容英语=Got lucky that time!
+|语音内容韩语=우연히 맞은 거뿐이야…
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=加入队伍·其一
+|语音文件=player1-刻晴_加入队伍·其一
+|语音内容=走吧，时间紧迫。
+|语音内容日语=行こう、時間は有限よ。
+|语音内容英语=Let's go, time is against us.
+|语音内容韩语=가자, 시간이 촉박해
+}}
+{{角色/语音1
+|语音类型=加入队伍·其二
+|语音文件=player1-刻晴_加入队伍·其二
+|语音内容=是突发事件吗？
+|语音内容日语=急を要する案件？
+|语音内容英语=Something's come up?
+|语音内容韩语=돌발 상황인가?
+}}
+{{角色/语音1
+|语音类型=加入队伍·其三
+|语音文件=player1-刻晴_加入队伍·其三
+|语音内容=速战速决。
+|语音内容日语=速戦即決！
+|语音内容英语=Let's finish this quickly.
+|语音内容韩语=속전속결
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=衣装试穿·其一
+|语音文件=player-刻晴_衣装试穿·其一
+|语音内容=久等了，现在，我们出发吧。
+|语音内容日语=お待たせ。出発しましょう。
+|语音内容英语=Thanks for waiting. Come on, let's head out.
+|语音内容韩语=오래 기다렸지? 이제 출발하자.
+}}
+{{角色/语音1
+|语音类型=衣装试穿·其二
+|语音文件=player-刻晴_衣装试穿·其二
+|语音内容=优雅与迅捷，缺一不可。
+|语音内容日语=優雅と機敏は、どちらも失ってはならないものよ。
+|语音内容英语=Elegance and agility. Equally indispensable.
+|语音内容韩语=우아함과 신속함. 어느 하나 빠질 수 없지.
+}}
+{{角色/语音1
+|语音类型=衣装试穿·其三
+|语音文件=player-刻晴_衣装试穿·其三
+|语音内容=夜幕降临之前，要抓紧时间了。
+|语音内容日语=夜が来る前に、急がないと。
+|语音内容英语=With that out of the way, let's make the most of the time before nightfall.
+|语音内容韩语=날이 어두워지기 전에, 서둘러야겠어.
+}}
+</div>
+</div>

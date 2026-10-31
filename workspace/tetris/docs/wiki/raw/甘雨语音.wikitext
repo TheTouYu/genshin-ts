@@ -1,0 +1,690 @@
+{{面包屑|甘雨|角色语音}}{{角色导航}}{{语音tab样式}}__notoc__
+<div class="resp-tabs" style="border-spacing: 0px;">
+<ul class="resp-tabs-list clearfix">
+<li class="active bili-list-style"><span class="tab-panel">角色语音</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素战技</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素爆发</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >打开宝箱</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >同伴生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >倒下</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >受击</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >加入队伍</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >其他</span></li>
+</ul>
+{{角色语音表头
+|汉语CV=林簌
+|日语CV=上田丽奈
+|英语CV=雷切尔·勒波雷&珍妮佛·罗希
+|韩语CV=金仙惠
+}}
+<div class="resp-tabs-container">
+<div class="resp-tab-content" style="display:block;">
+{{角色/语音1
+|语音类型=初次见面…
+|语音文件=player1-甘雨_初次见面
+|语音内容=我明白了，外派工作的「契约」已经拟好了，请过目，即日起就可以为你…欸！名字没有签吗？请让我看一下。唔…名字是甘，甘雨…呼，补上了。话，话说回来，工作具体是指哪些呢？
+|语音内容日语=分かりました、派遣の「契約」はできましたので、ご確認を。では今からあなたのために…えっ！？私のサインがないですか？確認しますね。えっと…名前は甘、甘雨です…これでいいですね。と、ところで、仕事内容は何でしょうか？
+|语音内容英语=Copy that! Here is a draft Service Agreement for your review and consideration. Effective immediately, if all is in order...Ah! Wait a sec, wait a sec,I forgot to sign it... Gan...Yu... There. Right. Now... What was it you needed me to do for you exactly?
+|语音内容韩语=알겠습니다. 파견 근무의 「계약」을 완성했으니 한 번 보세요. 오늘부터 당신을 위해… 어… 아! 서명을 안 했다고요? 잠시만요. 음… 이름은 감, 감우… 휴, 다 됐습니다. 그래서 구체적인 업무는 뭐죠?
+}}	
+{{角色/语音1
+|语音类型=闲聊·松弛
+|语音文件=player1-甘雨_闲聊·松弛
+|语音内容=安逸的氛围…喜欢。
+|语音内容日语=穏やかな雰囲気…とても好きです。
+|语音内容英语=It's so nice to de-stress.
+|语音内容韩语=편안한 분위기… 마음에 들어요
+}}	
+{{角色/语音1
+|语音类型=闲聊·聆听
+|语音文件=player1-甘雨_闲聊·聆听
+|语音内容=趴在草地上，能听见大地的心跳。
+|语音内容日语=芝生に寝転がると、大地の鼓動が聞こえてきます。
+|语音内容英语=If you lie on the grass, you can feel the heartbeat of the world.
+|语音内容韩语=초원에 엎드리면 대지의 심장 소리를 들을 수 있어요
+}}	
+{{角色/语音1
+|语音类型=闲聊·焦虑
+|语音文件=player1-甘雨_闲聊·焦虑
+|语音内容=工作…工作还没做完…真的可以提前休息吗？
+|语音内容日语=仕事…仕事がまだ終わってません…休んでいいのでしょうか？
+|语音内容英语=Should we really be off work this early? There is still a lot left to do...
+|语音内容韩语=일…일을 아직 다 못 끝냈는데… 정말 미리 휴식해도 되는 걸까요?
+}}	
+{{角色/语音1
+|语音类型=下雨的时候·担忧
+|语音文件=player1-甘雨_下雨的时候·担忧
+|语音内容=飞云商会种植的霓裳花需要充足的雨露，唔…和记交通的伙计们却不喜欢雨后泥泞的山路…
+|语音内容日语=飛雲商会が栽培した霓裳花には十分の露が必要ですが…和記交通の方たちは雨の後のぬかるんでいる山道が嫌い…
+|语音内容英语=Oh good! I was just thinking that the Silk Flowers at the Feiyun Commerce Guild needed watering. The transport co-ordinators will probably moan about the muddy mountain roads again, though...
+|语音内容韩语=비운상회에서 기르는 예상꽃은 충분한 비가 필요해요. 음… 하지만 화물을 운송하는 사람들은 비가 그친 후 진흙탕이 된 산길을 싫어하죠…
+}}	
+{{角色/语音1
+|语音类型=下雨的时候·听雨
+|语音文件=player1-甘雨_下雨的时候·听雨
+|语音内容=在庭院里听雨的感觉很好，但是，太奢侈了。
+|语音内容日语=庭で雨の音を聞くのが好きですが、少し贅沢すぎますね。
+|语音内容英语=It is something of a luxury, but I love listening to the rain from the courtyard.
+|语音内容韩语=정원에서 빗소리를 듣는 건 참 좋지만, 너무 사치에요
+}}	
+{{角色/语音1
+|语音类型=雨过天晴…
+|语音文件=player1-甘雨_雨过天晴
+|语音内容=嗯？天晴了吗？是什么时候…
+|语音内容日语=ん？晴れましたか？いつの間に…
+|语音内容英语=Oh, the sun's out. When did that happen?
+|语音内容韩语=네? 날이 갰다고요? 언제…
+}}	
+{{角色/语音1
+|语音类型=阳光很好…
+|语音文件=player1-甘雨_阳光很好
+|语音内容=嗯，空气很适宜。
+|语音内容日语=うん、空気が綺麗ですね。
+|语音内容英语=Ah, the air is just right.
+|语音内容韩语=음, 기분 좋은 공기네요
+}}	
+{{角色/语音1
+|语音类型=起风的时候…
+|语音文件=player1-甘雨_起风的时候
+|语音内容=啊，琉璃百合的味道，真好啊…
+|语音内容日语=琉璃百合のにおい、いいですね…
+|语音内容英语=Ah, I love the smell of Glaze Lilies.
+|语音内容韩语=아, 유리백합 향기는 정말 좋네요…
+}}	
+{{角色/语音1
+|语音类型=早上好…
+|语音文件=player1-甘雨_早上好
+|语音内容=早上好…唔？是哪里没有梳理好吗，请不要盯着我的…盯着我的头饰看。
+|语音内容日语=おはようございます…ん？どこか変ですか？あまり…髪飾りをじっと見ないでください。
+|语音内容英语=Morning! What's wrong, is there something stuck in my hair? ...Oh. Please don't stare at my h--hairpiece.
+|语音内容韩语=좋은 아침입니다. 어… 제 머리에 헝클어진 곳이라도 있나요? 제 머리 장식을… 그렇게 빤히 보지 말아 주세요
+}}	
+{{角色/语音1
+|语音类型=中午好…
+|语音文件=player1-甘雨_中午好
+|语音内容=啊…需要午觉。如果没有什么特别的事情…我就先行告退了。
+|语音内容日语=ふわぁ…お昼寝しないと。用件がなければ…失礼しますね。
+|语音内容英语=*yawn* Ugh... I need a nap. If there aren't any urgent matters, I'll excuse myself.
+|语音内容韩语=아… 낮잠이 필요해요. 별다른 일이 없다면… 전 먼저 가볼게요
+}}	
+{{角色/语音1
+|语音类型=晚上好…
+|语音文件=player1-甘雨_晚上好
+|语音内容=万家灯火就在眼前，人们的生活究竟是怎么样的呢…欸？你想邀请我去夜市？啊…不，不好意思，我就不去了吧。
+|语音内容日语=家々のともしびがすぐ目の前にある。人々の生活は一体どんなものなのでしょう…え？一緒に夜市に？あっ…ご、ごめんなさい、遠慮しますね。
+|语音内容英语=Look how brightly lit the city is at night! Amazing. I wonder what it's like for all the people down there... Hmm? Umm... No thanks, I think I'll pass on the night market. Sorry...
+|语音内容韩语=수많은 등불이 눈앞에 펼쳐져 있네요. 사람들의 생활은 대체 어떤 모습일까요… 네? 야시장에 함께 가자고요? 아… 죄, 죄송해요. 전 안 갈래요
+}}	
+{{角色/语音1
+|语音类型=晚安…
+|语音文件=player1-甘雨_晚安
+|语音内容=愿帝君保佑你，愿你的每个梦都踏实而香甜。
+|语音内容日语=…帝君のご加護と、良い夢が訪れますように。
+|语音内容英语=May Rex Lapis watch over you. May your dreams be peaceful and sweet.
+|语音内容韩语=제군이 당신을 지켜주시길, 편안하고 달콤한 꿈 꾸세요
+}}	
+{{角色/语音1
+|语音类型=关于甘雨自己…
+|语音文件=player1-甘雨_关于甘雨自己
+|语音内容=我的工作，就是遵循与帝君的「契约」，为璃月多数生命，谋求最大的福祉。
+|语音内容日语=私の仕事は帝君との「契約」に従い、璃月の数多くの命に最大限の幸せをもたらすことです。
+|语音内容英语=My job is to honor my contract with Rex Lapis by looking out for the interests of all living things in Liyue.
+|语音内容韩语=제 일은 제군과의 「계약」에 따라, 리월의 많은 생명을 위해 최고의 복지를 강구하는 것이죠
+}}	
+{{角色/语音1
+|语音类型=关于我们·工作
+|语音文件=player1-甘雨_关于我们·工作
+|语音内容=今天的工作已经提前完成了。加…加班？我理解了，我会好好完成的。
+|语音内容日语=今日の仕事が予定より早く終わりました。…ざ、残業？…承知しました、頑張ります。
+|语音内容英语=I finished all my assignments early today. ...O—Overtime? I understand. I'll get right on the case.
+|语音内容韩语=오늘의 업무는 진작 다 마쳤어요. 추,추가 근무요? …알겠습니다. 최선을 다해 완료할게요
+}}	
+{{角色/语音1
+|语音类型=关于我们·请求
+|语音文件=player1-甘雨_关于我们·请求
+|语音内容=我想了解更多有关人类的故事…尤其，想知道你对他们的看法和评价。因为，那个，你跟提瓦特大陆上的普通人不太一样吧。而我也…请务必，和我交流。
+|语音内容日语=人間の話をもっと理解したい…特に人間に対するあなたの考え方と評価を知りたいです。えっと、だってあなたはテイワット大陸の普通の人間と違いますから。それに私も…ぜひ、私といろいろ交流してほしいです。
+|语音内容英语=I want to understand more about humans... And I especially wish to hear what you think of them. Why, you ask? Because you're... you're a bit different from most people in Teyvat, just as I am... Please, tell me what you think.
+|语音内容韩语=인간에 대한 이야기를 더 많이 알고 싶어요… 특히, 당신이 그들에 대해 어떻게 평가하는지 알고 싶어요. 왜냐면 당신은 티바트 대륙의 평범한 사람들과는 다르니까요. 저도 그렇고요… 부디 저에게 전부 알려주세요
+}}	
+{{角色/语音1
+|语音类型=关于我们·评价
+|语音文件=player1-甘雨_关于我们·评价
+|语音内容=嗯…我，我一直想知道你对我工作的评价。是…普通宝箱的等级还是华丽宝箱的等级。没，没关系的。我的心理…能承受的住。
+|语音内容日语=えっと…あの…わ、私の仕事ぶりに関して、あなたの評価を知りたいです。ふ、普通の宝箱レベルか、それとも豪華な宝箱レベルか。だ、大丈夫です。私は…どんな評価でも耐えられます。
+|语音内容英语=Um, so, yeah, uh, I was, uh... I was wondering what your opnion is on my work so far? Would you say I'm... more of a Common Chest or more of a Luxurious Chest? I—It's fine. I—I can, uh... I can take it.
+|语音内容韩语=음… 전, 당신이 제 업무에 대해 어떻게 평가하는지 알고 싶어요. …일반 보물상자의 레벨인가요 아니면 화려한 보물상자의 레벨인가요? 괘, 괜찮아요. 받아들일 수 있어요
+}}	
+{{角色/语音1
+|语音类型=关于「神之眼」…
+|语音文件=player1-甘雨_关于「神之眼」
+|语音内容=「一千种权力伴随着一千种责任。」那位拥有着博览今古的视野，却被迫放弃了自己生活的帝君，才是整个璃月最辛苦的人吧。相比起来，只拥有着普通「神之眼」，只需要去行使普通职责的我，已经轻松得多了。
+|语音内容日语=「千の権力には千の責任が伴う。」古今を見渡す視野があるのに、自身の生活を諦めざるを得なかった帝君こそが、璃月で最も大変な方でしょう。帝君と比べて、普通の「神の目」を持ち、普通の責任を背負うことしかできない私は、かなり楽ですよ。
+|语音内容英语="With authority over a thousand comes responsibility to a thousand." Rex Lapis knows the meaning of hardship better than anyone else in Liyue — he has seen everything that has happened from ancient times to the present day, and yet he was forced to give up his entire life. Compared to him, I'm just an everyday Vision holder with everyday responsibilities. I can't complain about my workload.
+|语音内容韩语=「모든 권력에는 책임이 따른다」고 하죠. 널리 고금을 볼 수 있는 시야를 지녔지만, 어쩔 수 없이 자신의 삶을 포기하신 제군이야말로 리월에서 가장 피곤한 사람이겠죠. 그에 비해 단순히 평범한 「신의 눈」을 지녀 평범한 책임만 지면 되는 전, 훨씬 편하죠
+}}	
+{{角色/语音1
+|语音类型=有什么想要分享…
+|语音文件=player1-甘雨_有什么想要分享
+|语音内容=「万商云来、千船继至、百货迭出、诸海历览。」人们用这样的话来称赞璃月。但成就这样的壮景，依靠的也是细小到每一个人的努力。我是怀着要对得起这份繁荣的心情工作的。
+|语音内容日语=「万の商人が訪れ、千の船が往来し、百の品々が現れ、世の中の宝がここに集まる。」と人々はそう璃月を称賛しましたが、この壮大な景色があるのは、人々の努力の賜物です。私もこの繁栄に恥じないように働かなければなりません。
+|语音内容英语="Where merchants flock and all ships dock, and over the oceans flows its stock." People say this in praise of Liyue's prosperity. But a city only becomes this successful through everyone playing their part diligently. That's the attitude I take to my work — I want to be worthy of what we enjoy here.
+|语音内容韩语=「모든 상회가 운집하고 배들이 끝없이 드나들며, 온갖 화물이 들고나고 온 바다를 두루 품네」 사람들은 이렇게 리월을 칭송하죠. 하지만 이런 장관이 있기까지, 수많은 사람의 노력이 있었습니다. 전 이 영광에 걸맞는 마음가짐으로 업무에 임하고 있어요.
+}}	
+{{角色/语音1
+|语音类型=感兴趣的见闻·名字
+|语音文件=player1-甘雨_感兴趣的见闻·名字
+|语音内容=生活在璃月的每一只小狗，我都给它们取了名字。不过，有的狗狗如果用别的名字叫它也会有反应。真是了不起呢。如果有谁突然叫我「苦雪」什么的，我一定回应不上来。
+|语音内容日语=璃月のワンちゃんたちには名前をつけました。でも一部のワンちゃんは違う名前で呼んでも反応するんです。私が誰かに違う名前で呼ばれても、きっと反応できません。ワンちゃんたちはすごいですね…
+|语音内容英语=I've named every single doggie living in Liyue. But they're so funny. Some of them still respond even when you call them the completely wrong name. How fascinating is that? Like, if people were to call me "Bantu," how am I supposed to know they're talking to me? No way would I respond.
+|语音内容韩语=리월에서 사는 모든 강아지에게 이름을 지어줬어요. 어떤 강아지는 다른 이름으로 불러도 반응을 보입니다. 정말 대단하죠. 누군가 갑자기 절 「고설」이라고 부른다면 전 반응하지 못할 거예요
+}}	
+{{角色/语音1
+|语音类型=感兴趣的见闻·清心
+|语音文件=player1-甘雨_感兴趣的见闻·清心
+|语音内容=清心的花瓣，很好吃…应该说特别好吃。就是因为太好吃了，所以我才不敢在玉京台种它。生怕哪天一个不小心就会忍不住…嗯？你说…特别苦？可是…这不就是它的味道吗？
+|语音内容日语=清心の花弁は美味しいです…格別に美味しいです。美味しすぎるからこそ玉京台で栽培したくないのです。いつか我慢できなくなってしまったら…ん？えっと…苦い？…でも、それが清心の味ですよ。
+|语音内容英语=Qingxin flower petals are pretty tasty. Incredibly tasty, actually. The only reason I don't plant any at Yujing Terrace is because they taste so good that I worry I wouldn't be able to control myself... Huh? Bitter? Yes, they are... Isn't that what they're supposed to taste like?
+|语音内容韩语=청심화 꽃잎은 맛있어요… 매우 맛있다고 할 수 있죠. 너무 맛있어서 차마 옥경대에 심질 못하고 있어요. 혹시라도 못 참고… 에? 엄청… 쓰다고요? 하지만 청심화는 원래 그런 맛이잖아요
+}}	
+{{角色/语音1
+|语音类型=关于摩拉克斯·信任
+|语音文件=player1-甘雨_关于摩拉克斯·信任
+|语音内容=我对帝君有着绝对的信任。当年，正是有帝君率领，我们才能击退魔物、降伏海兽，保住了这一方平安。帝君守护众人的身姿，千年以来的情谊，我不会忘记。
+|语音内容日语=帝君のことは絶対的に信頼しています。あの時、帝君の統率があったからこそ、私たちは魔物を撃退し、海獣を降伏させ、皆さんの安全を守ることができました。帝君が人々を守る姿、そして千年に及ぶ誠意、私は忘れたりしません。
+|语音内容英语=I have absolute faith in Rex Lapis. It was only through his leadership that we were able to repel the monsters and subdue the sea creatures, and thus protect the peace of Liyue. The sight of him protecting the masses, and the memory of our centuries of camaraderie... I shall never forget it.
+|语音内容韩语=전 제군을 절대적으로 신뢰합니다. 그때 제군이 계셨기에 우리는 마물과 바다의 괴수를 처치하고 이곳의 평화를 지킬 수 있었죠. 제군이 모두를 지키던 모습, 천 년이 넘는 우정을 전 잊지 못할 겁니다
+}}	
+{{角色/语音1
+|语音类型=关于摩拉克斯·追随
+|语音文件=player1-甘雨_关于摩拉克斯·追随
+|语音内容=帝君的决断，总是能够为璃月的多数生命带来福祉。我很敬佩这一点，也很想像他一样…但有时，越想着要去追赶帝君的脚步，就越容易紧张得出错…
+|语音内容日语=帝君の決定はいつだって璃月の数多の命に幸せをもたらします。それに私は敬服し、そしていつか帝君のようになりたいと思ったのです…でも帝君の歩みを追いかけようとすると、緊張でミスすることがたまにあります…
+|语音内容英语=All of Rex Lapis' decisions prioritize the welfare of all life in Liyue. That's what I admire about him the most. I want to live up to the same standard... but it seems that the harder I try to follow in his footsteps, the more overwhelmed I get and the more mistakes I make...
+|语音内容韩语=제군의 결단은 항상 리월의 수많은 생명에게 큰 복을 가져다줬죠. 그런 점에서 전 그분을 무척 존경해요. 그렇게 되고 싶기도 하고… 하지만 때론 제군의 발걸음을 좇으려고 할수록 긴장해서 더 실수를 하더라고요…
+}}	
+{{角色/语音1
+|语音类型=关于凝光…
+|语音文件=player1-甘雨_关于凝光
+|语音内容=历任「天权」都会对璃月的古老律法进行释义和补充。在这之中，当代「天权」凝光的处理效率是无人能及的。只不过，她那追求效率和效益的作风常常遭人指摘。挑刺，总是比包容简单得多吧。
+|语音内容日语=歴代の「天権」は璃月の古い法律に解釈と補充を行います。その中で、当代の「天権」、凝光の効率は最もいいです。ただ、あの効率と効果を求めるスタイルは非難されることがよくあります。欠点をとがめることは、受け入れることより簡単ですからね。
+|语音内容英语=Each Tianquan adds their own interpretation and amendments to the founding laws of Liyue. The current one, Ningguang, does it with unmatched efficiency, but that efficacious manner of hers draws a great deal of criticism. I suppose it is always simpler to criticize than to telerate.
+|语音内容韩语=「천권」을 역임하면 리월의 고대 율법을 해석하고 보충하게 되죠. 그중에서도 현재 「천권」이신 응광님의 처리 효율은 아무도 따라잡을 수 없죠. 다만 효율과 효과를 우선으로 추구하는 그녀의 태도는 종종 지적을 당하곤 하죠. 트집을 잡는 게 포용보다 훨씬 쉬우니까요
+}}	
+{{角色/语音1
+|语音类型=关于刻晴·隔阂
+|语音文件=player1-甘雨_关于刻晴·隔阂
+|语音内容=我无法认同她对帝君的态度。但是…但是…「甘雨，这才是璃月现今需要的人。」帝君反而这样说。我还是太愚钝了，要理解帝君话语中的意思，还得更努力地接触更多事务才行吧。
+|语音内容日语=帝君に対する彼女の態度に納得できません。でも…でも…「甘雨、これが今の璃月に必要な人材だ」って帝君が言いました。帝君の言葉を理解するためには、いろんなこととの接触をもっと頑張らないとですね。
+|语音内容英语=I cannot stand her disrespectful attitude towards Rex Lapis! But he says to me, "Ganyu, this is just the kind of person Liyue needs in this day and age." I guess I'm not smart enough, because I simply do not understand what he means by that. I think I need more life experience to become wise enough to comprehend his words.
+|语音内容韩语=전 그녀가 제군을 대하는 태도를 받아들일 수 없어요. 하지만… 제군께선 「감우, 이게 지금 리월에 필요한 사람이야」라고 말씀하셨죠. 제가 너무 어리석었어요. 제군의 말의 속뜻을 이해하려면 더 많은 일을 경험해 봐야겠죠
+}}	
+{{角色/语音1
+|语音类型=关于刻晴·改观
+|语音文件=player1-甘雨_关于刻晴·改观
+|语音内容=最近她主动与我讨论起了修复碧水商路的方案，还问我，是帝君的话会怎么做。我们商量出来的举措固然不比帝君，不过…看到她反复推演着沙盘的样子，隐约能够理解她的心情了。
+|语音内容日语=最近彼女は碧水の貿易ルートを修復する案を自ら話してきて、帝君ならどうするかって聞いてきました。私たちが話した案は帝君と比べたらまだまだでした…でも彼女の帝君に対する思いが伝わってきて嬉しいです。
+|语音内容英语=She came to me recently to discuss the reopening of the Bishui trade route. She even asked me what Rex Lapis would do if it were him. Admittedly, what we came up with was not quite on par with what he would have chosen. But... seeing the way she kept starting her plan from scratch over and over again, I think I started to understand her a little bit.
+|语音内容韩语=최근 그녀가 먼저 저에게 찾아와 벽수상로를 수리하는 방안을 논의하기 시작했어요. 게다가 제게 제군이라면 어떻게 했을지 물어봤어요. 그녀가 계속해서 상황을 분석하고 해결책을 생각해내는 모습을 보고… 조금이나마 그녀를 이해할 수 있게 됐어요
+}}	
+{{角色/语音1
+|语音类型=关于行秋…
+|语音文件=player1-甘雨_关于行秋
+|语音内容=飞云商会那位青衣少年，并不像他的父亲和兄长那般操心织物的经营。是因为对他来说，有更重要的事情值得去做吧。当然…这也只是我的猜测…
+|语音内容日语=飛雲商会のあの青い服の少年は、彼の父親や兄のように織物の経営に熱心ではないようです。たぶん、彼にとってもっと大事なことがあるからでしょう。もちろん、これはあくまで私の推測です…
+|语音内容英语=You mean the boy in the blue jacket from the Feiyun Commerce Guild? He's nothing like his father and brother, doesn't seem to care about the textile business at all. Seems it's because as far as he's concerned, there are more important things for him to be doing. Of course, I'm merely speculating...
+|语音内容韩语=비운상회의 그 푸른 옷의 소년, 그는 그의 부친과 형처럼 직물 경영에 크게 신경 쓰는 것 같지는 않아요. 아마 그에겐 더욱 중요한 일이 있는 거겠죠. 물론… 제 추측이지만…
+}}	
+{{角色/语音1
+|语音类型=关于香菱…
+|语音文件=player1-甘雨_关于香菱
+|语音内容=香菱很有名！但...我不太敢去「万民堂」那一带…不敢就是…不敢啦。好，好吧，也不是秘密。那边的饭菜香味飘得满街都是。一旦被勾住了，点上了菜，就算是素菜也...很难控制住食欲吧。这样的话，这样的话…
+|语音内容日语=香菱はとても有名です！でも…「万民堂」あたりはあまり行かないことにしています。あそこには食事の香りが満ちていて、いざ釣られて注文したら、たとえ野菜だけでも…食欲を我慢できません。そんなことしたら…
+|语音内容英语=Xiangling is a celebrity! Um, but... I try to avoid her restaurant. Just... because. No reason. ...Okay, fine. It's not a big secret anyway. It's because you can smell her cooking all the way from the other end of the street. And once you get a whiff, I mean, that's it. You're gone. Next thing you know, you're ordering your second, maybe third round... You just can't control it. Even though I only eat the vegetarian dishes, I don't know what it is. But that is not a road I want to go down again... Not after... 
+|语音内容韩语=향릉은 엄청 유명해요! 하지만… 전 「만민당」 근처엔 못 가겠어요…. 그냥… 하, 못 가겠다니까요. 조, 좋아요. 비밀도 아니니 말할게요. 그곳엔 맛있는 음식 냄새로 가득하죠. 홀린 듯이 음식을 주문해 버리면 채소 요리도… 하… 절제할 수 없게 돼요. 그렇게 되면…
+}}	
+{{角色/语音1
+|语音类型=关于北斗…
+|语音文件=player1-甘雨_关于北斗
+|语音内容=近来，玉京台之上对南十字船队的怨言不断。可是在我看来，北斗船长对璃月所做的贡献，远非沉溺于伪造流言之徒所能想象…啊，抱歉，失言了…
+|语音内容日语=近頃、玉京台では南十字船隊へのクレームが止まりません。でも私が見た北斗船長の璃月に対する貢献は、でたらめな噂話を流す人々には想像もできないほどずっと多いです…あっ、すみません、失言でした。
+|语音内容英语=Recently, everyone in Yujing Terrace has been saying nasty things about The Crux Fleet. But in my personal opinion, Beidou's contribution to Liyue Harbor goes far beyond what those miserable, rumor-loving heathens could even contemplate! ...Oops! I'm sorry, I... I'm not quite sure how that one slipped out...
+|语音内容韩语=최근 옥경대에서 남십자함대에 대한 불평이 끊이질 않고 있습니다. 하지만 제 생각엔 북두 함장이 리월을 위해 세운 공은 유언비어를 날조하는 놈들보다 훨씬… 이런, 제가 말실수를 했네요
+}}	
+{{角色/语音1
+|语音类型=关于瑶瑶…
+|语音文件=player1-甘雨_关于瑶瑶
+|语音内容=瑶瑶啊…我是受总务司那边的熟人托付，在城内好生照顾她，别让她再往船上跑…你问我总务司的业务范围？唔…不，不知道呢。
+|语音内容日语=ヨォーヨですか…総務司の知り合いに頼まれて、船上に行かないように彼女の世話をしています…総務司の業務範囲ですか？うーん…わ、分かりません。
+|语音内容英语=Yaoyao... Someone I know at the Ministry of Civil Affairs tasked me with keeping an eye on her in the city, making sure she doesn't try and sneak aboard The Crux... Oh, you want to know what the Ministry of Civil Affairs does? ...Who knows, am I right!? Heh... Who knows what they do? ...Not me...
+|语音内容韩语=요요… 전 총무부에서 아는 사람의 부탁을 받고, 그녀가 배에 오르지 못하도록 그녀를 돌봤어요. 총무부의 업무 범위요? 어… 음, 글쎄요
+}}	
+{{角色/语音1
+|语音类型=关于魈…
+|语音文件=player1-甘雨_关于魈
+|语音内容=他一直与人间保持距离，应该说是性格使然吧…我能够理解他，但是我无法「接近」他。毕竟…与他履行同一份「契约」的同伴，都已经不在了啊…
+|语音内容日语=彼は人間と距離を置いています、そういう性格だからでしょうか…理解はできますが、彼に「近づく」ことはできません。なにせ…彼と同じ「契約」を結んだ仲間はもういませんから…
+|语音内容英语=He seems like a bit of an outsider, socially. Probably just his personality... I can understand that, to be honest, but I'm not really about to try and get close to him. I mean... all the people he's ever agreed to team up with are no longer with us...
+|语音内容韩语=그는 줄곧 인간과 거리를 유지해왔어요. 본인의 성격 때문이겠죠… 그를 충분히 이해할 수 있지만, 그에게 「접근」을 할 수는 없어요. 그와 함께 「계약」을 이행하는 동료가 없어졌으니…
+}}	
+{{角色/语音1
+|语音类型=关于烟绯…
+|语音文件=player1-甘雨_关于烟绯
+|语音内容=烟绯呀…她还是个懵懂的小女孩时，就和我说过，要遵守契约，过上快乐的生活。如今她亭亭玉立，成了璃月的名人。<br>律法咨询师的工作很繁杂，但她总是一副无忧无虑的模样，这让我十分安心。
+|语音内容日语=煙緋さんですか…彼女は子供の頃からすでに、契約を守ってこそ幸せな生活が送れるということを理解していました。その彼女も今は立派に育ち、璃月の有名人になられています。<br>法律家の仕事は煩雑なものが多いですが、それを容易くこなす彼女を見て、私もとても安心できました。
+|语音内容英语=Ah, Yanfei... Even back when she was an innocent little girl, she would tell me that "you have to keep your promises to live a happy life." Now, she's grown up to be a beautiful, graceful, and highly successful young woman. <br>Although the work of a legal adviser is complicated, she always seems so carefree. This puts my mind at ease.
+|语音内容韩语=연비요…? 그녀는 세상 물정 모르는 어린 소녀였을 때부터 제게 계약을 지키며 행복하게 살아야 한다고 말했어요. 지금은 아주 훌륭히 자라 리월의 유명인이 되었죠.<br>법률 고문이 하는 일은 아주 복잡하지만, 그녀가 늘 아무 걱정 없어 보여서 저도 안심돼요
+}}	
+{{角色/语音1
+|语音类型=关于申鹤…
+|语音文件=player1-甘雨_关于申鹤
+|语音内容=我和她并不能算是熟悉。只是听留云真君提过几句，听说她性子较凶，要是压抑不住心性，容易对周围造成严重破坏。嗯…会不会是因为平日里太闲了呢？我…我该给她推荐些工作吗？
+|语音内容日语=私は彼女のことをよく知っているわけではありません。ただ留雲真君から、彼女は気性が荒く、心を抑えられなければ周囲に大きな危害を与えてしまうと聞きました…普段、暇を持て余し過ぎているからかもしれませんね。私が…彼女に仕事をお勧めした方がいいのでしょうか…？
+|语音内容英语=I actually don't know her all that well — I've only heard bits and pieces from Cloud Retainer. From what I've heard, she can be quite ferocious. Whenever her temper gets the better of her, she is likely to start obliterating her surroundings. I wonder if maybe she's just... bored. Should... Should I recommend some work to keep her occupied?
+|语音内容韩语=그녀를 결코 잘 아는 편은 아니에요. 류운진군이 그녀에 대해 말하는 것만 몇 번 들었는데, 성격이 사납다고 해요. 성질을 억누르지 못하면 쉽게 주변을 파괴한다더라구요. 음… 너무 한가해서 그런 거 아닐까요? 제… 제가 일을 소개해줘야 하려나요?
+}}	
+{{角色/语音1
+|语音类型=关于夜兰…
+|语音文件=player1-甘雨_关于夜兰
+|语音内容=虽说夜兰小姐每年有将近七成的时间缺勤，但凝光会给她这样的特权，想必事出有因。当然，这不该是由我打听的事项，具体内容就不清楚了。不过，有天我回月海亭的路上，看到她和许多人有说有笑地吃着早点，喝着茶。我的内心深处…竟然有些羡慕
+|语音内容日语=夜蘭さんは、一年のうち七割近くを欠勤しています。ですが、凝光様が彼女にそのような特権を与えているのには、きっと何か理由があるのでしょう。もちろん、これは私が詮索すべきことではありませんので、詳しいことはよく分かりません。でもある日、月海亭へ帰る途中、あの方がたくさんの人と笑いながら、朝食とお茶をいただいているところを見ました。心の底から…少し羨ましいと思いました。
+|语音内容英语=Even though Ms. Yelan is absent from work for the majority of the year, I'm sure Lady Ningguang must have her reasons for making exceptions for her. Of course, it wouldn't be my place to ask, so I don't know the details of their arrangement. I remember seeing her one day on my way back to Yuehai Pavilion, she was having breakfast with a group of people — they were all talking and laughing, eating, drinking tea... I must admit, I found myself feeling a little envious in that moment.
+|语音内容韩语=야란 씨가 일 년 중 근 7할 정도 결근 상태이긴 하지만, 응광 님이 그분에게 그런 특권을 준 데엔 그럴 만한 이유가 있을 거예요. 물론, 제가 알아야 할 일이 아니라 구체적인 건 잘 모르겠네요. 하지만 전에 월해정으로 돌아가는 길에 야란 씨가 사람들과 담소 나누고 차 마시면서 아침 식사를 하고 있는 걸 본 적이 있어요. 그걸 보니까… 어쩐지 좀 부러웠어요
+}}
+{{角色/语音1
+|语音类型=关于闲云…
+|语音文件=player1-甘雨_关于闲云
+|语音内容=留云真君…啊，我是说，闲云小姐，她不久前约我一同逛街，却在每个摊位前都停下脚步，一定要把每件商品细细看过一遍才离开。等我们记起要吃饭时，已经夕阳西下了。这让我想起了从前在山中修行的日子，光阴也如同现在一样，转瞬即逝…
+|语音内容日语=
+|语音内容英语=
+|语音内容韩语=
+}}
+{{角色/语音1
+|语音类型=想要了解甘雨·其一
+|语音文件=player1-甘雨_想要了解甘雨·其一
+|语音内容=临时的工作吗？啊，不用和我具体说。将你的要求写下来，放在这边就好。
+|语音内容日语=臨時の仕事ですか？あっ、詳細は言わなくても大丈夫です。要求を書いて、ここに置いておいてください。
+|语音内容英语=You have a last-minute job for me? Okay, uh... Sorry, please don't try  and explain it all verbally... Write it down, leave a note here. I'll get to it as soon as possible.
+|语音内容韩语=임시적인 업무요? 아, 구체적으로 말씀하실 필요 없어요. 요구 사항을 적어서 여기에 놓아주세요
+}}	
+{{角色/语音1
+|语音类型=想要了解甘雨·其二
+|语音文件=player1-甘雨_想要了解甘雨·其二
+|语音内容=「想要了解更多甘雨的事情」…这，这是什么工作要求啊。我，我还从来没有处理过这样的…去年年底述职报告的背诵可以吗？啊，不行啊。
+|语音内容日语=「甘雨のことをもっと知りたい」…な、なにこの仕事？そ、そんなの対応したことありません…昨年末の仕事の報告の暗唱はどうですか？えっ、だめですか？
+|语音内容英语=Let's see... "I want to understand Ganyu better..." Wh—What sort of request is that!? I've never done this before... Um, um, um... Okay... I can ah... run you through my annual review from last year? That should bring you up to speed on me... No good? Oh, okay then...
+|语音内容韩语=「감우에 대해 더 많이 알고 싶어」… 이, 이건 무슨 일에 필요한 거죠? 저, 전 이런 걸 처리해본 적이 없어서… 작년 연말의 업무 보고서를 외우면 될까요? 아, 안 되는군요
+}}	
+{{角色/语音1
+|语音类型=想要了解甘雨·其三
+|语音文件=player1-甘雨_想要了解甘雨·其三
+|语音内容=我思考过了…既然是「工作」，处理「工作」就没有害羞的必要。如果你想要了解我的话，这个头上的…发饰。其实是我的角。我的身上，有着仙兽「麒麟」的血脉。唔…理解了的话，请签下这份保密协议，不要对别人讲…
+|语音内容日语=考えました…「仕事」ですから、「仕事」の対応するのに恥ずかしく感じる必要はありません。え？この…髪飾り？実は角です。私には仙獣「麒麟」の血が流れています。では、この秘密保持契約書にサインしてください、他言無用です…
+|语音内容英语=I've had a long, hard think, and I've realized that so long as it's for a work-related matter, there's really nothing for me to be embarrassed about. So if you really need to understand me more... This, uh, hairpiece... it's actually my horns. That's right. I'm part illuminated beast, qilin to be exact. Okay, so, now we've got that out the way... Please sign this non-disclosure agreement for me. And don't tell a soul.
+|语音内容韩语=생각해봤는데… 「업무」라면, 부끄러워할 필요 없겠죠. 저에 대해 알고 싶다면, 이 머리 장식부터… 사실 이건 뿔이에요. 제 몸에는 신수 「기린」의 피가 흐르죠. 음… 이해되셨으면 이 비밀 유지 계약서에 서명해 주세요. 절대 다른 사람에게 이야기하면 안 돼요…
+}}	
+{{角色/语音1
+|语音类型=想要了解甘雨·其四
+|语音文件=player1-甘雨_想要了解甘雨·其四
+|语音内容=虽然身为仙兽的混血后裔，但同时也有着人类的血脉。这么多年来，我也不知道自己算不算融入了璃月港的人类生活…可能，我只是像钻进地里的草史莱姆一样，把自己埋在数据和报表中间来逃避吧。
+|语音内容日语=仙獣の末裔でありながら、私には人間の血も流れています。この数年間、璃月港の人間の暮らしにちゃんと溶け込んだかどうかわかりません…たぶん、私は地面に入る草スライムのように、自分をデータや報告表に埋めて逃げているのでしょう。
+|语音内容英语=Even though I'm part qilin, I'm still part human, too. Still, all these years I've been asking myself the same question: Do I really belong in the human world? Maybe I'm just like a Dendro Slime hiding in the earth, burying myself in numbers and reports in order to escape reality.
+|语音内容韩语=전 신수의 혼혈 후예지만 동시에 인간의 피도 흐르고 있어요. 몇 년이 지났는데도, 제가 리월항 인간의 삶에 녹아들었는지는 모르겠네요… 아마 땅을 파고들어가는 풀 슬라임처럼 데이터와 보고서에 파묻혀 도피하는 거겠죠
+}}	
+{{角色/语音1
+|语音类型=想要了解甘雨·其五
+|语音文件=player1-甘雨_想要了解甘雨·其五
+|语音内容=谢谢你一直陪我说话。遇见你之后，好像说了十几年都没有说过的那么多话…如果保持这样的锻炼，有朝一日也能从事秘书以外的职业了吧。用上几百年时间来熟练，应该就不会犯什么要紧的错了吧。
+|语音内容日语=話し相手になってくれて、ありがとうございます。十数年間口にしなかったことまで話したような気がします…こうして鍛え続けたら、いつか秘書以外の仕事もできるのでしょうか。百年以上の時間をかけたら、きっと重大なミスはしないはずです。
+|语音内容英语=Thank you for always making time to chat with me. I feel like I must have spoken more after meeting you than I have in the last ten years put together. If I keep going like this... Maybe one day I'll be able to move on to something other than secretarial work. Now that I've got a few hundred years of experience under my belt, I should be able to avoid any more major mistakes.
+|语音内容韩语=저와 이야기해 줘서 고마워요. 당신을 만난 후, 10여 년 동안 가장 말을 많이 한 것 같아요… 이렇게 훈련을 계속한다면 비서 외에 다른 직업에도 종사할 수 있겠어요. 몇 백 년 동안 익숙해지면, 치명적인 실수는 안 하겠죠
+}}	
+{{角色/语音1
+|语音类型=甘雨的爱好…
+|语音文件=player1-甘雨_甘雨的爱好
+|语音内容=爱好吗，爱好的话…工作吧。嗯？工作不能算？但是，为什么呢？难道爱好不是指自己想要去做，做了就会感到开心的事情吗。那么爱好是工作，又有什么问题呢？
+|语音内容日语=趣味ですか？そうですね…仕事でしょうか。ん？仕事以外で？それはどうしてですか？趣味はしたいこと、すると嬉しくなることですよね。趣味が仕事のどこが問題ですか？
+|语音内容英语=My hobby... I would say... my job. What? Why don't jobs count as hobbies? I thought hobbies are supposed to be things you look forward to doing, and that make you feel good when you've done them. That describes my job perfectly. So what's the issue?
+|语音内容韩语=취미라, 취미는… 일이에요. 네? 일은 취미가 아니라고요? 왜요? 취미는 자신이 하고 싶고, 하면 즐거운 일을 말하는 게 아닌가요? 그럼 취미가 일인 게 무슨 문제가 되나요?
+}}	
+{{角色/语音1
+|语音类型=甘雨的烦恼…
+|语音文件=player1-甘雨_甘雨的烦恼
+|语音内容=为何人们总是拼命证明…自己的存在比其他人更有价值呢？存在本身，就是足够美好的事情了吧？
+|语音内容日语=どうして人々は、自分の存在は他人より価値があると証明したがるのでしょう？存在していること自体、素晴らしいことなのに…そうですよね？
+|语音内容英语=I don't understand why people insist on going all out to try and prove how their existence is more valuable than everyone else's. To exist in the first place is a beautiful thing, and that's enough... isn't it?
+|语音内容韩语=사람들은 왜 항상… 자신의 가치가 남보다 높다는 걸 증명하려고 안달일까요? 존재한다는 것 자체가 충분히 아름다운 일이잖아요?
+}}	
+{{角色/语音1
+|语音类型=喜欢的食物…
+|语音文件=player1-甘雨_喜欢的食物
+|语音内容=「饮必甘露，食必嘉禾。」这是我的守则。所以，请把那盘「仙跳墙」，从我的视线范围里拿开…
+|语音内容日语=「甘露を飲み、嘉禾を食す」、それが私のポリシーです。だから、あの美味しそうな仙跳牆を私の視界から消してください…
+|语音内容英语="Drink only spring water, eat only whole grains," that's my motto. So I would be grateful if you could please remove that treacherously enticing-looking plate of delicacies from my field of view. Much obliged!
+|语音内容韩语=「먹고 마시는 건 풍요로워야 한다」가 제 수칙입니다. 그러니 저 「선도장」 좀 제 시야에서 치워주세요…
+}}	
+{{角色/语音1
+|语音类型=讨厌的食物…
+|语音文件=player1-甘雨_讨厌的食物
+|语音内容=我们一族是严格的素食主义者，肉类料理就请允许我谢绝了。嗯，没错，即使是荤油混在蔬菜丸子里也不行…不可以。不可以哟。我能够闻出来的。
+|语音内容日语=私たち一族は厳しい菜食主義者です。肉料理は遠慮させていただきます。野菜団子に入れてもだめです…だめです、だめですから。においで分かります。
+|语音内容英语=Qilins are strict vegetarians, so please do not take offense when I decline meat dishes. Yes, that includes your vegetable fritters since they have been fried in animal fat. Thanks, but I can't. I'm afraid I really can't. I don't mean to argue, it's just I have a keen sense of smell, so I know how they've been cooked.
+|语音内容韩语=우리 일족은 엄격한 채식주의자예요. 육류 요리는 사절이에요. 음, 맞아요. 돼지기름으로 튀긴 채소 완자도 안 돼요… 안 된다구요! 전 냄새로 알아차릴 수 있어요
+}}	
+{{角色/语音1
+|语音类型=收到赠礼·其一
+|语音文件=player1-甘雨_收到赠礼·其一
+|语音内容=地道的美味佳肴…啊！我是不是已经吃多了？
+|语音内容日语=本格的なご馳走ですね…あっ！私、食べ過ぎてしまいましたか？
+|语音内容英语=Such authentic delicacies... Oh no! I think I might have eaten too much...
+|语音内容韩语=아주 제대로 된 요리네요…. 아! 제가 너무 많이 먹었나요?
+}}	
+{{角色/语音1
+|语音类型=收到赠礼·其二
+|语音文件=player1-甘雨_收到赠礼·其二
+|语音内容=我在饮食方面还挺挑剔的，让你费心了…
+|语音内容日语=食事に関してはかなり気を遣っているため、あなたの手を煩わせてしまいましたね…
+|语音内容英语=I'm somewhat of a picky eater, sorry you went to all this trouble...
+|语音内容韩语=제가 먹는 거에 많이 까다로운 편인데, 정말 고생하셨어요…
+}}	
+{{角色/语音1
+|语音类型=收到赠礼·其三
+|语音文件=player1-甘雨_收到赠礼·其三
+|语音内容=我明白你的好意，但油荤…还是算了。
+|语音内容日语=お気持ちは受け取りますが、お肉は…遠慮しておきます。
+|语音内容英语=I appreciate the thought, but... meat's not really my thing.
+|语音内容韩语=마음은 알겠어요. 하지만 기름진 음식은… 사양할게요
+}}	
+{{角色/语音1
+|语音类型=生日…
+|语音文件=player1-甘雨_生日
+|语音内容=生日快乐。这么久以来受你的关照，但却没有准备礼物，这点实在…藏在手后面的？欸，你看到了啊…是，失败了的清心花凉糕…抱着必须做完美的决心结果…欸，好，好吃的？真…真的吗。
+|语音内容日语=お誕生日おめでとうございます。今までお世話になったのに、プレゼントも用意していないなんて…後ろにあるもの？えっ、見たんですか…失敗した清心のお菓子です…完璧に作りたいと思ったのに…お、美味しいですか？ほ、本当に？
+|语音内容英语=Many happy returns! After all the times you've looked out for me, I didn't evem remember to get you a gift — whoops! Silly me, I... What's that behind my back? Ah. You saw it then. It's a failed attempt at making a Qingxin flower cake... I wanted it to be perfect, but... Oh, you think it tastes good? Do you really?
+|语音内容韩语=생일 축하해요. 당신에게 이렇게 오랫동안 신세를 졌는데, 선물도 준비하지 못했네요. 이거 참… 손 뒤에 숨긴 거요? 휴… 다 봤군요… 실패한 청심화 푸딩이에요… 완벽하게 만들겠다고 다짐했는데… 맛, 맛있다고요? 저, 정말요…?
+}}	
+{{角色/语音1
+|语音类型=突破的感受·起
+|语音文件=player1-甘雨_突破的感受·起
+|语音内容=力量？…真是久违了。
+|语音内容日语=力？…久しぶりですね。
+|语音内容英语=Power? ...Now there's a key performance indicator I haven't needed in a long time.
+|语音内容韩语=이 힘은… 정말 오랜만이군요
+}}	
+{{角色/语音1
+|语音类型=突破的感受·承
+|语音文件=player1-甘雨_突破的感受·承
+|语音内容=如果…可以用和平的方式解决。不，没什么…
+|语音内容日语=もし…平和な形で解決できたら、いや、なんでもありません…
+|语音内容英语=Could we maybe... find a peaceful resolution instead...? Never mind, doesn't matter...
+|语音内容韩语=만약… 평화로운 방식으로 해결할 수 있다면. 아, 아니에요…
+}}	
+{{角色/语音1
+|语音类型=突破的感受·转
+|语音文件=player1-甘雨_突破的感受·转
+|语音内容=这就是新的生活之道吧…我明白了，我不会抱怨的。
+|语音内容日语=これが新たな生活の道でしょうか…わかりました、文句は言いません。
+|语音内容英语=I suppose this is the new way of life, then. I'm not going to complain. I'll try to embrace it.
+|语音内容韩语=이게 바로 새로운 삶의 길… 알겠어요, 원망하지 않을게요
+}}	
+{{角色/语音1
+|语音类型=突破的感受·合
+|语音文件=player1-甘雨_突破的感受·合
+|语音内容=我曾经看到古书上说，「麟斗则日无光」。其实没有那么夸张。但是，如果需要战斗，如果需要为你而战，我会献出自己的全部力量。
+|语音内容日语=古書で「麒麟が戦えば、日の光なし」という文章を見ました。そんな大げさなことはありません。でも戦う必要がありましたら、私は全力を出してあなたのために戦います。
+|语音内容英语=I remember reading in an ancient text that "Only when days be darker than the darkest night, may a qilin be compelled to fight." That's a massive exaggeration, but... should the time come for battle, and should you need me, then I will give it every ounce of my strength.
+|语音内容韩语=예전에 고서에서 「기린이 싸우면 해는 빛을 잃는다」라는 말을 본 적이 있어요. 사실 그 정도는 아니지만, 만약 당신을 위해 싸워야 한다면 제 모든 힘을 바칠게요
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素战技·其一
+|语音文件=player1-甘雨_元素战技·其一
+|语音内容=禁止接触。
+|语音内容日语=おさわり禁止。
+|语音内容英语=No touching!
+|语音内容韩语=접촉 금지
+}}	
+{{角色/语音1
+|语音类型=元素战技·其二
+|语音文件=player1-甘雨_元素战技·其二
+|语音内容=闲人勿扰。
+|语音内容日语=部外者禁止。
+|语音内容英语=Access denied.
+|语音内容韩语=방해하지 마세요
+}}	
+{{角色/语音1
+|语音类型=元素战技·其三
+|语音文件=player1-甘雨_元素战技·其三
+|语音内容=霜寒化生。
+|语音内容日语=霜寒化生。
+|语音内容英语=Born of ice and frost.
+|语音内容韩语=얼음과 서리가 되어
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素爆发·其一
+|语音文件=player1-甘雨_元素爆发·其一
+|语音内容=风雪的缩影。
+|语音内容日语=風雪の縮図。
+|语音内容英语=All hail!
+|语音内容韩语=눈바람의 형상
+}}	
+{{角色/语音1
+|语音类型=元素爆发·其二
+|语音文件=player1-甘雨_元素爆发·其二
+|语音内容=如琉璃般飘落。
+|语音内容日语=琉璃のように落ちなさい。
+|语音内容英语=Glaze over!
+|语音内容韩语=유리처럼 흩날려라
+}}	
+{{角色/语音1
+|语音类型=元素爆发·其三
+|语音文件=player1-甘雨_元素爆发·其三
+|语音内容=这项工作，该划掉了。
+|语音内容日语=この仕事は排除するべきですね。
+|语音内容英语=This is long overdue.
+|语音内容韩语=슬슬 끝내도 되겠군요
+}}	
+{{角色/语音1
+|语音类型=元素爆发·其四
+|语音文件=player1-甘雨_元素爆发·其四
+|语音内容=为了岩王帝君！
+|语音内容日语=岩王帝君のために！
+|语音内容英语=For Rex Lapis!
+|语音内容韩语=암왕제군을 위하여!
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=打开宝箱·其一
+|语音文件=player1-甘雨_打开宝箱·其一
+|语音内容=有所收获，就是一件好事。
+|语音内容日语=収穫があるのはとてもいいことです。
+|语音内容英语=There's nothing wrong with reaping a reward every now and then.
+|语音内容韩语=수확이 있는 것만으로도 좋은 일이에요
+}}	
+{{角色/语音1
+|语音类型=打开宝箱·其二
+|语音文件=player1-甘雨_打开宝箱·其二
+|语音内容=瑰丽的珍宝，令人欣喜。
+|语音内容日语=美しい宝、嬉しいですね
+|语音内容英语=Beautiful treasures are a cause for great happiness.
+|语音内容韩语=아름다운 보물은 사람을 즐겁게 하죠
+}}	
+{{角色/语音1
+|语音类型=打开宝箱·其三
+|语音文件=player1-甘雨_打开宝箱·其三
+|语音内容=留下宝箱的人，也遵循着某种「契约」吗？
+|语音内容日语=宝箱を残した人も、「契約」に従ったのでしょうか？
+|语音内容英语=Perhaps whoever left these behind was... also fulfilling a contract?
+|语音内容韩语=보물상자를 남긴 사람도 어떤 「계약」을 따른 걸까요?
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=生命值低·其一
+|语音文件=player1-甘雨_生命值低·其一
+|语音内容=…是我久疏战场。
+|语音内容日语=…私が戦場から離れたせいです。
+|语音内容英语=I'm just way out of practice.
+|语音内容韩语=…전투는 오랜만이군요
+}}	
+{{角色/语音1
+|语音类型=生命值低·其二
+|语音文件=player1-甘雨_生命值低·其二
+|语音内容=欸？好像弄砸了？
+|语音内容日语=あれ？ミスした？
+|语音内容英语=Did I miscalculate?
+|语音内容韩语=어? 망친 것 같은데?
+}}	
+{{角色/语音1
+|语音类型=生命值低·其三
+|语音文件=player1-甘雨_生命值低·其三
+|语音内容=需要…补充能量。
+|语音内容日语=エネルギー補充が…必要です。
+|语音内容英语=I'm a little low on energy.
+|语音内容韩语=에너지 충전이… 필요해요
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=同伴生命值低·其一
+|语音文件=player1-甘雨_同伴生命值低·其一
+|语音内容=请您退后！
+|语音内容日语=後ろに下がってください！
+|语音内容英语=Please step back!
+|语音内容韩语=뒤로 물러나세요!
+}}	
+{{角色/语音1
+|语音类型=同伴生命值低·其二
+|语音文件=player1-甘雨_同伴生命值低·其二
+|语音内容=呃…「不可贸然进攻」！
+|语音内容日语=えっと…「迂闊に攻めるな」です！
+|语音内容英语=Uh... "Don't try to rush your enemy"!
+|语音内容韩语=아… 「섣불리 진공하면 안 됩니다」!
+}}	
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=倒下·其一
+|语音文件=player1-甘雨_倒下·其一
+|语音内容=帝君…对不起…
+|语音内容日语=帝君…ごめんなさい…
+|语音内容英语=Rex Lapis... I am sorry!
+|语音内容韩语=죄송합니다… 제군
+}}	
+{{角色/语音1
+|语音类型=倒下·其二
+|语音文件=player1-甘雨_倒下·其二
+|语音内容=「契约」…尚未完成…
+|语音内容日语=「契約」は…まだ終わっていない…
+|语音内容英语=My contract goes... unfulfilled...
+|语音内容韩语=「계약」을… 완성하지 못했어요…
+}}	
+{{角色/语音1
+|语音类型=倒下·其三
+|语音文件=player1-甘雨_倒下·其三
+|语音内容=我得…再撑一会…
+|语音内容日语=もう少し…頑張らないと…
+|语音内容英语=Must... press... on...
+|语音内容韩语=좀 더… 버텨야 해…
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=普通受击·其一
+|语音文件=player1-甘雨_普通受击·其一
+|语音内容=疏忽了…
+|语音内容日语=油断しました…
+|语音内容英语=Ngh... Didn't see that coming.
+|语音内容韩语=경솔했어…
+}}	
+{{角色/语音1
+|语音类型=重受击·其一
+|语音文件=player1-甘雨_重受击·其一
+|语音内容=没有关系…
+|语音内容日语=大丈夫です…
+|语音内容英语=I can fix this!
+|语音内容韩语=괜찮습니다…
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=加入队伍·其一
+|语音文件=player1-甘雨_加入队伍·其一
+|语音内容=工作时间到了么？
+|语音内容日语=仕事の時間ですか？
+|语音内容英语=Time to begin work?
+|语音内容韩语=일할 시간이 됐나요?
+}}	
+{{角色/语音1
+|语音类型=加入队伍·其二
+|语音文件=player1-甘雨_加入队伍·其二
+|语音内容=请向我下达指令。
+|语音内容日语=指令をお出しください。
+|语音内容英语=What are my orders?
+|语音内容韩语=지령을 내려주세요
+}}	
+{{角色/语音1
+|语音类型=加入队伍·其三
+|语音文件=player1-甘雨_加入队伍·其三
+|语音内容=谨遵你我「契约」。
+|语音内容日语=あなたとの「契約」を守ります。
+|语音内容英语=As per our contract.
+|语音内容韩语=당신과의 「계약」에 따를게요
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=冲刺开始·其一
+|语音文件=player1-甘雨_冲刺开始·其一
+|语音内容=下一项工作是…
+|语音内容日语=次の仕事は…
+|语音内容英语=We're way behind schedule...
+|语音内容韩语=다음으로 해야 할 일은…
+}}	
+{{角色/语音1
+|语音类型=冲刺开始·其二
+|语音文件=player1-甘雨_冲刺开始·其二
+|语音内容=我会跟上的…
+|语音内容日语=ついていきます…
+|语音内容英语=Next on the agenda...
+|语音内容韩语=금방 따라갈게요…
+}}	
+{{角色/语音1
+|语音类型=冲刺结束·其一
+|语音文件=player1-甘雨_冲刺结束·其一
+|语音内容=运动，是必要的…
+|语音内容日语=運動は必要です…
+|语音内容英语=Healthy body, healthy mind...
+|语音内容韩语=운동은 필수이죠…
+}}
+{{角色/语音1
+|语音类型=幻想真境剧诗神秘房间对话·一
+|语音文件=
+|语音内容=千年时间里，我曾经熟悉的人和事，最终都渐渐逝去。人类的生命如此短暂，似乎什么都不能留下。但是，某次偶然来到说书人的台下，我听到了一折新戏，唱的是我一位故友的生平。朦胧间，唱词与我那故友的音容笑貌相连，往日的种种也犹在眼前。我想这也是人类撰写「故事」的原因吧。
+|语音内容日语=
+|语音内容英语=
+|语音内容韩语=
+}}
+{{角色/语音1
+|语音类型=幻想真境剧诗神秘房间对话·二
+|语音文件=
+|语音内容=不知道你是否在为接下来的战斗困扰…如果问我的话，我有一些建议。适当地放松一下吧！比如，在安全的地方睡个午觉。我…我经常努力想要做到分毫不错，但往往越是如此，越是会忙中出错。
+|语音内容日语=
+|语音内容英语=
+|语音内容韩语=
+}}
+{{角色/语音1
+|语音类型=幻想真境剧诗神秘房间对话·三
+|语音文件=
+|语音内容=继续前进会有多？其实我很少思考这种问题。我一直觉得，只要恪尽职守，把所有该做的事情都做完，任何问题都能迎刃而解。要是还没有解决问题的话…那可能是工作量还不够吧？
+|语音内容日语=
+|语音内容英语=
+|语音内容韩语=
+}}
+</div>
+</div>

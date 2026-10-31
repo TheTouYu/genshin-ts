@@ -1,0 +1,356 @@
+{
+ "mode": "title",
+ "frames": 90,
+ "pixelChangedFrames": 22,
+ "firstPixelChangeFrame": 6,
+ "firstPixelChangeAt": 0.233,
+ "longestRun": 3,
+ "longestRunStartFrame": 17,
+ "changeSpanFrames": 79,
+ "maxIdleFrames": 11,
+ "maxIdleSeconds": 0.37,
+ "maxIdleStartFrame": 43,
+ "persistent": false,
+ "controlsTouched": [
+  {
+   "name": "menuHint3",
+   "changes": 78
+  },
+  {
+   "name": "menuHint2",
+   "changes": 78
+  },
+  {
+   "name": "menuHint1",
+   "changes": 78
+  },
+  {
+   "name": "cell36",
+   "changes": 4
+  },
+  {
+   "name": "cell26",
+   "changes": 5
+  },
+  {
+   "name": "cell24",
+   "changes": 4
+  },
+  {
+   "name": "cell16",
+   "changes": 6
+  },
+  {
+   "name": "cell46",
+   "changes": 4
+  },
+  {
+   "name": "cell35",
+   "changes": 4
+  },
+  {
+   "name": "cell15",
+   "changes": 6
+  },
+  {
+   "name": "cell45",
+   "changes": 2
+  },
+  {
+   "name": "cell44",
+   "changes": 2
+  },
+  {
+   "name": "cell25",
+   "changes": 4
+  },
+  {
+   "name": "cell37",
+   "changes": 2
+  },
+  {
+   "name": "cell48",
+   "changes": 2
+  },
+  {
+   "name": "cell47",
+   "changes": 2
+  },
+  {
+   "name": "cell39",
+   "changes": 2
+  },
+  {
+   "name": "cell38",
+   "changes": 2
+  },
+  {
+   "name": "cell58",
+   "changes": 2
+  },
+  {
+   "name": "cell57",
+   "changes": 2
+  },
+  {
+   "name": "cell49",
+   "changes": 2
+  },
+  {
+   "name": "cell68",
+   "changes": 2
+  },
+  {
+   "name": "cell67",
+   "changes": 2
+  },
+  {
+   "name": "cell59",
+   "changes": 2
+  },
+  {
+   "name": "cell78",
+   "changes": 2
+  },
+  {
+   "name": "cell77",
+   "changes": 2
+  },
+  {
+   "name": "cell69",
+   "changes": 2
+  },
+  {
+   "name": "cell79",
+   "changes": 2
+  },
+  {
+   "name": "cell70",
+   "changes": 2
+  },
+  {
+   "name": "next8",
+   "changes": 6
+  },
+  {
+   "name": "next7",
+   "changes": 6
+  },
+  {
+   "name": "next6",
+   "changes": 5
+  },
+  {
+   "name": "next5",
+   "changes": 5
+  },
+  {
+   "name": "next1",
+   "changes": 6
+  },
+  {
+   "name": "next4",
+   "changes": 5
+  },
+  {
+   "name": "next3",
+   "changes": 5
+  },
+  {
+   "name": "next2",
+   "changes": 5
+  },
+  {
+   "name": "cell189",
+   "changes": 1
+  },
+  {
+   "name": "cell188",
+   "changes": 1
+  },
+  {
+   "name": "cell180",
+   "changes": 1
+  },
+  {
+   "name": "cell179",
+   "changes": 1
+  },
+  {
+   "name": "cell14",
+   "changes": 5
+  },
+  {
+   "name": "cell5",
+   "changes": 2
+  },
+  {
+   "name": "hold4",
+   "changes": 3
+  },
+  {
+   "name": "hold3",
+   "changes": 3
+  },
+  {
+   "name": "hold2",
+   "changes": 3
+  },
+  {
+   "name": "hold1",
+   "changes": 3
+  },
+  {
+   "name": "cell4",
+   "changes": 2
+  },
+  {
+   "name": "cell34",
+   "changes": 2
+  },
+  {
+   "name": "cell33",
+   "changes": 2
+  },
+  {
+   "name": "cell23",
+   "changes": 2
+  },
+  {
+   "name": "cell32",
+   "changes": 2
+  },
+  {
+   "name": "cell31",
+   "changes": 2
+  },
+  {
+   "name": "cell21",
+   "changes": 2
+  },
+  {
+   "name": "cell43",
+   "changes": 2
+  },
+  {
+   "name": "cell42",
+   "changes": 2
+  },
+  {
+   "name": "cell41",
+   "changes": 2
+  },
+  {
+   "name": "cell53",
+   "changes": 2
+  },
+  {
+   "name": "cell52",
+   "changes": 2
+  },
+  {
+   "name": "cell51",
+   "changes": 2
+  },
+  {
+   "name": "cell63",
+   "changes": 2
+  },
+  {
+   "name": "cell62",
+   "changes": 2
+  },
+  {
+   "name": "cell61",
+   "changes": 2
+  },
+  {
+   "name": "cell193",
+   "changes": 1
+  },
+  {
+   "name": "cell192",
+   "changes": 1
+  },
+  {
+   "name": "cell191",
+   "changes": 1
+  },
+  {
+   "name": "cell181",
+   "changes": 1
+  },
+  {
+   "name": "cell17",
+   "changes": 2
+  },
+  {
+   "name": "cell27",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [],
+ "skillLogLines": [],
+ "castOk": false,
+ "aiStart": null,
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": null,
+ "skillEffect": "unknown（与对照无差异）",
+ "audio": {
+  "newCount": 3,
+  "ids": [
+   50872,
+   50883
+  ],
+  "sample": [
+   {
+    "instanceId": 2,
+    "audioId": 50872,
+    "startedAt": 2.6333333333333337,
+    "duration": 1.024,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 3,
+    "audioId": 50883,
+    "startedAt": 2.8999999999999995,
+    "duration": 0.151,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 50872,
+    "startedAt": 4.266666666666661,
+    "duration": 1.024,
+    "alive": true,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": null,
+ "slot": 1,
+ "canvas": {
+  "id": "pc-16-9",
+  "width": 1600,
+  "height": 900,
+  "mobile": false
+ },
+ "roleSwitch": null,
+ "elapsedMs": 14465,
+ "saveFreshness": {
+  "ok": true,
+  "stale": [],
+  "checked": 8
+ },
+ "keyFrames": [
+  "frame-f001.png",
+  "frame-f012.png",
+  "frame-f024.png",
+  "frame-f090.png"
+ ]
+}

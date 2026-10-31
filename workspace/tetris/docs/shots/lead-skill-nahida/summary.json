@@ -1,0 +1,264 @@
+{
+ "mode": "casual",
+ "frames": 48,
+ "pixelChangedFrames": 47,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 42,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 47,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 71
+  },
+  {
+   "name": "cell",
+   "changes": 1113
+  },
+  {
+   "name": "sk1state",
+   "changes": 3
+  },
+  {
+   "name": "itopBanner",
+   "changes": 1
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  },
+  {
+   "name": "cell25",
+   "changes": 1
+  },
+  {
+   "name": "cell23",
+   "changes": 4
+  },
+  {
+   "name": "cell16",
+   "changes": 1
+  },
+  {
+   "name": "cell14",
+   "changes": 2
+  },
+  {
+   "name": "cell24",
+   "changes": 1
+  },
+  {
+   "name": "cell22",
+   "changes": 2
+  },
+  {
+   "name": "cell15",
+   "changes": 1
+  },
+  {
+   "name": "cell13",
+   "changes": 2
+  },
+  {
+   "name": "cell21",
+   "changes": 2
+  },
+  {
+   "name": "cell12",
+   "changes": 2
+  },
+  {
+   "name": "cell32",
+   "changes": 2
+  },
+  {
+   "name": "cell31",
+   "changes": 2
+  },
+  {
+   "name": "cell42",
+   "changes": 2
+  },
+  {
+   "name": "cell41",
+   "changes": 2
+  },
+  {
+   "name": "cell33",
+   "changes": 2
+  },
+  {
+   "name": "cell52",
+   "changes": 2
+  },
+  {
+   "name": "cell51",
+   "changes": 2
+  },
+  {
+   "name": "cell43",
+   "changes": 2
+  },
+  {
+   "name": "cell62",
+   "changes": 2
+  },
+  {
+   "name": "cell61",
+   "changes": 2
+  },
+  {
+   "name": "cell53",
+   "changes": 2
+  },
+  {
+   "name": "cell72",
+   "changes": 2
+  },
+  {
+   "name": "cell71",
+   "changes": 2
+  },
+  {
+   "name": "cell63",
+   "changes": 2
+  },
+  {
+   "name": "cell82",
+   "changes": 1
+  },
+  {
+   "name": "cell81",
+   "changes": 2
+  },
+  {
+   "name": "cell73",
+   "changes": 2
+  },
+  {
+   "name": "cell92",
+   "changes": 1
+  },
+  {
+   "name": "cell91",
+   "changes": 1
+  },
+  {
+   "name": "cell83",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "first": "skill fx kind=cast role=nahida fx=on copy=on"
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+  }
+ ],
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 48,
+  "framesDifferingFromControl": 48,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.74402
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 2,
+  "ids": [
+   40441,
+   40001
+  ],
+  "sample": [
+   {
+    "instanceId": 3,
+    "audioId": 40441,
+    "startedAt": 5.933333333333322,
+    "duration": 1.001,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 40001,
+    "startedAt": 5.933333333333322,
+    "duration": 1.653,
+    "alive": true,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "nahida",
+ "slot": 1,
+ "canvas": {
+  "id": "pc-16-9",
+  "width": 1600,
+  "height": 900,
+  "mobile": false
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=1 role=nahida"
+ },
+ "elapsedMs": 17257,
+ "saveFreshness": {
+  "ok": false,
+  "stale": [
+   {
+    "path": "lua/tetris/config.lua",
+    "why": "内容不一致（存档 45142B / 磁盘 45151B）"
+   }
+  ],
+  "checked": 8
+ },
+ "controlStrip": "control-strip.png"
+}

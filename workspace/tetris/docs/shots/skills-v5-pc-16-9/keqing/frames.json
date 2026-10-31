@@ -1,0 +1,4411 @@
+{
+ "meta": {
+  "role": "keqing",
+  "mode": "casual",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "summary": {
+   "mode": "casual",
+   "frames": 30,
+   "pixelChangedFrames": 29,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 25,
+   "longestRunStartFrame": 0,
+   "changeSpanFrames": 29,
+   "maxIdleFrames": 1,
+   "maxIdleSeconds": 0.03,
+   "maxIdleStartFrame": 25,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 45
+    },
+    {
+     "name": "cell",
+     "changes": 402
+    },
+    {
+     "name": "next8",
+     "changes": 2
+    },
+    {
+     "name": "next7",
+     "changes": 2
+    },
+    {
+     "name": "next6",
+     "changes": 2
+    },
+    {
+     "name": "next5",
+     "changes": 2
+    },
+    {
+     "name": "next1",
+     "changes": 2
+    },
+    {
+     "name": "next4",
+     "changes": 1
+    },
+    {
+     "name": "next3",
+     "changes": 1
+    },
+    {
+     "name": "next2",
+     "changes": 1
+    },
+    {
+     "name": "cell165",
+     "changes": 1
+    },
+    {
+     "name": "cell164",
+     "changes": 1
+    },
+    {
+     "name": "cell156",
+     "changes": 1
+    },
+    {
+     "name": "cell155",
+     "changes": 1
+    },
+    {
+     "name": "cell25",
+     "changes": 2
+    },
+    {
+     "name": "cell24",
+     "changes": 3
+    },
+    {
+     "name": "cell16",
+     "changes": 2
+    },
+    {
+     "name": "cell15",
+     "changes": 2
+    },
+    {
+     "name": "cell14",
+     "changes": 2
+    },
+    {
+     "name": "cell5",
+     "changes": 2
+    },
+    {
+     "name": "sk1state",
+     "changes": 2
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "ihud",
+     "changes": 1
+    },
+    {
+     "name": "cell26",
+     "changes": 2
+    },
+    {
+     "name": "cell36",
+     "changes": 1
+    },
+    {
+     "name": "cell35",
+     "changes": 1
+    },
+    {
+     "name": "cell34",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [
+    {
+     "i": 0,
+     "t": 0.033,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    },
+    {
+     "i": 1,
+     "t": 0.067,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    },
+    {
+     "i": 2,
+     "t": 0.1,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    },
+    {
+     "i": 3,
+     "t": 0.133,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    },
+    {
+     "i": 4,
+     "t": 0.167,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    },
+    {
+     "i": 5,
+     "t": 0.2,
+     "first": "skill fx kind=cast role=keqing fx=on copy=on"
+    }
+   ],
+   "skillLogLines": [
+    "takeover hint",
+    "skill cast slot=1 role=keqing ok=true effect=blink why=nil n=0.2",
+    "skill fx kind=cast role=keqing fx=on copy=on"
+   ],
+   "castOk": true,
+   "aiStart": null,
+   "aiEnd": null,
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 30,
+    "framesDifferingFromControl": 30,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.06898
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 3,
+    "ids": [
+     40391,
+     50924,
+     50872
+    ],
+    "sample": [
+     {
+      "instanceId": 3,
+      "audioId": 40391,
+      "startedAt": 4.7666666666666595,
+      "duration": 0.878,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 50924,
+      "startedAt": 4.7666666666666595,
+      "duration": 1.418,
+      "alive": true,
+      "stopped": false
+     },
+     {
+      "instanceId": 5,
+      "audioId": 50872,
+      "startedAt": 4.7666666666666595,
+      "duration": 1.024,
+      "alive": false,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "keqing",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=2 role=keqing"
+   },
+   "unlock": {
+    "ok": true,
+    "evidence": "skill debug unlock all party=4 active=nahida"
+   }
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 97917,
+    "ratio": 0.068,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [
+     {
+      "id": 380,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 379,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "kind": "image"
+     }
+    ],
+    "removed": [],
+    "moved": [
+     {
+      "id": 249,
+      "name": "next8",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "dx": 0,
+      "dy": -14
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "dx": -20,
+      "dy": 0
+     }
+    ],
+    "recolored": [
+     {
+      "id": 249,
+      "name": "next8",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 202,
+      "name": "cell165",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 201,
+      "name": "cell164",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 193,
+      "name": "cell156",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 192,
+      "name": "cell155",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 42,
+      "name": "cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 7.5s"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "雷楔落定，这一手不回头。"
+     },
+     {
+      "id": 335,
+      "name": "ihud",
+      "from": "得分 20　消行 0　等级 1　已填 4",
+      "to": "得分 20　消行 0　等级 1　已填 8"
+     }
+    ],
+    "changed": 50
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 43007,
+    "ratio": 0.02987,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 653,
+     "h": 678
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 7.6,
+      "dy": 2.36
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.37,
+      "dy": -5.01
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.75,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -6.54,
+      "dy": 1.48
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.11,
+      "dy": 6.29
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1936541627,
+      "to": -1603450949
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2119070465,
+      "to": -1330541313
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2092010751,
+      "to": -1447981825
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2008124671,
+      "to": -1565422337
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1481536257,
+      "to": -1917743873
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -776893185,
+      "to": -994996993
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -776893185,
+      "to": -994996993
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -776893185,
+      "to": -994996993
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -776893185,
+      "to": -994996993
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -776893185,
+      "to": -994996993
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 766610687,
+      "to": 1152486655
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2068738817,
+      "to": 1571917055
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1555139839,
+      "to": 1790020863
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1555139839,
+      "to": 1790020863
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1555139839,
+      "to": 1790020863
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1555139839,
+      "to": 1790020863
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 280071423,
+      "to": 129076479
+     }
+    ],
+    "textChanged": [],
+    "changed": 27
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 51083,
+    "ratio": 0.03547,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 655,
+     "h": 672
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 7.24,
+      "dy": 1.97
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.21,
+      "dy": -5.05
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.47,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -6.23,
+      "dy": 1.13
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.06,
+      "dy": 5.71
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1603450949,
+      "to": -999471173
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1330541313,
+      "to": -709784321
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -860779265
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1565422337,
+      "to": -994996993
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1431204609,
+      "to": -1582199553
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1917743873,
+      "to": 1957793023
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -1213100801
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -1213100801
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -1213100801
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -1213100801
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -1213100801
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1152486655,
+      "to": 1689357567
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1571917055,
+      "to": 1068600575
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1991347455
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1991347455
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1991347455
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1991347455
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 129076479,
+      "to": 28413183
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 54609,
+    "ratio": 0.03792,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 655,
+     "h": 667
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 6.88,
+      "dy": 1.58
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.05,
+      "dy": -5.09
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.2,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -5.92,
+      "dy": 0.78
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.01,
+      "dy": 5.13
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -999471173,
+      "to": -546486341
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -709784321,
+      "to": -290353921
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -860779265,
+      "to": -458126081
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -994996993,
+      "to": -609121025
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1582199553,
+      "to": -1917743873
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1957793023,
+      "to": 1571917055
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1213100801,
+      "to": -1447981825
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1213100801,
+      "to": -1447981825
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1213100801,
+      "to": -1447981825
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1213100801,
+      "to": -1447981825
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1213100801,
+      "to": -1447981825
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1689357567,
+      "to": -1934521089
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1068600575,
+      "to": 699501823
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1991347455,
+      "to": -2119070465
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1991347455,
+      "to": -2119070465
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1991347455,
+      "to": -2119070465
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1991347455,
+      "to": -2119070465
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 28413183,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 29
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 55088,
+    "ratio": 0.03826,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 655,
+     "h": 664
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 6.52,
+      "dy": 1.19
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.89,
+      "dy": -5.13
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.93,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -5.61,
+      "dy": 0.43
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.95,
+      "dy": 4.55
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -546486341,
+      "to": -227719237
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -290353921,
+      "to": -55472897
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -458126081,
+      "to": -223245057
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -609121025,
+      "to": -391017217
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1917743873,
+      "to": 2058456319
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1571917055,
+      "to": 1236372735
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -1666085633
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -1666085633
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -1666085633
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -1666085633
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1447981825,
+      "to": -1666085633
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1934521089,
+      "to": -1112437505
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 699501823,
+      "to": 481398015
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": -1968075521
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": -1968075521
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": -1968075521
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": -1968075521
+     }
+    ],
+    "textChanged": [],
+    "changed": 27
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 36530,
+    "ratio": 0.02537,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 655,
+     "h": 662
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 6.16,
+      "dy": 0.79
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.73,
+      "dy": -5.17
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.66,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -5.3,
+      "dy": 0.08
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.9,
+      "dy": 3.98
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -227719237,
+      "to": -43169861
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -55472897,
+      "to": -5141249
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -223245057,
+      "to": -172913409
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -391017217,
+      "to": -340685569
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2058456319,
+      "to": 1756466431
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1236372735,
+      "to": 917605631
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1666085633,
+      "to": -1900966657
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1666085633,
+      "to": -1900966657
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1666085633,
+      "to": -1900966657
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1666085633,
+      "to": -1900966657
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1666085633,
+      "to": -1900966657
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 397511935,
+      "to": 414289151
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1112437505,
+      "to": -525234945
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 481398015,
+      "to": 397511935
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -1867412225
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -1867412225
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -1867412225
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -1867412225
+     }
+    ],
+    "textChanged": [],
+    "changed": 25
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=keqing fx=on copy=on",
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 40937,
+    "ratio": 0.02843,
+    "bbox": {
+     "x": 664,
+     "y": 147,
+     "w": 579,
+     "h": 648
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 5.79,
+      "dy": 0.4
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.57,
+      "dy": -5.22
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.38,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -4.99,
+      "dy": -0.27
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.85,
+      "dy": 3.4
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -43169861,
+      "to": -9615429
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1756466431,
+      "to": 1471253759
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 917605631,
+      "to": 632392959
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1900966657,
+      "to": -2119070465
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1900966657,
+      "to": -2119070465
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1900966657,
+      "to": -2119070465
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1900966657,
+      "to": -2119070465
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1900966657,
+      "to": -2119070465
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 414289151,
+      "to": 548506879
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -525234945,
+      "to": -1431204609
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1867412225,
+      "to": -1800303361
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1867412225,
+      "to": -1800303361
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1867412225,
+      "to": -1800303361
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1867412225,
+      "to": -1800303361
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 42,
+      "name": "cell5",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 36270,
+    "ratio": 0.02519,
+    "bbox": {
+     "x": 649,
+     "y": 147,
+     "w": 308,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 5.43,
+      "dy": 0.01
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.41,
+      "dy": -5.26
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.11,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -4.68,
+      "dy": -0.62
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.79,
+      "dy": 2.82
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1202818303
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 632392959,
+      "to": 397511935
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": 1941015807
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": 1941015807
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": 1941015807
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": 1941015807
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2119070465,
+      "to": 1941015807
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 548506879,
+      "to": 816942335
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1431204609,
+      "to": 2092010751
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1783526145
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1783526145
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1783526145
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1783526145
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 30296,
+    "ratio": 0.02104,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 596,
+     "h": 650
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 5.07,
+      "dy": -0.38
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.25,
+      "dy": -5.3
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.84,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -4.37,
+      "dy": -0.97
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.74,
+      "dy": 2.24
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1202818303,
+      "to": 951160063
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 397511935,
+      "to": 196185343
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1941015807,
+      "to": 1706134783
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1941015807,
+      "to": 1706134783
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1941015807,
+      "to": 1706134783
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1941015807,
+      "to": 1706134783
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1941015807,
+      "to": 1706134783
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 816942335,
+      "to": 1236372735
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2092010751,
+      "to": 1471253759
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1783526145,
+      "to": -1800303361
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1783526145,
+      "to": -1800303361
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1783526145,
+      "to": -1800303361
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1783526145,
+      "to": -1800303361
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 24646,
+    "ratio": 0.01712,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 596,
+     "h": 649
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 4.71,
+      "dy": -0.77
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.09,
+      "dy": -5.34
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.57,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -4.06,
+      "dy": -1.32
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.69,
+      "dy": 1.66
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 951160063,
+      "to": 733056255
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 196185343,
+      "to": 61967615
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1706134783,
+      "to": 1471253759
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1706134783,
+      "to": 1471253759
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1706134783,
+      "to": 1471253759
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1706134783,
+      "to": 1471253759
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1706134783,
+      "to": 1471253759
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1236372735,
+      "to": 1790020863
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1001491711
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1850635009
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1850635009
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1850635009
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -1850635009
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill blink col=4 rows=14",
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 25793,
+    "ratio": 0.01791,
+    "bbox": {
+     "x": 380,
+     "y": 143,
+     "w": 863,
+     "h": 649
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 4.35,
+      "dy": -1.16
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.93,
+      "dy": -5.38
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.29,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -3.75,
+      "dy": -1.67
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.64,
+      "dy": 1.09
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 531729663
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 61967615,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1219595519
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1219595519
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1219595519
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1219595519
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1471253759,
+      "to": 1219595519
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": -1800303361
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1001491711,
+      "to": 649170175
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1850635009,
+      "to": -1968075521
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1850635009,
+      "to": -1968075521
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1850635009,
+      "to": -1968075521
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1850635009,
+      "to": -1968075521
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 7.5s",
+      "to": "台前 · CD 7.1s"
+     }
+    ],
+    "changed": 21
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 20200,
+    "ratio": 0.01403,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 596,
+     "h": 648
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.99,
+      "dy": -1.55
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.77,
+      "dy": -5.43
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.02,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -3.43,
+      "dy": -2.02
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.58,
+      "dy": 0.51
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 531729663,
+      "to": 363957503
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1219595519,
+      "to": 984714495
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1219595519,
+      "to": 984714495
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1219595519,
+      "to": 984714495
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1219595519,
+      "to": 984714495
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1219595519,
+      "to": 984714495
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1800303361,
+      "to": -961442561
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 649170175,
+      "to": 447843583
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -2102293249
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -2102293249
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -2102293249
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1968075521,
+      "to": -2102293249
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 9342,
+    "ratio": 0.00649,
+    "bbox": {
+     "x": 649,
+     "y": 149,
+     "w": 594,
+     "h": 641
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.63,
+      "dy": -1.95
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.61,
+      "dy": -5.47
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.75,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -3.12,
+      "dy": -2.37
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.53,
+      "dy": -0.07
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 363957503,
+      "to": 212962559
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 984714495,
+      "to": 733056255
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 984714495,
+      "to": 733056255
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 984714495,
+      "to": 733056255
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 984714495,
+      "to": 733056255
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 984714495,
+      "to": 733056255
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 397511935,
+      "to": 431066367
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -961442561,
+      "to": -709784321
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 447843583,
+      "to": 397511935
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2102293249,
+      "to": 2024901887
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2102293249,
+      "to": 2024901887
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2102293249,
+      "to": 2024901887
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2102293249,
+      "to": 2024901887
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 2978,
+    "ratio": 0.00207,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 596
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.27,
+      "dy": -2.34
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.45,
+      "dy": -5.51
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.47,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.81,
+      "dy": -2.72
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.48,
+      "dy": -0.65
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 212962559,
+      "to": 95522047
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 464620799
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 464620799
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 464620799
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 464620799
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 733056255,
+      "to": 464620799
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 431066367,
+      "to": 582061311
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -709784321,
+      "to": -1582199553
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2024901887,
+      "to": 1806798079
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2024901887,
+      "to": 1806798079
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2024901887,
+      "to": 1806798079
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2024901887,
+      "to": 1806798079
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 5218,
+    "ratio": 0.00362,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 596,
+     "h": 646
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.91,
+      "dy": -2.73
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.29,
+      "dy": -5.55
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.2,
+      "dy": -5.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.5,
+      "dy": -3.07
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.43,
+      "dy": -1.22
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 95522047,
+      "to": 11635967
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 464620799,
+      "to": 179408127
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 464620799,
+      "to": 179408127
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 464620799,
+      "to": 179408127
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 464620799,
+      "to": 179408127
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 464620799,
+      "to": 179408127
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 582061311,
+      "to": 884051199
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1582199553,
+      "to": 1974570239
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1806798079,
+      "to": 1588694271
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1806798079,
+      "to": 1588694271
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1806798079,
+      "to": 1588694271
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1806798079,
+      "to": 1588694271
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 4823,
+    "ratio": 0.00335,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 596,
+     "h": 644
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -100.13,
+      "dy": -4011.25
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -54.67,
+      "dy": -3897.14
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 84.44,
+      "dy": -3888.64
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 97.45,
+      "dy": -3997.48
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -17.24,
+      "dy": -4062.22
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 11635967,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 179408127,
+      "to": 0
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 179408127,
+      "to": 0
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 179408127,
+      "to": 0
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 179408127,
+      "to": 0
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 179408127,
+      "to": 0
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 884051199,
+      "to": 1269927167
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1974570239,
+      "to": 1320258815
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 397511935,
+      "to": 380734719
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 397511935,
+      "to": 380734719
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1588694271,
+      "to": 1337036031
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1588694271,
+      "to": 1337036031
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1588694271,
+      "to": 1337036031
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1588694271,
+      "to": 1337036031
+     }
+    ],
+    "textChanged": [],
+    "changed": 21
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 4512,
+    "ratio": 0.00313,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 596,
+     "h": 643
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1269927167,
+      "to": 1370590463
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1320258815,
+      "to": 665947391
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 380734719,
+      "to": 280071423
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 380734719,
+      "to": 280071423
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1337036031,
+      "to": 1085377791
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1337036031,
+      "to": 1085377791
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1337036031,
+      "to": 1085377791
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1337036031,
+      "to": 1085377791
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 4202,
+    "ratio": 0.00292,
+    "bbox": {
+     "x": 647,
+     "y": 145,
+     "w": 596,
+     "h": 641
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1370590463,
+      "to": 1253149951
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 665947391,
+      "to": 296848639
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 280071423,
+      "to": 196185343
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 280071423,
+      "to": 196185343
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1085377791,
+      "to": 1286704383
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1085377791,
+      "to": 1286704383
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1085377791,
+      "to": 1286704383
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1085377791,
+      "to": 1286704383
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 2986,
+    "ratio": 0.00207,
+    "bbox": {
+     "x": 647,
+     "y": 750,
+     "w": 596,
+     "h": 35
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1253149951,
+      "to": 833719551
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 296848639,
+      "to": 112299263
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 196185343,
+      "to": 95522047
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 196185343,
+      "to": 95522047
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1286704383,
+      "to": 1521585407
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1286704383,
+      "to": 1521585407
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1286704383,
+      "to": 1521585407
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1286704383,
+      "to": 1521585407
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 918,
+    "ratio": 0.00064,
+    "bbox": {
+     "x": 647,
+     "y": 749,
+     "w": 306,
+     "h": 3
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 833719551,
+      "to": 0
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 112299263,
+      "to": 0
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 95522047,
+      "to": 0
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 95522047,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1521585407,
+      "to": 1756466431
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1521585407,
+      "to": 1756466431
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1521585407,
+      "to": 1756466431
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1521585407,
+      "to": 1756466431
+     }
+    ],
+    "textChanged": [],
+    "changed": 13
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 2374,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 754,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1756466431,
+      "to": 1873906943
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1756466431,
+      "to": 1873906943
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1756466431,
+      "to": 1873906943
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1756466431,
+      "to": 1873906943
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "lock S cells=155,156,164,165",
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 7078,
+    "ratio": 0.00492,
+    "bbox": {
+     "x": 741,
+     "y": 181,
+     "w": 502,
+     "h": 602
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1873906943,
+      "to": 1790020863
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1873906943,
+      "to": 1790020863
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1873906943,
+      "to": 1790020863
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1873906943,
+      "to": 1790020863
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 2374,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 752,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1639025919
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1639025919
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1639025919
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1790020863,
+      "to": 1639025919
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 2375,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 751,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1639025919,
+      "to": 1437699327
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1639025919,
+      "to": 1437699327
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1639025919,
+      "to": 1437699327
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1639025919,
+      "to": 1437699327
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 2375,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 750,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1437699327,
+      "to": 1186041087
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1437699327,
+      "to": 1186041087
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1437699327,
+      "to": 1186041087
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1437699327,
+      "to": 1186041087
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1186041087,
+      "to": 900828415
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1186041087,
+      "to": 900828415
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1186041087,
+      "to": 900828415
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1186041087,
+      "to": 900828415
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 2374,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 749,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 900828415,
+      "to": 598838527
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 900828415,
+      "to": 598838527
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 900828415,
+      "to": 598838527
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 900828415,
+      "to": 598838527
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 2375,
+    "ratio": 0.00165,
+    "bbox": {
+     "x": 1042,
+     "y": 748,
+     "w": 201,
+     "h": 30
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 598838527,
+      "to": 296848639
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 598838527,
+      "to": 296848639
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 598838527,
+      "to": 296848639
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 598838527,
+      "to": 296848639
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 2545,
+    "ratio": 0.00177,
+    "bbox": {
+     "x": 781,
+     "y": 747,
+     "w": 462,
+     "h": 34
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -5141249,
+      "to": -223245057
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 296848639,
+      "to": 11635967
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 296848639,
+      "to": 11635967
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 296848639,
+      "to": 11635967
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 296848639,
+      "to": 11635967
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 2681,
+    "ratio": 0.00186,
+    "bbox": {
+     "x": 781,
+     "y": 746,
+     "w": 462,
+     "h": 35
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.83
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -223245057,
+      "to": -558789377
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 11635967,
+      "to": 0
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 11635967,
+      "to": 0
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 11635967,
+      "to": 0
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 11635967,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "skill hud 刻晴 Lv1 CD 7.5s｜纳西妲 Lv1 就绪",
+    "skill state active=keqing lv=1 tier=0 cd=7.2333333333333 energy=30.2",
+    "fall y=2",
+    "skill hud 刻晴 Lv1 CD 7.1s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  }
+ ]
+}

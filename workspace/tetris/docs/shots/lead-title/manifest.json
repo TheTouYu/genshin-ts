@@ -1,0 +1,99 @@
+{
+ "format": "qxqy-shots-v5",
+ "version": 1,
+ "generatedAt": "2026-10-29T06:57:21.766Z",
+ "out": "/home/h/genshin-ts/workspace/tetris/docs/shots/lead-title",
+ "saveFreshness": {
+  "ok": false,
+  "stale": [
+   {
+    "path": "lua/tetris/config.lua",
+    "why": "内容不一致（存档 45142B / 磁盘 45151B）"
+   }
+  ],
+  "checked": 8
+ },
+ "canvases": {
+  "mobile-19.5-9": {
+   "canvasId": "mobile-19.5-9",
+   "preset": {
+    "width": 1560,
+    "height": 720,
+    "mobile": true
+   },
+   "screens": {
+    "title": {
+     "canvasId": "mobile-19.5-9",
+     "screen": "title",
+     "reached": true,
+     "note": "title text present",
+     "png": "/home/h/genshin-ts/workspace/tetris/docs/shots/lead-title/mobile-19.5-9/title.png",
+     "pngBytes": 115455,
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "nodes": 439,
+     "textboxes": 36,
+     "zones": 461,
+     "textFitsBad": 0,
+     "readings": {
+      "mode": null,
+      "bgCoverOk": true,
+      "bgCover": {
+       "bs": 1.22,
+       "w": 1560,
+       "h": 720
+      },
+      "bgCoverGap": null,
+      "phoneBuildN": null,
+      "phoneHelp": null,
+      "padNoteWhich": null,
+      "gameOver": false,
+      "helpOpen": false,
+      "rosterOpen": false,
+      "skillCastOk": false,
+      "phonePlayBar": true
+     },
+     "texts": [
+      "台前 · 就绪",
+      "纳西妲 ▲",
+      "明细",
+      "回主页",
+      "再来一局",
+      "次页",
+      "回标题",
+      "合上",
+      "名册",
+      "说明",
+      "换人",
+      "技能2",
+      "技能1",
+      "暂存",
+      "缓降",
+      "锁定",
+      "旋转",
+      "▶",
+      "◀",
+      "TEYVAT SKY · 四元素街机",
+      "旋转手+行动手 · 共盘抗 AI",
+      "4  双人合作",
+      "同屏 PK · 互送垃圾行",
+      "3  双人对战",
+      "与 hard 档 AI 决战",
+      "2  AI 对抗",
+      "AI 代打陪练 · 随时接管",
+      "1  休 闲",
+      "旅行者，提瓦特的风一直在等你。",
+      "H 游戏说明",
+      "任意键 = 休闲",
+      "1-4 选模式",
+      "俄罗斯方块"
+     ]
+    }
+   },
+   "sheet": null
+  }
+ },
+ "failures": []
+}

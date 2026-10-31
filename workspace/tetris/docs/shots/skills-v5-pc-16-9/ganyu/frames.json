@@ -1,0 +1,5471 @@
+{
+ "meta": {
+  "role": "ganyu",
+  "mode": "casual",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "summary": {
+   "mode": "casual",
+   "frames": 30,
+   "pixelChangedFrames": 30,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 30,
+   "longestRunStartFrame": 0,
+   "changeSpanFrames": 29,
+   "maxIdleFrames": 0,
+   "maxIdleSeconds": 0,
+   "maxIdleStartFrame": -1,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 10
+    },
+    {
+     "name": "cell",
+     "changes": 623
+    },
+    {
+     "name": "sk1state",
+     "changes": 2
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "cell35",
+     "changes": 1
+    },
+    {
+     "name": "cell34",
+     "changes": 2
+    },
+    {
+     "name": "cell26",
+     "changes": 2
+    },
+    {
+     "name": "cell24",
+     "changes": 1
+    },
+    {
+     "name": "cell16",
+     "changes": 1
+    },
+    {
+     "name": "cell15",
+     "changes": 1
+    },
+    {
+     "name": "cell45",
+     "changes": 1
+    },
+    {
+     "name": "cell44",
+     "changes": 1
+    },
+    {
+     "name": "cell36",
+     "changes": 1
+    },
+    {
+     "name": "cell25",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [
+    {
+     "i": 0,
+     "t": 0.033,
+     "first": "skill cast slot=1 role=ganyu ok=true effect=freeze why=nil n=3"
+    },
+    {
+     "i": 1,
+     "t": 0.067,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 2,
+     "t": 0.1,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 3,
+     "t": 0.133,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 4,
+     "t": 0.167,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 5,
+     "t": 0.2,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 6,
+     "t": 0.233,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 7,
+     "t": 0.267,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 8,
+     "t": 0.3,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 9,
+     "t": 0.333,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 10,
+     "t": 0.367,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 11,
+     "t": 0.4,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 12,
+     "t": 0.433,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 13,
+     "t": 0.467,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 14,
+     "t": 0.5,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    },
+    {
+     "i": 15,
+     "t": 0.533,
+     "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+    }
+   ],
+   "skillLogLines": [
+    "takeover hint",
+    "skill cast slot=1 role=ganyu ok=true effect=freeze why=nil n=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on"
+   ],
+   "castOk": true,
+   "aiStart": null,
+   "aiEnd": null,
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 30,
+    "framesDifferingFromControl": 30,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.74764
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 2,
+    "ids": [
+     50017,
+     40001
+    ],
+    "sample": [
+     {
+      "instanceId": 3,
+      "audioId": 50017,
+      "startedAt": 4.933333333333326,
+      "duration": 0.867,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 40001,
+      "startedAt": 4.933333333333326,
+      "duration": 1.653,
+      "alive": true,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "ganyu",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=3 role=ganyu"
+   },
+   "unlock": {
+    "ok": true,
+    "evidence": "skill debug unlock all party=4 active=nahida"
+   }
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 1076606,
+    "ratio": 0.74764,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [
+     {
+      "id": 380,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 379,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "kind": "image"
+     }
+    ],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 12.0s"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "霜落下来，脏东西进不来了。"
+     }
+    ],
+    "changed": 26
+   },
+   "logsTail": [
+    "skill cast slot=1 role=ganyu ok=true effect=freeze why=nil n=3",
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 58505,
+    "ratio": 0.04063,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 678
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 32.3,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.52,
+      "dy": 4.27
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 0.07,
+      "dy": 4.27
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0.17,
+      "dy": 4.27
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.55,
+      "dy": 4.27
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.59,
+      "dy": 4.27
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2121278736,
+      "to": -1332749584
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2089802480,
+      "to": -1450190096
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2005916400,
+      "to": -1567630608
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 596630256,
+      "to": 865065712
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1198531856,
+      "to": -1517298960
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -1064314128
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -1064314128
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -1064314128
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -1064314128
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -1064314128
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 1150278384
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2070947088,
+      "to": 1569708784
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1552931568,
+      "to": 1787812592
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1552931568,
+      "to": 1787812592
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1552931568,
+      "to": 1787812592
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1552931568,
+      "to": 1787812592
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 563075824,
+      "to": 428858096
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 33
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 58135,
+    "ratio": 0.04037,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 672
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 29.83,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.65,
+      "dy": 4.16
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 0.27,
+      "dy": 4.16
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0.39,
+      "dy": 4.16
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.63,
+      "dy": 4.16
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.51,
+      "dy": 4.16
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1332749584,
+      "to": -711992592
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -862987536
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1567630608,
+      "to": -997205264
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 865065712,
+      "to": 1083169520
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1433412880,
+      "to": -1534076176
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1517298960,
+      "to": -1819288848
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1064314128,
+      "to": -1164977424
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1064314128,
+      "to": -1164977424
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1064314128,
+      "to": -1164977424
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1064314128,
+      "to": -1164977424
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1064314128,
+      "to": -1164977424
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1150278384,
+      "to": 1687149296
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1569708784,
+      "to": 1066392304
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1989139184
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1989139184
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1989139184
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1989139184
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 428858096,
+      "to": 311417584
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 62183,
+    "ratio": 0.04318,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 667
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 29.98,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 27.37,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.78,
+      "dy": 4.05
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 0.48,
+      "dy": 4.05
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0.6,
+      "dy": 4.05
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.69,
+      "dy": 4.05
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.43,
+      "dy": 4.05
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -711992592,
+      "to": -292562192
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -862987536,
+      "to": -460334352
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -997205264,
+      "to": -611329296
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 244308720
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1083169520,
+      "to": 1284496112
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1534076176,
+      "to": -1752179984
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1819288848,
+      "to": -2104501520
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1164977424,
+      "to": -1248863504
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1164977424,
+      "to": -1248863504
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1164977424,
+      "to": -1248863504
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1164977424,
+      "to": -1248863504
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1164977424,
+      "to": -1248863504
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1687149296,
+      "to": -1936729360
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1066392304,
+      "to": 697293552
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1989139184,
+      "to": -2121278736
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1989139184,
+      "to": -2121278736
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1989139184,
+      "to": -2121278736
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1989139184,
+      "to": -2121278736
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 311417584,
+      "to": 210754288
+     }
+    ],
+    "textChanged": [],
+    "changed": 30
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 67350,
+    "ratio": 0.04677,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 664
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 35.26,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 24.9,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.9,
+      "dy": 3.94
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 0.68,
+      "dy": 3.94
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0.81,
+      "dy": 3.94
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.73,
+      "dy": 3.94
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.33,
+      "dy": 3.94
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -292562192,
+      "to": -57681168
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -460334352,
+      "to": -225453328
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -611329296,
+      "to": -393225488
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 244308720,
+      "to": 529521392
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1284496112,
+      "to": 1418713840
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1953506576
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2104501520,
+      "to": 1905253104
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1248863504,
+      "to": -1349526800
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1248863504,
+      "to": -1349526800
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1248863504,
+      "to": -1349526800
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1248863504,
+      "to": -1349526800
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1248863504,
+      "to": -1349526800
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1936729360,
+      "to": -1114645776
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 697293552,
+      "to": 479189744
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2121278736,
+      "to": -1970283792
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2121278736,
+      "to": -1970283792
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2121278736,
+      "to": -1970283792
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2121278736,
+      "to": -1970283792
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 210754288,
+      "to": 126868208
+     }
+    ],
+    "textChanged": [],
+    "changed": 30
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 55691,
+    "ratio": 0.03867,
+    "bbox": {
+     "x": 369,
+     "y": 147,
+     "w": 643,
+     "h": 662
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 32.79,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 22.44,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.02,
+      "dy": 3.83
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 0.87,
+      "dy": 3.83
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.01,
+      "dy": 3.83
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.76,
+      "dy": 3.83
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.22,
+      "dy": 3.83
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -57681168,
+      "to": -7349520
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -225453328,
+      "to": -175121680
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -393225488,
+      "to": -342893840
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 814734064
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1485822704
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": 2123356912
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1905253104,
+      "to": 1653594864
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1349526800,
+      "to": -1450190096
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1349526800,
+      "to": -1450190096
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1349526800,
+      "to": -1450190096
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1349526800,
+      "to": -1450190096
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1349526800,
+      "to": -1450190096
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 395303664,
+      "to": 412080880
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1114645776,
+      "to": -527443216
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 479189744,
+      "to": 395303664
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -1869620496
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -1869620496
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -1869620496
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -1869620496
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 126868208,
+      "to": 59759344
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 12.0s",
+      "to": "台前 · CD 11.8s"
+     }
+    ],
+    "changed": 29
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 55433,
+    "ratio": 0.0385,
+    "bbox": {
+     "x": 687,
+     "y": 147,
+     "w": 270,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 30.33,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 19.97,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.12,
+      "dy": 3.72
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.06,
+      "dy": 3.72
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.2,
+      "dy": 3.72
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.77,
+      "dy": 3.72
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.1,
+      "dy": 3.72
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 814734064,
+      "to": 1049615088
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1485822704,
+      "to": 1502599920
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2123356912,
+      "to": 1938807536
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1653594864,
+      "to": 1401936624
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -1550853392
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -1550853392
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -1550853392
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -1550853392
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1450190096,
+      "to": -1550853392
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 546298608
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -527443216,
+      "to": -1433412880
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1869620496,
+      "to": -1802511632
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1869620496,
+      "to": -1802511632
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1869620496,
+      "to": -1802511632
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1869620496,
+      "to": -1802511632
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 59759344,
+      "to": 9427696
+     }
+    ],
+    "textChanged": [],
+    "changed": 23
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 59570,
+    "ratio": 0.04137,
+    "bbox": {
+     "x": 649,
+     "y": 147,
+     "w": 308,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 27.86,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 17.5,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.22,
+      "dy": 3.61
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.23,
+      "dy": 3.61
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.38,
+      "dy": 3.61
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.77,
+      "dy": 3.61
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.96,
+      "dy": 3.61
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1049615088,
+      "to": 1250941680
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1502599920,
+      "to": 1469045488
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1737480944
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1401936624,
+      "to": 1167055600
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1550853392,
+      "to": -1651516688
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1550853392,
+      "to": -1651516688
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1550853392,
+      "to": -1651516688
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1550853392,
+      "to": -1651516688
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1550853392,
+      "to": -1651516688
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 546298608,
+      "to": 814734064
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1433412880,
+      "to": 2089802480
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1785734416
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1785734416
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1785734416
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1785734416
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 24
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 61160,
+    "ratio": 0.04247,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 25.39,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 15.04,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.3,
+      "dy": 3.5
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.4,
+      "dy": 3.5
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.55,
+      "dy": 3.5
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.75,
+      "dy": 3.5
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.82,
+      "dy": 3.5
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1250941680,
+      "to": 1385159408
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1469045488,
+      "to": 1368382192
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1569708784
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1167055600,
+      "to": 948951792
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1651516688,
+      "to": -1752179984
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1651516688,
+      "to": -1752179984
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1651516688,
+      "to": -1752179984
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1651516688,
+      "to": -1752179984
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1651516688,
+      "to": -1752179984
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 814734064,
+      "to": 1234164464
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2089802480,
+      "to": 1469045488
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1785734416,
+      "to": -1802511632
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1785734416,
+      "to": -1802511632
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1785734416,
+      "to": -1802511632
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1785734416,
+      "to": -1802511632
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 60208,
+    "ratio": 0.04181,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 22.93,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 12.57,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.37,
+      "dy": 3.39
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.55,
+      "dy": 3.39
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.71,
+      "dy": 3.39
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.72,
+      "dy": 3.39
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.68,
+      "dy": 3.39
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1385159408,
+      "to": 1485822704
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1368382192,
+      "to": 1200610032
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1569708784,
+      "to": 1385159408
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 948951792,
+      "to": 747625200
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1852843280
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1852843280
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1852843280
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1852843280
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1752179984,
+      "to": -1852843280
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1234164464,
+      "to": 1787812592
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1469045488,
+      "to": 999283440
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1852843280
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1852843280
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1852843280
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -1852843280
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 56180,
+    "ratio": 0.03901,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 20.46,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 10.11,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.43,
+      "dy": 3.28
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.69,
+      "dy": 3.28
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.85,
+      "dy": 3.28
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.67,
+      "dy": 3.28
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.52,
+      "dy": 3.28
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1485822704,
+      "to": 1519377136
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 999283440
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1385159408,
+      "to": 1217387248
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 747625200,
+      "to": 563075824
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1953506576
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1953506576
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1953506576
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1953506576
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1953506576
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": -1802511632
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 999283440,
+      "to": 646961904
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1970283792
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1970283792
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1970283792
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1852843280,
+      "to": -1970283792
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 50368,
+    "ratio": 0.03498,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 607
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 18,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 7.64,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.48,
+      "dy": 3.17
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.82,
+      "dy": 3.17
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.97,
+      "dy": 3.17
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.61,
+      "dy": 3.17
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.37,
+      "dy": 3.17
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1485822704
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 999283440,
+      "to": 764402416
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1217387248,
+      "to": 1066392304
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 563075824,
+      "to": 412080880
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": -2054169872
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": -2054169872
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": -2054169872
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": -2054169872
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1953506576,
+      "to": -2054169872
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1802511632,
+      "to": -963650832
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 445635312
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -2104501520
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -2104501520
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -2104501520
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1970283792,
+      "to": -2104501520
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 38024,
+    "ratio": 0.02641,
+    "bbox": {
+     "x": 649,
+     "y": 149,
+     "w": 304,
+     "h": 601
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 15.53,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 5.18,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.51,
+      "dy": 3.06
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.93,
+      "dy": 3.06
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.08,
+      "dy": 3.06
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.53,
+      "dy": 3.06
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.21,
+      "dy": 3.06
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1485822704,
+      "to": 1385159408
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 479189744
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1066392304,
+      "to": 915397360
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 261085936
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2054169872,
+      "to": 2140134128
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2054169872,
+      "to": 2140134128
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2054169872,
+      "to": 2140134128
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2054169872,
+      "to": 2140134128
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2054169872,
+      "to": 2140134128
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 395303664,
+      "to": 428858096
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -963650832,
+      "to": -711992592
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 445635312,
+      "to": 395303664
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2104501520,
+      "to": 2022693616
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2104501520,
+      "to": 2022693616
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2104501520,
+      "to": 2022693616
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2104501520,
+      "to": 2022693616
+     }
+    ],
+    "textChanged": [],
+    "changed": 23
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 35181,
+    "ratio": 0.02443,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 607
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 13.07,
+      "dy": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 2.71,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.54,
+      "dy": 2.95
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.02,
+      "dy": 2.95
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.16,
+      "dy": 2.95
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.44,
+      "dy": 2.95
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 0.04,
+      "dy": 2.95
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1385159408,
+      "to": 1250941680
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 479189744,
+      "to": 177199856
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 915397360,
+      "to": 764402416
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 261085936,
+      "to": 143645424
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2140134128,
+      "to": 2039470832
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2140134128,
+      "to": 2039470832
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2140134128,
+      "to": 2039470832
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2140134128,
+      "to": 2039470832
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2140134128,
+      "to": 2039470832
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 428858096,
+      "to": 579853040
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -711992592,
+      "to": -1584407824
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2022693616,
+      "to": 1804589808
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2022693616,
+      "to": 1804589808
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2022693616,
+      "to": 1804589808
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2022693616,
+      "to": 1804589808
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 29332,
+    "ratio": 0.02037,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 10.6,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.54,
+      "dy": 2.84
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.09,
+      "dy": 2.84
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.23,
+      "dy": 2.84
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.33,
+      "dy": 2.84
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.12,
+      "dy": 2.84
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1250941680,
+      "to": 1049615088
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 177199856,
+      "to": 9427696
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 143645424,
+      "to": 59759344
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2039470832,
+      "to": 1938807536
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2039470832,
+      "to": 1938807536
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2039470832,
+      "to": 1938807536
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2039470832,
+      "to": 1938807536
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2039470832,
+      "to": 1938807536
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 579853040,
+      "to": 881842928
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1584407824,
+      "to": 1972361968
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1804589808,
+      "to": 1586486000
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1804589808,
+      "to": 1586486000
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1804589808,
+      "to": 1586486000
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1804589808,
+      "to": 1586486000
+     }
+    ],
+    "textChanged": [],
+    "changed": 21
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 25780,
+    "ratio": 0.0179,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 306,
+     "h": 607
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 8.14,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.54,
+      "dy": 2.73
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.15,
+      "dy": 2.73
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.28,
+      "dy": 2.73
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.22,
+      "dy": 2.73
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.28,
+      "dy": 2.73
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1049615088,
+      "to": 814734064
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 512744176
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 59759344,
+      "to": 9427696
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1838144240
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1838144240
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1838144240
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1838144240
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1938807536,
+      "to": 1838144240
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 1267718896
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1972361968,
+      "to": 1318050544
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 395303664,
+      "to": 378526448
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 395303664,
+      "to": 378526448
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1586486000,
+      "to": 1334827760
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1586486000,
+      "to": 1334827760
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1586486000,
+      "to": 1334827760
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1586486000,
+      "to": 1334827760
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=ganyu fx=on copy=on",
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 23660,
+    "ratio": 0.01643,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 306,
+     "h": 607
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 5.67,
+      "dy": 0
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.52,
+      "dy": 2.62
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.18,
+      "dy": 2.62
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.31,
+      "dy": 2.62
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 1.09,
+      "dy": 2.62
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.44,
+      "dy": 2.62
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 814734064,
+      "to": 529521392
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 512744176,
+      "to": 395303664
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1838144240,
+      "to": 1737480944
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1838144240,
+      "to": 1737480944
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1838144240,
+      "to": 1737480944
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1838144240,
+      "to": 1737480944
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1838144240,
+      "to": 1737480944
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1267718896,
+      "to": 1368382192
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 663739120
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 378526448,
+      "to": 277863152
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 378526448,
+      "to": 277863152
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1334827760,
+      "to": 1083169520
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1334827760,
+      "to": 1083169520
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1334827760,
+      "to": 1083169520
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1334827760,
+      "to": 1083169520
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 29
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 9736,
+    "ratio": 0.00676,
+    "bbox": {
+     "x": 647,
+     "y": 145,
+     "w": 306,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 3.21,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.48,
+      "dy": 2.51
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.2,
+      "dy": 2.51
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.32,
+      "dy": 2.51
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.96,
+      "dy": 2.51
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.6,
+      "dy": 2.51
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 244308720
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 395303664,
+      "to": 294640368
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1636817648
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1636817648
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1636817648
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1636817648
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1737480944,
+      "to": 1636817648
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1368382192,
+      "to": 1250941680
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 663739120,
+      "to": 294640368
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 277863152,
+      "to": 193977072
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 277863152,
+      "to": 193977072
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1083169520,
+      "to": 1284496112
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1083169520,
+      "to": 1284496112
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1083169520,
+      "to": 1284496112
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1083169520,
+      "to": 1284496112
+     }
+    ],
+    "textChanged": [],
+    "changed": 21
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 2277,
+    "ratio": 0.00158,
+    "bbox": {
+     "x": 647,
+     "y": 150,
+     "w": 306,
+     "h": 602
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": 0.79,
+      "dy": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.44,
+      "dy": 2.4
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.2,
+      "dy": 2.4
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.31,
+      "dy": 2.4
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.81,
+      "dy": 2.4
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.75,
+      "dy": 2.4
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 244308720,
+      "to": 9427696
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 210754288
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1519377136
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1519377136
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1519377136
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1519377136
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1519377136
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1250941680,
+      "to": 831511280
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 110090992
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 193977072,
+      "to": 93313776
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 193977072,
+      "to": 93313776
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1284496112,
+      "to": 1519377136
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1284496112,
+      "to": 1519377136
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1284496112,
+      "to": 1519377136
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1284496112,
+      "to": 1519377136
+     }
+    ],
+    "textChanged": [],
+    "changed": 21
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 1331,
+    "ratio": 0.00092,
+    "bbox": {
+     "x": 647,
+     "y": 349,
+     "w": 306,
+     "h": 403
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.38,
+      "dy": 2.29
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.18,
+      "dy": 2.29
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.28,
+      "dy": 2.29
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.66,
+      "dy": 2.29
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -0.89,
+      "dy": 2.29
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 210754288,
+      "to": 126868208
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1418713840
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1418713840
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1418713840
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1418713840
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1418713840
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 831511280,
+      "to": 0
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 110090992,
+      "to": 0
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 93313776,
+      "to": 0
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 93313776,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1754258160
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1754258160
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1754258160
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1519377136,
+      "to": 1754258160
+     }
+    ],
+    "textChanged": [],
+    "changed": 23
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 374,
+    "ratio": 0.00026,
+    "bbox": {
+     "x": 774,
+     "y": 347,
+     "w": 64,
+     "h": 57
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.31,
+      "dy": 2.18
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.14,
+      "dy": 2.18
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.22,
+      "dy": 2.18
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.5,
+      "dy": 2.18
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.03,
+      "dy": 2.18
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 126868208,
+      "to": 76536560
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1318050544
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1318050544
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1318050544
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1318050544
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1418713840,
+      "to": 1318050544
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1754258160,
+      "to": 1871698672
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1754258160,
+      "to": 1871698672
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1754258160,
+      "to": 1871698672
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1754258160,
+      "to": 1871698672
+     }
+    ],
+    "textChanged": [],
+    "changed": 15
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 347,
+    "ratio": 0.00024,
+    "bbox": {
+     "x": 777,
+     "y": 345,
+     "w": 60,
+     "h": 56
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.23,
+      "dy": 2.07
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2.08,
+      "dy": 2.07
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.15,
+      "dy": 2.07
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.34,
+      "dy": 2.07
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.15,
+      "dy": 2.07
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 76536560,
+      "to": 26204912
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 1200610032
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 1200610032
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 1200610032
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 1200610032
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1318050544,
+      "to": 1200610032
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1871698672,
+      "to": 1787812592
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1871698672,
+      "to": 1787812592
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1871698672,
+      "to": 1787812592
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1871698672,
+      "to": 1787812592
+     }
+    ],
+    "textChanged": [],
+    "changed": 15
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 321,
+    "ratio": 0.00022,
+    "bbox": {
+     "x": 779,
+     "y": 344,
+     "w": 56,
+     "h": 55
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.13,
+      "dy": 1.96
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 2,
+      "dy": 1.96
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 2.06,
+      "dy": 1.96
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.18,
+      "dy": 1.96
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.27,
+      "dy": 1.96
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 26204912,
+      "to": 9427696
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 1099946736
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 1099946736
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 1099946736
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 1099946736
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1200610032,
+      "to": 1099946736
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1636817648
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1636817648
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1636817648
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1787812592,
+      "to": 1636817648
+     }
+    ],
+    "textChanged": [],
+    "changed": 15
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 317,
+    "ratio": 0.00022,
+    "bbox": {
+     "x": 781,
+     "y": 342,
+     "w": 53,
+     "h": 55
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 374,
+      "name": "cell",
+      "dx": -150,
+      "dy": -4000
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": -150,
+      "dy": -4000
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -1.03,
+      "dy": 1.85
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.91,
+      "dy": 1.85
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.95,
+      "dy": 1.85
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.01,
+      "dy": 1.85
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.38,
+      "dy": 1.85
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1099946736,
+      "to": 982506224
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1099946736,
+      "to": 982506224
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1099946736,
+      "to": 982506224
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1099946736,
+      "to": 982506224
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1099946736,
+      "to": 982506224
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1435491056
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1435491056
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1435491056
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1636817648,
+      "to": 1435491056
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 266,
+    "ratio": 0.00018,
+    "bbox": {
+     "x": 783,
+     "y": 340,
+     "w": 49,
+     "h": 55
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.92,
+      "dy": 1.74
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.79,
+      "dy": 1.74
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.83,
+      "dy": 1.74
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.16,
+      "dy": 1.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.47,
+      "dy": 1.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 982506224,
+      "to": 881842928
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 982506224,
+      "to": 881842928
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 982506224,
+      "to": 881842928
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 982506224,
+      "to": 881842928
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 982506224,
+      "to": 881842928
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1435491056,
+      "to": 1183832816
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1435491056,
+      "to": 1183832816
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1435491056,
+      "to": 1183832816
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1435491056,
+      "to": 1183832816
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 245,
+    "ratio": 0.00017,
+    "bbox": {
+     "x": 785,
+     "y": 339,
+     "w": 46,
+     "h": 54
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.8,
+      "dy": 1.63
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.67,
+      "dy": 1.63
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.68,
+      "dy": 1.63
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.32,
+      "dy": 1.63
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.55,
+      "dy": 1.63
+     }
+    ],
+    "recolored": [
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 764402416
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 764402416
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 764402416
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 764402416
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 881842928,
+      "to": 764402416
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1183832816,
+      "to": 898620144
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1183832816,
+      "to": 898620144
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1183832816,
+      "to": 898620144
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1183832816,
+      "to": 898620144
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 208,
+    "ratio": 0.00014,
+    "bbox": {
+     "x": 786,
+     "y": 337,
+     "w": 43,
+     "h": 54
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.67,
+      "dy": 1.52
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.52,
+      "dy": 1.52
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.53,
+      "dy": 1.52
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.48,
+      "dy": 1.52
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.62,
+      "dy": 1.52
+     }
+    ],
+    "recolored": [
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 764402416,
+      "to": 646961904
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 898620144,
+      "to": 596630256
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 898620144,
+      "to": 596630256
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 898620144,
+      "to": 596630256
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 898620144,
+      "to": 596630256
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 168,
+    "ratio": 0.00012,
+    "bbox": {
+     "x": 785,
+     "y": 336,
+     "w": 42,
+     "h": 54
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.54,
+      "dy": 1.4
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.37,
+      "dy": 1.4
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.36,
+      "dy": 1.4
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.64,
+      "dy": 1.4
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.67,
+      "dy": 1.4
+     }
+    ],
+    "recolored": [
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 529521392
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 529521392
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 529521392
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 529521392
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 646961904,
+      "to": 529521392
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 596630256,
+      "to": 294640368
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 596630256,
+      "to": 294640368
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 596630256,
+      "to": 294640368
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 596630256,
+      "to": 294640368
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 236,
+    "ratio": 0.00016,
+    "bbox": {
+     "x": 781,
+     "y": 335,
+     "w": 45,
+     "h": 446
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.4,
+      "dy": 1.29
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.2,
+      "dy": 1.29
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 1.17,
+      "dy": 1.29
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.79,
+      "dy": 1.29
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.71,
+      "dy": 1.29
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -7349520,
+      "to": -225453328
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 412080880
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 412080880
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 412080880
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 412080880
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 529521392,
+      "to": 412080880
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 9427696
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 9427696
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 9427696
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 294640368,
+      "to": 9427696
+     }
+    ],
+    "textChanged": [],
+    "changed": 15
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 341,
+    "ratio": 0.00024,
+    "bbox": {
+     "x": 781,
+     "y": 344,
+     "w": 43,
+     "h": 437
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -0.26,
+      "dy": 1.18
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 1.02,
+      "dy": 1.18
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0.98,
+      "dy": 1.18
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.94,
+      "dy": 1.18
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -1.73,
+      "dy": 1.18
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -225453328,
+      "to": -560997648
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 277863152
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 277863152
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 277863152
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 277863152
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 412080880,
+      "to": 277863152
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 9427696,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill freeze rows=3 sec=3.0",
+    "skill hud 甘雨 Lv1 CD 12.0s｜纳西妲 Lv1 就绪",
+    "skill state active=ganyu lv=1 tier=0 cd=11.9 energy=30.2",
+    "fall y=3",
+    "skill hud 甘雨 Lv1 CD 11.8s｜纳西妲 Lv1 就绪",
+    "fall y=4"
+   ]
+  }
+ ]
+}

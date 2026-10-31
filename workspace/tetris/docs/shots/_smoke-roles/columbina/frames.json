@@ -1,0 +1,4624 @@
+{
+ "meta": {
+  "role": "columbina",
+  "mode": "casual",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "summary": {
+   "mode": "casual",
+   "frames": 30,
+   "pixelChangedFrames": 28,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 23,
+   "longestRunStartFrame": 0,
+   "changeSpanFrames": 29,
+   "maxIdleFrames": 2,
+   "maxIdleSeconds": 0.07,
+   "maxIdleStartFrame": 23,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 10
+    },
+    {
+     "name": "cell",
+     "changes": 479
+    },
+    {
+     "name": "cell196",
+     "changes": 1
+    },
+    {
+     "name": "cell175",
+     "changes": 1
+    },
+    {
+     "name": "cell25",
+     "changes": 3
+    },
+    {
+     "name": "cell24",
+     "changes": 1
+    },
+    {
+     "name": "cell16",
+     "changes": 1
+    },
+    {
+     "name": "cell15",
+     "changes": 1
+    },
+    {
+     "name": "sk1state",
+     "changes": 2
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "cell35",
+     "changes": 1
+    },
+    {
+     "name": "cell34",
+     "changes": 2
+    },
+    {
+     "name": "cell26",
+     "changes": 2
+    },
+    {
+     "name": "cell45",
+     "changes": 1
+    },
+    {
+     "name": "cell44",
+     "changes": 1
+    },
+    {
+     "name": "cell36",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [
+    {
+     "i": 0,
+     "t": 0.033,
+     "first": "skill cast slot=1 role=columbina ok=true effect=gravity-clear why=nil n=1"
+    },
+    {
+     "i": 1,
+     "t": 0.067,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 2,
+     "t": 0.1,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 3,
+     "t": 0.133,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 4,
+     "t": 0.167,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 5,
+     "t": 0.2,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 6,
+     "t": 0.233,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 7,
+     "t": 0.267,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 8,
+     "t": 0.3,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 9,
+     "t": 0.333,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 10,
+     "t": 0.367,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 11,
+     "t": 0.4,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 12,
+     "t": 0.433,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 13,
+     "t": 0.467,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 14,
+     "t": 0.5,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 15,
+     "t": 0.533,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 16,
+     "t": 0.567,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 17,
+     "t": 0.6,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 18,
+     "t": 0.633,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 19,
+     "t": 0.667,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 20,
+     "t": 0.7,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 21,
+     "t": 0.733,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 22,
+     "t": 0.767,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 23,
+     "t": 0.8,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 24,
+     "t": 0.833,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 25,
+     "t": 0.867,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 26,
+     "t": 0.9,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 27,
+     "t": 0.933,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 28,
+     "t": 0.967,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    },
+    {
+     "i": 29,
+     "t": 1,
+     "first": "skill fx kind=cast role=columbina fx=on copy=on"
+    }
+   ],
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 30,
+    "framesDifferingFromControl": 30,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.19586
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 3,
+    "ids": [
+     40425,
+     50884,
+     50872
+    ],
+    "sample": [
+     {
+      "instanceId": 3,
+      "audioId": 40425,
+      "startedAt": 6.43333333333332,
+      "duration": 1.038,
+      "alive": true,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 50884,
+      "startedAt": 6.43333333333332,
+      "duration": 0.151,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 5,
+      "audioId": 50872,
+      "startedAt": 6.43333333333332,
+      "duration": 1.024,
+      "alive": false,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "columbina",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=4 role=columbina"
+   },
+   "unlock": {
+    "ok": true,
+    "evidence": "skill debug unlock all party=4 active=nahida"
+   }
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 282037,
+    "ratio": 0.19586,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [
+     {
+      "id": 380,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 379,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "kind": "image"
+     }
+    ],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 233,
+      "name": "cell196",
+      "field": "imageColor",
+      "from": -679876,
+      "to": -197121
+     },
+     {
+      "id": 212,
+      "name": "cell175",
+      "field": "imageColor",
+      "from": -679876,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 17.0s"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "潮水翻了，垃圾推回对面。"
+     }
+    ],
+    "changed": 32
+   },
+   "logsTail": [
+    "skill cast slot=1 role=columbina ok=true effect=gravity-clear why=nil n=1",
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 45274,
+    "ratio": 0.03144,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 678
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.96,
+      "dy": -4.12
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": -4.01
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": -1.24
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 9.53
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 3.36
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2123377688,
+      "to": -1334848536
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2087703528,
+      "to": -1452289048
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2003817448,
+      "to": -1569729560
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1267739672,
+      "to": -1620061208
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -747645976,
+      "to": -948972568
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -646982680,
+      "to": -797977624
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -646982680,
+      "to": -797977624
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -646982680,
+      "to": -797977624
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -646982680,
+      "to": -797977624
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 762303464,
+      "to": 1148179432
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2073046040,
+      "to": 1567609832
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1550832616,
+      "to": 1785713640
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1550832616,
+      "to": 1785713640
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1550832616,
+      "to": 1785713640
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1550832616,
+      "to": 1785713640
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 275764200,
+      "to": 158323688
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [],
+    "changed": 29
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 46462,
+    "ratio": 0.03227,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 672
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.83,
+      "dy": -4.18
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": -3.11
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": -0.34
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 10.44
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 4.26
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1334848536,
+      "to": -714091544
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1452289048,
+      "to": -865086488
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1569729560,
+      "to": -999304216
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1435511832,
+      "to": -1552952344
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1620061208,
+      "to": -1955605528
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -948972568,
+      "to": -1150299160
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -797977624,
+      "to": -948972568
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -797977624,
+      "to": -948972568
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -797977624,
+      "to": -948972568
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -797977624,
+      "to": -948972568
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1148179432,
+      "to": 1685050344
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1567609832,
+      "to": 1064293352
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1987040232
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1987040232
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1987040232
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1987040232
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 158323688,
+      "to": 74437608
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 48871,
+    "ratio": 0.03394,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 667
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.71,
+      "dy": -4.23
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": -2.21
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 0.57
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 11.34
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 5.16
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -714091544,
+      "to": -294661144
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -865086488,
+      "to": -462433304
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -999304216,
+      "to": -613428248
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1787833368
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1955605528,
+      "to": 2020594664
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1150299160,
+      "to": -1351625752
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -948972568,
+      "to": -1099967512
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -948972568,
+      "to": -1099967512
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -948972568,
+      "to": -1099967512
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -948972568,
+      "to": -1099967512
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1685050344,
+      "to": -1938828312
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1064293352,
+      "to": 695194600
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1987040232,
+      "to": -2123377688
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1987040232,
+      "to": -2123377688
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1987040232,
+      "to": -2123377688
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1987040232,
+      "to": -2123377688
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 74437608,
+      "to": 24105960
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 49271,
+    "ratio": 0.03422,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 664
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.58,
+      "dy": -4.29
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": -1.3
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 1.47
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 12.24
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 6.07
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -294661144,
+      "to": -59780120
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -462433304,
+      "to": -227552280
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -613428248,
+      "to": -395324440
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1787833368,
+      "to": -2022714392
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2020594664,
+      "to": 1735381992
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1351625752,
+      "to": -1552952344
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1099967512,
+      "to": -1250962456
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1099967512,
+      "to": -1250962456
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1099967512,
+      "to": -1250962456
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1099967512,
+      "to": -1250962456
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1938828312,
+      "to": -1116744728
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 695194600,
+      "to": 477090792
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2123377688,
+      "to": -1972382744
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2123377688,
+      "to": -1972382744
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2123377688,
+      "to": -1972382744
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2123377688,
+      "to": -1972382744
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 24105960,
+      "to": 7328744
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 30813,
+    "ratio": 0.0214,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 662
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.45,
+      "dy": -4.34
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": -0.4
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 2.37
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 13.15
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 6.97
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -59780120,
+      "to": -9448472
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -227552280,
+      "to": -177220632
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -395324440,
+      "to": -344992792
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2022714392,
+      "to": 2037371880
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1735381992,
+      "to": 1450169320
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1771056152
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1250962456,
+      "to": -1401957400
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1250962456,
+      "to": -1401957400
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1250962456,
+      "to": -1401957400
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1250962456,
+      "to": -1401957400
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 393204712,
+      "to": 409981928
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1116744728,
+      "to": -529542168
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 477090792,
+      "to": 393204712
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -1871719448
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -1871719448
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -1871719448
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -1871719448
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 25
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 31420,
+    "ratio": 0.02182,
+    "bbox": {
+     "x": 680,
+     "y": 147,
+     "w": 277,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.32,
+      "dy": -4.4
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 0.5
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 3.28
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 14.05
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 7.87
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2037371880,
+      "to": 1819268072
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1450169320,
+      "to": 1181733864
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1771056152,
+      "to": -1972382744
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1401957400,
+      "to": -1552952344
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1401957400,
+      "to": -1552952344
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1401957400,
+      "to": -1552952344
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1401957400,
+      "to": -1552952344
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 409981928,
+      "to": 544199656
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -529542168,
+      "to": -1435511832
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -1804610584
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -1804610584
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -1804610584
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -1804610584
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 35088,
+    "ratio": 0.02437,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 310,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.2,
+      "dy": -4.45
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 1.4
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 4.18
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 14.95
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 8.78
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1819268072,
+      "to": 1617941480
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1181733864,
+      "to": 946852840
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": 2104480744
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1720724504
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1720724504
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1720724504
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1552952344,
+      "to": -1720724504
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 544199656,
+      "to": 812635112
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1435511832,
+      "to": 2087703528
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1787833368
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1787833368
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1787833368
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1787833368
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 36359,
+    "ratio": 0.02525,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.07,
+      "dy": -4.51
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 2.31
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 5.08
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 15.85
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 9.68
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1617941480,
+      "to": 1416614888
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 946852840,
+      "to": 728749032
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2104480744,
+      "to": 1903154152
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1720724504,
+      "to": -1871719448
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1720724504,
+      "to": -1871719448
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1720724504,
+      "to": -1871719448
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1720724504,
+      "to": -1871719448
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 812635112,
+      "to": 1232065512
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2087703528,
+      "to": 1466946536
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1787833368,
+      "to": -1804610584
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1787833368,
+      "to": -1804610584
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1787833368,
+      "to": -1804610584
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1787833368,
+      "to": -1804610584
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 36790,
+    "ratio": 0.02555,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.94,
+      "dy": -4.56
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 3.21
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 5.98
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 16.76
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 10.58
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1416614888,
+      "to": 1215288296
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 728749032,
+      "to": 527422440
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1903154152,
+      "to": 1685050344
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -2022714392
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -2022714392
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -2022714392
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1871719448,
+      "to": -2022714392
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1232065512,
+      "to": 1785713640
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 997184488
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1854942232
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1854942232
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1854942232
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -1854942232
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 36312,
+    "ratio": 0.02522,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 309,
+     "h": 609
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.81,
+      "dy": -4.62
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 4.11
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 6.89
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 17.66
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 11.48
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1215288296,
+      "to": 1047516136
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 527422440,
+      "to": 359650280
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1685050344,
+      "to": 1466946536
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2022714392,
+      "to": 2104480744
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2022714392,
+      "to": 2104480744
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2022714392,
+      "to": 2104480744
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2022714392,
+      "to": 2104480744
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": -1804610584
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 997184488,
+      "to": 644862952
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1854942232,
+      "to": -1972382744
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1854942232,
+      "to": -1972382744
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1854942232,
+      "to": -1972382744
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1854942232,
+      "to": -1972382744
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 24766,
+    "ratio": 0.0172,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 592
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.69,
+      "dy": -4.67
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 5.02
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 7.79
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 18.56
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 12.39
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1047516136,
+      "to": 879743976
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 359650280,
+      "to": 208655336
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 1248842728
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2104480744,
+      "to": 1953485800
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2104480744,
+      "to": 1953485800
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2104480744,
+      "to": 1953485800
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2104480744,
+      "to": 1953485800
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1804610584,
+      "to": -965749784
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 644862952,
+      "to": 443536360
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -2106600472
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -2106600472
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -2106600472
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1972382744,
+      "to": -2106600472
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 17833,
+    "ratio": 0.01238,
+    "bbox": {
+     "x": 649,
+     "y": 149,
+     "w": 302,
+     "h": 552
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.56,
+      "dy": -4.73
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 5.92
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 8.69
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 19.47
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 13.29
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 879743976,
+      "to": 711971816
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 208655336,
+      "to": 91214824
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1248842728,
+      "to": 1013961704
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1953485800,
+      "to": 1785713640
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1953485800,
+      "to": 1785713640
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1953485800,
+      "to": 1785713640
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1953485800,
+      "to": 1785713640
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 393204712,
+      "to": 426759144
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -965749784,
+      "to": -714091544
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 443536360,
+      "to": 393204712
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2106600472,
+      "to": 2020594664
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2106600472,
+      "to": 2020594664
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2106600472,
+      "to": 2020594664
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2106600472,
+      "to": 2020594664
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 19362,
+    "ratio": 0.01345,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 570
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.43,
+      "dy": -4.78
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 6.82
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 9.6
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 20.37
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 14.19
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 711971816,
+      "to": 577754088
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 91214824,
+      "to": 24105960
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1013961704,
+      "to": 779080680
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 426759144,
+      "to": 577754088
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -714091544,
+      "to": -1586506776
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2020594664,
+      "to": 1802490856
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2020594664,
+      "to": 1802490856
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2020594664,
+      "to": 1802490856
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2020594664,
+      "to": 1802490856
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 18438,
+    "ratio": 0.0128,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.3,
+      "dy": -4.84
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 7.72
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 10.5
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 21.27
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 15.09
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 577754088,
+      "to": 443536360
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 24105960,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 779080680,
+      "to": 544199656
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1466946536
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1466946536
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1466946536
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1466946536
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 577754088,
+      "to": 879743976
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1586506776,
+      "to": 1970263016
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1802490856,
+      "to": 1584387048
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1802490856,
+      "to": 1584387048
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1802490856,
+      "to": 1584387048
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1802490856,
+      "to": 1584387048
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 16116,
+    "ratio": 0.01119,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 306,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.18,
+      "dy": -4.89
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 8.63
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 11.4
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 22.17
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 16
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 443536360,
+      "to": 326095848
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 544199656,
+      "to": 292541416
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 1299174376
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 1299174376
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 1299174376
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1466946536,
+      "to": 1299174376
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 879743976,
+      "to": 1265619944
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1970263016,
+      "to": 1315951592
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 393204712,
+      "to": 376427496
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 393204712,
+      "to": 376427496
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1584387048,
+      "to": 1332728808
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1584387048,
+      "to": 1332728808
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1584387048,
+      "to": 1332728808
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1584387048,
+      "to": 1332728808
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "fx engine ok",
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 28175,
+    "ratio": 0.01957,
+    "bbox": {
+     "x": 156,
+     "y": 0,
+     "w": 1288,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -44.35,
+      "dy": -3907.57
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 9.53
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 12.3
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 23.08
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 16.9
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 326095848,
+      "to": 208655336
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 0
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1299174376,
+      "to": 1131402216
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1299174376,
+      "to": 1131402216
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1299174376,
+      "to": 1131402216
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1299174376,
+      "to": 1131402216
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1265619944,
+      "to": 1366283240
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1315951592,
+      "to": 661640168
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 376427496,
+      "to": 275764200
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 376427496,
+      "to": 275764200
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1332728808,
+      "to": 1081070568
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1332728808,
+      "to": 1081070568
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1332728808,
+      "to": 1081070568
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1332728808,
+      "to": 1081070568
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 25
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 2106,
+    "ratio": 0.00146,
+    "bbox": {
+     "x": 632,
+     "y": 125,
+     "w": 335,
+     "h": 302
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 10.43
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 13.21
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 23.98
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 17.8
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 208655336,
+      "to": 124769256
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1131402216,
+      "to": 963630056
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1131402216,
+      "to": 963630056
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1131402216,
+      "to": 963630056
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1131402216,
+      "to": 963630056
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1366283240,
+      "to": 1248842728
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 661640168,
+      "to": 292541416
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 275764200,
+      "to": 191878120
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 275764200,
+      "to": 191878120
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1081070568,
+      "to": 1282397160
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1081070568,
+      "to": 1282397160
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1081070568,
+      "to": 1282397160
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1081070568,
+      "to": 1282397160
+     }
+    ],
+    "textChanged": [],
+    "changed": 17
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 1140,
+    "ratio": 0.00079,
+    "bbox": {
+     "x": 624,
+     "y": 100,
+     "w": 349,
+     "h": 652
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 11.34
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 14.11
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 24.88
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 18.71
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 124769256,
+      "to": 57660392
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 963630056,
+      "to": 779080680
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 963630056,
+      "to": 779080680
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 963630056,
+      "to": 779080680
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 963630056,
+      "to": 779080680
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1248842728,
+      "to": 829412328
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 107992040
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 191878120,
+      "to": 91214824
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 191878120,
+      "to": 91214824
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1282397160,
+      "to": 1517278184
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1282397160,
+      "to": 1517278184
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1282397160,
+      "to": 1517278184
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1282397160,
+      "to": 1517278184
+     }
+    ],
+    "textChanged": [],
+    "changed": 17
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 1366,
+    "ratio": 0.00095,
+    "bbox": {
+     "x": 617,
+     "y": 74,
+     "w": 363,
+     "h": 678
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 12.24
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 15.01
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 25.78
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 19.61
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 57660392,
+      "to": 7328744
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 779080680,
+      "to": 611308520
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 779080680,
+      "to": 611308520
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 779080680,
+      "to": 611308520
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 779080680,
+      "to": 611308520
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 829412328,
+      "to": 0
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 107992040,
+      "to": 0
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 91214824,
+      "to": 0
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 91214824,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1517278184,
+      "to": 1752159208
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1517278184,
+      "to": 1752159208
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1517278184,
+      "to": 1752159208
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1517278184,
+      "to": 1752159208
+     }
+    ],
+    "textChanged": [],
+    "changed": 21
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 360,
+    "ratio": 0.00025,
+    "bbox": {
+     "x": 609,
+     "y": 48,
+     "w": 378,
+     "h": 344
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 13.14
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 15.91
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 26.69
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 20.51
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 611308520,
+      "to": 426759144
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 611308520,
+      "to": 426759144
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 611308520,
+      "to": 426759144
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 611308520,
+      "to": 426759144
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1752159208,
+      "to": 1869599720
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1752159208,
+      "to": 1869599720
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1752159208,
+      "to": 1869599720
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1752159208,
+      "to": 1869599720
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 163,
+    "ratio": 0.00011,
+    "bbox": {
+     "x": 609,
+     "y": 48,
+     "w": 378,
+     "h": 331
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 14.04
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 16.82
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 27.59
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 21.41
+     }
+    ],
+    "recolored": [
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 426759144,
+      "to": 225432552
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 426759144,
+      "to": 225432552
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 426759144,
+      "to": 225432552
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 426759144,
+      "to": 225432552
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1869599720,
+      "to": 1785713640
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1869599720,
+      "to": 1785713640
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1869599720,
+      "to": 1785713640
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1869599720,
+      "to": 1785713640
+     }
+    ],
+    "textChanged": [],
+    "changed": 12
+   },
+   "logsTail": [
+    "fx pool ok ctl=24 bad=0 text=3",
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 270,
+    "ratio": 0.00019,
+    "bbox": {
+     "x": 369,
+     "y": 668,
+     "w": 28,
+     "h": 17
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 3.07,
+      "dy": 14.95
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -7.89,
+      "dy": 17.72
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -2.43,
+      "dy": 28.49
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 7.06,
+      "dy": 22.32
+     }
+    ],
+    "recolored": [
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 225432552,
+      "to": 7328744
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 225432552,
+      "to": 7328744
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 225432552,
+      "to": 7328744
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 225432552,
+      "to": 7328744
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1785713640,
+      "to": 1634718696
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 17.0s",
+      "to": "台前 · CD 16.2s"
+     }
+    ],
+    "changed": 13
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -81.83,
+      "dy": -4101.63
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 201.57,
+      "dy": -4171.59
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 63.19,
+      "dy": -4455.91
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -195.06,
+      "dy": -4288.39
+     }
+    ],
+    "recolored": [
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1433392104
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1433392104
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1433392104
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1634718696,
+      "to": 1433392104
+     }
+    ],
+    "textChanged": [],
+    "changed": 12
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1433392104,
+      "to": 1181733864
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1433392104,
+      "to": 1181733864
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1433392104,
+      "to": 1181733864
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1433392104,
+      "to": 1181733864
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 24192,
+    "ratio": 0.0168,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1181733864,
+      "to": 896521192
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1181733864,
+      "to": 896521192
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1181733864,
+      "to": 896521192
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1181733864,
+      "to": 896521192
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 24192,
+    "ratio": 0.0168,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 896521192,
+      "to": 594531304
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 896521192,
+      "to": 594531304
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 896521192,
+      "to": 594531304
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 896521192,
+      "to": 594531304
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 24192,
+    "ratio": 0.0168,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 594531304,
+      "to": 292541416
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 594531304,
+      "to": 292541416
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 594531304,
+      "to": 292541416
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 594531304,
+      "to": 292541416
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 24296,
+    "ratio": 0.01687,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -9448472,
+      "to": -227552280
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 7328744
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 7328744
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 7328744
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 292541416,
+      "to": 7328744
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 198,
+    "ratio": 0.00014,
+    "bbox": {
+     "x": 781,
+     "y": 763,
+     "w": 38,
+     "h": 19
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 361,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -227552280,
+      "to": -563096600
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 7328744,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "skill fx kind=cast role=columbina fx=on copy=on",
+    "skill clear_bottom rows=1",
+    "skill hud 少女 Lv1 CD 17.0s｜纳西妲 Lv1 就绪",
+    "fall y=3",
+    "fall y=4",
+    "skill hud 少女 Lv1 CD 16.2s｜纳西妲 Lv1 就绪"
+   ]
+  }
+ ]
+}

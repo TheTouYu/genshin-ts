@@ -1,0 +1,169 @@
+module ok default_import_file/lua/tetris/config
+module ok default_import_file/lua/tetris/widgets
+module ok default_import_file/lua/tetris/audio
+module ok default_import_file/lua/tetris/skills
+module ok default_import_file/lua/tetris/copy
+module ok default_import_file/lua/tetris/fx
+module ok default_import_file/lua/tetris/ui
+ui module ok layout=v5.0 screens=5
+canvas 1560.0x720.0
+device=EnumItem: 0x8b2 mobile=true pad=false
+ai tune pMistake=0,0,0 hold=1,1,1 simple=true paceK=0.45,0.3,0.13
+diag root=容器节点 cell_cand=4 hit_cand=5 first_cell_guid=1073742105
+probe cell ok guid=1073742105
+tpl guid=1073742105
+probe hit ok guid=1073742106
+hit tpl=1073742106
+bg pool n=18
+cellCount=200
+settle try text tpl=1073742202 -> nil
+settle try text tpl=1073742200 -> nil
+settle try text tpl=1073741935 -> nil
+settle try text tpl=1073741923 -> nil
+settle try text tpl=1073741937 -> nil
+settle try text tpl=1073741934 -> nil
+settle try text tpl=1073741933 -> nil
+settle try text tpl=1073741922 -> nil
+settle try text tpl=1073742114 -> ok kids=0
+menu stage n=46
+menu help zone=ok
+menu zones n=5
+ctl dump screen=menu n=5 canvas=1560x720
+ctl menu.mode1 px=370 py=464 w=416 h=108
+ctl menu.mode2 px=370 py=256 w=416 h=108
+ctl menu.mode3 px=1210 py=464 w=416 h=108
+ctl menu.mode4 px=1210 py=256 w=416 h=108
+ctl menu.help px=1070 py=28 w=260 h=56
+menu cards n=14 style=A
+hud inst n=9 (textbox hidden)
+listen ok KeyboardCraftspersonKey38Down via enum
+listen ok KeyboardCraftspersonKey38Up via enum
+listen ok KeyboardCraftspersonKey39Down via enum
+listen ok KeyboardCraftspersonKey39Up via enum
+listen ok KeyboardCraftspersonKey36Down via enum
+listen ok KeyboardCraftspersonKey37Down via enum
+listen ok KeyboardMoveLeftKeyDown via enum
+listen ok KeyboardMoveLeftKeyUp via enum
+listen ok KeyboardMoveRightKeyDown via enum
+listen ok KeyboardMoveRightKeyUp via enum
+listen ok KeyboardMoveForwardKeyDown via enum
+listen ok KeyboardMoveBackwardKeyDown via enum
+listen ok KeyboardJumpKeyDown via enum
+listen ok KeyboardCraftspersonKey14Down via enum
+listen ok KeyboardDropKeyDown via enum
+listen ok KeyboardInteractKeyDown via enum
+listen ok KeyboardCraftspersonKey1Down via enum
+listen ok KeyboardCraftspersonKey2Down via enum
+listen ok KeyboardCraftspersonKey3Down via enum
+listen ok KeyboardCraftspersonKey4Down via enum
+listen ok KeyboardSwitchToWalkOrRunKeyDown via enum
+listen ok KeyboardCraftspersonKey22Down via enum
+listen ok KeyboardCharacterSkill3KeyDown via enum
+listen ok KeyboardCharacterSkill2KeyDown via enum
+listen ok KeyboardCraftspersonKey15Down via enum
+listen ok KeyboardCharacterSkill1KeyDown via enum
+listen ok KeyboardCharacterSkill4KeyDown via enum
+phone build queued device=mobile
+listen ok ControllerCraftspersonKey1Down via enum
+listen ok ControllerCraftspersonKey2Down via enum
+listen ok ControllerCraftspersonKey3Down via enum
+listen ok ControllerCraftspersonKey4Down via enum
+listen ok ControllerCraftspersonKey5Down via enum
+listen ok ControllerCraftspersonKey6Down via enum
+listen ok ControllerCraftspersonKey7Down via enum
+listen ok ControllerCraftspersonKey8Down via enum
+listen ok ControllerCraftspersonKey9Down via enum
+listen ok ControllerCraftspersonKey10Down via enum
+listen ok ControllerCraftspersonKey11Down via enum
+listen ok ControllerCraftspersonKey12Down via enum
+listen ok ControllerCraftspersonKey13Down via enum
+listen ok ControllerCraftspersonKey14Down via enum
+listen ok ControllerSprintKeyDown via enum
+listen ok ControllerJumpKeyDown via enum
+listen ok ControllerInteractKeyDown via enum
+listen ok ControllerNormalAttackKeyDown via enum
+listen ok ControllerCharacterSkill1KeyDown via enum
+listen ok ControllerCharacterSkill2KeyDown via enum
+listen ok ControllerCharacterSkill3KeyDown via enum
+listen ok ControllerCharacterSkill4KeyDown via enum
+listen ok ControllerMenuConfirmKeyDown via enum
+listen ok ControllerMenuBackKeyDown via enum
+pad bind n=24
+v4 device mobile=true pad=false phone=0
+skills ready active=1 party=1 unlocked=1
+listen ok KeyboardCraftspersonKey12Down via enum
+listen ok KeyboardCraftspersonKey11Down via enum
+listen ok KeyboardCraftspersonKey13Down via enum
+listen ok KeyboardCraftspersonKey16Down via enum
+listen ok KeyboardCraftspersonKey30Down via enum
+listen ok KeyboardCraftspersonKey5Down via enum
+listen ok KeyboardCraftspersonKey6Down via enum
+listen ok KeyboardCraftspersonKey7Down via enum
+listen ok KeyboardCraftspersonKey8Down via enum
+listen ok KeyboardCraftspersonKey9Down via enum
+listen ok KeyboardCraftspersonKey10Down via enum
+listen ok KeyboardCraftspersonKey11Down via enum
+listen ok KeyboardCraftspersonKey12Down via enum
+listen ok KeyboardCraftspersonKey13Down via enum
+listen ok KeyboardCraftspersonKey14Down via enum
+listen ok KeyboardCraftspersonKey16Down via enum
+listen ok KeyboardCraftspersonKey17Down via enum
+listen ok KeyboardCraftspersonKey18Down via enum
+listen ok KeyboardCraftspersonKey19Down via enum
+listen ok KeyboardCraftspersonKey20Down via enum
+listen ok KeyboardCraftspersonKey21Down via enum
+listen ok KeyboardCraftspersonKey23Down via enum
+listen ok KeyboardCraftspersonKey24Down via enum
+listen ok KeyboardCraftspersonKey25Down via enum
+listen ok KeyboardCraftspersonKey26Down via enum
+listen ok KeyboardCraftspersonKey27Down via enum
+listen ok KeyboardCraftspersonKey28Down via enum
+listen ok KeyboardCraftspersonKey29Down via enum
+listen ok KeyboardCraftspersonKey30Down via enum
+listen ok KeyboardCraftspersonKey31Down via enum
+listen ok KeyboardCraftspersonKey32Down via enum
+listen ok KeyboardCraftspersonKey33Down via enum
+listen ok KeyboardCraftspersonKey34Down via enum
+listen ok KeyboardCraftspersonKey35Down via enum
+listen ok KeyboardCraftspersonKey40Down via enum
+listen ok KeyboardCraftspersonKey41Down via enum
+listen ok KeyboardCraftspersonKey42Down via enum
+listen ok KeyboardCraftspersonKey43Down via enum
+bag=1 piece=L x=4 y=1
+newgame
+menu dim board
+mode=ai-battle
+bg cover ok bs=1.22 w=1560 h=720 screen=title comps=14/14 wash=1 ext=-1073,1072,-459,491
+mode theme=ai-battle bg=14/14
+screen=title ui layout w=1560 h=720 mobile=false dual=false pad=0 nav=2 act=0
+phone play bar=true
+phone build n=17 (pad=9 nav=4 act=3)
+skill hud build n=9
+phone layout w=1560 h=720 n=17 screen=title
+ui audit screen=title btns=2 bad=0
+bg cover ok bs=1.22 w=1560 h=720 screen=title comps=14/14 wash=1 ext=-1073,1072,-459,491
+mode theme=ai-battle bg=14/14
+screen=title ui layout w=1560 h=720 mobile=true dual=false pad=0 nav=2 act=0
+p2 bag=1 piece=J
+bag=1 piece=J x=4 y=1
+bag=1 piece=T x=4 y=1
+newgame
+p2 cellCount=200
+layout dual
+p2 inst ai-battle
+skill unlock role=columbina ok=true why=ok party=2
+fx engine ok
+fx pool ok ctl=24 bad=0 text=3
+skill fx kind=unlock role=columbina fx=on copy=on
+skill hud 纳西妲 Lv1 就绪｜少女 Lv1 就绪
+menu cards destroy n=14
+bg cover ok bs=1.22 w=1560 h=720 screen=title comps=14/14 wash=1 ext=-1073,1072,-459,491
+mode theme=ai-battle bg=14/14
+guide keys ai-battle
+phone layout w=1560 h=720 n=17 screen=game
+ui audit screen=game btns=11 bad=0
+bg cover ok bs=1.22 w=1560 h=720 screen=game comps=14/14 wash=1 ext=-1073,1072,-459,491
+mode theme=ai-battle bg=14/14
+screen=game ui layout w=1560 h=720 mobile=true dual=true pad=9 nav=2 act=0
+guide ready p2
+skill state active=nahida lv=1 tier=1 cd=0 energy=30.2

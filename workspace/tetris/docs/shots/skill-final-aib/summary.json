@@ -1,0 +1,275 @@
+{
+ "mode": "ai-battle",
+ "frames": 30,
+ "pixelChangedFrames": 29,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 20,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 29,
+ "maxIdleFrames": 1,
+ "maxIdleSeconds": 0.03,
+ "maxIdleStartFrame": 20,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 59
+  },
+  {
+   "name": "cell",
+   "changes": 441
+  },
+  {
+   "name": "hold4",
+   "changes": 2
+  },
+  {
+   "name": "hold3",
+   "changes": 2
+  },
+  {
+   "name": "hold2",
+   "changes": 2
+  },
+  {
+   "name": "hold1",
+   "changes": 2
+  },
+  {
+   "name": "next6",
+   "changes": 2
+  },
+  {
+   "name": "next5",
+   "changes": 2
+  },
+  {
+   "name": "next1",
+   "changes": 2
+  },
+  {
+   "name": "p2cell36",
+   "changes": 2
+  },
+  {
+   "name": "p2cell35",
+   "changes": 2
+  },
+  {
+   "name": "p2cell26",
+   "changes": 2
+  },
+  {
+   "name": "p2cell24",
+   "changes": 5
+  },
+  {
+   "name": "p2cell15",
+   "changes": 3
+  },
+  {
+   "name": "p2cell14",
+   "changes": 5
+  },
+  {
+   "name": "next8",
+   "changes": 1
+  },
+  {
+   "name": "next7",
+   "changes": 1
+  },
+  {
+   "name": "next4",
+   "changes": 1
+  },
+  {
+   "name": "next3",
+   "changes": 1
+  },
+  {
+   "name": "next2",
+   "changes": 1
+  },
+  {
+   "name": "cell26",
+   "changes": 1
+  },
+  {
+   "name": "cell25",
+   "changes": 1
+  },
+  {
+   "name": "cell16",
+   "changes": 1
+  },
+  {
+   "name": "cell15",
+   "changes": 1
+  },
+  {
+   "name": "cell14",
+   "changes": 1
+  },
+  {
+   "name": "cell4",
+   "changes": 1
+  },
+  {
+   "name": "sk1state",
+   "changes": 2
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  },
+  {
+   "name": "p2cell34",
+   "changes": 2
+  },
+  {
+   "name": "p2cell33",
+   "changes": 2
+  },
+  {
+   "name": "p2cell25",
+   "changes": 4
+  },
+  {
+   "name": "p2cell23",
+   "changes": 2
+  },
+  {
+   "name": "p2cell22",
+   "changes": 2
+  },
+  {
+   "name": "p2cell32",
+   "changes": 2
+  },
+  {
+   "name": "p2cell21",
+   "changes": 2
+  },
+  {
+   "name": "p2cell183",
+   "changes": 1
+  },
+  {
+   "name": "p2cell182",
+   "changes": 1
+  },
+  {
+   "name": "p2cell172",
+   "changes": 1
+  },
+  {
+   "name": "p2cell171",
+   "changes": 1
+  },
+  {
+   "name": "p2cell6",
+   "changes": 2
+  },
+  {
+   "name": "p2cell5",
+   "changes": 4
+  },
+  {
+   "name": "ikeyC",
+   "changes": 1
+  },
+  {
+   "name": "p2cell16",
+   "changes": 3
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [],
+ "skillLogLines": [
+  "skill fx kind=unlock role=columbina fx=on copy=on",
+  "skill cast slot=1 role=nahida ok=true effect=ai-takeover why=nil n=1",
+  "skill fx kind=cast role=nahida fx=on copy=on",
+  "skill ai start tier=1 lvidx=2 dur=6.0 mode=ai-battle"
+ ],
+ "castOk": true,
+ "aiStart": "skill ai start tier=1 lvidx=2 dur=6.0 mode=ai-battle",
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 30,
+  "framesDifferingFromControl": 30,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.99052
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 4,
+  "ids": [
+   40441,
+   50883,
+   50872
+  ],
+  "sample": [
+   {
+    "instanceId": 4,
+    "audioId": 40441,
+    "startedAt": 9.133333333333312,
+    "duration": 1.001,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 5,
+    "audioId": 50883,
+    "startedAt": 9.199999999999978,
+    "duration": 0.151,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 6,
+    "audioId": 50872,
+    "startedAt": 9.566666666666643,
+    "duration": 1.024,
+    "alive": true,
+    "stopped": false
+   },
+   {
+    "instanceId": 7,
+    "audioId": 50883,
+    "startedAt": 9.833333333333309,
+    "duration": 0.151,
+    "alive": false,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "nahida",
+ "slot": 1,
+ "canvas": {
+  "id": "pc-16-9",
+  "width": 1600,
+  "height": 900,
+  "mobile": false
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=1 role=nahida"
+ },
+ "elapsedMs": 14696,
+ "saveFreshness": {
+  "ok": true,
+  "stale": [],
+  "checked": 8
+ },
+ "keyFrames": [
+  "frame-f001.png",
+  "frame-f012.png",
+  "frame-f024.png",
+  "frame-f030.png"
+ ],
+ "controlStrip": "control-strip.png"
+}

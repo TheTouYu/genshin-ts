@@ -1,0 +1,4378 @@
+{
+ "meta": {
+  "role": "nahida",
+  "mode": "casual",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "summary": {
+   "mode": "casual",
+   "frames": 30,
+   "pixelChangedFrames": 29,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 20,
+   "longestRunStartFrame": 0,
+   "changeSpanFrames": 29,
+   "maxIdleFrames": 1,
+   "maxIdleSeconds": 0.03,
+   "maxIdleStartFrame": 20,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 46
+    },
+    {
+     "name": "cell",
+     "changes": 425
+    },
+    {
+     "name": "sk1state",
+     "changes": 2
+    },
+    {
+     "name": "itopBanner",
+     "changes": 1
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "cell46",
+     "changes": 1
+    },
+    {
+     "name": "cell36",
+     "changes": 1
+    },
+    {
+     "name": "cell34",
+     "changes": 1
+    },
+    {
+     "name": "cell26",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [
+    {
+     "i": 0,
+     "t": 0.033,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 1,
+     "t": 0.067,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 2,
+     "t": 0.1,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 3,
+     "t": 0.133,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 4,
+     "t": 0.167,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 5,
+     "t": 0.2,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 6,
+     "t": 0.233,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 7,
+     "t": 0.267,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 8,
+     "t": 0.3,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 9,
+     "t": 0.333,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 10,
+     "t": 0.367,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 11,
+     "t": 0.4,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 12,
+     "t": 0.433,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 13,
+     "t": 0.467,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 14,
+     "t": 0.5,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 15,
+     "t": 0.533,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 16,
+     "t": 0.567,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 17,
+     "t": 0.6,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 18,
+     "t": 0.633,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 19,
+     "t": 0.667,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 20,
+     "t": 0.7,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 21,
+     "t": 0.733,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 22,
+     "t": 0.767,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 23,
+     "t": 0.8,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 24,
+     "t": 0.833,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 25,
+     "t": 0.867,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    },
+    {
+     "i": 26,
+     "t": 0.9,
+     "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+    }
+   ],
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 30,
+    "framesDifferingFromControl": 30,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.74652
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 2,
+    "ids": [
+     40441,
+     40001
+    ],
+    "sample": [
+     {
+      "instanceId": 3,
+      "audioId": 40441,
+      "startedAt": 6.599999999999986,
+      "duration": 1.001,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 40001,
+      "startedAt": 6.599999999999986,
+      "duration": 1.653,
+      "alive": true,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "nahida",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=1 role=nahida"
+   },
+   "unlock": {
+    "ok": true,
+    "evidence": "skill debug unlock all party=4 active=nahida"
+   }
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 1074988,
+    "ratio": 0.74652,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [
+     {
+      "id": 380,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 379,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 374,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "kind": "image"
+     }
+    ],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 25.0s"
+     },
+     {
+      "id": 341,
+      "name": "itopBanner",
+      "from": "",
+      "to": "纳西妲 · 替手"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "松手吧，这盘我来落子。"
+     }
+    ],
+    "changed": 27
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 41643,
+    "ratio": 0.02892,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 678
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.98,
+      "dy": -4.61
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.61,
+      "dy": -4.33
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.66,
+      "dy": 2.68
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 5.2
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 5.77,
+      "dy": 0.38
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1748924975,
+      "to": -1841399249
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2122330262,
+      "to": -1333801110
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": -1451241622
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2004864874,
+      "to": -1568682134
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1216360598,
+      "to": -1535127702
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 763350890,
+      "to": 1149226858
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2071998614,
+      "to": 1568657258
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 276811626
+     }
+    ],
+    "textChanged": [],
+    "changed": 27
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 46480,
+    "ratio": 0.03228,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 672
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.81,
+      "dy": -4.64
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.5,
+      "dy": -4.38
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.41,
+      "dy": 2.33
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 4.75
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 5.52,
+      "dy": 0.13
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1841399249,
+      "to": -1254196689
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1333801110,
+      "to": -713044118
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1451241622,
+      "to": -864039062
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1568682134,
+      "to": -998256790
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": -1535127702
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1853894806
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1149226858,
+      "to": 1686097770
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1568657258,
+      "to": 1065340778
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 176148330
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 48770,
+    "ratio": 0.03387,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 667
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.64,
+      "dy": -4.68
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.38,
+      "dy": -4.42
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -5.17,
+      "dy": 1.98
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 4.29
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 5.27,
+      "dy": -0.12
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1254196689,
+      "to": -784434641
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -713044118,
+      "to": -293613718
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -864039062,
+      "to": -461385878
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -998256790,
+      "to": -612380822
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1753231510
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -2139107478
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": -1937780886
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1065340778,
+      "to": 696242026
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 109039466
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 47976,
+    "ratio": 0.03332,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 664
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.47,
+      "dy": -4.71
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.27,
+      "dy": -4.47
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.93,
+      "dy": 1.64
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 3.83
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 5.02,
+      "dy": -0.37
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -784434641,
+      "to": -415335889
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -293613718,
+      "to": -58732694
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -461385878,
+      "to": -226504854
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -612380822,
+      "to": -394277014
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1753231510,
+      "to": -1971335318
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2139107478,
+      "to": 1870647146
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1937780886,
+      "to": -1115697302
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 478138218
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 41930602
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 30069,
+    "ratio": 0.02088,
+    "bbox": {
+     "x": 588,
+     "y": 147,
+     "w": 424,
+     "h": 662
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.3,
+      "dy": -4.74
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.16,
+      "dy": -4.51
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.68,
+      "dy": 1.29
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 3.38
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 4.78,
+      "dy": -0.62
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -415335889,
+      "to": -180454865
+     },
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -58732694,
+      "to": -8401046
+     },
+     {
+      "id": 377,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -226504854,
+      "to": -176173206
+     },
+     {
+      "id": 376,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 375,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -394277014,
+      "to": -343945366
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1602211690
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 411029354
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1115697302,
+      "to": -528494742
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 478138218,
+      "to": 394252138
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 30434,
+    "ratio": 0.02113,
+    "bbox": {
+     "x": 685,
+     "y": 147,
+     "w": 272,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 3.12,
+      "dy": -4.78
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -2.05,
+      "dy": -4.56
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.44,
+      "dy": 0.94
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.92
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 4.53,
+      "dy": -0.87
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -180454865,
+      "to": -46237137
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1602211690,
+      "to": 1350553450
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 411029354,
+      "to": 545247082
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -528494742,
+      "to": -1434464406
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 32927,
+    "ratio": 0.02287,
+    "bbox": {
+     "x": 678,
+     "y": 147,
+     "w": 279,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.95,
+      "dy": -4.81
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.93,
+      "dy": -4.61
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -4.19,
+      "dy": 0.59
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.46
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 4.28,
+      "dy": -1.12
+     }
+    ],
+    "recolored": [
+     {
+      "id": 380,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -46237137,
+      "to": -12682705
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1719652202
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1115672426
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 813682538
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": 2088750954
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 33826,
+    "ratio": 0.02349,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.78,
+      "dy": -4.85
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.82,
+      "dy": -4.65
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.95,
+      "dy": 0.24
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.01
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 4.03,
+      "dy": -1.37
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1719652202,
+      "to": 1535102826
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1115672426,
+      "to": 897568618
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 813682538,
+      "to": 1233112938
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": 1467993962
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 37085,
+    "ratio": 0.02575,
+    "bbox": {
+     "x": 647,
+     "y": 144,
+     "w": 309,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.61,
+      "dy": -4.88
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.71,
+      "dy": -4.7
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.71,
+      "dy": -0.1
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 1.55
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.78,
+      "dy": -1.61
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1535102826,
+      "to": 1350553450
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 696242026
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1233112938,
+      "to": 1786761066
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 998231914
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 37075,
+    "ratio": 0.02575,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 309,
+     "h": 609
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.44,
+      "dy": -4.91
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.6,
+      "dy": -4.74
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.46,
+      "dy": -0.45
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 1.09
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.53,
+      "dy": -1.86
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1182781290
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 511692650
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": -1803563158
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 998231914,
+      "to": 645910378
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 32679,
+    "ratio": 0.02269,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 592
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.27,
+      "dy": -4.95
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.48,
+      "dy": -4.79
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -3.22,
+      "dy": -0.8
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 0.64
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.28,
+      "dy": -2.11
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 1015009130
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 511692650,
+      "to": 360697706
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -964702358
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 645910378,
+      "to": 444583786
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 20791,
+    "ratio": 0.01444,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 592
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 2.09,
+      "dy": -4.98
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.37,
+      "dy": -4.84
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.98,
+      "dy": -1.15
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.04,
+      "dy": -2.36
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 864014186
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 226479978
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 427806570
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -964702358,
+      "to": -713044118
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 444583786,
+      "to": 394252138
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 19561,
+    "ratio": 0.01358,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 557
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.92,
+      "dy": -5.02
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.26,
+      "dy": -4.88
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.73,
+      "dy": -1.5
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.79,
+      "dy": -2.61
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 864014186,
+      "to": 729796458
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 226479978,
+      "to": 109039466
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 427806570,
+      "to": 578801514
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -713044118,
+      "to": -1585459350
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 19502,
+    "ratio": 0.01354,
+    "bbox": {
+     "x": 647,
+     "y": 143,
+     "w": 306,
+     "h": 568
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.75,
+      "dy": -5.05
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.15,
+      "dy": -4.93
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.49,
+      "dy": -1.84
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -0.73
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.54,
+      "dy": -2.86
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 729796458,
+      "to": 595578730
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 25153386
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 578801514,
+      "to": 880791402
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1585459350,
+      "to": 1971310442
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 34192,
+    "ratio": 0.02374,
+    "bbox": {
+     "x": 156,
+     "y": 0,
+     "w": 1288,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": 1.58,
+      "dy": -5.08
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": -1.04,
+      "dy": -4.97
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": -2.24,
+      "dy": -2.19
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -1.19
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.29,
+      "dy": -3.11
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 461361002
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 25153386,
+      "to": 0
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 880791402,
+      "to": 1266667370
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1971310442,
+      "to": 1316999018
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 16178,
+    "ratio": 0.01123,
+    "bbox": {
+     "x": 162,
+     "y": 0,
+     "w": 1282,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "dx": -65.74,
+      "dy": -3910.81
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "dx": 46.58,
+      "dy": -3901.84
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 90.75,
+      "dy": -4022.59
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0.28,
+      "dy": -4056.88
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -98.26,
+      "dy": -3982.96
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 461361002,
+      "to": 360697706
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1266667370,
+      "to": 1367330666
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1316999018,
+      "to": 662687594
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 12369,
+    "ratio": 0.00859,
+    "bbox": {
+     "x": 369,
+     "y": 145,
+     "w": 584,
+     "h": 584
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 260034410
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1367330666,
+      "to": 1249890154
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 662687594,
+      "to": 293588842
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 25.0s",
+      "to": "台前 · CD 24.4s"
+     }
+    ],
+    "changed": 11
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 20460,
+    "ratio": 0.01421,
+    "bbox": {
+     "x": 156,
+     "y": 0,
+     "w": 1288,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 260034410,
+      "to": 176148330
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 830459754
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 109039466
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 2327,
+    "ratio": 0.00162,
+    "bbox": {
+     "x": 647,
+     "y": 147,
+     "w": 306,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 92262250
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 830459754,
+      "to": 0
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 0
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 41930602
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 2003,
+    "ratio": 0.00139,
+    "bbox": {
+     "x": 710,
+     "y": 146,
+     "w": 180,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 1983,
+    "ratio": 0.00138,
+    "bbox": {
+     "x": 710,
+     "y": 145,
+     "w": 180,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 1984,
+    "ratio": 0.00138,
+    "bbox": {
+     "x": 710,
+     "y": 144,
+     "w": 180,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 2032,
+    "ratio": 0.00141,
+    "bbox": {
+     "x": 163,
+     "y": 0,
+     "w": 1281,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 26176,
+    "ratio": 0.01818,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 26159,
+    "ratio": 0.01817,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 27328,
+    "ratio": 0.01898,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 26184,
+    "ratio": 0.01818,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -8401046,
+      "to": -226504854
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 2333,
+    "ratio": 0.00162,
+    "bbox": {
+     "x": 710,
+     "y": 140,
+     "w": 180,
+     "h": 641
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 380,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 378,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -226504854,
+      "to": -562049174
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s｜刻晴 Lv1 就绪",
+    "ai attack=false oppH=0 tier=2",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=5 rot=1 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.4s｜刻晴 Lv1 就绪",
+    "demo act rot x=4"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,215 @@
+{
+ "mode": "casual",
+ "frames": 30,
+ "pixelChangedFrames": 29,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 20,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 29,
+ "maxIdleFrames": 1,
+ "maxIdleSeconds": 0.03,
+ "maxIdleStartFrame": 20,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 46
+  },
+  {
+   "name": "cell",
+   "changes": 425
+  },
+  {
+   "name": "sk1state",
+   "changes": 2
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "first": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+  }
+ ],
+ "skillLogLines": [
+  "takeover hint",
+  "skill cast slot=1 role=nahida ok=true effect=ai-takeover why=nil n=1",
+  "skill fx kind=cast role=nahida fx=on copy=on",
+  "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual"
+ ],
+ "castOk": true,
+ "aiStart": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 30,
+  "framesDifferingFromControl": 30,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.83863
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 1,
+  "ids": [
+   40441
+  ],
+  "sample": [
+   {
+    "instanceId": 3,
+    "audioId": 40441,
+    "startedAt": 5.266666666666658,
+    "duration": 1.001,
+    "alive": false,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "nahida",
+ "slot": 1,
+ "canvas": {
+  "id": "mobile-19.5-9",
+  "width": 1560,
+  "height": 720,
+  "mobile": true
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=1 role=nahida"
+ },
+ "unlock": {
+  "ok": true,
+  "evidence": "skill debug unlock all party=4 active=nahida"
+ }
+}

@@ -1,0 +1,300 @@
+{
+ "mode": "casual",
+ "frames": 30,
+ "pixelChangedFrames": 28,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 22,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 29,
+ "maxIdleFrames": 2,
+ "maxIdleSeconds": 0.07,
+ "maxIdleStartFrame": 22,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 10
+  },
+  {
+   "name": "cell",
+   "changes": 479
+  },
+  {
+   "name": "cell196",
+   "changes": 1
+  },
+  {
+   "name": "cell175",
+   "changes": 1
+  },
+  {
+   "name": "cell35",
+   "changes": 3
+  },
+  {
+   "name": "cell34",
+   "changes": 1
+  },
+  {
+   "name": "cell26",
+   "changes": 1
+  },
+  {
+   "name": "cell25",
+   "changes": 1
+  },
+  {
+   "name": "sk1state",
+   "changes": 1
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  },
+  {
+   "name": "cell45",
+   "changes": 1
+  },
+  {
+   "name": "cell44",
+   "changes": 2
+  },
+  {
+   "name": "cell36",
+   "changes": 2
+  },
+  {
+   "name": "cell55",
+   "changes": 1
+  },
+  {
+   "name": "cell54",
+   "changes": 1
+  },
+  {
+   "name": "cell46",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "first": "skill fx kind=cast role=columbina fx=on copy=on"
+  }
+ ],
+ "skillLogLines": [
+  "takeover hint",
+  "skill cast slot=1 role=columbina ok=true effect=gravity-clear why=nil n=1",
+  "skill fx kind=cast role=columbina fx=on copy=on"
+ ],
+ "castOk": true,
+ "aiStart": null,
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 30,
+  "framesDifferingFromControl": 30,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.22767
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 3,
+  "ids": [
+   40425,
+   50884,
+   50872
+  ],
+  "sample": [
+   {
+    "instanceId": 3,
+    "audioId": 40425,
+    "startedAt": 5.099999999999992,
+    "duration": 1.038,
+    "alive": true,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 50884,
+    "startedAt": 5.099999999999992,
+    "duration": 0.151,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 5,
+    "audioId": 50872,
+    "startedAt": 5.099999999999992,
+    "duration": 1.024,
+    "alive": false,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "columbina",
+ "slot": 1,
+ "canvas": {
+  "id": "mobile-4-3",
+  "width": 1280,
+  "height": 960,
+  "mobile": true
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=4 role=columbina"
+ },
+ "unlock": {
+  "ok": true,
+  "evidence": "skill debug unlock all party=4 active=nahida"
+ }
+}

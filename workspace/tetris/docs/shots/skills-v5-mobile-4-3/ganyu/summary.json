@@ -1,0 +1,213 @@
+{
+ "mode": "casual",
+ "frames": 30,
+ "pixelChangedFrames": 30,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 30,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 29,
+ "maxIdleFrames": 0,
+ "maxIdleSeconds": 0,
+ "maxIdleStartFrame": -1,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 10
+  },
+  {
+   "name": "cell",
+   "changes": 623
+  },
+  {
+   "name": "sk1state",
+   "changes": 2
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  },
+  {
+   "name": "cell35",
+   "changes": 1
+  },
+  {
+   "name": "cell34",
+   "changes": 2
+  },
+  {
+   "name": "cell26",
+   "changes": 2
+  },
+  {
+   "name": "cell24",
+   "changes": 1
+  },
+  {
+   "name": "cell16",
+   "changes": 1
+  },
+  {
+   "name": "cell15",
+   "changes": 1
+  },
+  {
+   "name": "cell45",
+   "changes": 1
+  },
+  {
+   "name": "cell44",
+   "changes": 1
+  },
+  {
+   "name": "cell36",
+   "changes": 1
+  },
+  {
+   "name": "cell25",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "first": "skill cast slot=1 role=ganyu ok=true effect=freeze why=nil n=3"
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "first": "skill fx kind=cast role=ganyu fx=on copy=on"
+  }
+ ],
+ "skillLogLines": [
+  "takeover hint",
+  "skill cast slot=1 role=ganyu ok=true effect=freeze why=nil n=3",
+  "skill fx kind=cast role=ganyu fx=on copy=on"
+ ],
+ "castOk": true,
+ "aiStart": null,
+ "aiEnd": null,
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 30,
+  "framesDifferingFromControl": 30,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.82867
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 2,
+  "ids": [
+   50017,
+   40001
+  ],
+  "sample": [
+   {
+    "instanceId": 3,
+    "audioId": 50017,
+    "startedAt": 4.933333333333326,
+    "duration": 0.867,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 40001,
+    "startedAt": 4.933333333333326,
+    "duration": 1.653,
+    "alive": true,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "ganyu",
+ "slot": 1,
+ "canvas": {
+  "id": "mobile-4-3",
+  "width": 1280,
+  "height": 960,
+  "mobile": true
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=3 role=ganyu"
+ },
+ "unlock": {
+  "ok": true,
+  "evidence": "skill debug unlock all party=4 active=nahida"
+ }
+}

@@ -1,0 +1,6024 @@
+{
+ "meta": {
+  "role": "nahida",
+  "mode": "ai-battle",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "frames": 30,
+  "summary": {
+   "mode": "ai-battle",
+   "frames": 30,
+   "pixelChangedFrames": 29,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 20,
+   "longestRunStartFrame": 0,
+   "changeSpanFrames": 29,
+   "maxIdleFrames": 1,
+   "maxIdleSeconds": 0.03,
+   "maxIdleStartFrame": 20,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 59
+    },
+    {
+     "name": "cell",
+     "changes": 441
+    },
+    {
+     "name": "hold4",
+     "changes": 2
+    },
+    {
+     "name": "hold3",
+     "changes": 2
+    },
+    {
+     "name": "hold2",
+     "changes": 2
+    },
+    {
+     "name": "hold1",
+     "changes": 2
+    },
+    {
+     "name": "next6",
+     "changes": 2
+    },
+    {
+     "name": "next5",
+     "changes": 2
+    },
+    {
+     "name": "next1",
+     "changes": 2
+    },
+    {
+     "name": "p2cell36",
+     "changes": 2
+    },
+    {
+     "name": "p2cell35",
+     "changes": 2
+    },
+    {
+     "name": "p2cell26",
+     "changes": 2
+    },
+    {
+     "name": "p2cell24",
+     "changes": 5
+    },
+    {
+     "name": "p2cell15",
+     "changes": 3
+    },
+    {
+     "name": "p2cell14",
+     "changes": 5
+    },
+    {
+     "name": "next8",
+     "changes": 1
+    },
+    {
+     "name": "next7",
+     "changes": 1
+    },
+    {
+     "name": "next4",
+     "changes": 1
+    },
+    {
+     "name": "next3",
+     "changes": 1
+    },
+    {
+     "name": "next2",
+     "changes": 1
+    },
+    {
+     "name": "cell26",
+     "changes": 1
+    },
+    {
+     "name": "cell25",
+     "changes": 1
+    },
+    {
+     "name": "cell16",
+     "changes": 1
+    },
+    {
+     "name": "cell15",
+     "changes": 1
+    },
+    {
+     "name": "cell14",
+     "changes": 1
+    },
+    {
+     "name": "cell4",
+     "changes": 1
+    },
+    {
+     "name": "sk1state",
+     "changes": 2
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "p2cell34",
+     "changes": 2
+    },
+    {
+     "name": "p2cell33",
+     "changes": 2
+    },
+    {
+     "name": "p2cell25",
+     "changes": 4
+    },
+    {
+     "name": "p2cell23",
+     "changes": 2
+    },
+    {
+     "name": "p2cell22",
+     "changes": 2
+    },
+    {
+     "name": "p2cell32",
+     "changes": 2
+    },
+    {
+     "name": "p2cell21",
+     "changes": 2
+    },
+    {
+     "name": "p2cell183",
+     "changes": 1
+    },
+    {
+     "name": "p2cell182",
+     "changes": 1
+    },
+    {
+     "name": "p2cell172",
+     "changes": 1
+    },
+    {
+     "name": "p2cell171",
+     "changes": 1
+    },
+    {
+     "name": "p2cell6",
+     "changes": 2
+    },
+    {
+     "name": "p2cell5",
+     "changes": 4
+    },
+    {
+     "name": "ikeyC",
+     "changes": 1
+    },
+    {
+     "name": "p2cell16",
+     "changes": 3
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [],
+   "skillLogLines": [
+    "skill fx kind=unlock role=columbina fx=on copy=on",
+    "skill cast slot=1 role=nahida ok=true effect=ai-takeover why=nil n=1",
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=2 dur=6.0 mode=ai-battle"
+   ],
+   "castOk": true,
+   "aiStart": "skill ai start tier=1 lvidx=2 dur=6.0 mode=ai-battle",
+   "aiEnd": null,
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 30,
+    "framesDifferingFromControl": 30,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.99052
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 4,
+    "ids": [
+     40441,
+     50883,
+     50872
+    ],
+    "sample": [
+     {
+      "instanceId": 4,
+      "audioId": 40441,
+      "startedAt": 9.133333333333312,
+      "duration": 1.001,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 5,
+      "audioId": 50883,
+      "startedAt": 9.199999999999978,
+      "duration": 0.151,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 6,
+      "audioId": 50872,
+      "startedAt": 9.566666666666643,
+      "duration": 1.024,
+      "alive": true,
+      "stopped": false
+     },
+     {
+      "instanceId": 7,
+      "audioId": 50883,
+      "startedAt": 9.833333333333309,
+      "duration": 0.151,
+      "alive": false,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "nahida",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=1 role=nahida"
+   },
+   "elapsedMs": 14696,
+   "saveFreshness": {
+    "ok": true,
+    "stale": [],
+    "checked": 8
+   },
+   "keyFrames": [
+    "frame-f001.png",
+    "frame-f012.png",
+    "frame-f024.png",
+    "frame-f030.png"
+   ],
+   "controlStrip": "control-strip.png"
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 1426349,
+    "ratio": 0.99052,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 3671.48
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "dx": 0,
+      "dy": 4338
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "dx": 0,
+      "dy": 4370
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4297.23
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4337.23
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4337.23
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4000
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4000
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 8.29,
+      "dy": 3966.5
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -14.43,
+      "dy": 3979.64
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -25.77,
+      "dy": 4013.63
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.18,
+      "dy": 4026.57
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 24.52,
+      "dy": 4001.66
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3697
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4303
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "dx": 153,
+      "dy": 4000
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "dx": -153,
+      "dy": 4000
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "dx": 797,
+      "dy": 4000
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "dx": -797,
+      "dy": 4000
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3553
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4447
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4000
+     },
+     {
+      "id": 253,
+      "name": "hold4",
+      "dx": 3420,
+      "dy": 4160
+     },
+     {
+      "id": 252,
+      "name": "hold3",
+      "dx": 3400,
+      "dy": 4160
+     },
+     {
+      "id": 251,
+      "name": "hold2",
+      "dx": 3420,
+      "dy": 4180
+     },
+     {
+      "id": 250,
+      "name": "hold1",
+      "dx": 3400,
+      "dy": 4180
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "dx": 14,
+      "dy": 14
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "dx": -28,
+      "dy": 0
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "dx": 40,
+      "dy": 0
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 4293455092,
+      "to": 1748924975
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 4293455092,
+      "to": -2115047698
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 191878120,
+      "to": -2122330262
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 2088750954
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 1812731418
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 2004864874
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -1434464406
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -1216360598
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -746598550
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -746598550
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -746598550
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -746598550
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -746598550
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 394252138
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 394252138
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 763350890
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": -2071998614
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 1551880042
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 1551880042
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 1551880042
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 1551880042
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 0,
+      "to": 394252138
+     },
+     {
+      "id": 393,
+      "name": "p2cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 392,
+      "name": "p2cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 383,
+      "name": "p2cell26",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 253,
+      "name": "hold4",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -333410
+     },
+     {
+      "id": 252,
+      "name": "hold3",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -333410
+     },
+     {
+      "id": 251,
+      "name": "hold2",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -333410
+     },
+     {
+      "id": 250,
+      "name": "hold1",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -333410
+     },
+     {
+      "id": 249,
+      "name": "next8",
+      "field": "imageColor",
+      "from": -340842,
+      "to": -548442
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "field": "imageColor",
+      "from": -340842,
+      "to": -548442
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "field": "imageColor",
+      "from": -340842,
+      "to": -548442
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "field": "imageColor",
+      "from": -340842,
+      "to": -548442
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -679876
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -679876
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -679876
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -679876
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -12156176
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -12156176
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 41,
+      "name": "cell4",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 587,
+      "name": "stext",
+      "from": "",
+      "to": "标准代打 · 6 秒"
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "from": "",
+      "to": "所闻遍计"
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "from": "",
+      "to": "纳西妲"
+     },
+     {
+      "id": 352,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 25.0s"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "还在落，别急，我数着。"
+     }
+    ],
+    "changed": 80
+   },
+   "logsTail": [
+    "skill hold role=nahida left=6.0 n=1",
+    "ai attack=false oppH=2 tier=2 mode=baseline atk=3.60",
+    "fall y=3",
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 63257,
+    "ratio": 0.04393,
+    "bbox": {
+     "x": 588,
+     "y": 56,
+     "w": 424,
+     "h": 736
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.77,
+      "dy": -5.53
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.94,
+      "dy": -4.83
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -4.31,
+      "dy": 1.78
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.03,
+      "dy": 2.94
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 3.77,
+      "dy": -0.02
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1748924975,
+      "to": -1841399249
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2115047698,
+      "to": -1326518546
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2122330262,
+      "to": -1333801110
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": -1451241622
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2004864874,
+      "to": -1568682134
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1216360598,
+      "to": -1535127702
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 763350890,
+      "to": 1149226858
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2071998614,
+      "to": 1568657258
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 276811626
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill hold role=nahida left=6.0 n=1",
+    "ai attack=false oppH=2 tier=2 mode=baseline atk=3.60",
+    "fall y=3",
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 65858,
+    "ratio": 0.04573,
+    "bbox": {
+     "x": 588,
+     "y": 51,
+     "w": 424,
+     "h": 740
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.65,
+      "dy": -5.52
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.82,
+      "dy": -4.85
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -4.12,
+      "dy": 1.47
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.03,
+      "dy": 2.59
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 3.61,
+      "dy": -0.25
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1841399249,
+      "to": -1254196689
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1326518546,
+      "to": -705761554
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1333801110,
+      "to": -713044118
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1451241622,
+      "to": -864039062
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1568682134,
+      "to": -998256790
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": -1535127702
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1853894806
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1149226858,
+      "to": 1686097770
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1568657258,
+      "to": 1065340778
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 176148330
+     }
+    ],
+    "textChanged": [],
+    "changed": 29
+   },
+   "logsTail": [
+    "fall y=3",
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 68312,
+    "ratio": 0.04744,
+    "bbox": {
+     "x": 295,
+     "y": 48,
+     "w": 717,
+     "h": 742
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.53,
+      "dy": -5.52
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.69,
+      "dy": -4.88
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.94,
+      "dy": 1.17
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.03,
+      "dy": 2.23
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 3.44,
+      "dy": -0.49
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1254196689,
+      "to": -784434641
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -705761554,
+      "to": -286331154
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -713044118,
+      "to": -293613718
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -864039062,
+      "to": -461385878
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -998256790,
+      "to": -612380822
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1753231510
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -2139107478
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": -1937780886
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1065340778,
+      "to": 696242026
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 109039466
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 352,
+      "name": "sk1state",
+      "from": "台前 · CD 25.0s",
+      "to": "台前 · CD 24.8s"
+     }
+    ],
+    "changed": 30
+   },
+   "logsTail": [
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 69119,
+    "ratio": 0.048,
+    "bbox": {
+     "x": 588,
+     "y": 46,
+     "w": 424,
+     "h": 741
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.41,
+      "dy": -5.51
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.56,
+      "dy": -4.9
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.75,
+      "dy": 0.86
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 1.87
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 3.28,
+      "dy": -0.72
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -784434641,
+      "to": -415335889
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -286331154,
+      "to": -51450130
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -293613718,
+      "to": -58732694
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -461385878,
+      "to": -226504854
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -612380822,
+      "to": -394277014
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1753231510,
+      "to": -1971335318
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2139107478,
+      "to": 1870647146
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1937780886,
+      "to": -1115697302
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 478138218
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 41930602
+     }
+    ],
+    "textChanged": [],
+    "changed": 29
+   },
+   "logsTail": [
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 31485,
+    "ratio": 0.02186,
+    "bbox": {
+     "x": 588,
+     "y": 46,
+     "w": 424,
+     "h": 743
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.3,
+      "dy": -5.51
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.44,
+      "dy": -4.93
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.56,
+      "dy": 0.55
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 1.51
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 3.12,
+      "dy": -0.95
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -415335889,
+      "to": -180454865
+     },
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -51450130,
+      "to": -1118482
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -58732694,
+      "to": -8401046
+     },
+     {
+      "id": 584,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -226504854,
+      "to": -176173206
+     },
+     {
+      "id": 583,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 582,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -394277014,
+      "to": -343945366
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1602211690
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 411029354
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1115697302,
+      "to": -528494742
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 478138218,
+      "to": 394252138
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 27
+   },
+   "logsTail": [
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 31904,
+    "ratio": 0.02216,
+    "bbox": {
+     "x": 685,
+     "y": 147,
+     "w": 272,
+     "h": 641
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.18,
+      "dy": -5.5
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.31,
+      "dy": -4.95
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.38,
+      "dy": 0.24
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 1.15
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.96,
+      "dy": -1.18
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -180454865,
+      "to": -46237137
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1602211690,
+      "to": 1350553450
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 411029354,
+      "to": 545247082
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -528494742,
+      "to": -1434464406
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 564,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 35505,
+    "ratio": 0.02466,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 310,
+     "h": 641
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 2.06,
+      "dy": -5.5
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.18,
+      "dy": -4.98
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.19,
+      "dy": -0.07
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 0.79
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.79,
+      "dy": -1.41
+     }
+    ],
+    "recolored": [
+     {
+      "id": 587,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -46237137,
+      "to": -12682705
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1719652202
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1115672426
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 813682538
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": 2088750954
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "ai hold why=better gain=21.60 tier=2",
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 40597,
+    "ratio": 0.02819,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 462,
+     "h": 607
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.94,
+      "dy": -5.49
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -2.05,
+      "dy": -5
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -3.01,
+      "dy": -0.38
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.63,
+      "dy": -1.64
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1719652202,
+      "to": 1535102826
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1115672426,
+      "to": 897568618
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 813682538,
+      "to": 1233112938
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": 1467993962
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 393,
+      "name": "p2cell36",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 392,
+      "name": "p2cell35",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 391,
+      "name": "p2cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 390,
+      "name": "p2cell33",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 380,
+      "name": "p2cell23",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 379,
+      "name": "p2cell22",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "hold in=O out=-",
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪",
+    "demo act move x=2"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 40468,
+    "ratio": 0.0281,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 402,
+     "h": 640
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.82,
+      "dy": -5.48
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.93,
+      "dy": -5.02
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -2.82,
+      "dy": -0.69
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.47,
+      "dy": -1.87
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1535102826,
+      "to": 1350553450
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 696242026
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1233112938,
+      "to": 1786761066
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 998231914
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 391,
+      "name": "p2cell34",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 389,
+      "name": "p2cell32",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 380,
+      "name": "p2cell23",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 378,
+      "name": "p2cell21",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "bag=1 piece=J x=4 y=1",
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 37741,
+    "ratio": 0.02621,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 309,
+     "h": 639
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.7,
+      "dy": -5.48
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.8,
+      "dy": -5.05
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -2.64,
+      "dy": -1
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.31,
+      "dy": -2.11
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1182781290
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 511692650
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": -1803563158
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 998231914,
+      "to": 645910378
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     }
+    ],
+    "textChanged": [],
+    "changed": 18
+   },
+   "logsTail": [
+    "ai pace tier=2 lv=1 pace=2.00 obs=0.30 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "skill hud 纳西妲 Lv1 CD 24.8s｜少女 Lv1 就绪",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=hard"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 42216,
+    "ratio": 0.02932,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 807,
+     "h": 638
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.58,
+      "dy": -5.47
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.67,
+      "dy": -5.07
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -2.45,
+      "dy": -1.31
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": -0.65
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 2.15,
+      "dy": -2.34
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 1015009130
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 511692650,
+      "to": 360697706
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -964702358
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 645910378,
+      "to": 444583786
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 540,
+      "name": "p2cell183",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 539,
+      "name": "p2cell182",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 529,
+      "name": "p2cell172",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 528,
+      "name": "p2cell171",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 390,
+      "name": "p2cell33",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 389,
+      "name": "p2cell32",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 379,
+      "name": "p2cell22",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 378,
+      "name": "p2cell21",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 363,
+      "name": "p2cell6",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 339,
+      "name": "ikeyC",
+      "from": "等级 1　落块 1",
+      "to": "等级 1　落块 2"
+     }
+    ],
+    "changed": 32
+   },
+   "logsTail": [
+    "demo act move x=1",
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 21651,
+    "ratio": 0.01504,
+    "bbox": {
+     "x": 661,
+     "y": 150,
+     "w": 278,
+     "h": 585
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.46,
+      "dy": -5.47
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.55,
+      "dy": -5.1
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -2.27,
+      "dy": -1.62
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -1.01
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 1.98,
+      "dy": -2.57
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 864014186
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 226479978
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 427806570
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -964702358,
+      "to": -713044118
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 444583786,
+      "to": 394252138
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "demo act move x=1",
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 19849,
+    "ratio": 0.01378,
+    "bbox": {
+     "x": 647,
+     "y": 146,
+     "w": 306,
+     "h": 637
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.34,
+      "dy": -5.46
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.42,
+      "dy": -5.12
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -2.08,
+      "dy": -1.93
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -1.37
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 1.82,
+      "dy": -2.8
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 864014186,
+      "to": 729796458
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 226479978,
+      "to": 109039466
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 427806570,
+      "to": 578801514
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -713044118,
+      "to": -1585459350
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "demo act move x=1",
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 25906,
+    "ratio": 0.01799,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.22,
+      "dy": -5.46
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.29,
+      "dy": -5.15
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -1.9,
+      "dy": -2.24
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -1.73
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 1.66,
+      "dy": -3.03
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 729796458,
+      "to": 595578730
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 25153386
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 578801514,
+      "to": 880791402
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1585459350,
+      "to": 1971310442
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 373,
+      "name": "p2cell16",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 363,
+      "name": "p2cell6",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 25
+   },
+   "logsTail": [
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 49370,
+    "ratio": 0.03428,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": 1.1,
+      "dy": -5.45
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": -1.17,
+      "dy": -5.17
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": -1.71,
+      "dy": -2.55
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -2.09
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": 1.5,
+      "dy": -3.26
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 461361002
+     },
+     {
+      "id": 578,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 25153386,
+      "to": 0
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 880791402,
+      "to": 1266667370
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1971310442,
+      "to": 1316999018
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 44455,
+    "ratio": 0.03087,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "dx": -37.34,
+      "dy": -3884.15
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "dx": 45.26,
+      "dy": -3904.64
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "dx": 70.9,
+      "dy": -4007.91
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "dx": 0.47,
+      "dy": -4033.01
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "dx": -64,
+      "dy": -3977.01
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 461361002,
+      "to": 360697706
+     },
+     {
+      "id": 577,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 576,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 575,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 574,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 573,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1266667370,
+      "to": 1367330666
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1316999018,
+      "to": 662687594
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 13819,
+    "ratio": 0.0096,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 260034410
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1367330666,
+      "to": 1249890154
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 662687594,
+      "to": 293588842
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 36642,
+    "ratio": 0.02545,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 260034410,
+      "to": 176148330
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 830459754
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 109039466
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "demo act drop=hard",
+    "lock Z cells=171,172,182,183",
+    "p2 bag=1 piece=S",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 8751,
+    "ratio": 0.00608,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 92262250
+     },
+     {
+      "id": 572,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 830459754,
+      "to": 0
+     },
+     {
+      "id": 571,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 0
+     },
+     {
+      "id": 570,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 569,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 373,
+      "name": "p2cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 41930602
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 2047,
+    "ratio": 0.00142,
+    "bbox": {
+     "x": 710,
+     "y": 748,
+     "w": 180,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 2047,
+    "ratio": 0.00142,
+    "bbox": {
+     "x": 710,
+     "y": 747,
+     "w": 180,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 579,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 579,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 2191,
+    "ratio": 0.00152,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 29860,
+    "ratio": 0.02074,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 31902,
+    "ratio": 0.02215,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo pace think=0.60 rot=0 move=3*0.06 soft=0 hover=0.00 drop=hard total=1.00",
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 31905,
+    "ratio": 0.02216,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "fall y=2",
+    "ai hold why=better gain=70.94 tier=3",
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1",
+    "skill state active=nahida lv=1 tier=1 cd=24.066666666667 energy=60.4"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 29860,
+    "ratio": 0.02074,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1",
+    "skill state active=nahida lv=1 tier=1 cd=24.066666666667 energy=60.4",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=T from=4 target=8 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 32168,
+    "ratio": 0.02234,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1118482,
+      "to": -219222290
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -8401046,
+      "to": -226504854
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "hold in=S out=-",
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1",
+    "skill state active=nahida lv=1 tier=1 cd=24.066666666667 energy=60.4",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=T from=4 target=8 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 7812,
+    "ratio": 0.00543,
+    "bbox": {
+     "x": 710,
+     "y": 67,
+     "w": 399,
+     "h": 704
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 587,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 586,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -219222290,
+      "to": -554766610
+     },
+     {
+      "id": 585,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -226504854,
+      "to": -562049174
+     },
+     {
+      "id": 568,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 567,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 566,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 565,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 383,
+      "name": "p2cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 373,
+      "name": "p2cell16",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 17
+   },
+   "logsTail": [
+    "p2 bag=1 piece=T",
+    "bag=1 piece=T x=4 y=1",
+    "skill state active=nahida lv=1 tier=1 cd=24.066666666667 energy=60.4",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=T from=4 target=8 rot=0 drop=hard",
+    "fall y=2"
+   ]
+  }
+ ],
+ "controlFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 7840,
+    "ratio": 0.00544,
+    "bbox": {
+     "x": 491,
+     "y": 181,
+     "w": 618,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 393,
+      "name": "p2cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 392,
+      "name": "p2cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 383,
+      "name": "p2cell26",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -667076
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -667076
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   }
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 6272,
+    "ratio": 0.00436,
+    "bbox": {
+     "x": 961,
+     "y": 211,
+     "w": 148,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 393,
+      "name": "p2cell36",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 392,
+      "name": "p2cell35",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 391,
+      "name": "p2cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 390,
+      "name": "p2cell33",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 380,
+      "name": "p2cell23",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 379,
+      "name": "p2cell22",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     }
+    ],
+    "textChanged": [],
+    "changed": 8
+   }
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 931,
+     "y": 211,
+     "w": 118,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 391,
+      "name": "p2cell34",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 389,
+      "name": "p2cell32",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 380,
+      "name": "p2cell23",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 378,
+      "name": "p2cell21",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   }
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 9500,
+    "ratio": 0.0066,
+    "bbox": {
+     "x": 931,
+     "y": 151,
+     "w": 523,
+     "h": 568
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 540,
+      "name": "p2cell183",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 539,
+      "name": "p2cell182",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 529,
+      "name": "p2cell172",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 528,
+      "name": "p2cell171",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -1028006
+     },
+     {
+      "id": 390,
+      "name": "p2cell33",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 389,
+      "name": "p2cell32",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 379,
+      "name": "p2cell22",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 378,
+      "name": "p2cell21",
+      "field": "imageColor",
+      "from": -1028006,
+      "to": -197121
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 363,
+      "name": "p2cell6",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 339,
+      "name": "ikeyC",
+      "from": "等级 1　落块 1",
+      "to": "等级 1　落块 2"
+     }
+    ],
+    "changed": 13
+   }
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 7840,
+    "ratio": 0.00544,
+    "bbox": {
+     "x": 491,
+     "y": 151,
+     "w": 618,
+     "h": 148
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 373,
+      "name": "p2cell16",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 363,
+      "name": "p2cell6",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -667076
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -667076
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -667076,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   }
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 1021,
+     "y": 151,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 382,
+      "name": "p2cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 381,
+      "name": "p2cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 373,
+      "name": "p2cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 372,
+      "name": "p2cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -5615376
+     },
+     {
+      "id": 371,
+      "name": "p2cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 362,
+      "name": "p2cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   }
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,230 @@
+module ok default_import_file/lua/tetris/config
+module ok default_import_file/lua/tetris/widgets
+module ok default_import_file/lua/tetris/audio
+module ok default_import_file/lua/tetris/skills
+module FAIL copy :: default_import_file/lua/tetris/copy → failed to load script 'default_import_file/lua/tetris/copy' | lua/tetris/copy → failed to load script 'lua/tetris/copy' | tetris/copy → failed to load script 'tetris/copy' | copy → failed to load script 'copy'
+module FAIL fx :: default_import_file/lua/tetris/fx → failed to load script 'default_import_file/lua/tetris/fx' | lua/tetris/fx → failed to load script 'lua/tetris/fx' | tetris/fx → failed to load script 'tetris/fx' | fx → failed to load script 'fx'
+canvas 1560.0x720.0
+device=EnumItem: 0x719 mobile=true pad=false
+ai tune pMistake=0,0,0 hold=1,1,1 simple=true paceK=0.45,0.3,0.18
+diag root=容器节点 cell_cand=4 hit_cand=5 first_cell_guid=1073742105
+probe cell ok guid=1073742105
+tpl guid=1073742105
+probe hit ok guid=1073742106
+hit tpl=1073742106
+bg pool n=18
+cellCount=200
+settle try text tpl=1073742202 -> nil
+settle try text tpl=1073742200 -> nil
+settle try text tpl=1073741935 -> nil
+settle try text tpl=1073741923 -> nil
+settle try text tpl=1073741937 -> nil
+settle try text tpl=1073741934 -> nil
+settle try text tpl=1073741933 -> nil
+settle try text tpl=1073741922 -> nil
+settle try text tpl=1073742114 -> ok kids=0
+menu stage n=46
+menu help zone=ok
+menu zones n=5
+ctl dump screen=menu n=5 canvas=1560x720
+ctl menu.mode1 px=370 py=464 w=416 h=108
+ctl menu.mode2 px=370 py=256 w=416 h=108
+ctl menu.mode3 px=1210 py=464 w=416 h=108
+ctl menu.mode4 px=1210 py=256 w=416 h=108
+ctl menu.help px=1070 py=28 w=260 h=56
+menu cards n=14 style=A
+hud inst n=9 (textbox hidden)
+listen ok KeyboardCraftspersonKey38Down via enum
+listen ok KeyboardCraftspersonKey38Up via enum
+listen ok KeyboardCraftspersonKey39Down via enum
+listen ok KeyboardCraftspersonKey39Up via enum
+listen ok KeyboardCraftspersonKey36Down via enum
+listen ok KeyboardCraftspersonKey37Down via enum
+listen ok KeyboardMoveLeftKeyDown via enum
+listen ok KeyboardMoveLeftKeyUp via enum
+listen ok KeyboardMoveRightKeyDown via enum
+listen ok KeyboardMoveRightKeyUp via enum
+listen ok KeyboardMoveForwardKeyDown via enum
+listen ok KeyboardMoveBackwardKeyDown via enum
+listen ok KeyboardJumpKeyDown via enum
+listen ok KeyboardCraftspersonKey14Down via enum
+listen ok KeyboardDropKeyDown via enum
+listen ok KeyboardInteractKeyDown via enum
+listen ok KeyboardCraftspersonKey1Down via enum
+listen ok KeyboardCraftspersonKey2Down via enum
+listen ok KeyboardCraftspersonKey3Down via enum
+listen ok KeyboardCraftspersonKey4Down via enum
+listen ok KeyboardSwitchToWalkOrRunKeyDown via enum
+listen ok KeyboardCraftspersonKey22Down via enum
+listen ok KeyboardCharacterSkill3KeyDown via enum
+listen ok KeyboardCharacterSkill2KeyDown via enum
+listen ok KeyboardCraftspersonKey15Down via enum
+listen ok KeyboardCharacterSkill1KeyDown via enum
+listen ok KeyboardCharacterSkill4KeyDown via enum
+phone build n=8 help=ok
+phone layout w=1560 h=720 n=6
+ctl dump screen=play n=8 canvas=1560x720
+ctl phone.left px=82 py=47 w=132 h=62
+ctl phone.right px=224 py=47 w=132 h=62
+ctl phone.rot px=224 py=119 w=132 h=62
+ctl phone.hard px=1336 py=47 w=132 h=62
+ctl phone.soft px=1478 py=47 w=132 h=62
+ctl phone.hold px=1478 py=119 w=132 h=62
+ctl phone.help px=1490 py=678 w=108 h=52
+ctl phone.roster px=1372 py=678 w=108 h=52
+listen ok ControllerCraftspersonKey1Down via enum
+listen ok ControllerCraftspersonKey2Down via enum
+listen ok ControllerCraftspersonKey3Down via enum
+listen ok ControllerCraftspersonKey4Down via enum
+listen ok ControllerCraftspersonKey5Down via enum
+listen ok ControllerCraftspersonKey6Down via enum
+listen ok ControllerCraftspersonKey7Down via enum
+listen ok ControllerCraftspersonKey8Down via enum
+listen ok ControllerCraftspersonKey9Down via enum
+listen ok ControllerCraftspersonKey10Down via enum
+listen ok ControllerCraftspersonKey11Down via enum
+listen ok ControllerCraftspersonKey12Down via enum
+listen ok ControllerCraftspersonKey13Down via enum
+listen ok ControllerCraftspersonKey14Down via enum
+listen ok ControllerSprintKeyDown via enum
+listen ok ControllerJumpKeyDown via enum
+listen ok ControllerInteractKeyDown via enum
+listen ok ControllerNormalAttackKeyDown via enum
+listen ok ControllerCharacterSkill1KeyDown via enum
+listen ok ControllerCharacterSkill2KeyDown via enum
+listen ok ControllerCharacterSkill3KeyDown via enum
+listen ok ControllerCharacterSkill4KeyDown via enum
+listen ok ControllerMenuConfirmKeyDown via enum
+listen ok ControllerMenuBackKeyDown via enum
+pad bind n=24
+v4 device mobile=true pad=false phone=6
+skills ready active=1 party=1 unlocked=1
+listen ok KeyboardCraftspersonKey12Down via enum
+listen ok KeyboardCraftspersonKey11Down via enum
+listen ok KeyboardCraftspersonKey13Down via enum
+listen ok KeyboardCraftspersonKey16Down via enum
+listen ok KeyboardCraftspersonKey30Down via enum
+listen ok KeyboardCraftspersonKey5Down via enum
+listen ok KeyboardCraftspersonKey6Down via enum
+listen ok KeyboardCraftspersonKey7Down via enum
+listen ok KeyboardCraftspersonKey8Down via enum
+listen ok KeyboardCraftspersonKey9Down via enum
+listen ok KeyboardCraftspersonKey10Down via enum
+listen ok KeyboardCraftspersonKey11Down via enum
+listen ok KeyboardCraftspersonKey12Down via enum
+listen ok KeyboardCraftspersonKey13Down via enum
+listen ok KeyboardCraftspersonKey14Down via enum
+listen ok KeyboardCraftspersonKey16Down via enum
+listen ok KeyboardCraftspersonKey17Down via enum
+listen ok KeyboardCraftspersonKey18Down via enum
+listen ok KeyboardCraftspersonKey19Down via enum
+listen ok KeyboardCraftspersonKey20Down via enum
+listen ok KeyboardCraftspersonKey21Down via enum
+listen ok KeyboardCraftspersonKey23Down via enum
+listen ok KeyboardCraftspersonKey24Down via enum
+listen ok KeyboardCraftspersonKey25Down via enum
+listen ok KeyboardCraftspersonKey26Down via enum
+listen ok KeyboardCraftspersonKey27Down via enum
+listen ok KeyboardCraftspersonKey28Down via enum
+listen ok KeyboardCraftspersonKey29Down via enum
+listen ok KeyboardCraftspersonKey30Down via enum
+listen ok KeyboardCraftspersonKey31Down via enum
+listen ok KeyboardCraftspersonKey32Down via enum
+listen ok KeyboardCraftspersonKey33Down via enum
+listen ok KeyboardCraftspersonKey34Down via enum
+listen ok KeyboardCraftspersonKey35Down via enum
+listen ok KeyboardCraftspersonKey40Down via enum
+listen ok KeyboardCraftspersonKey41Down via enum
+listen ok KeyboardCraftspersonKey42Down via enum
+listen ok KeyboardCraftspersonKey43Down via enum
+bag=1 piece=L x=4 y=1
+newgame
+menu dim board
+mode=casual
+phone play bar=true
+menu cards destroy n=14
+bg cover ok bs=1.22 w=1560 h=720
+mode theme=casual bg=14/14
+mode=casual
+guide stage=1
+skill hud 纳西妲 Lv1 就绪
+fall y=2
+rotate L
+fall y=3
+fall y=4
+fall y=5
+fall y=6
+fall y=7
+fall y=8
+takeover hint
+harddrop rows=10 y=18
+lock L cells=196,175,185,195
+guide lock-tip
+bag=1 piece=S x=4 y=1
+fall y=2
+harddrop rows=14 y=16
+lock S cells=155,156,164,165
+bag=1 piece=T x=4 y=1
+harddrop rows=13 y=14
+lock T cells=135,144,145,146
+bag=1 piece=J x=4 y=1
+harddrop rows=11 y=12
+lock J cells=114,124,125,126
+bag=1 piece=I x=4 y=1
+harddrop rows=9 y=10
+lock I cells=104,105,106,107
+bag=1 piece=O x=5 y=1
+skill state active=nahida lv=1 tier=1 cd=0 energy=30.2
+fall y=2
+harddrop rows=7 y=9
+lock O cells=85,86,95,96
+bag=1 piece=Z x=4 y=1
+harddrop rows=6 y=7
+lock Z cells=64,65,75,76
+bag=2 piece=T x=4 y=1
+harddrop rows=4 y=5
+lock T cells=45,54,55,56
+bag=2 piece=O x=5 y=1
+harddrop rows=2 y=3
+lock O cells=25,26,35,36
+bag=2 piece=J x=4 y=1
+ldstart
+harddrop rows=0 y=1
+lock J cells=4,14,15,16
+bag=2 piece=L x=4 y=1
+gameover score=152
+guide gameover score=152 lines=0
+settle try tpl=1073742210 -> nil
+settle try tpl=1073741865 -> nil
+settle try tpl=1073741921 -> nil
+settle try tpl=1073742107 -> ok kids=6 img=0 text=6 cont=0 title=true opts=true
+settle via=container kids=6 img=0 text=6 cont=0
+settle try text tpl=1073742202 -> nil
+settle try text tpl=1073742200 -> nil
+settle try text tpl=1073741935 -> nil
+settle try text tpl=1073741923 -> nil
+settle try text tpl=1073741937 -> nil
+settle try text tpl=1073741934 -> nil
+settle try text tpl=1073741933 -> nil
+settle try text tpl=1073741922 -> nil
+settle try text tpl=1073742114 -> ok kids=0
+settle container-textbox replaced (placeholder removed)
+settle reorder scrim=y border=y card=y texts=6
+settle layer ok children=0 title=y score=y best=y info=y opts=y scrim=y card=y
+settle build ok n=9 via=container
+settle try text tpl=1073742202 -> nil
+settle try text tpl=1073742200 -> nil
+settle try text tpl=1073741935 -> nil
+settle try text tpl=1073741923 -> nil
+settle try text tpl=1073741937 -> nil
+settle try text tpl=1073741934 -> nil
+settle try text tpl=1073741933 -> nil
+settle try text tpl=1073741922 -> nil
+settle try text tpl=1073742114 -> ok kids=0
+settle hotzones n=3 v=P
+ctl dump screen=settle n=3 canvas=1560x720
+ctl settle.R px=596 py=208 w=264 h=76
+ctl settle.V px=836 py=208 w=186 h=64
+ctl settle.Q px=1030 py=208 w=188 h=56
+phone play bar=false
+settle anim done

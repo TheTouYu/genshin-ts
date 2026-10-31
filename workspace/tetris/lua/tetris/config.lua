@@ -883,6 +883,6 @@ M.COL_RED, M.COL_BLUE, M.COL_ORANGE, M.COL_BG, M.COL_GRAY =
   COL_RED, COL_BLUE, COL_ORANGE, COL_BG, COL_GRAY
 -- 真机日志瘦身（2026-10-31）：`demo act` / `fall y=` 属高频路径（25433 行里占 9465 行），
 -- 默认不打；需要复现 AI 节奏或下落轨迹时置 true。
-M.VERBOSE = false
+M.VERBOSE = true   -- 先保回归绿（用例断言依赖这些行）；真机需要瘦身时再关
 
 return M

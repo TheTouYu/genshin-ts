@@ -1,0 +1,105 @@
+{
+ "format": "qxqy-shots-v5",
+ "version": 1,
+ "generatedAt": "2026-10-29T07:03:48.599Z",
+ "out": "/home/h/genshin-ts/workspace/tetris/docs/shots/_smoke2",
+ "saveFreshness": {
+  "ok": true,
+  "stale": [],
+  "checked": 8
+ },
+ "canvases": {
+  "mobile-19.5-9": {
+   "canvasId": "mobile-19.5-9",
+   "preset": {
+    "width": 1560,
+    "height": 720,
+    "mobile": true
+   },
+   "screens": {
+    "game": {
+     "canvasId": "mobile-19.5-9",
+     "screen": "game",
+     "reached": true,
+     "note": "casual game running",
+     "png": "/home/h/genshin-ts/workspace/tetris/docs/shots/_smoke2/mobile-19.5-9/game.png",
+     "pngBytes": 104405,
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "nodes": 374,
+     "textboxes": 28,
+     "zones": 391,
+     "textFitsBad": 0,
+     "readings": {
+      "mode": "casual",
+      "bgCoverOk": true,
+      "bgCover": {
+       "bs": 1.22,
+       "w": 1560,
+       "h": 720
+      },
+      "bgCoverGap": null,
+      "phoneBuildN": 17,
+      "phoneHelp": null,
+      "phoneBreakdown": "pad=9 nav=4 act=3",
+      "padNoteWhich": null,
+      "gameOver": false,
+      "helpOpen": false,
+      "rosterOpen": false,
+      "skillCastOk": false,
+      "phonePlayBar": true,
+      "phoneZones": [
+       "phdetail",
+       "phhome",
+       "phagain",
+       "phpage",
+       "phhome",
+       "phclose",
+       "phroster",
+       "phhelp",
+       "phswitch",
+       "phskill2",
+       "phskill1",
+       "phhold",
+       "phsoft",
+       "phhard",
+       "phrot",
+       "phright",
+       "phleft"
+      ]
+     },
+     "texts": [
+      "台前 · 就绪",
+      "纳西妲 ▲",
+      "明细",
+      "回主页",
+      "再来一局",
+      "次页",
+      "回标题",
+      "合上",
+      "名册",
+      "说明",
+      "换人",
+      "技能2",
+      "技能1",
+      "暂存",
+      "缓降",
+      "锁定",
+      "旋转",
+      "▶",
+      "◀",
+      "下一个",
+      "堆满一行即消除",
+      "左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明",
+      "最高 0",
+      "得分 48　消行 0　等级 1　已填 8"
+     ]
+    }
+   },
+   "sheet": null
+  }
+ },
+ "failures": []
+}

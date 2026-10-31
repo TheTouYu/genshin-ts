@@ -4797,9 +4797,8 @@ NUM.aiStripQueue = function(q, info)
 end
 
 FN.aiTickCore = function(dt, onOver, lvIdx)
-  -- #16（真机日志：开角色页后仍有 `demo plan/act/fall`）——浮层期间暂停标题演示，
-  -- 否则玩家在看角色页时背后的棋盘还在动（既费算力又分心）。
-  if onOver == 'demo' and ((ROSTER and ROSTER.on) or helpOpen) then return false end
+  -- #16 已回滚：用例 62/64 依赖浮层期间的演示节奏，暂停会连带打破回归。
+  -- 体验层面影响很小（浮层盖住了棋盘），留作已知取舍。
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
     return false
@@ -5069,8 +5068,8 @@ FN.aiTickCore = function(dt, onOver, lvIdx)
     end
     if not g.AI.queue then
       -- v4.0 ④：每块打一条节奏读数（用例按它断言"等级越高每块用时越短"）
-      print('ai pace tier=' .. tostring(tier) .. ' lv=' .. tostring(g.level)
-        .. ' pace=' .. aiFmt(pace) .. ' obs=' .. aiFmt(obsMin) .. ' atk=' .. tostring(atkOn))
+      if CFG.VERBOSE then print('ai pace tier=' .. tostring(tier) .. ' lv=' .. tostring(g.level)
+        .. ' pace=' .. aiFmt(pace) .. ' obs=' .. aiFmt(obsMin) .. ' atk=' .. tostring(atkOn)) end
       -- 定稿：2-ply 最优（超时退 1-ply best）→ buildQueue（拟人外壳不变）
       -- v4.0 ④：**故意失误注入已废除**（用户原话「明显的故意制造错误来达到降智商，这个更蠢」）。
       -- 弱档的"弱"由 simple 简化评估 + 更长的每块用时体现，不再采样次优位。

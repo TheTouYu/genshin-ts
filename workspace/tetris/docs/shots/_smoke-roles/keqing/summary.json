@@ -1,0 +1,245 @@
+{
+ "mode": "casual",
+ "frames": 30,
+ "pixelChangedFrames": 29,
+ "firstPixelChangeFrame": 0,
+ "firstPixelChangeAt": 0.033,
+ "longestRun": 25,
+ "longestRunStartFrame": 0,
+ "changeSpanFrames": 29,
+ "maxIdleFrames": 1,
+ "maxIdleSeconds": 0.03,
+ "maxIdleStartFrame": 25,
+ "persistent": true,
+ "controlsTouched": [
+  {
+   "name": "stext",
+   "changes": 45
+  },
+  {
+   "name": "cell",
+   "changes": 402
+  },
+  {
+   "name": "next8",
+   "changes": 2
+  },
+  {
+   "name": "next7",
+   "changes": 2
+  },
+  {
+   "name": "next6",
+   "changes": 2
+  },
+  {
+   "name": "next5",
+   "changes": 2
+  },
+  {
+   "name": "next1",
+   "changes": 2
+  },
+  {
+   "name": "next4",
+   "changes": 1
+  },
+  {
+   "name": "next3",
+   "changes": 1
+  },
+  {
+   "name": "next2",
+   "changes": 1
+  },
+  {
+   "name": "cell165",
+   "changes": 1
+  },
+  {
+   "name": "cell164",
+   "changes": 1
+  },
+  {
+   "name": "cell156",
+   "changes": 1
+  },
+  {
+   "name": "cell155",
+   "changes": 1
+  },
+  {
+   "name": "cell35",
+   "changes": 2
+  },
+  {
+   "name": "cell34",
+   "changes": 2
+  },
+  {
+   "name": "cell26",
+   "changes": 3
+  },
+  {
+   "name": "cell25",
+   "changes": 2
+  },
+  {
+   "name": "cell16",
+   "changes": 2
+  },
+  {
+   "name": "cell15",
+   "changes": 2
+  },
+  {
+   "name": "cell14",
+   "changes": 2
+  },
+  {
+   "name": "cell5",
+   "changes": 2
+  },
+  {
+   "name": "sk1state",
+   "changes": 2
+  },
+  {
+   "name": "itopBanner",
+   "changes": 1
+  },
+  {
+   "name": "ibotBanner",
+   "changes": 1
+  },
+  {
+   "name": "ihud",
+   "changes": 1
+  },
+  {
+   "name": "cell24",
+   "changes": 2
+  },
+  {
+   "name": "cell36",
+   "changes": 1
+  }
+ ],
+ "firstControlChangeFrame": 0,
+ "skillLogFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "first": "skill fx kind=cast role=keqing fx=on copy=on"
+  }
+ ],
+ "animation": "on",
+ "controlRun": {
+  "comparedFrames": 30,
+  "framesDifferingFromControl": 30,
+  "firstDifferingFrame": 0,
+  "maxRatio": 0.07236
+ },
+ "skillEffect": "on",
+ "audio": {
+  "newCount": 3,
+  "ids": [
+   40391,
+   50924,
+   50872
+  ],
+  "sample": [
+   {
+    "instanceId": 3,
+    "audioId": 40391,
+    "startedAt": 6.099999999999988,
+    "duration": 0.878,
+    "alive": false,
+    "stopped": false
+   },
+   {
+    "instanceId": 4,
+    "audioId": 50924,
+    "startedAt": 6.099999999999988,
+    "duration": 1.418,
+    "alive": true,
+    "stopped": false
+   },
+   {
+    "instanceId": 5,
+    "audioId": 50872,
+    "startedAt": 6.099999999999988,
+    "duration": 1.024,
+    "alive": false,
+    "stopped": false
+   }
+  ]
+ },
+ "audioVerdict": "on",
+ "role": "keqing",
+ "slot": 1,
+ "canvas": {
+  "id": "pc-16-9",
+  "width": 1600,
+  "height": 900,
+  "mobile": false
+ },
+ "roleSwitch": {
+  "ok": true,
+  "evidence": "skill switch ok=true active=2 role=keqing"
+ },
+ "unlock": {
+  "ok": true,
+  "evidence": "skill debug unlock all party=4 active=nahida"
+ }
+}

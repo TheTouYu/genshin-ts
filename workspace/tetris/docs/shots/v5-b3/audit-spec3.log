@@ -1,0 +1,321 @@
+✗ mobile-16-9/dual  fail=1 warn=13 waived=0
+   ✗ [overlap] phswitch ∩ hit: 可点区重叠 4400px² = 较小盒的 75.9%（点下去只有上层收得到）
+   ! [bounds] pehardr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 240.0px（画布出血/装饰）
+   … 另有 6 条（完整清单见 --json）
+! mobile-16-9/game  fail=0 warn=7 waived=0
+   ! [bounds] bg11: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 15.8px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 43.2px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 10.5px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   ! [names] 8 组重名: 同名控件会让按名锚定命中多个：phhome×2, pthome×2, pbhomer×2, pbhomel×2, pbhomeb×2, pehomer×2, pehomel×2, pehomeb×2
+✗ mobile-16-9/help  fail=12 warn=15 waived=0
+   ✗ [overlap] phhome ∩ menuHelpZone: 可点区重叠 1596px² = 较小盒的 24.6%（点下去只有上层收得到）
+   ✗ [overlap] phhome ∩ menuHelpZone: 可点区重叠 1596px² = 较小盒的 24.6%（点下去只有上层收得到）
+   ✗ [contrast] helpCardK3: 「3」#ffffff on #fcaccc = 1.76:1 < 目标 3.0 ⇒ 建议 #666666（3.26:1）
+   ✗ [contrast] helpCardK2: 「2」#ffffff on #b49cec = 2.36:1 < 目标 3.0 ⇒ 建议 #535353（3.26:1）
+   ✗ [contrast] helpCardK1: 「1」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] helpCap6_t2: 「V」#ffffff on #f2faee = 1.07:1 < 目标 3.0 ⇒ 建议 #868686（3.41:1）
+   ✗ [contrast] helpEyebrow: 「冒险家协会 · 委托板」#b98a3c on #fcf4ec = 2.85:1 < 目标 3.0 ⇒ 建议 #ab8038（3.28:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #ecf4e4 = 1.43:1 < 目标 3.0 ⇒ 建议 #97825a（3.29:1）
+   … 另有 19 条（完整清单见 --json）
+✗ mobile-16-9/roster  fail=1 warn=8 waived=0
+   ✗ [contrast] ibotBanner: 「左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明」#3e4a63 on #74848c = 2.29:1 < 目标 3.0 ⇒ 建议 #ecedef（3.31:1）
+   ! [bounds] rosterDim: image 局部越界 20.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 15.8px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 43.2px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 10.5px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   … 另有 1 条（完整清单见 --json）
+✗ mobile-16-9/settle  fail=4 warn=8 waived=0
+   ✗ [contrast] optT1: 「[R] 再来一局」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] settleText5: 「旅行暂歇——提瓦特还有七国等你。」#b6bfce on #fcfcfc = 1.81:1 < 目标 3.0 ⇒ 建议 #848a95（3.38:1）
+   ✗ [contrast] settleText4: 「消行 0 行　　落块 10　　等级 1」#93a0b7 on #fcfcfc = 2.57:1 < 目标 3.0 ⇒ 建议 #818ca0（3.31:1）
+   ✗ [contrast] settleText2: 「本局 152 分」#d67e2e on #fcfcfc = 2.97:1 < 目标 3.0 ⇒ 建议 #cb782c（3.27:1）
+   ! [bounds] cell: image 局部越界 30.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 240.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 15.8px（画布出血/装饰）
+   … 另有 4 条（完整清单见 --json）
+✗ mobile-16-9/title  fail=8 warn=14 waived=0
+   ✗ [contrast] menuDesc3: 「同屏 PK · 互送垃圾行」#7c8ca8 on #fcecf4 = 2.99:1 < 目标 3.0 ⇒ 建议 #7685a0（3.27:1）
+   ✗ [contrast] menuDesc2: 「与 hard 档 AI 决战」#7c8ca8 on #ececfc = 2.91:1 < 目标 3.0 ⇒ 建议 #73829b（3.33:1）
+   ✗ [contrast] menuDesc1: 「AI 代打陪练 · 随时接管」#7c8ca8 on #e4f4e4 = 2.97:1 < 目标 3.0 ⇒ 建议 #7685a0（3.26:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #f4fcfc = 1.54:1 < 目标 3.0 ⇒ 建议 #9d875d（3.33:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint1: 「1-4 选模式」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuBig: 「俄罗斯方块」#b98a3c on #f4ecd4 = 2.63:1 < 目标 3.0 ⇒ 建议 #a27935（3.34:1）
+   … 另有 14 条（完整清单见 --json）
+✗ mobile-19.5-9/dual  fail=1 warn=13 waived=0
+   ✗ [overlap] phswitch ∩ hit: 可点区重叠 4400px² = 较小盒的 75.9%（点下去只有上层收得到）
+   ! [bounds] pehardr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] bg9: image 局部越界 66.6px（画布出血/装饰）
+   … 另有 6 条（完整清单见 --json）
+! mobile-19.5-9/game  fail=0 warn=7 waived=0
+   ! [bounds] bg9: image 局部越界 66.6px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 64.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 58.2px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 131.4px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 91.5px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   ! [names] 8 组重名: 同名控件会让按名锚定命中多个：phhome×2, pthome×2, pbhomer×2, pbhomel×2, pbhomeb×2, pehomer×2, pehomel×2, pehomeb×2
+✗ mobile-19.5-9/help  fail=11 warn=13 waived=0
+   ✗ [contrast] helpCardK3: 「3」#ffffff on #fcaccc = 1.76:1 < 目标 3.0 ⇒ 建议 #666666（3.26:1）
+   ✗ [contrast] helpCardK2: 「2」#ffffff on #b49cec = 2.36:1 < 目标 3.0 ⇒ 建议 #535353（3.26:1）
+   ✗ [contrast] helpCardK1: 「1」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] helpCap6_t2: 「V」#ffffff on #f2faee = 1.07:1 < 目标 3.0 ⇒ 建议 #868686（3.41:1）
+   ✗ [contrast] helpCap6_t1: 「R」#ffffff on #f2faee = 1.07:1 < 目标 3.0 ⇒ 建议 #868686（3.41:1）
+   ✗ [contrast] helpEyebrow: 「冒险家协会 · 委托板」#b98a3c on #fcf4ec = 2.85:1 < 目标 3.0 ⇒ 建议 #ab8038（3.28:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #ecf4e4 = 1.43:1 < 目标 3.0 ⇒ 建议 #97825a（3.29:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#a3b0c2 on #fcfcfc = 2.15:1 < 目标 3.0 ⇒ 建议 #828c9b（3.32:1）
+   … 另有 16 条（完整清单见 --json）
+✗ mobile-19.5-9/roster  fail=1 warn=8 waived=0
+   ✗ [contrast] ibotBanner: 「左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ! [bounds] rosterDim: image 局部越界 20.0px（画布出血/装饰）
+   ! [bounds] bg9: image 局部越界 66.6px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 64.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 58.2px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 131.4px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 91.5px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   … 另有 1 条（完整清单见 --json）
+✗ mobile-19.5-9/settle  fail=4 warn=8 waived=0
+   ✗ [contrast] optT1: 「[R] 再来一局」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] settleText5: 「旅行暂歇——提瓦特还有七国等你。」#b6bfce on #fcfcfc = 1.81:1 < 目标 3.0 ⇒ 建议 #848a95（3.38:1）
+   ✗ [contrast] settleText4: 「消行 0 行　　落块 10　　等级 1」#93a0b7 on #fcfcfc = 2.57:1 < 目标 3.0 ⇒ 建议 #818ca0（3.31:1）
+   ✗ [contrast] settleText2: 「本局 152 分」#d67e2e on #fcfcfc = 2.97:1 < 目标 3.0 ⇒ 建议 #cb782c（3.27:1）
+   ! [bounds] cell: image 局部越界 30.0px（画布出血/装饰）
+   ! [bounds] bg9: image 局部越界 66.6px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 64.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 58.2px（画布出血/装饰）
+   … 另有 4 条（完整清单见 --json）
+✗ mobile-19.5-9/title  fail=8 warn=12 waived=0
+   ✗ [contrast] menuDesc3: 「同屏 PK · 互送垃圾行」#7c8ca8 on #fcecf4 = 2.99:1 < 目标 3.0 ⇒ 建议 #7685a0（3.27:1）
+   ✗ [contrast] menuDesc2: 「与 hard 档 AI 决战」#7c8ca8 on #ececfc = 2.91:1 < 目标 3.0 ⇒ 建议 #73829b（3.33:1）
+   ✗ [contrast] menuDesc1: 「AI 代打陪练 · 随时接管」#7c8ca8 on #e4f4e4 = 2.97:1 < 目标 3.0 ⇒ 建议 #7685a0（3.26:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #f4fcfc = 1.54:1 < 目标 3.0 ⇒ 建议 #9d875d（3.33:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint1: 「1-4 选模式」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuBig: 「俄罗斯方块」#b98a3c on #f4ecd4 = 2.63:1 < 目标 3.0 ⇒ 建议 #a27935（3.34:1）
+   … 另有 12 条（完整清单见 --json）
+✗ mobile-4-3/dual  fail=1 warn=15 waived=0
+   ✗ [overlap] phswitch ∩ hit: 可点区重叠 4400px² = 较小盒的 75.9%（点下去只有上层收得到）
+   ! [bounds] pehardr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] pehardb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftr: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftl: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] peleftb: image 局部越界 3.0px（画布出血/装饰）
+   ! [bounds] bg13: image 局部越界 109.3px（画布出血/装饰）
+   … 另有 8 条（完整清单见 --json）
+! mobile-4-3/game  fail=0 warn=8 waived=0
+   ! [bounds] bg11: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 185.3px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 142.9px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 57.5px（画布出血/装饰）
+   ! [bounds] bg2: image 局部越界 142.9px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   ! [names] 8 组重名: 同名控件会让按名锚定命中多个：phhome×2, pthome×2, pbhomer×2, pbhomel×2, pbhomeb×2, pehomer×2, pehomel×2, pehomeb×2
+✗ mobile-4-3/help  fail=11 warn=15 waived=0
+   ✗ [overlap] phhome ∩ menuHelpZone: 可点区重叠 1596px² = 较小盒的 24.6%（点下去只有上层收得到）
+   ✗ [overlap] phhome ∩ menuHelpZone: 可点区重叠 1596px² = 较小盒的 24.6%（点下去只有上层收得到）
+   ✗ [contrast] helpCardK3: 「3」#ffffff on #fcaccc = 1.76:1 < 目标 3.0 ⇒ 建议 #666666（3.26:1）
+   ✗ [contrast] helpCardK2: 「2」#ffffff on #b49cec = 2.36:1 < 目标 3.0 ⇒ 建议 #535353（3.26:1）
+   ✗ [contrast] helpCardK1: 「1」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] helpCap6_t2: 「V」#ffffff on #f2faee = 1.07:1 < 目标 3.0 ⇒ 建议 #868686（3.41:1）
+   ✗ [contrast] helpEyebrow: 「冒险家协会 · 委托板」#b98a3c on #fcf4ec = 2.85:1 < 目标 3.0 ⇒ 建议 #ab8038（3.28:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #ecf4e4 = 1.43:1 < 目标 3.0 ⇒ 建议 #97825a（3.29:1）
+   … 另有 18 条（完整清单见 --json）
+✗ mobile-4-3/roster  fail=1 warn=9 waived=0
+   ✗ [contrast] ibotBanner: 「左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明」#3e4a63 on #74848c = 2.29:1 < 目标 3.0 ⇒ 建议 #ecedef（3.31:1）
+   ! [bounds] rosterDim: image 局部越界 20.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 185.3px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 142.9px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 57.5px（画布出血/装饰）
+   ! [bounds] bg2: image 局部越界 142.9px（画布出血/装饰）
+   … 另有 2 条（完整清单见 --json）
+✗ mobile-4-3/settle  fail=4 warn=9 waived=0
+   ✗ [contrast] optT1: 「[R] 再来一局」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] settleText5: 「旅行暂歇——提瓦特还有七国等你。」#b6bfce on #fcfcfc = 1.81:1 < 目标 3.0 ⇒ 建议 #848a95（3.38:1）
+   ✗ [contrast] settleText4: 「消行 0 行　　落块 10　　等级 1」#93a0b7 on #fcfcfc = 2.57:1 < 目标 3.0 ⇒ 建议 #818ca0（3.31:1）
+   ✗ [contrast] settleText2: 「本局 152 分」#d67e2e on #fcfcfc = 2.97:1 < 目标 3.0 ⇒ 建议 #cb782c（3.27:1）
+   ! [bounds] cell: image 局部越界 30.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 533.3px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 185.3px（画布出血/装饰）
+   … 另有 5 条（完整清单见 --json）
+✗ mobile-4-3/title  fail=8 warn=14 waived=0
+   ✗ [contrast] menuDesc3: 「同屏 PK · 互送垃圾行」#7c8ca8 on #fcecf4 = 2.99:1 < 目标 3.0 ⇒ 建议 #7685a0（3.27:1）
+   ✗ [contrast] menuDesc2: 「与 hard 档 AI 决战」#7c8ca8 on #ececfc = 2.91:1 < 目标 3.0 ⇒ 建议 #73829b（3.33:1）
+   ✗ [contrast] menuDesc1: 「AI 代打陪练 · 随时接管」#7c8ca8 on #e4f4e4 = 2.97:1 < 目标 3.0 ⇒ 建议 #7685a0（3.26:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #f4fcfc = 1.54:1 < 目标 3.0 ⇒ 建议 #9d875d（3.33:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint1: 「1-4 选模式」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuBig: 「俄罗斯方块」#b98a3c on #f4ecd4 = 2.63:1 < 目标 3.0 ⇒ 建议 #a27935（3.34:1）
+   … 另有 14 条（完整清单见 --json）
+✗ pc-16-9/dual  fail=1 warn=8 waived=0
+   ✗ [text] ikeyA: 「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存」size=18 框=360x40 需高=51.699999999999996 (差 11.7px) fits=false 文本宽=356/360
+   ! [bounds] bg11: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 19.8px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 54.0px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 13.1px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   ! [bounds] title: textbox 局部越界 24.0px（画布出血/装饰）
+   … 另有 1 条（完整清单见 --json）
+! pc-16-9/game  fail=0 warn=6 waived=0
+   ! [bounds] bg11: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 19.8px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 54.0px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 13.1px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+✗ pc-16-9/help  fail=10 warn=11 waived=0
+   ✗ [contrast] helpCardK4: 「4」#ffffff on #8cdcf4 = 1.54:1 < 目标 3.0 ⇒ 建议 #6c6c6c（3.42:1）
+   ✗ [contrast] helpCardK3: 「3」#ffffff on #fcaccc = 1.76:1 < 目标 3.0 ⇒ 建议 #666666（3.26:1）
+   ✗ [contrast] helpCardK2: 「2」#ffffff on #b49cec = 2.36:1 < 目标 3.0 ⇒ 建议 #535353（3.26:1）
+   ✗ [contrast] helpCardK1: 「1」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] helpEyebrow: 「冒险家协会 · 委托板」#b98a3c on #fcf4ec = 2.85:1 < 目标 3.0 ⇒ 建议 #ab8038（3.28:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #fcf4ec = 1.48:1 < 目标 3.0 ⇒ 建议 #97825a（3.41:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#a3b0c2 on #fcfcfc = 2.15:1 < 目标 3.0 ⇒ 建议 #828c9b（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#a3b0c2 on #fcfcfc = 2.15:1 < 目标 3.0 ⇒ 建议 #828c9b（3.32:1）
+   … 另有 13 条（完整清单见 --json）
+✗ pc-16-9/roster  fail=5 warn=7 waived=0
+   ✗ [contrast] ihudNext: 「下一个」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ihint: 「堆满一行即消除」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ibotBanner: 「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明」#3e4a63 on #74848c = 2.29:1 < 目标 3.0 ⇒ 建议 #ecedef（3.31:1）
+   ✗ [contrast] ibest: 「最高 0」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ihud: 「得分 0　消行 0　等级 1　已填 0」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ! [bounds] rosterDim: image 局部越界 20.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 300.0px（画布出血/装饰）
+   … 另有 4 条（完整清单见 --json）
+✗ pc-16-9/settle  fail=4 warn=8 waived=0
+   ✗ [contrast] optT1: 「[R] 再来一局」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] settleText5: 「旅行暂歇——提瓦特还有七国等你。」#b6bfce on #fcfcfc = 1.81:1 < 目标 3.0 ⇒ 建议 #848a95（3.38:1）
+   ✗ [contrast] settleText4: 「消行 0 行　　落块 10　　等级 1」#93a0b7 on #fcfcfc = 2.57:1 < 目标 3.0 ⇒ 建议 #818ca0（3.31:1）
+   ✗ [contrast] settleText2: 「本局 152 分」#d67e2e on #fcfcfc = 2.97:1 < 目标 3.0 ⇒ 建议 #cb782c（3.27:1）
+   ! [bounds] cell: image 局部越界 30.0px（画布出血/装饰）
+   ! [bounds] bg11: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg10: image 局部越界 300.0px（画布出血/装饰）
+   ! [bounds] bg5: image 局部越界 19.8px（画布出血/装饰）
+   … 另有 4 条（完整清单见 --json）
+✗ pc-16-9/title  fail=8 warn=10 waived=0
+   ✗ [contrast] menuDesc3: 「同屏 PK · 互送垃圾行」#7c8ca8 on #fcecf4 = 2.99:1 < 目标 3.0 ⇒ 建议 #7685a0（3.27:1）
+   ✗ [contrast] menuDesc2: 「与 hard 档 AI 决战」#7c8ca8 on #ececfc = 2.91:1 < 目标 3.0 ⇒ 建议 #73829b（3.33:1）
+   ✗ [contrast] menuDesc1: 「AI 代打陪练 · 随时接管」#7c8ca8 on #e4f4e4 = 2.97:1 < 目标 3.0 ⇒ 建议 #7685a0（3.26:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #f4fcfc = 1.54:1 < 目标 3.0 ⇒ 建议 #9d875d（3.33:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint1: 「1-4 选模式」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuBig: 「俄罗斯方块」#b98a3c on #f4ecd4 = 2.63:1 < 目标 3.0 ⇒ 建议 #a27935（3.34:1）
+   … 另有 10 条（完整清单见 --json）
+✗ pc-21-9/dual  fail=1 warn=9 waived=0
+   ✗ [text] ikeyA: 「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存」size=18 框=360x40 需高=51.699999999999996 (差 11.7px) fits=false 文本宽=356/360
+   ! [bounds] bg9: image 局部越界 124.2px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 121.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 112.9px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 211.4px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 157.8px（画布出血/装饰）
+   ! [bounds] bg2: image 局部越界 29.4px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+   … 另有 2 条（完整清单见 --json）
+! pc-21-9/game  fail=0 warn=7 waived=0
+   ! [bounds] bg9: image 局部越界 124.2px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 121.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 112.9px（画布出血/装饰）
+   ! [bounds] bg4: image 局部越界 211.4px（画布出血/装饰）
+   ! [bounds] bg3: image 局部越界 157.8px（画布出血/装饰）
+   ! [bounds] bg2: image 局部越界 29.4px（画布出血/装饰）
+   ! [bounds] bg1: image 局部越界 10.0px（画布出血/装饰）
+✗ pc-21-9/help  fail=10 warn=12 waived=0
+   ✗ [contrast] helpCardK4: 「4」#ffffff on #8cdcf4 = 1.54:1 < 目标 3.0 ⇒ 建议 #6c6c6c（3.42:1）
+   ✗ [contrast] helpCardK3: 「3」#ffffff on #fcaccc = 1.76:1 < 目标 3.0 ⇒ 建议 #666666（3.26:1）
+   ✗ [contrast] helpCardK2: 「2」#ffffff on #b49cec = 2.36:1 < 目标 3.0 ⇒ 建议 #535353（3.26:1）
+   ✗ [contrast] helpCardK1: 「1」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] helpEyebrow: 「冒险家协会 · 委托板」#b98a3c on #fcf4ec = 2.85:1 < 目标 3.0 ⇒ 建议 #ab8038（3.28:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #fcf4ec = 1.48:1 < 目标 3.0 ⇒ 建议 #97825a（3.41:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#a3b0c2 on #fcfcfc = 2.15:1 < 目标 3.0 ⇒ 建议 #828c9b（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#a3b0c2 on #fcfcfc = 2.15:1 < 目标 3.0 ⇒ 建议 #828c9b（3.32:1）
+   … 另有 14 条（完整清单见 --json）
+✗ pc-21-9/roster  fail=5 warn=8 waived=0
+   ✗ [contrast] ihudNext: 「下一个」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ihint: 「堆满一行即消除」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ibotBanner: 「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ibest: 「最高 0」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ✗ [contrast] ihud: 「得分 0　消行 0　等级 1　已填 0」#3e4a63 on #747c84 = 2.10:1 < 目标 3.0 ⇒ 建议 #e2e4e8（3.33:1）
+   ! [bounds] rosterDim: image 局部越界 20.0px（画布出血/装饰）
+   ! [bounds] bg9: image 局部越界 124.2px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 121.7px（画布出血/装饰）
+   … 另有 5 条（完整清单见 --json）
+✗ pc-21-9/settle  fail=4 warn=9 waived=0
+   ✗ [contrast] optT1: 「[R] 再来一局」#ffffff on #7ccc6c = 1.96:1 < 目标 3.0 ⇒ 建议 #606060（3.21:1）
+   ✗ [contrast] settleText5: 「旅行暂歇——提瓦特还有七国等你。」#b6bfce on #fcfcfc = 1.81:1 < 目标 3.0 ⇒ 建议 #848a95（3.38:1）
+   ✗ [contrast] settleText4: 「消行 0 行　　落块 10　　等级 1」#93a0b7 on #fcfcfc = 2.57:1 < 目标 3.0 ⇒ 建议 #818ca0（3.31:1）
+   ✗ [contrast] settleText2: 「本局 152 分」#d67e2e on #fcfcfc = 2.97:1 < 目标 3.0 ⇒ 建议 #cb782c（3.27:1）
+   ! [bounds] cell: image 局部越界 30.0px（画布出血/装饰）
+   ! [bounds] bg9: image 局部越界 124.2px（画布出血/装饰）
+   ! [bounds] bg7: image 局部越界 121.7px（画布出血/装饰）
+   ! [bounds] bg6: image 局部越界 112.9px（画布出血/装饰）
+   … 另有 5 条（完整清单见 --json）
+✗ pc-21-9/title  fail=8 warn=11 waived=0
+   ✗ [contrast] menuDesc3: 「同屏 PK · 互送垃圾行」#7c8ca8 on #fcecf4 = 2.99:1 < 目标 3.0 ⇒ 建议 #7685a0（3.27:1）
+   ✗ [contrast] menuDesc2: 「与 hard 档 AI 决战」#7c8ca8 on #ececfc = 2.91:1 < 目标 3.0 ⇒ 建议 #73829b（3.33:1）
+   ✗ [contrast] menuDesc1: 「AI 代打陪练 · 随时接管」#7c8ca8 on #e4f4e4 = 2.97:1 < 目标 3.0 ⇒ 建议 #7685a0（3.26:1）
+   ✗ [contrast] menuNote: 「旅行者，提瓦特的风一直在等你。」#e8c88a on #f4fcfc = 1.54:1 < 目标 3.0 ⇒ 建议 #9d875d（3.33:1）
+   ✗ [contrast] menuHint3: 「H 游戏说明」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint2: 「任意键 = 休闲」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuHint1: 「1-4 选模式」#b2bfcf on #ecf4fc = 1.68:1 < 目标 3.0 ⇒ 建议 #7d8691（3.32:1）
+   ✗ [contrast] menuBig: 「俄罗斯方块」#b98a3c on #f4ecd4 = 2.63:1 < 目标 3.0 ⇒ 建议 #a27935（3.34:1）
+   … 另有 11 条（完整清单见 --json）
+
+— 按控件名聚合（fail 源头 27 个）—
+   10× [contrast] menuNote min=1.43:1 #e8c88a on #ecf4e4 ⇒ #97825a @lua/main.lua:2854 · 帧 10
+   10× [contrast] menuHint3 min=1.68:1 #a3b0c2 on #fcfcfc ⇒ #828c9b · 帧 10
+   10× [contrast] menuHint2 min=1.68:1 #a3b0c2 on #fcfcfc ⇒ #828c9b · 帧 10
+   10× [contrast] menuHint1 min=1.68:1 #a3b0c2 on #fcfcfc ⇒ #828c9b · 帧 10
+    9× [contrast] menuBig min=2.63:1 #b98a3c on #fcf4ec ⇒ #ab8038 @lua/main.lua:2833 · 帧 9
+    5× [contrast] helpCardK3 min=1.76:1 #ffffff on #fcaccc ⇒ #666666 · 帧 5
+    5× [contrast] helpCardK2 min=2.36:1 #ffffff on #b49cec ⇒ #535353 · 帧 5
+    5× [contrast] helpCardK1 min=1.96:1 #ffffff on #7ccc6c ⇒ #606060 · 帧 5
+    5× [contrast] helpEyebrow min=2.85:1 #b98a3c on #fcf4ec ⇒ #ab8038 @lua/main.lua:2473 · 帧 5
+    5× [contrast] ibotBanner min=2.10:1 #3e4a63 on #74848c ⇒ #ecedef · 帧 5
+    5× [contrast] optT1 min=1.96:1 #ffffff on #7ccc6c ⇒ #606060 · 帧 5
+    5× [contrast] settleText5 min=1.81:1 #b6bfce on #fcfcfc ⇒ #848a95 · 帧 5
+    5× [contrast] settleText4 min=2.57:1 #93a0b7 on #fcfcfc ⇒ #818ca0 · 帧 5
+    5× [contrast] settleText2 min=2.97:1 #d67e2e on #fcfcfc ⇒ #cb782c · 帧 5
+    5× [contrast] menuDesc3 min=2.99:1 #7c8ca8 on #fcecf4 ⇒ #7685a0 · 帧 5
+    5× [contrast] menuDesc2 min=2.91:1 #7c8ca8 on #ececfc ⇒ #73829b · 帧 5
+    5× [contrast] menuDesc1 min=2.97:1 #7c8ca8 on #e4f4e4 ⇒ #7685a0 · 帧 5
+    4× [overlap] phhome ∩ menuHelpZone · 帧 2
+    3× [overlap] phswitch ∩ hit · 帧 3
+    3× [contrast] helpCap6_t2 min=1.07:1 #ffffff on #f2faee ⇒ #868686 · 帧 3
+    2× [text] ikeyA · 帧 2
+    2× [contrast] helpCardK4 min=1.54:1 #ffffff on #8cdcf4 ⇒ #6c6c6c · 帧 2
+    2× [contrast] ihudNext min=2.10:1 #3e4a63 on #747c84 ⇒ #e2e4e8 · 帧 2
+    2× [contrast] ihint min=2.10:1 #3e4a63 on #747c84 ⇒ #e2e4e8 · 帧 2
+    2× [contrast] ibest min=2.10:1 #3e4a63 on #747c84 ⇒ #e2e4e8 · 帧 2
+    2× [contrast] ihud min=2.10:1 #3e4a63 on #747c84 ⇒ #e2e4e8 · 帧 2
+    1× [contrast] helpCap6_t1 min=1.07:1 #ffffff on #f2faee ⇒ #868686 · 帧 1
+
+FAIL: 30 帧 · fail 132 · warn 302 · waived 0 · → docs/shots/v5-b3/audit-spec3.json

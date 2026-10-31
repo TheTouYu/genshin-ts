@@ -1,0 +1,656 @@
+{{需要帮助角色语音}}
+__toc__
+{{面包屑|哥伦比娅|角色语音}}{{角色导航}}{{语音tab样式}}__notoc__
+<div class="resp-tabs" style="border-spacing: 0px;">
+<ul class="resp-tabs-list clearfix">
+<li class="active bili-list-style"><span class="tab-panel">角色语音</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素战技</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >元素爆发</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >打开宝箱</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >同伴生命值低</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >倒下</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >受击</span></li>
+<li class="bili-list-style" ><span class="tab-panel" >加入队伍</span></li>
+</ul>
+{{角色语音表头
+|汉语CV=杨梦露
+|日语CV=Lynn
+|英语CV=罗元湘
+|韩语CV=刘荣
+}}
+<div class="resp-tabs-container">
+<div class="resp-tab-content" style="display:block;">
+{{角色/语音1
+|语音类型=闲聊·歌
+|语音文件=player1-哥伦比娅_闲聊·歌
+|语音内容=我的歌并不为谁而唱。但如果有人驻足聆听，我希望他能从中获得片刻的安宁。
+|语音内容日语=誰かのために歌うわけじゃないけど、もし立ち止まって聞いてくれる人がいるなら、ほんの一瞬でも心の安らぎを感じてくれたら嬉しい。
+|语音内容英语=I don't sing for anyone in particular. Still, if someone stops to listen, I hope it provides a moment of peace all the same.
+|语音内容韩语=내 노래는 누군가를 위한 건 아니야. 그래도 걸음을 멈추고 들어주는 이가 있다면, 그 사람이 잠시라도 평온을 느꼈으면 해
+}}
+{{角色/语音1
+|语音类型=闲聊·月亮
+|语音文件=player1-哥伦比娅_闲聊·月亮
+|语音内容=想要赏月吗？你可以坐到我的摇椅上，找个舒服的角度。或者我们一起去月亮上，赏提瓦特也行。
+|语音内容日语=お月見しない？私のロッキングチェアを使っていいよ。月に行って、月からテイワットを眺めるのもいいかも。
+|语音内容英语=Would you like to go moongazing? You can sit in my rocking chair and admire the view. Or we could go to the moon and gaze down at Teyvat. Whatever you prefer.
+|语音内容韩语=달구경 할래? 내 흔들의자에 앉아서 편한 각도를 찾아봐. 아니면 나랑 같이 달로 가서 티바트를 구경하는 것도 좋아
+}}
+{{角色/语音1
+|语音类型=闲聊·漫步
+|语音文件=player1-哥伦比娅_闲聊·漫步
+|语音内容=我过去每天都会在银月之庭漫步很久，不用担心我跟不上你的步伐。
+|语音内容日语=キミのペースについていけるか、心配してくれてるの？大丈夫だよ。銀月の庭で、毎日ずっと散歩してたから。
+|语音内容英语=I used to take long walks in Silvermoon Hall every day, so don't worry about me. I can keep up.
+|语音内容韩语=내가 네 걸음에 뒤처질까 봐 걱정 안 해도 돼. 매일 달빛 정원을 오래도록 거닐었거든
+}}
+{{角色/语音1
+|语音类型=初次见面…
+|语音文件=player1-哥伦比娅_初次见面…
+|语音内容=你可以叫我哥伦比娅，也可以叫我库塔尔、月神大人…选你喜欢的吧。我习惯了有很多名字的日子。若你需要的话，我会给予你月亮的赐福。
+|语音内容日语=コロンビーナ、クータル、月神…好きに呼んでいいよ。いろんな名前で呼ばれることには慣れてるから。もしキミが望むのなら、月の祝福を授けてあげる。
+|语音内容英语=You can call me Columbina, or Kuutar, or Moon Goddess... Whatever you prefer. I'm used to having many names. The moon's blessing is yours, whenever you might find yourself in need.
+|语音内容韩语=콜롬비나, 쿠타르, 달의 신… 원하는 대로 불러도 돼. 나는 이름이 여럿이던 시절에 익숙하거든. 원한다면, 달의 축복을 내려줄게
+}}
+{{角色/语音1
+|语音类型=下雨的时候…
+|语音文件=player1-哥伦比娅_下雨的时候…
+|语音内容=避雨的时候倾听雨水冲刷大地，会给我一种在「家」的安全感。
+|语音内容日语=雨宿りしながら、雨が大地を洗い流す音を聴いてると、「家」にいるみたいに安心できるの。
+|语音内容英语=Taking shelter and listening to the rain cleanse the earth makes me feel safe, like being "home."
+|语音内容韩语=빗방울이 땅에 떨어지는 소리를 듣고 있으면, 「집」에 있는 듯한 안정감이 들어
+}}
+{{角色/语音1
+|语音类型=雨过天晴…
+|语音文件=player1-哥伦比娅_雨过天晴…
+|语音内容=天晴了，晚上应该能看到月亮吧？
+|语音内容日语=晴れたね。今夜は月が見えるかも。
+|语音内容英语=The sky is clear again. We should be able to see the moon tonight.
+|语音内容韩语=날이 갰어. 오늘 밤엔 달이 보이려나?
+}}
+{{角色/语音1
+|语音类型=打雷的时候…
+|语音文件=player1-哥伦比娅_打雷的时候…
+|语音内容=唔…！看不到闪电的话…很容易被雷声吓到…
+|语音内容日语=…！イナズマが見えないと、音がよけいに怖く感じるね…
+|语音内容英语=Ah...! Without lightning to give warning... the sound of thunder is quite startling...
+|语音内容韩语=으…! 번개가 안 보이면… 천둥에 잘 놀라게 돼…
+}}
+{{角色/语音1
+|语音类型=下雪的时候…
+|语音文件=player1-哥伦比娅_下雪的时候…
+|语音内容=我喜欢雪。美丽又安静，还能和月灵们打雪仗。你想现在来玩玩吗？
+|语音内容日语=雪の日は結構好き。きれいで静かで、月霊たちと雪合戦もできる。雪合戦、やる？
+|语音内容英语=I love the snow. It's so beautiful and peaceful, and I can have snowball fights with the kuuhenki. Shall we have one now?
+|语音内容韩语=나는 눈이 좋아. 예쁘고 조용하고, 월령이랑 눈싸움도 할 수 있거든. 지금 같이 놀래?
+}}
+{{角色/语音1
+|语音类型=刮大风了…
+|语音文件=player1-哥伦比娅_刮大风了…
+|语音内容=睁不开眼的话，就把手给我，我带你走。
+|语音内容日语=目が開けられない？じゃあ、手を貸して。私が案内してあげる。
+|语音内容英语=If the wind is too strong to keep your eyes open, give me your hand. I'll guide you.
+|语音内容韩语=눈이 안 떠지면 내 손을 잡아. 내가 이끌어줄게
+}}
+{{角色/语音1
+|语音类型=在沙漠的时候…
+|语音文件=player1-哥伦比娅_在沙漠的时候…
+|语音内容=夜晚的沙子踩上去很凉快，很舒服。但到了白天就会变得好烫好烫…
+|语音内容日语=夜の砂は踏むとひんやりして気持ちいいけど、昼間は熱々すぎてとても裸足になれない…
+|语音内容英语=The sand is cool and comfortable to walk on at night, but it gets so hot during the day...
+|语音内容韩语=밤의 모래를 밟으면 시원해서 기분 좋아. 근데 낮에는 너무 뜨거워져…
+}}
+{{角色/语音1
+|语音类型=早上好…
+|语音文件=player1-哥伦比娅_早上好…
+|语音内容=早…看到我的发绳了吗？嗯？头发有些乱…？在哪边？帮我梳梳。
+|语音内容日语=おはよう…私のヘアゴム、見なかった？え？髪が乱れてる…？どこ？直して。
+|语音内容英语=Good morning... Have you seen my hair tie? Hmm? My hair looks messy...? Which part? Could you brush it for me?
+|语音内容韩语=좋은 아침… 내 머리끈 못 봤어? 응? 머리가 헝클어졌다고…? 어디? 빗겨줘
+}}
+{{角色/语音1
+|语音类型=中午好…
+|语音文件=player1-哥伦比娅_中午好…
+|语音内容=呼…月亮还没升起来，我想先抱着月灵们睡个午觉。
+|语音内容日语=ふぁ～…月はまだ昇らない。月霊の子たちと一緒にお昼寝でもしようかな。
+|语音内容英语=Hmm... The moon hasn't risen yet. I think I'll take a nap with the kuuhenki.
+|语音内容韩语=후… 달이 아직 안 떴네. 월령들을 안고 낮잠 잘래
+}}
+{{角色/语音1
+|语音类型=晚上好…
+|语音文件=player1-哥伦比娅_晚上好…
+|语音内容=夜幕落下…不觉得这种说法很有趣吗？就好像「夜晚」是被月亮绊了一跤才掉下来的一样。
+|语音内容日语=夜の帳が下りるって言い方、面白いと思わない？いったい誰が幕を下ろすんだろう。もしかして、月？
+|语音内容英语="Nightfall"... Quite an interesting expression, don't you think? It's as if night tumbles in each evening, tripping over the moon.
+|语音内容韩语=밤의 장막이 내린다… 이런 표현, 재밌지 않아? 꼭 「밤」이 달에 걸려 넘어져서 떨어지는 것 같아
+}}
+{{角色/语音1
+|语音类型=晚安…
+|语音文件=player1-哥伦比娅_晚安…
+|语音内容=睡不着吗？唔…月灵们有时也会这样。一般这种时候，我就给月灵们唱唱歌，讲讲故事。要不要给你也试试？
+|语音内容日语=眠れない？…月霊の子たちも時々眠れないことがあるみたい。そういう時は歌や物語を聞かせてあげるの。キミも試してみる？
+|语音内容英语=Can't sleep? Hmm... The kuuhenki have that problem too sometimes. When that happens, I usually sing to them or tell them stories. Would you like me to do that for you?
+|语音内容韩语=잠이 안 와? 음… 월령들도 가끔 그래. 그럴 땐 내가 노래를 불러주거나, 이야기를 들려줘. 너도 해줄까?
+}}
+{{角色/语音1
+|语音类型=关于哥伦比娅自己·眼罩
+|语音文件=player1-哥伦比娅_关于哥伦比娅自己·眼罩
+|语音内容=我习惯了用月矩力去「感受」，这比「看」更能为我展现事物的真相。不过，我偶尔遇到好奇的时候，也会悄悄睁开眼睛偷看一下。我的眼罩是镂空的。
+|语音内容日语=目で見るより、クーヴァキを通じて「感じる」ほうが慣れてるの。そのほうが物事の本当の顔を見られたりもする。でも、たまに好奇心に駆られて、こっそり目を開けるときもあるよ。このアイマスクは、向こう側が丸見えだから。
+|语音内容英语=I'm used to "sensing" things with kuuvahki — it reveals the truth of things better than "seeing" does. Still, curiosity does sometimes get the better of me, and I open my eyes to take a peek. That's the nice thing about having an eye mask with holes.
+|语音内容韩语=나는 달의 힘으로 세상을 「느끼는」 데 익숙해. 그편이 「보는」 것보다 사물의 본질이 더 잘 보여. 음, 그래도 가끔은 호기심이 생겨서 살짝 눈을 뜰 때도 있어. 내 안대는 사실 속이 비치거든
+}}
+{{角色/语音1
+|语音类型=关于哥伦比娅自己·家
+|语音文件=player1-哥伦比娅_关于哥伦比娅自己·家
+|语音内容=我曾以为自己一直在流浪，月亮才是我的「家」。但现在，我的「家」不仅变多了，也变得更近了。
+|语音内容日语=前までは自分のこと、根無し草みたいに感じてた…「家」と呼べるところは月だけだって。でも、今はすぐ近くにいろんな居場所があるよ。
+|语音内容英语=I used to think I would forever be a stranger to this land — that the moon was my true "home." Now, I have an additional place to call home, and both my homes are now closer by.
+|语音内容韩语=예전의 나는 계속 떠돌아다니는 몸이고, 오직 달만이 「집」이라고 생각했어. 하지만 이제는 「집」이 더 많아지고, 더 가까워졌지
+}}
+{{角色/语音1
+|语音类型=关于我们·事迹
+|语音文件=player1-哥伦比娅_关于我们·事迹
+|语音内容=我很久之前就听说过你。在「愚人众」的时候，其他执行官聊起过你的事迹。但似乎当时觉得你的名号太多，他们还没讲到名字的时候，我就已经睡着了。
+|语音内容日语=キミのことは「ファデュイ」にいた頃から知ってたよ。執行官のみんながキミの功績について、いろいろ話してたから。キミのことをいろんな二つ名で呼んでたけど、いつも本当の名前は出てこなくて、いつの間にか寝ちゃってた。
+|语音内容英语=I heard about you long before we met. Back when I was with the Fatui, I remember the other Harbingers talking about your deeds. But you have so many titles, I... fell asleep before they even got to your name.
+|语音内容韩语=네 얘기는 오래전부터 들었어. 「우인단」에 있을 때 다른 집행관들이 네 이야기를 했거든. 근데 이름 앞에 붙이는 수식어가 너무 많아서, 이름을 듣기도 전에 잠들어버렸어
+}}
+{{角色/语音1
+|语音类型=关于我们·旅行
+|语音文件=player1-哥伦比娅_关于我们·旅行
+|语音内容=能告诉我一些旅行期间的注意事项吗？比如怎么和其他国家的人说话之类的。嗯…？你说更应该关注生火和捕猎的技巧…日常的交通方式？这些…不是用月矩力就可以了吗？
+|语音内容日语=ねえ、よかったら旅のいろはを教えてくれない？他の国の人と話す時に、気をつけることとか。え？火おこしや狩りのほうが大事なの？移動手段の工夫…？えっと、そういうのはクーヴァキですぐできるんじゃ…
+|语音内容英语=Could you give me some tips for traveling? Like... how to talk to people from other nations. Hmm? I should focus more on fire-building skills, hunting techniques, and... transport? Huh. Couldn't I just use kuuvahki for all that?
+|语音内容韩语=여행할 때 알아야 하는 게 있을까? 다른 나라 사람이랑 이야기하는 법이라든가. 응…? 불 피우는 법이랑 사냥하는 법… 이동 방법 같은 게 더 중요하다고? 그런 건… 달의 힘으로 해결되잖아?
+}}
+{{角色/语音1
+|语音类型=关于「三相月临」…
+|语音文件=player1-哥伦比娅_关于「三相月临」…
+|语音内容=三位女神将她们的权能交予了我。三份力量互相交汇，很耀眼，又很温柔。我能从中感受到她们对这个世界的眷恋，以及在生命最后时刻给予这个世界的期盼与祝福。我将继承她们的月光，让它照亮月下的世界，照亮我们共同的「家」。
+|语音内容日语=三柱の女神は自らの力を私に託した。この世界に対する三人の愛と、命の最期に世界に送った願いと祝福が溶け込んだ、眩しくて優しい光…彼女たちから受け継いだ光で、月の下の世界を、私たちの「家」を——これからも照らしていこう。
+|语音内容英语=The three goddesses bestowed their powers upon me, which converged into a force that is both dazzling and gentle. Through it, I can feel their attachment to this place, and I can sense the hopes and wishes they offered to this world in their final moments. I will inherit their moonlight and use it to illuminate the world beneath the moon — the place we all call "home".
+|语音内容韩语=세 여신이 자신들의 권능을 나에게 맡겼어. 세 힘이 얽혀, 눈부시면서도 따스하게 빛났지. 그 안에서 나는 세 여신이 이 세계에 보내는 사랑과, 생의 끝에 남기는 소망과 축복을 느꼈어. 나는 그 달빛을 이어받아, 달 아래의 세계, 우리 모두의 「집」을 밝게 비출 거야
+}}
+{{角色/语音1
+|语音类型=有什么想要分享…
+|语音文件=player1-哥伦比娅_有什么想要分享…
+|语音内容=在至冬作为「愚人众」执行官第三席的时候，能够享受到许多生活中的便利。坐列车不用买票、去科洛列夫茨基剧团也不用排队…啊，但去餐厅吃饭的话，虽然能够…「报销」？但那好像很复杂，我搞不懂。所以我都是和桑多涅，或者阿蕾奇诺一起去吃。
+|语音内容日语=ファトゥスの第三位だった時は、スネージナヤでいろんな優遇を受けられたんだよ。たとえば、列車の乗車券はいらないし、コロレヴェツキー劇団でも列に並ばなくてよかった…外食のときは、えっと…「経費精算」とかって手続きをすればよかったみたいなんだけど、すごく複雑そうで、私には無理だったから…いつもサンドローネかアルレッキーノと一緒に食べてた。
+|语音内容英语=Back in Snezhnaya, being Third of the Fatui Harbingers came with a lot of perks. I didn't need to purchase a ticket for the train or stand in line for the Korolevskiy Troupe... Ah, and when I dined at a restaurant, I could get... "reimbursed"? That was a bit too complicated for me to understand, though, so I just tagged along with Sandrone or Arlecchino instead.
+|语音内容韩语=스네즈나야에서 「우인단」 집행관 서열 3위였을 땐 편한 게 많았어. 기차를 탈 땐 표가 필요 없고, 코롤료프스키 극단에 갈 땐 줄을 설 필요가 없었지…. 아, 식당에서 밥을 먹을 땐… 「비용 청구」? 를 하면 된댔는데, 난 복잡해서 잘 모르겠더라고. 그래서 매번 산드로네나 아를레키노랑 같이 먹으러 갔어
+}}
+{{角色/语音1
+|语音类型=感兴趣的见闻…
+|语音文件=player1-哥伦比娅_感兴趣的见闻…
+|语音内容=月亮上的风景比我之前期待的还要美丽得多。蓝色的月矩力静静流淌，变为了一眼望不到边的海洋。漂亮的水母们在这片月色的海洋上自由飘荡。还有不知生活在哪里的粉色霜鳍鲸、好大好大的月灵…等我花些时间，把月亮上的「家」打理好，就请朋友们来做客吧。
+|语音内容日语=月の景色は思ってたよりもずっと綺麗だった。静かに流れるクーヴァキの海がどこまでも広がってて、その中を月の色に染まった可愛いクラゲたちが泳いでる。どこから来たのか分からないけど、ピンク色のフロストフィンイルカに、すごく大きな月霊もいたよ…もう少し整えたら、みんなを私の家に招待するね。
+|语音内容英语=The moon is more beautiful than I could have imagined. Blue kuuvahki flowing like an endless ocean, magnificent jellyfish drifting across the sea, pink frostfin whales coming from places unknown, enormous kuuhenki... It's magnificent. Once I've made my home a bit more presentable, I'll invite my friends up to visit.
+|语音内容韩语=달의 풍경은 내가 상상했던 것보다 훨씬 아름다웠어. 고요히 흐르는 달의 힘이 푸른 바다처럼 끝없이 펼쳐져 있었지. 예쁜 해파리가 달빛 바다 위를 유유히 떠다녔고, 어디 사는지 알 수 없는 분홍빛 서리 돌고래랑, 엄청 커다란 월령도 있었어…. 나중에 달의 「집」을 다 정리하면, 친구들을 초대할 거야
+}}
+{{角色/语音1
+|语音类型=关于菈乌玛…
+|语音文件=player1-哥伦比娅_关于菈乌玛…
+|语音内容=要是往菈乌玛头顶的方向递去一缕月光，她的角冠就会长得更高更大，算准角度，还能一下子戳中长在高处的果实…后来？嗯…被训了。
+|语音内容日语=ラウマの頭の上に月光を当てると、角がどんどん伸びるの。ちょうどいい角度に当てて、高い木になってる果物を突き刺すこともできるよ…その後どうなったかって？ん…叱られた。
+|语音内容英语=Aiming a beam of moonlight at Lauma's head makes her antlers grow taller, and if you get the angle just right, you can even get them to stab a piece of fruit that's too high to reach... Hmm? What then? Oh, um... You get scolded.
+|语音内容韩语=라우마의 머리 위로 달빛을 비추면, 뿔이 더 높고 크게 자라나. 각도를 잘 맞추면, 높은 곳에 있는 열매를 한 번에 찌를 수 있지…. 그다음엔 어떻게 됐냐고? 음… 혼났어
+}}
+{{角色/语音1
+|语音类型=关于尼可…
+|语音文件=player1-哥伦比娅_关于尼可…
+|语音内容=前段时间我们还保持着联系。「有没有推荐的书？想拿来读给月灵们听。」像这样和尼可小姐说了一句之后，她送来了很多有趣的书籍，还向我详细介绍了每一个故事的灵感和设定。我问她，「什么时候才能读到尼可小姐亲笔写的书呢？」结果她突然消失不见了。嗯…或许是写书去了吧。
+|语音内容日语=ニコさんとは、この間も連絡を取り合ってたよ。「月霊たちに読み聞かせしてあげたいんだけど、おすすめの本はある？」って聞いたら、いろいろ送ってくれたの。物語が誕生した経緯や詳しい設定まで添えられてた。それで、「いつになったら、ニコさんが書いた本が読めるの？」って聞いたら、突然姿を消しちゃった。執筆に専念するためかな。
+|语音内容英语=Oh, we kept in touch until a short while ago. I asked her to recommend some books for me to read to the kuuhenki. She sent a whole lot and even gave me detailed explanations about the inspiration and setting for each one. I asked her when I might be able to read a book she had authored herself, but then I suddenly stopped hearing from her. Perhaps... she went off to write one.
+|语音内容韩语=얼마 전까지 계속 연락을 주고받았어. 월령들한테 읽어줄 책을 추천해 달라고 했더니, 재밌는 책을 한가득 보내주면서, 각 이야기의 탄생 유래나 설정도 들려줬지. 그래서 「니콜 씨가 직접 쓴 책은 언제쯤 읽을 수 있어?」라고 물었더니, 갑자기 사라져 버렸어. 음… 아마 책 쓰러 갔을 거야
+}}
+{{角色/语音1
+|语音类型=关于那维莱特…
+|语音文件=player1-哥伦比娅_关于那维莱特…
+|语音内容=在枫丹担任最高审判官的水之龙？唔…听上去也是一位会将人投进囚牢的龙呢。不太想见他。
+|语音内容日语=フォンテーヌの最高審判官を務める水龍のこと？うーん…人を牢屋に入れるんでしょ？あまり会いたくないかも。
+|语音内容英语=The Hydro Dragon who serves as the Iudex of Fontaine? Hmm... Another Dragon who puts people in prison. I'm not sure I'd want to meet him.
+|语音内容韩语=폰타인에서 최고 심판관을 맡고 있는 물의 용? 음… 사람을 감옥에 집어넣는 용은, 굳이 만나고 싶지 않아
+}}
+{{角色/语音1
+|语音类型=关于尘世七执政…
+|语音文件=player1-哥伦比娅_关于尘世七执政…
+|语音内容=如果在旅途中巧遇的话，我会和他们打个招呼的。
+|语音内容日语=もし旅の途中で会ったら、声をかけてみようかな。
+|语音内容英语=If we cross paths during my journey, I'll be sure to say hello.
+|语音内容韩语=여행하다 마주치면 인사할래
+}}
+{{角色/语音1
+|语音类型=关于「冰之女皇」…
+|语音文件=player1-哥伦比娅_关于「冰之女皇」…
+|语音内容=我第一次在至冬宫的花园里唱歌的时候，「女皇」恰好途经那里，她静静地站在一旁，像一尊还没来得及刻画表情的雕像。有一刻，我感觉她想对我说些什么，但没有。<br>她把感情封进了厚厚的冰层，只对外显露她作为女皇的一角…我的答案留在月亮上，她的答案，或许葬在了冰山之下。
+|语音内容日语=スネージナヤパレスのガーデンで歌を歌ってたら、通りかかった女皇様が足を止めたの。まだ表情が彫られていない彫像みたいに、静かに聴いてた。ふと、何か言いたそうな気配がしたけど、結局口を開くことはなかったよ。<br>水の下に隠された大きな氷の中に感情を閉じ込めて、女皇としての一面だけを外に出してる…私の答えが月にあるのと同じように、彼女の答えは…氷山の下に埋もれてるのかもね。
+|语音内容英语=The first time I sang in the gardens of Zapolyarny Palace, the Tsaritsa happened to pass by. She stood there, silent and motionless, like a statue with no expression carved onto the face. For a moment, I felt as if she wanted to say something to me, but she never did.<br>She seals her emotions beneath thick sheets of ice. The outside world sees but one side of who she is... that of the Tsaritsa. If the answers I sought rest on the moon, perhaps hers lie buried in snow and ice.
+|语音内容韩语=처음으로 얼음 궁전의 화원에서 노래를 불렀을 때, 「여왕」이 마침 거길 지나갔어. 그녀는 미처 표정을 새기지 못한 조각상처럼 조용히 거기에 서 있었지. 어느 순간에는 나한테 뭔가 말하고 싶은 것처럼 느껴졌지만, 끝내 아무 말도 하지 않았어.<br>「여왕」은 두꺼운 얼음 아래 감정을 봉인하고, 여왕으로서의 일면만을 세상에 보이고 있어. 나의 답이 달에 남았었다면, 그녀의 답은 빙산 아래 묻혀 있는 거지
+}}
+{{角色/语音1
+|语音类型=关于「丑角」…
+|语音文件=player1-哥伦比娅_关于「丑角」…
+|语音内容=他像是故意想成为他代号的反语。名为「丑角」，语调却严肃深沉，总是说些难懂的话。他佩戴嗤笑世界的面具，自己却从不微笑。
+|语音内容日语=コードネームの「道化」とは正反対の人だと思う。話すときはいつも真剣そのもので、難しい言葉ばかり並べるし、世界を嘲笑うような仮面をつけてるのに、一度も笑顔を見たことないもの。
+|语音内容英语=He's quite the opposite of his codename, and that seems to be intentional. Although he's known as "The Jester," his tone is stern and serious, and he speaks in confusing riddles. The mask he wears depicts a grin that mocks the world, but he himself never smiles.
+|语音内容韩语=「피에로」는 코드 네임이랑 정반대야. 이름은 「어릿광대」인데, 맨날 진지한 말투로 알 수 없는 말만 해. 세상을 비웃는 가면을 쓰고 있으면서, 정작 본인은 한 번도 웃지 않아
+}}
+{{角色/语音1
+|语音类型=关于「队长」…
+|语音文件=player1-哥伦比娅_关于「队长」…
+|语音内容=尊敬他的人不少，畏惧他的人也多。唔…不好懂么？那些习惯生活在阴暗处的生物是不会选择靠近光源的。光太危险，只会拖长他们自身的影子。
+|语音内容日语=尊敬する人も多いけど、恐れる人も少なくない…分かりにくかったかな？暗闇に棲む生き物は、あまり光源に近づこうとしないんだよ。光は危ないし、近づいても、影がより引き伸ばされるだけだから。
+|语音内容英语=Many respect him, but just as many fear him. Hmm? Is that too confusing? Well, you see, creatures accustomed to living in darkness will never choose to get close to the light. It's too dangerous, for light would only lengthen their own shadow.
+|语音内容韩语=「카피타노」를 존경하는 사람도 많지만, 두려워하는 사람도 많아. 어… 이해하기 어렵다고? 어둠 속에 살아가는 존재는 빛에 다가가지 않아. 빛은 위험하거든. 그들의 그림자를 더 길게 늘일 뿐이니까 말이야
+}}
+{{角色/语音1
+|语音类型=关于「博士」…
+|语音文件=player1-哥伦比娅_关于「博士」…
+|语音内容=曾有一段时间，「博士」很照顾我，他说对待我就像对待自己的妹妹一样。<br>后来我发现，越是在他心中亲近的人，他利用起来便越是自如。「既然是一家人，应该要学着忍让吧？」我看得出他由衷那么想，而我不想那么做。这种需要只会令我回想起在第一个家时，石台下的那些贪婪目光。
+|语音内容日语=「博士」にすごく親切にしてもらってた時期があったの。私のことを妹みたいだって言ってね。<br>後になって気付いたんだけど、彼は親しい人ほど、利用してた。家族なら、遠慮なんていらないはずだって、心から思ってるみたい。でも、私はそれが嫌だった。生まれた頃の、石台の下からぞき込む欲望の視線を思い起こさせたから…
+|语音内容英语=There was a time when "The Doctor" took care of me, even claiming to think of me as a sister.<br>It was only later that I discovered, the closer you are to him, the more freely he uses you. "What's a little discomfort among family? We endure for each other, surely." That's how he thought of things, and I could tell he meant it, but I didn't want to have to "endure." Expectations like that... They took me back to my first home, and the eyes staring up at me from beneath the altar, so full of greed.
+|语音内容韩语=한때 「도토레」가 나한테 되게 잘해줬어. 나를 자기 동생 같다고 했지.<br>하지만 나중에 깨달았어, 「도토레」는 친해진 사람일수록 마음대로 이용한다는 걸. 「가족이라면 따라 줘야지?」 걘 진심으로 이렇게 생각하는 것 같았지만, 나는 그러기 싫었어. 그런 건, 내가 첫 번째 「집」에서 받았던 탐욕스러운 시선을 떠올리게 했거든
+}}
+{{角色/语音1
+|语音类型=关于阿蕾奇诺…
+|语音文件=player1-哥伦比娅_关于阿蕾奇诺…
+|语音内容=壁炉之家孩子们很多，有时会有些吵闹。我听见他们都叫阿蕾奇诺「父亲」，以为这是在壁炉之家时需要遵守的规矩。于是我在阿蕾奇诺经过时，也那样叫了一声。然后我才知道，原来壁炉之家还能那么安静。
+|语音内容日语=壁炉の家には子供たちがたくさんいて、いつもざわざわしてるんだよ。前にね、子供たちがアルレッキーノのことを「お父様」って呼ぶから、それが壁炉の家のルールなんだと思って、すれ違いざまに、同じように呼んでみたの。そしたら、ざわざわが消えた。壁炉の家って、こんなに静まり返るときもあるんだってその時初めて知ったよ。
+|语音内容英语=The House of the Hearth is home to many children, and it can get quite noisy. The first time I heard them call Arlecchino "Father," I thought it was a rule that had to be followed there. So, the next time she passed by, I used that title as well. That's when I learned just how quiet the House of the Hearth could become.
+|语音内容韩语=벽난로의 집은 아이들이 많아서 조금 시끄러워. 다들 아를레키노를 「아버지」라고 부르길래, 난 그게 벽난로의 집에 있을 때 꼭 지켜야 하는 규칙인 줄 알았어. 그래서 아를레키노가 지나갈 때 나도 그렇게 불러봤지. 벽난로의 집이 그렇게 조용해질 수도 있다는 걸, 그때 처음 알았어
+}}
+{{角色/语音1
+|语音类型=关于「公鸡」…
+|语音文件=player1-哥伦比娅_关于「公鸡」…
+|语音内容=我可以教你怎么学他说话，只需要把「钱」、「该死的潘塔罗涅」和「我保证」三个词组混在一起就行了。「钱呢？该死的潘塔罗涅。我保证过的」是一种，「我保证让该死的潘塔罗涅吐出钱来」又是一种。你看，很神奇吧？
+|语音内容日语=彼の話し方をマネするコツを教えてあげる。「金」と「クソパンタローネ」と「約束」を組み合わせればいいんだよ。たとえば、「金は？クソパンタローネ。約束したはずじゃろう。」とか、「必ずあのクソパンタローネから金を巻き上げてみせると約束しよう」とか。ほら、できた。不思議でしょ？
+|语音内容英语=I can teach you to talk just like him — all you have to do is combine the words "money," "that darn Pantalone," and "mark my words." Here, I'll show you. "Where's the money? Mark my words, I'm going to kill that darn Pantalone." Or, "That darn Pantalone is going to cough up the money, mark my words." See? Isn't that fascinating?
+|语音内容韩语=「풀치넬라」의 말투를 따라 하는 법 알려줄까? 「돈」, 「빌어먹을 판탈로네」, 「보장」 이 세 개만 쓰면 돼. 「돈은? 빌어먹을 판탈로네. 내가 보장했단 말이다」, 「그 빌어먹을 판탈로네가 돈을 토하게 만들겠다고 보장하지」. 어때, 신기하지?
+}}
+{{角色/语音1
+|语音类型=关于桑多涅·发条
+|语音文件=player1-哥伦比娅_关于桑多涅·发条
+|语音内容=她背后的发条会一直转吗？是永远朝同一个方向转吗？睡觉的时候，她会把发条拆下来吗？翻身要怎么办？刚见到桑多涅的时候，我就对她的发条产生了好奇。但那时和她还不熟，直接去碰似乎也不太好。所以我只要有机会就一直跟在她身后，想找到她发条转动的规律。但有一天，她突然转过身，看起来很生气地质问我为什么总要跟着她。我老老实实告诉她之后，她对我说，「你那么好奇的话，我给你背后安一个试试得了」。于是我就背着发条生活了几天，唔…的确很辛苦，桑多涅的生活真不容易。自那之后，我就更关心她了。
+|语音内容日语=初めて会ったときから、背中のゼンマイが気になってた。「あれって永遠に回り続けるのかな？」とか、「ずっと同じ方向？」とか、「寝るときは外してるのかな？つけたままなら、どうやって寝返りを打つんだろう？」とか…次々に疑問がわいてきたけど、当時はまだそんなに仲良くなかったから、ゼンマイに触るわけにもいかなくて。だから、見つけるたびに後ろをついて歩きながら、ゼンマイの動きを観察してたの。そしたらある日、突然振り向いて、なんで後をつけるのってすごく怒られた。正直に話したら、「そんなに気になるなら、アナタの背中にもつけてあげるわ。」って言われたんだ。ゼンマイを背負って数日過ごしてみたけど…すごく大変だった。サンドローネはこんなつらい思いを毎日してるのかと思うと、彼女のことがよけい気になるようになっちゃった。
+|语音内容英语=I wonder, does the key on her back ever stop turning? Does it change direction? Does she remove it when she sleeps? How does she roll over? I've been curious about that key ever since I first met her. But since we weren't close then, it didn't seem right to just go up and touch it. So whenever I had the chance, I would follow behind her, trying to figure out the pattern of its movement. But one day, she suddenly turned around and demanded to know why I kept following her. After I told her the reason, she said, "If you're that curious, why don't I put one on your back, and you can see for yourself?" So I lived with a key on my back for a few days, and it was quite the challenge. Sandrone doesn't have it easy, so I've looked out for her even more since then.
+|语音内容韩语=등 뒤의 태엽은 계속 돌아가는 건가? 항상 같은 방향으로 도나? 잘 때는 태엽을 빼고 자려나? 그냥 자다가 뒤척이면 어떡하지? 산드로네를 처음 봤을 때부터 이런 게 궁금했어. 하지만 그땐 아직 친하지 않아서, 직접 만져보기 어려웠지. 그래서 태엽이 도는 규칙을 찾아내려고 기회만 생기면 계속 뒤를 따라다녔어. 그러다가 어느 날, 산드로네가 휙 돌아보더니 왜 자꾸 따라오냐고 화내는 거야. 내가 솔직하게 대답하니까, 「그렇게 궁금하면 네 등에도 하나 달아보든가」라고 하더라. 이후 며칠간 등에 태엽을 달고 살아봤는데, 음… 되게 불편했어. 산드로네가 엄청 힘들겠더라. 그때부터 산드로네를 좀 더 신경 쓰게 됐어
+}}
+{{角色/语音1
+|语音类型=关于桑多涅·发条其二
+|语音文件=player1-哥伦比娅_关于桑多涅·发条其二
+|语音内容=我不清楚对人偶来说，怎么样才算是「死亡」…但桑多涅真的不动了，我感受不到她的「运转」，她的发条也不动了。她是为了那个「术式」，为了让我回到这里，才变成了这样…我多么希望她这么做只是为了吓我一次，就像她曾经说过会报复我的那样…
+|语音内容日语=人形が「死ぬ」のがどういうことなのか、私には分からない…でも、サンドローネは動かなくなった。もう、あの身体が動いているのを感じることはできないし、ゼンマイも止まってる。そうなったのは、あの「術式」のため…私をここに戻すため…前、サンドローネが言ってたみたいに、これが私に仕返しするための脅しだったら、どんなによかっただろう…
+|语音内容英语=I'm not sure what counts as "death" for a puppet... All I know is, Sandrone isn't moving, and I can't feel her "operating." Her key has just... stopped. And all because of the "technique" she used to bring me back. She said she was going to get back at me that one time. How I wish that's all this was. Just an attempt to scare me...
+|语音内容韩语=인형에게 무엇이 「죽음」인지는 잘 모르겠지만… 산드로네는 정말로 멈춰버렸어. 더는 산드로네의 「운행」이 느껴지지 않고, 태엽도 움직이지 않아. 그 「술식」을 위해서, 나를 여기로 데려오기 위해서, 그렇게 되어버렸지…. 이 모든 게 산드로네가 날 놀래키려고 친 장난이었으면 좋겠어. 나한테 복수하겠다던 말을 지킨 거였으면 좋겠어…
+}}
+{{角色/语音1
+|语音类型=关于桑多涅·发条其三
+|语音文件=player1-哥伦比娅_关于桑多涅·发条其三
+|语音内容=桑多涅回来了。我好开心。我发现她的发条现在偶尔会转得快一些，好像以前总是以同样的速度在转。她说这是因为自己接受了内心情感的缘故，现在的她和以前已经不一样了。但我觉得不论是换了身衣服，还是发条转得快了些，桑多涅就是桑多涅，是我最好的朋友。不论是从前还是现在的样子，我都很喜欢。听完我这么说后，她的发条转得更快了。虽然不知道为什么，但真有趣。
+|语音内容日语=
+|语音内容英语=
+|语音内容韩语=
+}}
+{{角色/语音1
+|语音类型=关于「富人」…
+|语音文件=player1-哥伦比娅_关于「富人」…
+|语音内容=在他眼中，每件事物，每个人，都是被明码标价了的，他掌握着价格的规则，通过运作筹码来扩建他的财富帝国。但那个地方很无聊，我也不会想去做客的。<br>啊…如果「富人」见到现在的我，他的笑容里一定会藏入比以往更深的厌恶吧。我都能想象出他的声音了。「恭喜你升值了，哥伦比娅小姐。」
+|语音内容日语=彼の目に映る人やものには、ひとつ残らず値札がついてるんだと思う。値段は彼次第。巧妙な取引で、自分の築き上げた富の帝国をどんどん広げていくの。でも…そんなところ、きっと退屈だろうから、遊びにいきたいとは全く思えない。<br>でも…もし「富者」が今の私を見たら、きっとこれまでよりもっといびつな笑みを浮かべてこう言うだろうね——「おめでとうございます、コロンビーナさん。だいぶ『値上がり』しましたね。」
+|语音内容英语=In his eyes, everything and everyone has a price tag, and he gets to decide their value. We're all just bargaining chips he can use to expand his ever-increasing empire of wealth. But who would want to visit a boring empire like that? Not me, that's for sure.<br>Hmm... If he saw me now, I'm sure his smile would hide even more contempt than before. I can almost hear it now... "Congratulations, Miss Columbina. Your value has appreciated."
+|语音内容韩语=「판탈로네」의 눈에 비치는 세상에선, 사물이든 사람이든 다 가격표가 붙어 있어. 그는 가격의 규칙을 쥐고 칩을 굴려서, 자기만의 부의 제국을 넓혀나가지. 하지만 거긴 너무 지루해서 놀러 가고 싶지 않아.<br>음… 아마 「판탈로네」가 지금의 날 본다면, 전보다 더 깊은 혐오를 숨긴 미소를 지을 거야. 그리고 나한테 이렇게 말하겠지. 「축하합니다, 콜롬비나 씨. 값이 많이 오르셨군요」
+}}
+{{角色/语音1
+|语音类型=关于罗莎琳…
+|语音文件=player1-哥伦比娅_关于罗莎琳…
+|语音内容=如果羽化意味着催动翅膀扑向火焰，那么维持茧的形态是否才是留存生命的更好选择？罗莎琳仿佛从没考虑过可以那么选，又或者她早已为自己选定了结局。她尽情爱，尽情恨，尽情舞…然后将哀歌留给别人来唱。
+|语音内容日语=蛹を突き破ったが最後、炎へ向かう道しかないとしたら、蛹のままで生き長らえるほうが賢いのかもしれない…でも、その選択肢があったことを、ロザリンは考えてもいなかったと思う。それか…自分の結末をとっくに決めてたのかも。思いっきり愛して、憎んで、舞い続けて…哀しい歌はほかの人に譲って、彼女は逝ってしまったんだよ。
+|语音内容英语=If metamorphosis ends in one's wings being engulfed in flame, perhaps remaining in the cocoon is how one survives. But, I doubt Rosalyne ever considered making that choice, or perhaps she had determined her own end from the very beginning. Whether it was love, hate, or a simple dance, she gave her whole self to her pursuits... and left others to sing her dirge after her departure.
+|语音内容韩语=고치를 깨봤자 날개를 펴고 불길을 향해 날아들 뿐이라면, 고치로 남는 게 오히려 생명을 부지하기에 나은 선택이 아닐까? 로잘린은 그런 선택지가 있다는 것조차 생각하지 않았던 것 같아. 아니면 처음부터 자신의 결말을 정해뒀는지도 모르지. 로잘린은 있는 힘껏 사랑하고, 있는 힘껏 미워하고, 있는 힘껏 춤췄어…. 그러곤 슬픔의 노래를 다른 이들에게 남겨두고 갔지
+}}
+{{角色/语音1
+|语音类型=关于「公子」…
+|语音文件=player1-哥伦比娅_关于「公子」…
+|语音内容=听说他和家人的感情很好，休假的时候会举家外出，去湖边露营烧烤。桑多涅说他是执行官当中生活得最像普通人的那一个，我不了解普通人，但我觉得那样的日子听上去倒是不错。
+|语音内容日语=家族ととても仲がいいらしいよ。休暇をもらったら家族みんなで湖のほとりでキャンプとかバーベキューをするんだって。執行官の中で一番普通の人に近い暮らしをしてるって、サンドローネが言ってた。普通の人の暮らしがどういうものかは分からないけど、そういう生き方は素敵だと思う。
+|语音内容英语=I've heard he has a good relationship with his family. They go camping together and have barbecues by the lake. Sandrone says he's the Harbinger who lives most like an ordinary person. I don't really understand ordinary people, but that kind of life sounds nice to me.
+|语音内容韩语=가족들이랑 사이가 좋아서, 휴가를 받으면 온 가족이 함께 호숫가에서 캠핑도 하고 바비큐도 한대. 산드로네는 그 사람을 보고 집행관 중에 제일 평범한 사람답게 사는 인물이라고 했어. 평범한 사람이 어떤 건지는 잘 모르지만, 그런 삶은 좋다고 생각해
+}}
+{{角色/语音1
+|语音类型=想要了解哥伦比娅·其一
+|语音文件=player1-哥伦比娅_想要了解哥伦比娅·其一
+|语音内容=欸…？我的故事？唔…那可能要说很长时间。嗯？你准备了茶水和点心？好吧，那作为回报，我就多讲一些。
+|语音内容日语=えっ…？私の話？うーん…長くなるかもしれないよ。え？もう、お茶とお菓子まで用意してあるの？じゃあ、お礼に頑張って聞かせてあげる。
+|语音内容英语=Huh...? My story? Um... That might take quite a while to tell. Oh, you brought tea and snacks? Well then, I suppose I could share a bit more in return.
+|语音内容韩语=어…? 내 이야기? 음… 좀 길어질지도 몰라. 응? 차랑 디저트를 준비했다고? 좋아, 그럼 보답으로 조금 더 길게 이야기해 줄게
+}}
+{{角色/语音1
+|语音类型=想要了解哥伦比娅·其二
+|语音文件=player1-哥伦比娅_想要了解哥伦比娅·其二
+|语音内容=我曾用很长时间去学习如何同他人相处，如何同这个世界相处。现在回想起来，最初在「霜月之子」和「愚人众」的两段经历，都不是很好的教材呢。以至于很长一段日子里，我都以为相处和交往即是利益的索求与代价的支付。
+|语音内容日语=この世界や人々との付き合い方を、長い時間をかけて学んできたつもりだったけど…今思い返せば「霜月の子」も「ファデュイ」も、あんまり学ぶのにいい場所じゃなかったね。人と付き合うってことは、利益と代償の交換なんだって、ずっと思い込んできたから…
+|语音内容英语=I used to spend a lot of time learning how to interact with people and go about life in this world. But looking back now, perhaps my experiences with the Frostmoon Scions and the Fatui weren't the best teachers. For a long time, I thought relationships were transactional — their only purpose being figuring out what you can take, and what it might cost you in return.
+|语音内容韩语=난 오랜 시간에 걸쳐서, 사람을 사귀는 법이랑 이 세계와 어울리는 법을 배웠어. 지금 돌이켜보면, 옛날 「서리달 아이」와 「우인단」에서의 경험은 별로 좋은 예시가 아니었던 것 같아. 덕분에 오랫동안, 관계와 교류를 이익을 위해 대가를 지불하는 거래로만 여겼으니까
+}}
+{{角色/语音1
+|语音类型=想要了解哥伦比娅·其三
+|语音文件=player1-哥伦比娅_想要了解哥伦比娅·其三
+|语音内容=我喜欢为月灵们讲故事，也喜欢唱歌。我的人生有一块空白，它出现在我诞生之前，却如一个胎记般伴随着我的生活。当你的故事生来就是残缺的，你就得学着用其他故事去填补这个空白。我尝试用词语去摹画它的轮廓，又用歌声为它添上色彩。
+|语音内容日语=月霊たちに物語を聞かせてあげたり、歌を歌ったりするのは好き。生まれる前から、私の人生にはぽっかり穴が空いた部分があった…その穴がまるで「あざ」みたいにずっとつきまとってるの。最初から不完全な物語なら、ほかの物語で空いた穴を埋めたいと思うのも当然でしょ？だから、言葉で穴の輪郭を辿って、歌で色を添えていくの。
+|语音内容英语=I love telling stories to the kuuhenki, and I love to sing. There's a blank space in my life that has existed since before I was born and has shadowed me since. My story was incomplete from the start, so I've learned to use other stories to fill in the gaps. It's like... painting a picture — I sketch the outline with words and color it in with song.
+|语音内容韩语=난 월령들한테 이야기를 들려주는 거랑 노래 부르는 걸 좋아해. 내가 태어나기 전부터 내 삶에는 한 조각의 공백이 있었어. 그건 평생 지워지지 않는 자국이었지. 자신의 이야기가 처음부터 불완전하다면, 다른 이야기로 그 공백을 채워야 하잖아? 그래서 나는 말로 윤곽을 그리고, 노래로 색을 입히려 한 거야
+}}
+{{角色/语音1
+|语音类型=想要了解哥伦比娅·其四
+|语音文件=player1-哥伦比娅_想要了解哥伦比娅·其四
+|语音内容=在祈月之夜，我得到了自己的名字——哥伦比娅·希珀塞莱尼娅。从前的我会以为，名字不过是个代号，是自身以外的某种东西。但那晚过后我明白了，名字是我同这个世界的连接，它包含着朋友们的心意，是朋友们心中的「我」在现实中的回响。我会珍惜这个名字的。
+|语音内容日语=祈月の夜に手に入れた名前——「コロンビーナ・ハイポセレニア」。名前なんてただの記号で、自分とは別のものだって、昔は思ってた。でも、あの夜初めて気付いたの。名前はこの世界と私を繋げる橋みたいなもので、友達の想いが込められたものなんだって…友達の心の中に生きる「私」の、現実世界での響き——それが私の名前なの。これからもずっと大切にしたいな。
+|语音内容英语=On Moon-Prayer Night, I received a name that belongs to me — Columbina Hyposelenia. I used to think a name was nothing more than an alias, something separate from oneself. But after that night, I realized my name is what connects me to this world and the people within it... It is all that is intangible — their friendship, love, and support — manifested for the world to see. I will cherish it forever.
+|语音内容韩语=기도의 밤에, 나는 콜롬비나·하이포셀레니아라는 이름을 얻었어. 예전의 나라면 이름은 하나의 호칭일 뿐, 나 자신과는 별개의 무언가라고 생각했을 거야. 하지만 그날 밤에 깨달았어. 이름은 나와 이 세계를 이어주는 연결고리라는 걸. 이름엔 친구들의 마음이 담겨 있고, 친구들 마음속의 내가 담겨 있어. 나, 이 이름을 소중히 간직할 거야
+}}
+{{角色/语音1
+|语音类型=想要了解哥伦比娅·其五
+|语音文件=player1-哥伦比娅_想要了解哥伦比娅·其五
+|语音内容=我的故事像是一部倒放的歌剧。它先给予了我结果，才叫我去探寻原因。但若问我重来一次，是否希望这故事有所不同的话，我又会觉得现在这样挺好。如果没有这趟探寻的旅途，我就不会知道诞生在挪德卡莱其实是我自己的选择，就不会在朋友们的帮助下学会同真正的「家人」相处，你那晚也不会在努昂诺塔的指引下踏入银月之庭。我的故事或许会迎来另一种空白，我不希望那样。
+|语音内容日语=私の人生はまるで、逆再生される歌劇みたい。先に結末が告げられて、ことの顛末を探る旅に出るの。でも、もし「別の結末が用意された劇もあるから、やり直すか」って聞かれたら…やっぱり今のままがいいって思う。この旅がなかったら、ナド・クライで生まれたのが実は私自身の選択だったってことも分からなかったと思うし、友達に助けられて、本当の「家族」との付き合い方を学ぶこともなかった。そしてあの夜…キミがルオンノタルに導かれて「銀月の庭」を訪れることもなかった。そしたらきっと、私の心の中には別の形の穴が空いてたと思うから…そんなのは、嫌だな。
+|语音内容英语=My story is like an opera played in reverse. The ending came first, and I was left searching for the whys and wherefores. But if I could go back and do it all over again, I wouldn't change a thing. I quite like it as it is now. Without this journey, I never would have known that being born in Nod-Krai was my own choice, my friends never would have helped me connect with my true "family," and you never would have followed Luonnotar into Silvermoon Hall that night. My story would have been empty in a very different way. I don't like that version one bit.
+|语音内容韩语=내 이야기는 거꾸로 재생되는 오페라 같아. 결말을 먼저 알고, 그 원인을 찾는 여정을 떠나야 했지. 하지만 누가 나한테 다른 이야기로 다시 시작하겠냐고 묻는다면, 난 지금 이대로가 좋다고 할 거야. 이 여정이 없었으면 난 노드크라이에 태어난 게 나 자신의 선택이었다는 것도 몰랐을 거고, 친구들의 도움 아래 진짜 「가족」과 어울리는 법도 배우지 못했을 테니까. 그리고, 네가 그날 밤 루오노타르를 따라 달빛 정원에 발을 들일 일도 없었겠지. 그러면 내 이야기엔 또 다른 공백이 생겼을 거야. 난 그런 건 싫어
+}}
+{{角色/语音1
+|语音类型=哥伦比娅的爱好…
+|语音文件=player1-哥伦比娅_哥伦比娅的爱好…
+|语音内容=偶尔回到月亮上，睁开眼睛静静地看着提瓦特运转，会让我感到很安心。
+|语音内容日语=時々月に帰って、目を開けてテイワットを静かに見つめてると、いつの間にか心が安らいでる。
+|语音内容英语=I like to go up to the moon and watch Teyvat revolve in silence. It brings me peace.
+|语音内容韩语=난 가끔 달로 돌아가서, 눈을 뜨고 조용히 티바트의 운행을 지켜봐. 그러면 마음이 무척 편안해져
+}}
+{{角色/语音1
+|语音类型=哥伦比娅的烦恼…
+|语音文件=player1-哥伦比娅_哥伦比娅的烦恼…
+|语音内容=想和普通人一样在那夏镇散步…但每次都会被认出来。是应该换件外套吗？还是说普通人不会和镇上的月灵说话？
+|语音内容日语=普通の人みたいにナシャタウンを散歩したいけど…毎回気づかれちゃうの。服を変えたほうがいいのかな？それとも、普通の人は、街で月霊と話したりしないの？
+|语音内容英语=I wish I could take a stroll in Nasha Town like a normal person... But I keep getting recognized. Is it my outfit? Or the fact that I talk to the kuuhenki in town? Do normal people not do that?
+|语音内容韩语=평범한 사람처럼 나샤 마을을 산책하고 싶은데… 매번 들켜. 옷이라도 바꿔 입어야 하나? 아니면 혹시 평범한 사람들은 마을에 있는 월령이랑 대화 못 해?
+}}
+{{角色/语音1
+|语音类型=喜欢的食物…
+|语音文件=player1-哥伦比娅_喜欢的食物…
+|语音内容=新鲜的水果、蔬菜，配上麦香味的面包…嗯？很朴素吗？可能是习惯了吧。最初诞生在挪德卡莱的时候，「霜月之子」给我的就是这些。小动物们也经常带它们采到的野果和我分享。我喜欢食物最初的样子，其中包含着一部分这个世界最初的模样。
+|语音内容日语=新鮮な果物と野菜と、麦の香りがするパン…えっ？素朴…？そうかな…慣れ親しんだ味だからかも。ナド・クライに生まれたときから「霜月の子」で出されてきたし、動物たちもよく果実を採ってきてくれたから。でも、どっちかというと、加工前の食べ物のほうが好き。この世界の最初の姿を想像できるから。
+|语音内容英语=Fresh fruit and vegetables paired with fragrant bread... Hmm? Oh, well, I suppose it is a bit plain, but I'm used to it. It's what the Frostmoon Scions gave me when I was first born in Nod-Krai. The little animals often shared their foraged berries with me too. I prefer food in its most natural state — it allows you to get a glimpse of the world as it's meant to be.
+|语音内容韩语=신선한 과일이랑 채소, 고소한 밀 향이 나는 빵… 응? 너무 소박하다고? 이게 익숙해서 그런가 봐. 내가 처음 노드크라이에 태어났을 때 「서리달 아이」한테 받은 게 그런 거였거든. 동물들도 종종 와서 자기들이 주운 열매를 나눠줬고. 난 음식이 본연의 모습일 때가 좋아. 그 안에 이 세계 태초의 모습이 담겨 있잖아
+}}
+{{角色/语音1
+|语音类型=讨厌的食物…
+|语音文件=player1-哥伦比娅_讨厌的食物…
+|语音内容=「火水」，还有其他一些味道很烈的酒。至冬有很多这样的饮品。尽管我在那边待了很长时间，但还是习惯不来。为什么大家喜欢那种身子像在燃烧、世界像在旋转的感觉呢？他们也想飘到月亮上去吗？
+|语音内容日语=「炎水」。ほかの強いお酒も好きじゃない。スネージナヤにはそういう飲み物がたくさんあるの。ずっと住んでたのに、ちっとも慣れない。どうしてみんな、体が燃えるようで、世界がグルグル回るような感覚が好きなんだろう。もしかして、ふわふわな感覚になって、月に登りたいのかな？
+|语音内容英语="Fire-Water" and other strong spirits. Snezhnaya has a lot of drinks like that. I was there for a long time, but I never got used to them. The world starts to spin and you feel like your insides are on fire. I just don't understand why people enjoy that feeling, unless... Do they want to float up to the moon too?
+|语音内容韩语=「불의 물」 같은 독한 술들. 스네즈나야엔 그런 음료가 많아. 거기서 오래 지냈지만, 그 맛에는 도무지 익숙해지질 못했어. 몸이 불타고 세상이 빙글빙글 도는 그 감각을 사람들은 왜 좋아하는 걸까? 다들 달 위로 날아가고 싶은 걸까?
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其一
+|语音文件=player1-哥伦比娅_收到赠礼·其一
+|语音内容=我还要。咦…？没有更多了吗？好吧，我下次省着吃。
+|语音内容日语=まだある？え、もうないの？…今度はもっとゆっくり食べる。
+|语音内容英语=More please. Hmm? Oh, was that all? I'll have to remember to save some next time.
+|语音内容韩语=더 먹고 싶어. 어…? 더 없다고? 알겠어, 다음엔 아껴 먹을게
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其二
+|语音文件=player1-哥伦比娅_收到赠礼·其二
+|语音内容=还不错，我会伴着月光慢慢享用的。
+|语音内容日语=うん、美味しい。月光と一緒にゆっくりいただくね。
+|语音内容英语=It's quite pleasant. I'll savor it beneath the moonlight.
+|语音内容韩语=마음에 들어. 달빛이랑 같이 천천히 즐길래
+}}
+{{角色/语音1
+|语音类型=收到赠礼·其三
+|语音文件=player1-哥伦比娅_收到赠礼·其三
+|语音内容=唔…我惹桑多涅生气的时候，她也会给我吃类似的东西…
+|语音内容日语=うん…サンドローネを怒らせた時も、こんな物を食べさせられたな…
+|语音内容英语=Oh... Whenever Sandrone was mad at me, she'd give me things like this too...
+|语音内容韩语=음… 산드로네도 내가 화나게 하면 이런 비슷한 걸 먹였는데…
+}}
+{{角色/语音1
+|语音类型=生日…
+|语音文件=player1-哥伦比娅_生日…
+|语音内容=你的生日每年都是同一天吗？真好记。唔…祈月之夜每年举办的时间都不同，我只能通过感知月亮来估算自己的生日。不过，「生日」倒的确是个愉快的节日。大家围在一起跳舞，还会为你制作好吃的贡品。欸…？普通人的生日不是这样的吗？礼物、蛋糕，还有朋友…？嗯，好呀，那就叫上朋友们来为你一起庆祝。我可以为你唱首歌，还能叫上梅拉为你画幅画呢。
+|语音内容日语=キミの誕生日って、毎年同じ日なの？それなら覚えやすいね。えっと…祈月の夜は毎年違うから、月を感知することで誕生日を推測するしかないの。でも、「誕生日」は楽しいよね。みんなが集まって踊ったり、美味しい食べ物を捧げてくれたり。えっ…？普通の誕生日はそうじゃないの？プレゼントやケーキ、友達…？そうなんだ…じゃあ、みんなを呼んで一緒に祝おうよ。私は歌を歌うし、メイラには絵を描いてもらうよ。
+|语音内容英语=Your birthday is on the same day every year? Wow, that's easy to remember. Moon-Prayer Night is held at different times each year, so I can only estimate my birthday by sensing the moon. A birthday is such a joyous occasion, isn't it? Everyone gathers to dance while people make delicious offerings to give you. Huh...? Regular people's birthdays aren't like that? Gifts, cake, and friends...? Oh, that works too. Let's invite your friends to celebrate. I can sing you a song, and we can even ask Maalaus to paint a picture for you.
+|语音内容韩语=넌 생일이 매년 같아? 기억하기 편하네. 음… 나는 기도의 밤이 열리는 날짜가 매년 조금씩 달라져서, 달을 감지해서 생일을 짐작할 수밖에 없어. 그래도 「생일」이란 건 즐거운 날인 것 같아. 모두 함께 모여 춤추고, 주인공을 위해 맛있는 공물을 만들어 주잖아. 어…? 평범한 사람의 생일은 그런 게 아니라고? 선물, 케이크, 친구…? 응, 좋아. 그럼 친구들을 불러서 네 생일을 같이 축하하자. 내가 노래를 불러줄게. 말라우스한테 그림도 한 장 그려달라고 하고
+}}
+{{角色/语音1
+|语音类型=突破的感受·起
+|语音文件=player1-哥伦比娅_突破的感受·起
+|语音内容=潮汐因恒月而翻涌。
+|语音内容日语=恒月の瞬きに、潮が満ちゆく。
+|语音内容英语=By the Eternal Moon, the tides shall surge.
+|语音内容韩语=조석은 영원달로 인해 솟구쳐
+}}
+{{角色/语音1
+|语音类型=突破的感受·承
+|语音文件=player1-哥伦比娅_突破的感受·承
+|语音内容=寒夜因霜月而长明。
+|语音内容日语=霜月の輝きに、寒い夜が照らされる。
+|语音内容英语=By the Frost Moon, the night shall be illuminated.
+|语音内容韩语=추운 밤은 서리달로 인해 빛나지
+}}
+{{角色/语音1
+|语音类型=突破的感受·转
+|语音文件=player1-哥伦比娅_突破的感受·转
+|语音内容=幽冥因虹月而深邃。
+|语音内容日语=虹月の煌めきに、冥界の色が深くなる。
+|语音内容英语=By the Iridescent Moon, darkness shall be cast deeper into the shadows.
+|语音内容韩语=유명은 무지개달로 인해 깊어져
+}}
+{{角色/语音1
+|语音类型=突破的感受·合
+|语音文件=player1-哥伦比娅_突破的感受·合
+|语音内容=命运的纺线继承到了我的掌间，自此，新月将注视并照亮月下的世界。
+|语音内容日语=運命の糸はこの手に繋がれた——新月が、月下の世界を包む。
+|语音内容英语=I now hold the threads of fate in my hands. From now on, the new moon shall watch over and illuminate the world below.
+|语音内容韩语=운명의 실타래가 내 손에 쥐어졌어. 이제부터, 새로운 달이 이 세계를 바라보며 비출 거야
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素战技·其一
+|语音文件=player1-哥伦比娅_元素战技·其一
+|语音内容=漫流。
+|语音内容日语=流れて。
+|语音内容英语=Flow.
+|语音内容韩语=흘러라
+}}
+{{角色/语音1
+|语音类型=元素战技·其二
+|语音文件=player1-哥伦比娅_元素战技·其二
+|语音内容=盈满。
+|语音内容日语=満ちて。
+|语音内容英语=Surge.
+|语音内容韩语=차올라라
+}}
+{{角色/语音1
+|语音类型=元素战技·其三
+|语音文件=player1-哥伦比娅_元素战技·其三
+|语音内容=垂映。
+|语音内容日语=映して。
+|语音内容英语=Wane.
+|语音内容韩语=드리워라
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=元素爆发·其一
+|语音文件=player1-哥伦比娅_元素爆发·其一
+|语音内容=新月终临。
+|语音内容日语=新月が——来る。
+|语音内容英语=A new moon rises.
+|语音内容韩语=새로운 달이 떴어
+}}
+{{角色/语音1
+|语音类型=元素爆发·其二
+|语音文件=player1-哥伦比娅_元素爆发·其二
+|语音内容=三月交辉之刻。
+|语音内容日语=三月よ、輝け。
+|语音内容英语=Three moons converge.
+|语音内容韩语=세 달이 빛나는 순간
+}}
+{{角色/语音1
+|语音类型=元素爆发·其三
+|语音文件=player1-哥伦比娅_元素爆发·其三
+|语音内容=将此月夜，献予众生。
+|语音内容日语=今宵、月を捧ぐ…
+|语音内容英语=A moonlit night for all.
+|语音内容韩语=달빛이 내리는 밤을 선물할게
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=打开宝箱·其一
+|语音文件=player1-哥伦比娅_打开宝箱·其一
+|语音内容=是「惊喜」…对吧？
+|语音内容日语=これって「サプライズ」…？
+|语音内容英语=They call this a "pleasant surprise"... right?
+|语音内容韩语=「깜짝선물」… 맞지?
+}}
+{{角色/语音1
+|语音类型=打开宝箱·其二
+|语音文件=player1-哥伦比娅_打开宝箱·其二
+|语音内容=它们也离家出走了吗？
+|语音内容日语=この子たちも家出したの？
+|语音内容英语=Hmm, did they run from home too?
+|语音内容韩语=얘네도 가출한 거야?
+}}
+{{角色/语音1
+|语音类型=打开宝箱·其三
+|语音文件=player1-哥伦比娅_打开宝箱·其三
+|语音内容=我已经不需要贡品了，你收下吧。
+|语音内容日语=もうお供え物はいらないから、キミにあげる。
+|语音内容英语=You keep them. I no longer need offerings.
+|语音内容韩语=난 이제 공물 필요 없어. 너 가져
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=生命值低·其一
+|语音文件=player1-哥伦比娅_生命值低·其一
+|语音内容=晕晕的…
+|语音内容日语=クラクラする…
+|语音内容英语=Getting dizzy...
+|语音内容韩语=어지러워…
+}}
+{{角色/语音1
+|语音类型=生命值低·其二
+|语音文件=player1-哥伦比娅_生命值低·其二
+|语音内容=夜色变深了…
+|语音内容日语=夜が更けてきた…
+|语音内容英语=It's growing dark...
+|语音内容韩语=하늘이 어두워지고 있어…
+}}
+{{角色/语音1
+|语音类型=生命值低·其三
+|语音文件=player1-哥伦比娅_生命值低·其三
+|语音内容=我不太好…
+|语音内容日语=あれ、身体が…
+|语音内容英语=Not doing so well...
+|语音内容韩语=나 아파…
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=同伴生命值低·其一
+|语音文件=player1-哥伦比娅_同伴生命值低·其一
+|语音内容=不晕么？你看起来轻飘飘的。
+|语音内容日语=ふらふらしてるね。大丈夫？
+|语音内容英语=Feeling woozy? Allow me to step in.
+|语音内容韩语=안 어지럽니? 너 되게 나풀나풀해
+}}
+{{角色/语音1
+|语音类型=同伴生命值低·其二
+|语音文件=player1-哥伦比娅_同伴生命值低·其二
+|语音内容=你不休息吗？
+|语音内容日语=ちょっと休む？
+|语音内容英语=How about some rest?
+|语音内容韩语=안 쉬어?
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=倒下·其一
+|语音文件=player1-哥伦比娅_倒下·其一
+|语音内容=夜空…再次黯淡…
+|语音内容日语=再び…夜空に闇が…
+|语音内容英语=The night sky... dims... once more...
+|语音内容韩语=밤하늘이… 다시 어두워졌어…
+}}
+{{角色/语音1
+|语音类型=倒下·其二
+|语音文件=player1-哥伦比娅_倒下·其二
+|语音内容=月亮…坠落了…
+|语音内容日语=月が…落ちた…
+|语音内容英语=The moon has... waned...
+|语音内容韩语=달이… 떨어졌어…
+}}
+{{角色/语音1
+|语音类型=倒下·其三
+|语音文件=player1-哥伦比娅_倒下·其三
+|语音内容=离家的…代价…
+|语音内容日语=家を離れた…せいかな…
+|语音内容英语=The price... of leaving home...
+|语音内容韩语=집을 떠난… 대가…
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=普通受击·其一
+|语音文件=player1-哥伦比娅_普通受击·其一
+|语音内容=我没事…
+|语音内容日语=平気…
+|语音内容英语=I'm fine...
+|语音内容韩语=난 괜찮아…
+}}
+{{角色/语音1
+|语音类型=重受击·其一
+|语音文件=player1-哥伦比娅_重受击·其一
+|语音内容=好痛…！
+|语音内容日语=いたっ…！
+|语音内容英语=Ouch...!
+|语音内容韩语=아파…!
+}}
+{{角色/语音1
+|语音类型=重受击·其二
+|语音文件=player1-哥伦比娅_重受击·其二
+|语音内容=…为什么？
+|语音内容日语=…どうしたの？
+|语音内容英语=...Why?
+|语音内容韩语=날 왜…?
+}}
+</div>
+<div class="resp-tab-content">
+{{角色/语音1
+|语音类型=加入队伍·其一
+|语音文件=player1-哥伦比娅_加入队伍·其一
+|语音内容=要我借你一束月光吗？
+|语音内容日语=月の光が必要？
+|语音内容英语=Allow me to lend you some moonlight.
+|语音内容韩语=달빛 한 줄기 빌려줄까?
+}}
+{{角色/语音1
+|语音类型=加入队伍·其二
+|语音文件=player1-哥伦比娅_加入队伍·其二
+|语音内容=会出去很久吗？
+|语音内容日语=長旅になるの？
+|语音内容英语=Will we be gone long?
+|语音内容韩语=오래 나가야 돼?
+}}
+{{角色/语音1
+|语音类型=加入队伍·其三
+|语音文件=player1-哥伦比娅_加入队伍·其三
+|语音内容=嗯，我跟你走。
+|语音内容日语=うん、一緒に行く。
+|语音内容英语=I will follow where you lead.
+|语音内容韩语=응, 너랑 갈래
+}}
+</div>

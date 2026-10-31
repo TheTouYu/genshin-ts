@@ -1,0 +1,6858 @@
+{
+ "meta": {
+  "role": "nahida",
+  "mode": "casual",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "frames": 48,
+  "summary": {
+   "mode": "casual",
+   "frames": 48,
+   "pixelChangedFrames": 47,
+   "firstPixelChangeFrame": 0,
+   "firstPixelChangeAt": 0.033,
+   "longestRun": 27,
+   "longestRunStartFrame": 21,
+   "changeSpanFrames": 47,
+   "maxIdleFrames": 1,
+   "maxIdleSeconds": 0.03,
+   "maxIdleStartFrame": 20,
+   "persistent": true,
+   "controlsTouched": [
+    {
+     "name": "stext",
+     "changes": 88
+    },
+    {
+     "name": "cell",
+     "changes": 458
+    },
+    {
+     "name": "sk1state",
+     "changes": 3
+    },
+    {
+     "name": "itopBanner",
+     "changes": 1
+    },
+    {
+     "name": "ibotBanner",
+     "changes": 1
+    },
+    {
+     "name": "cell25",
+     "changes": 1
+    },
+    {
+     "name": "cell23",
+     "changes": 4
+    },
+    {
+     "name": "cell16",
+     "changes": 1
+    },
+    {
+     "name": "cell14",
+     "changes": 2
+    },
+    {
+     "name": "cell24",
+     "changes": 1
+    },
+    {
+     "name": "cell22",
+     "changes": 2
+    },
+    {
+     "name": "cell15",
+     "changes": 1
+    },
+    {
+     "name": "cell13",
+     "changes": 2
+    },
+    {
+     "name": "cell21",
+     "changes": 2
+    },
+    {
+     "name": "cell12",
+     "changes": 2
+    },
+    {
+     "name": "cell32",
+     "changes": 2
+    },
+    {
+     "name": "cell31",
+     "changes": 2
+    },
+    {
+     "name": "cell42",
+     "changes": 2
+    },
+    {
+     "name": "cell41",
+     "changes": 2
+    },
+    {
+     "name": "cell33",
+     "changes": 2
+    },
+    {
+     "name": "cell52",
+     "changes": 2
+    },
+    {
+     "name": "cell51",
+     "changes": 2
+    },
+    {
+     "name": "cell43",
+     "changes": 2
+    },
+    {
+     "name": "cell62",
+     "changes": 2
+    },
+    {
+     "name": "cell61",
+     "changes": 2
+    },
+    {
+     "name": "cell53",
+     "changes": 2
+    },
+    {
+     "name": "cell72",
+     "changes": 2
+    },
+    {
+     "name": "cell71",
+     "changes": 2
+    },
+    {
+     "name": "cell63",
+     "changes": 2
+    },
+    {
+     "name": "cell82",
+     "changes": 1
+    },
+    {
+     "name": "cell81",
+     "changes": 2
+    },
+    {
+     "name": "cell73",
+     "changes": 2
+    },
+    {
+     "name": "cell92",
+     "changes": 1
+    },
+    {
+     "name": "cell91",
+     "changes": 1
+    },
+    {
+     "name": "cell83",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [
+    {
+     "i": 0,
+     "t": 0.033,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 1,
+     "t": 0.067,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 2,
+     "t": 0.1,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 3,
+     "t": 0.133,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 4,
+     "t": 0.167,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 5,
+     "t": 0.2,
+     "first": "skill fx kind=cast role=nahida fx=on copy=on"
+    },
+    {
+     "i": 6,
+     "t": 0.233,
+     "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+    },
+    {
+     "i": 7,
+     "t": 0.267,
+     "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+    },
+    {
+     "i": 8,
+     "t": 0.3,
+     "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+    },
+    {
+     "i": 9,
+     "t": 0.333,
+     "first": "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual"
+    }
+   ],
+   "animation": "on",
+   "controlRun": {
+    "comparedFrames": 48,
+    "framesDifferingFromControl": 48,
+    "firstDifferingFrame": 0,
+    "maxRatio": 0.74241
+   },
+   "skillEffect": "on",
+   "audio": {
+    "newCount": 2,
+    "ids": [
+     40441,
+     40001
+    ],
+    "sample": [
+     {
+      "instanceId": 3,
+      "audioId": 40441,
+      "startedAt": 5.933333333333322,
+      "duration": 1.001,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 40001,
+      "startedAt": 5.933333333333322,
+      "duration": 1.653,
+      "alive": true,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": "nahida",
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": {
+    "ok": true,
+    "evidence": "skill switch ok=true active=1 role=nahida"
+   },
+   "elapsedMs": 21054,
+   "saveFreshness": {
+    "ok": false,
+    "stale": [
+     {
+      "path": "lua/tetris/config.lua",
+      "why": "内容不一致（存档 45142B / 磁盘 45151B）"
+     }
+    ],
+    "checked": 8
+   },
+   "keyFrames": [
+    "frame-f001.png",
+    "frame-f012.png",
+    "frame-f024.png",
+    "frame-f048.png"
+   ],
+   "controlStrip": "control-strip.png"
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 1068366,
+    "ratio": 0.74192,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [
+     {
+      "id": 376,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 375,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "kind": "textbox"
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 370,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 369,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "kind": "image"
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "kind": "image"
+     }
+    ],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · 就绪",
+      "to": "台前 · CD 25.0s"
+     },
+     {
+      "id": 341,
+      "name": "itopBanner",
+      "from": "",
+      "to": "纳西妲 · 替手"
+     },
+     {
+      "id": 340,
+      "name": "ibotBanner",
+      "from": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明",
+      "to": "松手吧，这盘我来落子。"
+     }
+    ],
+    "changed": 27
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 41218,
+    "ratio": 0.02862,
+    "bbox": {
+     "x": 588,
+     "y": 102,
+     "w": 424,
+     "h": 651
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": 6.35
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.98,
+      "dy": -4.61
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.61,
+      "dy": -4.33
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -5.66,
+      "dy": 2.68
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 5.2
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 5.77,
+      "dy": 0.38
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1753206634,
+      "to": -1837117590
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -2122330262,
+      "to": -1333801110
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": -1451241622
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1812731418,
+      "to": -1811147238
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2004864874,
+      "to": -1568682134
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1216360598,
+      "to": -1535127702
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -746598550,
+      "to": -947925142
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 763350890,
+      "to": 1149226858
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2071998614,
+      "to": 1568657258
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1551880042,
+      "to": 1786761066
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 276811626
+     }
+    ],
+    "textChanged": [],
+    "changed": 27
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 46266,
+    "ratio": 0.03213,
+    "bbox": {
+     "x": 588,
+     "y": 97,
+     "w": 424,
+     "h": 656
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": 4.85
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.81,
+      "dy": -4.64
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.5,
+      "dy": -4.38
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -5.41,
+      "dy": 2.33
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 4.75
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 5.52,
+      "dy": 0.13
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1837117590,
+      "to": -1249915030
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1333801110,
+      "to": -713044118
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1451241622,
+      "to": -864039062
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1811147238,
+      "to": -1307830758
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1568682134,
+      "to": -998256790
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": -1535127702
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1853894806
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -947925142,
+      "to": -1149251734
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1149226858,
+      "to": 1686097770
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1568657258,
+      "to": 1065340778
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1988087658
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 176148330
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 48552,
+    "ratio": 0.03372,
+    "bbox": {
+     "x": 588,
+     "y": 94,
+     "w": 424,
+     "h": 659
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": 3.34
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.64,
+      "dy": -4.68
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.38,
+      "dy": -4.42
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -5.17,
+      "dy": 1.98
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.02,
+      "dy": 4.29
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 5.27,
+      "dy": -0.12
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1249915030,
+      "to": -780152982
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -713044118,
+      "to": -293613718
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -864039062,
+      "to": -461385878
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1307830758,
+      "to": -955509222
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -998256790,
+      "to": -612380822
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1535127702,
+      "to": -1753231510
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -2139107478
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1149251734,
+      "to": -1350578326
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": -1937780886
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1065340778,
+      "to": 696242026
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1988087658,
+      "to": -2122330262
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 109039466
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 47359,
+    "ratio": 0.03289,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 661
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": 1.84
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.47,
+      "dy": -4.71
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.27,
+      "dy": -4.47
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -4.93,
+      "dy": 1.64
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 3.83
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 5.02,
+      "dy": -0.37
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -780152982,
+      "to": -411054230
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -293613718,
+      "to": -58732694
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -461385878,
+      "to": -226504854
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -955509222,
+      "to": -754182630
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -612380822,
+      "to": -394277014
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1753231510,
+      "to": -1971335318
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2139107478,
+      "to": 1870647146
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1350578326,
+      "to": -1551904918
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1937780886,
+      "to": -1115697302
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 478138218
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2122330262,
+      "to": -1971335318
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 41930602
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 29775,
+    "ratio": 0.02068,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 661
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.3,
+      "dy": -4.74
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.16,
+      "dy": -4.51
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -4.68,
+      "dy": 1.29
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 3.38
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 4.78,
+      "dy": -0.62
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -411054230,
+      "to": -176173206
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -58732694,
+      "to": -8401046
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -226504854,
+      "to": -176173206
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -754182630,
+      "to": -703850982
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -394277014,
+      "to": -343945366
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1602211690
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1551904918,
+      "to": -1770008726
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 411029354
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1115697302,
+      "to": -528494742
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 478138218,
+      "to": 394252138
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -1870672022
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 26
+   },
+   "logsTail": [
+    "skill fx kind=cast role=nahida fx=on copy=on",
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 30719,
+    "ratio": 0.02133,
+    "bbox": {
+     "x": 369,
+     "y": 148,
+     "w": 588,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 3.12,
+      "dy": -4.78
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -2.05,
+      "dy": -4.56
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -4.44,
+      "dy": 0.94
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.92
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 4.53,
+      "dy": -0.87
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -176173206,
+      "to": -41955478
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1602211690,
+      "to": 1350553450
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1770008726,
+      "to": -1971335318
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 411029354,
+      "to": 545247082
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -528494742,
+      "to": -1434464406
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1870672022,
+      "to": -1803563158
+     },
+     {
+      "id": 353,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 25.0s",
+      "to": "台前 · CD 24.7s"
+     }
+    ],
+    "changed": 23
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 32886,
+    "ratio": 0.02284,
+    "bbox": {
+     "x": 678,
+     "y": 148,
+     "w": 279,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.95,
+      "dy": -4.81
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.93,
+      "dy": -4.61
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -4.19,
+      "dy": 0.59
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.46
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 4.28,
+      "dy": -1.12
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -41955478,
+      "to": -8401046
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1719652202
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1115672426
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": 2105528170
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 813682538
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1434464406,
+      "to": 2088750954
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1786785942
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 31988,
+    "ratio": 0.02221,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 309,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.78,
+      "dy": -4.85
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.82,
+      "dy": -4.65
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -3.95,
+      "dy": 0.24
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 2.01
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 4.03,
+      "dy": -1.37
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1719652202,
+      "to": 1535102826
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1115672426,
+      "to": 897568618
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2105528170,
+      "to": 1904201578
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 813682538,
+      "to": 1233112938
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2088750954,
+      "to": 1467993962
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1786785942,
+      "to": -1803563158
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 34710,
+    "ratio": 0.0241,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 309,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.61,
+      "dy": -4.88
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.71,
+      "dy": -4.7
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -3.71,
+      "dy": -0.1
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 1.55
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 3.78,
+      "dy": -1.61
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1535102826,
+      "to": 1350553450
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 696242026
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1904201578,
+      "to": 1686097770
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1233112938,
+      "to": 1786761066
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 998231914
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -1853894806
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill ai start tier=1 lvidx=1 dur=6.0 mode=casual",
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 37234,
+    "ratio": 0.02586,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 309,
+     "h": 605
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.44,
+      "dy": -4.91
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.6,
+      "dy": -4.74
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -3.46,
+      "dy": -0.45
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 1.09
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 3.53,
+      "dy": -1.86
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1350553450,
+      "to": 1182781290
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 696242026,
+      "to": 511692650
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1686097770,
+      "to": 1467993962
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": -1803563158
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 998231914,
+      "to": 645910378
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1853894806,
+      "to": -1971335318
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [],
+    "changed": 23
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 30431,
+    "ratio": 0.02113,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 306,
+     "h": 587
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.27,
+      "dy": -4.95
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.48,
+      "dy": -4.79
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -3.22,
+      "dy": -0.8
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": 0.64
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 3.28,
+      "dy": -2.11
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 1015009130
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 511692650,
+      "to": 360697706
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1467993962,
+      "to": 1249890154
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1803563158,
+      "to": -964702358
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 645910378,
+      "to": 444583786
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1971335318,
+      "to": -2105553046
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 20691,
+    "ratio": 0.01437,
+    "bbox": {
+     "x": 661,
+     "y": 165,
+     "w": 278,
+     "h": 570
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 2.09,
+      "dy": -4.98
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.37,
+      "dy": -4.84
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -2.98,
+      "dy": -1.15
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 3.04,
+      "dy": -2.36
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 864014186
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 226479978
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 1015009130
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 427806570
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -964702358,
+      "to": -713044118
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 444583786,
+      "to": 394252138
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2105553046,
+      "to": 2021642090
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 25.0s",
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 20967,
+    "ratio": 0.01456,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 306,
+     "h": 552
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.92,
+      "dy": -5.02
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.26,
+      "dy": -4.88
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -2.73,
+      "dy": -1.5
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 2.79,
+      "dy": -2.61
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 864014186,
+      "to": 729796458
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 226479978,
+      "to": 109039466
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1015009130,
+      "to": 780128106
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 427806570,
+      "to": 578801514
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -713044118,
+      "to": -1585459350
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2021642090,
+      "to": 1803538282
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 59,
+      "name": "cell22",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 50,
+      "name": "cell13",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 18388,
+    "ratio": 0.01277,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 306,
+     "h": 608
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.75,
+      "dy": -5.05
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.15,
+      "dy": -4.93
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -2.49,
+      "dy": -1.84
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -0.73
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 2.54,
+      "dy": -2.86
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 729796458,
+      "to": 595578730
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 25153386
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 780128106,
+      "to": 545247082
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 578801514,
+      "to": 880791402
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1585459350,
+      "to": 1971310442
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1803538282,
+      "to": 1585434474
+     }
+    ],
+    "textChanged": [],
+    "changed": 19
+   },
+   "logsTail": [
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 33398,
+    "ratio": 0.02319,
+    "bbox": {
+     "x": 156,
+     "y": 0,
+     "w": 1288,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": 1.58,
+      "dy": -5.08
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": -1.04,
+      "dy": -4.97
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": -2.24,
+      "dy": -2.19
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": -0.01,
+      "dy": -1.19
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": 2.29,
+      "dy": -3.11
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 461361002
+     },
+     {
+      "id": 367,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 25153386,
+      "to": 0
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 545247082,
+      "to": 293588842
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 880791402,
+      "to": 1266667370
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1971310442,
+      "to": 1316999018
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 394252138,
+      "to": 377474922
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1585434474,
+      "to": 1333776234
+     }
+    ],
+    "textChanged": [],
+    "changed": 22
+   },
+   "logsTail": [
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 14397,
+    "ratio": 0.01,
+    "bbox": {
+     "x": 162,
+     "y": 0,
+     "w": 1282,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "dx": -65.74,
+      "dy": -3910.81
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "dx": 46.58,
+      "dy": -3901.84
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "dx": 90.75,
+      "dy": -4022.59
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "dx": 0.28,
+      "dy": -4056.88
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "dx": -98.26,
+      "dy": -3982.96
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 461361002,
+      "to": 360697706
+     },
+     {
+      "id": 366,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 365,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 364,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 363,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 362,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 0
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1266667370,
+      "to": 1367330666
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1316999018,
+      "to": 662687594
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 377474922,
+      "to": 276811626
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 1082117994
+     }
+    ],
+    "textChanged": [],
+    "changed": 20
+   },
+   "logsTail": [
+    "ai attack=false oppH=0 tier=1",
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 13548,
+    "ratio": 0.00941,
+    "bbox": {
+     "x": 647,
+     "y": 148,
+     "w": 306,
+     "h": 581
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 360697706,
+      "to": 260034410
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1367330666,
+      "to": 1249890154
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 662687594,
+      "to": 293588842
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 276811626,
+      "to": 192925546
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1082117994,
+      "to": 1283444586
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 58,
+      "name": "cell21",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 49,
+      "name": "cell12",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 21549,
+    "ratio": 0.01496,
+    "bbox": {
+     "x": 156,
+     "y": 0,
+     "w": 1288,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 260034410,
+      "to": 176148330
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1249890154,
+      "to": 830459754
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 109039466
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 192925546,
+      "to": 92262250
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 1518325610
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 3729,
+    "ratio": 0.00259,
+    "bbox": {
+     "x": 647,
+     "y": 147,
+     "w": 306,
+     "h": 610
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3697
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4303
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "dx": -153,
+      "dy": -4000
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "dx": 153,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 176148330,
+      "to": 92262250
+     },
+     {
+      "id": 361,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 830459754,
+      "to": 0
+     },
+     {
+      "id": 360,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 109039466,
+      "to": 0
+     },
+     {
+      "id": 359,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 358,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 0
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1518325610,
+      "to": 1753206634
+     }
+    ],
+    "textChanged": [],
+    "changed": 14
+   },
+   "logsTail": [
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 92262250,
+      "to": 41930602
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1753206634,
+      "to": 1870647146
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 1927,
+    "ratio": 0.00134,
+    "bbox": {
+     "x": 711,
+     "y": 146,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 41930602,
+      "to": 8376170
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1870647146,
+      "to": 1786761066
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "ai pace tier=1 lv=1 pace=2.60 obs=0.30 atk=false",
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 1896,
+    "ratio": 0.00132,
+    "bbox": {
+     "x": 711,
+     "y": 146,
+     "w": 179,
+     "h": 28
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 368,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4000
+     }
+    ],
+    "recolored": [
+     {
+      "id": 368,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1635766122
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 6548,
+    "ratio": 0.00455,
+    "bbox": {
+     "x": 651,
+     "y": 145,
+     "w": 239,
+     "h": 124
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1635766122,
+      "to": 1434439530
+     },
+     {
+      "id": 69,
+      "name": "cell32",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 68,
+      "name": "cell31",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 58,
+      "name": "cell21",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 50,
+      "name": "cell13",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 49,
+      "name": "cell12",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 2032,
+    "ratio": 0.00141,
+    "bbox": {
+     "x": 163,
+     "y": 0,
+     "w": 1281,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1434439530,
+      "to": 1182781290
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 25995,
+    "ratio": 0.01805,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1182781290,
+      "to": 897568618
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 25943,
+    "ratio": 0.01802,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 595578730
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 28896,
+    "ratio": 0.02007,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 595578730,
+      "to": 293588842
+     },
+     {
+      "id": 79,
+      "name": "cell42",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 78,
+      "name": "cell41",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 70,
+      "name": "cell33",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 68,
+      "name": "cell31",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 59,
+      "name": "cell22",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 25895,
+    "ratio": 0.01798,
+    "bbox": {
+     "x": 0,
+     "y": 0,
+     "w": 1600,
+     "h": 900
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -8401046,
+      "to": -226504854
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 293588842,
+      "to": 8376170
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 2036,
+    "ratio": 0.00141,
+    "bbox": {
+     "x": 711,
+     "y": 104,
+     "w": 179,
+     "h": 65
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "dx": -797,
+      "dy": -4000
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "dx": 797,
+      "dy": -4000
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "dx": 0,
+      "dy": -3553
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4447
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -226504854,
+      "to": -562049174
+     },
+     {
+      "id": 357,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 356,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 355,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     },
+     {
+      "id": 354,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 8376170,
+      "to": 0
+     }
+    ],
+    "textChanged": [],
+    "changed": 10
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 30,
+   "t": 1.033,
+   "pixel": {
+    "changed": 2026,
+    "ratio": 0.00141,
+    "bbox": {
+     "x": 711,
+     "y": 103,
+     "w": 179,
+     "h": 65
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -562049174,
+      "to": -897593494
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 31,
+   "t": 1.067,
+   "pixel": {
+    "changed": 4980,
+    "ratio": 0.00346,
+    "bbox": {
+     "x": 651,
+     "y": 104,
+     "w": 178,
+     "h": 225
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -897593494,
+      "to": -1233137814
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -176173206,
+      "to": -293613718
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -703850982,
+      "to": -804514278
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -343945366,
+      "to": -461385878
+     },
+     {
+      "id": 89,
+      "name": "cell52",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 88,
+      "name": "cell51",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 80,
+      "name": "cell43",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 78,
+      "name": "cell41",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 70,
+      "name": "cell33",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 69,
+      "name": "cell32",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 32,
+   "t": 1.1,
+   "pixel": {
+    "changed": 23479,
+    "ratio": 0.0163,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 75
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1233137814,
+      "to": -1585459350
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -293613718,
+      "to": -729821334
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -804514278,
+      "to": -1190390246
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -461385878,
+      "to": -880816278
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 33,
+   "t": 1.133,
+   "pixel": {
+    "changed": 23429,
+    "ratio": 0.01627,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 74
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1585459350,
+      "to": -1921003670
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -729821334,
+      "to": -1182806166
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1190390246,
+      "to": -1576266214
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -880816278,
+      "to": -1300246678
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 34,
+   "t": 1.167,
+   "pixel": {
+    "changed": 23347,
+    "ratio": 0.01621,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 73
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1921003670,
+      "to": 2038419306
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1182806166,
+      "to": -1619013782
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1576266214,
+      "to": -1978919398
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1300246678,
+      "to": -1736454294
+     }
+    ],
+    "textChanged": [],
+    "changed": 5
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 35,
+   "t": 1.2,
+   "pixel": {
+    "changed": 26881,
+    "ratio": 0.01867,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 267
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 2038419306,
+      "to": 1702874986
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1619013782,
+      "to": -2071998614
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1978919398,
+      "to": 1930171930
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -1736454294,
+      "to": 2139082602
+     },
+     {
+      "id": 99,
+      "name": "cell62",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 98,
+      "name": "cell61",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 90,
+      "name": "cell53",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 88,
+      "name": "cell51",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 80,
+      "name": "cell43",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 79,
+      "name": "cell42",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 36,
+   "t": 1.233,
+   "pixel": {
+    "changed": 24342,
+    "ratio": 0.0169,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 72
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -8401046,
+      "to": -75509910
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1702874986,
+      "to": 1350553450
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": -2071998614,
+      "to": 1786761066
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1930171930,
+      "to": 1544295962
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 2139082602,
+      "to": 1702874986
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=1 rot=0 drop=soft",
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft"
+   ]
+  },
+  {
+   "i": 37,
+   "t": 1.267,
+   "pixel": {
+    "changed": 24419,
+    "ratio": 0.01696,
+    "bbox": {
+     "x": 369,
+     "y": 92,
+     "w": 643,
+     "h": 593
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -75509910,
+      "to": -327168150
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1350553450,
+      "to": 1015009130
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1786761066,
+      "to": 1333776234
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1544295962,
+      "to": 1158419994
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1702874986,
+      "to": 1283444586
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 346,
+      "name": "sk1state",
+      "from": "台前 · CD 24.7s",
+      "to": "台前 · CD 23.7s"
+     }
+    ],
+    "changed": 7
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 38,
+   "t": 1.3,
+   "pixel": {
+    "changed": 24179,
+    "ratio": 0.01679,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 70
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -327168150,
+      "to": -595603606
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1015009130,
+      "to": 679464810
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1333776234,
+      "to": 897568618
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1158419994,
+      "to": 772544026
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 1283444586,
+      "to": 847236970
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 39,
+   "t": 1.333,
+   "pixel": {
+    "changed": 27996,
+    "ratio": 0.01944,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 297
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -595603606,
+      "to": -864039062
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 679464810,
+      "to": 343920490
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 897568618,
+      "to": 444583786
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 772544026,
+      "to": 386668058
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 847236970,
+      "to": 427806570
+     },
+     {
+      "id": 109,
+      "name": "cell72",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 108,
+      "name": "cell71",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 100,
+      "name": "cell63",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 98,
+      "name": "cell61",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 90,
+      "name": "cell53",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 89,
+      "name": "cell52",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 12
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 40,
+   "t": 1.367,
+   "pixel": {
+    "changed": 24312,
+    "ratio": 0.01688,
+    "bbox": {
+     "x": 588,
+     "y": 92,
+     "w": 424,
+     "h": 69
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     },
+     {
+      "id": 374,
+      "name": "stext",
+      "dx": 0,
+      "dy": -4338
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4312
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4330
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "dx": 0,
+      "dy": -4330
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -864039062,
+      "to": -1132474518
+     },
+     {
+      "id": 373,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 444583786,
+      "to": 0
+     },
+     {
+      "id": 372,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 386668058,
+      "to": 0
+     },
+     {
+      "id": 371,
+      "name": "cell",
+      "field": "imageColor",
+      "from": 427806570,
+      "to": 0
+     }
+    ],
+    "textChanged": [
+     {
+      "id": 374,
+      "name": "stext",
+      "from": "纳西妲",
+      "to": ""
+     }
+    ],
+    "changed": 10
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 41,
+   "t": 1.4,
+   "pixel": {
+    "changed": 1832,
+    "ratio": 0.00127,
+    "bbox": {
+     "x": 711,
+     "y": 131,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1132474518,
+      "to": -1384132758
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 42,
+   "t": 1.433,
+   "pixel": {
+    "changed": 1819,
+    "ratio": 0.00126,
+    "bbox": {
+     "x": 711,
+     "y": 130,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1384132758,
+      "to": -1652568214
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 43,
+   "t": 1.467,
+   "pixel": {
+    "changed": 4706,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 651,
+     "y": 151,
+     "w": 103,
+     "h": 268
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1652568214,
+      "to": -1921003670
+     },
+     {
+      "id": 119,
+      "name": "cell82",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 118,
+      "name": "cell81",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 110,
+      "name": "cell73",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 108,
+      "name": "cell71",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 100,
+      "name": "cell63",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 99,
+      "name": "cell62",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 8
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 44,
+   "t": 1.5,
+   "pixel": {
+    "changed": 1760,
+    "ratio": 0.00122,
+    "bbox": {
+     "x": 711,
+     "y": 129,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": -1921003670,
+      "to": 2105528170
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 45,
+   "t": 1.533,
+   "pixel": {
+    "changed": 1683,
+    "ratio": 0.00117,
+    "bbox": {
+     "x": 711,
+     "y": 128,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 2105528170,
+      "to": 1853869930
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 46,
+   "t": 1.567,
+   "pixel": {
+    "changed": 1629,
+    "ratio": 0.00113,
+    "bbox": {
+     "x": 711,
+     "y": 127,
+     "w": 179,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1853869930,
+      "to": 1585434474
+     }
+    ],
+    "textChanged": [],
+    "changed": 2
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  },
+  {
+   "i": 47,
+   "t": 1.6,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 651,
+     "y": 361,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 376,
+      "name": "stext",
+      "dx": 0,
+      "dy": 0.74
+     }
+    ],
+    "recolored": [
+     {
+      "id": 376,
+      "name": "stext",
+      "field": "fontColor",
+      "from": 1585434474,
+      "to": 1316999018
+     },
+     {
+      "id": 129,
+      "name": "cell92",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 128,
+      "name": "cell91",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 120,
+      "name": "cell83",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 118,
+      "name": "cell81",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 110,
+      "name": "cell73",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 109,
+      "name": "cell72",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 8
+   },
+   "logsTail": [
+    "skill hud 纳西妲 Lv1 CD 24.7s",
+    "demo act move x=3",
+    "demo act move x=2",
+    "demo act move x=1",
+    "demo act drop=soft",
+    "skill hud 纳西妲 Lv1 CD 23.7s"
+   ]
+  }
+ ],
+ "controlFrames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 181,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   }
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 211,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   }
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 30,
+   "t": 1.033,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 31,
+   "t": 1.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 32,
+   "t": 1.1,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 241,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 92,
+      "name": "cell55",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 91,
+      "name": "cell54",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   }
+  },
+  {
+   "i": 33,
+   "t": 1.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 34,
+   "t": 1.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 35,
+   "t": 1.2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 36,
+   "t": 1.233,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 37,
+   "t": 1.267,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 38,
+   "t": 1.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 39,
+   "t": 1.333,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 40,
+   "t": 1.367,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 41,
+   "t": 1.4,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 42,
+   "t": 1.433,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 43,
+   "t": 1.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 44,
+   "t": 1.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 45,
+   "t": 1.533,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 46,
+   "t": 1.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   }
+  },
+  {
+   "i": 47,
+   "t": 1.6,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 271,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 102,
+      "name": "cell65",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 101,
+      "name": "cell64",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 93,
+      "name": "cell56",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 91,
+      "name": "cell54",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   }
+  }
+ ]
+}

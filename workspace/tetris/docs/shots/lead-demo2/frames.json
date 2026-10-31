@@ -1,0 +1,5673 @@
+{
+ "meta": {
+  "role": null,
+  "mode": "title",
+  "canvas": "pc-16-9",
+  "slot": 1,
+  "dt": 0.03333333333333333,
+  "frames": 90,
+  "summary": {
+   "mode": "title",
+   "frames": 90,
+   "pixelChangedFrames": 22,
+   "firstPixelChangeFrame": 6,
+   "firstPixelChangeAt": 0.233,
+   "longestRun": 3,
+   "longestRunStartFrame": 17,
+   "changeSpanFrames": 79,
+   "maxIdleFrames": 11,
+   "maxIdleSeconds": 0.37,
+   "maxIdleStartFrame": 43,
+   "persistent": false,
+   "controlsTouched": [
+    {
+     "name": "menuHint3",
+     "changes": 78
+    },
+    {
+     "name": "menuHint2",
+     "changes": 78
+    },
+    {
+     "name": "menuHint1",
+     "changes": 78
+    },
+    {
+     "name": "cell36",
+     "changes": 4
+    },
+    {
+     "name": "cell26",
+     "changes": 5
+    },
+    {
+     "name": "cell24",
+     "changes": 4
+    },
+    {
+     "name": "cell16",
+     "changes": 6
+    },
+    {
+     "name": "cell46",
+     "changes": 4
+    },
+    {
+     "name": "cell35",
+     "changes": 4
+    },
+    {
+     "name": "cell15",
+     "changes": 6
+    },
+    {
+     "name": "cell45",
+     "changes": 2
+    },
+    {
+     "name": "cell44",
+     "changes": 2
+    },
+    {
+     "name": "cell25",
+     "changes": 4
+    },
+    {
+     "name": "cell37",
+     "changes": 2
+    },
+    {
+     "name": "cell48",
+     "changes": 2
+    },
+    {
+     "name": "cell47",
+     "changes": 2
+    },
+    {
+     "name": "cell39",
+     "changes": 2
+    },
+    {
+     "name": "cell38",
+     "changes": 2
+    },
+    {
+     "name": "cell58",
+     "changes": 2
+    },
+    {
+     "name": "cell57",
+     "changes": 2
+    },
+    {
+     "name": "cell49",
+     "changes": 2
+    },
+    {
+     "name": "cell68",
+     "changes": 2
+    },
+    {
+     "name": "cell67",
+     "changes": 2
+    },
+    {
+     "name": "cell59",
+     "changes": 2
+    },
+    {
+     "name": "cell78",
+     "changes": 2
+    },
+    {
+     "name": "cell77",
+     "changes": 2
+    },
+    {
+     "name": "cell69",
+     "changes": 2
+    },
+    {
+     "name": "cell79",
+     "changes": 2
+    },
+    {
+     "name": "cell70",
+     "changes": 2
+    },
+    {
+     "name": "next8",
+     "changes": 6
+    },
+    {
+     "name": "next7",
+     "changes": 6
+    },
+    {
+     "name": "next6",
+     "changes": 5
+    },
+    {
+     "name": "next5",
+     "changes": 5
+    },
+    {
+     "name": "next1",
+     "changes": 6
+    },
+    {
+     "name": "next4",
+     "changes": 5
+    },
+    {
+     "name": "next3",
+     "changes": 5
+    },
+    {
+     "name": "next2",
+     "changes": 5
+    },
+    {
+     "name": "cell189",
+     "changes": 1
+    },
+    {
+     "name": "cell188",
+     "changes": 1
+    },
+    {
+     "name": "cell180",
+     "changes": 1
+    },
+    {
+     "name": "cell179",
+     "changes": 1
+    },
+    {
+     "name": "cell14",
+     "changes": 5
+    },
+    {
+     "name": "cell5",
+     "changes": 2
+    },
+    {
+     "name": "hold4",
+     "changes": 3
+    },
+    {
+     "name": "hold3",
+     "changes": 3
+    },
+    {
+     "name": "hold2",
+     "changes": 3
+    },
+    {
+     "name": "hold1",
+     "changes": 3
+    },
+    {
+     "name": "cell4",
+     "changes": 2
+    },
+    {
+     "name": "cell34",
+     "changes": 2
+    },
+    {
+     "name": "cell33",
+     "changes": 2
+    },
+    {
+     "name": "cell23",
+     "changes": 2
+    },
+    {
+     "name": "cell32",
+     "changes": 2
+    },
+    {
+     "name": "cell31",
+     "changes": 2
+    },
+    {
+     "name": "cell21",
+     "changes": 2
+    },
+    {
+     "name": "cell43",
+     "changes": 2
+    },
+    {
+     "name": "cell42",
+     "changes": 2
+    },
+    {
+     "name": "cell41",
+     "changes": 2
+    },
+    {
+     "name": "cell53",
+     "changes": 2
+    },
+    {
+     "name": "cell52",
+     "changes": 2
+    },
+    {
+     "name": "cell51",
+     "changes": 2
+    },
+    {
+     "name": "cell63",
+     "changes": 2
+    },
+    {
+     "name": "cell62",
+     "changes": 2
+    },
+    {
+     "name": "cell61",
+     "changes": 2
+    },
+    {
+     "name": "cell193",
+     "changes": 1
+    },
+    {
+     "name": "cell192",
+     "changes": 1
+    },
+    {
+     "name": "cell191",
+     "changes": 1
+    },
+    {
+     "name": "cell181",
+     "changes": 1
+    },
+    {
+     "name": "cell17",
+     "changes": 2
+    },
+    {
+     "name": "cell27",
+     "changes": 1
+    }
+   ],
+   "firstControlChangeFrame": 0,
+   "skillLogFrames": [],
+   "skillLogLines": [],
+   "castOk": false,
+   "aiStart": null,
+   "aiEnd": null,
+   "animation": "on",
+   "controlRun": null,
+   "skillEffect": "unknown（与对照无差异）",
+   "audio": {
+    "newCount": 3,
+    "ids": [
+     50872,
+     50883
+    ],
+    "sample": [
+     {
+      "instanceId": 2,
+      "audioId": 50872,
+      "startedAt": 2.6333333333333337,
+      "duration": 1.024,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 3,
+      "audioId": 50883,
+      "startedAt": 2.8999999999999995,
+      "duration": 0.151,
+      "alive": false,
+      "stopped": false
+     },
+     {
+      "instanceId": 4,
+      "audioId": 50872,
+      "startedAt": 4.266666666666661,
+      "duration": 1.024,
+      "alive": true,
+      "stopped": false
+     }
+    ]
+   },
+   "audioVerdict": "on",
+   "role": null,
+   "slot": 1,
+   "canvas": {
+    "id": "pc-16-9",
+    "width": 1600,
+    "height": 900,
+    "mobile": false
+   },
+   "roleSwitch": null,
+   "elapsedMs": 14465,
+   "saveFreshness": {
+    "ok": true,
+    "stale": [],
+    "checked": 8
+   },
+   "keyFrames": [
+    "frame-f001.png",
+    "frame-f012.png",
+    "frame-f024.png",
+    "frame-f090.png"
+   ]
+  }
+ },
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.033,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1483430984,
+      "to": -1516985416
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1483430984,
+      "to": -1516985416
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1483430984,
+      "to": -1516985416
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 1,
+   "t": 0.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1516985416,
+      "to": -1550539848
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1516985416,
+      "to": -1550539848
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1516985416,
+      "to": -1550539848
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 2,
+   "t": 0.1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1550539848,
+      "to": -1584094280
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1550539848,
+      "to": -1584094280
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1550539848,
+      "to": -1584094280
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 3,
+   "t": 0.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1584094280,
+      "to": -1617648712
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1584094280,
+      "to": -1617648712
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1584094280,
+      "to": -1617648712
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 4,
+   "t": 0.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1617648712,
+      "to": -1651203144
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1617648712,
+      "to": -1651203144
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1617648712,
+      "to": -1651203144
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 5,
+   "t": 0.2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1651203144,
+      "to": -1667980360
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1651203144,
+      "to": -1667980360
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1651203144,
+      "to": -1667980360
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock L cells=190,198,199,200",
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 6,
+   "t": 0.233,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 741,
+     "y": 181,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1701534792
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1701534792
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1701534792
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 7,
+   "t": 0.267,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1718312008
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1718312008
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1718312008
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 8,
+   "t": 0.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1735089224
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1735089224
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1735089224
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=S x=4 y=1",
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 9,
+   "t": 0.333,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 771,
+     "y": 181,
+     "w": 58,
+     "h": 118
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1751866440
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1751866440
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1751866440
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 10,
+   "t": 0.367,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1768643656
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1768643656
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1768643656
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 11,
+   "t": 0.4,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "demo pace think=0.75 rot=0 move=4*0.06 soft=0 hover=0.00 drop=hard total=1.17",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 12,
+   "t": 0.433,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 741,
+     "y": 211,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 4
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 13,
+   "t": 0.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 14,
+   "t": 0.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 15,
+   "t": 0.533,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 16,
+   "t": 0.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4"
+   ]
+  },
+  {
+   "i": 17,
+   "t": 0.6,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 741,
+     "y": 241,
+     "w": 118,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1768643656,
+      "to": -1751866440
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1768643656,
+      "to": -1751866440
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1768643656,
+      "to": -1751866440
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 81,
+      "name": "cell44",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 74,
+      "name": "cell37",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "demo plan name=S from=4 target=8 rot=2 drop=hard",
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5"
+   ]
+  },
+  {
+   "i": 18,
+   "t": 0.633,
+   "pixel": {
+    "changed": 6272,
+    "ratio": 0.00436,
+    "bbox": {
+     "x": 771,
+     "y": 241,
+     "w": 148,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1735089224
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1735089224
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1751866440,
+      "to": -1735089224
+     },
+     {
+      "id": 85,
+      "name": "cell48",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 84,
+      "name": "cell47",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 83,
+      "name": "cell46",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 82,
+      "name": "cell45",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 76,
+      "name": "cell39",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 75,
+      "name": "cell38",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 74,
+      "name": "cell37",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7"
+   ]
+  },
+  {
+   "i": 19,
+   "t": 0.667,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 831,
+     "y": 241,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1718312008
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1718312008
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1735089224,
+      "to": -1718312008
+     },
+     {
+      "id": 95,
+      "name": "cell58",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 94,
+      "name": "cell57",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 86,
+      "name": "cell49",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 84,
+      "name": "cell47",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 76,
+      "name": "cell39",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 75,
+      "name": "cell38",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7"
+   ]
+  },
+  {
+   "i": 20,
+   "t": 0.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1701534792
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1701534792
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1718312008,
+      "to": -1701534792
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7"
+   ]
+  },
+  {
+   "i": 21,
+   "t": 0.733,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1684757576
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1684757576
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1701534792,
+      "to": -1684757576
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=2",
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7"
+   ]
+  },
+  {
+   "i": 22,
+   "t": 0.767,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 831,
+     "y": 271,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1684757576,
+      "to": -1667980360
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1684757576,
+      "to": -1667980360
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1684757576,
+      "to": -1667980360
+     },
+     {
+      "id": 105,
+      "name": "cell68",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 104,
+      "name": "cell67",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 96,
+      "name": "cell59",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 94,
+      "name": "cell57",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 86,
+      "name": "cell49",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 85,
+      "name": "cell48",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5"
+   ]
+  },
+  {
+   "i": 23,
+   "t": 0.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1634425928
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1634425928
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1667980360,
+      "to": -1634425928
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo act rot x=4",
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5"
+   ]
+  },
+  {
+   "i": 24,
+   "t": 0.833,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 831,
+     "y": 301,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1634425928,
+      "to": -1600871496
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1634425928,
+      "to": -1600871496
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1634425928,
+      "to": -1600871496
+     },
+     {
+      "id": 115,
+      "name": "cell78",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 114,
+      "name": "cell77",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 106,
+      "name": "cell69",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 104,
+      "name": "cell67",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 96,
+      "name": "cell59",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 95,
+      "name": "cell58",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5",
+    "fall y=6"
+   ]
+  },
+  {
+   "i": 25,
+   "t": 0.867,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1567317064
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1567317064
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1567317064
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=3",
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5",
+    "fall y=6"
+   ]
+  },
+  {
+   "i": 26,
+   "t": 0.9,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 831,
+     "y": 331,
+     "w": 118,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1533762632
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1533762632
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1533762632
+     },
+     {
+      "id": 116,
+      "name": "cell79",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 114,
+      "name": "cell77",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 107,
+      "name": "cell70",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -10822546
+     },
+     {
+      "id": 105,
+      "name": "cell68",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "demo act rot x=4",
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5",
+    "fall y=6",
+    "demo act move x=8"
+   ]
+  },
+  {
+   "i": 27,
+   "t": 0.933,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1500208200
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1500208200
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1500208200
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo act move x=5",
+    "demo act move x=7",
+    "demo act soft y=5",
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard"
+   ]
+  },
+  {
+   "i": 28,
+   "t": 0.967,
+   "pixel": {
+    "changed": 14627,
+    "ratio": 0.01016,
+    "bbox": {
+     "x": 445,
+     "y": 151,
+     "w": 712,
+     "h": 734
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 249,
+      "name": "next8",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "dx": 0,
+      "dy": -14
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "dx": -20,
+      "dy": 0
+     }
+    ],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1466653768
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1466653768
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1466653768
+     },
+     {
+      "id": 249,
+      "name": "next8",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "field": "imageColor",
+      "from": -6570761,
+      "to": -6886153
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 226,
+      "name": "cell189",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12013480
+     },
+     {
+      "id": 225,
+      "name": "cell188",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12013480
+     },
+     {
+      "id": 217,
+      "name": "cell180",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12013480
+     },
+     {
+      "id": 216,
+      "name": "cell179",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12013480
+     },
+     {
+      "id": 116,
+      "name": "cell79",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 115,
+      "name": "cell78",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 107,
+      "name": "cell70",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 106,
+      "name": "cell69",
+      "field": "imageColor",
+      "from": -10822546,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     },
+     {
+      "id": 42,
+      "name": "cell5",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -5615376
+     }
+    ],
+    "textChanged": [],
+    "changed": 28
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 29,
+   "t": 1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1433099336
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1433099336
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1433099336
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 30,
+   "t": 1.033,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1433099336,
+      "to": -1382767688
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1433099336,
+      "to": -1382767688
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1433099336,
+      "to": -1382767688
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 31,
+   "t": 1.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1349213256
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1349213256
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1349213256
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 32,
+   "t": 1.1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1349213256,
+      "to": -1298881608
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1349213256,
+      "to": -1298881608
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1349213256,
+      "to": -1298881608
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 33,
+   "t": 1.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1265327176
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1265327176
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1265327176
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 34,
+   "t": 1.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1265327176,
+      "to": -1214995528
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1265327176,
+      "to": -1214995528
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1265327176,
+      "to": -1214995528
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 35,
+   "t": 1.2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1181441096
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1181441096
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1181441096
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=6",
+    "demo act move x=8",
+    "demo act drop=hard",
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40"
+   ]
+  },
+  {
+   "i": 36,
+   "t": 1.233,
+   "pixel": {
+    "changed": 3920,
+    "ratio": 0.00272,
+    "bbox": {
+     "x": 741,
+     "y": 151,
+     "w": 88,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 253,
+      "name": "hold4",
+      "dx": 3440,
+      "dy": 4160
+     },
+     {
+      "id": 252,
+      "name": "hold3",
+      "dx": 3420,
+      "dy": 4160
+     },
+     {
+      "id": 251,
+      "name": "hold2",
+      "dx": 3400,
+      "dy": 4160
+     },
+     {
+      "id": 250,
+      "name": "hold1",
+      "dx": 3420,
+      "dy": 4180
+     },
+     {
+      "id": 249,
+      "name": "next8",
+      "dx": -28,
+      "dy": 0
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "dx": -28,
+      "dy": 0
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "dx": 0,
+      "dy": 14
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "dx": 0,
+      "dy": 14
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "dx": 20,
+      "dy": 0
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "dx": 20,
+      "dy": 0
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "dx": 20,
+      "dy": 0
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "dx": 0,
+      "dy": -20
+     }
+    ],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1181441096,
+      "to": -1131109448
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1181441096,
+      "to": -1131109448
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1181441096,
+      "to": -1131109448
+     },
+     {
+      "id": 253,
+      "name": "hold4",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -2774792
+     },
+     {
+      "id": 252,
+      "name": "hold3",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -2774792
+     },
+     {
+      "id": 251,
+      "name": "hold2",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -2774792
+     },
+     {
+      "id": 250,
+      "name": "hold1",
+      "field": "imageColor",
+      "from": -1510918,
+      "to": -2774792
+     },
+     {
+      "id": 249,
+      "name": "next8",
+      "field": "imageColor",
+      "from": -6886153,
+      "to": -333930
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "field": "imageColor",
+      "from": -6886153,
+      "to": -333930
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "field": "imageColor",
+      "from": -6886153,
+      "to": -333930
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "field": "imageColor",
+      "from": -6886153,
+      "to": -333930
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -12788496
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -12788496
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -12788496
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -12788496
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -12156176
+     },
+     {
+      "id": 42,
+      "name": "cell5",
+      "field": "imageColor",
+      "from": -5615376,
+      "to": -197121
+     },
+     {
+      "id": 41,
+      "name": "cell4",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     }
+    ],
+    "textChanged": [],
+    "changed": 32
+   },
+   "logsTail": [
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1"
+   ]
+  },
+  {
+   "i": 37,
+   "t": 1.267,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1097555016
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1097555016
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1097555016
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1"
+   ]
+  },
+  {
+   "i": 38,
+   "t": 1.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1097555016,
+      "to": -1047223368
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1097555016,
+      "to": -1047223368
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1097555016,
+      "to": -1047223368
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock S cells=189,188,180,179",
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1"
+   ]
+  },
+  {
+   "i": 39,
+   "t": 1.333,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 151,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1013668936
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1013668936
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1013668936
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 41,
+      "name": "cell4",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 40,
+   "t": 1.367,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1013668936,
+      "to": -963337288
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1013668936,
+      "to": -963337288
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1013668936,
+      "to": -963337288
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 41,
+   "t": 1.4,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -929782856
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -929782856
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -929782856
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 42,
+   "t": 1.433,
+   "pixel": {
+    "changed": 6094,
+    "ratio": 0.00423,
+    "bbox": {
+     "x": 442,
+     "y": 858,
+     "w": 717,
+     "h": 29
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -929782856,
+      "to": -896228424
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -929782856,
+      "to": -896228424
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -929782856,
+      "to": -896228424
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 43,
+   "t": 1.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -896228424,
+      "to": -845896776
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -896228424,
+      "to": -845896776
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -896228424,
+      "to": -845896776
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "bag=1 piece=T x=4 y=1",
+    "demo pace think=0.39 rot=2 move=4*0.05 soft=2.0 hover=0.00 drop=hard total=1.40",
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 44,
+   "t": 1.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -812342344
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -812342344
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -812342344
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 45,
+   "t": 1.533,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -778787912
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -778787912
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -778787912
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 46,
+   "t": 1.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -762010696
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -762010696
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -762010696
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 47,
+   "t": 1.6,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -762010696,
+      "to": -728456264
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -762010696,
+      "to": -728456264
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -762010696,
+      "to": -728456264
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 48,
+   "t": 1.633,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -694901832
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -694901832
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -694901832
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 49,
+   "t": 1.667,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -678124616
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -678124616
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -678124616
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 50,
+   "t": 1.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -661347400
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -661347400
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -661347400
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 51,
+   "t": 1.733,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -644570184
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -644570184
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -644570184
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 52,
+   "t": 1.767,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -627792968
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -627792968
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -627792968
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 53,
+   "t": 1.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -611015752
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -611015752
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -611015752
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai hold why=better gain=28.93 tier=3",
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 54,
+   "t": 1.833,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 741,
+     "y": 181,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 6
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 55,
+   "t": 1.867,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 56,
+   "t": 1.9,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 57,
+   "t": 1.933,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 58,
+   "t": 1.967,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 59,
+   "t": 2,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [],
+    "textChanged": [],
+    "changed": 0
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 60,
+   "t": 2.033,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -611015752,
+      "to": -627792968
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -611015752,
+      "to": -627792968
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -611015752,
+      "to": -627792968
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 61,
+   "t": 2.067,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -644570184
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -644570184
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -627792968,
+      "to": -644570184
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 62,
+   "t": 2.1,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -661347400
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -661347400
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -644570184,
+      "to": -661347400
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 63,
+   "t": 2.133,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -678124616
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -678124616
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -661347400,
+      "to": -678124616
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 64,
+   "t": 2.167,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -694901832
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -694901832
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -678124616,
+      "to": -694901832
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "hold in=T out=-",
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3"
+   ]
+  },
+  {
+   "i": 65,
+   "t": 2.2,
+   "pixel": {
+    "changed": 3136,
+    "ratio": 0.00218,
+    "bbox": {
+     "x": 711,
+     "y": 211,
+     "w": 118,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -728456264
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -728456264
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -694901832,
+      "to": -728456264
+     },
+     {
+      "id": 73,
+      "name": "cell36",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 70,
+      "name": "cell33",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     }
+    ],
+    "textChanged": [],
+    "changed": 7
+   },
+   "logsTail": [
+    "bag=1 piece=J x=4 y=1",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3"
+   ]
+  },
+  {
+   "i": 66,
+   "t": 2.233,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 651,
+     "y": 211,
+     "w": 148,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -745233480
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -745233480
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -728456264,
+      "to": -745233480
+     },
+     {
+      "id": 72,
+      "name": "cell35",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 71,
+      "name": "cell34",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 69,
+      "name": "cell32",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 68,
+      "name": "cell31",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 60,
+      "name": "cell23",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 58,
+      "name": "cell21",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 67,
+   "t": 2.267,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 651,
+     "y": 211,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -745233480,
+      "to": -778787912
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -745233480,
+      "to": -778787912
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -745233480,
+      "to": -778787912
+     },
+     {
+      "id": 80,
+      "name": "cell43",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 79,
+      "name": "cell42",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 78,
+      "name": "cell41",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 70,
+      "name": "cell33",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 69,
+      "name": "cell32",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 58,
+      "name": "cell21",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 68,
+   "t": 2.3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -812342344
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -812342344
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -778787912,
+      "to": -812342344
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1"
+   ]
+  },
+  {
+   "i": 69,
+   "t": 2.333,
+   "pixel": {
+    "changed": 4704,
+    "ratio": 0.00327,
+    "bbox": {
+     "x": 651,
+     "y": 241,
+     "w": 88,
+     "h": 88
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -845896776
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -845896776
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -812342344,
+      "to": -845896776
+     },
+     {
+      "id": 90,
+      "name": "cell53",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 89,
+      "name": "cell52",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 88,
+      "name": "cell51",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 80,
+      "name": "cell43",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 79,
+      "name": "cell42",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 68,
+      "name": "cell31",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5"
+   ]
+  },
+  {
+   "i": 70,
+   "t": 2.367,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -879451208
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -879451208
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -845896776,
+      "to": -879451208
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5"
+   ]
+  },
+  {
+   "i": 71,
+   "t": 2.4,
+   "pixel": {
+    "changed": 10792,
+    "ratio": 0.00749,
+    "bbox": {
+     "x": 442,
+     "y": 271,
+     "w": 717,
+     "h": 616
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -879451208,
+      "to": -913005640
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -879451208,
+      "to": -913005640
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -879451208,
+      "to": -913005640
+     },
+     {
+      "id": 100,
+      "name": "cell63",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 99,
+      "name": "cell62",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 98,
+      "name": "cell61",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12156176
+     },
+     {
+      "id": 90,
+      "name": "cell53",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 89,
+      "name": "cell52",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 78,
+      "name": "cell41",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 9
+   },
+   "logsTail": [
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6"
+   ]
+  },
+  {
+   "i": 72,
+   "t": 2.433,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -913005640,
+      "to": -963337288
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -913005640,
+      "to": -963337288
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -913005640,
+      "to": -963337288
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6"
+   ]
+  },
+  {
+   "i": 73,
+   "t": 2.467,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -996891720
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -996891720
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -963337288,
+      "to": -996891720
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6"
+   ]
+  },
+  {
+   "i": 74,
+   "t": 2.5,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -996891720,
+      "to": -1047223368
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -996891720,
+      "to": -1047223368
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -996891720,
+      "to": -1047223368
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6"
+   ]
+  },
+  {
+   "i": 75,
+   "t": 2.533,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1080777800
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1080777800
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1047223368,
+      "to": -1080777800
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "demo plan name=J from=4 target=1 rot=0 drop=hard",
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6"
+   ]
+  },
+  {
+   "i": 76,
+   "t": 2.567,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1080777800,
+      "to": -1131109448
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1080777800,
+      "to": -1131109448
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1080777800,
+      "to": -1131109448
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=3",
+    "demo act move x=3",
+    "demo act move x=1",
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard"
+   ]
+  },
+  {
+   "i": 77,
+   "t": 2.6,
+   "pixel": {
+    "changed": 9408,
+    "ratio": 0.00653,
+    "bbox": {
+     "x": 651,
+     "y": 181,
+     "w": 208,
+     "h": 568
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [
+     {
+      "id": 249,
+      "name": "next8",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "dx": 14,
+      "dy": 0
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "dx": -40,
+      "dy": 0
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "dx": -40,
+      "dy": 0
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "dx": 0,
+      "dy": 20
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "dx": 0,
+      "dy": 20
+     }
+    ],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1164663880
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1164663880
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1131109448,
+      "to": -1164663880
+     },
+     {
+      "id": 253,
+      "name": "hold4",
+      "field": "imageColor",
+      "from": -2774792,
+      "to": -5615376
+     },
+     {
+      "id": 252,
+      "name": "hold3",
+      "field": "imageColor",
+      "from": -2774792,
+      "to": -5615376
+     },
+     {
+      "id": 251,
+      "name": "hold2",
+      "field": "imageColor",
+      "from": -2774792,
+      "to": -5615376
+     },
+     {
+      "id": 250,
+      "name": "hold1",
+      "field": "imageColor",
+      "from": -2774792,
+      "to": -5615376
+     },
+     {
+      "id": 249,
+      "name": "next8",
+      "field": "imageColor",
+      "from": -333930,
+      "to": -548442
+     },
+     {
+      "id": 248,
+      "name": "next7",
+      "field": "imageColor",
+      "from": -333930,
+      "to": -548442
+     },
+     {
+      "id": 247,
+      "name": "next6",
+      "field": "imageColor",
+      "from": -333930,
+      "to": -548442
+     },
+     {
+      "id": 246,
+      "name": "next5",
+      "field": "imageColor",
+      "from": -333930,
+      "to": -548442
+     },
+     {
+      "id": 245,
+      "name": "next4",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -667076
+     },
+     {
+      "id": 244,
+      "name": "next3",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -667076
+     },
+     {
+      "id": 243,
+      "name": "next2",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -667076
+     },
+     {
+      "id": 242,
+      "name": "next1",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -667076
+     },
+     {
+      "id": 230,
+      "name": "cell193",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -13080384
+     },
+     {
+      "id": 229,
+      "name": "cell192",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -13080384
+     },
+     {
+      "id": 228,
+      "name": "cell191",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -13080384
+     },
+     {
+      "id": 218,
+      "name": "cell181",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -13080384
+     },
+     {
+      "id": 100,
+      "name": "cell63",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 99,
+      "name": "cell62",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 98,
+      "name": "cell61",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 88,
+      "name": "cell51",
+      "field": "imageColor",
+      "from": -12156176,
+      "to": -197121
+     },
+     {
+      "id": 54,
+      "name": "cell17",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     }
+    ],
+    "textChanged": [],
+    "changed": 33
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 78,
+   "t": 2.633,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1164663880,
+      "to": -1214995528
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1164663880,
+      "to": -1214995528
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1164663880,
+      "to": -1214995528
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 79,
+   "t": 2.667,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1248549960
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1248549960
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1214995528,
+      "to": -1248549960
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 80,
+   "t": 2.7,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1248549960,
+      "to": -1298881608
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1248549960,
+      "to": -1298881608
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1248549960,
+      "to": -1298881608
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 81,
+   "t": 2.733,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1332436040
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1332436040
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1298881608,
+      "to": -1332436040
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 82,
+   "t": 2.767,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1332436040,
+      "to": -1382767688
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1332436040,
+      "to": -1382767688
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1332436040,
+      "to": -1382767688
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 83,
+   "t": 2.8,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1416322120
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1416322120
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1382767688,
+      "to": -1416322120
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "fall y=5",
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33"
+   ]
+  },
+  {
+   "i": 84,
+   "t": 2.833,
+   "pixel": {
+    "changed": 6272,
+    "ratio": 0.00436,
+    "bbox": {
+     "x": 741,
+     "y": 181,
+     "w": 118,
+     "h": 58
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1416322120,
+      "to": -1466653768
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1416322120,
+      "to": -1466653768
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1416322120,
+      "to": -1466653768
+     },
+     {
+      "id": 64,
+      "name": "cell27",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 63,
+      "name": "cell26",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 62,
+      "name": "cell25",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 61,
+      "name": "cell24",
+      "field": "imageColor",
+      "from": -197121,
+      "to": -12788496
+     },
+     {
+      "id": 54,
+      "name": "cell17",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -197121
+     },
+     {
+      "id": 53,
+      "name": "cell16",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -197121
+     },
+     {
+      "id": 52,
+      "name": "cell15",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -197121
+     },
+     {
+      "id": 51,
+      "name": "cell14",
+      "field": "imageColor",
+      "from": -12788496,
+      "to": -197121
+     }
+    ],
+    "textChanged": [],
+    "changed": 11
+   },
+   "logsTail": [
+    "demo act soft y=6",
+    "demo act drop=hard",
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2"
+   ]
+  },
+  {
+   "i": 85,
+   "t": 2.867,
+   "pixel": {
+    "changed": 5219,
+    "ratio": 0.00362,
+    "bbox": {
+     "x": 445,
+     "y": 858,
+     "w": 712,
+     "h": 27
+    }
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1500208200
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1500208200
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1466653768,
+      "to": -1500208200
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=I from=4 target=4 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 86,
+   "t": 2.9,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1533762632
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1533762632
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1500208200,
+      "to": -1533762632
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=I from=4 target=4 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 87,
+   "t": 2.933,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1567317064
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1567317064
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1533762632,
+      "to": -1567317064
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=I from=4 target=4 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 88,
+   "t": 2.967,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1600871496
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1600871496
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1567317064,
+      "to": -1600871496
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=I from=4 target=4 rot=0 drop=hard"
+   ]
+  },
+  {
+   "i": 89,
+   "t": 3,
+   "pixel": {
+    "changed": 0,
+    "ratio": 0,
+    "bbox": null
+   },
+   "controls": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "recolored": [
+     {
+      "id": 297,
+      "name": "menuHint3",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1634425928
+     },
+     {
+      "id": 296,
+      "name": "menuHint2",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1634425928
+     },
+     {
+      "id": 295,
+      "name": "menuHint1",
+      "field": "fontColor",
+      "from": -1600871496,
+      "to": -1634425928
+     }
+    ],
+    "textChanged": [],
+    "changed": 3
+   },
+   "logsTail": [
+    "lock J cells=181,191,192,193",
+    "bag=1 piece=I x=4 y=1",
+    "demo pace think=0.65 rot=0 move=3*0.04 soft=2.0 hover=0.00 drop=hard total=1.33",
+    "fall y=2",
+    "ai pace tier=3 lv=1 pace=0.95 obs=0.20 atk=false",
+    "demo plan name=I from=4 target=4 rot=0 drop=hard"
+   ]
+  }
+ ],
+ "controlFrames": null
+}

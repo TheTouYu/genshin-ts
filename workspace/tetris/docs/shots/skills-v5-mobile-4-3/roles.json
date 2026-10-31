@@ -1,0 +1,68 @@
+{
+ "canvas": "mobile-4-3",
+ "mode": "casual",
+ "roles": {
+  "nahida": {
+   "animation": "on",
+   "skillEffect": "on",
+   "audio": "on",
+   "pixelFrames": 29,
+   "maxIdleSeconds": 0.03,
+   "roleSwitch": true,
+   "castOk": true,
+   "aiStart": "skill ai start tier=1 lvidx=2 dur=6.0 mode=casual",
+   "maxIdleFrames": 1,
+   "audioIds": [
+    40441,
+    40001
+   ]
+  },
+  "keqing": {
+   "animation": "on",
+   "skillEffect": "on",
+   "audio": "on",
+   "pixelFrames": 30,
+   "maxIdleSeconds": 0,
+   "roleSwitch": true,
+   "castOk": true,
+   "aiStart": null,
+   "maxIdleFrames": 0,
+   "audioIds": [
+    40391,
+    50924,
+    50872
+   ]
+  },
+  "ganyu": {
+   "animation": "on",
+   "skillEffect": "on",
+   "audio": "on",
+   "pixelFrames": 30,
+   "maxIdleSeconds": 0,
+   "roleSwitch": true,
+   "castOk": true,
+   "aiStart": null,
+   "maxIdleFrames": 0,
+   "audioIds": [
+    50017,
+    40001
+   ]
+  },
+  "columbina": {
+   "animation": "on",
+   "skillEffect": "on",
+   "audio": "on",
+   "pixelFrames": 28,
+   "maxIdleSeconds": 0.07,
+   "roleSwitch": true,
+   "castOk": true,
+   "aiStart": null,
+   "maxIdleFrames": 2,
+   "audioIds": [
+    40425,
+    50884,
+    50872
+   ]
+  }
+ }
+}

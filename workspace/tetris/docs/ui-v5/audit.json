@@ -1,0 +1,21 @@
+{
+ "generatedAt": "2026-10-29T07:12:36.428Z",
+ "shots": [
+  {
+   "canvasId": "mobile-19.5-9",
+   "screen": "game",
+   "file": "mobile-19.5-9-game.png",
+   "W": 1560,
+   "H": 720,
+   "nodes": 374,
+   "clickable": 77,
+   "bad": [],
+   "anchors": [
+    "ui audit !! over-text:help@hudNext",
+    "bg cover ok bs=1.22 w=1560 h=720 screen=game comps=14/14 wash=1 ext=-1073,1072,-459,491",
+    "mode theme=casual bg=14/14",
+    "screen=game ui layout w=1560 h=720 mobile=true dual=false pad=9 nav=2 act=0"
+   ]
+  }
+ ]
+}
