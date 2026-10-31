@@ -1,0 +1,55 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "overlay-close-key",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Down"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Up"
+  },
+  {
+   "t": 2.0,
+   "kind": "key",
+   "typeName": "KeyboardInteractKeyDown"
+  },
+  {
+   "t": 2.2,
+   "kind": "key",
+   "typeName": "KeyboardInteractKeyUp"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 1.6,
+   "kind": "log",
+   "contains": "char codex open n=",
+   "source": "client"
+  },
+  {
+   "at": 1.6,
+   "kind": "tree",
+   "name": "charTitle",
+   "exists": true
+  },
+  {
+   "at": 2.6,
+   "kind": "log",
+   "contains": "roster close",
+   "source": "client"
+  },
+  {
+   "at": 2.6,
+   "kind": "tree",
+   "name": "charTitle",
+   "exists": false
+  }
+ ]
+}
