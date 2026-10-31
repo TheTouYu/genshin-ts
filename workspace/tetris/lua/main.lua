@@ -70,6 +70,28 @@ local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
 local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
   CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
 local MODE_BG, MODE_BG_POOL = CFG.MODE_BG, CFG.MODE_BG_POOL
+-- ===== v6 core_* 装配（玩法纯逻辑在 lua/tetris/core_*.lua；本文件只做接线与表现）=====
+-- ⚠ 必须在这里装载：RNG1（102 行）与 newInst（191 行）都要用。2026-10-31 接线审查发现：
+--   CORE_RNG_M 原先在 341 行才 local ⇒ 102 行读到的是**全局 nil** ⇒ core_rng 恒走兜底旧路径，
+--   「接线第一步」名接实未接（当时全绿是因为两条路径逐字等价，不是因为模块生效）。
+local CORE = { hooks = {} }
+do
+  local function mod(name)
+    local m = loadModule(name)
+    if not m then print('v6 core module MISSING: ' .. name) end
+    return m
+  end
+  CORE.RNG_M, CORE.PIECES_M = mod('core_rng'), mod('core_pieces')
+  CORE.BOARD_M, CORE.STATE_M = mod('core_board'), mod('core_state')
+  if not (CORE.RNG_M and CORE.PIECES_M and CORE.BOARD_M and CORE.STATE_M) then
+    error('tetris: core_* 模块缺失（build 未注册？）——玩法逻辑现在只走 core_*，不再有兜底路径')
+  end
+  CORE.board = CORE.BOARD_M.new { rows = ROWS, cols = COLS, empty = 0 }
+  CORE.pieces = CORE.PIECES_M.new { shapes = SHAPES, cols = COLS }
+  -- 洞位随机源（障碍行/垃圾行）：现网两个板的洞位都走 aiRand，不动 bag 流。
+  -- 用字段间接引用——aiRand 的 local 声明在本块之后，闭包直接写 aiRand 会绑到全局（283 行有同样教训）。
+  CORE.holeRng = { rand = function(n) return CORE.aiRand(n) end }
+end
 local HUD_INST = {}
 local FN = {}    -- v3.6：把一批大函数的 local 声明挂表（真机 LuaJIT 计 local 严格，省槽防 200 上限）    -- v2.8 ⑤：HUD 实例双写表（txt/build 挂字段；声明在 renderHud 等全部调用点之前）
 -- v4.0：设备适配子系统（移动端操作控件 / 手柄映射与焦点导航 / 移动端多人引导浮层）。
@@ -96,17 +118,10 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
 BUILD_TAG = 'v5.38 · 10-31 02:1x'
--- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 可对拍）。
--- RNG1 = 主盘；RNG_P2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
-seed = 20261023                          -- 兜底路径用（模块缺失时）
-local RNG1 = CORE_RNG_M and CORE_RNG_M.new { bag = CFG.BAG, seed = 20261023 } or nil
-local RNG_P2
-local BOARD = CORE_BOARD_M and CORE_BOARD_M.new { rows = ROWS, cols = COLS, empty = 0 } or nil
-local function rand(n)
-  if RNG1 then return RNG1.rand(n) end
-  seed = (seed * 1103515245 + 12345) % 2147483648
-  return (seed // 65536) % n + 1
-end
+-- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
+-- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
+local RNG1 = CORE.RNG_M.new { bag = CFG.BAG, seed = 20261023 }
+local BOARD = CORE.board
 
 -- 7-bag 出块（T1，替换纯随机 nextName = BAG[rand(#BAG)]）：
 -- 每袋 I,O,T,S,Z,J,L 各一、袋内 Fisher-Yates 洗牌（继续用上面 LCG，种子不变 ⇒ 序列可复现）；
@@ -174,7 +189,7 @@ local function newAIState()
 end
 
 -- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
-local function newInst()
+local function newInst(isP2)
   local t = {}
   t.cellBX, t.cellBY, t.frameBX, t.frameBY = {}, {}, {}, {}
   t.bagQ, t.bagSeq = {}, 0
@@ -202,47 +217,48 @@ local function newInst()
   t.st = { name = nil, bag = 0, can = true }  -- Hold 槽（T3）
   t.lastRot = false                     -- T-spin 判定前置（T8）
   t.AI = newAIState()
+  -- v6：本盘的玩法 reducer 集合（core_state 实例）。每盘一份，核心区别只有随机源：
+  -- 主盘用 RNG1；双屏第二盘挂 aiRand 流（与现网 refillBag 的 isP2 分支同源）。
+  do
+    local rng = RNG1
+    if isP2 then
+      if not CORE.rngP2 then
+        CORE.rngP2 = CORE.RNG_M.new { bag = BAG, rand = function(n) return CORE.aiRand(n) end }
+      end
+      rng = CORE.rngP2
+    end
+    t.core = CORE.STATE_M.new {
+      pieces = CORE.pieces, board = CORE.board, num = NUM, cols = COLS, rows = ROWS,
+      step = CFG.STEP, rng = rng, holeRng = CORE.holeRng, hooks = CORE.hooks,
+      -- 甘雨「天地交泰」：冻结期内重力间隔 ×1.20（skills.params 的 gravityMult，原实现从没接上）
+      gravityMult = function()
+        if SK and SK.freezeT and tonumber(SK.freezeT) > 0 and SK.gravityMult then
+          return tonumber(SK.gravityMult) or 1
+        end
+        return 1
+      end,
+    }
+  end
   return t
 end
-G[1] = newInst()
+G[1] = newInst(false)
 g = G[1]
 
 local aiRand                           -- 前向声明（实现见 AI 段；refillBag 在更早处用 G[2] 独立洗牌）
 local function refillBag()
-  -- v6：洗袋逻辑搬到 core_rng；这里只决定「用哪条随机流」。
-  -- v2.8 ③：双屏第二盘（G[2]）用 aiRand 流（与 AI 决策/垃圾洞位共用同一条 ⇒ 序列不漂），
-  -- 公平性靠 7-bag 保底本身 + hard 档 AI，不再镜像等待（用户裁决）。
-  if not RNG1 then
-    -- 模块缺失时的旧路径（理论上不会走到：build 会把 core_rng 一起注册）
-    local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
-    local isP2 = (g ~= G[1] and G[2] ~= nil)
-    for i = #t, 2, -1 do
-      local j = isP2 and aiRand(i) or rand(i)
-      t[i], t[j] = t[j], t[i]
-    end
-    if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
-      for i = 2, #t do
-        if t[i] ~= 'S' and t[i] ~= 'Z' then t[1], t[i] = t[i], t[1] break end
-      end
-    end
-    g.bagSeq = g.bagSeq + 1
-    for i = 1, #t do g.bagQ[#g.bagQ + 1] = { name = t[i], bag = g.bagSeq } end
-    return
-  end
+  -- v6：洗袋逻辑在 core_rng（LCG + 7-bag + 首袋排 S/Z，headless 对拍过生产序列）。
+  -- 这里只决定「用哪条随机流」：主盘 RNG1；双屏第二盘挂 aiRand 那条流
+  -- （与 AI 决策/垃圾洞位共用同一条 ⇒ 序列不漂）。公平性靠 7-bag 保底本身，不镜像等待（用户裁决）。
   local isP2 = (g ~= G[1] and G[2] ~= nil)
   local RNG = RNG1
   if isP2 then
-    if not RNG_P2 then
-      RNG_P2 = CORE_RNG_M.new { bag = CFG.BAG, rand = function(n) return aiRand(n) end }
+    if not CORE.rngP2 then
+      -- 闭包间接引用 CORE.aiRand：aiRand 的 local 声明在本行之后（283 行有同样教训）
+      CORE.rngP2 = CORE.RNG_M.new { bag = BAG, rand = function(n) return CORE.aiRand(n) end }
     end
-    RNG = RNG_P2
+    RNG = CORE.rngP2
   end
   g.bagSeq = RNG.refill(g.bagQ, { firstBag = (g.bagSeq == 0) })
-end
-local function takeFromBag()
-  if #g.bagQ == 0 then refillBag() end
-  local e = table.remove(g.bagQ, 1)
-  return e.name, e.bag
 end
 
 -- 前向声明（局部化，避免污染全局表）：控件句柄类里，棋盘四件（cells/preview/frames/抖动基准）
@@ -278,7 +294,7 @@ local MS = {
 }
 local DUAL_DECO = {}                  -- 双屏中缝装饰（2 实例；exitToMenu 拆）
 local showGameOver, updateBest
-local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
+local collides, doLock, renderAll, renderPiece, renderHud, spawn
 local raiseGarbage    -- T7 垃圾行（实现见 enterMode 前；clearLines 消行后跨盘调用）
 -- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
 -- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
@@ -338,8 +354,6 @@ local PLATFORM_M = loadModule('platform')
 local VIEW_LAYERS_M = loadModule('view_layers')
 local RENDER_M = loadModule('render')
 local VIEW_BOARD_M = loadModule('view_board')
-local CORE_RNG_M = loadModule('core_rng')
-local CORE_BOARD_M = loadModule('core_board')
 if not (PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M) then
   print('v6 modules MISSING: platform/view_layers/render/view_board（棋盘会退回旧路径）')
 end
@@ -390,6 +404,196 @@ local function startShake(rows)
   g.shakeDur, g.shakeAmp = SHAKE_DUR[rows], SHAKE_AMP[rows]
   g.shakeT, g.shakePhase = g.shakeDur, 0
   print('shake rows=' .. rows .. ' amp=' .. g.shakeAmp .. ' dur=' .. g.shakeDur)
+end
+
+-- ===== v6 玩法接线：core_state 的 reducer + 「事件 → 表现」=====
+-- 设计（docs/ARCH.md §3）：玩法纯逻辑在 core_state，本文件只剩翻译层。
+-- ⚠ 事件里的**日志字面量逐字保留**——tests/ 的 154 条去重 contains 断言依赖
+--   move x= / lock / clear n= / ldstart / harddrop rows= / bag= / piece= / tspin / gameover score=。
+-- 钩子（core 在结算点回调；core 本身零引擎、零文案、零 UI）：
+--   addScore(s,gain)          记账分流（AI 自演进 aiScore / 玩家进 score）
+--   addLines(s,cleared)->累计  等级计算用的行数（AI 自演时 g.lines 不动 ⇒ 等级恒 1，与现网同口径）
+--   onLock(s,piece)           天赋落块结算（必须在消行之前）
+--   onClear(s,cleared,info)   天赋消行倍率（floor(gain×mult+bonus)，相加不相乘）
+--   onGarbage(s,n,reason)     机制A 干燥垃圾：**必须在 spawn 之前落盘**，否则顶死漏判
+CORE.hooks.addScore = function(s, gain)
+  if s.autoDriving then s.AI.score = s.AI.score + gain else s.score = s.score + gain end
+end
+CORE.hooks.addLines = function(s, cleared)
+  if s.autoDriving then
+    s.AI.lines = s.AI.lines + cleared
+    return s.lines
+  end
+  s.lines = s.lines + cleared
+  return s.lines
+end
+CORE.hooks.onLock = function(s, piece)
+  if not (SK and SKILLS and SKILLS.onLock) then return end
+  local okL, evL = pcall(SKILLS.onLock, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+    { piece = piece and piece.name, hard = (s.hardDrop == true),
+      moved = (s.pieceMoved == true), rotated = (s.pieceRotated == true),
+      flipped = (s.lastFlip == true), dwell = tonumber(s.pieceAge) or 0, mode = MODE })
+  if okL and type(evL) == 'table' and evL.log then print(evL.log) end
+end
+CORE.hooks.onClear = function(s, cleared, info)
+  if not (SK and SKILLS and SKILLS.onClear) then return nil end
+  local okE, ev = pcall(SKILLS.onClear, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+    cleared, { level = info.level, combo = info.combo, b2b = info.b2b, mode = MODE })
+  if not okE then print('talent onClear ERR ' .. tostring(ev)) return nil end
+  if type(ev) ~= 'table' then return nil end
+  print('talent onClear role=' .. tostring(FN.skillRoleOf and FN.skillRoleOf(1)) ..
+    ' cleared=' .. tostring(cleared) .. ' mult=' .. tostring(ev.mult) .. ' nfx=' ..
+    tostring(type(ev.effects) == 'table' and #ev.effects or 0))
+  if ev.log then print(ev.log) end
+  if type(ev.effects) == 'table' then
+    for ei = 1, #ev.effects do pcall(FN.dispatchEffect, s, ev.effects[ei]) end
+  end
+  return ev.mult, ev.bonus
+end
+CORE.hooks.onGarbage = function(s, n)
+  if not raiseGarbage then return end
+  raiseGarbage(s, n)                     -- 内部 save/restore g；这里已经是 spawn 之前
+  print('garbage n=' .. n .. ' dryness reset (lv=' .. s.level .. ')')
+end
+
+-- 消行事件的表现层（原 clearLines 的后半段；计分/等级/连击已由 core 算完）
+CORE.onClearEvent = function(e)
+  local cleared, gain, b2bApplied = e.n, e.score, e.b2b
+  for r2 = 1, ROWS do                       -- 整盘已落方块闪白（按行数分档，恒短于抖屏）
+    for c2 = 1, COLS do
+      if g.board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
+    end
+  end
+  if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
+  if SK and SKILLS and SKILLS.addExp then   -- 消行给前台角色加经验
+    local active = (FN.skillRoleOf and FN.skillRoleOf(1)) or SK.party[SK.active or 1] or 'nahida'
+    local up = SKILLS.addExp(SK, active, cleared * 10)
+    if up and up.leveled then
+      print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
+    end
+  end
+  if not g.autoDriving then
+    FN.skillCount('lines', cleared)
+    if cleared >= 4 then FN.skillCount('tetris', 1) end
+    FN.skillUnlockTick()
+  end
+  if e.levelUp and not g.autoDriving then   -- 升级文案（低频高价值：不被连击横幅压住）
+    local ups = { '风带来了新的歌，方块也跟上了节奏。', '这一层的重力，开始变得认真了。',
+      '脚下的路快了一点点——别慌，先深呼吸。', '提瓦特的时间在走，你的手也跟上了。' }
+    setText(botBanner, ups[(g.level - 2) % #ups + 1] or ups[1])
+    trySet(botBanner, 'fontSize', 20)
+    bannerTimer = 1.8
+    print('copy levelup lv=' .. g.level)
+  end
+  if cleared >= 2 and G[2] then             -- T7 垃圾行：2/3/4 消送对方 1/2/4 行（B2B 再 +1）
+    local other = (g == G[1]) and G[2] or G[1]
+    raiseGarbage(other, NUM.GARBAGE[cleared] + (b2bApplied and 1 or 0))
+    sfx(SFX.garbageSend, true)
+  end
+  sfx(SFX_CLEAR[cleared], true)             -- 消行音 + 抖屏（AI 自演同样出声、同样抖）
+  startShake(cleared)
+  if g.autoDriving then
+    g.AI.fx = 0.5
+    print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
+      .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
+  else
+    print('clear n=' .. cleared .. ' score=' .. g.score .. ' lines=' .. g.lines
+      .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
+  end
+  if not g.taughtClear and not g.autoDriving then
+    g.taughtClear = true
+    setText(hint, '一次消 4 行 +800')
+    setText(botBanner, '空格 直落到底')
+    bannerTimer = 4.0
+    print('guide clear-tip')
+  end
+  if not g.autoDriving and bannerTimer <= 0 then   -- 提示优先级：升级 > 四消 > 连击 > 普通
+    local CP = CFG.COPY
+    if e.levelUp then
+      local rec = CP.level[(g.level >= NUM.LEVEL_CAP) and 2 or 1]
+      setText(botBanner, (rec.text:gsub('{n}', tostring(g.level))))
+      bannerTimer = NUM.LEVEL_TIP
+      sfx(SFX.level, true)
+      print('tip level=' .. g.level)
+    elseif cleared == 4 then
+      setText(botBanner, (CP.clear[4].text:gsub('{分}', tostring(gain))))
+      bannerTimer = NUM.LEVEL_TIP
+      print('tip clear=4')
+    elseif g.combo >= 2 then
+      local rec = CP.combo[(g.combo >= 5) and 3 or ((g.combo >= 3) and 2 or 1)]
+      setText(botBanner, (rec.text:gsub('{n}', tostring(g.combo))))
+      bannerTimer = NUM.COMBO_TIP
+      print('tip combo=' .. g.combo)
+    else
+      setText(botBanner, (CP.clear[cleared].text:gsub('{分}', tostring(gain))))
+      bannerTimer = NUM.COMBO_TIP
+      print('tip clear=' .. cleared)
+    end
+  end
+end
+
+-- 事件 → 表现。spawn 的 renderPiece/renderHud 必须**排在 gameover 之后**（与旧 spawn 同序：
+-- 先 showGameOver 再重画，否则压暗被重绘复原——D569 的层序教训）。
+CORE.dispatch = function(ev)
+  if type(ev) ~= 'table' then return end
+  local needRender, hadLock, hadClear = false, false, false
+  for i = 1, #ev do
+    local e = ev[i]
+    local k = e.kind
+    if k == 'move' then
+      renderPiece()
+      print('move x=' .. e.x)
+      sfx(SFX.move)
+    elseif k == 'fall' then
+      renderPiece()
+      if CFG.VERBOSE then print('fall y=' .. e.y) end
+    elseif k == 'rotate' then
+      print('rotate ' .. e.name)
+      sfx(SFX.rotate)
+      renderPiece()
+    elseif k == 'ldstart' then
+      print('ldstart')                        -- 观测锚（用例 17）
+    elseif k == 'harddrop' then
+      print('harddrop rows=' .. e.rows .. ' y=' .. e.y)
+    elseif k == 'lock' then
+      hadLock = true
+      print('lock ' .. e.name .. ' cells=' .. table.concat(e.cells, ','))
+    elseif k == 'clear' then
+      hadClear = true
+      CORE.onClearEvent(e)
+    elseif k == 'tspin' then
+      print('tspin corners>=3 lines=' .. e.lines .. ' bonus=' .. e.bonus)
+      sfx(SFX.tspin, true)
+      if not g.autoDriving then
+        bannerTimer = NUM.COMBO_TIP
+        setText(botBanner, 'T-SPIN ' .. (e.lines > 0 and (e.lines .. ' 消 +' .. e.bonus) or '!'))
+      end
+    elseif k == 'garbage' then
+      -- 已在 hooks.onGarbage 里落盘并打印（必须在 spawn 之前），这里不重复
+    elseif k == 'spawn' then
+      if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. e.name) end
+      print('bag=' .. (e.bag or 0) .. ' piece=' .. e.name .. ' x=' .. e.x .. ' y=' .. e.y
+        .. (e.holdswap and ' holdswap=1' or ''))
+      needRender = true
+    elseif k == 'gameover' then
+      print('gameover score=' .. tostring(g.score) .. ' aiScore=' .. tostring(g.AI and g.AI.score)
+        .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
+      sfx(SFX.over, true)
+      if not g.autoDriving then updateBest() end
+      showGameOver()
+    end
+  end
+  if hadLock then
+    -- 落地音：只有"没消行"时才播（消行已经有一条更强的音，同帧不叠两条，见 sfx 的帧闸）
+    if not hadClear then sfx(SFX.lock, true) end
+    -- 首次锁定：只教"堆满一行即消除"这一条（排在消行提示之后，与旧 doLock 同序）
+    if not g.taughtLock and not g.autoDriving then
+      g.taughtLock = true
+      bannerTimer = 2.5
+      print('guide lock-tip')
+    end
+  end
+  if needRender then renderPiece(); renderHud() end
 end
 
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
@@ -1110,280 +1314,15 @@ collides = function(cs, px, py)
 end
 
 spawn = function(overrideName, overrideBag)
-  -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序，
-  -- 日志加 holdswap=1 尾标供用例区分自然出块与槽换出块）；自然出块（无参）才 takeFromBag。
-  local name = overrideName or g.nextName or 'T'
-  local nameBag = overrideBag or g.nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
-  if not overrideName then g.nextName, g.nextBag = takeFromBag() end
-  if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. name) end   -- v2.8 ③ 独立出块锚
-  -- v6：每块重置"这一块做过什么"的标记（供 keqing 四叠 / ganyu 蓄力 判定）
-  g.pieceMoved, g.pieceRotated, g.hardDrop = false, false, false
-  g.pieceAge = 0
-  local s = SHAPES[name]
-  g.piece = {
-    name = name, n = s.n, color = s.color,
-    cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },
-              { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },
-    x = (COLS - s.n) // 2 + 1,
-    y = 1,
-  }
-  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. g.piece.x .. ' y=' .. g.piece.y
-    .. (overrideName and ' holdswap=1' or ''))
-  g.ld.t, g.ld.resets, g.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
-  if collides(g.piece.cells, g.piece.x, g.piece.y) then
-    g.gameOver = true
-    -- 台账 #3：双盘时这块可能是 G[2]（AI 盘），它的分数在 AI 账本里 ⇒ 直接打 g.score 恒 0，
-    -- 与随后 guide 的 10702 对不上（真机日志 rec17749/17752）。这里把两个账本都打出来。
-    print('gameover score=' .. tostring(g.score) .. ' aiScore=' .. tostring(g.AI and g.AI.score)
-      .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
-    sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
-    -- 入场自演顶死时不写最高分：bestScore 是玩家账（与 P0 同一口径，docs §7.1）
-    if not g.autoDriving then updateBest() end
-    showGameOver()
-  end
-  -- v2.8 ③：镜像队列退役（用户裁决「不用两边出块一样也不用等」）——G[2] 独立 bag（aiRand 洗）。
-  -- p2 出块日志锚在自然出块路径（takeFromBag 后）；主日志锚（bag=/piece=）不动。
-  renderPiece()
-  renderHud()
-end
-
-clearLines = function()
-  local cleared = 0
-  local r = ROWS
-  while r >= 1 do
-    local full = true
-    for c = 1, COLS do
-      if g.board[r][c] == 0 then full = false end
-    end
-    if full then
-      table.remove(g.board, r)
-      local row = {}
-      for c = 1, COLS do row[c] = 0 end
-      table.insert(g.board, 1, row)
-      cleared = cleared + 1
-      -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次
-    else
-      r = r - 1
-    end
-  end
-  if cleared > 0 then
-    -- 视觉反馈：整盘已落方块闪白（按行数分档：1 行 0.10s → 4 行 0.22s，恒短于抖屏时长）
-    for r2 = 1, ROWS do
-      for c2 = 1, COLS do
-        if g.board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
-      end
-    end
-    g.flashT = NUM.FLASH[cleared] or NUM.FLASH[4]
-    -- 计分（docs/数值策划.md §2）：基础分 × 等级 + 连击加成；四消连击（B2B）基础分再 ×1.5。
-    -- 连击口径：连续"有消行的锁定"计数，combo=1 是第一次，≥2 才给加成；没消行的锁定归零（见 doLock）
-    g.combo = g.combo + 1
-    if g.combo > g.maxCombo then g.maxCombo = g.combo end
-    local base = NUM.SCORE[cleared]
-    local b2bApplied = (cleared == 4 and g.b2b)     -- 这一次是否吃到 ×1.5（日志里 b2b=1 表示吃到了）
-    if b2bApplied then base = base * NUM.B2B_NUM // NUM.B2B_DEN end   -- 800 → 1200
-    g.b2b = (cleared == 4)
-    local comboBonus = 0
-    if g.combo >= 2 then comboBonus = NUM.COMBO * (g.combo - 1) * g.level end
-    -- T4 两套账本：AI 自演的分进 aiScore（玩家接管不清、best 不收）；玩家分进 score。
-    -- 连击/B2B 状态共享，但 startIfWaiting/newGame 都归零 ⇒ AI 的连击不会漏进玩家局。
-    local gain = base * g.level + comboBonus
-    -- v6 天赋：消行结算（倍率相加不相乘，见设计书 §5.3）
-    if SK and SKILLS and SKILLS.onClear then
-      local okE, ev = pcall(SKILLS.onClear, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
-        cleared, { level = g.level, combo = g.combo, b2b = b2bApplied, mode = MODE })
-      if not okE then print('talent onClear ERR ' .. tostring(ev)) end
-      if okE and type(ev) == 'table' then
-        print('talent onClear role=' .. tostring(FN.skillRoleOf and FN.skillRoleOf(1)) ..
-          ' cleared=' .. tostring(cleared) .. ' mult=' .. tostring(ev.mult) .. ' nfx=' ..
-          tostring(type(ev.effects) == 'table' and #ev.effects or 0))
-        gain = math.floor(gain * (tonumber(ev.mult) or 1) + (tonumber(ev.bonus) or 0))
-        if ev.log then print(ev.log) end
-        if type(ev.effects) == 'table' then
-          for ei = 1, #ev.effects do pcall(FN.dispatchEffect, g, ev.effects[ei]) end
-        end
-      end
-    end
-    if g.autoDriving then g.AI.score = g.AI.score + gain else g.score = g.score + gain end
-    if g.autoDriving then g.AI.lines = g.AI.lines + cleared else g.lines = g.lines + cleared end
-    if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
-    -- v4.0 ③：消行给前台角色加经验（用户：「哪个技能用的更多，加点更多，就可以获得更好的效果」）
-    if SK and SKILLS and SKILLS.addExp then
-      local active = (FN.skillRoleOf and FN.skillRoleOf(1)) or SK.party[SK.active or 1] or 'nahida'
-      local up = SKILLS.addExp(SK, active, cleared * 10)
-      if up and up.leveled then
-        print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
-      end
-    end
-    -- v4.0 ③：解锁计数（累计消行 / 四消次数）——四消是少女的解锁条件之一
-    if not g.autoDriving then
-      FN.skillCount('lines', cleared)
-      if cleared >= 4 then FN.skillCount('tetris', 1) end
-      FN.skillUnlockTick()
-    end
-    local levelBefore = g.level
-    g.level = g.lines // NUM.LEVEL_UP_LINES + 1
-    if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
-    -- v4.0 ②：升级场景文案（用户：「可以在游戏内出现文案和触发文案的场景太少了」）
-    -- 不加 bannerTimer 守卫：升级是低频高价值事件（一局最多 11 次），被连击横幅压住就永远不播了
-    if g.level > levelBefore and not g.autoDriving then
-      local ups = { '风带来了新的歌，方块也跟上了节奏。', '这一层的重力，开始变得认真了。',
-        '脚下的路快了一点点——别慌，先深呼吸。', '提瓦特的时间在走，你的手也跟上了。' }
-      setText(botBanner, ups[(g.level - 2) % #ups + 1] or ups[1])
-      trySet(botBanner, 'fontSize', 20)
-      bannerTimer = 1.8
-      print('copy levelup lv=' .. g.level)
-    end
-    -- T7 垃圾行（v2-plan §三/设计书 §四）：双屏模式 2/3/4 消送对方盘 1/2/4 行（B2B 再 +1）。
-    -- 送出方向：g == G[1] → 送 G[2]，反之亦然（ai-battle/coop 人↔AI、pvp 玩家互送）。
-    if cleared >= 2 and G[2] then
-      local other = (g == G[1]) and G[2] or G[1]
-      raiseGarbage(other, NUM.GARBAGE[cleared] + (b2bApplied and 1 or 0))
-      sfx(SFX.garbageSend, true)     -- 送出音（攻方反馈；force 防同帧被消行音吞，D619 教训）
-    end
-    -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
-    -- T4：AI 自演同样出声、同样抖屏——统一走这一条链路，不再有静音旁路
-    sfx(SFX_CLEAR[cleared], true)
-    startShake(cleared)
-    if g.autoDriving then
-      g.AI.fx = 0.5   -- v2.1 C：AI 演示视觉反馈（浏览器 autoplay 锁下音效听不到——分数弹跳放大）
-      print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
-        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
-    else
-      print('clear n=' .. cleared .. ' score=' .. g.score .. ' lines=' .. g.lines
-        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
-    end
-    -- 首次消行：由简入深——把"分值表"这项进阶信息押到玩家已经会消行之后
-    -- （入场 AI 自演期间的消行不算，否则玩家真正上手时这条引导已经被吃掉）
-    if not g.taughtClear and not g.autoDriving then
-      g.taughtClear = true
-      setText(hint, '一次消 4 行 +800')
-      setText(botBanner, '空格 直落到底')
-      bannerTimer = 4.0
-      print('guide clear-tip')
-    end
-    -- 升级 / 消行 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
-    -- 优先级：升级 > 四消 > 连击 > 普通消行；已有横幅在播时让位（bannerTimer > 0 不抢）
-    -- v3.2 原神文案：措辞全部来自 CFG.COPY（docs/genshin-copy-design.md §2.3–2.5）；
-    -- 数字（等级/连击/本次得分）仍留在文案里——玩家看的是数值反馈，风味只做前缀/后缀。
-    if not g.autoDriving and bannerTimer <= 0 then
-      local CP = CFG.COPY
-      if g.level > levelBefore then
-        local rec = CP.level[(g.level >= NUM.LEVEL_CAP) and 2 or 1]
-        setText(botBanner, (rec.text:gsub('{n}', tostring(g.level))))
-        bannerTimer = NUM.LEVEL_TIP
-        sfx(SFX.level, true)          -- 升级音（force：与其他音效同帧也不吞）
-        print('tip level=' .. g.level)
-      elseif cleared == 4 then
-        setText(botBanner, (CP.clear[4].text:gsub('{分}', tostring(gain))))
-        bannerTimer = NUM.LEVEL_TIP
-        print('tip clear=4')
-      elseif g.combo >= 2 then
-        local rec = CP.combo[(g.combo >= 5) and 3 or ((g.combo >= 3) and 2 or 1)]
-        setText(botBanner, (rec.text:gsub('{n}', tostring(g.combo))))
-        bannerTimer = NUM.COMBO_TIP
-        print('tip combo=' .. g.combo)
-      else
-        setText(botBanner, (CP.clear[cleared].text:gsub('{分}', tostring(gain))))
-        bannerTimer = NUM.COMBO_TIP
-        print('tip clear=' .. cleared)
-      end
-    end
-  end
-  return cleared   -- 调用方（doLock）用它决定"落地音还是消行音"
+  -- v6：出块逻辑在 core_state.spawn（袋序/出生位/顶死判定），这里只播事件。
+  -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序 ⇒ 日志 holdswap=1）。
+  CORE.dispatch(g.core.spawn(g, overrideName, overrideBag))
 end
 
 doLock = function()
-  -- T8 T-spin 判定（在写入盘面前做——角占用看的是锁定前盘面+本块无关）：
-  -- 3 角规则=T 块 + 最后动作是旋转（g.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
-  local isTspin = false
-  if g.piece.name == 'T' and g.lastRot then
-    local corners = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
-    local occ = 0
-    for i = 1, 4 do
-      local cr = g.piece.y + corners[i][1] - 1
-      local cc = g.piece.x + corners[i][2] - 1
-      if cr < 1 or cr > ROWS or cc < 1 or cc > COLS or g.board[cr][cc] ~= 0 then occ = occ + 1 end
-    end
-    if occ >= 3 then isTspin = true end
-  end
-  for i = 1, 4 do
-    local br = g.piece.y + g.piece.cells[i][1] - 1
-    local bc = g.piece.x + g.piece.cells[i][2] - 1
-    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      g.board[br][bc] = g.piece.color
-    end
-  end
-  local landed = {}
-  for i = 1, 4 do
-    local br = g.piece.y + g.piece.cells[i][1] - 1
-    local bc = g.piece.x + g.piece.cells[i][2] - 1
-    if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end
-  end
-  g.pieceCount = g.pieceCount + 1
-  print('lock ' .. g.piece.name .. ' cells=' .. table.concat(landed, ','))
-  g.st.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
-  g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
-  g.lastRot = false
-  g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。hold 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
-  -- v6 天赋：落块结算（蓄力/二段/四叠），必须在 clearLines 之前
-  if SK and SKILLS and SKILLS.onLock then
-    local okL, evL = pcall(SKILLS.onLock, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
-      { piece = g.piece and g.piece.name, hard = (g.hardDrop == true),
-        moved = (g.pieceMoved == true), rotated = (g.pieceRotated == true),
-        flipped = (g.lastFlip == true), dwell = tonumber(g.pieceAge) or 0, mode = MODE })
-    if okL and type(evL) == 'table' and evL.log then print(evL.log) end
-  end
-  local cleared = clearLines()
-  -- v3.1 二-1 机制A 垃圾行侵蚀：每盘独立账本；连续 N 块无消行（N 按等级段 DRYNESS_N）→
-  -- 顶起 1 行带洞垃圾并清零重计（不叠加）。raiseGarbage 的洞位用 aiRand（不动 bag）。
-  do
-    local seg = g.level >= 9 and 3 or g.level >= 5 and 2 or 1
-    local N = NUM.DRYNESS_N[seg] or 14
-    if cleared > 0 then
-      g.AI.dryness = 0
-    else
-      g.AI.dryness = g.AI.dryness + 1
-      if g.AI.dryness >= N then
-        g.AI.dryness = 0
-        local save = g
-        raiseGarbage(g, 1)
-        g = save
-        print('garbage n=1 dryness reset (lv=' .. g.level .. ')')
-      end
-    end
-  end
-  if isTspin then
-    -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
-    -- 分流玩家/AI 账本（与 clearLines 同口径：autoDriving 时入 AI.score）。
-    local bonus = NUM.TSPIN_BONUS * cleared * g.level
-    if bonus > 0 then
-      if g.autoDriving then g.AI.score = g.AI.score + bonus else g.score = g.score + bonus end
-    end
-    print('tspin corners>=3 lines=' .. cleared .. ' bonus=' .. bonus)
-    sfx(SFX.tspin, true)
-    if not g.autoDriving then
-      bannerTimer = NUM.COMBO_TIP
-      setText(botBanner, 'T-SPIN ' .. (cleared > 0 and (cleared .. ' 消 +' .. bonus) or '!'))
-    end
-  end
-  if cleared == 0 then
-    g.combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
-    g.b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
-  end
-  -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
-  -- T4：AI 自演的落块同样播（消行音/落地音统一链路，AI 不再静音）
-  if cleared == 0 then sfx(SFX.lock, true) end   -- T8 改 force：DAS 连移音与锁定可能同帧，锁
-                                                 -- 定是节点性反馈，不让帧闸吞（消行/升级同例）
-  -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
-  if not g.taughtLock and not g.autoDriving then
-    g.taughtLock = true
-    bannerTimer = 2.5
-    print('guide lock-tip')
-  end
-  if not g.gameOver then
-    spawn()   -- v2.8 ③：全部自然出块（G[2] 用 aiRand 独立 bag）
-  end
-  renderHud()
+  -- v6：锁定/消行/计分/等级/连击/干燥垃圾/T-spin 全在 core_state.lockAndClear，
+  -- 这里只剩「把事件翻译成日志/音效/横幅/送行」（CORE.dispatch + CORE.hooks）。
+  CORE.dispatch(g.core.lockAndClear(g))
 end
 
 -- 下落一格。manual=true 表示玩家自己按的（↓ / S / 手机↓）：成功下落才给软降分。
@@ -1391,42 +1330,19 @@ end
 -- T8 锁定延迟：重力触底不再立即 doLock——启动 NUM.LD 计时（0.5s 缓冲，玩家移动/旋转可重置，
 -- 上限 15 次）；软降/硬降是玩家主动落，触底即时锁定（保持旧手感）。AI 走 aiDrop 直锁，不经这里。
 local function stepDown(manual)
-  if g.gameOver or not g.piece then return end
-  if not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
-    g.piece.y = g.piece.y + 1
-    if manual then g.score = g.score + NUM.SOFT end
-    renderPiece()
-    if CFG.VERBOSE then print('fall y=' .. g.piece.y) end
-  else
-    if manual then
-      doLock()
-    elseif g.ld.t < 0 then
-      g.ld.t = 0               -- 重力触底：启动锁定延迟计时（tick 里推进，到时锁定）
-      print('ldstart')            -- 观测锚：延迟计时的启动点（用例 17 断言）
-    end
-  end
+  -- v6：下落、软降加分、触底锁定、锁定延迟启动都在 core_state.stepDown；这里只播事件
+  -- （manual=false 是重力：不加软降分，docs/数值策划.md §7-P6）。
+  CORE.dispatch(g.core.stepDown(g, manual))
 end
 
 -- 左右移动：键位（箭头 / WASD / 手机热区 / DAS 自动连移）共用一条路径 —— 成功才播移动音。
 -- T8：成功移动重置锁定延迟（未超上限）；同时清 lastRot（T-spin 判定要求"最后动作是旋转"）。
 local function moveBy(dx)
-  if g.gameOver or not g.piece then return false end
-  if collides(g.piece.cells, g.piece.x + dx, g.piece.y) then return false end
-  g.piece.x = g.piece.x + dx
-  renderPiece()
-  print('move x=' .. g.piece.x)
-  sfx(SFX.move)
-  g.lastRot = false
-  if g.ld.t >= 0 then
-    if g.ld.resets < NUM.LD_RESETS then
-      g.ld.resets = g.ld.resets + 1
-      g.ld.t = 0                 -- 重置计时（上限内）
-    else
-      doLock()                     -- 超过重置上限：强制锁定（Guideline 15 次上限）
-      return true
-    end
-  end
-  return true
+  -- v6：移动 + 清 lastRot + 锁定延迟重置（上限 LD_RESETS，超限强制锁定）都在 core_state.move。
+  -- 返回 ok 供调用点判断（DAS 循环忽略返回值）。
+  local ev, ok = g.core.move(g, dx)
+  CORE.dispatch(ev)
+  return ok == true
 end
 
 -- 顺时针 90°：(r,c) → (c, n+1-r)，盒内 1-based（n = 包围盒边长）。
@@ -1439,23 +1355,8 @@ local function rotateCells(cells, n)
 end
 
 local function rotate()
-  if g.gameOver or not g.piece then return end
-  local nc = rotateCells(g.piece.cells, g.piece.n)
-  if not collides(nc, g.piece.x, g.piece.y) then
-    g.piece.cells = nc
-    print('rotate ' .. g.piece.name)
-    sfx(SFX.rotate)
-    renderPiece()
-    g.lastRot = true
-    if g.ld.t >= 0 then
-      if g.ld.resets < NUM.LD_RESETS then
-        g.ld.resets = g.ld.resets + 1
-        g.ld.t = 0
-      else
-        doLock()
-      end
-    end
-  end
+  -- v6：旋转（默认无踢墙，与现网同语义）+ lastRot + 锁定延迟重置在 core_state.rotate。
+  CORE.dispatch(g.core.rotate(g, 1))
 end
 
 -- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
@@ -1466,60 +1367,21 @@ end
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
 
 local function newGame()
-  g.board = {}
-  for r = 1, ROWS do
-    local row = {}
-    for c = 1, COLS do row[c] = 0 end
-    g.board[r] = row
-  end
-  g.score, g.lines, g.level = 0, 0, 1
+  -- v6：玩法状态（棋盘/账本/连击/等级/袋序/Hold/首块/spawn）由 core_state.newGame 原地重置；
+  -- 本文件只留表现态（结算层/抖动/最高分闸）。
   g.AI.score, g.AI.lines = 0, 0   -- AI 局账本同样重开归零（demo reset / 玩家 R 都是"新一局"）
-  g.pieceCount = 0
-  g.combo, g.maxCombo, g.b2b = 0, 0, false
-  g.elapsed = 0
-  g.gameOver, g.tickCount, g.acc = false, 0, 0
-  g.settleSignaled = false      -- 每局允许上报一次真结算
+  g.settleSignaled = false        -- 每局允许上报一次真结算
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
   g.settleOn, g.settleT, g.settleDone, g.settleFade, g.settleSize = false, 0, false, -1, 44
   g.dimRatio, g.dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
-  g.AI.dryness = 0                        -- v3.1 二-1 机制A：干燥计数（连续无消行块数，每盘独立）
-  -- v3.1 二-1 机制B：开局障碍行（进局首帧可见——建在取块/spawn 前，renderPiece 全盘重画即显示）。
-  -- 行数按等级段（OBSTACLE 表）；每行洞数：第1行2洞/第2行2洞/第3行1洞（高等级更挤）。
-  -- 双盘各自独立随机洞位（aiRand=AI 盘独立 LCG，不动主盘 bag 序列——同 raiseGarbage 口径）。
-  do
-    local seg = g.level >= 11 and 4 or g.level >= 8 and 3 or g.level >= 5 and 2 or 1
-    local rows = NUM.OBSTACLE[seg] or 0
-    if rows > 0 then
-      local holesPer = { 0, 2, 2, 1 }
-      for i = 1, rows do
-        local r = ROWS - rows + i          -- 从下往上填：r=ROWS-rows+1..ROWS
-        local holes = {}
-        for h = 1, (holesPer[i] or 1) do holes[aiRand(COLS)] = true end
-        for c = 1, COLS do
-          g.board[r][c] = holes[c] and 0 or CFG.COL_GRAY
-        end
-      end
-      print('obstacle n=' .. rows .. ' lv=' .. g.level)
-    end
-  end
-  g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
-  if RNG1 then RNG1.reset() end           -- v6：袋序归零（LCG 种子延续 ⇒ 第二局序列≠第一局）
-  if RNG_P2 then RNG_P2.reset() end
-  g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
-  -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
-  if G[2] and g == G[2] then
-    -- v2.8 ③：独立出块——AI/对家盘自己跑 bag（aiRand 洗牌），不等主盘镜像。
-    g.nextName, g.nextBag = takeFromBag()
-    spawn()
-    renderHud()
-    return
-  end
-  g.nextName, g.nextBag = takeFromBag()   -- 第一块
-  spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
+  -- core.newGame 内部：清盘 → 账本归零 → 干燥计数 → 开局障碍行（现网恒 0 行，见 config.OBSTACLE[1]=0）
+  -- → 袋序归零 + 首袋排 S/Z → Hold 清空 → 取首块 → spawn（含顶死判定）
+  local _, evNew = g.core.newGame({ state = g })   -- ⚠ newGame 返回 (state, events)：多返回值直接传会丢事件
+  CORE.dispatch(evNew)
   renderHud()
-  if not g.autoDriving then print('newgame') end
+  if not (G[2] and g == G[2]) and not g.autoDriving then print('newgame') end
 end
 
 --------------------------------------------------------------------------------
@@ -1853,10 +1715,19 @@ AI_RESET_ROWS, W_WALL, W_WELL, WELL_DEPTH = AIC.RESET_ROWS, AIC.W_WALL, AIC.W_WE
 
 -- 自演专用小随机：独立 LCG，不动方块袋那条序列 ⇒ 用例/出图仍可复现
 local aiSeed = 20261024
+-- ⚠⚠ 这条 LCG **必须保持整数算术**，别跟 core_rng.rand 一起"统一"成浮点。
+-- 2026-10-31 实测（每条都是 build 后真跑，两次复现完全一致）：
+--   A) core_rng 浮点 + aiRand **浮点** ⇒ 模拟器 57-copy-garbage **FAIL**（922 行日志）
+--   B) core_rng 浮点 + aiRand **整数** ⇒ 57-copy-garbage **PASS**（944 行），headless 仍 69/70
+-- 原因不是文案，是 AI 用 aiRand(100)/aiRand(1000) 做阈值判定：序列一挪，AI 演出时间线整体位移。
+-- 结论：**出块流（core_rng）与 AI/垃圾流（aiRand）是两条独立的随机流，各自取证、不许统一**。
+-- 出块流为什么必须浮点：见 core_rng.lua 头注释「三端同序」（lua5.3 的 64 位整数 vs Fengari/LuaJIT 的
+-- IEEE-754 double；不显式浮点则 headless 与模拟器序列分叉，9 条用例红）。
 aiRand = function(n)
   aiSeed = (aiSeed * 1103515245 + 12345) % 2147483648
   return (aiSeed // 65536) % n + 1
 end
+CORE.aiRand = aiRand      -- v6：core 侧（洞位随机源）间接引用；本行之后闭包才绑到 local
 local function aiRange(lo, hi) return lo + (hi - lo) * (aiRand(1000) / 1000) end
 local function aiFmt(x) return string.format('%.2f', x) end
 
@@ -4572,7 +4443,7 @@ FN.enterMode = function()
   if FN.FX then pcall(FN.FX.clear) end
   if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
     if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
-    G[2] = newInst()
+    G[2] = newInst(true)
     ACTIVE = { 1, 2 }
     MIRRORQ = {}                          -- 清镜像队列（复局防串）
     local save = g
@@ -6122,16 +5993,8 @@ function OnStart()
     elseif action == 'hold' then
       NUM.doHold()
     elseif action == 'hard' then
-      g.hardDrop = true
-      if g.gameOver or not g.piece then return end
-      local dropped = 0
-      while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
-        g.piece.y = g.piece.y + 1
-        dropped = dropped + 1
-      end
-      print('harddrop rows=' .. dropped .. ' y=' .. g.piece.y)
-      g.score = g.score + dropped * NUM.HARD
-      doLock()
+      -- v6：硬降（落点/加分/即时锁定/hardDrop 标记）都在 core_state.hardDrop
+      CORE.dispatch(g.core.hardDrop(g))
     end
   end
   -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
@@ -6541,15 +6404,8 @@ FN.tickInstance = function(d)
   if g.gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
   if guideStage == 1 and not g.gameOver then g.elapsed = g.elapsed + d end
   -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
-  if g.ld.t >= 0 and not g.gameOver then
-    g.ld.t = g.ld.t + d
-    if g.ld.t >= NUM.LD_DELAY then
-      g.ld.t = -1
-      if g.piece and collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
-        doLock()          -- 缓冲到时且仍触底：锁定
-      end
-    end
-  end
+  -- v6：锁定延迟推进在 core_state.tickLockDelay（与下面的重力分开，保住"LD → DAS → 重力"的帧内顺序）
+  CORE.dispatch(g.core.tickLockDelay(g, d))
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
   -- v2.6 根治「按一下走到底」：网页旧构建 keyup 转发丢失（或焦点转移吞 keyup）会让 dir 永不清零，
   -- 点按也触发完整 DAS+ARR 连走。时间上限（DAS_HOLD）取代 v2.1 的步数上限：ARR 激活累计 hold，
@@ -6570,23 +6426,9 @@ FN.tickInstance = function(d)
       end
     end
   end
-  g.acc = g.acc + d
-  local guard = 0
-  while g.acc >= STEP and guard < 8 do
-    g.acc = g.acc - STEP
-    guard = guard + 1
-    g.tickCount = g.tickCount + 1
-    g.pieceAge = (tonumber(g.pieceAge) or 0) + (CFG.STEP or (1 / 60))   -- v6：本块存活秒数（真实秒，每步加一步长）
-    -- 下落间隔随等级变化（SPEED_TICKS，docs §3）：level 已封顶 LEVEL_CAP，表项必存在
-    local perTicks = NUM.SPEED[g.level] or NUM.SPEED[NUM.LEVEL_CAP]
-    -- v6 甘雨「天地交泰」：冻结期内重力间隔 ×1.20（旧实现只把倍率写进角色页字符串，从没生效）
-    if SK and SK.freezeT and tonumber(SK.freezeT) > 0 and SK.gravityMult then
-      perTicks = math.max(1, math.floor(perTicks * (tonumber(SK.gravityMult) or 1)))
-    end
-    if not g.gameOver and g.tickCount % perTicks == 0 then
-      stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
-    end
-  end
+  -- v6：重力累加（acc/guard/tickCount/pieceAge/perTicks）在 core_state.tickGravity；
+  -- 甘雨「天地交泰」的重力倍率通过 spec.gravityMult 注入（冻结期内重力间隔 ×1.20）。
+  CORE.dispatch(g.core.tickGravity(g, d))
 end
 
 -- ===== v5.6 画布尺寸轮询（用户 2026-10-30 移动端一-1「背景没覆盖全部画面」的根因）=====

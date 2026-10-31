@@ -56,6 +56,9 @@ function M.new(spec)
   -- 而 lua5.3 是 64 位整数 ⇒ 同样的乘法溢出行为不同，序列会分叉（实测 9/70 用例因此红）。
   -- 所以这里显式把 state 转成浮点（+ 0.0），让 lua5.3 也走 double 路径：
   -- 模拟器/真机算法不变（它们本来就是 double），headless 自动对齐。
+  -- ⚠ 只覆盖**出块（bag）流**。AI/垃圾洞位那条 LCG 在 main.lua 的 aiRand，它必须保持**整数**——
+  --   实测把它也浮点化会让模拟器 57-copy-garbage 由绿转红（AI 阈值判定对序列极敏感）。
+  --   两条流口径相反是有实测依据的，别"统一"。
   function R.rand(n)
     if externalRand then return externalRand(n) end
     local s = seed + 0.0                     -- 强制浮点：见上方「数值模型」

@@ -46,7 +46,8 @@
    S.rotate(s, dir)                 -> events, ok            （dir 缺省 1 = 顺时针）
    S.softDrop(s)                    -> events, ok
    S.hardDrop(s)                    -> events, rows
-   S.tickGravity(s, dt)             -> events                （含锁定延迟推进）
+   S.tickLockDelay(s, dt)           -> events                （锁定延迟推进 + 到时锁定）
+   S.tickGravity(s, dt)             -> events                （重力累加；与上面分开是为保住帧内顺序）
    S.lockAndClear(s)                -> events
    S.spawn(s, overrideName, overrideBag) -> events           （Hold 换出块走这里）
    S.stepDown(s, manual)            -> events                （重力/软降共用的单步）
@@ -192,18 +193,26 @@ function M.new(spec)
           gain = math.floor(gain * (tonumber(mult) or 1) + (tonumber(bonus) or 0))
         end
       end
-      s.score = s.score + gain
-      s.lines = s.lines + cleared
+      -- 记账（两套账本在接线方：AI 自演进 aiScore / 玩家进 score，见 main 的 hooks.addScore）
+      if hooks.addScore then hooks.addScore(s, gain) else s.score = s.score + gain end
+      local totalLines = cleared
+      if hooks.addLines then
+        totalLines = hooks.addLines(s, cleared)
+      else
+        s.lines = s.lines + cleared
+        totalLines = s.lines
+      end
+      if totalLines == nil then totalLines = s.lines end
       local levelBefore = s.level
-      s.level = s.lines // NUM.LEVEL_UP_LINES + 1
+      s.level = totalLines // NUM.LEVEL_UP_LINES + 1
       if s.level > NUM.LEVEL_CAP then s.level = NUM.LEVEL_CAP end
       ev[#ev + 1] = { kind = 'clear', n = cleared, rows = removed, score = gain,
         lines = s.lines, level = s.level, levelUp = s.level > levelBefore,
         combo = s.combo, b2b = b2bApplied, maxCombo = s.maxCombo }
     end
 
-    -- 机制A 干燥垃圾（main.lua:1305-1322）：**只发事件**，垫行由接线方做
-    -- （它要跨盘、要过技能冻结、还要把当前块上抬——都不是本模块的职责）
+    -- 机制A 干燥垃圾（main.lua:1305-1322）：**落盘必须在 spawn 之前**——否则新块已经落位，
+    -- 垃圾行挤进来的"顶死"就漏判了。垫行本身由接线方做（要跨盘、过技能冻结、可能抬块）。
     do
       local seg = s.level >= 9 and 3 or s.level >= 5 and 2 or 1
       local N = NUM.DRYNESS_N[seg] or 14
@@ -213,6 +222,7 @@ function M.new(spec)
         s.dryness = s.dryness + 1
         if s.dryness >= N then
           s.dryness = 0
+          if hooks.onGarbage then hooks.onGarbage(s, 1, 'dryness') end
           ev[#ev + 1] = { kind = 'garbage', n = 1, reason = 'dryness' }
         end
       end
@@ -221,7 +231,9 @@ function M.new(spec)
     -- T-spin 加成（main.lua:1323-1336）：⚠ 陷阱 2，用**升级后**的 level
     if isTspin then
       local bonus = NUM.TSPIN_BONUS * cleared * s.level
-      if bonus > 0 then s.score = s.score + bonus end
+      if bonus > 0 then
+        if hooks.addScore then hooks.addScore(s, bonus) else s.score = s.score + bonus end
+      end
       ev[#ev + 1] = { kind = 'tspin', lines = cleared, bonus = bonus }
     end
 
@@ -320,19 +332,26 @@ function M.new(spec)
     return ev, dropped
   end
 
-  -- ===== 重力 + 锁定延迟推进（main.lua:6538-6584）=====
-  -- 顺序与现网一致：**先推进锁定延迟，再推进重力累加**。
-  function S.tickGravity(s, dt)
+  -- ===== 锁定延迟推进（main.lua:6538-6547）=====
+  -- 拆成独立函数是为了保住现网帧内顺序：**锁定延迟 → DAS/ARR → 重力**。
+  -- main 的 DAS 块夹在两者之间；合成一个函数会把顺序变成 LD+重力→DAS（同帧行为会变）。
+  function S.tickLockDelay(s, dt)
     local ev = {}
     if s.ld.t >= 0 and not s.gameOver then
       s.ld.t = s.ld.t + dt
       if s.ld.t >= NUM.LD_DELAY then
         s.ld.t = -1
         if s.piece and collides(s, s.piece.cells, s.piece.x, s.piece.y + 1) then
-          lockAndClear(s, ev)
+          lockAndClear(s, ev)          -- 缓冲到时且仍触底：锁定
         end
       end
     end
+    return ev
+  end
+
+  -- ===== 重力推进（main.lua:6568-6584）=====
+  function S.tickGravity(s, dt)
+    local ev = {}
     s.acc = s.acc + dt
     local guard = 0
     while s.acc >= STEP and guard < 8 do

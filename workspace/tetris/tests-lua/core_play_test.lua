@@ -435,8 +435,13 @@ do
   blank(s6)
   place(s6, 'O', 5, ROWS - 1)
   local ldAt, lockAt, tick = false, false, 0
+  -- 帧循环 = tickLockDelay → (DAS) → tickGravity，与 main.tickInstance 同序
   for i = 1, NUM.SPEED[1] do
     tick = tick + 1
+    for _, e in ipairs(S.tickLockDelay(s6, 1 / 60)) do
+      if e.kind == 'ldstart' then ldAt = true end
+      if e.kind == 'lock' then lockAt = true end
+    end
     for _, e in ipairs(S.tickGravity(s6, 1 / 60)) do
       if e.kind == 'ldstart' then ldAt = true end
       if e.kind == 'lock' then lockAt = true end
@@ -444,7 +449,7 @@ do
   end
   ok(ldAt and not lockAt, 'E6 重力触底先启动锁定延迟（ldstart），不立即锁',
     'ld=' .. tostring(ldAt) .. ' lock=' .. tostring(lockAt) .. ' ticks=' .. tick)
-  S.tickGravity(s6, NUM.LD_DELAY)
+  S.tickLockDelay(s6, NUM.LD_DELAY)
   ok(s6.pieceCount == 1 and s6.ld.t == -1, 'E6b 延迟到期且仍触底 ⇒ 锁定', s6.pieceCount)
 
   -- E7 gameover：出生位被占 ⇒ 判负（标准 topout = 新块 spawn 不可放）
