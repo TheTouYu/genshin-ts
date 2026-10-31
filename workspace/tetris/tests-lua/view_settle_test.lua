@@ -417,6 +417,231 @@ for _, device in ipairs({ 'pc', 'mobile' }) do
 end
 ok(lintBad == nil, 'B12 view_node.lint 0 issue（' .. lintRuns .. ' 次：5 画布 × PC/手机）', lintBad)
 
+
+----------------------------------------------------------------------------
+-- §E 圆角（image 图元通道）与形态开关 style='text'|'pill'
+----------------------------------------------------------------------------
+local function isCapsule(n) return n.role == 'capRim' or n.role == 'capFill' end
+local function isEndPart(n) return n.key:sub(-1) == 'L' or n.key:sub(-1) == 'R' end
+local function shapeOf(n) return type(n.image) == 'table' and n.image.s or n.image end
+
+-- E1 圆角：端点 circle（且正方形才能贴成半圆）、中段 rect
+local pureBad, pureCount = nil, 0
+for _, dev in ipairs({ 'mobile', 'pc' }) do
+  local nodes = build(dev, nil, (dev == 'pc') and { style = 'pill' } or nil)
+  for i = 1, #nodes do
+    local n = nodes[i]
+    if isCapsule(n) then
+      pureCount = pureCount + 1
+      local sh = shapeOf(n)
+      if isEndPart(n) then
+        if sh ~= 'circle' then pureBad = dev .. ' ' .. n.key .. ' 端点 shape=' .. tostring(sh) end
+        if n.size[1] ~= n.size[2] then pureBad = dev .. ' ' .. n.key .. ' 端点不是正方形' end
+      elseif sh ~= 'rect' then
+        pureBad = dev .. ' ' .. n.key .. ' 中段 shape=' .. tostring(sh)
+      end
+    end
+  end
+end
+ok(pureBad == nil and pureCount > 0,
+  'E1 圆角：胶囊端点 image.s=circle（且 h×h）、中段 image.s=rect（' .. pureCount
+    .. ' 个图元节点；改回方角即报红）', pureBad)
+
+-- E2 PC pill 支路：几何/字号/文案照抄 MS.opts variant P
+local function pillExtent(nodes, id)
+  local x0, y0, x1, y1 = 1e9, 1e9, -1e9, -1e9
+  for i = 1, #nodes do
+    local n = nodes[i]
+    if n.optId == id and n.role == 'capFill' then
+      local ax, ay, bx, by = V.rect(n)
+      if ax < x0 then x0 = ax end
+      if ay < y0 then y0 = ay end
+      if bx > x1 then x1 = bx end
+      if by > y1 then y1 = by end
+    end
+  end
+  return x1 - x0, y1 - y0
+end
+do
+  local nodes = build('pc', nil, { style = 'pill' })
+  local want = {
+    { 'restart', 252, 64, 25, '[R] 再来一局' },
+    { 'home', 174, 52, 20, '[V] 回主页' },
+    { 'detail', 176, 44, 18, '[Q] 结算明细' },
+  }
+  local bad = nil
+  for i = 1, #want do
+    local w, h = pillExtent(nodes, want[i][1])
+    local lbl = nil
+    for k = 1, #nodes do
+      if nodes[k].optId == want[i][1] and nodes[k].role == 'capLabel' then lbl = nodes[k] end
+    end
+    if math.abs(w - want[i][2]) > 0.01 or math.abs(h - want[i][3]) > 0.01 then
+      bad = want[i][1] .. ' 胶囊 ' .. w .. 'x' .. h .. '≠' .. want[i][2] .. 'x' .. want[i][3]
+    elseif not lbl or lbl.font ~= want[i][4] or lbl.text ~= want[i][5] then
+      bad = want[i][1] .. ' 标签 ' .. tostring(lbl and (lbl.font .. '/' .. lbl.text))
+    end
+  end
+  ok(bad == nil, 'E2 PC pill 支路几何/字号/文案 = MS.opts variant P'
+    .. '（252×64@25 / 174×52@20 / 176×44@18，label 带 [键] 前缀）', bad)
+end
+
+-- E3 PC pill 支路同样零重叠 + lint 0（5 画布）
+do
+  local bad = nil
+  for _, cv in ipairs(CANVASES) do
+    local nodes = build('pc', cv, { style = 'pill' })
+    local cn = V.get(nodes, 'settleCard')
+    local opts = optNodes(nodes)
+    for i = 1, #opts do
+      local a = V.overlap(opts[i], cn)
+      if a > 0 then bad = cv[1] .. 'x' .. cv[2] .. ' ' .. opts[i].key .. '重叠 ' .. a .. 'px²' end
+    end
+    local issues = V.lint(nodes)
+    if #issues > 0 then bad = 'lint ' .. issues[1].code .. ' ' .. issues[1].msg end
+  end
+  ok(bad == nil, 'E3 PC pill 支路：5 画布 0 重叠 + 0 lint issue（同一套卡底反解几何）', bad)
+end
+
+-- E4 style 语义：缺省 text / 显式 text / 显式 pill / 非法值报错
+do
+  local function capsuleCount(nodes)
+    local c = 0
+    for i = 1, #nodes do if isCapsule(nodes[i]) then c = c + 1 end end
+    return c
+  end
+  local def = build('pc')
+  local txt = build('pc', nil, { style = 'text' })
+  local pil = build('pc', nil, { style = 'pill' })
+  local okBad = not pcall(S.settle, { device = 'pc', style = 'blob', canvas = { 1600, 900 } })
+  ok(capsuleCount(def) == 0 and capsuleCount(txt) == 0 and #hintTexts(def) == 3
+    and #hintTexts(txt) == 3 and capsuleCount(pil) == 18 and #hintTexts(pil) == 0 and okBad,
+    'E4 style 语义：PC 缺省/显式 text ⇒ 0 胶囊+3 提示；pill ⇒ 18 图元+0 提示；非法值报错',
+    capsuleCount(def) .. '/' .. capsuleCount(txt) .. '/' .. capsuleCount(pil)
+      .. '/' .. tostring(okBad))
+end
+
+-- E5 触摸屏兜底：mobile 传 style='text' 仍走胶囊（没有键盘就没有"只给提示"这条路）
+do
+  local nodes = build('mobile', nil, { style = 'text' })
+  local c = 0
+  for i = 1, #nodes do if isCapsule(nodes[i]) then c = c + 1 end end
+  local hints = 0
+  for i = 1, #nodes do if nodes[i].role == 'hint' then hints = hints + 1 end end
+  ok(c == 18 and hints == 0,
+    'E5 mobile + style=text ⇒ 仍出胶囊、不出键位提示（触摸屏没有键盘，兜底不随 style 变）',
+    c .. '/' .. hints)
+end
+
+----------------------------------------------------------------------------
+-- §F 「缺陷③从 ui.lua pad 通道复发」守卫
+----------------------------------------------------------------------------
+-- 现网 pad 家族的真实命名（ui.lua:540-542 pill('pe'..gp..id) / pill('pb'..gp..id) /
+-- instText('pt'..gp..id)，gp 是**小写**组字母 ⇒ ptaagain/pbaagainb/peaagainl）；
+-- 服务端旧按钮 = view_pad.LEGACY 的 btnA..btnF；热区族 = pbtn*。
+local PAD_PATTERNS = { '^p[bet]%l', '^pbtn', '^btn[A-F]$', '^[Pp]hone' }
+local function padMatches(nodes)
+  local bad = {}
+  for i = 1, #nodes do
+    local n = nodes[i]
+    local names = { n.key, n.name }
+    for j = 1, 2 do
+      local k = names[j]
+      if type(k) == 'string' then
+        for p = 1, #PAD_PATTERNS do
+          if k:find(PAD_PATTERNS[p]) then bad[#bad + 1] = k end
+        end
+      end
+    end
+  end
+  return bad
+end
+
+do
+  local bad = nil
+  for _, dev in ipairs({ 'mobile', 'pc' }) do
+    local variants = { {}, { style = 'pill' } }
+    for vi = 1, 2 do
+      local nodes = build(dev, nil, variants[vi])
+      local hits = padMatches(nodes)
+      if #hits > 0 then bad = dev .. ' 出现 pad 家族名字：' .. table.concat(hits, ',') end
+    end
+  end
+  ok(bad == nil, 'F1 【缺陷③守卫】模块产出的控件名 0 个落在 pad 家族'
+    .. '（pta*/pba*/pea*/pbtn*/btnA-F/phone*）——同一屏再出现这些名字就是复发', bad)
+end
+
+-- F2 正名单不变量：每个控件的 key 都属于本模块自己的命名家族
+do
+  local ALLOW = { '^settle', '^hit[A-Z]%u?', '^optT[1-3]$', '^hotSettle[A-Z]$' }
+  local bad = nil
+  for _, dev in ipairs({ 'mobile', 'pc' }) do
+    local nodes = build(dev, nil, (dev == 'pc') and { style = 'pill' } or nil)
+    for i = 1, #nodes do
+      local n = nodes[i]
+      local okName = false
+      for p = 1, #ALLOW do
+        for _, k in ipairs({ n.key, n.name }) do
+          if type(k) == 'string' and k:find(ALLOW[p]) then okName = true end
+        end
+      end
+      if not okName then bad = dev .. ' 家族外名字 ' .. tostring(n.key) .. '/' .. tostring(n.name) end
+    end
+  end
+  ok(bad == nil, 'F2 正名单不变量：所有控件名 ∈ {settle*, hit*, optT1..3, hotSettle*}'
+    .. '（外来家族带不进来，不必靠清单穷举）', bad)
+end
+
+-- F3 同一把尺子：把 pad 风格节点喂给 F1 的检查，必须命中（证明守卫会响）
+do
+  local padSample = {
+    { key = 'ptaagain', name = 'ptaagain' },
+    { key = 'pbaagainb', name = 'pbaagainb' },
+    { key = 'peaagainl', name = 'peaagainl' },
+    { key = 'pbtnlefthit', name = 'pbtnlefthit' },
+    { key = 'btnA', name = 'btnA' },
+    { key = 'phoneTapHome', name = 'phoneTapHome' },
+  }
+  local hits, seen = padMatches(padSample), {}
+  local uniq = 0
+  for i = 1, #hits do
+    if not seen[hits[i]] then seen[hits[i]] = true uniq = uniq + 1 end
+  end
+  ok(uniq == #padSample, 'F3 同一把尺子：pad 风格样本 ' .. #padSample .. ' 个全部命中（守卫会响）',
+    table.concat(hits, ','))
+end
+
+-- F4 触控键结构：恰好 3 个热区、三个动作各一份、名字 = hotSettleR/V/Q
+do
+  local bad = nil
+  for _, cfg1 in ipairs({
+    { device = 'mobile' }, { device = 'pc' },
+    { device = 'pc', style = 'pill' },
+  }) do
+    local nodes = build(cfg1.device, nil, { style = cfg1.style, onRestart = fn, onHome = fn, onDetail = fn })
+    local hits, ids, keys = {}, {}, {}
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.role == 'hit' then
+        hits[#hits + 1] = n
+        ids[n.optId] = (ids[n.optId] or 0) + 1
+        keys[n.hitKey] = true
+        if not (n.on and n.on.CursorClick) then bad = tostring(cfg1.device) .. ' ' .. n.key .. ' 缺回调' end
+      end
+    end
+    if #hits ~= 3 then bad = tostring(cfg1.device) .. '/' .. tostring(cfg1.style) .. ' 热区 ' .. #hits end
+    if not (ids.restart == 1 and ids.home == 1 and ids.detail == 1) then
+      bad = tostring(cfg1.device) .. ' 动作重复/缺失'
+    end
+    if not (keys.R and keys.V and keys.Q) then bad = 'hitKey 不是 R/V/Q' end
+    for i = 1, #hits do
+      if hits[i].name ~= ('hotSettle' .. hits[i].hitKey) then bad = '热区名 ' .. tostring(hits[i].name) end
+    end
+  end
+  ok(bad == nil, 'F4 三个变体（mobile / pc-text / pc-pill）各恰好 3 个热区'
+    .. '、动作各一份、控件名 hotSettleR/V/Q 且都挂了回调', bad)
+end
+
 ----------------------------------------------------------------------------
 -- §C render 通道：层序 = 创建序、无 R0/R1、引擎侧字段真的写进去了
 ----------------------------------------------------------------------------
@@ -441,13 +666,13 @@ do
     local ctl = R.get(key)
     return ctl and P.seqOf(ctl) or nil
   end
-  local sWash, sCard, sCap = seq('settleWash'), seq('settleCard'), seq('pbRestartB')
+  local sWash, sCard, sCap = seq('settleWash'), seq('settleCard'), seq('settleCapRestartB')
   ok(sWash and sCard and sCap and sWash < sCard and sCard < sCap,
     'C2 创建序 = 层序：wash → card(panel) → 胶囊(touch)（后建的胶囊在上 ⇒ 卡永远盖不住它）',
     tostring(sWash) .. '<' .. tostring(sCard) .. '<' .. tostring(sCap))
 
   -- 引擎侧读数（不是描述层）：胶囊真的写成不透明
-  local ctl = R.get('pbRestartB')
+  local ctl = R.get('settleCapRestartB')
   ok(ctl and V.alpha(ctl.imageColor) == 255,
     'C3 引擎侧 imageColor 的 alpha=255（缺陷① 在落地通道上也成立）',
     ctl and hex(ctl.imageColor))

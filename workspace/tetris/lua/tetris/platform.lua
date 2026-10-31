@@ -42,6 +42,9 @@ local function mockNode(spec, kind, parent, seq)
     return nil
   end
   function n.AddCursorEventListener(self, ev, fn) self.__cursors[tostring(ev)] = fn return true end
+  -- 图元贴图：mock 也要能记录，否则 image 通道在 headless 里既不可断言也不会被 pcall 拦下报错
+  -- （2026-10-31 实测：缺这一行时 P.failures() 会多出 setImage:rect/circle 两条假失败）
+  function n.SetImage(self, src, id) self.imageSource = src self.imageId = id return true end
   function n.AddKeyEventListener(self, ev, fn) self.__keys[tostring(ev)] = fn return true end
   if parent then
     parent.__children[#parent.__children + 1] = n

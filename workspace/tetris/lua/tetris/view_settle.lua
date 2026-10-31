@@ -59,9 +59,14 @@
    · PC 提示字色：现网主按钮是**白字压实心**（没有实心就看不见）⇒ 改墨阶
      textMain / textDim / hint，字号沿用 25/20/18。
    · 手机端标签沿用 NUM.PHONE.actions 原文（第 3 颗是"明细"，现网卡内写"结算明细"）。
-   · 胶囊形状：view_kit.pill = 中段矩形 + 左右两块（tpl='cell'）⇒ 落地是矩形；现网
-     "矩形 + 4 角圆 SetImage(circle)" 的圆角依赖 image 通道，而 render.lua 的 applyFields
-     只写 imageColor ⇒ 要圆角得先给 render/view_kit 加 image 字段，不在本轮边界。
+   · 胶囊形状（已闭合）：render.lua 现在认节点字段 image={s='rect'|'circle'|…}，view_kit.pill
+     给中段 image={s='rect'}、两端 image={s='circle'} ⇒ 圆角胶囊的观感与现网一致。
+     本模块在两颗 pill 上都**显式**传 capShape='circle'（不依赖 view_kit 的缺省值），
+     测试断言端点 circle / 中段 rect，防止将来有人把圆角改回方角。
+
+ 形态开关：opts.style = 'text'（PC 缺省，键位提示三行）| 'pill'（PC 也出三颗胶囊，
+ 几何照 MS.opts variant P 三档 252×64/174×52/176×44、字号 25/20/18，行位置同样按卡底反解）。
+ device='mobile' 恒走胶囊（触摸屏没有键盘）。两种形态共用同一套零重叠几何与热区命名。
 
  契约：Lua 5.3；不 require 任何 tetris 模块（config/layers/kit 由 spec 注入）；不 print；
        不调用引擎 API；chunk 顶层只有表与函数。
@@ -208,6 +213,13 @@ M.new = function(spec)
     if device ~= 'pc' and device ~= 'mobile' then
       error("view_settle: opts.device 只认 'pc' / 'mobile'，收到 " .. tostring(device))
     end
+    -- opts.style：选项的表现形态。'text' = 键位提示文字（PC 默认）；'pill' = 胶囊。
+    -- 手机没有键盘 ⇒ 『只给文字』在触摸屏上不成立，device='mobile' 一律走胶囊（兜底，不随 style 变）。
+    local style = opts.style
+    if style ~= nil and style ~= 'auto' and style ~= 'pill' and style ~= 'text' then
+      error("view_settle: opts.style 只认 'auto' / 'pill' / 'text'，收到 " .. tostring(style))
+    end
+    local variant = (device == 'mobile' or style == 'pill') and 'pill' or 'text'
     local mode = opts.mode or 'casual'
     local mt = MODE_THEME[mode] or MODE_THEME.casual or {}
     local accent = mt.accent or THEME.textMain
@@ -328,12 +340,20 @@ M.new = function(spec)
       local group = 'opt' .. i
       local t = tagOf(d.id)
 
-      if device == 'mobile' then
-        -- 触控胶囊：几何照 NUM.PHONE（主键 ×1.15）；配色照 MS.opts 三档（全部不透明）
-        local w = (rank == 1) and ((PHONE.ACT_W or M.ACT.W) * M.ACT.PRIMARY)
-          or (PHONE.ACT_W or M.ACT.W)
-        local h = PHONE.ACT_H or M.ACT.H
-        local font = M.ACT.FONT
+      if variant == 'pill' then
+        -- 胶囊：几何按设备取（手机 = NUM.PHONE，主键 ×1.15；PC = MS.opts variant P 三档），
+        -- 配色两处共用 MS.opts 三档（全部不透明）；两端必须 circle 图元才是圆角。
+        local w, h, font
+        if device == 'mobile' then
+          w = (rank == 1) and ((PHONE.ACT_W or M.ACT.W) * M.ACT.PRIMARY)
+            or (PHONE.ACT_W or M.ACT.W)
+          h = PHONE.ACT_H or M.ACT.H
+          font = M.ACT.FONT
+        else
+          w = M.OPT_W[rank] or M.OPT_W[#M.OPT_W]
+          h = M.OPT_H[rank] or M.OPT_H[#M.OPT_H]
+          font = M.OPT_FONT[rank] or M.OPT_FONT[#M.OPT_FONT]
+        end
         local pad = (rank == 3) and 5 or 7
         local rimColor = (rank == 3) and K.C(255, 214, 196, 158) or THEME.gold
         local fill, ink, kind
@@ -345,17 +365,20 @@ M.new = function(spec)
           fill, ink, kind = K.C(255, 250, 245, 238), mix(THEME.textMain, 0.30), 'flat'
         end
         local rimCol, fillCol = opaque(wash, rimColor), opaque(wash, fill)
+        -- 标签控件名：PC 用 tests/37 契约 optT1..3；手机用 settleLabel*
+        -- （刻意避开现网 pad 的 pta*/pba*/pea* 家族 ⇒ 见测试 F1「pad 通道复发」守卫）
+        local labelKey = (device == 'mobile') and ('settleLabel' .. t) or ('optT' .. i)
         local nodes = K.pill {
-          key = 'pe' .. t, x = 0, y = 0, w = w + pad, h = h + pad,
-          color = rimCol, layer = M.LAYER.touch,
+          key = 'settleRim' .. t, x = 0, y = 0, w = w + pad, h = h + pad,
+          color = rimCol, layer = M.LAYER.touch, capShape = 'circle',
         }
         for k = 1, #nodes do
           nodes[k].role = M.ROLE.capRim
           push(nodes[k], d.id, group)
         end
         nodes = K.pill {
-          key = 'pb' .. t, x = 0, y = 0, w = w, h = h,
-          color = fillCol, layer = M.LAYER.touch,
+          key = 'settleCap' .. t, x = 0, y = 0, w = w, h = h,
+          color = fillCol, layer = M.LAYER.touch, capShape = 'circle',
         }
         for k = 1, #nodes do
           local n = nodes[k]
@@ -370,7 +393,7 @@ M.new = function(spec)
           push(n, d.id, group)
         end
         local lb = K.text {
-          key = 'pt' .. t, name = 'pt' .. t, x = 0, y = -1, w = w - 8, h = textH(font),
+          key = labelKey, name = labelKey, x = 0, y = -1, w = w - 8, h = textH(font),
           text = label, font = font, color = ink, layer = M.LAYER.touch,
         }
         lb.role = M.ROLE.capLabel
