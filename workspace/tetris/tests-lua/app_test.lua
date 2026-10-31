@@ -211,5 +211,21 @@ HR.spawn { { key = 'hb1', layer = 'board', tpl = 'cell', name = 'hb1',
 ok(HR.get('hb1').imageColor == 0xFF222222 or HR.get('hb1').imageColor == -16777216 + 0x222222,
   'H7 spawn 可更新单个节点字段', HR.get('hb1').imageColor)
 
+-- ===== I 构造失败：返回 nil 并一次报全缺失字段（不抛错）=====
+local misses = {}
+local okCall, A_nil = pcall(appM.new, { log = function(m) misses[#misses + 1] = m end })
+ok(okCall, 'I1 缺字段时**不抛错**（pcall 没抓到异常）')
+ok(A_nil == nil, 'I2 返回 nil，让调用方走兜底分支')
+local msg
+for i = 1, #misses do if tostring(misses[i]):find('app missing', 1, true) then msg = misses[i] end end
+ok(msg ~= nil, 'I3 打了一条 app missing 日志')
+ok(msg and msg:find('platform', 1, true) and msg:find('render', 1, true)
+  and msg:find('scenes', 1, true), 'I4 **一次列出全部**缺失字段（不是抛第一个）', tostring(msg))
+local A_ok = appM.new { platform = P, render = R, scenes = S }
+ok(A_ok ~= nil, 'I5 三个必需字段齐了就正常构造')
+-- 只有 layers/overlayRender 是可选的
+local A_min = appM.new { platform = P, render = R, scenes = S, layers = layers }
+ok(A_min ~= nil, 'I6 layers 可选（构造仍成功）')
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

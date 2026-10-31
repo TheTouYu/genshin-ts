@@ -13,15 +13,41 @@
    现在唯一真相是场景栈：谁在栈顶谁收动作；每帧只做 tick + apply 两件事。
 
  本文件不碰引擎（platform 才是唯一通道），因此可 headless 断言。
+
+ 三条接缝纪律（2026-10-31 试点后补，都是踩过的）：
+   1) **构造失败返回 nil，不 assert**：缺字段一次报全（`app missing platform,render`），
+      调用方 `if APP then … else 旧路 end` 兜底。assert 会把失败伪装成"别的屏没装配"。
+   2) **动作路由只有一条**：热区动作走描述层节点的 `on.Click`；场景栈的 `def.onAction`
+      只用于"没有热区可挂的键"（键盘）。两套混用会漂移——加动作前先问它有没有热区。
+   3) **`opaque` 表达"下面那屏被完全遮住"**：`scenes.view()` 从栈顶向下合成、遇到 opaque
+      截断；`tickBelow` 才向下派发 update。它**只在有 tick 调度时才有可观测行为**——
+      没有 tick 的场景栈里写 opaque 目前只影响 view 合成，别以为它能停掉动画。
 ========================================================================]]
 
 local M = {}
 
+-- 四个必需字段：platform / render / scenes（layers 可选、overlayRender 可选）。
+M.REQUIRED = { 'platform', 'render', 'scenes' }
+
 M.new = function(spec)
   spec = spec or {}
-  local P = assert(spec.platform, 'app: 需要 platform')
-  local R = assert(spec.render, 'app: 需要 render')
-  local S = assert(spec.scenes, 'app: 需要 scenes')
+  local preLog = spec.log or function() end
+  -- 缺字段**返回 nil 并一次报全**，不再 assert 抛错。
+  -- 理由（2026-10-31 试点实测）：assert 会让 OnStart 从该行起整段中断，
+  -- 而症状出现在**别的屏**（"view_title 未装配" / "introT nil"）——报错点与真因点无关，
+  -- 定位成本极高。返回 nil 则调用方的 `if APP then` 兜底能继续跑，且这里一次列出全部缺失项。
+  local missing = {}
+  for i = 1, #M.REQUIRED do
+    if spec[M.REQUIRED[i]] == nil then missing[#missing + 1] = M.REQUIRED[i] end
+  end
+  if #missing > 0 then
+    preLog('app missing ' .. table.concat(missing, ',') ..
+      '（必需：' .. table.concat(M.REQUIRED, '/') .. '）')
+    return nil
+  end
+  local P = spec.platform
+  local R = spec.render
+  local S = spec.scenes
   local L = spec.layers
   local log = spec.log or function() end
   local onError = spec.onError
