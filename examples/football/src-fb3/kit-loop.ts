@@ -1,38 +1,59 @@
-// @status: 物理内核 v2 完整版（2026-10-27：自旋/马格努斯/六态状态机/滚转/三踢法）
-// fb3/kit-loop.ts —— 20008 造物技能图（1082130436）：**球物理内核（客户端算）**
+// @status: 物理引擎 v3（2026-10-31 重写：固定 15Hz 步长 / 力-冲量管线 / 与渲染解耦）
+// fb3/kit-loop.ts —— 20008 造物技能图（1082130436）：**球物理引擎**（客户端算，唯一物理真值源）
 //
-// 分工：本图只在客户端算，算完通过 kit_state 交给服务端 kitRender（1073741828）施运动器。
-//   · 弹道/自旋/滚转/带球全部在客户端积分（7.5Hz 实测拍频，dt=0.1333）
-//   · 服务端只负责"演"：线性运动器补间 + 旋转运动器滚转（客户端不碰真实足球）
+// ════════════════════════ 设计契约（改代码前必读）════════════════════════
+// ① 时间：客户端造物图稳定 15 次/秒 ⇒ 一步 = 1/15 s。`dt` 从**球实体变量 fb_dt** 读
+//    （默认 0.0666667，可调）；**不读 Lua 帧时长、不读服务端帧率**——渲染侧有自己的节奏
+//    （kit-render 的 fb_dur），两边只通过 kit_state 的 pos/vel/spin 交接，互不引用。
+// ② 参数：物理参数首拍从球实体 1077936135 的自定义变量读入技能变量（S_P_*），
+//    缺失/为 0 时用本文件常量兜底（见 G_DEFAULT…）——不会因为变量没配就静默变 0。
+//    另有 5 个「活参数」每拍从球实体读，改完下一拍立即生效：
+//    fb_dt / fb_kick / fb_drib_kp / fb_drib_kd / fb_drib_r。
+// ③ 管线（每拍顺序固定；速度改变只有两个入口：impulse=瞬时 Δv、force=加速度×dt）：
+//      读状态 → 累积冲量（踢球/抢断/解围/停球/拦截）→ 施加冲量
+//      → 累积力（重力 / 带球弹簧 / 马格努斯 / 外部施力）→ 空气阻力 → 限速
+//      → 位置积分 → 碰撞求解（地面 TOI 子步 / 门柱圆截面 / 门线穿越 / 边界）
+//      → 接触摩擦 + 滚动约束 + 静止 → 状态机 → 写回 + 回传
+// ④ 外部施力通道：载体实体 1082130445 的变量 fb_fx/fb_fy/fb_fz（单位质量力 m/s²，每拍叠加）
+//    —— 任何玩法系统/调试台都可以「直接施加力」，不必改本图。
+// ⑤ 单一真值：球的位置/速度/自旋只在本图产生；服务端 kitRender 只做插值运动器，不持有物理。
 //
-// 六态状态机（mode，随 kit_state 的 state 字段回传）：
-//   0 Airborne   空中：重力 + 马格努斯 + 空气阻力
-//   1 Bouncing   刚触地：法向反弹（e=0.5）+ 切向摩擦 + 自旋衰减
-//   2 Sliding    贴地慢速滑行
-//   3 Rolling    贴地滚动：滚动摩擦 0.985/拍，自旋 = v×up / r（纯滚动）
-//   4 Rest       静止
-//   5 DribbleControlled 带球：玩家 2.4m 内且球速 <8，速度混合 + 玩家速度前馈 + 纯滚动自旋
+// 六态状态机（mode 随 kit_state 回传，HUD 可读）：
+//   0 Airborne 空中   1 Bouncing 刚触地   2 Sliding 贴地滑行（接触点有滑移）
+//   3 Rolling 纯滚动  4 Rest 静止         5 Dribbling 带球助力中
 //
-// 三种踢法（由 Lua 的 fb_key 选择，1/2/3 对应三个基础键）：
-//   key=1 轻射 10m/s + 上挑 1.2，无旋
-//   key=2 重射 16m/s + 上挑 2.0，侧旋 w=(0,10,0) ⇒ 马格努斯弧线
-//   key=3 高吊  7m/s + 上抛 7.0，无旋
+// 键位（Lua fb-input.lua → 信号 fb_input → 服务端写载体 fb_seq/fb_key）：
+//   有球（2.4m 内且球速<8）：1 轻射 10+3.2 / 2 重射 16+4.5+侧旋 / 3 高吊 7+9 /
+//                            4 贴地传 12+0.8 / 5 弧线 14+4+交替侧旋 / 6 重置球到脚下
+//   无球：1 抢断（2.5m 内 7+4）/ 2 解围（3m 内 14+5）/ 3 停球（2.5m 内且球速>6，吸掉 88% 速度）
 //
-// 离线数值自检（同公式）：静止稳在脚前 1.30m；5.5m/s 跑动稳态落后 0.63m；
-//   轻射落地后滚动衰减到静止；重射侧旋横向偏移 ~1.5m（KM=0.03）。改公式必须重跑自检。
-//
-// 真值：图 1082130436 / 技能配置 1191182341（丘丘人）/ 算力载体实体 1082130445
-// 技能变量段 1207959553..568（16 槽，段外槽会让图运行期崩、日志零记录）
-// 铁律：客户端参数序 (iD, list)；编译必须用 dist CLI；客户端无 print，遥测只走 kit_state
+// 真值：图 1082130436 / 技能配置 1191182341 / 算力载体实体 1082130445
+// 铁律：客户端参数序 (iD, list)；编译必须用 dist CLI；客户端无 print，遥测只走 kit_state。
 import { g } from 'genshin-ts/runtime/core'
 
 import { chanIncr, chanSendState6 } from '../../client-kit/channels.js'
 import { KitSignal } from './signals.js'
 
-// ———— 技能变量槽（段内 553..568，16 个全部排满）————
+// ═════════════════════ 技能变量槽（段 1207959553..568 自持 16 槽全满）═════════════════
 const SLOT_TICK = 1207959557n // 拍号（chanIncr 自增）
+const S_BX = 1207959553n // 球位置 x
+const S_BY = 1207959554n // 球位置 y
+const S_BZ = 1207959555n // 球位置 z
+const S_VX = 1207959556n
+const S_WX = 1207959558n
+const S_VY = 1207959559n
+const S_VZ = 1207959560n
+const S_INIT = 1207959561n // 初始化标记（0=未初始化）
+const S_MODE = 1207959562n // 状态机 0..5
+const S_PPX = 1207959563n // 上拍玩家 x（差分算玩家速度）
+const S_LASTSEQ = 1207959564n // 已消费的输入序号（= 服务器 fb_seq）
+const S_WY = 1207959565n
+const S_PPZ = 1207959566n
+const S_WZ = 1207959567n
+const S_COOLDOWN = 1207959568n // 抢断/解围后的带球抑制截止拍
+const S_SPINSIGN = 1207959570n // 弧线球侧旋方向（±1，逐次翻转；0=未初始化 ⇒ 取 +1）
 
-// 物理参数槽（初始化时从球实体读一次，之后只用技能变量——避免每拍跨实体读取的延时）
+// 物理参数槽（首拍从球实体读一次，之后只用技能变量）
 const S_P_G = 1207959572n
 const S_P_E = 1207959573n
 const S_P_MU = 1207959574n
@@ -43,103 +64,128 @@ const S_P_MAGNUS = 1207959578n
 const S_P_MAXV = 1207959579n
 const S_P_REST = 1207959580n
 const S_P_INIT = 1207959581n
-const S_BX = 1207959553n // 球位置 x
-const S_BY = 1207959554n // 球位置 y
-const S_BZ = 1207959555n // 球位置 z
-const S_VX = 1207959556n // 球速度 x
-const S_VY = 1207959559n // 球速度 y
-const S_VZ = 1207959560n // 球速度 z
-const S_WX = 1207959558n // 自旋 x
-const S_WY = 1207959565n // 自旋 y
-const S_WZ = 1207959567n // 自旋 z
-const S_MODE = 1207959562n // 状态机 0..5
-const S_INIT = 1207959561n // 初始化标记（0=未初始化）
-const S_LASTSEQ = 1207959564n // 已消费的输入序号（= 服务器 fb_seq）
-const S_PPX = 1207959563n // 上拍玩家 x（差分算玩家速度）
-const S_PPZ = 1207959566n // 上拍玩家 z
-const S_COOLDOWN = 1207959568n // 抢断/解围后的带球抑制截止拍（tick < 它 ⇒ 球不吸附）
 
-// ———— 输入源：服务器图 kitListen 挂在丘丘人实体上，fb_seq/fb_key 写在那儿 ————
-const CARRIER_GUID = 1082130445n
-
-// ———— 物理常数（7.5Hz 实测拍频标定）————
-// 真实步长：载体技能 CD 让内核实际跑 14~27Hz，而固定按 7.5Hz 标定的 DT 会让模拟时间跑快 2~3.5 倍
-// （用户 2026-10-29 体感「高吊球整个过程光速完成」）。服务端 kitListen 每秒校准一次写 fb_dt。
-const DT_FALLBACK = 0.1333
-const GRAVITY = 9.8
-// 草皮表面 y≈0（场地线 y=0.01 / 门横梁 2.5 / 球初始 0.25 三处互证）。
-// GROUND_Y 语义 = **球心贴地时的高度** = 表面 + 球半径 0.25（用户 2026-10-27 指出：漏算半径会半个球埋地）
+// ═════════════════════ 世界几何（field.structure.json / goal.structure.json 实测）═══════════
 const BALL_R = 0.25
-const SURFACE_Y = 0.0
-const GROUND_Y = SURFACE_Y + BALL_R
-const MAX_SPEED = 18.0
-const RESTITUTION = 0.5
-const ROLL_MU = 0.06 // 滚动阻力系数：减速度 = 0.06·9.8 ≈ 0.59 m/s²（草地量级）
-const FRICTION_LOSS = 0.9
-const AIR_DRAG_K = 0.05 // 空气阻力速率（1/s）：v *= 1−0.05·dt
-const SPIN_K = 0.15 // 竖直轴自旋（弧线球）衰减速率（1/s）
-const SPIN_AIR_K = 0.02 // 水平轴自旋的空气衰减（1/s）——滚动分量靠摩擦约束，不能再额外衰减 // 消滑移冲量的耗能系数（<1 才真的耗能） // 每拍滚动摩擦
-const MAGNUS_K = 0.03 // 马格努斯系数 a = K·(w×v)
-const SETTLE_VY = 1.0 // 触地 |vy| 低于此 ⇒ 直接贴地不再弹
-const REST_SPEED = 0.35
-const GROUND_MU = 0.8 // 库仑摩擦系数（接触冲量与滑移的比值上限）
-const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动（m/s） // 贴地速度低于此 ⇒ 静止
-const DRIBBLE_R = 2.4 // 保留：按键时的「有球」判定半径（射门/传球资格）
-const TOUCH_R = 2.0 // 触球半径：球进到这个圈里才会被脚带到
-const KEEP_R = 2.8 // 带球显示半径（只影响状态=5 的 HUD 反馈，不参与运动）
-const TOUCH_BOOST = 0.7 // 触球后球速 = 玩家速度 + 常数（用固定差值而不是倍率：
-// 倍率 1.15 在 5m/s 时要等球掉 1.5m/s（0.59m/s² ⇒ 2.5s）才触发下一脚，手感就是"高延时"）
-const TOUCH_MIN_SPD = 2.0 // 玩家速度低于此值时用朝向兜底推一小步
-const TOUCH_LIFT = 0.35 // 触球时给一点抬升，视觉上像被脚"点"了一下
-const DRIBBLE_AHEAD = 1.3
-// 带球跟随增益：每拍吃掉 55% 位置误差 ⇒ K = 0.55/dt（几何收敛，无过冲）
-const DRIBBLE_FOLLOW = 0.55
-// 带球增益每拍按真实步长折算（v = 0.55·ddx/dt + 前馈），见下方 vdesX/vdesZ
-const PLAYER_SPEED_CAP = 8.0
-const WARMUP_TICKS = 75n // 开局建图期不做物理
-// 载体停放策略：**x/z 跟随玩家 + y 固定在支撑空模型内部**
-//   · 距离节流是硬事实（用户多次强调，2026-10-27 再次纠正）：造物离玩家越远，技能施放越慢
-//     （实测：贴人 7~8/s，飞离 10m 掉到 1~3/s）⇒ **必须跟随**，这也是当初做"跟随瞬移"的原因。
-//   · y 不能读玩家位置求相对值（读回异常会浮到草地上，用户当场发现两次）⇒ 用常量。
-//   · 常量取「草地地基」空模型 1077936161 的内部：实体 pos y=−5.5、scale y=1 ⇒ 占据 y∈[−5.5,−4.5]，
-//     顶面 −4.5 就是草地表面。取 −5.1 = 顶面下 0.4m：有实体支撑、被地形遮住、离玩家 ≤1m 不掉频。
-// 场地与球门（field.structure.json / goal.structure.json 实测）
-const PITCH_X = 52.5 // 底线 x=±52.5（门线）
-const PITCH_Z = 34.0 // 边线 z=±34
-const GOAL_HALF = 3.6 // 门洞半宽（门柱局部 x 0.06..7.26 ⇒ 7.2 宽，实体在 z=±3.66 旋转后居中 z∈[−3.6,3.6]）
+const SURFACE_Y = 0.0 // 草皮表面 y（场地线 y=0.01 / 门横梁 2.5 / 球初始 0.25 三处互证）
+const GROUND_Y = SURFACE_Y + BALL_R // 球心贴地高度
+const CENTER_Y = GROUND_Y
+const PITCH_X = 52.5 // 底线（门线）
+const PITCH_Z = 34.0 // 边线
+const GOAL_HALF = 3.6 // 门柱中心 z（门洞 7.2m）
 const GOAL_H = 2.5 // 横梁高
-const POST_R = 0.35 // 门柱判定的碰撞半径（视觉柱径 0.12，留余量）
-const WALL_REST = 0.6 // 边界反弹保留系数
-const CENTER_Y = GROUND_Y // 球静止时的球心高度（表面 0 + 半径 0.25）
+const POST_R = 0.06 // 门柱半径（视觉柱径 0.12）
+const WALL_E = 0.6 // 边界/门柱反弹保留系数
 
-const CARRIER_Y = -4.21 // = 旧 -5.1 + 0.893（草地地基 y 由 -5.5→-4.607，保持同一相对埋深）
+// ═════════════════════ 默认参数（实体变量缺失时的兜底，绝不让 0 生效）═════════════════════
+const DT_DEFAULT = 0.06666666666666667 // 1/15 s：客户端造物图稳定拍频
+const G_DEFAULT = 9.8
+const E_DEFAULT = 0.5 // 触地法向反弹
+const MU_DEFAULT = 0.8 // 库仑摩擦系数（草皮量级）
+const ROLL_DEFAULT = 0.06 // 滚动阻力系数：减速度 = 0.06·g ≈ 0.59 m/s²
+const SPIN_DEFAULT = 0.15 // 竖直轴自旋（弧线）衰减速率 1/s
+const AIR_DEFAULT = 0.05 // 空气阻力速率 1/s（水平与垂直都作用）
+const MAGNUS_DEFAULT = 0.03 // 马格努斯系数 a = K·(ω×v)
+const MAXV_DEFAULT = 18.0 // 限速 m/s
+const REST_DEFAULT = 0.35 // 静止阈值 m/s
+const KICK_DEFAULT = 1.0 // 踢球力度倍率（活参数）
+const DRIB_KP_DEFAULT = 45.0 // 带球弹簧刚度 1/s²
+const DRIB_KD_DEFAULT = 12.0 // 带球相对速度阻尼 1/s
+const DRIB_R_DEFAULT = 2.0 // 带球助力半径 m
 
-// 踢法：[水平速度, 上挑, 自旋Y]
-const KICK_LIGHT_SPD = 10.0
-const KICK_LIGHT_LIFT = 3.2
-const KICK_HEAVY_SPD = 16.0
-const KICK_HEAVY_LIFT = 4.5
-const KICK_HEAVY_SPIN = 10.0
-const KICK_LOB_SPD = 7.0
-const KICK_LOB_LIFT = 9.0
+const DRIB_AHEAD = 1.0 // 带球目标点：玩家前方多远
+const DRIB_AMAX = 30.0 // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
+const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动 m/s
+const SETTLE_VY = 1.0 // 触地 |vy| 低于此值 ⇒ 直接贴地不再弹
+const CONTACT_EPS = 0.02 // 贴地判定余量 m
+const WARMUP_TICKS = 75n // 开局建图期不做物理
+const DRIBBLE_R = 2.4 // 「有球」判定半径（踢球资格）
+const KICK_GATE_SPD = 8.0 // 「有球」判定球速上限
+const PLAYER_SPEED_CAP = 8.0 // 玩家速度上限（超过视为瞬移，置 0）
+const PLAYER_JUMP = 1.5 // 单拍玩家位移超过此值 = 瞬移（不产生速度）
+const CARRIER_GUID = 1082130445n
+const BALL_GUID = 1077936135n
+const CARRIER_Y = -4.21 // 载体停放高度（草地地基内部，永不入镜）
+
+// 五种出球：[水平速度, 上挑, 侧旋]
+const K1_SPD = 10.0
+const K1_LIFT = 3.2
+const K2_SPD = 16.0
+const K2_LIFT = 4.5
+const K2_SPIN = 10.0
+const K3_SPD = 7.0
+const K3_LIFT = 9.0
+const K4_SPD = 12.0
+const K4_LIFT = 0.8
+const K5_SPD = 14.0
+const K5_LIFT = 4.0
+const K5_SPIN = 14.0
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
   const tick = chanIncr(f, SLOT_TICK)
+  const ballE = f.queryEntityByGuid(BALL_GUID)
 
-  // ———— 玩家位置：从载体实体变量读（服务端 kitRender 每拍写 fb_px/fb_pz）————
-  // 不用 getListOfPlayerEntitiesOnTheField：那是玩家控制器实体，读位置恒 0（2026-10-17 定谳）。
-  // ———— 玩家坐标（2026-10-30 定谳）————
-  // 服务端 kitListen 用「按玩家序号取玩家 GUID → 玩家实体 → 角色列表 → [0] 位置」写 fbvx/fbvz/fbvy
-  // （这条链抄自奇域资产中心复合节点「玩家，角色，关卡」，内部四步已反解确认）。
-  // 内核只负责读；选项卡锁存实体 fbc_e 作为兜底（万一服务端链没拿到）。
-  const carrierE = f.queryEntityByGuid(1082130445n)
+  // ═════════════ 1. 参数：首拍从球实体读入技能变量（缺失/为 0 ⇒ 兜底常量）═════════════
+  f.doubleBranch(
+    f.lessThan(f.dataTypeConversion(f.querySkillVariableValue(S_P_INIT), 'int'), 1n),
+    () => {
+      const pG = f.getCustomVariable(ballE, 'fb_g').asType('float')
+      f.doubleBranch(f.greaterThan(pG, 0.1), () => { f.setSkillVariable(S_P_G, pG) }, () => { f.setSkillVariable(S_P_G, G_DEFAULT) })
+      const pE = f.getCustomVariable(ballE, 'fb_e').asType('float')
+      f.doubleBranch(f.greaterThan(pE, 0.01), () => { f.setSkillVariable(S_P_E, pE) }, () => { f.setSkillVariable(S_P_E, E_DEFAULT) })
+      const pMu = f.getCustomVariable(ballE, 'fb_mu').asType('float')
+      f.doubleBranch(f.greaterThan(pMu, 0.01), () => { f.setSkillVariable(S_P_MU, pMu) }, () => { f.setSkillVariable(S_P_MU, MU_DEFAULT) })
+      const pRoll = f.getCustomVariable(ballE, 'fb_roll').asType('float')
+      f.doubleBranch(f.greaterThan(pRoll, 0.001), () => { f.setSkillVariable(S_P_ROLL, pRoll) }, () => { f.setSkillVariable(S_P_ROLL, ROLL_DEFAULT) })
+      const pSpin = f.getCustomVariable(ballE, 'fb_spin').asType('float')
+      f.doubleBranch(f.greaterThan(pSpin, 0.001), () => { f.setSkillVariable(S_P_SPIN, pSpin) }, () => { f.setSkillVariable(S_P_SPIN, SPIN_DEFAULT) })
+      const pAir = f.getCustomVariable(ballE, 'fb_air').asType('float')
+      f.doubleBranch(f.greaterThan(pAir, 0.001), () => { f.setSkillVariable(S_P_AIR, pAir) }, () => { f.setSkillVariable(S_P_AIR, AIR_DEFAULT) })
+      const pMag = f.getCustomVariable(ballE, 'fb_magnus').asType('float')
+      f.doubleBranch(f.greaterThan(pMag, 0.001), () => { f.setSkillVariable(S_P_MAGNUS, pMag) }, () => { f.setSkillVariable(S_P_MAGNUS, MAGNUS_DEFAULT) })
+      const pMax = f.getCustomVariable(ballE, 'fb_maxv').asType('float')
+      f.doubleBranch(f.greaterThan(pMax, 1.0), () => { f.setSkillVariable(S_P_MAXV, pMax) }, () => { f.setSkillVariable(S_P_MAXV, MAXV_DEFAULT) })
+      const pRest = f.getCustomVariable(ballE, 'fb_rest').asType('float')
+      f.doubleBranch(f.greaterThan(pRest, 0.01), () => { f.setSkillVariable(S_P_REST, pRest) }, () => { f.setSkillVariable(S_P_REST, REST_DEFAULT) })
+      f.setSkillVariable(S_P_INIT, 1.0)
+    },
+    () => {}
+  )
+  const G = f.querySkillVariableValue(S_P_G)
+  const E = f.querySkillVariableValue(S_P_E)
+  const MU = f.querySkillVariableValue(S_P_MU)
+  const ROLL = f.querySkillVariableValue(S_P_ROLL)
+
+  // ═════════════ 2. 活参数（每拍读球实体，改完下一拍立即生效）═══════════════════════════
+  const dtRaw = f.getCustomVariable(ballE, 'fb_dt').asType('float')
+  const dt = f.localVariable('float')
+  f.doubleBranch(
+    f.logicalAndOperation(f.greaterThan(dtRaw, 0.02), f.lessThan(dtRaw, 0.2)),
+    () => { dt.set(dtRaw) },
+    () => { dt.set(DT_DEFAULT) }
+  )
+  const kickRaw = f.getCustomVariable(ballE, 'fb_kick').asType('float')
+  const km = f.localVariable('float')
+  f.doubleBranch(f.greaterThan(kickRaw, 0.05), () => { km.set(kickRaw) }, () => { km.set(KICK_DEFAULT) })
+  const kpRaw = f.getCustomVariable(ballE, 'fb_drib_kp').asType('float')
+  const kp = f.localVariable('float')
+  f.doubleBranch(f.greaterThan(kpRaw, 0.5), () => { kp.set(kpRaw) }, () => { kp.set(DRIB_KP_DEFAULT) })
+  const kdRaw = f.getCustomVariable(ballE, 'fb_drib_kd').asType('float')
+  const kd = f.localVariable('float')
+  f.doubleBranch(f.greaterThan(kdRaw, 0.1), () => { kd.set(kdRaw) }, () => { kd.set(DRIB_KD_DEFAULT) })
+  const drRaw = f.getCustomVariable(ballE, 'fb_drib_r').asType('float')
+  const dribR = f.localVariable('float')
+  f.doubleBranch(f.greaterThan(drRaw, 0.3), () => { dribR.set(drRaw) }, () => { dribR.set(DRIB_R_DEFAULT) })
+
+  // ═════════════ 3. 输入：玩家位置（服务端每拍写 fbvx/fbvz；兜底读角色实体）══════════════
+  const carrierE = f.queryEntityByGuid(CARRIER_GUID)
   const srvX = f.getCustomVariable(carrierE, 'fbvx').asType('float')
   const srvZ = f.getCustomVariable(carrierE, 'fbvz').asType('float')
   const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
   const pPxV = f.localVariable('float')
   const pPzV = f.localVariable('float')
   f.doubleBranch(
-    f.greaterThan(f.addition(f._3dVectorModuloOperation(f.create3dVector(srvX, 0.0, srvZ)), 0.0), 0.01),
+    f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(srvX, 0.0, srvZ)), 0.01),
     () => {
       pPxV.set(srvX)
       pPzV.set(srvZ)
@@ -159,66 +205,55 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
     }
   )
-  // ———— 物理参数一次性初始化（用户口径：只在初始化时从球实体读，之后用技能变量）————
-  const ballE = f.queryEntityByGuid(1077936135n)
+
+  // 玩家速度：位置差分 / dt（服务端每拍写 ⇒ 不存在隔拍混叠；单拍位移过大判瞬移）
+  const pdx = f.subtraction(pPxV.value, f.querySkillVariableValue(S_PPX))
+  const pdz = f.subtraction(pPzV.value, f.querySkillVariableValue(S_PPZ))
+  const pstep = f._3dVectorModuloOperation(f.create3dVector(pdx, 0.0, pdz))
+  const vpxV = f.localVariable('float')
+  const vpzV = f.localVariable('float')
   f.doubleBranch(
-    f.lessThan(f.dataTypeConversion(f.querySkillVariableValue(S_P_INIT), 'int'), 1n),
+    f.logicalAndOperation(
+      f.greaterThan(f.querySkillVariableValue(S_INIT), 0.5),
+      f.lessThan(pstep, PLAYER_JUMP)
+    ),
     () => {
-      f.setSkillVariable(S_P_G, f.getCustomVariable(ballE, 'fb_g').asType('float'))
-      f.setSkillVariable(S_P_E, f.getCustomVariable(ballE, 'fb_e').asType('float'))
-      f.setSkillVariable(S_P_MU, f.getCustomVariable(ballE, 'fb_mu').asType('float'))
-      f.setSkillVariable(S_P_ROLL, f.getCustomVariable(ballE, 'fb_roll').asType('float'))
-      f.setSkillVariable(S_P_SPIN, f.getCustomVariable(ballE, 'fb_spin').asType('float'))
-      f.setSkillVariable(S_P_AIR, f.getCustomVariable(ballE, 'fb_air').asType('float'))
-      f.setSkillVariable(S_P_MAGNUS, f.getCustomVariable(ballE, 'fb_magnus').asType('float'))
-      f.setSkillVariable(S_P_MAXV, f.getCustomVariable(ballE, 'fb_maxv').asType('float'))
-      f.setSkillVariable(S_P_REST, f.getCustomVariable(ballE, 'fb_rest').asType('float'))
-      f.setSkillVariable(S_P_INIT, 1.0)
+      vpxV.set(f.division(pdx, dt.value))
+      vpzV.set(f.division(pdz, dt.value))
+    },
+    () => {
+      vpxV.set(0.0)
+      vpzV.set(0.0)
+    }
+  )
+  // 速度限幅（瞬移以外的异常大速度也不许把球带飞）
+  const pSpdRaw = f._3dVectorModuloOperation(f.create3dVector(vpxV.value, 0.0, vpzV.value))
+  f.doubleBranch(
+    f.greaterThan(pSpdRaw, PLAYER_SPEED_CAP),
+    () => {
+      const k = f.division(PLAYER_SPEED_CAP, pSpdRaw)
+      vpxV.set(f.multiplication(vpxV.value, k))
+      vpzV.set(f.multiplication(vpzV.value, k))
     },
     () => {}
   )
-  // 之后所有物理计算只用技能变量
-  const readPhys = (slot: bigint) => f.querySkillVariableValue(slot)
-  // ———— 输入：fb_seq（有没有新输入）+ fb_key（哪一种踢法）————
-  const carrier = f.queryEntityByGuid(CARRIER_GUID)
-  const seqStd = f.getCustomVariable(carrier, 'fb_seq').asType('int')
-  const seqSelf = f.getCustomVariable(f.getSelfEntity(), 'fb_seq').asType('int')
-  const guidBigger = f.greaterThan(seqStd, seqSelf)
+  f.setSkillVariable(S_PPX, pPxV.value)
+  f.setSkillVariable(S_PPZ, pPzV.value)
+
+  // ═════════════ 4. 输入：按键票（服务端写载体 fb_seq/fb_key）═══════════════════════════
+  const seqStd = f.getCustomVariable(carrierE, 'fb_seq').asType('int')
   const drv = f.localVariable('int')
-  f.doubleBranch(
-    guidBigger,
-    () => {
-      drv.set(seqStd)
-    },
-    () => {
-      drv.set(seqSelf)
-    }
-  )
-  const keyRaw = f.getCustomVariable(carrier, 'fb_key').asType('int')
-  // 真实步长（服务端 kitListen 每秒校准写入；0 或越界时回退到 7.5Hz 标定值）
-  // 步长标定（2026-10-30 数据：PHYSICS-DATA-REPORT 附录「时间膨胀 0.60×」）
-  // 服务端写的 fb_dt 是 **Lua 帧时长**（≈0.04s@25Hz），而内核实际 66.5ms/拍 ⇒ 物理只跑到真实时间的 60%。
-  // 两者都由客户端帧率驱动，比例稳定 ⇒ 用标定系数换算成"每内核 tick 的秒数"。
-  // 标定方法：日志里 墙钟秒差 / tick 差 = 真实每拍秒数；实测 0.0665 / 0.04 ≈ 1.66。
-  const DT_CALIB = 1.66
-  const dtRaw = f.multiplication(
-    f.getCustomVariable(carrier, 'fb_dt').asType('float'),
-    DT_CALIB
-  )
-  const dtv = f.localVariable('float')
-  f.doubleBranch(
-    f.logicalAndOperation(f.greaterThan(dtRaw, 0.004), f.lessThan(dtRaw, 0.25)),
-    () => {
-      dtv.set(dtRaw)
-    },
-    () => {
-      dtv.set(DT_FALLBACK)
-    }
-  )
+  drv.set(seqStd)
+  const keyRaw = f.getCustomVariable(carrierE, 'fb_key').asType('int')
   const lastSeq = f.dataTypeConversion(f.querySkillVariableValue(S_LASTSEQ), 'int')
   const kickNow = f.greaterThan(drv.value, lastSeq)
 
-  // ———— 状态读入（技能变量 = 唯一真值）————
+  // 外部施力通道（载体变量，单位质量力 m/s²）
+  const extFx = f.getCustomVariable(carrierE, 'fb_fx').asType('float')
+  const extFy = f.getCustomVariable(carrierE, 'fb_fy').asType('float')
+  const extFz = f.getCustomVariable(carrierE, 'fb_fz').asType('float')
+
+  // ═════════════ 5. 状态读入（技能变量 = 唯一真值）═══════════════════════════════════════
   const bx = f.localVariable('float')
   const by = f.localVariable('float')
   const bz = f.localVariable('float')
@@ -230,9 +265,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const wz = f.localVariable('float')
   const mode = f.localVariable('int')
   const inited = f.localVariable('float')
-  const ffx = f.localVariable('float')
-  const ffz = f.localVariable('float')
   const goalFlag = f.localVariable('int')
+  const resetFlag = f.localVariable('int')
   bx.set(f.querySkillVariableValue(S_BX))
   by.set(f.querySkillVariableValue(S_BY))
   bz.set(f.querySkillVariableValue(S_BZ))
@@ -244,41 +278,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   wz.set(f.querySkillVariableValue(S_WZ))
   mode.set(f.dataTypeConversion(f.querySkillVariableValue(S_MODE), 'int'))
   inited.set(f.querySkillVariableValue(S_INIT))
-  ffx.set(0.0)
-  ffz.set(0.0)
   goalFlag.set(0n)
+  resetFlag.set(0n)
 
-  // ———— 玩家速度前馈（位置差分，>8m/s 视为瞬移置 0）————
-  const vpVec = f.create3dVector(
-    f.division(f.subtraction(pPxV.value, f.querySkillVariableValue(S_PPX)), dtv.value),
-    0.0,
-    f.division(f.subtraction(pPzV.value, f.querySkillVariableValue(S_PPZ)), dtv.value)
-  )
-  const vp = f.split3dVector(vpVec)
-  const vpOK = f.logicalAndOperation(
-    f.greaterThan(inited.value, 0.5),
-    f.lessThan(f._3dVectorModuloOperation(vpVec), PLAYER_SPEED_CAP)
-  )
-  f.doubleBranch(
-    vpOK,
-    () => {
-      ffx.set(vp.xComponent)
-      ffz.set(vp.zComponent)
-    },
-    () => {
-      ffx.set(0.0)
-      ffz.set(0.0)
-    }
-  )
-  f.setSkillVariable(S_PPX, pPxV.value)
-  f.setSkillVariable(S_PPZ, pPzV.value)
-
-  // ———— 初始化：球放玩家前方 1.5m，静止 ————
+  // ═════════════ 6. 初始化：球放玩家前方 1.5m，静止 ═══════════════════════════════════════
   f.doubleBranch(
     f.lessThan(inited.value, 0.5),
     () => {
       bx.set(pPxV.value)
-      by.set(GROUND_Y) // 地面基准用场地表面，不用玩家 y（玩家 origin ≈ 地面 +1.92m）
+      by.set(GROUND_Y)
       bz.set(f.addition(pPzV.value, 1.5))
       vx.set(0.0)
       vy.set(0.0)
@@ -292,69 +300,61 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
 
-  // 玩家→球水平单位向量（1e-4 保护：重合时方向退化，踢球失效但不炸）
-  const dx = f.subtraction(bx.value, pPxV.value)
-  const dz = f.subtraction(bz.value, pPzV.value)
-  const horizLen = f.addition(f._3dVectorModuloOperation(f.create3dVector(dx, 0.0, dz)), 0.0001)
-  const dirX = f.division(dx, horizLen)
-  const dirZ = f.division(dz, horizLen)
-
-  // ———— 6 键复位（提到物理体之前，2026-10-30 三修）————
-  // 之前它在物理体深处，日志 3426 里 kickNow=True、fb_key 读到 6，但球位置没变 ⇒ 疑为分支没进。
-  // 移到最外层：只要本拍有新票且键值=6，无条件把球放到玩家正前方 1.5m。
-  f.doubleBranch(
-    f.logicalAndOperation(kickNow, f.equal(keyRaw, 6n)),
-    () => {
-      bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
-      by.set(GROUND_Y)
-      bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
-      vx.set(0.0)
-      vy.set(0.0)
-      vz.set(0.0)
-      wx.set(0.0)
-      wy.set(0.0)
-      wz.set(0.0)
-      mode.set(98n) // 诊断标记：98 = 6 键复位执行过（99 预留给旧位置，避免与历史日志混淆）
-    },
-    () => {}
-  )
-
   const warm = f.lessThanOrEqualTo(tick, WARMUP_TICKS)
   f.doubleBranch(
-    warm,
+    f.logicalNotOperation(warm),
     () => {
-      // 暖机：球贴玩家前方跟随，速度清零
-      bx.set(pPxV.value)
-      by.set(GROUND_Y)
-      bz.set(f.addition(pPzV.value, 1.5))
-      vx.set(0.0)
-      vy.set(0.0)
-      vz.set(0.0)
-      mode.set(4n)
-    },
-    () => {
-      // ———— ① 动作分发（P0：有球=射门/传球，无球=抢断/解围/停球）————
-      const ballToPlayer = f._3dVectorModuloOperation(
-        f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))
+      // ═══════════ 7. 架势：玩家速度向量与瞄准方向 ═══════════
+      const pSpd = f._3dVectorModuloOperation(f.create3dVector(vpxV.value, 0.0, vpzV.value))
+      // 球相对玩家的水平向量（dir = 玩家→球）
+      const bpx = f.subtraction(bx.value, pPxV.value)
+      const bpz = f.subtraction(bz.value, pPzV.value)
+      const distBP = f._3dVectorModuloOperation(f.create3dVector(bpx, 0.0, bpz))
+      const dirX = f.division(bpx, f.addition(distBP, 0.0001))
+      const dirZ = f.division(bpz, f.addition(distBP, 0.0001))
+      // 瞄准：跑动时按速度方向（脚随身体走），站定时按「玩家→球」
+      const aimX = f.localVariable('float')
+      const aimZ = f.localVariable('float')
+      f.doubleBranch(
+        f.greaterThan(pSpd, 0.5),
+        () => {
+          aimX.set(f.division(vpxV.value, pSpd))
+          aimZ.set(f.division(vpzV.value, pSpd))
+        },
+        () => {
+          aimX.set(dirX)
+          aimZ.set(dirZ)
+        }
       )
-      const speedAct = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
-      const hasBall = f.logicalAndOperation(f.lessThan(ballToPlayer, DRIBBLE_R), f.lessThan(speedAct, 8.0))
-      const cooldownNow = f.dataTypeConversion(f.querySkillVariableValue(S_COOLDOWN), 'int')
-      const canDribbleAfterTackle = f.greaterThanOrEqualTo(tick, cooldownNow)
+
+      // ═══════════ 8. 冲量累加器 + 动作分发 ═══════════
+      const impX = f.localVariable('float')
+      const impY = f.localVariable('float')
+      const impZ = f.localVariable('float')
+      impX.set(0.0)
+      impY.set(0.0)
+      impZ.set(0.0)
+      const ballSpd0 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      const hasBall = f.logicalAndOperation(
+        f.lessThan(distBP, DRIBBLE_R),
+        f.lessThan(ballSpd0, KICK_GATE_SPD)
+      )
 
       f.doubleBranch(
         kickNow,
         () => {
+          // —— 6 号键：重置球到脚下（物理结束后统一执行，避免本拍穿越判定拿到跳变）——
+          f.doubleBranch(f.equal(keyRaw, 6n), () => { resetFlag.set(1n) }, () => {})
+          // —— 有球：五种出球（冲量 = Δv，方向 = 瞄准）——
           f.doubleBranch(
             hasBall,
             () => {
-              // ——— 有球：五个键 = 五种出球 ———
               f.doubleBranch(
                 f.equal(keyRaw, 1n),
                 () => {
-                  vx.set(f.multiplication(dirX, 10.0))
-                  vz.set(f.multiplication(dirZ, 10.0))
-                  vy.set(KICK_LIGHT_LIFT)
+                  impX.set(f.multiplication(aimX.value, f.multiplication(K1_SPD, km.value)))
+                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K1_SPD, km.value)))
+                  impY.set(f.multiplication(K1_LIFT, km.value))
                   wy.set(0.0)
                 },
                 () => {}
@@ -362,19 +362,19 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 2n),
                 () => {
-                  vx.set(f.multiplication(dirX, KICK_HEAVY_SPD))
-                  vz.set(f.multiplication(dirZ, KICK_HEAVY_SPD))
-                  vy.set(KICK_HEAVY_LIFT)
-                  wy.set(10.0)
+                  impX.set(f.multiplication(aimX.value, f.multiplication(K2_SPD, km.value)))
+                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K2_SPD, km.value)))
+                  impY.set(f.multiplication(K2_LIFT, km.value))
+                  wy.set(K2_SPIN)
                 },
                 () => {}
               )
               f.doubleBranch(
                 f.equal(keyRaw, 3n),
                 () => {
-                  vx.set(f.multiplication(dirX, KICK_LOB_SPD))
-                  vz.set(f.multiplication(dirZ, KICK_LOB_SPD))
-                  vy.set(KICK_LOB_LIFT)
+                  impX.set(f.multiplication(aimX.value, f.multiplication(K3_SPD, km.value)))
+                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K3_SPD, km.value)))
+                  impY.set(f.multiplication(K3_LIFT, km.value))
                   wy.set(0.0)
                 },
                 () => {}
@@ -382,9 +382,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 4n),
                 () => {
-                  vx.set(f.multiplication(dirX, 12.0))
-                  vz.set(f.multiplication(dirZ, 12.0))
-                  vy.set(0.8)
+                  impX.set(f.multiplication(aimX.value, f.multiplication(K4_SPD, km.value)))
+                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K4_SPD, km.value)))
+                  impY.set(f.multiplication(K4_LIFT, km.value))
                   wy.set(0.0)
                 },
                 () => {}
@@ -392,57 +392,56 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 5n),
                 () => {
-                  // 弧线球：侧旋左右交替（按拍号奇偶）
-                  const mod2 = f.dataTypeConversion(f.division(f.dataTypeConversion(tick, 'float'), 2.0), 'int')
-                  const odd = f.equal(f.multiplication(mod2, 2n), tick)
-                  const sign = f.localVariable('float')
-                  f.doubleBranch(odd, () => { sign.set(1.0) }, () => { sign.set(-1.0) })
-                  vx.set(f.multiplication(dirX, 14.0))
-                  vz.set(f.multiplication(dirZ, 14.0))
-                  vy.set(4.0)
-                  wy.set(f.multiplication(sign.value, 14.0))
+                  // 弧线球：侧旋方向逐次翻转（存 S_SPINSIGN，初值 0 ⇒ 取 +1）
+                  const signOld = f.querySkillVariableValue(S_SPINSIGN)
+                  const signNew = f.localVariable('float')
+                  f.doubleBranch(
+                    f.greaterThan(signOld, 0.0),
+                    () => { signNew.set(-1.0) },
+                    () => { signNew.set(1.0) }
+                  )
+                  f.setSkillVariable(S_SPINSIGN, signNew.value)
+                  impX.set(f.multiplication(aimX.value, f.multiplication(K5_SPD, km.value)))
+                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K5_SPD, km.value)))
+                  impY.set(f.multiplication(K5_LIFT, km.value))
+                  wy.set(f.multiplication(signNew.value, K5_SPIN))
                 },
                 () => {}
               )
-              mode.set(0n)
             },
             () => {
-              // ——— 无球：抢断 / 解围 / 停球 ———
+              // —— 无球：抢断 / 解围 / 停球 ——
               f.doubleBranch(
-                f.logicalAndOperation(f.equal(keyRaw, 1n), f.lessThan(ballToPlayer, 2.5)),
+                f.logicalAndOperation(f.equal(keyRaw, 1n), f.lessThan(distBP, 2.5)),
                 () => {
-                  vx.set(f.multiplication(dirX, 7.0))
-                  vz.set(f.multiplication(dirZ, 7.0))
-                  vy.set(4.0)
-                  wy.set(0.0)
+                  impX.set(f.multiplication(aimX.value, 7.0))
+                  impZ.set(f.multiplication(aimZ.value, 7.0))
+                  impY.set(4.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
-                  mode.set(0n)
                 },
                 () => {}
               )
               f.doubleBranch(
-                f.logicalAndOperation(f.equal(keyRaw, 2n), f.lessThan(ballToPlayer, 3.0)),
+                f.logicalAndOperation(f.equal(keyRaw, 2n), f.lessThan(distBP, 3.0)),
                 () => {
-                  vx.set(f.multiplication(dirX, 20.0))
-                  vz.set(f.multiplication(dirZ, 20.0))
-                  vy.set(5.0)
-                  wy.set(0.0)
+                  impX.set(f.multiplication(aimX.value, 14.0))
+                  impZ.set(f.multiplication(aimZ.value, 14.0))
+                  impY.set(5.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
-                  mode.set(0n)
                 },
                 () => {}
               )
               f.doubleBranch(
                 f.logicalAndOperation(
                   f.equal(keyRaw, 3n),
-                  f.logicalAndOperation(f.lessThan(ballToPlayer, 2.5), f.greaterThan(speedAct, 6.0))
+                  f.logicalAndOperation(f.lessThan(distBP, 2.5), f.greaterThan(ballSpd0, 6.0))
                 ),
                 () => {
-                  vx.set(f.multiplication(vx.value, 0.12))
-                  vz.set(f.multiplication(vz.value, 0.12))
-                  vy.set(0.0)
+                  // 停球 = 反冲量（吸掉 88% 速度），不是直接改速度
+                  impX.set(f.multiplication(vx.value, -0.88))
+                  impY.set(f.multiplication(vy.value, -0.88))
+                  impZ.set(f.multiplication(vz.value, -0.88))
                   wy.set(0.0)
-                  mode.set(4n)
                 },
                 () => {}
               )
@@ -453,249 +452,427 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         () => {}
       )
 
-      // ———— ② 带球判定 ————
-      const speed0 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
-      const onGround = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.03))
-      const onGroundAfter = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.03))
-      const tx = f.addition(pPxV.value, f.multiplication(dirX, DRIBBLE_AHEAD))
-      const tz = f.addition(pPzV.value, f.multiplication(dirZ, DRIBBLE_AHEAD))
-      const ddx = f.subtraction(tx, bx.value)
-      const ddz = f.subtraction(tz, bz.value)
-      const distTarget = f._3dVectorModuloOperation(
-        f.create3dVector(ddx, f.subtraction(GROUND_Y, by.value), ddz)
-      )
-      // 触发条件用「球到**玩家**的距离」（2026-10-30 修）：原来用 distTarget（球到"玩家身前 1.3m 目标点"），
-      // 等于要求球已经站在目标点上才允许带球 —— 日志 3426 实证：球在玩家 2.4m 内共 89 拍，
-      // 带球状态 0 拍（球贴脚却永远不进入带球）。
-      const ballToPlayerNow = f._3dVectorModuloOperation(
-        f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))
-      )
-      // 触球式带球（2026-10-30 用户选型 B）：
-      //   ① 带球区（HUD 用）：球在 KEEP_R 内且这一拍没按键 ⇒ 状态记 5
-      //   ② 可触球：球在 TOUCH_R 内、球比玩家慢（说明球落后了、需要再带一脚）、玩家在动
-      //   触球只给**一次冲量**，之后球走正常物理（摩擦/滚动/反弹），不再是"位置吸附"。
-      const playerSpd = f._3dVectorModuloOperation(f.create3dVector(ffx.value, 0.0, ffz.value))
-      const ballSpdH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
-      const inZone = f.logicalAndOperation(
-        f.logicalNotOperation(kickNow),
-        f.lessThan(ballToPlayerNow, KEEP_R)
-      )
-      const touch = f.logicalAndOperation(
-        f.logicalNotOperation(kickNow),
-        f.logicalAndOperation(
-          canDribbleAfterTackle,
-          f.logicalAndOperation(
-            f.lessThan(ballToPlayerNow, TOUCH_R),
-            f.logicalAndOperation(
-              f.greaterThan(playerSpd, TOUCH_MIN_SPD),
-              f.lessThan(ballSpdH, f.addition(playerSpd, 0.25))
-            )
-          )
-        )
-      )
+      // 施加冲量
+      vx.set(f.addition(vx.value, impX.value))
+      vy.set(f.addition(vy.value, impY.value))
+      vz.set(f.addition(vz.value, impZ.value))
+      // 踢球后给纯滚动自旋（脚带走球，不是凭空滑出去）；6 号键在物理结束后统一重置
       f.doubleBranch(
-        touch,
+        f.logicalAndOperation(
+          kickNow,
+          f.logicalAndOperation(hasBall, f.logicalNotOperation(f.equal(keyRaw, 6n)))
+        ),
         () => {
-          // 触球方向 = **玩家速度方向**（比「玩家→球」的方向靠谱：球绕到侧面也会被带向前）
-          const ux = f.division(ffx.value, playerSpd)
-          const uz = f.division(ffz.value, playerSpd)
-          const kickSpd = f.addition(playerSpd, TOUCH_BOOST)
-          vx.set(f.multiplication(ux, kickSpd))
-          vz.set(f.multiplication(uz, kickSpd))
-          vy.set(TOUCH_LIFT)
-          wx.set(f.division(vz.value, BALL_R))
-          wy.set(0.0)
-          wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
+          const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
+          f.doubleBranch(
+            f.greaterThan(spH, 0.5),
+            () => {
+              wx.set(f.division(vz.value, BALL_R))
+              wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
+            },
+            () => {
+              wx.set(0.0)
+              wz.set(0.0)
+            }
+          )
         },
         () => {}
       )
 
-      // ———— ②b 拦截（自动，无需按键）：球以 >6m/s 撞进 0.9m 且朝我飞来 ⇒ 沿法线反弹 ————
-      const relLen = f.addition(ballToPlayer, 0.0001)
+      // —— 拦截（自动）：高速球撞进身体 0.9m 且朝我飞来 ⇒ 沿法线反弹 0.7 ——
+      const relLen = f.addition(distBP, 0.0001)
       const nX = f.division(f.subtraction(bx.value, pPxV.value), relLen)
       const nZ = f.division(f.subtraction(bz.value, pPzV.value), relLen)
       const vDotN = f.addition(f.multiplication(vx.value, nX), f.multiplication(vz.value, nZ))
       const hitBody = f.logicalAndOperation(
-        f.greaterThan(speed0, 6.0),
-        f.logicalAndOperation(f.lessThan(ballToPlayer, 0.55), f.lessThan(vDotN, 0.0))
+        f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value)), 6.0),
+        f.logicalAndOperation(f.lessThan(distBP, 0.55), f.lessThan(vDotN, 0.0))
       )
       f.doubleBranch(
-        f.logicalAndOperation(f.logicalNotOperation(touch), hitBody),
+        f.logicalAndOperation(hitBody, f.logicalNotOperation(kickNow)),
         () => {
-          // v' = v − 1.6·(v·n)·n，再整体 0.7 衰减（身体挡球，不是满弹）
           vx.set(f.multiplication(f.subtraction(vx.value, f.multiplication(f.multiplication(vDotN, 1.6), nX)), 0.7))
           vz.set(f.multiplication(f.subtraction(vz.value, f.multiplication(f.multiplication(vDotN, 1.6), nZ)), 0.7))
           vy.set(f.multiplication(vy.value, 0.7))
-          mode.set(1n)
         },
         () => {}
       )
 
-      // ———— ③ 力与积分（非带球帧；每步独立守卫，扁平结构，避免深嵌套触发转换器问题）————
-      // 触球式带球后，物理**每拍都跑**（不再有"带球帧跳过物理"这条旁路）
-      const notDribble = f.logicalNotOperation(f.equal(1n, 2n))
-      // 重力 + 马格努斯：非带球 且 在空中
-      f.doubleBranch(
-        f.logicalAndOperation(notDribble, f.logicalNotOperation(onGround)),
-        () => {
-          vy.set(f.subtraction(vy.value, f.multiplication(f.querySkillVariableValue(S_P_G), dtv.value)))
-          const magVec = f._3dVectorZoom(
-            f.querySkillVariableValue(S_P_MAGNUS),
-            f._3dVectorCrossProduct(
-              f.create3dVector(wx.value, wy.value, wz.value),
-              f.create3dVector(vx.value, vy.value, vz.value)
-            )
-          )
-          const ms = f.split3dVector(magVec)
-          vx.set(f.addition(vx.value, f.multiplication(ms.xComponent, dtv.value)))
-          vy.set(f.addition(vy.value, f.multiplication(ms.yComponent, dtv.value)))
-          vz.set(f.addition(vz.value, f.multiplication(ms.zComponent, dtv.value)))
-        },
-        () => {}
+      // ═══════════ 9. 力累加器：重力 / 带球弹簧 / 马格努斯 / 外部施力 ═══════════
+      const accX = f.localVariable('float')
+      const accY = f.localVariable('float')
+      const accZ = f.localVariable('float')
+      accX.set(extFx)
+      accY.set(f.subtraction(extFy, G))
+      accZ.set(extFz)
+      const groundedBefore = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.05))
+
+      // 带球助力（弹簧-阻尼，力而不是速度改写 ⇒ 没有速度悬崖）：
+      // 只在落地、未踢球、球没飞走时生效；目标点 = 玩家前方 1.0m
+      const ballSpdNow = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      const assistOn = f.logicalAndOperation(
+        f.logicalAndOperation(f.logicalNotOperation(kickNow), groundedBefore),
+        f.logicalAndOperation(
+          f.lessThan(distBP, dribR.value),
+          f.lessThan(ballSpdNow, f.addition(pSpd, 3.0))
+        )
       )
-      // 空气阻力 + 自旋衰减 + 位置积分
       f.doubleBranch(
-        notDribble,
+        assistOn,
         () => {
-          // 空气阻力/自旋衰减：**速率无关**（旧写法 ×0.995/拍 在 10Hz 与 26Hz 下差 2.6 倍）
-          const airK = f.subtraction(1.0, f.multiplication(AIR_DRAG_K, dtv.value))
-          vx.set(f.multiplication(vx.value, airK))
-          vz.set(f.multiplication(vz.value, airK))
-          // 垂直分量也要有空气阻力（报告 FAIL⑤：旧实现只对水平分量施加）
-          vy.set(f.multiplication(vy.value, airK))
-          // ⚠️ 2026-10-30 数据修正（PHYSICS-DATA-REPORT slot7：ω −44.9%/1.12s 而 v 只 −21%）
-          // 滚动状态下 ω 必须跟着 v 走（ω=v/R），再额外乘 SPIN_K 就会「越滚越不转」。
-          // ⇒ 只对**竖直轴自旋 wy**（弧线球的自旋）施加 SPIN_K；wx/wz 交给摩擦约束，只加很小的空气衰减。
-          const spinAir = f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_AIR), dtv.value))
-          wx.set(f.multiplication(wx.value, spinAir))
-          wz.set(f.multiplication(wz.value, spinAir))
-          wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_SPIN), dtv.value))))
-          bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
-          by.set(f.addition(by.value, f.multiplication(vy.value, dtv.value)))
-          bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
-        },
-        () => {}
-      )
-      // ④⑤ 接触模型（2026-10-29 重写：法向冲量 + 库仑摩擦 + 自旋耦合）
-      //   旧实现三处硬伤：①摩擦只在 by<GROUND_Y 触发，而位置每拍被夹回地面 ⇒ 几乎不触发；
-      //   ②滑行态完全不改自旋（用户实测「反弹后旋转不变、只有速度变」）；③反弹没有法向冲量参与摩擦上限。
-      const grounded = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.01))
-      f.doubleBranch(
-        f.logicalAndOperation(notDribble, grounded),
-        () => {
-          by.set(GROUND_Y)
-          const vyIn = vy.value
-          const hitting = f.lessThan(vyIn, -SETTLE_VY)
-          const jn = f.localVariable('float') // 法向冲量当量（m/s）：撞击=(1+e)|vy|，静息=g·dt
+          const tX = f.addition(pPxV.value, f.multiplication(aimX.value, DRIB_AHEAD))
+          const tZ = f.addition(pPzV.value, f.multiplication(aimZ.value, DRIB_AHEAD))
+          const errX = f.subtraction(tX, bx.value)
+          const errZ = f.subtraction(tZ, bz.value)
+          const rvX = f.subtraction(vx.value, vpxV.value)
+          const rvZ = f.subtraction(vz.value, vpzV.value)
+          const aX = f.subtraction(f.multiplication(kp.value, errX), f.multiplication(kd.value, rvX))
+          const aZ = f.subtraction(f.multiplication(kp.value, errZ), f.multiplication(kd.value, rvZ))
+          const am = f._3dVectorModuloOperation(f.create3dVector(aX, 0.0, aZ))
+          const sc = f.localVariable('float')
           f.doubleBranch(
-            hitting,
+            f.greaterThan(am, DRIB_AMAX),
+            () => { sc.set(f.division(DRIB_AMAX, am)) },
+            () => { sc.set(1.0) }
+          )
+          accX.set(f.addition(accX.value, f.multiplication(aX, sc.value)))
+          accZ.set(f.addition(accZ.value, f.multiplication(aZ, sc.value)))
+        },
+        () => {}
+      )
+
+      // 马格努斯：只在空中（a = K·ω×v）
+      f.doubleBranch(
+        f.logicalNotOperation(groundedBefore),
+        () => {
+          // 马格努斯只取**竖直轴自旋 wy**（弧线/香蕉球）：a = K·(ŷ·wy)×v = K·wy·(vz, 0, −vx)
+          // 不让滚动自旋 wx/wz 参与气动力：15Hz 下贴地滚动 ω=v/R≈40rad/s，K=0.03 会给出
+          // ~12m/s² 的"砸地"力（旧测试台 slot2 漏清 wz 时球被吹到 6.59m 就是同一机制）。
+          const magK = f.multiplication(f.querySkillVariableValue(S_P_MAGNUS), wy.value)
+          accX.set(f.addition(accX.value, f.multiplication(magK, vz.value)))
+          accZ.set(f.subtraction(accZ.value, f.multiplication(magK, vx.value)))
+        },
+        () => {}
+      )
+
+      // ═══════════ 10. 积分：v += a·dt → 空气阻力 → 限速 → x += v̄·dt ═══════════
+      // 位置用「施力前/后速度平均」（二阶）：纯重力下等价于 x += v·dt + ½a·dt²，
+      // 15Hz 的弹道高度误差从 22% 降到 ~2%（旧实现半隐式欧拉，每次弹跳都偏矮）。
+      const vxPre = vx.value
+      const vyPre = vy.value
+      const vzPre = vz.value
+      vx.set(f.addition(vx.value, f.multiplication(accX.value, dt.value)))
+      vy.set(f.addition(vy.value, f.multiplication(accY.value, dt.value)))
+      vz.set(f.addition(vz.value, f.multiplication(accZ.value, dt.value)))
+      const airK = f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_AIR), dt.value))
+      vx.set(f.multiplication(vx.value, airK))
+      vy.set(f.multiplication(vy.value, airK))
+      vz.set(f.multiplication(vz.value, airK))
+      // 自旋：wx/wz 交给接触约束（这里只加很小的空气衰减），wy 是弧线自旋
+      wx.set(f.multiplication(wx.value, airK))
+      wz.set(f.multiplication(wz.value, airK))
+      wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_SPIN), dt.value))))
+      // 限速在**位置积分前**（旧实现放在最后 ⇒ 20m/s 的解围球先走 1.33m 再被夹）
+      const spPre = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      f.doubleBranch(
+        f.greaterThan(spPre, f.querySkillVariableValue(S_P_MAXV)),
+        () => {
+          const kMax = f.division(f.querySkillVariableValue(S_P_MAXV), spPre)
+          vx.set(f.multiplication(vx.value, kMax))
+          vy.set(f.multiplication(vy.value, kMax))
+          vz.set(f.multiplication(vz.value, kMax))
+        },
+        () => {}
+      )
+      // 位置快照（TOI / 门线穿越都用它），速度保持不变
+      const bx0 = bx.value
+      const by0 = by.value
+      const bz0 = bz.value
+      const vyIn = vy.value
+      const halfDt = f.multiplication(dt.value, 0.5)
+      bx.set(f.addition(bx0, f.multiplication(f.addition(vxPre, vx.value), halfDt)))
+      by.set(f.addition(by0, f.multiplication(f.addition(vyPre, vy.value), halfDt)))
+      bz.set(f.addition(bz0, f.multiplication(f.addition(vzPre, vz.value), halfDt)))
+
+      // ═══════════ 11. 地面接触（含 TOI 子步：消除穿透与「反弹漏重力」）═══════════
+      const jn = f.localVariable('float')
+      const contact = f.localVariable('int') // 0=空中 1=静息接触 2=撞击
+      jn.set(0.0)
+      contact.set(0n)
+      const belowGround = f.lessThan(by.value, GROUND_Y)
+      const vyAbs = f._3dVectorModuloOperation(f.create3dVector(0.0, vy.value, 0.0))
+      const hardHit = f.logicalAndOperation(
+        belowGround,
+        f.logicalAndOperation(f.lessThan(vy.value, 0.0), f.greaterThan(vyAbs, SETTLE_VY))
+      )
+      f.doubleBranch(
+        hardHit,
+        () => {
+          // 撞击时刻 t* = (y0 − 地面) / (y0 − y1)，只在本拍内，用解析式代替子步循环
+          const denom = f.subtraction(by0, by.value)
+          const tRaw = f.division(f.subtraction(by0, GROUND_Y), f.addition(denom, 0.0001))
+          const tHit = f.localVariable('float')
+          f.doubleBranch(
+            f.lessThan(tRaw, 0.0),
+            () => { tHit.set(0.0) },
             () => {
-              vy.set(f.multiplication(vyIn, f.multiplication(-1.0, f.querySkillVariableValue(S_P_E))))
-              jn.set(
-                f.multiplication(f.multiplication(vyIn, -1.0), f.addition(1.0, f.querySkillVariableValue(S_P_E)))
+              f.doubleBranch(
+                f.greaterThan(tRaw, 1.0),
+                () => { tHit.set(1.0) },
+                () => { tHit.set(tRaw) }
               )
-              mode.set(1n)
-            },
-            () => {
-              vy.set(0.0)
-              jn.set(f.multiplication(f.querySkillVariableValue(S_P_G), dtv.value))
             }
           )
-          // 接触点滑移：v_slip = v + ω×r_c，r_c=(0,−R,0) ⇒ (vx + wz·R, 0, vz − wx·R)
+          // 撞击时刻的速度：v(t*) = v_拍末 − a·dt·(1−t*)（重力还在往下加，不能拿拍末速度当撞击速度）
+          const vyHit = f.subtraction(vy.value, f.multiplication(f.multiplication(accY.value, dt.value), f.subtraction(1.0, tHit.value)))
+          const vyOut = f.multiplication(f.multiplication(vyHit, -1.0), E)
+          by.set(f.addition(GROUND_Y, f.multiplication(f.multiplication(vyOut, dt.value), f.subtraction(1.0, tHit.value))))
+          vy.set(vyOut)
+          jn.set(f.multiplication(f.multiplication(vyHit, -1.0), f.addition(1.0, E)))
+          contact.set(2n)
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.logicalAndOperation(
+          f.logicalNotOperation(hardHit),
+          f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, CONTACT_EPS))
+        ),
+        () => {
+          by.set(GROUND_Y)
+          vy.set(0.0)
+          jn.set(f.multiplication(G, dt.value))
+          contact.set(1n)
+        },
+        () => {}
+      )
+
+      // ═══════════ 12. 接触摩擦（法向冲量 + 库仑上限 + 自旋耦合）═══════════════════
+      //   Δslip = 3.5·J ⇒ 零化滑移需要 J = −s/3.5；库仑上限 |J| ≤ μ·jn ⇒ γ = min(1, 3.5·μ·jn/|s|)
+      //   （旧实现漏了 3.5，实际摩擦只有 μ/3.5 —— 真机滑行减速 2.10m/s² 的指纹）
+      f.doubleBranch(
+        f.greaterThan(contact.value, 0n),
+        () => {
           const sx = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
           const sz = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
           const slip = f._3dVectorModuloOperation(f.create3dVector(sx, 0.0, sz))
-          // 库仑上限：γ = min(1, μ·jn / |slip|) —— 压力大（撞击）就抓得死，压力小就慢慢磨
-          const gammaRaw = f.division(
-            f.multiplication(f.querySkillVariableValue(S_P_MU), jn.value),
+          const gRaw = f.division(
+            f.multiplication(f.multiplication(3.5, MU), jn.value),
             f.addition(slip, 0.001)
           )
           const gamma = f.localVariable('float')
-          f.doubleBranch(
-            f.greaterThan(gammaRaw, 1.0),
-            () => {
-              gamma.set(1.0)
-            },
-            () => {
-              gamma.set(gammaRaw)
-            }
-          )
-          // 消滑移冲量（实心球 I=2/5·mR² 解得）：a=(γ/5.25)(sx+2.5sz), b=(γ/5.25)(sz+2.5sx)
-          // ⚠️ 2026-10-30 定谳（符号错误）：接触点滑移对一次冲量的响应是**解耦**的
-          //   Δs = (7/2)·a , (7/2)·b  （sympy 推导：sx2=vx+a+wz·R+2.5a 等）
-          //   ⇒ 清零滑移所需 a = −(2/7)·sx、b = −(2/7)·sz。
-          //   旧式子 a=γ(sx+2.5sz)/5.25 在 sx、sz 同号时给出**正号**冲量 ⇒ 每拍把滑移放大 3.3 倍 ⇒
-          //   自旋与速度双双发散（日志 3425：无按键时速度 11.97→17.44、自旋 7→78 rad/s）。
-          const a = f.division(f.multiplication(gamma.value, sx), -3.5)
-          const b = f.division(f.multiplication(gamma.value, sz), -3.5)
-          // 摩擦冲量带损耗（2026-10-30：实测球速每拍不衰减 —— 无损消滑移冲量把自旋能量
-          // 全转成前进速度，球"越磨越快"；真实摩擦必须耗能 ⇒ 系数 0.9）
-          const aD = f.multiplication(a, FRICTION_LOSS)
-          const bD = f.multiplication(b, FRICTION_LOSS)
+          f.doubleBranch(f.greaterThan(gRaw, 1.0), () => { gamma.set(1.0) }, () => { gamma.set(gRaw) })
+          const aD = f.division(f.multiplication(gamma.value, sx), -3.5)
+          const bD = f.division(f.multiplication(gamma.value, sz), -3.5)
           vx.set(f.addition(vx.value, aD))
           vz.set(f.addition(vz.value, bD))
           wx.set(f.addition(wx.value, f.division(f.multiplication(-2.5, bD), BALL_R)))
           wz.set(f.addition(wz.value, f.division(f.multiplication(2.5, aD), BALL_R)))
-          // 滚动阻力：**恒定减速度**（ROLL_MU·g），与帧率无关
-          //   旧写法 v*=0.985/拍 在 10Hz 与 26Hz 下衰减速率差 2.6 倍，且几乎没有阻尼
-          const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
-          const decel = f.multiplication(f.multiplication(f.querySkillVariableValue(S_P_ROLL), f.querySkillVariableValue(S_P_G)), dtv.value)
-          const keepF = f.localVariable('float')
+          const sx2 = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
+          const sz2 = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
+          const slip2 = f._3dVectorModuloOperation(f.create3dVector(sx2, 0.0, sz2))
+          // 纯滚动：滚动阻力（恒定减速度，与帧率无关）+ 把自旋锁到滚动约束
           f.doubleBranch(
-            f.greaterThan(spH, decel),
+            f.lessThan(slip2, SLIP_ROLL),
             () => {
-              keepF.set(f.division(f.subtraction(spH, decel), spH))
-            },
-            () => {
-              keepF.set(0.0)
-            }
-          )
-          vx.set(f.multiplication(vx.value, keepF.value))
-          vz.set(f.multiplication(vz.value, keepF.value))
-          // ⚠️ 2026-10-30 真 bug 修复（日志 3439 slot5 实证）：
-          //   静止判据原来只看**水平速度** |（vx,0,vz)| < 0.35 —— 于是「竖直下落到底」的球
-          //   水平分量本来就是 0 ⇒ 触发这个分支 ⇒ vy 被清零 ⇒ **3m 自由落体落地后完全不反弹**
-          //   （日志：y 3.23→0.27→0.25 后 v 恒 0，e=0.5 本该弹到 ~1.9m）。
-          //   现在用**三维速度**判定静止，且竖直速度必须确实很小。
-          const spG = f._3dVectorModuloOperation(
-            f.create3dVector(vx.value, vy.value, vz.value)
-          )
-          f.doubleBranch(
-            f.lessThan(spG, f.querySkillVariableValue(S_P_REST)),
-            () => {
-              vx.set(0.0)
-              vy.set(0.0)
-              vz.set(0.0)
-              wx.set(0.0)
-              wy.set(f.multiplication(wy.value, 0.9))
-              wz.set(0.0)
-              mode.set(4n)
-            },
-            () => {
-              const sx2 = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
-              const sz2 = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
-              const slip2 = f._3dVectorModuloOperation(f.create3dVector(sx2, 0.0, sz2))
+              const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
+              const decel = f.multiplication(f.multiplication(ROLL, G), dt.value)
+              const keep = f.localVariable('float')
               f.doubleBranch(
-                f.lessThan(slip2, SLIP_ROLL),
-                () => {
-                  mode.set(3n)
-                },
-                () => {
-                  mode.set(2n)
-                }
+                f.greaterThan(spH, decel),
+                () => { keep.set(f.division(f.subtraction(spH, decel), spH)) },
+                () => { keep.set(0.0) }
               )
-            }
+              vx.set(f.multiplication(vx.value, keep.value))
+              vz.set(f.multiplication(vz.value, keep.value))
+              wx.set(f.division(vz.value, BALL_R))
+              wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
+            },
+            () => {}
           )
         },
         () => {}
       )
-      // ———— ⑧ 进球判定：越过门线(|x|>52.5) + 门洞内(|z|<3.6) + 低于横梁(y<2.5) ————
-      const overLine = f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0)), PITCH_X - 0.05)
-      const inMouth = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), GOAL_HALF)
-      const underBar = f.lessThan(f.subtraction(by.value, SURFACE_Y), GOAL_H)
-      const goalHit = f.logicalAndOperation(overLine, f.logicalAndOperation(inMouth, underBar))
+
+      // ═══════════ 13. 静止（平滑衰减，不再「0.36→0 一拍断崖」）═══════════════════════
+      const sp1 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
       f.doubleBranch(
-        goalHit,
+        f.logicalAndOperation(f.greaterThan(contact.value, 0n), f.lessThan(sp1, f.querySkillVariableValue(S_P_REST))),
+        () => {
+          vx.set(f.multiplication(vx.value, 0.5))
+          vz.set(f.multiplication(vz.value, 0.5))
+          vy.set(0.0)
+        },
+        () => {}
+      )
+      const sp2 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      f.doubleBranch(
+        f.lessThan(sp2, f.multiplication(f.querySkillVariableValue(S_P_REST), 0.25)),
+        () => {
+          vx.set(0.0)
+          vy.set(0.0)
+          vz.set(0.0)
+          wx.set(0.0)
+          wz.set(0.0)
+          wy.set(f.multiplication(wy.value, 0.5))
+        },
+        () => {}
+      )
+
+      // ═══════════ 14. 门柱（扫掠圆检测：p0→p1 线段与圆柱截面求交，快球也不穿柱）═════
+      //   旧实现是 1.2×1.2m 的方盒、且在进球判定之后 ⇒ 一半的必进球被"隐形门柱"弹回（离线 53.5% 判错）。
+      //   现在：解 |p(t) − c|² = (POST_R+R)² 的小二次方程，取最早交点；法线 = 交点−柱心。
+      const absX = f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0))
+      const absX0 = f._3dVectorModuloOperation(f.create3dVector(bx0, 0.0, 0.0))
+      const postReach = f.addition(POST_R, BALL_R)
+      const reach2 = f.multiplication(postReach, postReach)
+      const stepX = f.subtraction(absX, absX0)
+      const stepZ = f.subtraction(bz.value, bz0)
+      const stepSq = f.addition(f.multiplication(stepX, stepX), f.multiplication(stepZ, stepZ))
+      const hasStep = f.greaterThan(stepSq, 0.000001)
+      const belowBar = f.lessThan(by.value, f.addition(GOAL_H, postReach))
+      const sgnX = f.localVariable('float')
+      f.doubleBranch(
+        f.greaterThanOrEqualTo(bx.value, 0.0),
+        () => { sgnX.set(1.0) },
+        () => { sgnX.set(-1.0) }
+      )
+      const postX = f.subtraction(absX0, PITCH_X)
+      // —— 前柱（z = +3.6）——
+      const p0zP = f.subtraction(bz0, GOAL_HALF)
+      const cP = f.subtraction(
+        f.addition(f.multiplication(postX, postX), f.multiplication(p0zP, p0zP)),
+        reach2
+      )
+      const bP = f.multiplication(
+        2.0,
+        f.addition(f.multiplication(postX, stepX), f.multiplication(p0zP, stepZ))
+      )
+      const discP = f.subtraction(f.multiplication(bP, bP), f.multiplication(f.multiplication(4.0, stepSq), cP))
+      f.doubleBranch(
+        f.logicalAndOperation(
+          f.logicalAndOperation(f.greaterThan(discP, 0.0), f.greaterThan(cP, 0.0)),
+          f.logicalAndOperation(hasStep, belowBar)
+        ),
+        () => {
+          const sqrtD = f._3dVectorModuloOperation(f.create3dVector(discP, 0.0, 0.0))
+          const tRaw = f.division(
+            f.subtraction(f.multiplication(bP, -1.0), sqrtD),
+            f.multiplication(2.0, stepSq)
+          )
+          const tHit = f.localVariable('float')
+          f.doubleBranch(
+            f.lessThan(tRaw, 0.0),
+            () => { tHit.set(0.0) },
+            () => {
+              f.doubleBranch(
+                f.greaterThan(tRaw, 1.0),
+                () => { tHit.set(1.0) },
+                () => { tHit.set(tRaw) }
+              )
+            }
+          )
+          const cX = f.addition(postX, f.multiplication(tHit.value, stepX))
+          const cZ = f.addition(p0zP, f.multiplication(tHit.value, stepZ))
+          const distC = f._3dVectorModuloOperation(f.create3dVector(cX, 0.0, cZ))
+          const nX = f.division(cX, f.addition(distC, 0.0001))
+          const nZ = f.division(cZ, f.addition(distC, 0.0001))
+          bx.set(f.multiplication(sgnX.value, f.addition(PITCH_X, f.multiplication(nX, postReach))))
+          bz.set(f.addition(GOAL_HALF, f.multiplication(nZ, postReach)))
+          const vxM = f.multiplication(sgnX.value, vx.value)
+          const vn = f.addition(f.multiplication(vxM, nX), f.multiplication(vz.value, nZ))
+          f.doubleBranch(
+            f.lessThan(vn, 0.0),
+            () => {
+              vx.set(f.multiplication(sgnX.value, f.subtraction(vxM, f.multiplication(f.multiplication(vn, f.addition(1.0, WALL_E)), nX))))
+              vz.set(f.subtraction(vz.value, f.multiplication(f.multiplication(vn, f.addition(1.0, WALL_E)), nZ)))
+            },
+            () => {}
+          )
+        },
+        () => {}
+      )
+      // —— 后柱（z = −3.6）——
+      const p0zN = f.addition(bz0, GOAL_HALF)
+      const cN = f.subtraction(
+        f.addition(f.multiplication(postX, postX), f.multiplication(p0zN, p0zN)),
+        reach2
+      )
+      const bN = f.multiplication(
+        2.0,
+        f.addition(f.multiplication(postX, stepX), f.multiplication(p0zN, stepZ))
+      )
+      const discN = f.subtraction(f.multiplication(bN, bN), f.multiplication(f.multiplication(4.0, stepSq), cN))
+      f.doubleBranch(
+        f.logicalAndOperation(
+          f.logicalAndOperation(f.greaterThan(discN, 0.0), f.greaterThan(cN, 0.0)),
+          f.logicalAndOperation(hasStep, belowBar)
+        ),
+        () => {
+          const sqrtD = f._3dVectorModuloOperation(f.create3dVector(discN, 0.0, 0.0))
+          const tRaw = f.division(
+            f.subtraction(f.multiplication(bN, -1.0), sqrtD),
+            f.multiplication(2.0, stepSq)
+          )
+          const tHit = f.localVariable('float')
+          f.doubleBranch(
+            f.lessThan(tRaw, 0.0),
+            () => { tHit.set(0.0) },
+            () => {
+              f.doubleBranch(
+                f.greaterThan(tRaw, 1.0),
+                () => { tHit.set(1.0) },
+                () => { tHit.set(tRaw) }
+              )
+            }
+          )
+          const cX = f.addition(postX, f.multiplication(tHit.value, stepX))
+          const cZ = f.addition(p0zN, f.multiplication(tHit.value, stepZ))
+          const distC = f._3dVectorModuloOperation(f.create3dVector(cX, 0.0, cZ))
+          const nX = f.division(cX, f.addition(distC, 0.0001))
+          const nZ = f.division(cZ, f.addition(distC, 0.0001))
+          bx.set(f.multiplication(sgnX.value, f.addition(PITCH_X, f.multiplication(nX, postReach))))
+          bz.set(f.addition(f.multiplication(GOAL_HALF, -1.0), f.multiplication(nZ, postReach)))
+          const vxM = f.multiplication(sgnX.value, vx.value)
+          const vn = f.addition(f.multiplication(vxM, nX), f.multiplication(vz.value, nZ))
+          f.doubleBranch(
+            f.lessThan(vn, 0.0),
+            () => {
+              vx.set(f.multiplication(sgnX.value, f.subtraction(vxM, f.multiplication(f.multiplication(vn, f.addition(1.0, WALL_E)), nX))))
+              vz.set(f.subtraction(vz.value, f.multiplication(f.multiplication(vn, f.addition(1.0, WALL_E)), nZ)))
+            },
+            () => {}
+          )
+        },
+        () => {}
+      )
+
+      // ═══════════ 15. 门线穿越（插值，快球不漏；进球先于边界反弹）═══════════════════
+      const absX2 = f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0))
+      const goalHit = f.localVariable('int')
+      goalHit.set(0n)
+      f.doubleBranch(
+        f.greaterThan(absX2, PITCH_X),
+        () => {
+          const denomX = f.addition(f.subtraction(absX2, absX0), 0.0001)
+          const tC = f.division(f.subtraction(PITCH_X, absX0), denomX)
+          const zc = f.addition(bz0, f.multiplication(tC, f.subtraction(bz.value, bz0)))
+          const yc = f.addition(by0, f.multiplication(tC, f.subtraction(by.value, by0)))
+          const inMouth = f.lessThan(
+            f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, zc)),
+            f.subtraction(GOAL_HALF, POST_R)
+          )
+          const underBarC = f.lessThan(yc, GOAL_H)
+          f.doubleBranch(
+            f.logicalAndOperation(inMouth, underBarC),
+            () => { goalHit.set(1n) },
+            () => {}
+          )
+        },
+        () => {}
+      )
+      f.doubleBranch(
+        f.equal(goalHit.value, 1n),
         () => {
           goalFlag.set(1n)
           bx.set(0.0)
@@ -704,81 +881,103 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           vx.set(0.0)
           vy.set(0.0)
           vz.set(0.0)
-          mode.set(4n)
+          wx.set(0.0)
+          wy.set(0.0)
+          wz.set(0.0)
         },
         () => {}
       )
 
-      // ———— ⑨ 门柱反弹：四根柱 (x=±52.5, z=±3.6)，命中就沿 z 弹开 ————
-      const absX = f._3dVectorModuloOperation(f.create3dVector(bx.value, 0.0, 0.0))
-      const postReach = f.addition(POST_R, BALL_R)
-      const nearGoalX = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(absX, PITCH_X), 0.0, 0.0)), postReach)
-      const atPostUp = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.subtraction(bz.value, GOAL_HALF))), postReach)
-      const atPostDown = f.lessThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, f.addition(bz.value, GOAL_HALF))), postReach)
-      f.doubleBranch(
-        f.logicalAndOperation(nearGoalX, f.logicalAndOperation(atPostUp, underBar)),
-        () => {
-          bz.set(f.subtraction(GOAL_HALF, f.multiplication(POST_R, 0.6)))
-          vz.set(f.multiplication(vz.value, -WALL_REST))
-          vx.set(f.multiplication(vx.value, 0.8))
-          mode.set(1n)
-        },
-        () => {}
-      )
-      f.doubleBranch(
-        f.logicalAndOperation(nearGoalX, f.logicalAndOperation(atPostDown, underBar)),
-        () => {
-          bz.set(f.addition(f.multiplication(GOAL_HALF, -1.0), f.multiplication(POST_R, 0.6)))
-          vz.set(f.multiplication(vz.value, -WALL_REST))
-          vx.set(f.multiplication(vx.value, 0.8))
-          mode.set(1n)
-        },
-        () => {}
-      )
-
-      // ———— ⑩ 边界反弹：边线 z=±34 一律弹；底线 x=±52.5 只有「不在门洞内」才弹 ————
+      // ═══════════ 16. 边界反弹（边线一律弹；底线只在「不是进球」时弹）════════════════
       f.doubleBranch(
         f.greaterThan(f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)), f.subtraction(PITCH_Z, BALL_R)),
         () => {
           const signZ = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bz.value, 0.0), () => { signZ.set(1.0) }, () => { signZ.set(-1.0) })
           bz.set(f.multiplication(signZ.value, f.subtraction(PITCH_Z, f.addition(BALL_R, 0.05))))
-          vz.set(f.multiplication(vz.value, -WALL_REST))
-          mode.set(1n)
+          vz.set(f.multiplication(vz.value, -WALL_E))
+          vx.set(f.multiplication(vx.value, 0.9))
         },
         () => {}
       )
+      // 门洞内（|z| < 3.54 且 y < 2.5）不放墙：让球真的越过 52.5 的门线（否则球心到 52.25 就被弹回，
+      //   16m/s 时约 23% 的必进球会被"提前反弹"吃掉）
+      const inMouthNow = f.logicalAndOperation(
+        f.lessThan(
+          f._3dVectorModuloOperation(f.create3dVector(0.0, 0.0, bz.value)),
+          f.subtraction(GOAL_HALF, POST_R)
+        ),
+        f.lessThan(by.value, GOAL_H)
+      )
       f.doubleBranch(
         f.logicalAndOperation(
-          f.greaterThan(absX, f.subtraction(PITCH_X, BALL_R)),
-          f.logicalNotOperation(f.logicalAndOperation(inMouth, underBar))
+          f.greaterThan(absX2, f.subtraction(PITCH_X, BALL_R)),
+          f.logicalAndOperation(f.equal(goalHit.value, 0n), f.logicalNotOperation(inMouthNow))
         ),
         () => {
           const signX = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bx.value, 0.0), () => { signX.set(1.0) }, () => { signX.set(-1.0) })
           bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1))))
-          vx.set(f.multiplication(vx.value, -WALL_REST))
-          mode.set(1n)
+          vx.set(f.multiplication(vx.value, -WALL_E))
+          vz.set(f.multiplication(vz.value, 0.9))
         },
         () => {}
       )
 
-      // ⑥ 限速（防隧穿）
-      const sp = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      // ═══════════ 17. 状态机（扁平守卫，不做深嵌套）═══════════════════════════════════
+      const spFinal = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      const sxF = f.addition(vx.value, f.multiplication(wz.value, BALL_R))
+      const szF = f.subtraction(vz.value, f.multiplication(wx.value, BALL_R))
+      const slipF = f._3dVectorModuloOperation(f.create3dVector(sxF, 0.0, szF))
+      const touching = f.logicalAndOperation(
+        f.greaterThan(contact.value, 0n),
+        f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, CONTACT_EPS))
+      )
+      mode.set(0n)
+      f.doubleBranch(touching, () => { mode.set(2n) }, () => {})
+      f.doubleBranch(f.equal(contact.value, 2n), () => { mode.set(1n) }, () => {})
       f.doubleBranch(
-        f.greaterThan(sp, f.querySkillVariableValue(S_P_MAXV)),
-        () => {
-          const k = f.division(f.querySkillVariableValue(S_P_MAXV), sp)
-          vx.set(f.multiplication(vx.value, k))
-          vy.set(f.multiplication(vy.value, k))
-          vz.set(f.multiplication(vz.value, k))
-        },
+        f.logicalAndOperation(touching, f.lessThan(spFinal, f.querySkillVariableValue(S_P_REST))),
+        () => { mode.set(4n) },
         () => {}
       )
-    }
+      f.doubleBranch(
+        f.logicalAndOperation(
+          touching,
+          f.logicalAndOperation(
+            f.greaterThanOrEqualTo(spFinal, f.querySkillVariableValue(S_P_REST)),
+            f.lessThan(slipF, SLIP_ROLL)
+          )
+        ),
+        () => { mode.set(3n) },
+        () => {}
+      )
+      f.doubleBranch(assistOn, () => { mode.set(5n) }, () => {})
+    },
+    () => {}
   )
 
-  // ———— 写回自持槽 ————
+  // ═════════════ 18. 重置（6 号键）：放在物理之后，避免本拍穿越/TOI 拿到跳变 ═════════════
+  f.doubleBranch(
+    f.equal(resetFlag.value, 1n),
+    () => {
+      const dirX = f.division(f.subtraction(bx.value, pPxV.value), f.addition(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))), 0.0001))
+      const dirZ = f.division(f.subtraction(bz.value, pPzV.value), f.addition(f._3dVectorModuloOperation(f.create3dVector(f.subtraction(bx.value, pPxV.value), 0.0, f.subtraction(bz.value, pPzV.value))), 0.0001))
+      bx.set(f.addition(pPxV.value, f.multiplication(dirX, 1.5)))
+      by.set(GROUND_Y)
+      bz.set(f.addition(pPzV.value, f.multiplication(dirZ, 1.5)))
+      vx.set(0.0)
+      vy.set(0.0)
+      vz.set(0.0)
+      wx.set(0.0)
+      wy.set(0.0)
+      wz.set(0.0)
+      mode.set(4n)
+    },
+    () => {}
+  )
+
+  // ═════════════ 19. 写回自持槽（唯一真值）═══════════════════════════════════════════════
   f.setSkillVariable(S_BX, bx.value)
   f.setSkillVariable(S_BY, by.value)
   f.setSkillVariable(S_BZ, bz.value)
@@ -790,13 +989,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   f.setSkillVariable(S_WZ, wz.value)
   f.setSkillVariable(S_MODE, f.dataTypeConversion(mode.value, 'float'))
 
-  // ———— 载体停到地图最下方的固定点（只当算力中心，永不入镜）————
-  // 用户 2026-10-27：y 必须固定死、不许出现在草地上（此前用「玩家 y−1.8」求相对高度，
-  //   一旦玩家位置读回异常就会浮到地面）。⇒ 现在用**常量坐标**，不依赖任何读回值。
-  // 频率读数（2026-10-27 18:13 试玩日志）：389 条 kitLoop / 53s ≈ 7.3/s，停在地下不影响施放频率。
-  // 载体跟随（2026-10-30 性能修复）：原来**每拍**都 complexCreationTeleport，
-  // 15~27 次/秒的传送对引擎是重操作（重建空间索引 + 重绑 AI/技能）。
-  // 改成「离玩家超过 1.5m 才传送」：载体只是算力中心，滞后 1.5m 无感；玩家静止时 0 次/秒。
+  // ═════════════ 20. 载体跟随（只当算力中心，永不入镜）═════════════════════════════════
   const carrierNow = f.split3dVector(f.getEntityLocation(f.getSelfEntity()))
   const carrierLag = f._3dVectorModuloOperation(
     f.create3dVector(
@@ -816,14 +1009,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
 
-  // ———— 降频回传（2026-10-30 负载修复）————
-  // 2026-10-31 定谳：**每拍回传**。曾经的「隔一拍」让渲染每 2 拍才拿到新目标，
-  // 而段时长 0.18s < 2 拍（≈0.26s@7.7Hz）⇒ 每段之间留空档 = 「一动一卡」。
-  // 负载问题改用「渲染侧每拍重发同一目标」而不是降低回传频率来解决。
-
-
-  // pos=球位置 vel=球速度 spin=自旋 state=状态机 mode
-  // 进球时额外发一条 tag='G'（服务端 kitRender 打 fb-goal，供离线判读）
+  // ═════════════ 21. 回传（每拍一条 'B'；进球额外一条 'G'）═════════════════════════════
   f.doubleBranch(
     f.equal(goalFlag.value, 1n),
     () => {
@@ -840,8 +1026,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     },
     () => {}
   )
-  // （自检探针已移除：2026-10-30 11:0x 真机被负载踢出 —— 每拍多发 5 条 Q 探针 × 11 次图执行 = 基线的 33 倍。
-  //   玩家位置链路的读数改由 kitListen 自己的 setCustomVariable 帧提供，不需要额外信号。）
   chanSendState6(
     f,
     KitSignal.kit_state,

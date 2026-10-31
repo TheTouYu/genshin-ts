@@ -1,10 +1,17 @@
-// @status: 新线（v3 客户端计算最小链路，2026-10-24）
-// fb3/kit-listen.ts —— 服务端监听图（20000）：收 kit_state，离线判读用
+// @status: 服务端中继 v2（2026-10-31：每拍写玩家位置 / 清掉 tag='T' 与 Lua 时间同步死链）
+// fb3/kit-listen.ts —— 20000 服务端图（1073741826，挂算力载体实体 1082130445）
 //
-// 职责最小：**只打印事件入口**（打印纪律：高频路径零 print，这里只留首条 + 每 60 拍一条）。
-// 挂载：`gsts assets:mounts attach <graphId> --graph <本图> --entity --write`
-// 判据（行为层）：日志里出现 `kit-listener-armed` 一次 + `kit-p1` 序列且 tick 递增
-//   ⇒ 造物→20008→信号→服务端 整链通。
+// 职责只有两件（服务端在这里**不做任何物理**）：
+//   ① kit_state('B') → 把「当前玩家角色位置」写进载体实体变量 fbvx/fbvz/fbvy + fb_pos_tick，
+//      供客户端内核下一拍读（客户端的节点白名单里没有「玩家实体」通道，这是唯一可靠的玩家位置来源）。
+//      **必须每拍写**：内核用「位置差分 / dt」算玩家速度，隔拍写会让差分在 2v 与 0 之间跳（旧实现
+//      因此把 2v>8 当瞬移清零 ⇒ 玩家 ≥4m/s 时带球永不触发，这是「跑起来球不跟脚」的根因）。
+//   ② 信号 fb_input（Lua 输入桥）→ 自增 fb_seq + 保真 fb_key；key=0 心跳只打点，不自增序号。
+//
+// 已删除的历史死链（2026-10-31）：
+//   · tag='T' → fb_test_id（内核早已不发 'T'，HUD 测试名永远显示不到）
+//   · tag='P' → kit_carrier/kit_has_carrier/kit_votes/kit_dup（无生产者）
+//   · key<0 Lua 时间同步 → fb_dt（内核时间改为固定 1/15 s + 球实体 fb_dt，不再读 Lua 帧长）
 import { g } from 'genshin-ts/runtime/core'
 
 import { KitSignal } from './signals.js'
@@ -15,212 +22,106 @@ const graph = g
     name: '_GSTS_kitListen'
   })
   .onSignal(KitSignal.kit_state, (evt: any, f: any) => {
-    const tick = evt.params.tick
-    // ———— 玩家位置同步（2026-10-29 修「球不跟人」）————
-    // 内核 kitLoop 每拍读**载体实体变量** fbvx/fbvz 当玩家 x/z（src-fb3/kit-loop.ts:109），
-    // 但此前没有任何图写这两个变量、实体上也没声明它们 ⇒ 内核永远以为玩家在 (0,0)，
-    // 带球目标恒在原点附近（一走动就"不跟人"）。服务端能拿真玩家：玩家列表[0] →
-    // 该玩家的生效角色 → 读角色位置（玩家控制器实体坐标恒 0，只能读角色）。
-    const owner = f.getSelfEntity()
-    // ———— 自动测试台：把内核回传的测试编号转写到关卡实体变量，供 Lua 读名显示 ————
-    // 内核每拍发 tag='T'，pos.x = 测试编号、pos.y = 该点剩余拍数。
     f.doubleBranch(
-      f.equal(evt.params.tag, 'T'),
+      f.equal(evt.params.tag, 'B'),
       () => {
-        const levelE = f.queryEntityByGuid(1094713345n)
-        f.setCustomVariable(
-          levelE,
-          'fb_test_id',
-          f.dataTypeConversion(f.split3dVector(evt.params.pos).xComponent, 'int'),
-          false
-        )
-      },
-      () => {}
-    )
-    // ———— 玩家角色位置（2026-10-30 终版：**开局解析一次，之后缓存复用**）————
-    // 设计依据（用户 2026-10-30）：角色实体一局内不会变 ⇒ 每拍重跑四步链是浪费。
-    // 缓存：载体变量 fb_char_e（entity 类型）。失效判据 = queryGuidByEntity(缓存) == 0
-    //   （角色倒下销毁/换人时会变 0 ⇒ 自动重解析一次）。
-    // 解析链（抄奇域资产中心复合节点「玩家，角色，关卡」）：
-    //   getPlayerGuidByPlayerId(序号) → queryEntityByGuid → getAllCharacterEntitiesOfSpecifiedPlayer → [0]
-    const cached = f.getCustomVariable(owner, 'fb_char_e').asType('entity')
-    const cachedGuid = f.queryGuidByEntity(cached)
-    f.doubleBranch(
-      f.equal(cachedGuid, 0n),
-      () => {
-        // —— 只在缓存失效时走这条（正常一局只跑 1~2 次）——
-        const playerGuid = f.getPlayerGuidByPlayerId(1n)
-        const playerE = f.queryEntityByGuid(playerGuid)
-        const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+        const owner = f.getSelfEntity()
+        // ———— 玩家角色实体：开局解析一次，之后缓存（一局内不会变）————
+        // 解析链（抄奇域资产中心复合节点「玩家，角色，关卡」）：
+        //   getPlayerGuidByPlayerId(1) → queryEntityByGuid → getAllCharacterEntitiesOfSpecifiedPlayer → [0]
+        // 失效判据 = queryGuidByEntity(缓存) == 0（角色倒下销毁/换人时自动重解析）
+        const cached = f.getCustomVariable(owner, 'fb_char_e').asType('entity')
         f.doubleBranch(
-          f.greaterThan(f.getListLength(chars), 0n),
+          f.equal(f.queryGuidByEntity(cached), 0n),
           () => {
-            const c = f.getCorrespondingValueFromList(chars, 0n)
-            f.setCustomVariable(owner, 'fb_char_e', c, false)
+            const playerGuid = f.getPlayerGuidByPlayerId(1n)
+            const playerE = f.queryEntityByGuid(playerGuid)
+            const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+            f.doubleBranch(
+              f.greaterThan(f.getListLength(chars), 0n),
+              () => {
+                const c = f.getCorrespondingValueFromList(chars, 0n)
+                f.setCustomVariable(owner, 'fb_char_e', c, false)
+              },
+              () => {}
+            )
           },
           () => {}
         )
-      },
-      () => {}
-    )
-    // —— 位置写回（2026-10-30 负载优化）：隔 2 条信号写一次 ——
-    // 每条信号写 3 个自定义变量 = 3 次 set_custom_variable；内核 15Hz 读一次位置，
-    // 隔一条信号写完全够用（≈7.5Hz），直接省掉一半写操作。
-    const tickPos = f.getCustomVariable(owner, 'fb_pos_tick').asType('int')
-    f.doubleBranch(
-      f.greaterThanOrEqualTo(f.subtraction(evt.params.tick, tickPos), 2n),
-      () => {
+        // ———— 每拍写玩家位置（内核下一拍差分算速度）————
         const l = f.split3dVector(f.getEntityLocationAndRotation(cached).location)
         f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
         f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
         f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
         f.setCustomVariable(owner, 'fb_pos_tick', evt.params.tick, false)
-      },
-      () => {}
-    )
-    const isCommit = f.equal(evt.params.tag, 'P')
-    f.doubleBranch(
-      isCommit,
-      () => {
-        // 载体策略 v1：每收到一条合法票就把「场上玩家[0]」登记到造物实体变量 kit_carrier。
-        // 为什么放在这里（而不是独立定时器图）：20000 图没有 start 事件，arm 定时器需要额外事件源；
-        // 而票本来就每拍来一次（15/s），天然是刷新点。客户端下一拍读到的就是这个值。
-        // v2（最近玩家 + 滞回）只需替换这里的 carrier 计算。
-        // ⚠️ 服务端版参数序是 (list, index)，与客户端相反（fb-input.ts:34 口径）
-        const owner = f.getSelfEntity()
-        const carrier = f.getCorrespondingValueFromList(f.getListOfPlayerEntitiesOnTheField(), 0n)
-        f.setCustomVariable(owner, 'kit_carrier', carrier, false)
-        f.setCustomVariable(owner, 'kit_has_carrier', 1n, false)
-        // ——— D5 探针（2026-10-24，判「每个客户端各跑一份」还是「单客户端权威」）———
-        // 服务端按 tick 单调去重：同一 tick 再来一条 = 另一个客户端也在算（重复票）
-        const votes = f.addition(f.getCustomVariable(owner, 'kit_votes').asType('int'), 1n)
-        f.setCustomVariable(owner, 'kit_votes', votes, false)
-        const lastTick = f.getCustomVariable(owner, 'kit_last_tick').asType('int')
+        // 整链通判据：日志里出现一次 kit-listener-armed + 至少一条 kit-p1
         f.doubleBranch(
-          f.equal(tick, lastTick),
-          () => {
-            const dup = f.addition(f.getCustomVariable(owner, 'kit_dup').asType('int'), 1n)
-            f.setCustomVariable(owner, 'kit_dup', dup, false)
-            // 每次重复票打一行（计数在日志里数行=重复票数；运行时变量退出即回落，靠日志判读）
-            print('kit-dup')
-          },
-          () => {
-            f.setCustomVariable(owner, 'kit_last_tick', tick, false)
-          }
-        )
-        // 只打前 3 拍（15Hz 下别刷日志）；判定「整链通」看这 3 条即可
-        f.doubleBranch(
-          f.lessThanOrEqualTo(tick, 3n),
+          f.equal(evt.params.tick, 1n),
+          () => { print('kit-listener-armed') },
           () => {
             f.doubleBranch(
-              f.equal(tick, 1n),
-              () => {
-                print('kit-listener-armed')
-              },
-              () => {
-                print('kit-p1')
-              }
+              f.equal(evt.params.tick, 3n),
+              () => { print('kit-p1') },
+              () => {}
             )
-          },
-          () => {}
+          }
         )
       },
       () => {}
     )
   })
-  // ——— Lua 输入桥（2026-10-27）：客户端 Lua 脚本 fb-input.lua → fb_input(key,state) ———
-  // 职责只有一件：把「真按键」变成客户端 20008 图能读到的**实体自定义变量**（服务端写、客户端读）。
-  //   fb_seq 自增（客户端比较序号判新输入，天然去重、不怕丢中间票）
-  //   fb_key 保真最后一条票的键值（状态值 fb_state 无人消费，2026-10-30 已删）
-  // ⚠ 心跳票（key=0，脚本 OnStart 发一次证明整链通）**不得**自增 fb_seq，否则客户端会当成一次真按键（假踢球）。
+  // ——— Lua 输入桥（fb-input.lua → fb_input(key, state)）———
+  //   key>0：真按键 ⇒ fb_seq 自增 + fb_key 保真（客户端比较序号判新输入，天然去重）
+  //   key=0：心跳 ⇒ 只打点（**不得**自增 fb_seq，否则会被当成一次真按键）
+  //   key<0：历史时间同步 ⇒ 已废弃，收到也不做任何事
   .onSignal(KitSignal.fb_input, (evt: any, f: any) => {
     const owner = f.getSelfEntity()
     const key = evt.params.key
-    // 时间同步用（key<0 时才是真值；其它票这些读数无副作用）
-    // Lua 每帧把它 OnUpdate(dt) 的真实毫秒发上来（key<0），这里直接折算成步长。
-    // 不用 queryGameTimeElapsed：它每秒只数到 2~9 拍（游戏时钟 ≠ 真实秒，日志 3416 实证）。
-    const dtCalc = f.division(f.dataTypeConversion(evt.params.state, 'float'), 1000.0)
     f.doubleBranch(
       f.greaterThan(key, 0n),
       () => {
         const seq = f.addition(f.getCustomVariable(owner, 'fb_seq').asType('int'), 1n)
         f.setCustomVariable(owner, 'fb_seq', seq, false)
         f.setCustomVariable(owner, 'fb_key', key, false)
-        // 按键打点带键号（print 只打字符串，按 1~6 分支打标记，便于与服务端帧对时）
-        f.doubleBranch(f.equal(key, 1n), () => {
-          print('fb-k1')
-        }, () => {})
-        f.doubleBranch(f.equal(key, 2n), () => {
-          print('fb-k2')
-        }, () => {})
-        f.doubleBranch(f.equal(key, 3n), () => {
-          print('fb-k3')
-        }, () => {})
-        f.doubleBranch(f.equal(key, 4n), () => {
-          print('fb-k4')
-        }, () => {})
-        f.doubleBranch(f.equal(key, 5n), () => {
-          print('fb-k5')
-        }, () => {})
-        f.doubleBranch(f.equal(key, 6n), () => {
-          print('fb-k6')
-        }, () => {})
+        // 按键打点带键号（print 只打字符串，按 1~6 分支），便于与服务端帧对时
+        f.doubleBranch(f.equal(key, 1n), () => { print('fb-k1') }, () => {})
+        f.doubleBranch(f.equal(key, 2n), () => { print('fb-k2') }, () => {})
+        f.doubleBranch(f.equal(key, 3n), () => { print('fb-k3') }, () => {})
+        f.doubleBranch(f.equal(key, 4n), () => { print('fb-k4') }, () => {})
+        f.doubleBranch(f.equal(key, 5n), () => { print('fb-k5') }, () => {})
+        f.doubleBranch(f.equal(key, 6n), () => { print('fb-k6') }, () => {})
       },
       () => {
-      // key < 0 = Lua 时间同步（OnUpdate 累计的真实毫秒）；用它和内核 tick 差算真实步长。
-      // queryGameTimeElapsed 不可用：它每秒只数到 2~9 拍（游戏时钟与真实秒不同步，日志 3416 实证）。
-      f.doubleBranch(
-        f.lessThan(key, 0n),
-        () => {
-          f.doubleBranch(
-            f.logicalAndOperation(f.greaterThan(dtCalc, 0.004), f.lessThan(dtCalc, 0.25)),
-            () => {
-              f.setCustomVariable(owner, 'fb_dt', dtCalc, false)
-            },
-            () => {}
-          )
-        },
-        () => {
-        // 心跳带自检码（2026-10-29）：Lua 的 print 不落 .gia，只能把自检结果塞进心跳再让服务端打点。
-        //   state < 100  = 成功注册的键数（0..6，6 = 六键全就位）
-        //   state >= 100 = 100 + HUD 控件命中数（0..11，11 = 十一个文本框全找到）
-        const st = evt.params.state
         f.doubleBranch(
-          f.lessThan(st, 100n),
+          f.equal(key, 0n),
           () => {
-            // 展开写（DSL 的 for 会走 finiteLoop，字符串拼接在循环体里不支持）
-            f.doubleBranch(f.equal(st, 0n), () => { print('fb-hb-keys0') }, () => {})
-            f.doubleBranch(f.equal(st, 1n), () => { print('fb-hb-keys1') }, () => {})
-            f.doubleBranch(f.equal(st, 2n), () => { print('fb-hb-keys2') }, () => {})
-            f.doubleBranch(f.equal(st, 3n), () => { print('fb-hb-keys3') }, () => {})
-            f.doubleBranch(f.equal(st, 4n), () => { print('fb-hb-keys4') }, () => {})
-            f.doubleBranch(f.equal(st, 5n), () => { print('fb-hb-keys5') }, () => {})
-            f.doubleBranch(f.equal(st, 6n), () => { print('fb-hb-keys6') }, () => {})
-            f.doubleBranch(f.greaterThan(st, 6n), () => { print('fb-hb-keys-other') }, () => {})
-          },
-          () => {
-            const hud = f.subtraction(st, 100n)
+            // 心跳自检码：state<100 = 成功注册的键数；state>=100 = 100+HUD 控件命中数
+            const st = evt.params.state
             f.doubleBranch(
-              f.greaterThanOrEqualTo(hud, 11n),
+              f.lessThan(st, 100n),
               () => {
-                print('fb-hb-hud11')
+                f.doubleBranch(f.greaterThanOrEqualTo(st, 6n), () => { print('fb-hb-keys6') }, () => {
+                  f.doubleBranch(f.greaterThanOrEqualTo(st, 1n), () => { print('fb-hb-keys-partial') }, () => { print('fb-hb-keys0') })
+                })
               },
               () => {
+                const hud = f.subtraction(st, 100n)
                 f.doubleBranch(
-                  f.greaterThanOrEqualTo(hud, 1n),
+                  f.greaterThanOrEqualTo(hud, 11n),
+                  () => { print('fb-hb-hud11') },
                   () => {
-                    print('fb-hb-hud-partial')
-                  },
-                  () => {
-                    print('fb-hb-hud0')
+                    f.doubleBranch(
+                      f.greaterThanOrEqualTo(hud, 1n),
+                      () => { print('fb-hb-hud-partial') },
+                      () => { print('fb-hb-hud0') }
+                    )
                   }
                 )
               }
             )
-          }
+          },
+          () => {}
         )
-      }
-      )
       }
     )
   })
