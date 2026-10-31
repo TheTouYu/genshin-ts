@@ -481,7 +481,10 @@ function M.new(env)
       CTL.btn({ id = 'roster.close', x = PR - u(110), y = PH / 2 - u(46), w = u(150), h = u(50),
         label = '合上', fs = 20, preset = 'gold',
         onPart = function(c) add(c) end,
-        onClick = function() if FN.rosterToggle then FN.rosterToggle() end end })
+        onClick = function()
+          print('roster close btn')
+          if FN.rosterToggle then FN.rosterToggle() end
+        end })
     end
     local listX = PL + u(40)
     for i = 1, #rows do
@@ -499,7 +502,10 @@ function M.new(env)
           subInk = on and (r.color2 or C(70, 90, 80, 255))
             or (r.open and (r.color2 or THEME.textMain) or THEME.textSub),
           onPart = function(c) add(c) end,   -- 归本页清理表，别进 MS.parts
-          onClick = function() FN.charShow(r.idx) end,
+          onClick = function()
+            print('char select i=' .. tostring(r.idx) .. ' role=' .. tostring(r.roleId or r.id or '?'))
+            FN.charShow(r.idx)
+          end,
         })
         if b then add(b.parts[1].ctl) add(b.parts[2].ctl) add(b.parts[3].ctl) end
         -- v5.27（用户：「明明就是个圆角按钮，多出来一条线像什么话」）：删掉左竖条。
