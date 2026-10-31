@@ -73,13 +73,15 @@ M.new = function(spec)
     local layer = o.layer or 'card'
     local color = o.color
     local tpl = o.tpl or 'cell'
+    -- 左右两端用 circle 图元才是圆角（引擎没有圆角矩形；只给矩形会看到方角）
+    local capShape = o.capShape or 'circle'
     return {
       { key = key .. 'B', layer = layer, tpl = tpl, name = key .. 'B', parentKey = o.parentKey,
-        pos = { x, y }, size = { body, h }, color = color },
+        pos = { x, y }, size = { body, h }, color = color, image = { s = 'rect' } },
       { key = key .. 'L', layer = layer, tpl = tpl, name = key .. 'L', parentKey = o.parentKey,
-        pos = { x - body / 2, y }, size = { h, h }, color = color },
+        pos = { x - body / 2, y }, size = { h, h }, color = color, image = { s = capShape } },
       { key = key .. 'R', layer = layer, tpl = tpl, name = key .. 'R', parentKey = o.parentKey,
-        pos = { x + body / 2, y }, size = { h, h }, color = color },
+        pos = { x + body / 2, y }, size = { h, h }, color = color, image = { s = capShape } },
     }
   end
 

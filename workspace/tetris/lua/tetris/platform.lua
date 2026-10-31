@@ -237,6 +237,26 @@ M.new = function(spec)
     return ok
   end
 
+  -- 图元贴图（引擎内置六类）：MS.addShape 走的就是这条路。
+  -- 胶囊的左右半圆靠 circle 图元，不做这一步就只能拿到矩形（圆角丢失）。
+  local IMAGE_PRIMITIVES = { rect = 100001, circle = 100002, triangle = 100003,
+    fourstar = 100004, fivestar = 100005, ring = 100006 }
+  function P.setImage(ctl, kindName, sourceName)
+    if not ctl then return false end
+    local id = IMAGE_PRIMITIVES[kindName] or IMAGE_PRIMITIVES.rect
+    local src = sourceName or 'StaticReference'
+    local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
+    local ok, err
+    if enumT and enumT[src] ~= nil then
+      ok, err = pcall(function() ctl:SetImage(enumT[src], id) end)
+    end
+    if not ok then
+      ok, err = pcall(function() ctl:SetImage(src, id) end)
+    end
+    if not ok then record('setImage:' .. tostring(kindName), err) end
+    return ok
+  end
+
   function P.find(name)
     local r = root
     if not r then return nil end

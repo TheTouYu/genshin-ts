@@ -79,6 +79,15 @@ M.new = function(spec)
       end
     end
     if n.color ~= nil and setIfChanged(ctl, applied, 'imageColor', n.color) then touched = true end
+    -- 图元形状（rect/circle/…）：胶囊两端要靠 circle 才是圆角；值变才重贴
+    if n.image ~= nil then
+      local shape = type(n.image) == 'table' and n.image.s or n.image
+      if applied.__image ~= shape then
+        applied.__image = shape
+        if P.setImage then P.setImage(ctl, shape, type(n.image) == 'table' and n.image.source or nil) end
+        touched = true
+      end
+    end
     if n.text ~= nil and setIfChanged(ctl, applied, 'text', n.text) then touched = true end
     if n.font ~= nil and setIfChanged(ctl, applied, 'fontSize', n.font) then touched = true end
     if n.fcolor ~= nil and setIfChanged(ctl, applied, 'fontColor', n.fcolor) then touched = true end
