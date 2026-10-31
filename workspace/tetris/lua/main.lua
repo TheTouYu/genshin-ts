@@ -75,6 +75,9 @@ local FN = {}    -- v3.6：把一批大函数的 local 声明挂表（真机 Lua
 -- v4.0：设备适配子系统（移动端操作控件 / 手柄映射与焦点导航 / 移动端多人引导浮层）。
 -- 挂表不挂 local（main chunk 已 134 个 local，真机 200 上限只剩 ~10 槽；D591 教训）。
 local UI4 = { btns = {}, pad = { fk = 1, t = 0, last = 0 }, note = {}, rep = nil }
+-- v6 架构（docs/ARCH.md）：platform / render / view_board 三件由本文件在 OnStart 里装配。
+-- 声明在顶部是因为 paint() 等早期函数要用；装配失败直接 error（模块随构建自动注册，不会缺）。
+local PT, BR, VB
 -- 官方内置图元 id（模拟器 studio/constants.js: IMAGE_PRIMITIVES 实证；真机为「六类代理图元」）
 local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 100004,
                  fivestar = 100005, ring = 100006 }
@@ -313,6 +316,14 @@ local probeTemplate, instInto, findIn = WIDGETS.probeTemplate, WIDGETS.instInto,
 local AUDIO = loadModule('audio')
 if not AUDIO then error('tetris: 模块 audio 装载失败') end
 local AUDIO_ENGINE = AUDIO.new({ game = game, frameOf = function() return frameSeq end })
+-- ===== v6 架构骨架（本文件只做装配，不实现视图）=====
+local PLATFORM_M = loadModule('platform')
+local VIEW_LAYERS_M = loadModule('view_layers')
+local RENDER_M = loadModule('render')
+local VIEW_BOARD_M = loadModule('view_board')
+if not (PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M) then
+  print('v6 modules MISSING: platform/view_layers/render/view_board（棋盘会退回旧路径）')
+end
 local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.play
 -- v4.0 ③ 角色技能：纯逻辑在 lua/tetris/skills.lua（111 断言单测），这里只持状态 + 派发效果。
 -- 设计见 docs/characters-design.md；局外养成 v1 = 会话内跨盘（真持久化是缺口，见 05-open）。
@@ -5797,6 +5808,14 @@ function OnStart()
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
 
+  -- v6：装配引擎适配层与渲染协调器（platform 是唯一直接调 game.* 的地方）
+  if PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M then
+    PT = PLATFORM_M.new({ game = game, root = root, templates = TPL_GUIDS })
+    BR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    VB = VIEW_BOARD_M.new({ config = CFG })
+    print('v6 boot platform+render+view_board ok')
+  end
+
   -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
   local isMobile = true
   do
@@ -5874,69 +5893,33 @@ function OnStart()
   end
   print('bg pool n=' .. #g.bgPool)
 
-  -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
-  -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。
-  -- 背板必须在**格子之前**建（层序：先建的在下），全模式一张，进局后同样让缝隙变暗。
-  local backPlate = game.InstantiateClientUIControl(tplGuid, root)
-  if backPlate then
-    backPlate.name = 'boardPlate'
-    backPlate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
-    backPlate:SetAnchoredPosition(0, 0)
-    backPlate.imageColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate
-    g.plate = backPlate
-  end
-
-  g.cells = {}
-  for i = 1, COLS * ROWS do
-    local c = firstCell
-    firstCell = nil
-    if not c then c = game.InstantiateClientUIControl(tplGuid, root) end
-    if not c then error('tetris: InstantiateClientUIControl failed at ' .. i) end
-    local col = (i - 1) % COLS
-    local row = (i - 1) // COLS
-    c.name = 'cell' .. i
-    -- 基准坐标存下来（抖屏用；不再各处重算字面量）
-    g.cellBX[i] = (col - 4.5) * PITCH
-    g.cellBY[i] = (9.5 - row) * PITCH
-    c:SetSizeDelta(CELL, CELL)
-    c:SetAnchoredPosition(g.cellBX[i], g.cellBY[i])
-    c.imageColor = CFG.COL_EMPTY
-    g.cells[i] = c
-  end
-  print('cellCount=' .. #g.cells)
-
-  -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
-  -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
-  -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
+  -- v6 架构：棋盘 = 一份纯描述（view_board）→ render 按**语义层序**创建
+  -- 层序 plate(25) < board(30) < frame(35) 由 view_layers 决定，不再取决于「谁先写」。
+  -- A13「左上角恒有灰方块」的根因（探针实例建得最早 ⇒ 被 wash/背板盖住）结构上不可能再发生。
   local FRAME_COL = (MODE_THEME[MODE] or MODE_THEME.casual).frame
-  local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
-  g.frames = {}
-  -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
-  local frameX = boardEdgeW + 1                      -- 150
-  local frameY = 9.5 * PITCH + CELL / 2 + 1          -- 300
-  -- v5.2（5 份美术评审：「刻晴局和纳西妲局看起来一模一样」）：单人局棋盘框染台前角色色
+  -- v5.2：单人局棋盘框染台前角色色（美术评审「刻晴局和纳西妲局一模一样」）
   if MODE == 'casual' and SK and SK.party and SK.party[SK.active or 1] and FN.skillColor then
     local rc = FN.skillDark and FN.skillDark(FN.skillColor(SK.party[SK.active or 1]), 120)
     if rc then FRAME_COL = rc end
   end
-  local specs = {
-    { -frameX, 0, 2, 2 * frameY + 2 },               -- 左
-    { frameX, 0, 2, 2 * frameY + 2 },                -- 右
-    { 0, frameY, 2 * frameX + 2, 2 },                -- 上
-    { 0, -frameY, 2 * frameX + 2, 2 },               -- 下
-  }
-  for i = 1, #specs do
-    local fr = game.InstantiateClientUIControl(tplGuid, root)
-    if fr then
-      local sp = specs[i]
-      fr.name = 'frame' .. i
-      g.frameBX[i], g.frameBY[i] = sp[1], sp[2]
-      fr:SetSizeDelta(sp[3], sp[4])
-      fr:SetAnchoredPosition(g.frameBX[i], g.frameBY[i])
-      fr.imageColor = FRAME_COL
-    end
-    g.frames[i] = fr
+  if not (BR and VB) then error('tetris: v6 模块缺失（platform/render/view_board）') end
+  g.cells, g.frames = {}, {}
+  BR.apply(VB.board {
+    plateColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate,
+    cellColor = CFG.COL_EMPTY,
+    frameColor = FRAME_COL,
+  })
+  g.plate = BR.ctl('boardPlate')
+  for i = 1, COLS * ROWS do
+    g.cells[i] = BR.ctl('cell' .. i)
+    g.cellBX[i], g.cellBY[i] = VB.cellPos(i)
   end
+  for i = 1, 4 do
+    g.frames[i] = BR.ctl('frame' .. i)
+    g.frameBX[i], g.frameBY[i] = VB.framePos(i)
+  end
+  print('cellCount=' .. #g.cells)
+  if #BR.issues() > 0 then print('board issues=' .. #BR.issues() .. ' :: ' .. BR.issues()[1].msg) end
 
   -- 结算不用中间遮罩：运行时实例的层级高于服务端文字，遮罩会把结算文字盖掉（实测）
   -- 改为「棋盘暗场 + 顶部/底部大字」，文字始终在棋盘之外，不会被遮挡

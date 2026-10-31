@@ -36,6 +36,8 @@ function M.new(env)
   local regAdd, regScreen = env.regAdd, env.regScreen
   local onPart = env.onPart or function() end
   local trySet, tryCall = env.trySet, env.tryCall
+  -- 设计单位 → 画布像素：与各页面同一个基准（1600×900）
+  local function u(v) return v * (env.scale and env.scale() or 1) end
   local ln = env.print or print
 
   -- 预设色板：一套语汇，别每个按钮自己调
@@ -52,7 +54,7 @@ function M.new(env)
   local API = { PRESET = PRESET }
 
   -- ① 胶囊：中段矩形 + 左右半圆。返回 parts（含坐标），三态靠逐块换色+位移实现
-  function API.pill(name, x, y, w, h, fill)
+  function API.pill(name, x, y, w, h, fill, partSink)
     local body = math.max(2, w - h)
     local parts = {
       { ctl = addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill }), x = x, y = y },
@@ -61,7 +63,8 @@ function M.new(env)
       { ctl = addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill }),
         x = x + body / 2, y = y },
     }
-    for i = 1, #parts do if parts[i].ctl then onPart(parts[i].ctl) end end
+    local sink = partSink or onPart
+    for i = 1, #parts do if parts[i].ctl then sink(parts[i].ctl) end end
     return parts
   end
 
@@ -80,40 +83,59 @@ function M.new(env)
     local x, y = spec.x or 0, spec.y or 0
     local name = 'btn' .. spec.id
 
-    local parts = API.pill(name, x, y, w, h, fill.normal)
+    -- 生命周期归属由调用方决定：标题页的按钮归 MS.parts（随展台拆），
+    -- 角色页/帮助页的按钮必须归各自页面的清理表 —— 否则展台一拆就把别人的按钮带走
+    -- （实测：开角色页时 syncStage 拆展台 → 角色页的行/页签胶囊全消失，只剩文字）。
+    local sink = spec.onPart or onPart
+    local parts = API.pill(name, x, y, w, h, fill.normal, sink)
     -- 文字：左对齐留出键帽位；没有 sub 时单行居中
     local hasKey = spec.key ~= nil
-    -- dx：内容整体偏移（例如左侧还要放四色点/图标时，把文字让到右半边）
-    local tx = x + (spec.dx or 0) + (hasKey and 26 or 0) - (spec.sub and 30 or 0)
+    -- 版式（v5.16，修用户「文字溢出了」）：键帽**收进胶囊内**，文字只吃剩余宽度并居中。
+    --   左侧内边距 16 → 键帽 34×34 → 间隙 10 → 文字区；右侧内边距 16。
+    local pad = spec.pad or 16
+    local cw0 = hasKey and 34 or 0
+    local textLeft = x - w / 2 + pad + (hasKey and (cw0 + 10) or 0) + (spec.dx or 0)
+    local padSub = spec.padSub or pad
+    local textW = w - pad * 2 - (hasKey and (cw0 + 10) or 0)
+    local textWSub = w - padSub * 2
+    if textW < 40 then textW = 40 end
+    local tx = textLeft + textW / 2
     local fs = spec.fs or 22
-    local title = addText(name .. 'T', spec.label or '', tx, y + (spec.sub and 14 or 0),
-      w - (hasKey and 60 or 24), 0, fs, spec.ink or p.ink)
+    local title = addText(name .. 'T', spec.label or '', tx, y + (spec.sub and (spec.titleDy or 16) or 0),
+      textW, 0, fs, spec.ink or p.ink)
     local sub = nil
     if spec.sub then
-      sub = addText(name .. 'S', spec.sub, tx, y - 20, w - (hasKey and 60 or 24), 0,
+      sub = addText(name .. 'S', spec.sub, (spec.padSub and (x - w / 2 + padSub + textWSub / 2) or tx),
+        y - (spec.subDy or 18), textWSub, 0,
         spec.subFs or math.max(12, fs - 9), spec.subInk or env.subInk)
     end
-    for _, c in ipairs({ title, sub }) do if c then onPart(c) end end
+    for _, c in ipairs({ title, sub }) do if c then sink(c) end end
     -- 键帽：小圆角胶囊 + 字母
     local chip = nil
     if hasKey then
       local cw, ch = 34, 34
-      local cx = x - w / 2 + cw / 2 + 12
+      local cx = x - w / 2 + pad + cw / 2
       chip = API.pill(name .. 'K', cx, y, cw, ch, env.over(env.wall, env.ink, 0.10))
-      for i = 1, #chip do onPart(chip[i].ctl) end
+      for i = 1, #chip do sink(chip[i].ctl) end
       local kl = addText(name .. 'KT', tostring(spec.key), cx, y, cw, 0, 16, spec.ink or p.ink)
-      if kl then onPart(kl); chip.label = { ctl = kl, x = cx, y = y } end
+      if kl then sink(kl); chip.label = { ctl = kl, x = cx, y = y } end
     end
 
     -- 热区：w/h 略放大 8px（手感），**坐标 y 取负**（cursor 轴与图片相反）
-    local zone = env.addHit(name .. 'Hit', w + 8, h + 8)
+    -- 热区比视觉略大（手感），并且**留足外扩**：用户连续两轮报"点不到"的排查里，
+    -- 首要嫌疑是"指针落点差几像素没进框"，所以外扩到 +40/+24（仍小于相邻卡间距，不会误吞）。
+    local zone = env.addHit(name .. 'Hit', w + (spec.padW or 40), h + (spec.padH or 24))
     if zone then
-      tryCall(zone, 'SetAnchoredPosition', x, -y)
-      onPart(zone)
+      -- ⚠ 2026-10-30 真机/网页实测定谳：命中区的 anchored y 必须与视觉件**同号**。
+      -- 老注释「cursor 的 y 轴与图片相反 ⇒ 取负」只在早年代码形态下成立；现在取负会把热区
+      -- 镜像到画布另一侧（入口卡在顶部 y=302 → 热区跑到 y=-302、屏幕底缘），
+      -- 表现为「卡面看得见、鼠标移上去没反应、点也点不到」——用户连着报了三次的就是这个。
+      tryCall(zone, 'SetAnchoredPosition', x, y)
+      sink(zone)
     end
 
-    local texts = { { c = title, x = tx, y = y + (spec.sub and 14 or 0) } }
-    if sub then texts[#texts + 1] = { c = sub, x = tx, y = y - 20 } end
+    local texts = { { c = title, x = tx, y = y + (spec.sub and (spec.titleDy or 16) or 0) } }
+    if sub then texts[#texts + 1] = { c = sub, x = tx, y = y - (spec.subDy or 18) } end
     if chip then
       for i = 1, #chip do texts[#texts + 1] = { c = chip[i].ctl, x = chip[i].x, y = chip[i].y } end
       if chip.label then texts[#texts + 1] = chip.label end
@@ -160,6 +182,54 @@ function M.new(env)
 
     return { id = spec.id, parts = parts, texts = texts, zone = zone, style = style,
       set = function(st) style(st) end }
+  end
+
+
+  -- ⑥ 文字面板组件（大段文案专用）：圆角卡片 + 顶部主题色细带 + 标题/副标 + 分隔线 + 正文多行 + 页脚
+  --    spec = { id, x, y, w, h, accent, cardFill, title, subtitle, lines={..}, footer,
+  --             fs=18, subFs=16, footFs=15, lineGap=34, titleDy, ... }
+  --    返回 { parts = 卡片三块, texts = {..}, title, subtitle, lines[], footer }
+  function API.textPanel(spec)
+    if not spec then return nil end
+    local id = spec.id or ('panel' .. tostring(math.random(100000)))
+    local x, y = spec.x or 0, spec.y or 0
+    local w, h = spec.w or 380, spec.h or 420
+    local accent = spec.accent or env.gold
+    local fill = spec.cardFill or env.over(env.wall, accent, 0.14)
+    local sink = spec.onPart or onPart
+    local parts = API.pill(id, x, y, w, h, fill, sink)
+    local top = y + h / 2 - 8
+    local texts = {}
+    local function put(ctl, ty)
+      if ctl then sink(ctl); texts[#texts + 1] = { c = ctl, x = x, y = ty } end
+      return ctl
+    end
+    local title = nil
+    if spec.title then
+      title = put(addText(id .. 'T', spec.title, x, top - u(spec.titleDy or 46), w - u(40), 0,
+        spec.titleFs or 38, spec.titleInk or accent, 'Middle'), top - u(spec.titleDy or 46))
+    end
+    if spec.subtitle then
+      put(addText(id .. 'S', spec.subtitle, x, top - u((spec.titleDy or 46) + 40), w - u(40), 0,
+        spec.subFs or 16, spec.subInk or env.subInk, 'Middle'), top - u((spec.titleDy or 46) + 40))
+    end
+    -- 分隔线（描金细条）
+    local rule = addShape(id .. 'R', { s = 'rect', x = x, y = top - u((spec.titleDy or 46) + 64),
+      w = w - u(56), h = 2, c = accent })
+    if rule then sink(rule) end
+    local ln = {}
+    local base = top - u((spec.titleDy or 46) + 100)
+    for i, line in ipairs(spec.lines or {}) do
+      local ty = base - (i - 1) * u(spec.lineGap or 34)
+      ln[i] = put(addText(id .. 'L' .. i, line, x, ty, w - u(48), 0, spec.fs or 18,
+        spec.ink or env.ink, 'Left'), ty)
+    end
+    local footer = nil
+    if spec.footer then
+      footer = put(addText(id .. 'F', spec.footer, x, y - h / 2 + u(26), w - u(40), 0,
+        spec.footFs or 15, spec.accent or accent, 'Middle'), y - h / 2 + u(26))
+    end
+    return { id = id, parts = parts, texts = texts, title = title, lines = ln, footer = footer }
   end
 
   return API

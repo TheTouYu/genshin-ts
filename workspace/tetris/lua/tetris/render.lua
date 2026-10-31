@@ -187,6 +187,28 @@ M.new = function(spec)
     return ent and ent.ctl or nil
   end
 
+  -- 外部写入通道：老代码里散落的 paint/抖屏等直接写控件，走这里才能让缓存保持诚实
+  -- （否则下一帧 apply 会因为「缓存说没变」而跳过本该生效的写入）
+  function R.write(key, field, value)
+    local ent = prev[key]
+    if not ent then return false end
+    ent.applied[field] = value
+    return P.set(ent.ctl, field, value)
+  end
+
+  function R.writePos(key, x, y)
+    local ent = prev[key]
+    if not ent then return false end
+    ent.applied.__pos = x .. ',' .. y
+    return P.call(ent.ctl, 'SetAnchoredPosition', x, y)
+  end
+
+  -- 只读拿控件（给既有的 ui.lua/fx.lua 之类还按 ctl 句柄工作的代码用）
+  function R.ctl(key)
+    local ent = prev[key]
+    return ent and ent.ctl or nil
+  end
+
   function R.issues() return issues end
 
   function R.stats() return stats end

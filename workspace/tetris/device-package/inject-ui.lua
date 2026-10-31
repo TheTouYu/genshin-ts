@@ -300,12 +300,19 @@ M.new = function(spec)
       ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC
       -- 拇指簇：左 [◀ ▶] 一行 + 旋转 上方；右 [锁定 缓降] + 暂存（镜像）
       local bw, bh = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
-      slots[#slots + 1] = B('left', colL - 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('right', colL + 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot', colL, g5.botY + 110, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hard', colR + 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('soft', colR - 65, g5.botY + 34, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold', colR, g5.botY + 122, bw, bh, KIT.FS)
+      -- v5.32（用户：手机端左右两边都要有「旋转」和「暂存」）：
+      --   左簇上排 = 旋转(rot) + 暂存(hold2)；右簇上排 = 暂存(hold) + 旋转(rot2)。
+      --   两侧对称，单手都能按到；act 与主键相同，逻辑零改动。
+      -- v5.35（用户：按钮直接重叠了）：原间距 130/76 对 120×72 的键只留 10/4px，
+      -- 再加上描边外扩 2px ⇒ 相邻两键贴死甚至视觉重叠。改成 144/92（净距 20/16）。
+      slots[#slots + 1] = B('left', colL - 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('right', colL + 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot', colL - 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold2', colL + 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hard', colR + 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('soft', colR - 72, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold', colR - 72, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot2', colR + 72, g5.botY + 122, bw, bh, KIT.FS)
       -- 中下技能行（棋盘正下方 60px 带里）
       local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
       -- 技能三键：**右列竖排**（底部中间被 fx 的角色名卡占住 —— lead 2026-10-29 复核：
@@ -393,7 +400,10 @@ M.new = function(spec)
   -- 逐屏：title / help / settle / roster 只出本屏要用的键
   -- 把一组控件整体挪出画布（真机 SetVisible 对实例不可靠 ⇒ "藏"的唯一实现是坐标）
   local PARK_TEXT = { 'hud', 'best', 'hint', 'hudNext', 'keyA', 'keyB', 'keyC' }
-  local PARK_SKILL = { 'skRole', 'sk1name', 'sk1state', 'sk1bar', 'sk2name', 'sk2state', 'sk2bar' }
+  -- v5.38：技能卡是**实例侧**的一组贴片（card/strip/barBg），原来只停了文字份，
+  -- 于是角色页左侧会露出那条 6×68 的深色竖条与卡片底（用户截图那两个残留）。
+  local PARK_SKILL = { 'skRole', 'sk1name', 'sk1state', 'sk1bar', 'sk1barBg', 'sk1card', 'sk1strip',
+    'sk2name', 'sk2state', 'sk2bar', 'sk2barBg', 'sk2card', 'sk2strip' }
   local function parkGroup(p, names)
     for _, nm in ipairs(names) do
       local r = p.text and p.text[nm]
@@ -465,7 +475,9 @@ M.new = function(spec)
     if screen == 'roster' then
       p.slots = {}
       p.acts = {}
-      p.nav = isMobile and { B('close', 0, -(halfH - pad - nh / 2), nw + 24, nh, KIT.FS) } or {}
+      -- v5.38：角色页**自带右上角「合上」**（CTL.btn）⇒ 不再额外给一颗底部导航键，
+      -- 否则手机上会多出一个叠在面板下沿的假按钮（用户截图里那颗没内容的「合上」）。
+      p.nav = {}
       if isMobile then parkGroup(p, PARK_TEXT) parkGroup(p, PARK_SKILL) end
       return p
     end
@@ -492,6 +504,11 @@ M.new = function(spec)
     for _, sx in ipairs({ -1, 1 }) do
       local cap = spec.instCell(name .. (sx < 0 and 'l' or 'r'))
       if cap then
+        -- v5.33（用户：圆角设计哦）：半圆必须把图元换成 **circle(100002)**，否则虽然尺寸是方的
+        -- 也照样画成一个方块 ⇒ 胶囊两端是直角（实测手机按钮全是直角，就是这个原因）。
+        if Enum and Enum.ImageSource then
+          pcall(function() cap:SetImage(Enum.ImageSource.StaticReference, 100002) end)
+        end
         tryCall(cap, 'SetSizeDelta', h, h)
         trySet(cap, 'imageColor', color)
         parts[#parts + 1] = cap
@@ -511,10 +528,13 @@ M.new = function(spec)
     for i = 1, #p.parts do trySet(p.parts[i], 'imageColor', color) end
   end
 
+  -- ⚠ 前向声明：placeBtnNow/park/placeBtn 在 makeBtn 之后才定义，而 makeBtn 体内要调用它们。
+  -- Lua 的 `local function` 只在其后可见 ⇒ 直接写函数体会解析成全局 nil（本文件已踩过两次）。
+  local placeBtnNow, park, placeBtn
   local function makeBtn(def, w, h, fs, group)
     local id = def.id
     local gp = group or ''
-    local b = { id = id, act = def.act, w = w, h = h, rep = def.rep, fs = fs }
+    local b = { id = id, act = def.act, w = w, h = h, rep = def.rep, fs = fs, label = def.label }
     -- 名字带分组前缀（pad/nav/act）：`home` 在帮助页与结算页各有一颗，重名会让按名锚定的
     -- 巡检抓到两个不同坐标（qa-shots 报 `phhome×2`）
     b.edge = pill('pe' .. gp .. id, w + (KIT.EDGE or 3) * 2, h + (KIT.EDGE or 3) * 2, COL.btnEdge)
@@ -542,15 +562,20 @@ M.new = function(spec)
     -- 结算三键就会躺在画面中央（手机标题页实测：棋盘正中一块胶囊形贴片）。
     -- ⚠ 这里不能用 park(b)：`local function park` 声明在 makeBtn 之后，
     -- 闭包里解析成全局 nil（Lua 词法作用域），必须就地展开。
-    placePill(b.edge, 0, -4000)
-    placePill(b.bg, 0, -4000)
-    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', 0, -4000) end
-    if b.hit then tryCall(b.hit, 'SetAnchoredPosition', 0, -4000) end
+    placeBtnNow(b, true)
     return b
   end
 
+  -- 真机日志（16:24 第二场）仍有 3 条 `ui fail imageColor/SetAnchoredPosition/fontColor
+  -- on an invalid object`：角色页重建销毁旧控件后，**已排队的 cursor 回调**仍对它涂三态。
+  -- 涂之前先探测活（只读），失效静默跳过。
+  local function aliveCtl(ctl)
+    if not ctl then return false end
+    return (pcall(function() return ctl:GetAnchoredPosition() end))
+  end
   U.paint = function(b, st)
     if not b then return end
+    if b.bg and not aliveCtl(b.bg) then b.dead = true return end
     local col = COL.btnBg
     if st == 'hover' then col = COL.btnHover elseif st == 'down' then col = COL.btnPress end
     setPillColor(b.bg, col)
@@ -610,29 +635,51 @@ M.new = function(spec)
       .. ' act=' .. #U.actBtns .. ')')
   end
 
-  local function park(b)
-    if not b then return end
-    b.x, b.y = 0, -4000
-    placePill(b.edge, 0, -4000)
-    placePill(b.bg, 0, -4000)
-    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', 0, -4000) end
-    if b.hit then tryCall(b.hit, 'SetAnchoredPosition', 0, -4000) end
+  -- ===== 按钮的单一真源（v5.40 根治）==========================================
+  -- 病根：描边/底/文字/热区四件的坐标由三处分别写（build 一次、plan 一次、park 又一次），
+  -- 而 park 把 b.x/b.y 改成 (0,-4000) **丢掉原值**；文字标签只在创建时写一次。
+  -- ⇒ 任何「收起来再放回」都会变成空胶囊（用户实测：进局正常、点一次全空）。
+  -- 规矩：几何只存 b.gx/gy/gw/gh，文字只存 b.label，**只有 placeBtnNow 能写控件**。
+  local PARK_Y = -4000
+  -- 真机实测（2026-10-31 日志 rec10975/10976）：`DestroyClientUIControl` 之后旧控件在真机上
+  -- **立刻变 invalid**，再写就是 `attempt to call method ... on an invalid object`（模拟器不报）。
+  -- 这里统一守卫：任何一件写失败就把整颗键标记 dead 并跳过，避免每帧刷错误。
+  local function ok(c) return c ~= nil and b_pcall_ok(c) end
+  -- ⚠ 探活必须**只读**：用 SetAnchoredPosition 当探针会把控件真的挪到 (0,0)
+  -- （本轮实测：手机按钮热区全部落到画布中心 640,360，按键点不动）。
+  b_pcall_ok = function(c)
+    local okk = pcall(function() return c:GetAnchoredPosition() end)
+    return okk
   end
-
-  local function placeBtn(b, r)
-    if not b then return end
-    if not r then park(b) return end
-    b.x, b.y, b.w, b.h = r.x, r.y, r.w, r.h
-    placePill(b.edge, r.x, r.y)
-    placePill(b.bg, r.x, r.y)
+  placeBtnNow = function(b, hidden)
+    if not b or b.dead then return end
+    local x = b.gx or 0
+    local y = hidden and PARK_Y or (b.gy or 0)
+    local w, h = b.gw or 120, b.gh or 56
+    placePill(b.edge, x, y)
+    placePill(b.bg, x, y)
     if b.txt then
-      tryCall(b.txt, 'SetSizeDelta', r.w, r.h)
-      tryCall(b.txt, 'SetAnchoredPosition', r.x, r.y)
+      tryCall(b.txt, 'SetSizeDelta', w, h)
+      tryCall(b.txt, 'SetAnchoredPosition', x, y)
+      if b.label then pcall(function() b.txt.text = b.label end) end
     end
     if b.hit then
-      tryCall(b.hit, 'SetSizeDelta', r.w, r.h)
-      tryCall(b.hit, 'SetAnchoredPosition', r.x, r.y)
+      tryCall(b.hit, 'SetSizeDelta', w, h)
+      tryCall(b.hit, 'SetAnchoredPosition', x, y)
     end
+    b.x, b.y = x, y
+    b.hidden = hidden and true or false
+  end
+
+  park = function(b) if b then placeBtnNow(b, true) end end
+
+  placeBtn = function(b, r)
+    if not b then return end
+    if r then b.gx, b.gy, b.gw, b.gh = r.x, r.y, r.w, r.h end
+    -- onScreen = 这颗键属于**当前屏**（由 plan 决定）。padVisible 还原时不能把
+    -- 别的屏的键一起放出来（否则「回主页/次页/明细」会飘到局内，本轮实测）。
+    b.onScreen = (r ~= nil)
+    placeBtnNow(b, not r)
   end
 
   -- 按 id 找几何：先槽位键（游戏键）→ 导航键 → 结算键
@@ -653,6 +700,8 @@ M.new = function(spec)
       -- （测试拿它算点击坐标，别再手写会漂移的魔数）
       if r and b.hit then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
     end
+    -- 唯一收口：任何一次摆位（apply/reapply/navRecreate 都走这里）之后，若浮层开着就再收一次。
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     if U.mobile and U.dump then pcall(U.dump, U.cur or 'game') end
   end
 
@@ -808,7 +857,35 @@ M.new = function(spec)
       for _, b in ipairs(list) do if b then U.allBtns[#U.allBtns + 1] = b end end
     end
     U.reapply()
+    -- 重建出来的导航键默认在屏幕上 ⇒ 浮层期间必须再收一次（角色页底部那颗「合上」就是它）
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     print('phone nav recreate n=' .. #U.navBtns)
+  end
+
+  -- v5.38：浮层（角色页/说明页/结算）打开时把手机按键整体收走 —— 否则它们会浮在浮层上
+  -- （用户截图：角色页底部多出一颗「合上」、左侧还留着绿色圆点与黑条）。
+  -- park=true 全部挪到 y=-4000；false 用最后一次 plan 摆回来（不改任何状态）。
+  -- v5.39：**停用**按键收拢（保留函数名，调用方不用改）。
+  -- 起因：收拢/还原会把按键文字弄丢（还原后是空胶囊），复现路径是"进局→开说明→关说明"。
+  -- 代价：浮层期间手机会看到按键仍浮着（下一版改成"浮层时把手机按键整组隐藏"再做，
+  -- 需要先把按钮的 label/几何做成单一真源，不能靠搬坐标）。
+  U.padVisible = function(show)
+    U.padHidden = not show
+    if not U.mobile then return end
+    -- v5.40：只切 hidden，几何/标签都在真源里 ⇒ 收/放都不会丢字（这是根治点）
+    for _, b in ipairs(U.allBtns or {}) do
+      placeBtnNow(b, (not show) or (not b.onScreen))
+    end
+    print('pad visible=' .. tostring(show) .. ' n=' .. #(U.allBtns or {}))
+  end
+
+  -- v5.41：结算键（再来一局/回主页/明细）只允许在 settle 屏出现。
+  -- 它们和手机按键在右下角**位置重叠**，一旦被上一次 settle plan 摆到画面上，
+  -- 玩家会看到"棕色的旋转/锁定"（棕色其实是结算键的描边胶囊 pe*，底胶囊 pb* 被 park 了）。
+  U.parkActs = function()
+    local keep = (U.screen == 'settle')
+    if keep then return end
+    for _, b in ipairs(U.actBtns or {}) do placeBtnNow(b, true) end
   end
 
   U.apply = function(screen, dual, mode, guide)
@@ -818,6 +895,9 @@ M.new = function(spec)
     applyText(p)
     U.lastPlan = p
     applyButtons(p)
+    pcall(U.parkActs)
+    -- 浮层期间的重排会把刚收走的按键摆回来（角色页底部残留「合上」的真因）⇒ 重排后再收一次
+    if U.padHidden and U.padVisible then U.padVisible(false) end
     if p.rightCX and spec.setRightCX then spec.setRightCX(p.rightCX) end
     if U.mobile then
       print('phone layout w=' .. math.floor(W) .. ' h=' .. math.floor(H)

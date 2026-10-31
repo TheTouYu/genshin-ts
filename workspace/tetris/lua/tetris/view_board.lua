@@ -28,6 +28,12 @@ M.new = function(spec)
     { 0, -frameY, 2 * frameX + 2, 2 },            -- 下
   }
 
+  function B.framePos(i)
+    local sp = FRAME_SPECS[i]
+    if not sp then return nil end
+    return sp[1], sp[2], sp[3], sp[4]
+  end
+
   function B.cellIndex(col, row) return row * COLS + col + 1 end
   function B.cellPos(i)
     local col = (i - 1) % COLS
@@ -39,9 +45,11 @@ M.new = function(spec)
   -- opts = { plateColor, frameColor, cellColor, colorOf = function(i, col, row) -> color }
   function B.board(opts)
     opts = opts or {}
+    local kp = opts.keyPrefix or ''
+    local np = opts.namePrefix or ''
     local list = {}
     list[#list + 1] = {
-      key = 'boardPlate', layer = 'plate', tpl = 'cell', name = 'boardPlate',
+      key = kp .. 'boardPlate', layer = 'plate', tpl = 'cell', name = np .. 'boardPlate',
       pos = { 0, 0 }, size = { COLS * PITCH + 6, ROWS * PITCH + 6 },
       color = opts.plateColor,
     }
@@ -51,14 +59,14 @@ M.new = function(spec)
       local color = opts.cellColor
       if opts.colorOf then color = opts.colorOf(i, col, row) or opts.cellColor end
       list[#list + 1] = {
-        key = 'cell' .. i, layer = 'board', tpl = 'cell', name = 'cell' .. i,
+        key = kp .. 'cell' .. i, layer = 'board', tpl = 'cell', name = np .. 'cell' .. i,
         pos = { B.cellPos(i) }, size = { CELL, CELL }, color = color,
       }
     end
     for i = 1, #FRAME_SPECS do
       local sp = FRAME_SPECS[i]
       list[#list + 1] = {
-        key = 'frame' .. i, layer = 'frame', tpl = 'cell', name = 'frame' .. i,
+        key = kp .. 'frame' .. i, layer = 'frame', tpl = 'cell', name = np .. 'frame' .. i,
         pos = { sp[1], sp[2] }, size = { sp[3], sp[4] }, color = opts.frameColor,
       }
     end

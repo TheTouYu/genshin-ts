@@ -122,8 +122,11 @@ local NUM = {
   -- v3.1 二-1 非速度难度（用户定版，lead 批准 A+B）：与速度轴正交，玩家/AI 同规则，不增帧内计算。
   DRYNESS_N = { 14, 10, 7 },  -- 机制A 垃圾行侵蚀：连续 N 块无消行顶起 1 行带洞垃圾（按等级段取值 Lv1-4/5-8/9+，到阈值清零重计）
   OBSTACLE  = { 0, 1, 2, 3 }, -- 机制B 开局障碍行数（Lv1-4 无/Lv5-7 一行/Lv8-10 两行/Lv11+ 三行）；每行洞数=行序号（第1行2洞/第2行2洞/第3行1洞，见 main.lua 障碍生成）
-  TK_PLAY_S  = 3,      -- v3.1 一-2：casual 无操作多少秒出接管提示（用户定版 5→3）
-  TK_HINT_S  = 3,      -- v3.1 一-2：提示期多少秒后 AI 接管（用户定版 2→3）
+  -- v5.38（用户 2026-10-30 定版）：「玩家不操作就自动接管」这条机制**废除**——
+  -- 接管权只属于纳西妲的 E 技能（所闻遍计）。两个常量保留但置空语义：TK_PLAY_S = nil ⇒ 状态机
+  -- 永不自动进入 'hint'/'ai'，玩家停手只是停手。要恢复旧行为把这里改回 3/3 即可（一行）。
+  TK_PLAY_S  = nil,
+  TK_HINT_S  = nil,
   NADA_GREEN = nil,    -- 占位注释：纳西妲草绿主色 #7FCF6A 在 main.lua THEME 侧定义（C() 在那里）
   DAS_HOLD   = 0.35,   -- v2.8：DAS 持续上限秒数（ARR 激活后超过即强制停）——单击语义硬化：
                         -- 真机日志定谳（2026-10-28 09:12 场）：v2.7 起 Up 正常到达、单击=恰 1 格、零 ARR 残留；
@@ -528,7 +531,7 @@ local HELP = {
   title = '旅行者手册',
   sub = '四种玩法 · 全部规则 · 一页读完',
   hint = 'H / E 合上手册 · 首页「角色」看技能',
-  paimon = '派蒙：左下是通用按键，Z/U/Y 是角色技能（首页「角色」看细节）',
+  paimon = '派蒙：左下是通用按键，Z/U/Y 是角色技能',
   keysTitle = '操作 · 须知',
   keys = {
     { caps = { '←', '→' }, label = '移动' },
@@ -552,7 +555,7 @@ local HELP = {
   -- 四模式委托卡：color/deep 复用 STYLE.modes 的同源色，tint 是本页新增的浅底（白卡上的色块底）
   modes = {
     { key = '1', name = '休闲', color = D_LEAF, deep = C(255, 63, 139, 60), tint = C(255, 236, 247, 227),
-      lines = { 'AI 陪练，随时接管', '停手 3 秒出现提示', '再 3 秒 AI 代打' }, win = '分数照记' },
+      lines = { 'AI 先替你打，随时接手', '纳西妲技能可请她代打', '停手不会自动接管' }, win = '分数照记' },
     { key = '2', name = 'AI 对抗', color = D_BOLT, deep = C(255, 95, 76, 168), tint = C(255, 238, 233, 251),
       lines = { '双屏 · 镜像出块', 'hard 档 AI 对战', '消 2/3/4 送它垃圾行' }, win = '任一方顶满 = 分胜负' },
     { key = '3', name = '双人对战', color = D_PETAL, deep = C(255, 192, 78, 124), tint = C(255, 255, 236, 245),
@@ -729,15 +732,22 @@ NUM.UI_KIT = {
   MIN_W = 96, MIN_H = 56,     -- 命中区下限（1280 宽基准；ui.lua 会按 min(W/1280,1) 收缩前先夹住）
   FS = 22, FS_MIN = 20,       -- 按钮字号 / 全 UI 最小字号
   PRESS_DY = 4,               -- 按下态下沉像素（三态统一的唯一定义）
-  EDGE = 3,                   -- 描边细边宽度
+  EDGE = 2,                   -- 描边细边宽度（v5.34：3→2，配合淡描边更轻盈）
   GAP = 14, MARGIN = 18,      -- 簇内间距 / 距画布边距
   HOLD_DELAY = 0.26, HOLD_RATE = 0.075,   -- 触屏连发：按下 0.26s 后每 0.075s 一次
 }
 
 -- ── UI 配色（按钮/能量条/引导浮层；与 THEME 同源，改风格变体时自动跟随）──────
 NUM.UI_COL = {
-  btnBg = THEME.btnBg, btnHover = THEME.card, btnPress = THEME.gold,
-  btnEdge = THEME.goldDeep, btnText = THEME.textMain,
+  -- v5.34（用户：边框颜色要跟主题适配，'好看和舒适'优先）：原来 btnEdge = 深金 + 3px 描边，
+  -- 在浅色纸面上像旧时代的高亮边框；改成**淡暖描边 2px + 暖奶油底**，默认不抢眼，
+  -- 悬停才稍微提亮、按下略微沉一点（不再用整块金色当按下态）。
+  btnBg = C(255, 250, 243, 253), btnHover = C(255, 253, 248, 253), btnPress = C(255, 243, 230, 253),
+  -- v5.42（真机差异，D581/D722 实测）：**真机对 imageColor 的 A 通道不可靠**，
+  -- 半透明描边在真机上会画成不透明色 —— C(188,200,176,150) 实际渲染成 #C8B096 暖棕，
+  -- 盖在按键边上就成了"棕色按钮"。这里改成**在底胶囊上手工混好的不透明色**：
+  -- 200,176,150 @59% 叠 250,243,253 ⇒ 220,203,192，两种宿主都画成同一个淡暖灰。
+  btnEdge = C(255, 220, 203, 192), btnText = THEME.textMain,
   barBg = C(255, 226, 234, 244), barFill = THEME.hint,
   panel = THEME.panel, dim = C(160, 30, 46, 66),
 }
@@ -758,6 +768,9 @@ NUM.PHONE = {
     { id = 'hard',   label = '锁定', act = 'hard',   slot = 'R1' },
     { id = 'soft',   label = '缓降', act = 'soft',   slot = 'R2', rep = true },
     { id = 'hold',   label = '暂存', act = 'hold',   slot = 'R3' },
+    -- v5.32（用户：移动端左右都要有旋转和暂存，方便单手操作）：冗余键，act 与主键相同
+    { id = 'rot2',   label = '旋转', act = 'rot',    slot = 'L3b' },
+    { id = 'hold2',  label = '暂存', act = 'hold',   slot = 'R3b' },
     { id = 'skill1', label = '技能1', act = 'skill1', slot = 'M1' },
     { id = 'skill2', label = '技能2', act = 'skill2', slot = 'M2' },
     { id = 'switch', label = '换人', act = 'switch', slot = 'M3' },
@@ -868,4 +881,8 @@ M.COL_EMPTY, M.COL_CYAN, M.COL_YELLOW, M.COL_PURPLE, M.COL_GREEN =
   COL_EMPTY, COL_CYAN, COL_YELLOW, COL_PURPLE, COL_GREEN
 M.COL_RED, M.COL_BLUE, M.COL_ORANGE, M.COL_BG, M.COL_GRAY =
   COL_RED, COL_BLUE, COL_ORANGE, COL_BG, COL_GRAY
+-- 真机日志瘦身（2026-10-31）：`demo act` / `fall y=` 属高频路径（25433 行里占 9465 行），
+-- 默认不打；需要复现 AI 节奏或下落轨迹时置 true。
+M.VERBOSE = true   -- 先保回归绿（用例断言依赖这些行）；真机需要瘦身时再关
+
 return M
