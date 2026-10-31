@@ -56,6 +56,32 @@
 -- 省略 opts 时**默认读 spec.num 的同名字段**（生产语义：aiTickCore 每块改写 NUM 后照旧生效）；
 -- 要绝对确定（headless 用例）就显式传 opts —— 测试两种姿势都覆盖。
 --
+-- ===== 四消射击（shots：opt-in，默认关）=====
+-- 生产方式那条分支（原 main.lua aiChoose 里 `c.rot == 1 and c.x == COLS - 1`）在 **AI 自主路径上
+-- 恒假**——判据里的 rot 是"从 piece 当前朝向再转几次"，而 AI 的规划发生在**出生朝向**：
+--   I 的出生 cells = {{2,1},{2,2},{2,3},{2,4}} = **横** I（第 2 行、盒内第 1..4 列），wmax = 4
+--   合法落列域 x = 1 .. cols - wmax + 1 = 1 .. 7（cols = 10），而判据要 x = cols - 1 = 9
+--   ⇒ rot=0（生产 rot=1 = "不转"）这一档**没有任何候选能取到 x = 9**，合取项恒假。
+--   I 的四档几何（0-based rot，落进第 cols 列的条件）：
+--     rot=0 横（盒内列 1..4，wmax 4，x ≤ cols-3）     rot=1 竖（盒内列 3，wmax 3，x = cols-2）
+--     rot=2 横（同上）                                rot=3 竖（盒内列 2，wmax 2，x = cols-1）
+--   ⚠ 修正一个曾经的误判：这条分支**不是**无条件死代码。它等价于"规划时刻 I 已经是竖放
+--   （盒内第 2 列，wmax=2 ⇒ x=cols-1 合法）"。标准 AI 路径（出块即规划）永远不满足；
+--   **玩家把 I 转到竖放后交给 AI 接管**（takeover）时满足 → 会真的开火。所以历史结论
+--   "四消打不出来"成立，根因是判据**把朝向当常量**，不是"分支永远为假"（§1.9/§1.10 两条都断言）。
+--
+-- 本模块把这件事做成**开关**，三档（spec.shots）：
+--   false / 'off'（默认）  只跑生产方式那条判据；它不可达 ⇒ 行为与生产逐值相同（§2 逐例断言）
+--   'legacy'               同 'off'（保留档位名，方便对拍与文档化"这是生产语义"）
+--   'fixed' / true         几何判据：竖 I 的 4 格**全部**落在井列（默认第 cols 列）且该手消 ≥ minClear 行
+--                          命中即**最高优先级**返回（覆盖 1-ply 评分，与生产分支 `return c` 同权）
+-- 配套 spec 字段：shotMinClear（默认 2 = 生产 SHOT_WELL_DEPTH）、shotWellCol（默认取 opts.wellCol，
+-- 再缺省 = cols）。'fixed' 不要求 H.well > 0 —— 开关本身就是显式意图（生产那个闸门只管"要不要留井"）。
+-- 运行期可覆盖：choose/bestPlacement 的 opts.shots（同取值域），缺省跟构造期 spec.shots
+-- —— 生产档位是运行态（硬档才留井），靠它一行切换，不必重建实例。
+-- 几何自助查询：api.shotPlacements(piece, wellCol) 列出所有"整块只占 wellCol"的 {rot,x}；
+--              api.occupiedCols(piece, rot, x) 给出某落点占用的板内列（排序去重）。
+--
 -- ===== rot 约定（只有一种，别再踩 -1 的坑）=====
 --   本模块所有 rot 字段 = **顺时针转几次，0-based（0..3）**，与 main.lua 里 plan.rot / buildQueue 一致。
 --   原 aiChoose 内部候选用 1-based rot（rot=1 是出生朝向），plan 里又减 1 成 0-based ⇒ 同一张表两套含义。
@@ -78,7 +104,7 @@
 local M = {}
 
 M.NAME = 'core_ai'
-M.VERSION = 'v6.1'
+M.VERSION = 'v6.2'
 
 -- config.lua 缺字段时的兜底（= 生产定值，见 config.lua:77-78 / 102）
 local BW_DEFAULT = { LH = -12.63, ER = 6.60, RT = -9.22, CT = -19.77,
@@ -92,7 +118,7 @@ local WELL_CW_SCALE = 0.35        -- 留井模式 CW 缩放（aieval.lua:185）
 local NEAR_FULL_K = 0.9           -- 攒行加成系数（aieval.lua:202）
 local WELL_NEAR_K, WELL_NEAR_CAP = 1.5, 6   -- 井旁堆高轻奖励（aieval.lua:210-214）
 local WELL_DISCIPLINE_PENALTY = 45          -- 井纪律违规惩罚（aieval.lua:231）
-local SHOT_WELL_DEPTH = 2         -- 四消射击的井深门槛（main.lua:1883）
+local SHOT_WELL_DEPTH = 2         -- 四消射击的井深门槛（main.lua:1883）= shotMinClear 的默认值
 local NO_NEXT_PENALTY = -5        -- 下一块无处可放时的兜底分（main.lua:4956）
 local EPS = 1e-9                  -- 同分判定容差（main.lua:1894）
 local EMPTY = {}
@@ -122,6 +148,18 @@ function M.new(spec)
   local NUM = spec.num or EMPTY
   local SHAPES = spec.shapes or EMPTY
   local RESET_ROWS = spec.resetRows or RESET_ROWS_DEFAULT
+  -- 射击开关（见文件头「四消射击」节）：false/'off'（默认）| 'legacy' | 'fixed'/true
+  -- 档位归一化：nil/false/'off' → 'off'；'legacy' → 'legacy'；true/'fixed' → 'fixed'
+  local function normShot(v, where)
+    if v == nil or v == false or v == 'off' then return 'off' end
+    if v == 'legacy' then return 'legacy' end
+    if v == true or v == 'fixed' then return 'fixed' end
+    error(where .. ': shots 只接受 false/\'off\'/\'legacy\'/\'fixed\'，收到 ' .. tostring(v))
+  end
+  local SHOT_MODE = normShot(spec.shots, 'core_ai.new')
+  local SHOT_MIN_CLEAR = math.floor(tonumber(spec.shotMinClear) or SHOT_WELL_DEPTH)
+  if SHOT_MIN_CLEAR < 1 then SHOT_MIN_CLEAR = 1 end
+  local SHOT_WELLCOL = tonumber(spec.shotWellCol)
 
   -- ===== 内部纯原语 =====
 
@@ -211,8 +249,13 @@ function M.new(spec)
     if wellBase == nil then wellBase = NUM.AI_WELLBASE or 0 end
     local resetRows = o.resetRows
     if resetRows == nil then resetRows = RESET_ROWS end
+    -- 射击档位：运行期可覆盖（opts.shots），缺省跟构造期 spec.shots —— 生产档位是运行态，
+    -- 硬档才开、休闲档关，不能靠重建实例切换。
+    local shotMode = SHOT_MODE
+    if o.shots ~= nil then shotMode = normShot(o.shots, 'opts') end
     return { bw = bw, well = well, atk = atk, wellCol = wellCol, wellBase = wellBase,
-             resetRows = resetRows, el = o.el or EL, simple = simple and true or false }
+             resetRows = resetRows, el = o.el or EL, simple = simple and true or false,
+             shotMode = shotMode }
   end
 
   -- ===== 1-ply 评估体（aieval.lua:77-236 的纯函数移植）=====
@@ -414,15 +457,77 @@ function M.new(spec)
     return best, anyBest
   end
 
-  -- 显式四消射击（main.lua:1878-1891）：I 块竖放 = rot0、落点 x = cols-1 ⇒ 占第 cols 列
-  local function tetrisShot(board, H, piece, cands)
-    if not (H.well > 0 and piece.name == 'I' and piece.n == 4) then return nil end
+  -- ===== 四消射击（见文件头「四消射击」节）=====
+
+  -- 某落点占用的板内列（升序去重）。竖 I 只占 1 列 —— 这是"能进井"的几何前提。
+  local function occupiedColsOn(cells, x)
+    local seen, out = {}, {}
+    for i = 1, #cells do
+      local bc = x + cells[i][2] - 1
+      if not seen[bc] then seen[bc] = true; out[#out + 1] = bc end
+    end
+    table.sort(out)
+    return out
+  end
+
+  -- 纯几何：列出"4 格全部落在 wellCol"的 {rot, x}（rot 0-based，x 合法域内）
+  local function shotPlacementsOf(piece, wellCol)
+    local out = {}
+    if not (piece and piece.cells and wellCol) then return out end
+    local n = piece.n or #piece.cells
+    local cells = piece.cells
+    for turns = 0, 3 do
+      local wmax = 1
+      for i = 1, #cells do
+        if cells[i][2] > wmax then wmax = cells[i][2] end
+      end
+      for x = 1, COLS - wmax + 1 do
+        local cols = occupiedColsOn(cells, x)
+        if #cols == 1 and cols[1] == wellCol then
+          out[#out + 1] = { rot = turns, x = x }
+        end
+      end
+      cells = rot(cells, n)
+    end
+    return out
+  end
+
+  -- 生产判据（原样移植，main.lua:1878-1891）。rot 是"从 piece 当前朝向再转几次"：
+  -- rot=0 时取 piece.cells 本身。出生朝向是横 I（wmax=4 ⇒ x ≤ cols-3），判据却要 x = cols-1 ⇒ 恒假；
+  -- 只有当 piece 已转到竖放（盒内第 2 列，wmax=2）时 x=cols-1 才合法（玩家转竖后接管的那条窄路径）。
+  -- 逐条几何枚举见 tests-lua/core_ai_shots_test.lua §1（含四朝向表）。
+  -- 'off' 与 'legacy' 都走这条 —— 保留它才能逐字对拍"默认关就是生产语义"。
+  local function shotLegacy(board, H, cands)
+    if not (H.well > 0) then return nil end
     if wellDepthOn(board) < SHOT_WELL_DEPTH then return nil end
     for i = 1, #cands do
       local c = cands[i]
       if c.rot == 0 and c.x == COLS - 1 and (c.clear or 0) >= 2 then return c end
     end
     return nil
+  end
+
+  -- opt-in 几何判据：竖 I 整块落进井列且这一手消 ≥ SHOT_MIN_CLEAR 行。
+  -- 井列优先级：spec.shotWellCol > opts.wellCol（NUM.AI_WELLCOL）> 第 cols 列（右墙井）。
+  local function shotFixed(H, piece, cands)
+    if not (piece.name == 'I' and (piece.n or 4) == 4) then return nil end
+    local wc = SHOT_WELLCOL
+    if not wc or wc <= 0 then wc = tonumber(H.wellCol) end
+    if not wc or wc <= 0 then wc = COLS end
+    local want, keys = shotPlacementsOf(piece, wc), {}
+    if #want == 0 then return nil end
+    for i = 1, #want do keys[want[i].rot * 100 + want[i].x] = true end
+    for i = 1, #cands do
+      local c = cands[i]
+      if keys[c.rot * 100 + c.x] and (c.clear or 0) >= SHOT_MIN_CLEAR then return c end
+    end
+    return nil
+  end
+
+  local function tetrisShot(board, H, piece, cands)
+    if not (piece.name == 'I' and (piece.n or 4) == 4) then return nil end
+    if H.shotMode == 'fixed' then return shotFixed(H, piece, cands) end
+    return shotLegacy(board, H, cands)
   end
 
   -- ===== 对外 API =====
@@ -432,6 +537,16 @@ function M.new(spec)
   api.rotateCells = rot
   api.rotatedCells = rotN
   api.collides = collidesOn
+  api.shotMode = SHOT_MODE
+  api.shotMinClear = SHOT_MIN_CLEAR
+  -- occupiedCols(piece, turns, x)：把 piece.cells 再转 turns 次（0-based）后、以 x 为落列时占用的板内列
+  api.occupiedCols = function(piece, turns, x)
+    if not (piece and piece.cells) then return {} end
+    return occupiedColsOn(M.rotN(piece.cells, piece.n or #piece.cells, turns or 0), x or 1)
+  end
+  api.shotPlacements = function(piece, wellCol)
+    return shotPlacementsOf(piece, wellCol or SHOT_WELLCOL or COLS)
+  end
 
   function api.colHeight(board, c) return colHeightOn(board, c) end
   function api.wellDepth(board) return wellDepthOn(board) end
