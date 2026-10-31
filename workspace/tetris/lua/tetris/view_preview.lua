@@ -54,6 +54,13 @@
       本模块取「停靠」：audit 能证明留在 gutR 会出界（537+240/2=657 > halfW=640）。
       「暂存」标签在双持下留在 -537（左缘 -637，仍在 ±640 内）。
 
+ 接线期三个可选（都为缺省关，纯描述默认口径不变）：
+   · opts.cx          调用方已有单一真源时直接给（main 的 RIGHT_CX 来自 ui.lua 的 plan）；
+                      不给才按 canvas/device/dual 推算 —— 避免回到「两份常量」。
+   · opts.noLabel     不出标题节点（现网「下一个/暂存」是服务端 textbox，运行时再出一份=双影）。
+   · opts.legacyNames 引擎侧控件名沿用现网口径 next1..next8 / hold1..hold4（render 键仍是 pv*，
+                      所以既有用例按名字取控件、按 pv 前缀数节点两边都成立）。
+
  契约：本文件不 require 任何 tetris 模块、不 print、不写全局；config/layers 全由外部注入。
 ========================================================================]]
 
@@ -127,6 +134,9 @@ M.new = function(spec)
 
   -- ===== 预览列横向中心：单一源（标签与格子共用）=====
   local function cxOf(opts)
+    -- 调用方已有单一真源时直接给（main 的 RIGHT_CX 由 ui.lua 的 plan 决定）——
+    -- 否则这里再算一遍就是「两份常量」，正是本模块要消灭的那类漂移。
+    if opts.cx then return opts.cx end
     local canvas = opts.canvas or M.DEFAULT_CANVAS
     local halfW = (canvas[1] or M.DEFAULT_CANVAS[1]) / 2
     if opts.device == 'mobile' and opts.dual then return halfW - G.insetDualMobile end
@@ -158,31 +168,39 @@ M.new = function(spec)
   end
 
   -- 一格：色 = 满色或白化；空槽走 park
-  local function putCell(out, key, x, y, cell, color, role, slot, shape, k, dim)
+  local function putCell(out, key, x, y, cell, color, role, slot, shape, k, dim, nm)
     out[#out + 1] = {
-      key = key, layer = M.LAYER, tpl = 'cell', name = key,
+      key = key, layer = M.LAYER, tpl = 'cell', name = nm or key,
       pos = { x, y }, size = { cell, cell }, color = color,
       role = role, slot = slot, cellIndex = k, shape = shape,
       dim = dim or nil, parked = nil,
     }
   end
 
-  local function putParked(out, key, cell, cellSize, role, slot, k)
+  local function putParked(out, key, cell, cellSize, role, slot, k, nm)
     out[#out + 1] = {
-      key = key, layer = M.LAYER, tpl = 'cell', name = key,
+      key = key, layer = M.LAYER, tpl = 'cell', name = nm or key,
       pos = { G.parkX, G.parkY }, size = { cellSize, cellSize }, color = cell,
       role = role, slot = slot, cellIndex = k, parked = true,
     }
   end
 
   -- 一块方块（有块 ⇒ 4 颗彩格；没块 ⇒ 4 颗空槽格停靠）。x 加法向 sign（暂存镜像）
-  local function putPiece(out, prefix, slot, name, ox, oy, geom, sign, opts, role, dim)
+  local function putPiece(out, prefix, tag, slot, name, ox, oy, geom, sign, opts, role, dim)
+    -- legacyNames：引擎侧控件名保持现网口径（next1..next8 / hold1..hold4），
+    -- 而 render 的键仍是 pv*（controls() 可按 pv 前缀数节点、键稳定可增量）。
+    local legacy = opts.legacyNames == true
+    local function nmOf(k)
+      if not legacy then return nil end
+      if tag == 'hold' then return 'hold' .. k end
+      return 'next' .. ((slot - 1) * 4 + k)
+    end
     local s = name and SH[name] or nil
     if not s then
       -- name=nil 是「真空槽」；name 给了但 SHAPES 里没有 = 调用方拼错/数据缺失 ⇒ 打 badShape
       -- 让 audit 报 P4（静默画成空槽是最贵的那种失败：看起来像"预览不显示"）
       for k = 1, 4 do
-        putParked(out, prefix .. k, C_BG, geom.cell, 'emptyCell', slot, k)
+        putParked(out, prefix .. k, C_BG, geom.cell, 'emptyCell', slot, k, nmOf(k))
         if name ~= nil then out[#out].badShape = name end
       end
       return 0
@@ -193,7 +211,7 @@ M.new = function(spec)
       local r, c = s.cells[k][1], s.cells[k][2]
       putCell(out, prefix .. k,
         sign * ox + (c - p) * geom.pitch, oy + (p - r) * geom.pitch,
-        geom.cell, col, role, slot, name, k, dim)
+        geom.cell, col, role, slot, name, k, dim, nmOf(k))
     end
     return #s.cells
   end
@@ -207,12 +225,15 @@ M.new = function(spec)
     if slots < 0 then slots = 0 end
     if slots > M.MAX_SLOTS then slots = M.MAX_SLOTS end   -- 实例预算硬顶，显式传参也不放行
     local out = {}
-    -- 手机双持：标题停靠（见头注释 D6；audit 能证明留在 gutR 会出界）
-    out[1] = labelNode('pvNextLabel', M.LABEL_NEXT, cx, G.labelY, G.labelWNext,
-      opts.accent or TH.textSub, opts.device == 'mobile' and opts.dual == true)
+    -- noLabel：接线期现网标题是服务端 textbox，运行时再出一份文字就是双影
+    if not opts.noLabel then
+      -- 手机双持：标题停靠（见头注释 D6；audit 能证明留在 gutR 会出界）
+      out[#out + 1] = labelNode('pvNextLabel', M.LABEL_NEXT, cx, G.labelY, G.labelWNext,
+        opts.accent or TH.textSub, opts.device == 'mobile' and opts.dual == true)
+    end
     for i = 1, slots do
       local g = slotGeom(i)
-      putPiece(out, 'pvNext' .. i .. 'C', i, queue[i], cx, g.y, g, 1, opts,
+      putPiece(out, 'pvNext' .. i .. 'C', 'next', i, queue[i], cx, g.y, g, 1, opts,
         'nextCell', (g.fade or 0) > 0)
     end
     return out
@@ -224,10 +245,12 @@ M.new = function(spec)
     local cx = cxOf(opts)
     local can = opts.canHold ~= false
     local out = {}
-    out[1] = labelNode('pvHoldLabel', M.LABEL_HOLD, -cx, G.labelY, G.labelWHold,
-      can and TH.textMain or TH.textDim)
+    if not opts.noLabel then
+      out[#out + 1] = labelNode('pvHoldLabel', M.LABEL_HOLD, -cx, G.labelY, G.labelWHold,
+        can and TH.textMain or TH.textDim)
+    end
     local g = { cell = G.holdCell, pitch = G.holdPitch, y = G.holdY, fade = G.holdFade }
-    putPiece(out, 'pvHoldC', 0, opts.holdName, cx, g.y, g, -1, opts, 'holdCell', not can)
+    putPiece(out, 'pvHoldC', 'hold', 0, opts.holdName, cx, g.y, g, -1, opts, 'holdCell', not can)
     return out
   end
 

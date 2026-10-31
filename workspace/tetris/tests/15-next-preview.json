@@ -11,6 +11,7 @@
     { "t": 0.5, "kind": "key", "typeName": "KeyboardJumpKeyUp" }
   ],
   "asserts": [
+    { "at": 0.15, "kind": "lua", "source": "local first = nil\nfor _, line in ipairs(query.logs()) do\n  local n, x = line:match('^preview v2 apply pvN=(%d+) holdX=([%-%d%.]+)')\n  if n and not first then first = { tonumber(n), tonumber(x) } end\nend\nassert(first ~= nil, '新预览通道未运行：日志里没有 preview v2 apply')\nassert(first[1] == 12, 'pv* 控件数=' .. tostring(first[1]))\nassert(first[2] == -4000, '空槽 hold 首格 x=' .. tostring(first[2]))\nreturn true" },
     { "at": 0.15, "kind": "tree", "name": "next5", "exists": true },
     { "at": 0.15, "kind": "tree", "name": "next8", "exists": true },
     { "at": 0.15, "kind": "control", "name": "next1", "field": "sizeDeltaX", "equals": 18 },
