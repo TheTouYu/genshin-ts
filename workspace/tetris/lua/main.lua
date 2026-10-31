@@ -1816,7 +1816,6 @@ local function buildHelpLayer()
     HLV.R.apply(nodes)
   end
   HLV.live, HLV.n, HLV.nodes = true, #nodes, nodes
-  -- 巡检通道：把关页热区登记进 UI4 注册表（qxqy/audit-controls.mjs 读 dump('help') 找 help.close 再按坐标点）
   local z = HLV.R.get('helpCloseHit')
   local s = math.min(W / 1600, H / 900)
   if s <= 0 then s = 1 end
@@ -4692,7 +4691,6 @@ function OnStart()
     HLV.KIT = HLV.KIT_M.new({ layers = VIEW_LAYERS_M })
     HLV.S = HLV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = HLV.KIT })
     HLV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
-  -- v6.7 场景栈试点：说明页改走 app.openOverlay（场景栈 + 独立 render 实例 + 先 clear 再 apply）
   APP = loadModule('app').new({ platform = PT, render = HLV.R, layers = VIEW_LAYERS_M,
     scenes = loadModule('scenes').new(), overlayRender = HLV.R, log = function(m) print(m) end })
     print('v6 help view ok')
@@ -4715,6 +4713,7 @@ function OnStart()
   ROSTER_ENV.layers = VIEW_LAYERS_M
   ROSTER_ENV.config = CFG
   ROSTER_ENV.kit = SETTLEV.KIT        -- 复用结算屏那份 kit 实例（省一次实例化）
+  ROSTER_ENV.app = APP                -- v6.8：档案页也走场景栈（openOverlay/closeOverlay）
 
   -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
   local isMobile = true

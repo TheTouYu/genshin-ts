@@ -210,8 +210,8 @@ function M.new(env)
   FN.rosterV2DNodes = function() return ROSTERV.dnodes end
 
   FN.rosterV2Close = function()
-    if ROSTERV.D then ROSTERV.D.clear() end
-    if ROSTERV.R then ROSTERV.R.clear() end
+    if ROSTERV.D then ROSTERV.D.clear() end          -- 详情浮层是第二份描述/第二个实例，本轮不动
+    if env.app then env.app.closeOverlay() elseif ROSTERV.R then ROSTERV.R.clear() end
     ROSTERV.live = false
     ROSTERV.nodes = nil
     if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
@@ -287,8 +287,14 @@ function M.new(env)
       onSwap = function(i) actions['charRow' .. i .. 'Hit']() end,
       onEntry = function(i) actions['charItemHit' .. i]() end,
     }
-    ROSTERV.R.clear()          -- 先清再 apply：引擎实例上限约 430，常驻约 240 + 本屏 111
-    ROSTERV.R.apply(nodes)
+    -- v6.8 场景栈试点②：与说明页同型——走 app.openOverlay（内部先 clear 再 apply + push 场景 + 自动补注册）；
+    -- 隔离仍是 ROSTERV.R 这个独立实例（app 的 overlayRender 注入它），基础层不受影响。
+    if env.app then
+      env.app.openOverlay('roster', { name = 'roster', opaque = true }, nodes)
+    else
+      ROSTERV.R.clear()
+      ROSTERV.R.apply(nodes)
+    end
     ROSTERV.live, ROSTERV.nodes = true, nodes
     v2bind(nodes)
     if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
