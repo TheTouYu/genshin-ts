@@ -633,11 +633,22 @@ M.new = function(spec)
   -- ⇒ 任何「收起来再放回」都会变成空胶囊（用户实测：进局正常、点一次全空）。
   -- 规矩：几何只存 b.gx/gy/gw/gh，文字只存 b.label，**只有 placeBtnNow 能写控件**。
   local PARK_Y = -4000
+  -- 真机实测（2026-10-31 日志 rec10975/10976）：`DestroyClientUIControl` 之后旧控件在真机上
+  -- **立刻变 invalid**，再写就是 `attempt to call method ... on an invalid object`（模拟器不报）。
+  -- 这里统一守卫：任何一件写失败就把整颗键标记 dead 并跳过，避免每帧刷错误。
+  local function ok(c) return c ~= nil and b_pcall_ok(c) end
+  b_pcall_ok = function(c)
+    local okk = pcall(function() c:SetAnchoredPosition(0, 0) end)
+    return okk
+  end
   placeBtnNow = function(b, hidden)
-    if not b then return end
+    if not b or b.dead then return end
     local x = b.gx or 0
     local y = hidden and PARK_Y or (b.gy or 0)
     local w, h = b.gw or 120, b.gh or 56
+    local alive = true
+    if b.bg and not b_pcall_ok(b.bg) then alive = false end
+    if not alive then b.dead = true return end
     placePill(b.edge, x, y)
     placePill(b.bg, x, y)
     if b.txt then

@@ -1082,7 +1082,10 @@ spawn = function(overrideName, overrideBag)
   g.ld.t, g.ld.resets, g.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
   if collides(g.piece.cells, g.piece.x, g.piece.y) then
     g.gameOver = true
-    print('gameover score=' .. g.score)
+    -- 台账 #3：双盘时这块可能是 G[2]（AI 盘），它的分数在 AI 账本里 ⇒ 直接打 g.score 恒 0，
+    -- 与随后 guide 的 10702 对不上（真机日志 rec17749/17752）。这里把两个账本都打出来。
+    print('gameover score=' .. tostring(g.score) .. ' aiScore=' .. tostring(g.AI and g.AI.score)
+      .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
     sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
     -- 入场自演顶死时不写最高分：bestScore 是玩家账（与 P0 同一口径，docs §7.1）
     if not g.autoDriving then updateBest() end

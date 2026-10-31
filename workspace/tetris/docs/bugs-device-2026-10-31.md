@@ -1,0 +1,55 @@
+# 真机全流程试玩 bug 台账（2026-10-31 会话 3444）
+
+来源：`Beyond_Debug_Log/2026-10-31_11-14-46_3444_110170759.gia`（30+ 分钟、25433 行 Lua 日志）
+通道：`gia_log.py <log> lua`（f23 = 客户端 Lua print）
+形态：`device=Enum.Device.KeyboardAndMouse mobile=false`（PC 形态）
+
+> 判据约定：每条都要有「日志签名 / 计数」作为证据；修复后同一签名在新日志里必须消失或变为预期形态。
+
+| # | 现象 | 证据（rec / 计数） | 根因方向 | 状态 |
+|---|---|---|---|---|
+| 1 | 打开角色页后写控件报无效对象 | rec10975/10976/11017 `ui fail imageColor / SetAnchoredPosition / fontColor :: invalid object` ×3 | 真机 `DestroyClientUIControl` 立即失效，重排仍写旧控件 | ✅ 已修（placeBtnNow 存活守卫） |
+| 2 | 技能升级解锁提示 node 恒 nil | `skill levelup role=nahida lv=2/4/5/7/8 node=nil` ×5 | 升级解锁表未接（技能节点解锁数据缺失） | ⬜ |
+| 3 | gameover 分数打印为 0 而实际有分 | `gameover score=0` + 随后 `guide gameover score=10702 lines=31`；另一次 `0 / 992` | 双盘时这里是 G[2]（AI 盘）的账本，g.score 恒 0 | ✅ 已修（打印 aiScore+inst） |
+| 4 | 角色页打开 33 次、关闭 0 次日志 | `char codex open n=135` ×33；`roster close` **0 条** | 关闭路径未走 `roster.lua:46/128` 的锚点（或关闭未生效） | ⬜ |
+| 5 | 点击角色行无日志锚点 | 日志无 `char select i=`；代码里也无此锚 | 行点击无遥测 ⇒ 无法验证是否点动 | ⬜ |
+| 6 | 每次开角色页重建 135 个控件 | `char codex open n=135` ×33 ⇒ 约 4455 次实例化 | 关闭时销毁、重开重建；未做复用 | ⬜ |
+| 7 | 每开一次手册重建 326 控件 | `guide help on n=326 v=A page=help` ×4 | 同 6 | ⬜ |
+| 8 | 标题展台反复重建 | `menu stage n=` ×12、`menu cards n=14` ×12 | 每次回标题全量重建 | ⬜ |
+| 9 | 技能 HUD 每秒刷新（含 CD 倒计时） | `skill hud ...` 468 条 / 30min | **代码已有变更检测**（`FN.SK.hudTxt ~= txt`）；CD 倒计时本身每秒变 ⇒ 属预期，**非缺陷**，撤回 | ✅ 非缺陷 |
+| 10 | CD 中按技能无任何界面反馈 | `skill fail role=nahida why=cd` ×149 | 只在日志里拒绝，UI 无「冷却中」提示 | ⬜ |
+| 11 | 结算层最后一次未销毁 | `settle build ok` ×7，`settle destroy n=` ×6（最后 rec25416 无 destroy） | 会话在结算页直接退出/切图 | ⬜（需确认是否预期） |
+| 12 | 结算信号只在 7 次里发过 1 次 | `settle signal` / `settle signal sent` 各 1 | 结算上报链路命中率异常 | ⬜ |
+| 13 | HOLD 交换过于频繁 | `hold swap` ×742（30 分钟 ≈ 0.4 次/秒） | AI/玩家 HOLD 判定阈值过松 | ⬜ |
+| 14 | 抖屏次数偏多 | `shake rows=1` ×288 + `shake rows=2` ×125 | 每次消行都抖，缺少节流 | ⬜ |
+| 15 | 双盘与单盘切换 20/20，缺乏稳定期 | `dual=true` ×20 / `dual=false` ×20 | 模式切换频繁（用户操作，非缺陷，记录观察） | 观察 |
+| 16 | 标题演示在角色页打开时仍在跑 | rec10962 后仍有 `demo plan/act/fall` | 浮层不暂停演示（体验问题） | ⬜ |
+| 17 | 角色页期间文字层被整层隐藏 | `textlayer hidden=true` ×12 与开角色页同步 | 隐藏范围含浮层自身文本的风险 | ⬜（需真机确认） |
+| 18 | 单元格模板首次探测失败回退 | `probe cell fail guid=1073742105 :: nil` → ok 1849 | 模板候选表首位失效（每次启动 1 次） | ⬜ 低 |
+| 19 | hit 模板同样首位失效 | `probe hit fail guid=1073742106 :: nil` → ok 1884 | 同上 | ⬜ 低 |
+| 20 | 结算文本框模板探测 | `settle try text tpl=1073742202 -> ok kids=0` | kids=0 说明模板无子控件（依赖运行期填充） | 观察 |
+| 21 | 技能 CD 文案与实际不符 | `skill hud 纳西妲 Lv12 CD 25.0s` 与 `CD 0.6s` 交替 | 同一角色 CD 上限显示不一致（25s vs 0.6s 剩余） | ⬜ 待核 |
+| 22 | 局内 `screen=game` 45 次 | 45 次重排 | 每次重排全量 apply（性能） | ⬜ |
+| 23 | `ai pace tier=3 lv=1 pace=2.16` 反复 | ×1106 | 演示态每块都打日志（高频路径打印，违反打印纪律） | ⬜ |
+| 24 | `talent onLock` 1404 条 | 每次落块一条 | 高频路径打印 | ⬜ |
+| 25 | `demo act` 4580 条 | 演示动作逐条打印 | 高频路径打印 | ⬜ |
+| 26 | `fall y=` 4885 条 | 每次下落一行 | 高频路径打印 | ⬜ |
+| 27 | 会话尾在结算页无收尾日志 | 最后一条为 `skill hud ...` | 缺少会话结束/退出锚点 | ⬜ |
+| 28 | 角色页 5 次 `char tab tap` 但页签切换无对应内容锚 | `char tab tap` ×4 | 页签切换后内容重建无遥测 | ⬜ |
+| 29 | `menu entries via CTL ok=true/true` 只出现 1 次 | 每次回标题展台重建（12 次）却只打 1 次 | 展台重建走的是另一条路径，入口卡未重建（隐患） | ⬜ |
+| 30 | `hud inst n=10 (textbox hidden)` 只 1 次 | HUD 实例只建一次 ✓ | 正常，登记为基线 | 基线 |
+
+## 修复顺序（按「用户可感知 + 证据强度」）
+
+1. #1 无效对象（已完成）
+2. #3 gameover 分数打印错误（读数错=误导排查）
+3. #4/#5 角色页关闭与行点击遥测（当前无法验证）
+4. #9/#10 技能 HUD 与 CD 反馈（用户直接感知）
+5. #2 升级解锁 nil
+6. #11/#12 结算生命周期与上报
+7. #6/#7/#8 重建开销（性能）
+8. #23~#26 高频打印缩量（日志可读性）
+
+## 验证口径
+
+- 每次修复后：`node qxqy/runner.mjs` 相关用例 + 本地出图；真机复测后取新 `.gia` 用 `grep` 核对本节证据列的签名。
