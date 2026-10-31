@@ -252,5 +252,30 @@ ok(JA.setBase({ name = 'play', opaque = true, view = function() return baseNodes
   'J9 重复 setBase 幂等（不因重复注册抛错）')
 ok(JS.depth() == 1, 'J10 重复 setBase 不叠栈', JS.depth())
 
+-- ===== K provideOverlay：懒创建屏在"开的时候"才给实例 =====
+local KS = scenesM.new { log = function() end }
+local KR_default = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local KR_settle = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local KA = appM.new { platform = P, render = KR_default, scenes = KS, layers = layers,
+  overlayRender = KR_default, log = function() end }
+ok(KA.openOverlay('help', { name = 'help', opaque = true, view = function()
+  return { { key = 'kh', layer = 'card', tpl = 'cell', name = 'kh', pos = {0,0}, size = {8,8}, color = 0 } }
+end }, { { key = 'kh', layer = 'card', tpl = 'cell', name = 'kh', pos = {0,0}, size = {8,8}, color = 0 } }) == true,
+  'K1 默认实例可开覆盖屏')
+ok(KR_default.live() == 1, 'K2 默认实例里有节点', KR_default.live())
+KA.closeOverlay()
+ok(KR_default.live() == 0, 'K3 关屏清默认实例')
+-- 懒创建：构造期没给 settle 的实例，开屏时才 provide
+ok(KA.provideOverlay('settle', KR_settle) == true, 'K4 provideOverlay 登记成功')
+ok(KA.openOverlay('settle', { name = 'settle', opaque = true, view = function() return {} end },
+  { { key = 'ks', layer = 'card', tpl = 'cell', name = 'ks', pos = {0,0}, size = {8,8}, color = 0 } }) == true,
+  'K5 用登记的实例开覆盖屏')
+ok(KR_settle.live() == 1, 'K6 节点进了**登记的**实例（不是默认那个）', KR_settle.live())
+ok(KR_default.live() == 0, 'K7 默认实例不受影响', KR_default.live())
+ok(KA.overlayRender() == KR_settle, 'K8 overlayRender() 返回当前覆盖屏的实际实例')
+KA.closeOverlay()
+ok(KR_settle.live() == 0, 'K9 关屏清的是登记的实例')
+ok(KA.provideOverlay('x', nil) == false, 'K10 缺参返回 false（不抛）')
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

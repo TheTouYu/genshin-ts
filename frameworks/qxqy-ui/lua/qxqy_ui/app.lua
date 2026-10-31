@@ -120,14 +120,31 @@ M.new = function(spec)
   local overlayR = spec.overlayRender
   local overlayName, overlayPushed = nil, false
 
+  -- 让场景在"要开的时候"声明它用哪个 render 实例（懒创建屏用：结算在第一次 gameOver
+  -- 才建 SR，构造期还没有实例可注入）。与 openOverlay 同族：注册即声明。
+  local provided = {}
+  function A.provideOverlay(name, render)
+    if not name or not render then
+      log('app provideOverlay missing name/render')
+      return false
+    end
+    provided[name] = render
+    return true
+  end
+
+  function A.overlayRenderFor(name)
+    return provided[name] or overlayR
+  end
+
   function A.openOverlay(name, def, nodes)
-    if not overlayR then
+    local R_ = provided[name] or overlayR
+    if not R_ then
       log('app overlay missing :: ' .. tostring(name))
       return false
     end
     if overlayName then A.closeOverlay() end
-    overlayR.clear()
-    local ok, err = pcall(overlayR.apply, nodes or {})
+    R_.clear()
+    local ok, err = pcall(R_.apply, nodes or {})
     if not ok then
       log('app overlay fail :: ' .. tostring(name) .. ' :: ' .. tostring(err))
       return false
@@ -146,7 +163,8 @@ M.new = function(spec)
 
   function A.closeOverlay()
     local was = overlayName
-    if overlayR then overlayR.clear() end
+    local R_ = was and (provided[was] or overlayR) or overlayR
+    if R_ then R_.clear() end
     if overlayPushed then S.pop() end
     overlayPushed = false
     overlayName = nil
@@ -197,7 +215,7 @@ M.new = function(spec)
   end
 
   function A.overlay() return overlayName end
-  function A.overlayRender() return overlayR end
+  function A.overlayRender() return overlayName and (provided[overlayName] or overlayR) or overlayR end
 
   function A.scenes() return S end
   function A.stats()
