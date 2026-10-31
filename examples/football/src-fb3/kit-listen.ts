@@ -62,7 +62,8 @@ const graph = g
               () => {
                 const c = f.getCorrespondingValueFromList(chars, 0n)
                 f.setCustomVariable(owner, 'fb_char_e', c, false)
-                // 同步写 fbc_e：内核 §3 首选读它做 0 延时位置查询 ⇒ 不再依赖"点过球的选项卡"
+                // 同步写 fbc_e：四步链解析出来的**就是玩家角色实体**（客户端内核首选读它做 0 延时位置查询）。
+                // 角色实体无 GUID 是正常的（动态初始化），不代表句柄无效。
                 f.setCustomVariable(owner, 'fbc_e', c, false)
               },
               () => {}

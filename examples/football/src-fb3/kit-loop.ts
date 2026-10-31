@@ -94,7 +94,8 @@ const DRIB_KD_DEFAULT = 12.0 // 带球相对速度阻尼 1/s
 const DRIB_R_DEFAULT = 2.0 // 带球助力半径 m
 
 const DRIB_AHEAD = 1.0 // 带球目标点：玩家前方多远
-const DRIB_AMAX = 30.0 // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
+const DRIB_AMAX = 30.0
+const DRIB_VMAX = 4.0 // 带球助力给球的目标速度上限（相对玩家速度，m/s） // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动 m/s
 const SETTLE_VY = 1.0 // 触地 |vy| 低于此值 ⇒ 直接贴地不再弹
 const CONTACT_EPS = 0.02 // 贴地判定余量 m
@@ -194,20 +195,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   pPzV.set(f.querySkillVariableValue(S_PPZ))
   const posSrc = f.localVariable('int')
   posSrc.set(0n)
+  // 判据用**官方节点**「查询实体是否在场」（`queryIfEntityIsOnTheField`：角色实体即使倒下也算在场）。
+  // 曾经的错误：用 `queryGuidByEntity(charE) != 0` 当有效性——角色实体是运行时动态初始化的，
+  // GUID 恒 0（D724/PKC 口径），于是客户端直读整条被废掉；也错在拿位置量级当判据（玩家站在
+  // 原点时位置就是 (0,0)，那是真值不是垃圾）。
+  const charOK = f.queryIfEntityIsOnTheField(charE)
   f.doubleBranch(
-    f.logicalNotOperation(f.equal(f.queryGuidByEntity(charE), 0n)),
+    charOK,
     () => {
       const cLoc = f.split3dVector(f.getEntityLocation(charE))
-      const cLen = f._3dVectorModuloOperation(f.create3dVector(cLoc.xComponent, 0.0, cLoc.zComponent))
-      f.doubleBranch(
-        f.greaterThan(cLen, 0.01),
-        () => {
-          pPxV.set(cLoc.xComponent)
-          pPzV.set(cLoc.zComponent)
-          posSrc.set(1n)
-        },
-        () => {}
-      )
+      pPxV.set(cLoc.xComponent)
+      pPzV.set(cLoc.zComponent)
+      posSrc.set(1n)
     },
     () => {}
   )
@@ -429,6 +428,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 },
                 () => {}
               )
+              // —— 踢球自旋：由**本拍冲量**推出（不读回写后的 vx/vz；旧的独立块要二次消费
+              //    kickNow，会被「本拍写回 S_LASTSEQ」污染 ⇒ 实测踢出 10m/s 但 spin 恒 0）——
+              wx.set(f.division(impZ.value, BALL_R))
+              wz.set(f.division(f.multiplication(impX.value, -1.0), BALL_R))
             },
             () => {
               // —— 无球：抢断 / 解围 / 停球 ——
@@ -477,29 +480,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       vx.set(f.addition(vx.value, impX.value))
       vy.set(f.addition(vy.value, impY.value))
       vz.set(f.addition(vz.value, impZ.value))
-      // 踢球后给纯滚动自旋（脚带走球，不是凭空滑出去）；6 号键在物理结束后统一重置
-      f.doubleBranch(
-        f.logicalAndOperation(
-          kickNow,
-          f.logicalAndOperation(hasBall, f.logicalNotOperation(f.equal(keyRaw, 6n)))
-        ),
-        () => {
-          const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
-          f.doubleBranch(
-            f.greaterThan(spH, 0.5),
-            () => {
-              wx.set(f.division(vz.value, BALL_R))
-              wz.set(f.division(f.multiplication(vx.value, -1.0), BALL_R))
-            },
-            () => {
-              wx.set(0.0)
-              wz.set(0.0)
-            }
-          )
-        },
-        () => {}
-      )
-
       // —— 拦截（自动）：高速球撞进身体 0.9m 且朝我飞来 ⇒ 沿法线反弹 0.7 ——
       const relLen = f.addition(distBP, 0.0001)
       const nX = f.division(f.subtraction(bx.value, pPxV.value), relLen)
@@ -541,14 +521,28 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         assistOn,
         () => {
+          // 一阶跟随（不是弹簧-阻尼）：7.5Hz 下 kp=45/kd=12 的显式积分会自激——实测
+          // tick217..220 球速每拍翻号（1.13→−0.75→1.72→−0.73），玩家站着球在原地抖。
+          //   desiredV = 玩家速度 + clamp(误差·posGain, ±DRIB_VMAX)
+          //   a        = (desiredV − 球速)/tau        （tau≈0.3s ⇒ 每拍走 44%，无过冲）
           const tX = f.addition(pPxV.value, f.multiplication(aimX.value, DRIB_AHEAD))
           const tZ = f.addition(pPzV.value, f.multiplication(aimZ.value, DRIB_AHEAD))
           const errX = f.subtraction(tX, bx.value)
           const errZ = f.subtraction(tZ, bz.value)
-          const rvX = f.subtraction(vx.value, vpxV.value)
-          const rvZ = f.subtraction(vz.value, vpzV.value)
-          const aX = f.subtraction(f.multiplication(kp.value, errX), f.multiplication(kd.value, rvX))
-          const aZ = f.subtraction(f.multiplication(kp.value, errZ), f.multiplication(kd.value, rvZ))
+          const posGain = f.division(kp.value, 10.0)
+          const tau = f.addition(0.2, f.division(kd.value, 100.0))
+          const dvxRaw = f.multiplication(errX, posGain)
+          const dvzRaw = f.multiplication(errZ, posGain)
+          const dvx = f.localVariable('float')
+          const dvz = f.localVariable('float')
+          f.doubleBranch(f.greaterThan(dvxRaw, DRIB_VMAX), () => { dvx.set(DRIB_VMAX) }, () => {
+            f.doubleBranch(f.lessThan(dvxRaw, -DRIB_VMAX), () => { dvx.set(-DRIB_VMAX) }, () => { dvx.set(dvxRaw) })
+          })
+          f.doubleBranch(f.greaterThan(dvzRaw, DRIB_VMAX), () => { dvz.set(DRIB_VMAX) }, () => {
+            f.doubleBranch(f.lessThan(dvzRaw, -DRIB_VMAX), () => { dvz.set(-DRIB_VMAX) }, () => { dvz.set(dvzRaw) })
+          })
+          const aX = f.division(f.subtraction(f.addition(vpxV.value, dvx.value), vx.value), tau)
+          const aZ = f.division(f.subtraction(f.addition(vpzV.value, dvz.value), vz.value), tau)
           const am = f._3dVectorModuloOperation(f.create3dVector(aX, 0.0, aZ))
           const sc = f.localVariable('float')
           f.doubleBranch(

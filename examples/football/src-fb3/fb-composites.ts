@@ -14,9 +14,8 @@ import { bool, str } from 'genshin-ts/runtime/value'
 export const RAD2DEG = 57.29577951308232 // 180/π：旋转设备角速度单位
 
 // ———— 复合 1：把球"开到"预测位（线性 + 旋转同拍、同一 duration）———————————————
-// 两条硬教训（已在真机复现两次）：①定点器与旋转设备同链会把直线设备秒停 ⇒ 只用基础线性运动器；
-// ②线性与旋转必须同拍同 duration，否则"旋转与速度分离"（2026-10-31 用户反馈）。
-// ③旋转轴要世界→局部（YXZ 内旋）换算，否则球滚成怪异方向。
+// 三条硬教训（真机复现过）：①定点器与旋转设备同链会把直线设备秒停 ⇒ 只用基础线性运动器；
+// ②线性与旋转必须同拍同 duration，否则"旋转与速度分离"；③旋转轴要世界→局部（YXZ 内旋）换算。
 export const fbDriveBall = g.defineComposite('fb_drive_ball', {
   id: 1610700050,
   inputs: {
@@ -67,7 +66,9 @@ export const fbDriveBall = g.defineComposite('fb_drive_ball', {
 })
 
 // ———— 复合 2：把玩家角色坐标写进载体实体（kitListen 每拍调用）———————————————
-// 客户端内核读这些变量做兜底通道（首选是客户端直读角色实体 fbc_e，见 kit-loop.ts §3）。
+// 客户端内核首选是直读 `fbc_e`（选项卡锁存的真角色句柄）；这里写的是**兜底通道**。
+// 注：解析链可能给到恒在 (0,y,0) 的占位实体（无 GUID，D724）⇒ 会写 0；
+//     内核用 `srvLen > 0.01` 拒收 0，所以写 0 无害。
 export const fbWritePlayerPos = g.defineComposite('fb_write_player_pos', {
   id: 1610700051,
   inputs: {
