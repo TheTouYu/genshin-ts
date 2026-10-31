@@ -354,9 +354,11 @@ local PLATFORM_M = loadModule('platform')
 local VIEW_LAYERS_M = loadModule('view_layers')
 local RENDER_M = loadModule('render')
 local VIEW_BOARD_M = loadModule('view_board')
+local INPUT_M = loadModule('input_map')   -- v6.1 键位唯一真源（动作表 + 一次注册 + 栈式分发）
 if not (PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M) then
   print('v6 modules MISSING: platform/view_layers/render/view_board（棋盘会退回旧路径）')
 end
+if not INPUT_M then print('v6 input_map MISSING（键位退回散装 listen 路径）') end
 local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.play
 -- v4.0 ③ 角色技能：纯逻辑在 lua/tetris/skills.lua（111 断言单测），这里只持状态 + 派发效果。
 -- 设计见 docs/characters-design.md；局外养成 v1 = 会话内跨盘（真持久化是缺口，见 05-open）。
@@ -5582,27 +5584,8 @@ end
 -- ── 手柄：键映射 + 左摇杆 + 菜单焦点导航（真机键名以日志 `pad ev` 为准，改 config 即可换绑）──
 -- 为什么先注册探针再派发：官方手柄键位由编辑器「按键映射-手柄」决定，Lua 侧拿不到映射表；
 --   真实玩家按一遍，日志里的 `pad ev ControllerXxxKeyDown` 就是实际键名 ⇒ 表驱动改绑，不靠猜。
-UI4.padBind = function(listen)
-  local P = NUM.PAD or {}
-  local map = {}
-  for action, list in pairs(P.KEYS or {}) do
-    for _, ev in ipairs(list) do map[ev] = action end
-  end
-  local bases = {}
-  for i = 1, 14 do bases[#bases + 1] = 'CraftspersonKey' .. i end
-  for _, n in ipairs(P.PROBE_NAMED or {}) do bases[#bases + 1] = n end
-  local cnt = 0
-  for _, base in ipairs(bases) do
-    local ev = 'Controller' .. base .. 'Down'
-    local action = map[ev]
-    listen(ev, function()
-      print('pad ev ' .. ev .. (action and (' act=' .. action) or ''))
-      if action then UI4.padAct(action, ev) end
-    end)
-    cnt = cnt + 1
-  end
-  print('pad bind n=' .. cnt)
-end
+-- v6.1：padBind 退役——手柄键的登记进了 input_map.ACTIONS/PROBE，由 INPUT:bindAll 一次注册；
+-- `pad ev <键> act=<动作>` 与 `pad bind n=` 两条日志锚由派发段照原样打出（tests/48 契约）。
 
 -- 摇杆：左右移动（带连发）、向下缓降。轴的正负真机未实证 ⇒ 日志把两个数都打出来。
 UI4.padTick = function(dt)
@@ -5864,26 +5847,9 @@ function OnStart()
   -- ⇒ 同时挪到画布外 y=-4000；进局由 startIfWaiting「位+显」一起还原）
   if HUD_INST.hideAll then HUD_INST.hideAll() end
 
-  -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
-  -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
-  -- 2026-10-24 日志实证）；模拟器接受字符串。两种都试：先枚举，失败回落字符串。
-  local enumKeys = (type(Enum) == 'table' and Enum.KeyEventType) or nil
-  local function listen(name, fn)
-    local ok, err, how
-    if enumKeys and enumKeys[name] ~= nil then
-      ok, err = pcall(function() root:AddKeyEventListener(enumKeys[name], fn) end)
-      how = 'enum'
-    end
-    if not ok then
-      ok, err = pcall(function() root:AddKeyEventListener(name, fn) end)
-      how = 'string'
-    end
-    if ok then
-      print('listen ok ' .. name .. ' via ' .. how)
-    else
-      print('listen fail ' .. name .. ' :: ' .. tostring(err))
-    end
-  end
+  -- v6.1：键位注册不再是「每处 listen 一行」——唯一入口是文件末尾的 INPUT:bindAll(dispatch)。
+  -- 旧的本地 listen(name, fn) 已并入 platform.bindKey（同样的枚举/字符串双路径回退，
+  -- 同样的日志字面量 `listen ok … via enum|string` 与 `listen fail …`，tests 与真机日志都认它）。
 
   -- 每个动作前先 startIfWaiting()：入场态按的第一个键既开始游戏也执行该动作
   -- （不吞键，用例与手感一致）；stage 2 键位表期间除 H/R 外全部忽略。
@@ -5997,46 +5963,25 @@ function OnStart()
       CORE.dispatch(g.core.hardDrop(g))
     end
   end
-  -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
-  -- T6 双屏输入路由：act(keyName, fn) 内按 MODE 路由到目标实例，不再散改 listen）
-  for _, m in ipairs(NUM.KEYMAP) do
-    listen(m.key, act(m.key, function() doPlay(m.action, m.key) end))
-    if m.up then
-      listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个；T6：清目标实例）
-        g = routePlayer(m.key)   -- v3.3 根修：事件回调必须先路由（ai-battle 下 OnUpdate 循环每帧把 g 留成 G[2]，Up 曾清错实例=玩家盘连移永不停）
-        if m.action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
-        if m.action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
-      end)
-    end
-  end
-  -- T6c pvp：P2 硬降 X（Drop）/Hold F（Interact）——v1 KEYMAP 未含，补两条（经同一路由/过滤/日志）
-  listen('KeyboardDropKeyDown', act('KeyboardDropKeyDown', function() doPlay('hard', 'KeyboardDropKeyDown') end))
-  listen('KeyboardInteractKeyDown', act('KeyboardInteractKeyDown', function() doPlay('hold', 'KeyboardInteractKeyDown') end))
-  -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
-  -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）。
-  -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。
-  -- v2.7 ⑤：选择逻辑抽成 menuSelectMode(i)，与鼠标/触屏点卡（MS.buildHoverZones 的 CursorClick）共用同一条入口。
-  for i = 1, #MODE_INFO do
-    listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
-      if keyConsumedFrame == frameSeq then return end
-      menuSelectMode(i)
-    end)
-  end
-  listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
+  -- v6.1：玩法键与模式键不再在这里逐条 listen —— 它们进了 input_map.ACTIONS，由文件末尾的
+  -- INPUT:bindAll(dispatch) 一次注册。对应关系：
+  --   left/right/rot/soft/hard/hold（含 pvp 补丁键 X=Drop、F=Interact）→ act(...)+doPlay(...)
+  --   mode1..mode4 → menuSelectMode(i)（仍带 keyConsumedFrame 同帧让位）
+  -- 双屏路由（routePlayer）与 coop 过滤（coopAllowed）都还在 act/doPlay 里，按 keyName 判定不变。
+  local function actLevel()                                -- T5 调试切档（具名键不被 anyKeyStart 抢）
     if guideStage ~= 0 then return end
     NUM.AI_LEVEL = NUM.AI_LEVEL % 3 + 1
     local lv2 = NUM.AI_LEVELS[NUM.AI_LEVEL]
     RHO.pieces, RHO.lines = 0, 0
     print('demo level=' .. lv2.name)
     demoLoopReset()
-  end)
+  end
   -- v2.6 ④：V = 结算后回主页（CraftspersonKey22；所有模式结算通用出口）
   -- v2.7 修用户反馈②③（V 回不到真正的开始页 / 第二次按 1-4 没反应）：
   -- V 自身也落在 43 键兜底池里（v1「任意键开始」），exitToMenu 把 guideStage 置 0 之后，
   -- 同一个按键事件继续派发给兜底监听 ⇒ 刚建好的标题页立刻被 startIfWaiting 吃掉。
   -- 双保险：① mapped 表排除 22（兜底循环不再注册它）② 同帧消费标记让兜底让位。
-  listen('KeyboardCraftspersonKey22Down', function() SETTLE_ACT.backHome() end)
-  listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
+  local function actRestart()                              -- R 重开（键位表态也允许）
     if helpOpen then closeHelp() return end
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
@@ -6065,9 +6010,9 @@ function OnStart()
     -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
     local okRelayout, errRelayout = pcall(layout, W, H)
     if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
-  end)
+  end
   -- Q：结算明细（结算态才有意义）。明细走左栏 hint（棋盘外，不会被实例格子盖住）
-  listen('KeyboardCharacterSkill2KeyDown', function()
+  local function actSettleQ()
     startIfWaiting()
     if not (g.gameOver or MODE_OVER) then return end
     -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
@@ -6097,7 +6042,7 @@ function OnStart()
       end
       print('settle detail off')
     end
-  end)
+  end
   -- ===== v2.8 ④：结算三动作（键监听与鼠标热区共用）=====
   SETTLE_ACT.restart = function()   -- = R 键体（重开/回菜单按模式）
     startIfWaiting()
@@ -6164,20 +6109,20 @@ function OnStart()
     keyConsumedFrame = frameSeq
     if helpOpen then closeHelp() else toggleHelp() end
   end
-  listen('KeyboardCraftspersonKey15Down', onHelpKey)
-  listen('KeyboardCharacterSkill1KeyDown', onHelpKey)
   -- 鼠标/触屏：标题页常驻的「H 规则说明」热区（cursor 实例，PC 也可点）
   -- 由 buildMenuCards 里的 MS.helpZone 建；回调在 hit 段统一注册（见下 hits 段）
   -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
-  listen('KeyboardCharacterSkill4KeyDown', act('KeyboardCharacterSkill4KeyDown', function()
-    for rr = ROWS - 1, ROWS do
-      for c = 1, COLS do g.board[rr][c] = CFG.COL_BLUE end
-    end
-    print('debug-fill')
-    renderAll()
-    renderHud()
-  end))
+  local function actDebugFill()
+    act('KeyboardCharacterSkill4KeyDown', function()
+      for rr = ROWS - 1, ROWS do
+        for c = 1, COLS do g.board[rr][c] = CFG.COL_BLUE end
+      end
+      print('debug-fill')
+      renderAll()
+      renderHud()
+    end)()
+  end
 
   -- ===== v4.0 设备适配接线（移动端按钮 / 手柄 / 焦点导航）=====
   -- 动作派发一律走键盘同一条链（act(key, fn) + doPlay）：于是"帮助页开着先关页""入场态按键
@@ -6228,7 +6173,7 @@ function OnStart()
     if UI4.menuMode() and SETTLE_ACT.restart then SETTLE_ACT.restart() end
   end
   pcall(UI4.build, isMobile)         -- 移动端 6 键 + 说明键（客户端实例层）
-  pcall(UI4.padBind, listen)         -- 手柄 24 条 Controller 事件（探针 + 映射）
+  -- 手柄 24 条 Controller 事件（14 映射 + 10 探针）已并入 INPUT:bindAll（见文件末尾派发段）
   print('v4 device mobile=' .. tostring(isMobile) .. ' pad=' .. tostring(UI4.isPad)
     .. ' phone=' .. #(UI4.btns or {}))
   -- ===== v4.0 ③ 角色技能：状态机 + Z/U/Y 键 =====
@@ -6250,9 +6195,6 @@ function OnStart()
   -- 第二次按 Z 撞 CD，日志里没有 skill ai end，接管被 playerTouched 打断了）。
   -- v6：记录技能键的按住秒数（刻晴「长按·跨地形」判 ≥0.35s）
   FN.skillKeyHoldSec = 0
-  local function skillKeyUpWatch(name)
-    listen(name, function() FN.skillKeyHoldSec = 0 end)
-  end
   local function skillKey(fn, keyName)
     return function()
       FN.skillKeyHoldSec = tonumber(FN.skillKeyHoldSec) or 0
@@ -6284,30 +6226,30 @@ function OnStart()
   local function skillFrontName()
     return (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida'
   end
-  listen('KeyboardCraftspersonKey12Down', function()
+  local function actSkill1Down()
     skillDownT = (g and g.elapsed) or 0
     if skillFrontName() ~= 'keqing' then
       skillKey(function() FN.skillCast(1) end)()
     end
-  end)
-  listen('KeyboardCraftspersonKey12Up', function()
+  end
+  local function actSkill1Up()
     if skillFrontName() == 'keqing' then
       FN.skillKeyHoldSec = math.max(0, ((g and g.elapsed) or 0) - skillDownT)
       skillKey(function() FN.skillCast(1) end)()
     end
-  end)
-  listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end, 'KeyboardCraftspersonKey11Down'))
-  listen('KeyboardCraftspersonKey13Down', skillKey(function()
+  end
+  local function actSkill2() skillKey(function() FN.skillCast(2) end, 'KeyboardCraftspersonKey11Down')() end
+  local function actSkillSwitch() skillKey(function()
     -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
     if not (SK and SK.party and #SK.party > 0) then return end
     local n = #SK.party
     SK.active = ((SK.active or 1) % n) + 1
     FN.skillHud()
     print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
-  end))
-  listen('KeyboardCraftspersonKey16Down', skillKey(function() FN.rosterToggle() end, 'KeyboardCraftspersonKey16Down'))
+  end)() end
+  local function actRoster() skillKey(function() FN.rosterToggle() end, 'KeyboardCraftspersonKey16Down')() end
   -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
-  listen('KeyboardCraftspersonKey30Down', skillKey(function()
+  local function actDebugUnlock() skillKey(function()
     if not (SK and SKILLS) then return end
     for _, role in ipairs(SK.roles or {}) do
       if SK.unlocked[role] ~= true then
@@ -6324,28 +6266,13 @@ function OnStart()
     SK.active = 1
     print('skill debug unlock all party=' .. tostring(#(SK.party or {}))
       .. ' active=' .. tostring(SK.party[1] or '-'))
-  end))
+  end)() end
 
-  -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
-  -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
-  -- v2.7：15(H)/22(V) 也必须排除——它们各有真动作（说明页 / 回主页），落进兜底会「同一个键既回主页又开局」
-  -- （用户反馈②③的根因；见 keyConsumedFrame 注释）。表由「已绑定动作」派生，别只加数字不写理由。
-  local mapped = {
-    [1] = true, [2] = true, [3] = true, [4] = true,   -- Digit1-4 = 模式选择
-    [15] = true,                                      -- H = 规则说明页（CraftspersonKey15='KeyH'）
-    [22] = true,                                      -- V = 结算后回主页（CraftspersonKey22='KeyV'）
-    [36] = true, [37] = true, [38] = true, [39] = true, -- ↑↓←→ = 旋转/软降/移动
-    -- v6.1：技能/Hold/档案/调试键也必须排除。它们在上面的 listen 里已有真动作，
-    -- 落进兜底就变成「同一个键两个监听」——行为取决于注册顺序，输入 bug 因此不可复现。
-    -- 兜底语义不丢：这六个动作的执行体自己都调 startIfWaiting()（见 FN.skillCast / act()）。
-    [11] = true,                                      -- U = 技能2
-    [12] = true,                                      -- Z = 技能1
-    [13] = true,                                      -- Y = 切台前角色
-    [14] = true,                                      -- G = 暂存
-    [16] = true,                                      -- 角色档案
-    [30] = true,                                      -- 调试：解锁全部角色
-  }
-  local anyKeyStart = function()
+  -- 入场态兜底：43 个可编程键位里凡是没被动作表认领的，都只做"开始游戏"这一件事。
+  -- v6.1：排除表（mapped）与 43 次 listen 循环一起退役——input_map.fallbackPool() 从动作表
+  -- **自动派生**兜底池（43 - 已被认领的 16 个 = 27），物理上不可能再出现"同一个键两个监听"。
+  -- 兜底语义不丢：六个技能/Hold 键的执行体自己都调 startIfWaiting()（见 skillKey / act）。
+  local function anyKeyStart()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
     if guideStage == 3 and GK.phase == 'keys' then
@@ -6364,10 +6291,68 @@ function OnStart()
       end
     end
   end
-  for i = 1, 43 do
-    if not mapped[i] then
-      listen('KeyboardCraftspersonKey' .. i .. 'Down', anyKeyStart)
+
+  -- ===== v6.1 输入单源：动作表在 input_map.lua，这里只留一张「动作 → 现有执行体」派发表 =====
+  -- 收表前：90 次 AddKeyEventListener / 84 个键 / 其中 6 个键注册两次（谁先注册谁先派发，
+  -- 输入类 bug 因此不可复现）。收表后：84 次 / 84 个键 / 0 重复；改键位只动 input_map.lua。
+  -- 返回值 true = 已消费（栈式分发约定）；INPUT:dispatch 还会先问栈顶（说明页/结算等场景可压栈）。
+  local INPUT
+  local function dispatch(action, keyName, phase)
+    -- 手柄：先打 tests/48 的锚 `pad ev <键> act=<动作>`（未映射的探针键只有键名）
+    if keyName:match('^Controller') then
+      local shown = (action == 'confirm') and 'ok' or action   -- 保持既有日志词（PAD.KEYS 用的是 ok）
+      print('pad ev ' .. keyName .. ((action ~= 'probe') and (' act=' .. shown) or ''))
+      if action == 'probe' then return true end
+      if UI4.padAct then UI4.padAct(shown, keyName) end
+      return true
     end
+    -- 玩法六动作（Down 走 act 链；Up 只清 DAS 方向）
+    if action == 'left' or action == 'right' or action == 'rot'
+      or action == 'soft' or action == 'hard' or action == 'hold' then
+      if phase == 'up' then
+        local dk = keyName:gsub('Up$', 'Down')
+        g = routePlayer(dk)   -- 事件回调必须先路由（ai-battle 下 g 会被 OnUpdate 留成 G[2]）
+        if action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
+        if action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
+        return true
+      end
+      act(keyName, function() doPlay(action, keyName) end)()
+      return true
+    end
+    local modeN = tonumber(action:match('^mode(%d)$') or '')
+    if modeN then
+      if keyConsumedFrame == frameSeq then return true end
+      menuSelectMode(modeN)
+      return true
+    end
+    if action == 'level' then actLevel() return true end
+    if action == 'back' then SETTLE_ACT.backHome() return true end
+    if action == 'restart' then actRestart() return true end
+    if action == 'settle' then actSettleQ() return true end
+    if action == 'help' then onHelpKey() return true end
+    if action == 'debugFill' then actDebugFill() return true end
+    if action == 'skill1' then
+      if phase == 'up' then actSkill1Up() else actSkill1Down() end
+      return true
+    end
+    if action == 'skill2' then actSkill2() return true end
+    if action == 'skillSwitch' then actSkillSwitch() return true end
+    if action == 'roster' then actRoster() return true end
+    if action == 'debugUnlock' then actDebugUnlock() return true end
+    if action == 'anyKey' then anyKeyStart() return true end
+    return false
+  end
+
+  if INPUT_M and PT then
+    INPUT = INPUT_M.new({ platform = PT, log = function(m) print(m) end })
+    INPUT:bindAll(dispatch, { padMoveKeys = false })   -- MoveLeft/MoveRight 是死映射，启用需同步 tests/48
+    local nPad = 0
+    for _, k in ipairs(INPUT:boundKeys()) do
+      if k:match('^Controller') then nPad = nPad + 1 end
+    end
+    print('pad bind n=' .. nPad)     -- tests/48 契约：手柄 24 条（14 映射 + 10 探针）
+  else
+    print('input: 跳过表格注册（缺 input_map 或 platform）——本局将收不到按键')
   end
 
   -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）
