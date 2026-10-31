@@ -82,26 +82,49 @@ ok(#RN.issues() == 0, 'A3 render 0 issue（层序/实例化都干净）', #RN.is
 local nreg = #REG
 ok(nreg >= 12, 'A4 UI4.regAdd 注册了 ' .. nreg .. ' 个热区（≥12：4 行 + 5 页签 + 关闭 + 3 卡）', nreg)
 
-print('== B. 引擎公式：框高 ≥ requiredHeight（fits 的结构前提）==')
+print('== B. 引擎侧：读 ctl.textLayout（mock 按引擎公式算，524fc25e）==')
 do
-  local bad, checked = nil, 0
+  -- 先证 mock 本身有引擎语义（负控：这两组数字与真机实测一致，见 lead 2026-10-31 读数）
+  local neg1 = PLATFORM.textMetrics({ text = string.rep('字', 16), fontSize = 18, sizeDeltaX = 240, sizeDeltaY = 32 })
+  local neg2 = PLATFORM.textMetrics({ text = string.rep('字', 13), fontSize = 16, sizeDeltaX = 200, sizeDeltaY = 46 })
+  ok(neg1.fits == false and math.abs(neg1.requiredHeight - 51.7) < 0.05 and neg1.visibleLineCount == 0,
+    'B0 负控：18 号/宽 240/高 32 ⇒ 2 行、需 51.7、fits=false（与真机实测一致）',
+    string.format('req=%.1f lines=%d', neg1.requiredHeight, neg1.lines))
+  ok(neg2.fits == false and math.abs(neg2.requiredHeight - 46.4) < 0.05,
+    'B0b 负控：16 号/宽 200/高 46 ⇒ 需 46.4、fits=false',
+    string.format('req=%.1f', neg2.requiredHeight))
+
+  local bad, checked, shown = nil, 0, {}
+  local want = { charPanelL1 = true, charPanelL4 = true, charPanelS = true }
   local ctrls = RN.controls()
   for _, c in pairs(ctrls) do
-    local txt = c.text
-    if type(txt) == 'string' and txt ~= '' and c.fontSize and c.fontSize > 0 then
+    if c.__kind == 'text' and type(c.text) == 'string' and c.text ~= '' then
       checked = checked + 1
-      local f = c.fontSize
-      -- 行数用模块自己的保守折行口径（CJK 按字号宽、ASCII 按窄宽）——引擎实测也是这个量级
-      local lines = #VROSTER.wrap(txt, f, c.sizeDeltaX)
-      local need = 1.2 * f * lines + (0.25 * f + 4)
-      if c.sizeDeltaY + 0.501 < need then
-        bad = string.format('%s h=%.0f < need=%.1f (f=%d lines=%d)', tostring(c.name), c.sizeDeltaY,
-          need, f, lines)
+      local tl = c.textLayout
+      local line = string.format('%s f=%d lines=%d req=%.1f h=%.0f fits=%s vlc=%d',
+        tostring(c.name), c.fontSize, tl.lines, tl.requiredHeight, c.sizeDeltaY,
+        tostring(tl.fits), tl.visibleLineCount)
+      if want[c.name] then shown[#shown + 1] = line end
+      if tl.fits ~= true or tl.visibleLineCount <= 0 then bad = line end
+    end
+  end
+  print('      B1 关键三段读数: ' .. table.concat(shown, ' | '))
+  ok(bad == nil and checked >= 20,
+    'B1 ' .. checked .. ' 个非空文字控件：ctl.textLayout.fits == true 且 visibleLineCount > 0'
+      .. '（失败会打出 requiredHeight 与实际高）', bad)
+
+  -- 漂移守卫：模块自己算的框高必须 ≥ 引擎认的需高（两处公式不许各自漂）
+  local drift = nil
+  for _, key in ipairs({ 'charPanelL1', 'charPanelL4', 'charPanelS', 'charFoot', 'charTitle' }) do
+    local c = RN.get(key)
+    if c and c.textLayout then
+      local mine = VROSTER.boxH(c.fontSize, c.textLayout.lines)
+      if mine + 0.51 < c.textLayout.requiredHeight then
+        drift = string.format('%s mine=%.1f engine=%.1f', key, mine, c.textLayout.requiredHeight)
       end
     end
   end
-  ok(bad == nil and checked >= 20,
-    'B1 ' .. checked .. ' 个非空文字控件：框高 ≥ 引擎 requiredHeight（1280×720 移动端）', bad)
+  ok(drift == nil, 'B2 漂移守卫：view_roster.boxH(字号, 引擎行数) ≥ 引擎 requiredHeight（5 个关键控件）', drift)
 end
 
 print('== C. 切页签：节点数恒定 + 内容签名两两不同 ==')
@@ -159,6 +182,38 @@ do
   if closeHit and closeHit.__cursors['CursorClick'] then closeHit.__cursors['CursorClick']() end
   ok(cnt() == 0 and RN.get('charRow1B') == nil, 'D6 点「合上」⇒ clear() 后实例 0（只清自己那份）',
     cnt())
+end
+
+
+print('== F. 条目详情浮层（第二份描述 + 第二个 render 实例）==')
+do
+  assert(FN.rosterV2Build(1, 1))
+  RN = FN.rosterV2R()
+  local n0 = cnt()
+  local okOpen = FN.rosterV2Detail(1)
+  local D = FN.rosterV2D()
+  ok(okOpen == true and D ~= nil, 'F1 FN.rosterV2Detail(1) 打开浮层并建出独立实例 D', tostring(okOpen))
+  local dnodes = FN.rosterV2DNodes()
+  ok(type(dnodes) == 'table' and #dnodes > 5, 'F2 浮层是一份完整描述（节点数 ' ..
+    tostring(#dnodes) .. '）')
+  local dIssues = #V.lint(dnodes)
+  ok(dIssues == 0, 'F3 浮层描述 lint 0 issue（modal 层 + 不透明预混 + 文字放得下）', dIssues)
+  local dcount = 0
+  for _ in pairs(D.controls()) do dcount = dcount + 1 end
+  ok(dcount > 5 and cnt() == n0, 'F4 浮层实例 ' .. dcount .. ' 件，档案页实例仍 ' .. cnt() ..
+    '（两份描述/两个实例互不干扰）')
+  ok(dcount == #dnodes, 'F5 浮层实例数 == 描述节点数（无实例化失败）', dcount .. '/' .. #dnodes)
+  local hit = D.get('charDetailHit')
+  ok(hit ~= nil and type(hit.__cursors) == 'table' and hit.__cursors['CursorClick'] ~= nil,
+    'F6 浮层关闭热区挂上了 CursorClick')
+  if hit and hit.__cursors['CursorClick'] then hit.__cursors['CursorClick']() end
+  local d2 = 0
+  for _ in pairs(D.controls()) do d2 = d2 + 1 end
+  ok(d2 == 0 and cnt() == n0, 'F7 点任意处 ⇒ 浮层实例归零、档案页原封不动（' .. d2 .. '/' .. cnt() .. '）')
+  ok(env.layers.order('modal') > env.layers.order('card')
+    and env.layers.order('modal') > env.layers.order('touch'),
+    'F8 层号 modal(' .. env.layers.order('modal') .. ') > card(' .. env.layers.order('card') ..
+    ')/touch(' .. env.layers.order('touch') .. ') ⇒ 浮层天然压住档案页，不靠创建顺序')
 end
 
 print('== E. 降级：能力不齐时不能炸（回落旧实现）==')

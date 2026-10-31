@@ -662,6 +662,100 @@ M.new = function(spec)
       PL + u(M.FOOT.X) + (PW - u(M.FOOT.INSET)) / 2, -PH / 2 + u(M.FOOT.DY),
       PW - u(M.FOOT.INSET), M.FOOT.FONT, THEME.hint or DIM, 'Middle')
 
+    S.lastEntries = items
+    S.lastTab = tab
+    return out
+  end
+
+  -- ===== 条目详情浮层（modal 层）=====
+  -- 调用方用**独立的 render 实例**承载：open 前 clear、close 只清自己那份；
+  -- 层号用 view_layers 的 modal（90，> panel 50 / touch 70）⇒ 天然压住档案页，不靠创建顺序。
+  S.detail = function(opts)
+    opts = opts or {}
+    local canvas = opts.canvas or { 1600, 900 }
+    local W, H = canvas[1] or 1600, canvas[2] or 900
+    local mobile = (opts.device == 'mobile')
+    local MODAL = 'modal'
+    L.order(MODAL)
+    local k = math.min(W / 1600, H / 980)
+    if k <= 0 then k = 1 end
+    local function u(v) return v * k end
+    local wash = THEME.scrim or THEME.wall
+    local out = {}
+    local function add(n) out[#out + 1] = n return n end
+    add {
+      key = 'charDetailDim', name = 'charDetailDim', role = M.ROLE.scrim, layer = MODAL,
+      tpl = 'cell', pos = { 0, 0 }, size = { W + 60, H + 60 }, color = wash,
+    }
+    local cw = math.min(u(1100), W - u(120))
+    local titleFont = mobile and 20 or 22
+    local font = mobile and 16 or 18
+    local bodyW = cw - u(80)
+    local titleH = boxH(titleFont, 1)
+    local maxBodyH = H * 0.62 - titleH - u(96)
+    local lines = wrap(tostring(opts.body or ''), font, bodyW)
+    local keep, used = {}, 0
+    for i = 1, #lines do
+      local lh = boxH(font, 1)
+      if used + lh <= maxBodyH or #keep == 0 then
+        keep[#keep + 1] = lines[i]
+        used = used + lh
+      end
+    end
+    if #keep < #lines and #keep > 0 then keep[#keep] = keep[#keep] .. M.ELLIPSIS end
+    local bodyH = boxH(font, #keep)
+    local ch = titleH + u(48) + bodyH + u(64)
+    local cy = u(10)
+    local r = u(26)
+    local fill = opaque(wash, THEME.panel or 0xFFFFFFFF)
+    add {
+      key = 'charDetailCardA', name = 'charDetailCardA', role = M.ROLE.surface, layer = MODAL,
+      tpl = 'cell', pos = { 0, cy }, size = { cw - 2 * r, ch }, color = fill,
+    }
+    add {
+      key = 'charDetailCardB', name = 'charDetailCardB', role = M.ROLE.surface, layer = MODAL,
+      tpl = 'cell', pos = { 0, cy }, size = { cw, ch - 2 * r }, color = fill,
+    }
+    for i = 1, 4 do
+      local sx = ((i == 1 or i == 3) and -1 or 1) * (cw / 2 - r)
+      local sy = ((i <= 2) and 1 or -1) * (ch / 2 - r)
+      add {
+        key = 'charDetailCardC' .. i, name = 'charDetailCardC' .. i, role = M.ROLE.surface,
+        layer = MODAL, tpl = 'cell', pos = { sx, cy + sy }, size = { 2 * r, 2 * r }, color = fill,
+        image = { s = 'circle' },
+      }
+    end
+    local topY = cy + ch / 2 - u(28)
+    local tn = K.text {
+      key = 'charDetailTitle', name = 'charDetailTitle', x = 0, y = topY - titleH / 2,
+      w = bodyW, h = titleH, text = tostring(opts.title or ''), font = titleFont,
+      color = THEME.textMain, layer = MODAL, align = 'Left',
+    }
+    tn.role = M.ROLE.heading
+    add(tn)
+    local bn = K.text {
+      key = 'charDetailBody', name = 'charDetailBody', x = 0,
+      y = topY - titleH - u(16) - bodyH / 2, w = bodyW, h = bodyH,
+      text = table.concat(keep, '\n'), font = font, color = THEME.textSub or THEME.textMain,
+      layer = MODAL, align = 'Left',
+    }
+    bn.role = M.ROLE.cardLine
+    add(bn)
+    local hn = K.text {
+      key = 'charDetailHint', name = 'charDetailHint', x = 0,
+      y = cy - ch / 2 + u(24), w = bodyW, h = boxH(font, 1),
+      text = tostring(opts.hint or '点任意处关闭'), font = font,
+      color = THEME.hint or THEME.textDim, layer = MODAL, align = 'Middle',
+    }
+    hn.role = M.ROLE.foot
+    add(hn)
+    local h = K.hit {
+      key = 'charDetailHit', name = 'charDetailHit', x = 0, y = 0,
+      w = W + 60, h = H + 60, layer = MODAL,
+      on = opts.onClose and { CursorClick = opts.onClose } or nil,
+    }
+    h.role = M.ROLE.hit
+    add(h)
     return out
   end
 

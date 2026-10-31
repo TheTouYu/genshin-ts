@@ -127,7 +127,7 @@ function M.new(env)
   -- 需要的注入面（缺任一则自动回落旧实现并打一行 skip 日志，游戏不会坏）：
   --   env.platform(PT) / env.render(RENDER_M) / env.layers(VIEW_LAYERS_M) /
   --   env.config(CFG) / env.kit(VIEW_KIT_M.new{layers}) / env.viewRoster(view_roster 模块)
-  local ROSTERV = { R = nil, S = nil, live = false, nodes = nil }
+  local ROSTERV = { R = nil, S = nil, D = nil, live = false, nodes = nil }
   local function v2able()
     return env.platform and env.render and env.layers and env.config and env.kit
       and env.viewRoster
@@ -188,11 +188,48 @@ function M.new(env)
     end
   end
 
+  -- ===== 条目详情浮层：第二份描述 + 第二个 render 实例（modal 层压住档案页）=====
+  FN.rosterV2DetailClose = function()
+    if ROSTERV.D then ROSTERV.D.clear() end
+  end
+
+  FN.rosterV2Detail = function(idx)
+    if not v2able() then return false end
+    local S = ROSTERV.S
+    local list = S and S.lastEntries or nil
+    local it = list and list[idx] or nil
+    if not it then return false end
+    if not ROSTERV.D then
+      ROSTERV.D = env.render.new({ platform = env.platform, layers = env.layers,
+        log = function(m) print(m) end })
+    end
+    local W, H = env.canvas()
+    local nodes = S.detail {
+      canvas = { W, H },
+      device = (IS_MOBILE and 'mobile') or 'pc',
+      title = tostring(it.nm or ''),
+      body = tostring(it.full or it.desc or ''),
+      hint = '点任意处关闭',
+      onClose = function() FN.rosterV2DetailClose() end,
+    }
+    ROSTERV.dnodes = nodes
+    ROSTERV.D.clear()
+    ROSTERV.D.apply(nodes)
+    local ctl = ROSTERV.D.get('charDetailHit')
+    if ctl then env.addCursor(ctl, 'CursorClick', function() FN.rosterV2DetailClose() end) end
+    print('char detail v2 nodes=' .. #nodes .. ' idx=' .. tostring(idx)
+      .. ' issues=' .. #ROSTERV.D.issues())
+    return true
+  end
+
   -- 诊断/测试入口：拿到新路径的 render 实例与最近一次描述（headless 测试读字段用）
   FN.rosterV2R = function() return ROSTERV.R end
   FN.rosterV2Nodes = function() return ROSTERV.nodes end
+  FN.rosterV2D = function() return ROSTERV.D end
+  FN.rosterV2DNodes = function() return ROSTERV.dnodes end
 
   FN.rosterV2Close = function()
+    if ROSTERV.D then ROSTERV.D.clear() end
     if ROSTERV.R then ROSTERV.R.clear() end
     ROSTERV.live = false
     ROSTERV.nodes = nil
@@ -251,7 +288,8 @@ function M.new(env)
     for i = 1, 3 do
       local ii = i
       actions['charItemHit' .. i] = function()
-        print('char detail open ' .. ii)   -- 全文浮层未接（见交付报告"未接清单"）
+        print('char detail open ' .. ii)
+        FN.rosterV2Detail(ii)
       end
     end
     ROSTERV.actions = actions

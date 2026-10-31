@@ -599,6 +599,25 @@ do
     'G3 copy 只给空表也能构建（' .. (okBuild and #nodes or 0) .. ' 节点 / ' .. #iss .. ' issue）')
 end
 
+print('== H. 条目详情浮层（S.detail：modal 层一份描述）==')
+do
+  local long = '这一条是长正文，用来验证浮层里的段落会自己折行：' ..
+    string.rep('按框宽折行，放不下就截断并补省略号。', 12)
+  local d = S.detail { canvas = { 1280, 720 }, device = 'mobile', title = '解锁条件（长文）',
+    body = long, hint = '点任意处关闭' }
+  ok(type(d) == 'table' and #d >= 10, 'H1 浮层描述节点数 ' .. tostring(#d) .. '（遮罩+卡片 6 块+标题+正文+提示+热区）')
+  local bad = nil
+  for i = 1, #d do
+    if d[i].layer ~= 'modal' then bad = tostring(d[i].key) .. ' layer=' .. tostring(d[i].layer) end
+  end
+  ok(bad == nil, 'H2 浮层所有节点都在 modal 层（> panel 50 / touch 70，天然压住档案页）', bad)
+  ok(#V.lint(d) == 0, 'H3 浮层描述 lint 0 issue（不透明预混 + 文字放得下 + 热区在最上）',
+    #V.lint(d) > 0 and V.lint(d)[1].msg or nil)
+  local hit = V.get(d, 'charDetailHit')
+  ok(hit ~= nil and hit.role == 'hit' and d[#d].key == 'charDetailHit',
+    'H4 关闭热区存在且排在最后（同层里不会被自己的卡片判 L5）')
+end
+
 print('')
 print(string.format('== view_roster_test: %d passed, %d failed ==', pass, fail))
 if fail > 0 then os.exit(1) end
