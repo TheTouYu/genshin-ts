@@ -269,18 +269,28 @@ M.new = function(spec)
     return true
   end
 
+  -- 键位注册：真机要枚举值、模拟器收字符串 ⇒ 双形态回退。
+  -- **诊断日志字面量是契约**（真机上它是唯一线索）：`listen ok <name> via enum|string` /
+  -- `listen fail <name> :: <err>`。全工程只有这一份实现（input_map 直接注入 P）。
   local keyHandlers = {}
   function P.bindKey(name, fn)
     local enumKeys = (type(Enum) == 'table' and Enum.KeyEventType) or nil
-    local ok, err
+    local ok, err, how
     if enumKeys and enumKeys[name] ~= nil then
       ok, err = pcall(function() root:AddKeyEventListener(enumKeys[name], fn) end)
+      how = 'enum'
     end
     if not ok then
       ok, err = pcall(function() root:AddKeyEventListener(name, fn) end)
+      how = 'string'
     end
     keyHandlers[name] = fn
-    if not ok then record('bindKey:' .. tostring(name), err) end
+    if ok then
+      P.log('listen ok ' .. tostring(name) .. ' via ' .. tostring(how))
+    else
+      P.log('listen fail ' .. tostring(name) .. ' :: ' .. tostring(err))
+      record('bindKey:' .. tostring(name), err)
+    end
     return ok and true or false
   end
 

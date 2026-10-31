@@ -144,11 +144,15 @@ ok(next(imap.ALIAS) == nil, 'A13 当前零别名（收表后没有一键两动�
 -- ===== B 与 main.lua 现有注册点全量对照（③）=====
 print('--- B 对照 main.lua')
 
+-- 本节是**迁移闸门**（两种口径，随 main.lua 的接线状态自动选）：
+--   迁移前：main.lua 自己 listen ⇒ 把它的每个注册点逐个对照回动作表（全量，不许漏）
+--   迁移后：main.lua 不再 listen ⇒ 改查"接线到位 + 没有回退"（不许又冒出第二条注册路径）
+-- 判据：源码里还有 `local function listen(` / `local mapped = {` / 任何 listen('...') 字面量，
+--       或 config 里还有 NUM.KEYMAP，就按迁移前口径。
 local mainSrc = readfile('lua/main.lua')
 ok(mainSrc ~= nil, 'B0 读得到 lua/main.lua')
 mainSrc = mainSrc or ''
 
--- B1 源码里所有 listen('...') 的字面键名
 local literals = {}
 for n in mainSrc:gmatch("listen%(%s*'([%w_]+)'") do literals[#literals + 1] = n end
 local full, partial = {}, {}
@@ -159,18 +163,27 @@ for i = 1, #literals do
     partial[#partial + 1] = literals[i]
   end
 end
-ok(#full == 15, 'B1 main.lua 里有 15 个字面键名 listen(...)（' .. #full .. '）', #full)
+local hasListenDef = mainSrc:find('local function listen(name, fn)', 1, true) ~= nil
+local hasMapped = mainSrc:find('local mapped = {', 1, true) ~= nil
+local mainLegacy = hasListenDef or hasMapped or #full > 0
+local configLegacy = cfg.NUM.KEYMAP ~= nil
+local legacy = mainLegacy or configLegacy
+print('      mode = main:' .. (mainLegacy and 'legacy' or 'wired')
+  .. ' config:' .. (configLegacy and 'legacy' or 'clean'))
+
+ok(#full == 15 or #full == 0,
+  'B1 main.lua 的字面 listen 数量 = 15（迁移前）/ 0（迁移后）（' .. #full .. '）', #full)
+
 local missLit = nil
 for i = 1, #full do
   if not has(allKeys, full[i]) then missLit = full[i] end
 end
-ok(missLit == nil, 'B2 15 个字面键名全部已收进 ACTIONS/UPKEYS', missLit)
+ok(missLit == nil, 'B2 每个字面键名都已收进 ACTIONS/UPKEYS（未收的必须显式列入 RETIRED）', missLit)
 
--- 两个半截字面量 = 模板串（'KeyboardCraftspersonKey' .. i .. 'Down'），不是键名
-ok(#partial == 2 and partial[1] == 'KeyboardCraftspersonKey',
-  'B3 两处模板串不是键名（' .. table.concat(partial, ',') .. '）')
+ok((#partial == 2 and partial[1] == 'KeyboardCraftspersonKey') or #partial == 0,
+  'B3 模板串（…Key .. i .. Down）不算键名（' .. #partial .. ' 处）')
 
--- B4 数字键循环 1..#MODE_INFO（模式选择）已收进 mode1..mode4
+-- 模式键 1-4（不论迁移与否，动作表里必须都有）
 local modeOk = true
 for i = 1, 4 do
   local k = 'KeyboardCraftspersonKey' .. i .. 'Down'
@@ -178,112 +191,142 @@ for i = 1, 4 do
 end
 ok(modeOk, 'B4 模式键 1-4 收进 mode1..mode4')
 
--- B5 43 键兜底池：main 的排除表 vs 收表后的自动排除表
+-- 43 键兜底池：迁移前对照 main 的排除表；迁移后确认兜底循环已被杀掉
 local mappedNums = {}
 for n in mainSrc:gmatch('%[(%d+)%]%s*=%s*true') do mappedNums[tonumber(n)] = true end
 local mappedCount = 0
 for _ in pairs(mappedNums) do mappedCount = mappedCount + 1 end
-ok(mappedCount == 10, 'B5 main.lua 兜底排除表 10 条（1/2/3/4/15/22/36/37/38/39）', mappedCount)
-
 local mainFallback = {}
 for i = 1, 43 do
   if not mappedNums[i] then mainFallback[#mainFallback + 1] = i end
 end
-ok(#mainFallback == 33, 'B6 main.lua 现在兜底注册 33 个键（43-10）', #mainFallback)
+
+if hasMapped then
+  ok(mappedCount == 10, 'B5 迁移前：main.lua 兜底排除表 10 条（1/2/3/4/15/22/36/37/38/39）', mappedCount)
+  ok(#mainFallback == 33, 'B6 迁移前：兜底循环注册 33 个键（43-10）', #mainFallback)
+else
+  ok(mainSrc:find('for i = 1, 43 do', 1, true) == nil,
+    'B5 迁移后：43 键兜底循环已删除（改由 fallbackPool 自动派生）')
+  ok(mainSrc:find("'KeyboardCraftspersonKey' .. i", 1, true) == nil,
+    'B6 迁移后：不再有 …Key' .. "'" .. '.. i .. 的字符串拼键名')
+end
 
 local pool = imap.fallbackPool()
-local poolNums = {}
-for i = 1, #pool do poolNums[craftNum(pool[i])] = true end
-local extra = {}
-local lost = nil
-for i = 1, 43 do
-  local inMain = not mappedNums[i]
-  local inMap = poolNums[i] == true
-  if inMap and not inMain then lost = i end          -- 收表后多出来的（会抢已注册键）
-  if inMain and not inMap then extra[#extra + 1] = i end
-end
-ok(#pool == 27, 'B7 收表后兜底池 27 个键（43 - 16 个已被动作认领）', #pool)
-ok(lost == nil, 'B8 兜底池没有混进已注册的键', lost)
-table.sort(extra)
-ok(#extra == 6 and extra[1] == 11 and extra[2] == 12 and extra[3] == 13
-  and extra[4] == 14 and extra[5] == 16 and extra[6] == 30,
-  'B9 main 兜底比收表后多注册的 6 个键 = 11/12/13/14/16/30（历史重复注册点）',
-  table.concat(extra, ','))
+ok(#pool == 27, 'B7 兜底池 27 个键（43 - 16 个已被动作认领；迁移前 main 是 33）', #pool)
 
--- B10 这 6 个重复注册点必须在 RETIRED 里逐条写明（不静默丢）
+local poolLeak = nil
+local I0 = imap.new { log = function() end }
+for i = 1, #pool do
+  local a = I0:actionOf(pool[i])
+  if a then poolLeak = pool[i] .. '→' .. a end
+end
+ok(poolLeak == nil, 'B8 兜底池与动作表零交集（每个键最多一条注册）', poolLeak)
+
+-- 迁移前多注册、迁移后合并掉的 6 个键 = 本文件发现的历史重复注册点
+local retiredKeys = {}
+for i = 1, #imap.RETIRED do retiredKeys[imap.RETIRED[i].key] = imap.RETIRED[i] end
+local expectRetired = { 11, 12, 13, 14, 16, 30 }
 local retiredOk, retiredBad = true, nil
-for i = 1, #extra do
-  local key = 'KeyboardCraftspersonKey' .. extra[i] .. 'Down'
-  local found = false
-  for j = 1, #imap.RETIRED do
-    if imap.RETIRED[j].key == key then
-      found = imap.RETIRED[j].reason ~= nil and imap.RETIRED[j].reason ~= ''
-        and imap.RETIRED[j].action ~= nil
-    end
+for _, n in ipairs(expectRetired) do
+  local rec = retiredKeys['KeyboardCraftspersonKey' .. n .. 'Down']
+  if not rec or not rec.action or not rec.reason or rec.reason == '' then
+    retiredOk = false
+    retiredBad = 'CraftspersonKey' .. n
   end
-  if not found then retiredOk = false retiredBad = key end
 end
-ok(retiredOk, 'B10 6 个重复注册点在 RETIRED 里都有 action+reason', retiredBad)
+ok(#imap.RETIRED == 6 and retiredOk,
+  'B9 6 个历史重复注册点（11/12/13/14/16/30）都在 RETIRED 里带 action+reason', retiredBad)
 
--- B11 手柄：bases（24 条）+ PROBE_NAMED 覆盖情况
-local PADK = cfg.NUM.PAD
+-- 退役条不能是"删了动作还留着退役条"：A6 已在 audit 里查，这里再点名一次
+local retiredAudit = {}
+for i = 1, #imap.RETIRED do
+  if select(1, I0:actionOf(imap.RETIRED[i].key)) == nil then retiredAudit[i] = imap.RETIRED[i].key end
+end
+ok(#retiredAudit == 0, 'B10 RETIRED 的键仍然有动作（退役的是重复注册，不是动作）',
+  retiredAudit[1])
+
+-- 手柄：config.NUM.PAD.KEYS 16 条 + PROBE_NAMED 10 条
+local PADK = cfg.NUM.PAD or {}
 local padKeys = {}
-for _, list in pairs(PADK.KEYS) do
+for _, list in pairs(PADK.KEYS or {}) do
   for i = 1, #list do padKeys[#padKeys + 1] = list[i] end
 end
-ok(#padKeys == 16, 'B11 config.NUM.PAD.KEYS 共 16 条映射（8 动作 × 2 键）', #padKeys)
-
 local probeKeys = {}
-for i = 1, #PADK.PROBE_NAMED do
+for i = 1, #(PADK.PROBE_NAMED or {}) do
   probeKeys[#probeKeys + 1] = 'Controller' .. PADK.PROBE_NAMED[i] .. 'Down'
 end
-ok(#probeKeys == 10, 'B12 PROBE_NAMED 10 个探针键名')
-
 local unbound = {}
 for i = 1, #imap.PAD_UNBOUND do unbound[imap.PAD_UNBOUND[i].key] = imap.PAD_UNBOUND[i] end
-local uncoveredPad = nil
-for i = 1, #padKeys do
-  local k = padKeys[i]
-  if not has(allKeys, k) and not unbound[k] then uncoveredPad = k end
-end
-ok(uncoveredPad == nil, 'B13 手柄映射 16 条全部有归属（动作表或 PAD_UNBOUND）', uncoveredPad)
 
--- B14 当前真正注册的手柄键数必须仍是 24（否则 tests/48 的 `pad bind n=24` 会红）
+if padKeys[1] then
+  ok(#padKeys == 16 and #probeKeys == 10,
+    'B11 config.NUM.PAD.KEYS 16 条 + PROBE_NAMED 10 条', #padKeys .. '/' .. #probeKeys)
+  local uncoveredPad = nil
+  for i = 1, #padKeys do
+    local k = padKeys[i]
+    if not has(allKeys, k) and not unbound[k] then uncoveredPad = k end
+  end
+  ok(uncoveredPad == nil, 'B12 手柄 16 条映射全部有归属（动作表或 PAD_UNBOUND）', uncoveredPad)
+  local unboundOk = true
+  for i = 1, #imap.PAD_UNBOUND do
+    if not has(padKeys, imap.PAD_UNBOUND[i].key) then unboundOk = false end
+  end
+  ok(unboundOk, 'B13 PAD_UNBOUND 的 2 个死映射确实在 config.NUM.PAD.KEYS 里（MoveLeft/MoveRight）')
+else
+  ok(#padKeys == 0, 'B11 迁移后：config.NUM.PAD.KEYS 已并入 input_map（config 里不再有第二份）', #padKeys)
+  ok(#imap.PROBE == 10, 'B12 探针键仍是 10 个（真机学键名的通道不变）', #imap.PROBE)
+  ok(#imap.PAD_UNBOUND == 2, 'B13 两个死映射仍登记在 PAD_UNBOUND（不静默丢）', #imap.PAD_UNBOUND)
+end
+
+-- 不论迁移与否：当前真正注册的手柄键必须仍是 24（tests/48 断言 `pad bind n=24`）
 local ctrlInTable, ctrlInProbe = 0, 0
 for i = 1, #allKeys do
   if allKeys[i]:match('^Controller') and not unbound[allKeys[i]] then ctrlInTable = ctrlInTable + 1 end
 end
-for i = 1, #imap.PROBE do ctrlInProbe = ctrlInProbe + 1 end
-ok(ctrlInTable == 14 and ctrlInProbe == 10 and (ctrlInTable + ctrlInProbe) == 24,
-  string.format('B14 手柄注册量仍 = 24（动作 %d + 探针 %d）', ctrlInTable, ctrlInProbe),
-  ctrlInTable + ctrlInProbe)
-
--- B15 PAD_UNBOUND 里的两个键必须真的在 PAD.KEYS 里（否则"已知未注册"是假的）
-local unboundOk = true
-for i = 1, #imap.PAD_UNBOUND do
-  if not has(padKeys, imap.PAD_UNBOUND[i].key) then unboundOk = false end
+for i = 1, #imap.PROBE do
+  if imap.PROBE[i]:match('^Controller') then ctrlInProbe = ctrlInProbe + 1 end
 end
-ok(unboundOk, 'B15 PAD_UNBOUND 的 2 个死映射确实在 config.NUM.PAD.KEYS 里')
+ok(ctrlInTable == 14 and ctrlInProbe == 10 and (ctrlInTable + ctrlInProbe) == 24,
+  string.format('B14 手柄注册量 = 24（动作 %d + 探针 %d）—— 保持 tests/48 的 `pad bind n=24`',
+    ctrlInTable, ctrlInProbe), ctrlInTable + ctrlInProbe)
 
--- B16 死代码：skillKeyUpWatch 只被定义、从未调用（技能键 Up 只有 CraftspersonKey12Up 那条真注册）
+-- 死代码：skillKeyUpWatch 只被定义、从未调用（技能键 Up 只有 CraftspersonKey12Up 那条真注册）
 local nDef = 0
 for _ in mainSrc:gmatch('skillKeyUpWatch') do nDef = nDef + 1 end
-ok(nDef == 1, 'B16 skillKeyUpWatch 只出现 1 次（定义处）⇒ 死代码，Up 监听从未注册', nDef)
+ok(nDef <= 1, 'B15 skillKeyUpWatch 最多 1 次（定义处）⇒ 若存在即死代码，Up 监听从未注册', nDef)
 
--- B17 收表前后的监听条数（可复算，不是拍脑袋）
+-- 收表前后的监听条数（可复算，不是拍脑袋）
+local newRegs = st.keys + st.fallback + st.probe
 local keymapDown, keymapUp = 0, 0
-for _, m in ipairs(cfg.NUM.KEYMAP) do
+for _, m in ipairs(cfg.NUM.KEYMAP or {}) do
   keymapDown = keymapDown + 1
   if m.up then keymapUp = keymapUp + 1 end
 end
-ok(keymapDown == 10 and keymapUp == 4, 'B17 KEYMAP 10 down + 4 up')
-local oldRegs = #full + keymapDown + keymapUp + 4 + 24 + #mainFallback
-local newRegs = st.keys + st.fallback + st.probe
-ok(oldRegs == 90, 'B18 收表前注册 90 次（15 字面 + 10 键位 + 4 松开 + 4 模式 + 24 手柄 + 33 兜底）',
-  oldRegs)
-ok(newRegs == 84, 'B19 收表后注册 84 次（47 动作键 + 27 兜底 + 10 探针）', newRegs)
-ok(6 == #imap.RETIRED and (newRegs + 6) == oldRegs,
-  'B20 90 - 84 = 6 = RETIRED 条数（重复注册正好被吃掉）', #imap.RETIRED)
+ok(newRegs == 84, 'B16 收表后注册 84 次（47 动作键 + 27 兜底 + 10 探针）', newRegs)
+ok(#imap.RETIRED == 6 and (newRegs + 6) == 90,
+  'B17 90 - 84 = 6 = RETIRED 条数（重复注册正好被吃掉）', newRegs + #imap.RETIRED)
+if hasMapped and keymapDown == 10 then
+  local oldRegs = #full + keymapDown + keymapUp + 4 + 24 + #mainFallback
+  ok(oldRegs == 90,
+    'B18 收表前注册 90 次（15 字面 + 10 键位 + 4 松开 + 4 模式 + 24 手柄 + 33 兜底）', oldRegs)
+else
+  ok(keymapDown == 0 or keymapDown == 10,
+    'B18 config.NUM.KEYMAP 处于迁移中（10 down）或已清空（0）——两条路都不许出现第三份键位',
+    keymapDown .. ' down / ' .. keymapUp .. ' up')
+end
+
+-- 迁移后：接线点必须存在（loadModule + bindAll + view_pad.pad），否则"单源"只是摆设
+if not mainLegacy then
+  ok(mainSrc:find("loadModule('input_map')", 1, true) ~= nil,
+    'B19 迁移后：main.lua 用 loadModule("input_map") 装载（真机 4 级候选路径）')
+  ok(mainSrc:find('bindAll(', 1, true) ~= nil, 'B20 迁移后：调用 bindAll 一次注册')
+  ok(mainSrc:find("loadModule('view_pad')", 1, true) ~= nil,
+    'B21 迁移后：main.lua 用 loadModule("view_pad") 装载触屏描述')
+else
+  ok(#full == 15, 'B19 迁移前：15 条字面注册点已逐个对照', #full)
+  ok(hasListenDef, 'B20 迁移前：listen() 定义仍在（此段将被 bindAll 取代）')
+  ok(hasMapped, 'B21 迁移前：兜底排除表仍在（此段将被 fallbackPool 取代）')
+end
 
 -- ===== C 触屏面板描述（④）=====
 print('--- C 触屏面板')
