@@ -103,13 +103,17 @@ const graph = g
         const seq = f.addition(f.getCustomVariable(owner, 'fb_seq').asType('int'), 1n)
         f.setCustomVariable(owner, 'fb_seq', seq, false)
         f.setCustomVariable(owner, 'fb_key', key, false)
-        // 按键打点带键号（print 只打字符串，按 1~6 分支），便于与服务端帧对时
-        f.doubleBranch(f.equal(key, 1n), () => { print('fb-k1') }, () => {})
-        f.doubleBranch(f.equal(key, 2n), () => { print('fb-k2') }, () => {})
-        f.doubleBranch(f.equal(key, 3n), () => { print('fb-k3') }, () => {})
-        f.doubleBranch(f.equal(key, 4n), () => { print('fb-k4') }, () => {})
-        f.doubleBranch(f.equal(key, 5n), () => { print('fb-k5') }, () => {})
-        f.doubleBranch(f.equal(key, 6n), () => { print('fb-k6') }, () => {})
+        // 按键打点：**多分支**（官方 multipleBranches，控制表达式支持 int/str）——
+        // 串 6 个 doubleBranch 要 12 个节点，多分支只要 1 个节点 + 6 个 print
+        f.multipleBranches(key, {
+          1: () => { print('fb-k1') },
+          2: () => { print('fb-k2') },
+          3: () => { print('fb-k3') },
+          4: () => { print('fb-k4') },
+          5: () => { print('fb-k5') },
+          6: () => { print('fb-k6') },
+          default: () => {}
+        })
       },
       () => {
         f.doubleBranch(

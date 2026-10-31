@@ -20,10 +20,14 @@ function writeForce(f: any, fx: number, fy: number, fz: number): void {
 
 g.server({ id: 1073741832, name: '_GSTS_forceTest' }).onSignal(KitSignal.fb_input, (evt: any, f: any) => {
   const k = evt.params.key
-  f.doubleBranch(f.equal(k, 1n), () => { writeForce(f, 8.0, 0.0, 0.0) }, () => {})
-  f.doubleBranch(f.equal(k, 2n), () => { writeForce(f, -8.0, 0.0, 0.0) }, () => {})
-  f.doubleBranch(f.equal(k, 3n), () => { writeForce(f, 0.0, 0.0, 8.0) }, () => {})
-  f.doubleBranch(f.equal(k, 4n), () => { writeForce(f, 0.0, 0.0, -8.0) }, () => {})
-  f.doubleBranch(f.equal(k, 5n), () => { writeForce(f, 0.0, 12.0, 0.0) }, () => {})
-  f.doubleBranch(f.equal(k, 6n), () => { writeForce(f, 0.0, 0.0, 0.0) }, () => {})
+  // 多分支（官方 multipleBranches，int 控制表达式）：一张表看全所有键位
+  f.multipleBranches(k, {
+    1: () => { writeForce(f, 8.0, 0.0, 0.0) },
+    2: () => { writeForce(f, -8.0, 0.0, 0.0) },
+    3: () => { writeForce(f, 0.0, 0.0, 8.0) },
+    4: () => { writeForce(f, 0.0, 0.0, -8.0) },
+    5: () => { writeForce(f, 0.0, 12.0, 0.0) },
+    6: () => { writeForce(f, 0.0, 0.0, 0.0) },
+    default: () => {}
+  })
 })
