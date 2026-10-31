@@ -147,8 +147,11 @@ M.new = function(spec)
   -- 视图合成：返回节点描述数组（layer 语义层序由 render/lint 校验）
   function S.view()
     local out = {}
+    -- opaque 的语义是「我遮住下面」⇒ 合成要从**最顶层**的 opaque 开始。
+    -- （2026-10-31 集成测试抓到：从最底层找会让"标题仍 opaque 时 push 玩法"把两屏都画出来，
+    --  即退出/进入过渡期下层节点不销毁 —— 这是跨屏残留类 bug 的结构性来源。）
     local startIdx = 1
-    for i = 1, #stack do
+    for i = #stack, 1, -1 do
       if stack[i].def.opaque and stack[i].def.view then
         startIdx = i
         break

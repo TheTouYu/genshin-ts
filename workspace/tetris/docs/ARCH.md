@@ -160,8 +160,8 @@ node = {
 | 模块数 | `lua/tetris/` 30 个文件（含 core_* 9 个、view_* 5 个、input/app/scenes 各 1） |
 | headless 单测 | 14 个文件、~750 条断言、**0.05s**（`lua5.3 tests-lua/run_all.lua`） |
 | 模拟器用例 | 70 个；抽样 01/02/04/06/07/14 全绿；全量需 ~390s |
-| headless 用例驱动器 | `tests-lua/run_cases.lua`（进行中：引擎 shim，当前能跑出**精确差异**，未达全绿） |
-| main.lua | 6885 行 / locals 158（抽 core 前 6859 / 146）；接线进行中 |
+| headless 用例驱动器 | `tests-lua/run_cases.lua` —— **70 例 69/70 · 7.8s（jobs=8，模拟器 387s ⇒ 49×）**，仅 `57-copy-garbage` 留模拟器（见 §6.1）；`--jobs=1` 19.7s、`--source=save` 同源对照 |
+| main.lua | 6707 行 / locals 155；6 条玩法 reducer 已接（spawn/lockAndClear/step·move·rotate/newGame/hardDrop/gravity），全量待复跑 |
 | 已消灭的重复 | 键位真源 5→1（含发现的第 6 份 `P2_KEYS`）；模板实例化 35 处 → 棋盘部分走 render |
 | 已发现的坏域（待修） | 技能 10 条（gravityMult 只读/mark-blink 只 print/SK.cost 0 写/36 句失败文案全死…）；AI 四消射击分支不可达；输入 6 键重复注册/2 条手柄死映射；层序假成功日志（已删） |
 
