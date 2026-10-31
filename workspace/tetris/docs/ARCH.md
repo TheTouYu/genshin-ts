@@ -103,12 +103,37 @@ node = {
 
 | 级 | 手段 | 命令 | 成本 | 能证明什么 |
 |---|---|---|---|---|
-| L0 | headless 单测（纯逻辑/几何/层序/lint） | `lua5.3 tests-lua/run_all.lua` | ~0.03s | 规则、几何、层序、文案、可读性缺陷 |
+| L0 | headless 单测（纯逻辑/几何/层序/lint） | `lua5.3 tests-lua/run_all.lua` | ~0.05s | 规则、几何、层序、文案、可读性缺陷 |
+| L0.5 | **headless 用例重放**（假引擎跑同一批 `tests/*.json`） | `lua5.3 tests-lua/run_cases.lua`（`--jobs=1` 顺序；`--source=save` 跑存档内嵌源码做同源对照） | **69/70，7.6s**（`--jobs=8`；顺序 19s） | 断言面 339 条（log 225 / control 72 / lua 30 / tree 12）按 `studio/autotest/assert.js` 语义真实求值；能把回归定位到「哪条断言、期望 vs 实得」 |
 | L1 | 模拟器用例 | `node qxqy/runner.mjs [子串]` | 387s/70 例 | 真实引擎字段值、交互链路 |
 | L2 | 出图 + 人眼 | `node qxqy/shots-v5.mjs --all --out …` | 15s/30 张 | 用户实际看到的画面 |
 | L3 | 真机 | `deploy.mjs --device`（破坏性，需确认） | 分钟级 | 真机差异（模板重编号/SetVisible/抛错中断） |
 
-**L0 绿 ≠ L1 绿 ≠ L2 对 ≠ L3 通**。每级只证明本级。
+**L0 绿 ≠ L0.5 绿 ≠ L1 绿 ≠ L2 对 ≠ L3 通**。每级只证明本级。
+
+### 6.1 L0.5 的不可信边界（headless 用例重放证明不了什么）
+
+`tests-lua/{engine_shim,run_cases,json}.lua` 是**假引擎**：按 `client/lua-runtime/src/{scene,runtime,enums}.js`
+的语义实现 `game` / `script` / `Enum` / `typeof` / `print` / `require`，服务端控件树与客户端模板从
+`tetris.save.json` 读（guid 不硬编码）。下面 6 条**它证明不了**，对应断言必须留在 L1/L2：
+
+1. **渲染/字体度量/裁剪**：textbox 框高判据（`h ≥ font×1.45+4`）、adaptive 缩字号、字被裁、层序被盖。
+2. **音频时长/白名单/voice 抢占**：只记录 `PlayAudio2D` 的 id 序列；`audioExpect` 只证明「请求过这个 id」。
+3. **容器 Scroll/Grid 排版**、`localScale`/旋转变换后的可视区域与命中（只做 anchor/pivot 矩形）。
+4. **Tween/动画/服务端信号收发/自定义变量**：最小桩；`var`/`signal` 断言在 70 例里本来就是 0 条。
+5. **真机差异**：模板 guid 重编号、`SetVisible(false)` 对运行时实例不生效、Enum 键位形态、Destroy 后写控件。
+6. **宿主数值/遍历语义**（2026-10-31 唯一根因所在）：
+   - **整数位宽**：真机 LuaJIT 与模拟器 Fengari 的数字都是 IEEE-754 double，**只有 lua5.3 是 64 位整数**。
+     ✅ **已修复**（commit `61feb378`）：`core_rng.lua` 的 LCG 显式 `seed + 0.0` + `math.floor(s / LCG_SHIFT)`
+     取位，让 lua5.3 也走 double；模拟器/真机侧是 no-op。headless 用例 61/70 → **69/70**。
+     ⚠ **未修**：`main.lua` 的 `aiRand`（P2 洗袋/洞位/观察等待共用这条流）仍是整数算式。
+   - **`pairs()` 遍历序**：Fengari 与 lua5.3 的字符串哈希不同 ⇒ 决策路径里用 `pairs()` 的 AI 会分叉。
+
+**必须留模拟器（当前 69/70 的那 1 条）**：`tests/57-copy-garbage.json`。首个分叉是 `p2 bag=1 piece=`
+（开局阶段 P2 桌面取到的块不同；此前 170 行日志逐字相同 ⇒ **不是引擎 API 缺口**）。把 `core_rng` 与
+`aiRand` 两处 LCG **都**强制 double 后仍分叉，且 `demo auto` 的 pace 1.55 vs 1.67 s/块 ⇒ 归到 AI 随机流/
+遍历序层级，**未定谳**（不当作通过）。另外**一切画面类**（字被裁/层序/配色）仍必须 L2 出图——
+70 例里 50 例没有任何 control/tree 断言，它们对画面是盲的。
 
 ## 7. 迁移路线（strangler：老码逐步被替换，全程可运行）
 

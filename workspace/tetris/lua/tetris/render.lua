@@ -21,6 +21,14 @@ M.new = function(spec)
   if not L then error('render: 需要 spec.layers（view_layers）') end
   local logger = spec.log or function() end
 
+  -- 引擎实例上限（真机实测约 430，常驻约 240）：render 自己记账并在逼近时告警。
+  -- 为什么放在这一层：一个屏的节点数从 20 涨到 290 是描述层的事，撞上限却是引擎层的事；
+  -- 只有同时看到"当前在场实例数"的地方才能提前喊（否则表现为"某个控件凭空消失"）。
+  local maxInstances = spec.maxInstances or 430
+  local warnAt = spec.warnAt or 0.85
+  local live = 0
+  local warned = false
+
   local prev = {}        -- key -> { ctl = ctl, applied = {field=value}, node = node }
   local issues = {}
   local stats = { created = 0, updated = 0, destroyed = 0 }
@@ -119,6 +127,13 @@ M.new = function(spec)
       end
     end
     stats.created = stats.created + 1
+    live = live + 1
+    if not warned and live >= maxInstances * warnAt then
+      warned = true
+      issues[#issues + 1] = { code = 'R2', key = n.key,
+        msg = string.format('实例数逼近引擎上限：在场 %d / 上限 %d（场景切换应先 R.clear()）',
+          live, maxInstances) }
+    end
     return ctl, applied
   end
 
@@ -158,11 +173,11 @@ M.new = function(spec)
       end
     end
     -- 销毁本帧不再需要的节点（浅层优先：父后于子销毁，这里简单倒序）
-    local live = {}
-    for i = 1, #arr do live[arr[i].key or arr[i].name] = true end
+    local keep = {}
+    for i = 1, #arr do keep[arr[i].key or arr[i].name] = true end
     local dead = {}
     for key in pairs(prev) do
-      if not live[key] then dead[#dead + 1] = key end
+      if not keep[key] then dead[#dead + 1] = key end
     end
     table.sort(dead)
     for i = 1, #dead do
@@ -170,6 +185,7 @@ M.new = function(spec)
       if ent and ent.ctl then
         P.destroy(ent.ctl)
         stats.destroyed = stats.destroyed + 1
+        live = live - 1
       end
       prev[dead[i]] = nil
     end
@@ -181,6 +197,7 @@ M.new = function(spec)
       if ent.ctl then P.destroy(ent.ctl) end
       prev[key] = nil
     end
+    live = 0
     stats.destroyed = stats.destroyed + 1
     return R.apply(list)
   end
@@ -222,12 +239,17 @@ M.new = function(spec)
 
   function R.stats() return stats end
 
+  -- 清空全部控件：重场景（帮助页 271–289 节点）进入前必须先调它，否则 240+280 撞 430 上限
   function R.clear()
     for key, ent in pairs(prev) do
       if ent.ctl then P.destroy(ent.ctl) end
       prev[key] = nil
     end
+    live = 0
+    warned = false
   end
+
+  function R.live() return live end
 
   return R
 end

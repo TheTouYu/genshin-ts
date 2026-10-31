@@ -10,6 +10,7 @@
    D 包含关系：所有 card 层节点都在纸面矩形内（三区：键表列 / 四张模式卡 / 算分条）
    E 回归守卫：造一个「文字框高不足」的坏描述，lint 必须报 L4（证明这道闸门真的会响）
    F 几何黄金值 + 缩放（fit，两条边都算）
+   H 引擎侧图元：真走 render + mock 后端，读控件字段 imageId/imageSource（不是读描述）
  ========================================================================]]
 
 local ROOT = os.getenv('TETRIS_ROOT') or '.'
@@ -27,6 +28,8 @@ local L    = load('lua/tetris/view_layers.lua')
 local VN   = load('lua/tetris/view_node.lua')
 local KITM = load('lua/tetris/view_kit.lua')
 local HELPM = load('lua/tetris/view_help.lua')
+local PLATFORM = load('lua/tetris/platform.lua')
+local RENDERM = load('lua/tetris/render.lua')
 
 local V = VN.new { layers = L }
 local KIT = KITM.new { layers = L }
@@ -85,19 +88,19 @@ local mob = H.help { canvas = { 1600, 900 }, device = 'mobile', page = 1, pages 
 -- ===== A 结构与层号 =====
 print('--- A 结构与层号')
 
-ok(#pc == 113, 'A1 PC/单页 113 个节点（3 面板 + 109 文字与色块 + 1 热区）', #pc)
+ok(#pc == 271, 'A1 PC/单页 271 个节点（13 面板 + 257 文字与图元 + 1 热区）', #pc)
 local lay = countBy(pc, 'layer')
-ok(lay.panel == 3 and lay.card == 109 and lay.touch == 1,
-  string.format('A2 层号分布 panel=3 card=109 touch=1（实际 %d/%d/%d）',
+ok(lay.panel == 13 and lay.card == 257 and lay.touch == 1,
+  string.format('A2 层号分布 panel=13 card=257 touch=1（实际 %d/%d/%d）',
     lay.panel or 0, lay.card or 0, lay.touch or 0))
 
 local panelKeys = {}
 for i = 1, #pc do
   if pc[i].layer == 'panel' then panelKeys[#panelKeys + 1] = pc[i].key end
 end
-ok(#panelKeys == 3 and panelKeys[1] == 'helpScrim' and panelKeys[2] == 'helpFrame'
-  and panelKeys[3] == 'helpBoard',
-  'A3 panel 层三件套顺序 = 遮罩 → 外框 → 纸面（后建在上，等于纸面压住遮罩）',
+ok(#panelKeys == 13 and panelKeys[1] == 'helpScrim' and panelKeys[2] == 'helpFrameA'
+  and panelKeys[8] == 'helpBoardA',
+  'A3 panel 层顺序 = 遮罩 → 外框(rrect 6 件) → 纸面(rrect 6 件)（后建在上 ⇒ 纸面压住遮罩）',
   table.concat(panelKeys, ','))
 
 local badLayer, badTpl, badSize = nil, nil, nil
@@ -146,11 +149,17 @@ local scrim = byKey(pc, 'helpScrim')
 ok(scrim and scrim.size[1] >= 1600 and scrim.size[2] >= 900,
   'A10 遮罩至少盖满画布（W+20 × H+20 过扫，防边缘缝）', scrim and (scrim.size[1] .. 'x' .. scrim.size[2]))
 
-local frame, paper = byKey(pc, 'helpFrame'), byKey(pc, 'helpBoard')
-ok(near(frame.size[1], 1548) and near(frame.size[2], 848),
-  'A11 描金外框 1548×848（抄 buildA 的 helpFrame）', frame.size[1] .. 'x' .. frame.size[2])
-ok(near(paper.size[1], 1540) and near(paper.size[2], 840),
-  'A12 纸面 1540×840（抄 buildA 的 helpBoard）', paper.size[1] .. 'x' .. paper.size[2])
+-- 圆角件 = 2 矩形 + 4 角圆：外廓 = B 件的宽 × 高，角圆直径 = 2r
+local fB, fC = byKey(pc, 'helpFrameB'), byKey(pc, 'helpFrameC1')
+ok(near(fB.size[1], 1548) and near(fB.size[2], 848 - 2 * HELPM.FRAME.R)
+  and near(fC.size[1], 2 * HELPM.FRAME.R),
+  'A11 描金外框 = 1548×848 r26（B 件 1548×796 + 4 个 52×52 角圆，抄 buildA 的 rrect）',
+  fB and (fB.size[1] .. 'x' .. fB.size[2] .. ' r=' .. fC.size[1] / 2))
+local pB, pC = byKey(pc, 'helpBoardB'), byKey(pc, 'helpBoardC1')
+ok(near(pB.size[1], 1540) and near(pB.size[2], 840 - 2 * HELPM.PAPER.R)
+  and near(pC.size[1], 2 * HELPM.PAPER.R),
+  'A12 纸面 = 1540×840 r24（B 件 1540×792 + 4 个 48×48 角圆）',
+  pB and (pB.size[1] .. 'x' .. pB.size[2] .. ' r=' .. pC.size[1] / 2))
 
 local last = pc[#pc]
 ok(last.key == 'helpCloseHit' and last.layer == 'touch'
@@ -228,8 +237,11 @@ for _, cv in ipairs({ { 1600, 900 }, { 1280, 720 }, { 2340, 1080 } }) do
   for _, dev in ipairs({ 'pc', 'mobile' }) do
     for _, pages in ipairs({ 1, 3 }) do
       local tree = H.help { canvas = cv, device = dev, pages = pages }
-      local pn = byKey(tree, 'helpBoard')
-      local px0, py0, px1, py1 = V.rect(pn)
+      local sc = math.min(cv[1] / 1600, cv[2] / 900)
+      local px0 = -HELPM.PAPER.W * sc / 2
+      local px1 = HELPM.PAPER.W * sc / 2
+      local py0 = -HELPM.PAPER.H * sc / 2
+      local py1 = HELPM.PAPER.H * sc / 2
       for i = 1, #tree do
         local n = tree[i]
         if n.layer == 'card' then
@@ -258,7 +270,7 @@ ok(k8 and near(k8.pos[2], -121), 'D3 键表第 8 行 y = 208 - 7×47 = -121（�
 
 local cardX = {}
 for i = 1, 4 do
-  local n = byKey(pc, 'helpCard' .. i)
+  local n = byKey(pc, 'helpCard' .. i .. 'B')     -- rrect 的 B 件 = 整宽整高的那块
   cardX[i] = n and n.pos[1]
 end
 ok(near(cardX[1], -212) and near(cardX[2], 66) and near(cardX[3], 344) and near(cardX[4], 622),
@@ -266,7 +278,7 @@ ok(near(cardX[1], -212) and near(cardX[2], 66) and near(cardX[3], 344) and near(
   table.concat({ tostring(cardX[1]), tostring(cardX[2]), tostring(cardX[3]), tostring(cardX[4]) }, ','))
 local gapOk = true
 for i = 1, 3 do
-  local a, b = byKey(pc, 'helpCard' .. i), byKey(pc, 'helpCard' .. (i + 1))
+  local a, b = byKey(pc, 'helpCard' .. i .. 'B'), byKey(pc, 'helpCard' .. (i + 1) .. 'B')
   local ax1 = a.pos[1] + a.size[1] / 2
   local bx0 = b.pos[1] - b.size[1] / 2
   if bx0 - ax1 < 20 then gapOk = false end
@@ -347,8 +359,8 @@ ok(near(tWide.pos[1], -504) and near(tWide.pos[2], 412.8) and tWide.font == 48,
   'F3 2340×1080（s=1.2，fit 取小边）标题 (-504,412.8) 字号 48',
   string.format('%.1f,%.1f fs%d', tWide.pos[1], tWide.pos[2], tWide.font))
 
-local cap1 = byKey(pc, 'helpCap1_1')
-local capG = byKey(pc, 'helpCap5_1')
+local cap1 = byKey(pc, 'helpCap1_1B')     -- rrect 的 B 件 = 整宽（74 或 40）
+local capG = byKey(pc, 'helpCap5_1B')
 ok(cap1 and near(cap1.size[1], 74), 'F4 多字节键帽宽 74（← 是 3 字节 ⇒ 走 #cap≥2 分支，照抄现网）',
   cap1 and cap1.size[1])
 ok(capG and near(capG.size[1], 40), 'F5 单字节键帽宽 40（G）', capG and capG.size[1])
@@ -388,8 +400,8 @@ ok(byKey(one, 'helpKey1').text == '测试行' and byKey(one, 'helpCapT1_1').text
   'G3 覆盖后的行内容 + 键帽都来自 sections')
 
 local dflt = H.help()
-ok(#dflt == 113 and byKey(dflt, 'helpTitle').font == 40,
-  'G4 无 opts 调用可用（缺省 1600×900 / pc / 单页）', #dflt)
+ok(#dflt == 271 and byKey(dflt, 'helpTitle').font == 40,
+  'G4 无 opts 调用可用（缺省 1600×900 / pc / 单页，271 节点）', #dflt)
 
 local okDev = pcall(function() H.help { device = 'tablet' } end)
 ok(not okDev, 'G5 未知 device 当场报错（不静默按 pc 处理）')
@@ -408,8 +420,106 @@ local leaked = {}
 for k in pairs(_G) do if not before[k] then leaked[#leaked + 1] = k end end
 ok(#leaked == 0 and type(probe.help) == 'function',
   'G9 加载 + new() 不写任何全局，返回 { help=fn, count=fn }', table.concat(leaked, ','))
-ok(#probe.help { canvas = { 1600, 900 }, device = 'pc' } == 113 and probe.count { } == 113,
+ok(#probe.help { canvas = { 1600, 900 }, device = 'pc' } == 271 and probe.count { } == 271,
   'G10 count(opts) 与 #help(opts) 一致（接线的 `help build n=` 日志读数）')
+
+-- ===== H 引擎侧图元（读控件字段，不读描述）=====
+print('--- H 引擎侧图元')
+
+local function throughRender(nodes, canvas)
+  local P = PLATFORM.new {
+    mock = true, canvas = canvas or { 1280, 720 }, logSink = function() end,
+    templates = { cell = { kind = 'image' }, stext = { kind = 'text' }, hit = { kind = 'cursor' } },
+  }
+  local R = RENDERM.new { platform = P, layers = L, log = function() end }
+  R.apply(nodes)
+  return P, R
+end
+
+local P1, R1 = throughRender(pc)
+ok(#R1.issues() == 0, 'H1 真走 render 通道 0 issue（R0 实例化失败 / R1 层序冲突都不可能）',
+  #R1.issues() > 0 and (R1.issues()[1].code .. ' ' .. R1.issues()[1].msg))
+
+-- 代表节点五连：星 / 圆角端点 / 矩形 / 徽章 / 环（引擎内置图元 100004/100002/100001/100002/100006）
+local SAMPLE = {
+  { 'helpStar', HELPM.SHAPE_ID.fourstar, '星标 fourstar' },
+  { 'helpFrameC1', HELPM.SHAPE_ID.circle, '外框角圆 circle' },
+  { 'helpFrameA', HELPM.SHAPE_ID.rect, '外框中段矩形 rect' },
+  { 'helpEmblem1', HELPM.SHAPE_ID.circle, '模式徽章 circle' },
+  { 'helpRing1', HELPM.SHAPE_ID.ring, '色环 ring' },
+}
+local badS, checkedS = nil, 0
+for i = 1, #SAMPLE do
+  local key, want, label = SAMPLE[i][1], SAMPLE[i][2], SAMPLE[i][3]
+  local ctl = R1.get(key)
+  if not ctl then
+    badS = 'no ctl ' .. key
+  elseif ctl.imageId ~= want then
+    badS = key .. ' imageId=' .. tostring(ctl.imageId) .. ' 期望 ' .. want .. '（' .. label .. '）'
+  elseif ctl.imageSource ~= 'StaticReference' then
+    badS = key .. ' imageSource=' .. tostring(ctl.imageSource)
+  else
+    checkedS = checkedS + 1
+  end
+end
+ok(badS == nil and checkedS == 5,
+  'H2 引擎侧 imageId 五连：星 100004 / 角圆 100002 / 矩形 100001 / 徽章 100002 / 环 100006'
+    .. '，imageSource=StaticReference（读控件字段）', badS or checkedS)
+
+-- 完整性：描述里带 image 的节点，引擎侧必须**每一个**都贴到了对应图元
+local imgNodes, badAll = 0, nil
+for i = 1, #pc do
+  local n = pc[i]
+  if n.image then
+    imgNodes = imgNodes + 1
+    local want = HELPM.SHAPE_ID[n.image.s]
+    local ctl = R1.get(n.key)
+    if not ctl then
+      badAll = 'no ctl ' .. n.key
+    elseif ctl.imageId ~= want then
+      badAll = n.key .. ' imageId=' .. tostring(ctl.imageId) .. ' 期望 ' .. tostring(want)
+    end
+  end
+end
+ok(badAll == nil, 'H3 逐个核对：' .. imgNodes .. ' 个图元节点全部贴到期望图元（没有"漏贴默认"的）', badAll)
+
+-- 移动端关闭胶囊的两端也是 circle（pill 的 capShape）
+local Pm, Rm = throughRender(mob)
+local capCtl = Rm.get('helpCloseL')
+ok(capCtl and capCtl.imageId == HELPM.SHAPE_ID.circle,
+  'H4 mobile 关闭胶囊端点 = circle(100002)（胶囊圆角真的走图元通道）',
+  capCtl and capCtl.imageId)
+
+-- 创建序 = 层序（后建在上）：遮罩 → 外框 → 标题 → 关闭热区
+local function seqOf(P, R, key)
+  local ctl = R.get(key)
+  return ctl and P.seqOf(ctl) or nil
+end
+local sScrim, sFrame = seqOf(P1, R1, 'helpScrim'), seqOf(P1, R1, 'helpFrameA')
+local sTitle, sHit = seqOf(P1, R1, 'helpTitle'), seqOf(P1, R1, 'helpCloseHit')
+ok(sScrim and sFrame and sTitle and sHit and sScrim < sFrame and sFrame < sTitle and sTitle < sHit,
+  'H5 创建序 = 层序：遮罩 → 外框 → 文字 → 热区（后建在上，不靠 SetAsLastSibling）',
+  table.concat({ tostring(sScrim), tostring(sFrame), tostring(sTitle), tostring(sHit) }, '<'))
+
+-- 负向 ①：把某块矩形的 image.s 误写成 circle ⇒ 检查必须报红（证明读的是引擎侧真值）
+local badDesc = clone(pc)
+local frameA = nil
+for i = 1, #badDesc do if badDesc[i].key == 'helpFrameA' then frameA = badDesc[i] end end
+frameA.image = { s = 'circle' }
+local _, Rbad = throughRender(badDesc)
+local ctlBad = Rbad.get('helpFrameA')
+ok(ctlBad and ctlBad.imageId == HELPM.SHAPE_ID.circle,
+  'H6 负向①：矩形误写 circle ⇒ 引擎侧 imageId 真的变成 100002（闸门读的是控件字段，不是描述）',
+  ctlBad and ctlBad.imageId)
+
+-- 负向 ②：整块拿掉 image 字段 ⇒ 引擎侧没有 imageId ⇒ 完整性检查会红
+local noImg = clone(pc)
+for i = 1, #noImg do if noImg[i].key == 'helpStar' then noImg[i].image = nil end end
+local _, Rnil = throughRender(noImg)
+local starCtl = Rnil.get('helpStar')
+ok(starCtl and starCtl.imageId == nil,
+  'H7 负向②：拿掉 image 字段 ⇒ 引擎侧 imageId=nil（H3 那种检查必然报红）',
+  starCtl and tostring(starCtl.imageId))
 
 -- ===== 汇总 =====
 print(string.format('\n== view_help_test: %d passed, %d failed ==', pass, fail))
