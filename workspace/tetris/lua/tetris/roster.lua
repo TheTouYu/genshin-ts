@@ -19,6 +19,7 @@ function M.new(env)
 
   -- ROSTER 由 main 注入（同一张表，外部也读它）
   FN.rosterDestroy = function()
+    if FN.rosterV2Close then FN.rosterV2Close() end     -- v6.4：新路径的实例必须在这里清掉
     if ROSTER.savedTop or ROSTER.savedBot then
       setText(topBanner, ROSTER.savedTop or '')
       setText(botBanner, ROSTER.savedBot or '')
@@ -120,6 +121,173 @@ function M.new(env)
     FN.rosterBuild(FN.charSel, FN.charTab)
   end
 
+  -- ===== v6.4 档案页：纯描述（view_roster）+ 独立 render 实例 ROSTERV.R =====
+  -- 为什么独立实例：基础层（棋盘/预览/HUD）每帧增量更新同一张 key 表，覆盖屏是整屏重建；
+  -- 共用一张表时 apply 会把基础层节点当成"不在列表里"全部销毁（D762 记过同族事故）。
+  -- 需要的注入面（缺任一则自动回落旧实现并打一行 skip 日志，游戏不会坏）：
+  --   env.platform(PT) / env.render(RENDER_M) / env.layers(VIEW_LAYERS_M) /
+  --   env.config(CFG) / env.kit(VIEW_KIT_M.new{layers}) / env.viewRoster(view_roster 模块)
+  local ROSTERV = { R = nil, S = nil, live = false, nodes = nil }
+  local function v2able()
+    return env.platform and env.render and env.layers and env.config and env.kit
+      and env.viewRoster
+  end
+  local function v2mix(c, k)          -- k>0 向白 / k<0 向墨（与 MS.opts 同款）
+    if not k or k == 0 then return c end
+    local a = (c // 16777216) % 256
+    local r0, g0, b0 = (c // 65536) % 256, (c // 256) % 256, c % 256
+    local tt = (k > 0) and 255 or 16
+    local kk = (k < 0) and -k or k
+    local function ch(v)
+      local n = math.floor(v + (tt - v) * kk + 0.5)
+      if n < 0 then n = 0 end
+      if n > 255 then n = 255 end
+      return n
+    end
+    return C(a, ch(r0), ch(g0), ch(b0))
+  end
+  -- 三态：胶囊三块 + 文字逐件写字段（不重建）；组按热区 key 反查同一前缀的部件
+  local function v2bind(nodes)
+    local R = ROSTERV.R
+    local idx = {}
+    local function put(k, n) if k and not idx[k] then idx[k] = n end end
+    for i = 1, #nodes do
+      local n = nodes[i]
+      put(n.key, n)
+      put(n.name, n)
+    end
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.role == 'hit' and n.name then
+        local base = tostring(n.name):gsub('Hit$', '')
+        local parts = {}
+        for _, suf in ipairs({ 'B', 'L', 'R' }) do
+          local p = idx[base .. suf]
+          if p and p.color then parts[#parts + 1] = { key = p.key, base = p.color, x = p.pos[1], y = p.pos[2] } end
+        end
+        local lb = idx[base .. 'T']
+        local sub = idx[base .. 'S']
+        local hitKey, hitName = n.key, n.name
+        local ctl = R.get(hitKey)
+        if ctl and #parts > 0 then
+          local function paint(k)
+            for j = 1, #parts do
+              R.write(parts[j].key, 'imageColor', k and v2mix(parts[j].base, k) or parts[j].base)
+            end
+            if lb and lb.fcolor then R.write(lb.key, 'fontColor', k and v2mix(lb.fcolor, k * -1) or lb.fcolor) end
+          end
+          env.addCursor(ctl, 'CursorEnter', function() paint(-0.06) end)
+          env.addCursor(ctl, 'CursorExit', function() paint(nil) end)
+          env.addCursor(ctl, 'CursorDown', function() paint(-0.12) end)
+          env.addCursor(ctl, 'CursorUp', function() paint(-0.06) end)
+        end
+        if ROSTERV.actions and ROSTERV.actions[hitName] then
+          env.addCursor(ctl, 'CursorClick', ROSTERV.actions[hitName])
+        end
+      end
+    end
+  end
+
+  -- 诊断/测试入口：拿到新路径的 render 实例与最近一次描述（headless 测试读字段用）
+  FN.rosterV2R = function() return ROSTERV.R end
+  FN.rosterV2Nodes = function() return ROSTERV.nodes end
+
+  FN.rosterV2Close = function()
+    if ROSTERV.R then ROSTERV.R.clear() end
+    ROSTERV.live = false
+    ROSTERV.nodes = nil
+    if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
+  end
+
+  FN.rosterV2Build = function(keepSel, keepTab)
+    if not v2able() then print('roster v2 skip :: 需要 main 注入 platform/render/layers/config/kit/viewRoster') return false end
+    if not (SKG() and SKILLS) then print('roster skip (no skills)') return false end
+    if keepSel then FN.charSel = keepSel end
+    if keepTab then FN.charTab = keepTab end
+    local roles = (SKG().roles and #SKG().roles > 0) and SKG().roles
+      or { 'nahida', 'keqing', 'ganyu', 'columbina' }
+    local sel = FN.charSel or 1
+    if sel < 1 or sel > #roles then sel = 1 end
+    local tab = FN.charTab or 1
+    if tab < 1 or tab > 5 then tab = 1 end
+    FN.charSel, FN.charTab = sel, tab
+    local role = roles[sel]
+    local d = charData(role)
+    local st = SKG() or {}
+    local open = st.unlocked and st.unlocked[role] == true
+    local W, H = env.canvas()
+    if not ROSTERV.S then
+      ROSTERV.S = env.viewRoster.new({ config = env.config, layers = env.layers,
+        kit = env.kit, copy = FN.COPY, roster = ROSTER })
+    end
+    if not ROSTERV.R then
+      ROSTERV.R = env.render.new({ platform = env.platform, layers = env.layers,
+        log = function(m) print(m) end })
+    end
+    -- 交互：页签 / 关闭 / 角色行 / 条目卡（热区 key 见 view_roster：charTab<i>Hit、charCloseHit、
+    -- charRow<i>Hit、charItemHit<i>）
+    local actions = {}
+    for i = 1, 5 do
+      local ii = i
+      actions['charTab' .. i .. 'Hit'] = function()
+        print('char tab tap ' .. ii)
+        FN.rosterV2Build(nil, ii)
+      end
+    end
+    actions['charCloseHit'] = function()
+      print('roster close')
+      FN.rosterV2Close()
+      ROSTER.on = false
+      if env.rebuildMenu then env.rebuildMenu() end
+    end
+    for i = 1, #roles do
+      local ii = i
+      actions['charRow' .. i .. 'Hit'] = function()
+        FN.charSel = ii
+        print('char select i=' .. ii .. ' role=' .. tostring(roles[ii]))
+        FN.rosterV2Build(ii, nil)
+      end
+    end
+    for i = 1, 3 do
+      local ii = i
+      actions['charItemHit' .. i] = function()
+        print('char detail open ' .. ii)   -- 全文浮层未接（见交付报告"未接清单"）
+      end
+    end
+    ROSTERV.actions = actions
+    local nodes = ROSTERV.S.roster {
+      canvas = { W, H },
+      device = (IS_MOBILE and 'mobile') or 'pc',
+      role = role, tab = tab, roles = roles,
+      party = (st.party or {}), unlocked = (st.unlocked or {}),
+      lv = (st.lv and st.lv[role]) or 1, cnt = (st.cnt or {}),
+      cd = d.cd or 0, partyMax = (SKILLS.NUM and SKILLS.NUM.PARTY_MAX) or 2,
+      skillDesc = d.durTxt or nil, open = open,
+      onTab = function(i) if actions['charTab' .. i .. 'Hit'] then actions['charTab' .. i .. 'Hit']() end end,
+      onClose = actions['charCloseHit'],
+      onSwap = function(i) actions['charRow' .. i .. 'Hit']() end,
+      onEntry = function(i) actions['charItemHit' .. i]() end,
+    }
+    ROSTERV.R.clear()          -- 先清再 apply：引擎实例上限约 430，常驻约 240 + 本屏 111
+    ROSTERV.R.apply(nodes)
+    ROSTERV.live, ROSTERV.nodes = true, nodes
+    v2bind(nodes)
+    if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
+    if UI4 and UI4.regAdd then
+      for i = 1, #nodes do
+        local n = nodes[i]
+        if n.role == 'hit' then
+          local ctl = ROSTERV.R.get(n.key)
+          if ctl then pcall(UI4.regAdd, 'roster.' .. tostring(n.name), ctl, n.size[1], n.size[2]) end
+        end
+      end
+    end
+    ROSTER.on = true
+    print('char codex open n=' .. #nodes .. ' sel=' .. tostring(role) .. ' tab=' .. tostring(tab)
+      .. ' v=2 issues=' .. #ROSTERV.R.issues())
+    return true
+  end
+
   FN.rosterToggle = function()
     if not (SKG() and SKILLS) then print('roster skip (no skills)') return end
     if ROSTER.on then
@@ -128,6 +296,9 @@ function M.new(env)
       print('roster close')
       return
     end
+    -- 能力齐 ⇒ 只走新路径（覆盖屏自带独立 render 实例，不再需要"先拆展台再建页"）
+    if FN.rosterV2Build() then return end
+    if env.teardownMenu then env.teardownMenu() end
     FN.rosterBuild()
   end
 
