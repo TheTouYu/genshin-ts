@@ -51,10 +51,18 @@ function M.new(spec)
   R.bagSeq = 0
 
   -- LCG：**逐字**照 main.lua:97-100，连 `(seed // 65536) % n + 1` 的取位都不能改。
+  -- ⚠ 数值模型（2026-10-31 实证，别改成整数运算）：
+  -- 本 LCG 必须**三端同序**：模拟器 Fengari 与真机 LuaJIT 的数字都是 IEEE-754 double，
+  -- 而 lua5.3 是 64 位整数 ⇒ 同样的乘法溢出行为不同，序列会分叉（实测 9/70 用例因此红）。
+  -- 所以这里显式把 state 转成浮点（+ 0.0），让 lua5.3 也走 double 路径：
+  -- 模拟器/真机算法不变（它们本来就是 double），headless 自动对齐。
   function R.rand(n)
     if externalRand then return externalRand(n) end
-    seed = (seed * LCG_MUL + LCG_INC) % LCG_MOD
-    return (seed // LCG_SHIFT) % n + 1
+    local s = seed + 0.0                     -- 强制浮点：见上方「数值模型」
+    s = (s * LCG_MUL + LCG_INC) % LCG_MOD
+    seed = s
+    -- 取位也用浮点除法再取整（整数 // 在 lua5.3 与 double 上结果不同）
+    return math.floor(s / LCG_SHIFT) % n + 1
   end
 
   function R.setSeed(s)
