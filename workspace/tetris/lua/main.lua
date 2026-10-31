@@ -687,14 +687,7 @@ end
 
 -- 真结算：把「游戏结束」发成服务端信号 tetris_settle —— 地图 hl 里的服务端图 1082130480
 -- 收到后「设玩家结算状态 = Victory」→「结算关卡」，弹出官方结算页。
--- 真机是否有 game.ServerSignal 事先未知，所以两种形态都 pcall 探测、结果逐条打日志：
---   ① game.ServerSignal.send('名')             —— 本轮任务单给的形态
---   ② game.ServerSignal('名'):SendSignal()     —— 模拟器 Lua 桥的工厂形态（D112 实测）
--- 两种都失败 ⇒ 本机 Lua 无信号通道，退出改法（Q 退回原来的「结算明细」开关，按键不失效）。
 local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
--- v5.43（真机日志 rec25428 实证）：真机 `game.ServerSignal` 是**函数**，形态① 每次都会报
--- `attempt to index a function value` 才回落到形态②。第一次探测成功后把可用形态记住，
--- 之后直接走对的那条 —— 少一次必然失败 pcall，也不再在日志里刷 FAILED 假警报。
 local settleSignalForm = nil
 local function sendSettleSignal()
   if settleSignalForm == 2 then
@@ -722,8 +715,6 @@ local function sendSettleSignal()
   return false
 end
 
--- ② 单控件（textbox）模板：只探 guid（探针实例用完就销毁——否则它先造出来会被后造的遮罩盖住）
--- 文字模板：必须按**能力**探测（通用探测会挑到没有 text 字段的 guid）
 function probeTextRaw()
   for _, g in ipairs(TPL_GUIDS.settleText) do
     local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
@@ -733,9 +724,13 @@ function probeTextRaw()
 end
 local function probeSettleTextbox() return TEMPLATES and TEMPLATES:text() or nil end
 
--- 结算动画（0→0.9s）：①0→0.45s 文字 alpha 淡入 + 棋盘压到 45% 亮度
+-- v6.9 状态源唯一化：live 只由 FN.settleLiveSync 这一处赋值（真源 = APP.overlay()）
+FN.settleLiveSync = function()
+  SETTLEV.live = (APP ~= nil and APP.overlay and APP.overlay() == 'settle') or false
+  return SETTLEV.live
+end
+
 -- ②0.15s 起标题自上滑入（0.35s ease-out）③0.55s 起标题脉冲 44→48→44
--- （v6.2：选项带的落位改为静态——它由 view_settle 按卡底反解，不再参与滑入）
 -- 通道分流：v2 的每一帧写入都走 SR（write/writePos），不碰任何 ctl 句柄；
 -- S3 已把旧实现（buildSettleLayer/layoutSettle/settleSetColors/settleTick 旧分支/MS.opts）整段删除。
 -- 三条硬理由（S1 已写进装配处注释）：①SR 必须独立于棋盘 BR；②每次打开 SR.clear() 再 apply；
@@ -784,7 +779,6 @@ SETTLEV.mix = function(c, k)
   return C(a, ch(r0), ch(g0), ch(b0))
 end
 
--- 悬停/按下三态 + 按钮音效（v6.3 回归修复）：旧 MS.opts 挂的 CursorEnter/Exit/Up/Down 补回新路径。
 -- 有界实现：只对**已存在**的控件写字段（不重建节点）；三态色板来自 view_settle 的 node.state：
 --   fill（主）= mix(base, -0.13/-0.26)      line（次）= mix(accent, +0.78/+0.60)（白底要染模式色才看得见）
 --   flat（三）= mix(base, +0.04/-0.10) 并把字色推到墨色（浅底胶囊提亮 4% 肉眼几乎无差，真正的信号是字色）
@@ -870,12 +864,11 @@ SETTLEV.bindHover = function(nodes, accent, deep)
 end
 
 SETTLEV.close = function()
-  if SETTLEV.SR then SETTLEV.SR.clear() end
-  SETTLEV.live = false
+  if APP then APP.closeOverlay() elseif SETTLEV.SR then SETTLEV.SR.clear() end
+  FN.settleLiveSync()
   g.settleV2 = false
 end
 
--- 打开结算屏：一份描述 → SR（双屏也只产一份：render 的 key 是全局表，各盘 apply 会撞 key）
 SETTLEV.open = function(overTitle)
   if not (SETTLEV.SR and SETTLEV.S) then return false end
   local noteRecs = CFG.COPY and CFG.COPY.settle
@@ -905,9 +898,15 @@ SETTLEV.open = function(overTitle)
     title = overTitle or '游戏结束',
     onRestart = onKey('R'), onHome = onKey('V'), onDetail = onKey('Q'),
   }
-  SETTLEV.SR.clear()                       -- 每次打开先清（引擎实例上限 430，常驻约 240）
-  SETTLEV.SR.apply(nodes)
-  SETTLEV.live = true
+  -- 试点③：懒创建的 SR 先 provideOverlay 登记，再 openOverlay（隔离仍是 SR）
+  if APP then
+    APP.provideOverlay('settle', SETTLEV.SR)
+    APP.openOverlay('settle', { name = 'settle', opaque = true }, nodes)
+  else
+    SETTLEV.SR.clear()
+    SETTLEV.SR.apply(nodes)
+  end
+  FN.settleLiveSync()
   local mtS = MODE_THEME[MODE] or MODE_THEME.casual or {}
   SETTLEV.bindHover(nodes, mtS.accent or THEME.textMain, mtS.frame or THEME.textMain)
   UI4.regScreen('settle')
