@@ -107,6 +107,7 @@ assert(R.get('charPanelS').textLayout.visibleLineCount > 0)
 
 ## 7. 踩坑清单（每条都真实发生过）
 
+- **"装载期注入"恒为 nil**（本轮实测两例）：模块表在 chunk 装载期构造，而 `platform` / `render` 实例在 `OnStart` 才创建。若在构造期写字面量 `platform = PT`，读到的是 nil ⇒ 模块静默走降级路径，**看起来接上了、其实没接**（另一例：`loadModule('core_rng')` 写在首次使用之后，同理）。修法是分两段：先建 `ENV = {}` 表，`OnStart` 里回填实例。判据：**降级日志是否还在打**（`roster v2 skip :: 需要 main 注入 …` 消失才算真接上）。
 - **`R:apply(nodes)` 写成冒号**：closure 风格模块会把 `R` 自己当 list 传进去，不报错、只是什么都没建、断言全红而 reason 看不出根因 → 统一点号调用。
 - **`local live` 遮蔽模块级计数器**：销毁路径算错，被 pcall 包住 ⇒ 表现为"静默不销毁"。
 - **引擎数值模型**：lua5.3 是 64 位整数，Fengari/真机是 IEEE-754 double。手写 LCG 在两端序列不同（本项目 9/70 用例因此红，看起来像排版 bug）。修法是**显式走浮点**（`seed + 0.0` + `math.floor(s / K)` 取位），不是改期望值。
