@@ -110,6 +110,52 @@ end
 
 local function fn() end
 
+-- 胶囊图元的小工具（§C 引擎侧断言与 §E 描述层断言共用）
+local function isCapsule(n) return n.role == 'capRim' or n.role == 'capFill' end
+local function isEndPart(n) return n.key:sub(-1) == 'L' or n.key:sub(-1) == 'R' end
+local function shapeOf(n) return type(n.image) == 'table' and n.image.s or n.image end
+
+-- 一层深拷贝（改坏样本时不污染原数组）
+local function copyNodes(list)
+  local out = {}
+  for i = 1, #list do
+    local src, dst = list[i], {}
+    for k, v in pairs(src) do
+      if type(v) == 'table' then
+        local c = {}
+        for k2, v2 in pairs(v) do c[k2] = v2 end
+        dst[k] = c
+      else
+        dst[k] = v
+      end
+    end
+    out[i] = dst
+  end
+  return out
+end
+
+-- 引擎侧形状检查：读控件真实字段（imageId / imageSource），不读描述
+local CIRCLE_ID, RECT_ID = 100002, 100001
+local function engineShapeBad(P, R, nodes)
+  local checked = 0
+  for i = 1, #nodes do
+    local nd = nodes[i]
+    if isCapsule(nd) then
+      local ctl = R.get(nd.key)
+      if not ctl then return 'no ctl ' .. nd.key, checked end
+      local want = isEndPart(nd) and CIRCLE_ID or RECT_ID
+      if ctl.imageId ~= want then
+        return nd.key .. ' imageId=' .. tostring(ctl.imageId) .. ' 期望 ' .. want, checked
+      end
+      if ctl.imageSource ~= 'StaticReference' then
+        return nd.key .. ' imageSource=' .. tostring(ctl.imageSource), checked
+      end
+      checked = checked + 1
+    end
+  end
+  return nil, checked
+end
+
 ----------------------------------------------------------------------------
 -- §A 抄录：几何 / 字号 / 字色 / 文案（锚：main.lua layoutSettle / settleSetColors / showGameOver）
 ----------------------------------------------------------------------------
@@ -421,10 +467,6 @@ ok(lintBad == nil, 'B12 view_node.lint 0 issue（' .. lintRuns .. ' 次：5 画�
 ----------------------------------------------------------------------------
 -- §E 圆角（image 图元通道）与形态开关 style='text'|'pill'
 ----------------------------------------------------------------------------
-local function isCapsule(n) return n.role == 'capRim' or n.role == 'capFill' end
-local function isEndPart(n) return n.key:sub(-1) == 'L' or n.key:sub(-1) == 'R' end
-local function shapeOf(n) return type(n.image) == 'table' and n.image.s or n.image end
-
 -- E1 圆角：端点 circle（且正方形才能贴成半圆）、中段 rect
 local pureBad, pureCount = nil, 0
 for _, dev in ipairs({ 'mobile', 'pc' }) do
@@ -676,6 +718,34 @@ do
   ok(ctl and V.alpha(ctl.imageColor) == 255,
     'C3 引擎侧 imageColor 的 alpha=255（缺陷① 在落地通道上也成立）',
     ctl and hex(ctl.imageColor))
+
+  -- 引擎侧图元断言：端点 circle(100002) / 中段 rect(100001)，且贴图来源 = StaticReference
+  do
+    local bad, checked = engineShapeBad(P, R, build('mobile'))
+    ok(bad == nil and checked == 18,
+      'C3b 引擎侧 imageId：18 个胶囊控件 = 端点 100002(circle) / 中段 100001(rect)'
+        .. '，imageSource=StaticReference（读控件字段，不读描述）', bad or checked)
+
+    -- 负向 ①：中段误写 circle ⇒ 检查必须报红（证明这条读的是引擎侧真值）
+    local m1 = copyNodes(build('mobile'))
+    for i = 1, #m1 do
+      if m1[i].key == 'settleCapRestartB' then m1[i].image = { s = 'circle' } end
+    end
+    local P1, R1 = applyThroughRender(m1)
+    local b1 = engineShapeBad(P1, R1, m1)
+    ok(b1 ~= nil and b1:find('settleCapRestartB', 1, true) ~= nil,
+      'C3c 负向：中段误写 circle ⇒ 报红（' .. tostring(b1) .. '）', b1)
+
+    -- 负向 ②：端点误写 rect ⇒ 检查必须报红
+    local m2 = copyNodes(build('mobile'))
+    for i = 1, #m2 do
+      if m2[i].key == 'settleRimRestartL' then m2[i].image = { s = 'rect' } end
+    end
+    local P2, R2 = applyThroughRender(m2)
+    local b2 = engineShapeBad(P2, R2, m2)
+    ok(b2 ~= nil and b2:find('settleRimRestartL', 1, true) ~= nil,
+      'C3d 负向：端点误写 rect ⇒ 报红（' .. tostring(b2) .. '）', b2)
+  end
 
   -- 热区控件名 = 现网契约（tests/40 用 hotSettleV 点击）
   local hot = P.root:GetChild('hotSettleV')
