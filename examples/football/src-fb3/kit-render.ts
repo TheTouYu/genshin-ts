@@ -77,9 +77,12 @@ g
         everyEarly.set(calcEarlyI)
       }
     )
+    // ⚠️ 2026-10-31 实测：按「段时长 / Lua 帧时长」折算会把间隔算成 6 拍（≈0.4~0.55s），
+    //   远大于 0.18s 的段时长 ⇒ 空档更大。段时长 0.18s 足以覆盖任意拍率（实测 0.09s/拍），
+    //   因此下发间隔**固定 1 拍**（每条 B 信号都重新下发一次），重叠由 duration 提供。
     const dueEarly = f.greaterThanOrEqualTo(
       f.subtraction(tickEarly, f.get('fb_lin_tick')),
-      everyEarly.value
+      1n
     )
     f.doubleBranch(
       f.logicalAndOperation(f.equal(evt.params.tag, 'B'), dueEarly),
@@ -194,7 +197,7 @@ g
         const tickNow = evt.params.tick
         const linDue = f.greaterThanOrEqualTo(
           f.subtraction(tickNow, f.get('fb_lin_tick')),
-          everyTicks.value
+          1n
         )
         f.doubleBranch(
           f.logicalAndOperation(f.lessThan(dist, 0.012), f.logicalNotOperation(linDue)),
