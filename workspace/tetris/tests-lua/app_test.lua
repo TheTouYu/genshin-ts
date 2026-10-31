@@ -142,5 +142,50 @@ local st = A.stats()
 ok(type(st) == 'table' and st.depth ~= nil and st.render ~= nil, 'F1 stats 含 栈深/渲染计数')
 ok(st.render.created and st.render.created > 0, 'F2 渲染计数可见', st.render and st.render.created)
 
+-- ===== G 覆盖屏（overlay）：独立 render 实例 + 先 clear 再 apply =====
+local OR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local A2 = appM.new { platform = P, render = R, scenes = S, layers = layers,
+  overlayRender = OR, log = function(m) logs[#logs + 1] = m end }
+A2.register { name = 'base', opaque = true,
+  view = function()
+    return { { key = 'baseCell', layer = 'board', tpl = 'cell', name = 'baseCell',
+      pos = { 0, 0 }, size = { 28, 28 }, color = 0 } }
+  end }
+A2.start('base')
+local baseLive = R.live()
+ok(R.get('baseCell') ~= nil, 'G1 基础层已渲染（独立实例的另一侧）')
+
+local heavy = {}
+for i = 1, 300 do
+  heavy[i] = { key = 'ov' .. i, layer = 'card', tpl = 'cell', name = 'ov' .. i,
+    pos = { i % 10 * 30, 0 }, size = { 20, 20 }, color = 0 }
+end
+ok(A2.openOverlay('help', nil, heavy) == true, 'G2 打开覆盖屏成功')
+ok(OR.live() == 300, 'G3 覆盖屏节点全部建成', OR.live())
+ok(R.get('baseCell') ~= nil and R.live() == baseLive, 'G4 基础层不受影响（独立 render 实例）')
+ok(A2.overlay() == 'help', 'G5 当前覆盖屏记录正确')
+
+-- 先 clear 再 apply：300 节点重开不该翻倍
+local heavy2 = {}
+for i = 1, 120 do
+  heavy2[i] = { key = 'ov2' .. i, layer = 'card', tpl = 'cell', name = 'ov2' .. i,
+    pos = { 0, 0 }, size = { 20, 20 }, color = 0 }
+end
+A2.openOverlay('settle', nil, heavy2)
+ok(OR.live() == 120, 'G6 换覆盖屏时先 clear（300 → 120，不翻倍不残留）', OR.live())
+-- 注意：新节点名 ov2N 也以 'ov' 开头，所以不能只匹配 '^ov%d'（会把自己数进去）。
+-- 显式点名上一屏的前 10 个 key，逐个确认已不在。
+local leaked = 0
+local oldNames = {}
+for i = 1, 10 do oldNames['ov' .. i] = true end
+for _, ctl in pairs(OR.controls()) do
+  if oldNames[tostring(ctl.name or '')] then leaked = leaked + 1 end
+end
+ok(leaked == 0, 'G7 上一屏的节点一个都不剩（点名核 10 个旧 key）', leaked)
+
+A2.closeOverlay()
+ok(OR.live() == 0 and A2.overlay() == nil, 'G8 关覆盖屏后 overlay 实例归零')
+ok(R.get('baseCell') ~= nil, 'G9 关覆盖屏不动基础层')
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

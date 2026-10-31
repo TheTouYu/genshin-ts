@@ -84,6 +84,47 @@ M.new = function(spec)
     end)
   end
 
+  -- ===== 覆盖屏（帮助 / 结算 / 档案页 / 标题）=====
+  -- 为什么必须是**独立的 render 实例**：基础层（棋盘/预览/HUD）是「每帧增量更新同一张 key 表」，
+  -- 覆盖屏是「整屏一次性重建」。两者共用一张 key 表时，覆盖屏的 apply 会把基础层节点当成
+  -- 「不在列表里」全部销毁。分开之后，覆盖屏开关只动自己那一份。
+  --
+  -- 为什么 open 必须先 clear：说明页 271–289 节点、常驻约 240 ⇒ 240+280 撞引擎实例上限 430。
+  -- 这条以前靠人记（写在 view_help 头注释里），现在收进代码。
+  local overlayR = spec.overlayRender
+  local overlayName, overlayPushed = nil, false
+
+  function A.openOverlay(name, def, nodes)
+    if not overlayR then
+      log('app overlay missing :: ' .. tostring(name))
+      return false
+    end
+    if overlayName then A.closeOverlay() end
+    overlayR.clear()
+    local ok, err = pcall(overlayR.apply, nodes or {})
+    if not ok then
+      log('app overlay fail :: ' .. tostring(name) .. ' :: ' .. tostring(err))
+      return false
+    end
+    if def then
+      overlayPushed = S.push(def.name or name, def) and true or false
+    end
+    overlayName = name
+    return true
+  end
+
+  function A.closeOverlay()
+    local was = overlayName
+    if overlayR then overlayR.clear() end
+    if overlayPushed then S.pop() end
+    overlayPushed = false
+    overlayName = nil
+    return was
+  end
+
+  function A.overlay() return overlayName end
+  function A.overlayRender() return overlayR end
+
   function A.scenes() return S end
   function A.stats()
     return {
