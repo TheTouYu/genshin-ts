@@ -1,121 +1,115 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "40 v2.7 AI 代打顶死走玩家同一条链路：无安全位→照常落块→spawn 顶死→gameover→结算层（旧实现每帧空转不判负）",
-  "dt": 0.016666666666666666,
-  "canvasId": "pc-16-9",
-  "events": [
-    {
-      "t": 0.2,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.22,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.3,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.32,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.4,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.42,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.5,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.52,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.6,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.62,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.7,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.72,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.8,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.82,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 9.0,
-      "kind": "key",
-      "typeName": "KeyboardMoveLeftKeyDown"
-    },
-    {
-      "t": 9.02,
-      "kind": "key",
-      "typeName": "KeyboardMoveLeftKeyUp"
-    }
-  ],
-  "asserts": [
-    {
-      "at": 8.4,
-      "kind": "log",
-      "contains": "takeover ai",
-      "source": "client"
-    },
-    {
-      "at": 38.0,
-      "kind": "log",
-      "contains": "ai topout",
-      "source": "client"
-    },
-    {
-      "at": 38.2,
-      "kind": "log",
-      "contains": "gameover score=",
-      "source": "client"
-    },
-    {
-      "at": 39.0,
-      "kind": "log",
-      "contains": "settle build ok",
-      "source": "client"
-    },
-    {
-      "at": 39.6,
-      "kind": "log",
-      "contains": "settle anim done",
-      "source": "client"
-    }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "40 终局：停手不接管时顶满照常结算（AI 接管死亡路径已随机制废除）",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.62,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.72,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.82,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 9.0,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 9.02,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 8.4,
+   "kind": "log",
+   "contains": "takeover off (skill only)",
+   "source": "client"
+  },
+  {
+   "at": 38.2,
+   "kind": "log",
+   "contains": "gameover score=",
+   "source": "client"
+  },
+  {
+   "at": 39.0,
+   "kind": "log",
+   "contains": "settle build ok",
+   "source": "client"
+  },
+  {
+   "at": 39.6,
+   "kind": "log",
+   "contains": "settle anim done",
+   "source": "client"
+  }
+ ]
 }

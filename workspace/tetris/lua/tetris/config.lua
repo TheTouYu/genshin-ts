@@ -555,7 +555,7 @@ local HELP = {
   -- 四模式委托卡：color/deep 复用 STYLE.modes 的同源色，tint 是本页新增的浅底（白卡上的色块底）
   modes = {
     { key = '1', name = '休闲', color = D_LEAF, deep = C(255, 63, 139, 60), tint = C(255, 236, 247, 227),
-      lines = { 'AI 陪练，随时接管', '停手 3 秒出现提示', '再 3 秒 AI 代打' }, win = '分数照记' },
+      lines = { 'AI 先替你打，随时接手', '纳西妲技能可请她代打', '停手不会自动接管' }, win = '分数照记' },
     { key = '2', name = 'AI 对抗', color = D_BOLT, deep = C(255, 95, 76, 168), tint = C(255, 238, 233, 251),
       lines = { '双屏 · 镜像出块', 'hard 档 AI 对战', '消 2/3/4 送它垃圾行' }, win = '任一方顶满 = 分胜负' },
     { key = '3', name = '双人对战', color = D_PETAL, deep = C(255, 192, 78, 124), tint = C(255, 255, 236, 245),

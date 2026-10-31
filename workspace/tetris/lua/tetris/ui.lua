@@ -528,6 +528,9 @@ M.new = function(spec)
     for i = 1, #p.parts do trySet(p.parts[i], 'imageColor', color) end
   end
 
+  -- ⚠ 前向声明：placeBtnNow/park/placeBtn 在 makeBtn 之后才定义，而 makeBtn 体内要调用它们。
+  -- Lua 的 `local function` 只在其后可见 ⇒ 直接写函数体会解析成全局 nil（本文件已踩过两次）。
+  local placeBtnNow, park, placeBtn
   local function makeBtn(def, w, h, fs, group)
     local id = def.id
     local gp = group or ''
@@ -559,10 +562,7 @@ M.new = function(spec)
     -- 结算三键就会躺在画面中央（手机标题页实测：棋盘正中一块胶囊形贴片）。
     -- ⚠ 这里不能用 park(b)：`local function park` 声明在 makeBtn 之后，
     -- 闭包里解析成全局 nil（Lua 词法作用域），必须就地展开。
-    placePill(b.edge, 0, -4000)
-    placePill(b.bg, 0, -4000)
-    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', 0, -4000) end
-    if b.hit then tryCall(b.hit, 'SetAnchoredPosition', 0, -4000) end
+    placeBtnNow(b, true)
     return b
   end
 
@@ -627,32 +627,41 @@ M.new = function(spec)
       .. ' act=' .. #U.actBtns .. ')')
   end
 
-  local function park(b)
+  -- ===== 按钮的单一真源（v5.40 根治）==========================================
+  -- 病根：描边/底/文字/热区四件的坐标由三处分别写（build 一次、plan 一次、park 又一次），
+  -- 而 park 把 b.x/b.y 改成 (0,-4000) **丢掉原值**；文字标签只在创建时写一次。
+  -- ⇒ 任何「收起来再放回」都会变成空胶囊（用户实测：进局正常、点一次全空）。
+  -- 规矩：几何只存 b.gx/gy/gw/gh，文字只存 b.label，**只有 placeBtnNow 能写控件**。
+  local PARK_Y = -4000
+  placeBtnNow = function(b, hidden)
     if not b then return end
-    b.x, b.y = 0, -4000
-    placePill(b.edge, 0, -4000)
-    placePill(b.bg, 0, -4000)
-    if b.txt then tryCall(b.txt, 'SetAnchoredPosition', 0, -4000) end
-    if b.hit then tryCall(b.hit, 'SetAnchoredPosition', 0, -4000) end
-  end
-
-  local function placeBtn(b, r)
-    if not b then return end
-    if not r then park(b) return end
-    b.x, b.y, b.w, b.h = r.x, r.y, r.w, r.h
-    placePill(b.edge, r.x, r.y)
-    placePill(b.bg, r.x, r.y)
+    local x = b.gx or 0
+    local y = hidden and PARK_Y or (b.gy or 0)
+    local w, h = b.gw or 120, b.gh or 56
+    placePill(b.edge, x, y)
+    placePill(b.bg, x, y)
     if b.txt then
-      tryCall(b.txt, 'SetSizeDelta', r.w, r.h)
-      tryCall(b.txt, 'SetAnchoredPosition', r.x, r.y)
-      -- park(b) 会把文字清空（plan 里没有这颗键时）⇒ 重新摆位时把标签写回，
-      -- 否则「进局正常、点一次就全空」（用户实测的根因）。
+      tryCall(b.txt, 'SetSizeDelta', w, h)
+      tryCall(b.txt, 'SetAnchoredPosition', x, y)
       if b.label then pcall(function() b.txt.text = b.label end) end
     end
     if b.hit then
-      tryCall(b.hit, 'SetSizeDelta', r.w, r.h)
-      tryCall(b.hit, 'SetAnchoredPosition', r.x, r.y)
+      tryCall(b.hit, 'SetSizeDelta', w, h)
+      tryCall(b.hit, 'SetAnchoredPosition', x, y)
     end
+    b.x, b.y = x, y
+    b.hidden = hidden and true or false
+  end
+
+  park = function(b) if b then placeBtnNow(b, true) end end
+
+  placeBtn = function(b, r)
+    if not b then return end
+    if r then b.gx, b.gy, b.gw, b.gh = r.x, r.y, r.w, r.h end
+    -- onScreen = 这颗键属于**当前屏**（由 plan 决定）。padVisible 还原时不能把
+    -- 别的屏的键一起放出来（否则「回主页/次页/明细」会飘到局内，本轮实测）。
+    b.onScreen = (r ~= nil)
+    placeBtnNow(b, not r)
   end
 
   -- 按 id 找几何：先槽位键（游戏键）→ 导航键 → 结算键
@@ -844,7 +853,12 @@ M.new = function(spec)
   -- 需要先把按钮的 label/几何做成单一真源，不能靠搬坐标）。
   U.padVisible = function(show)
     U.padHidden = not show
-    return true
+    if not U.mobile then return end
+    -- v5.40：只切 hidden，几何/标签都在真源里 ⇒ 收/放都不会丢字（这是根治点）
+    for _, b in ipairs(U.allBtns or {}) do
+      placeBtnNow(b, (not show) or (not b.onScreen))
+    end
+    print('pad visible=' .. tostring(show) .. ' n=' .. #(U.allBtns or {}))
   end
 
   U.apply = function(screen, dual, mode, guide)

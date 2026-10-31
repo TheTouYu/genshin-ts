@@ -6749,6 +6749,12 @@ function OnUpdate(dt)
       local bannerBusy = (FN.SK.topT or 0) > 0
       -- v5.38：NUM.TK_PLAY_S = nil ⇒ 这条链整体关闭（不再有「停手 3s 出提示 → 再 3s AI 接管」）。
       -- 接管只走纳西妲 E 技能（FN.skillCast → ai-takeover）。恢复旧行为把 config 里两个常量改回 3。
+      -- 新规矩的验收锚（v5.40）：停手不再接管，只在停手 3 秒时打一行「技能才接管」。
+      -- 用例 23/40 用它断言「机制已废除」，而不是删掉测试（删测试=丢掉回归）。
+      if not NUM.TK_PLAY_S and TK.state == 'play' and TK.t >= 3 and not TK.offLogged then
+        TK.offLogged = true
+        print('takeover off (skill only)')
+      end
       if NUM.TK_PLAY_S and TK.state == 'play' and TK.t >= NUM.TK_PLAY_S then
         TK.state, TK.t = 'hint', 0
         if not bannerBusy then

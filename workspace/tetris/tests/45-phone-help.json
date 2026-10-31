@@ -10,21 +10,21 @@
    "kind": "pointer",
    "type": "move",
    "x": 871,
-   "y": 156
+   "y": 582
   },
   {
    "t": 0.55,
    "kind": "pointer",
    "type": "down",
    "x": 871,
-   "y": 156
+   "y": 582
   },
   {
    "t": 0.6,
    "kind": "pointer",
    "type": "up",
    "x": 871,
-   "y": 156
+   "y": 582
   },
   {
    "t": 1.4,
@@ -52,21 +52,21 @@
    "kind": "pointer",
    "type": "move",
    "x": 871,
-   "y": 156
+   "y": 582
   },
   {
    "t": 2.45,
    "kind": "pointer",
    "type": "down",
    "x": 871,
-   "y": 156
+   "y": 582
   },
   {
    "t": 2.5,
    "kind": "pointer",
    "type": "up",
    "x": 871,
-   "y": 156
+   "y": 582
   }
  ],
  "asserts": [

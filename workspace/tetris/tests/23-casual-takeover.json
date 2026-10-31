@@ -1,19 +1,49 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "23 休闲模式局中接管：5s 无操作→提示 2s→AI 代打→按键交还",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [
-    { "t": 0.3, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 0.32, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" },
-    { "t": 8.5, "kind": "key", "typeName": "KeyboardMoveLeftKeyDown" },
-    { "t": 8.52, "kind": "key", "typeName": "KeyboardMoveLeftKeyUp" }
-  ],
-  "asserts": [
-    { "at": 0.5, "kind": "log", "contains": "mode=casual", "source": "client" },
-    { "at": 6.0, "kind": "log", "contains": "takeover hint", "source": "client" },
-    { "at": 8.0, "kind": "log", "contains": "takeover ai", "source": "client" },
-    { "at": 9.0, "kind": "log", "contains": "takeover back", "source": "client" }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "23 休闲：停手不再自动接管（接管只由纳西妲技能触发）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  },
+  {
+   "t": 8.5,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyDown"
+  },
+  {
+   "t": 8.52,
+   "kind": "key",
+   "typeName": "KeyboardMoveLeftKeyUp"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.5,
+   "kind": "log",
+   "contains": "mode=casual",
+   "source": "client"
+  },
+  {
+   "at": 6.0,
+   "kind": "log",
+   "contains": "takeover off (skill only)",
+   "source": "client"
+  },
+  {
+   "at": 8.0,
+   "kind": "log",
+   "contains": "takeover off (skill only)",
+   "source": "client"
+  }
+ ]
 }
