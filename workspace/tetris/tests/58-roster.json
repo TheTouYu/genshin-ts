@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "58 角色档案（官方式四页签）：标题/列表/页签/主动技能条目/数值行/中列技能行",
+ "name": "58 角色档案（官方式四页签）：标题/列表/页签/主动技能条目/数值行/中列技能行｜+引擎侧 textLayout.fits（v6.4）",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -42,19 +42,61 @@
   {
    "at": 1.0,
    "kind": "tree",
-   "name": "btnroster.row2T",
+   "name": "charRow2T",
    "exists": true
   },
   {
    "at": 1.0,
    "kind": "lua",
-   "source": "local n=query.control('btnroster.row2T')\nassert(n and n.text, 'btnroster.row2T 不在')\nassert(n.text:find('刻晴',1,true), '第二行不是刻晴: '..n.text)\n-- v5.3：角色页改成官方式四页签（技能/机制/数值/解锁），断言改成页签 + 条目 + 数值行\nfor i=1,4 do\n  local t=query.control('btnroster.tab'..i..'T')\n  assert(t and t.text and #t.text>0, '页签 '..i..' 缺失')\nend\nlocal it=query.control('charItemNm1')\nassert(it and it.text and it.text:find('所闻遍计',1,true), '第一条不是所闻遍计天赋: '..tostring(it and it.text))\nlocal v2=query.control('charItemNm2')\nassert(v2 and v2.text and #v2.text>0, '第二条天赋名缺失')\nlocal sk=query.control('charPanelF')\nassert(sk and sk.text and sk.text:find('技能',1,true), '中列技能行缺失')\nreturn true"
+   "source": "local n=query.control('charRow2T')\nassert(n and n.text, 'charRow2T 不在')\nassert(n.text:find('刻晴',1,true), '第二行不是刻晴: '..n.text)\n-- v5.3：角色页改成官方式四页签（技能/机制/数值/解锁），断言改成页签 + 条目 + 数值行\nfor i=1,4 do\n  local t=query.control('charTab'..i..'T')\n  assert(t and t.text and #t.text>0, '页签 '..i..' 缺失')\nend\nlocal it=query.control('charItemNm1')\nassert(it and it.text and it.text:find('所闻遍计',1,true), '第一条不是所闻遍计天赋: '..tostring(it and it.text))\nlocal v2=query.control('charItemNm2')\nassert(v2 and v2.text and #v2.text>0, '第二条天赋名缺失')\nlocal sk=query.control('charPanelF')\nassert(sk and sk.text and sk.text:find('技能',1,true), '中列技能行缺失')\nreturn true"
   },
   {
    "at": 2.2,
    "kind": "log",
    "contains": "roster close",
    "source": "client"
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelL1",
+   "field": "textLayout.fits",
+   "equals": true
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelL4",
+   "field": "textLayout.fits",
+   "equals": true
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelS",
+   "field": "textLayout.fits",
+   "equals": true
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelL1",
+   "field": "textLayout.visibleLineCount",
+   "equals": 1
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelS",
+   "field": "textLayout.visibleLineCount",
+   "equals": 1
+  },
+  {
+   "at": 1.2,
+   "kind": "control",
+   "name": "charPanelS",
+   "field": "textLayout.requiredHeight",
+   "equals": 25.75
   }
  ],
  "note": "| v5.1：日志锚 roster open n= → char codex open n=（页面重写为角色图鉴）；关闭锚不变 | v5.3：角色页从\"单页两栏\"改成\"左列表+中立绘+右四页签(技能/机制/数值/解锁)\"，断言随之改成页签与条目锚"

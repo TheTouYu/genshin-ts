@@ -1600,6 +1600,42 @@ local SNAPSHOT_FIELDS = {
   fillAmount = true, interactable = true, raycastTarget = true, pressed = true,
 }
 
+-- 文字排版派生量：与引擎 studio/play/text-layout.js **同公式**（保守折行：多字节=1em、ASCII=0.55em）
+-- 为什么在 shim 里算：模拟器把 textLayout 挂上了 play 树（2026-10-31），headless 若不算，
+-- 同一批 `control field="textLayout.fits"` 断言在两条通道上就会分叉。
+local function text_metrics(control)
+  local f = FIELD[control]
+  local text = tostring(f.text or '')
+  local font = tonumber(f.fontSize) or 16
+  local w = tonumber(f.sizeDeltaX) or 0
+  local h = tonumber(f.sizeDeltaY) or 0
+  local lines, cur = 1, 0
+  local i = 1
+  while i <= #text do
+    local b = string.byte(text, i)
+    local len = 1
+    if b >= 0xF0 then len = 4 elseif b >= 0xE0 then len = 3 elseif b >= 0xC0 then len = 2 end
+    local ch = string.sub(text, i, i + len - 1)
+    if ch == '\n' then
+      lines = lines + 1
+      cur = 0
+    else
+      local adv = ((len > 1) and 1 or 0.55) * font
+      if w > 0 and cur > 0 and cur + adv > w then
+        lines = lines + 1
+        cur = adv
+      else
+        cur = cur + adv
+      end
+    end
+    i = i + len
+  end
+  local required = 1.2 * font * lines + (0.25 * font + 4)
+  local fits = (w > 0) and (h >= required)
+  return { fits = fits, requiredHeight = required, lines = lines,
+    visibleLineCount = fits and lines or 0, width = w, height = h }
+end
+
 function Engine:field_of(control, key)
   local f = FIELD[control]
   if not f then return nil end
@@ -1609,6 +1645,14 @@ function Engine:field_of(control, key)
   if key == 'prefabId' then return f.prefabIndex end
   if key == 'authoringId' then return f.authoringId end
   if key == 'activeInHierarchy' then return active_in_hierarchy(control) end
+  -- textLayout / textLayout.<子字段>（模拟器 play 树自 2026-10-31 起平铺提供）
+  if key == 'textLayout' or key:sub(1, 11) == 'textLayout.' then
+    if f.kind ~= 'textbox' and f.kind ~= 'textwindow' then return nil end
+    local tl = text_metrics(control)
+    local sub = key:sub(12)
+    if sub == '' then return tl end
+    return tl[sub], tl[sub] == nil and 'unsupported-field' or nil
+  end
   if not SNAPSHOT_FIELDS[key] then return nil, 'unsupported-field' end
   local value = f[key]
   if COLOR_FIELDS[key] then return to_signed32(value) end

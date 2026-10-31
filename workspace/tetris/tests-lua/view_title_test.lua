@@ -658,6 +658,86 @@ local both = T.title { canvas = { 1600, 900 }, device = 'pc', hover = 2, pressed
 ok(byKey(both, 'menuTitle2').font == 40 and byKey(both, 'menuBead2').size[1] == 26,
   'G20 hover 与 pressed 同时给 ⇒ 按下优先（font 40 / 宝珠 26）')
 
+-- ===== H 引擎侧文字排版（"字被整条吃掉"的标准闸门）=====
+-- 为什么单独一节：前九节断的都是**描述**（框高 ≥ 1.45×字号+6 这类结构估算），
+-- 而"字整条不画"是**引擎行为**：requiredHeight > 框高 ⇒ fits=false ⇒ visibleLineCount=0
+-- ⇒ 一个字都不出现（不是裁切、是消失；真机/模拟器都踩过）。
+-- 这里读的是控件字段 ctl.textLayout（platform 的 mock 按引擎公式复刻：
+-- requiredHeight = 1.2×字号×行数 + 0.25×字号 + 4），不是描述里的数字。
+--
+-- ★ 模板函数 assertTextFits：**别的屏（结算/说明/预览/档案/双屏 HUD）直接抄这一对**
+--   用法：assertTextFits(R, list)               -- 扫描述里全部文字控件
+--         assertTextFits(R, list, { 'a','b' })  -- 只查指定 key
+--         assertTextFits(R, list, { 'k' }, false) -- 负向：要求 fits=false（证明闸门会响）
+--   返回 ok, 第一条失败的说明（带 requiredHeight/框高/行数/字号）, 检查个数, 折行说明
+print('--- H 引擎侧文字排版')
+
+local function layOf0(R, key)
+  local ctl = R.get(key)
+  return ctl and ctl.textLayout or nil
+end
+local function layStr(lay)
+  if not lay then return 'nil（控件没有 textLayout）' end
+  return string.format('fits=%s 需高 %.1f / 框高 %.0f / %d 行 / 字号 %d',
+    tostring(lay.fits), lay.requiredHeight or -1, lay.height or -1, lay.lines or -1, lay.font or -1)
+end
+
+local function assertTextFits(R, list, keys, wantFits)
+  if wantFits == nil then wantFits = true end
+  local want = {}
+  if keys then for i = 1, #keys do want[keys[i]] = true end end
+  local bad, wrapBad, checked = nil, nil, 0
+  for i = 1, #list do
+    local n = list[i]
+    if n.tpl == 'stext' and (keys == nil or want[n.key]) then
+      checked = checked + 1
+      local ctl = R.get(n.key)
+      local lay = ctl and ctl.textLayout or nil
+      if not lay then
+        bad = bad or (n.key .. ' :: 控件不存在或模板不是 text（拿不到 textLayout）')
+      elseif wantFits then
+        if lay.fits ~= true or (lay.visibleLineCount or 0) < 1 then
+          bad = bad or (n.key .. ' :: ' .. layStr(lay))
+        elseif (lay.lines or 1) > 1 then
+          wrapBad = wrapBad or (n.key .. ' :: ' .. layStr(lay))
+        end
+      elseif lay.fits ~= false then
+        bad = bad or (n.key .. ' :: 期望 fits=false，实得 ' .. layStr(lay))
+      end
+    end
+  end
+  return (bad == nil and wrapBad == nil), (bad or wrapBad), checked, wrapBad
+end
+
+local okAll, msgAll, txtCount = assertTextFits(R1, pc)
+ok(okAll, 'H1 引擎侧：' .. txtCount .. ' 个文字控件 textLayout 全部 fits=true 且 visibleLineCount≥1', msgAll)
+local _, wrapMsg = assertTextFits(R1, pc)
+ok(wrapMsg == nil, 'H2 没有一条文字折成 ≥2 行（折行=被裁的前兆，横排 UI 里必查）', wrapMsg)
+
+local okBig, msgBig = assertTextFits(R1, pc, { 'menuBig' })
+local bigLay = layOf0(R1, 'menuBig')
+ok(okBig and near(bigLay.requiredHeight, 79.4, 0.6),
+  'H3 menuBig 52 号 @660×87：fits=true，引擎算需高 79.4（框 87 留 7.6 余量）', msgBig)
+
+local _, RHover = throughRender(T.title { canvas = { 1600, 900 }, device = 'pc', hover = 1 })
+local okHover, msgHover = assertTextFits(RHover, T.title { canvas = { 1600, 900 }, device = 'pc', hover = 1 },
+  { 'menuTitle1' })
+local hvLay = layOf0(RHover, 'menuTitle1')
+ok(okHover and hvLay and hvLay.font == 44 and near(hvLay.requiredHeight, 67.8, 0.6),
+  'H4 悬停态 menuTitle1 44 号 @330×70：fits=true（需高 67.8 —— 44 号是这一档的最近点）', msgHover)
+
+local _, RHint = throughRender(pc)
+RHint.write('menuHint1', 'fontSize', 28)          -- 接线方 tick 的呼吸峰：26↔28 号
+local okHint, msgHint = assertTextFits(RHint, pc, { 'menuHint1' })
+ok(okHint and layOf0(RHint, 'menuHint1').font == 28,
+  'H5 提示条呼吸峰值 28 号 @215×50：fits=true（接线后 tick 改写字号不会把字吃掉）', msgHint)
+
+local _, RSmall = throughRender(pc)
+RSmall.write('menuBig', 'sizeDeltaY', 40)          -- 负向：把大字的框高压矮
+local okNeg, msgNeg = assertTextFits(RSmall, pc, { 'menuBig' }, false)
+ok(okNeg and layOf0(RSmall, 'menuBig').visibleLineCount == 0,
+  'H6 负向：menuBig 框高压到 40 ⇒ fits=false / visibleLineCount=0（这道闸门真的会响）', msgNeg)
+
 -- ===== 汇总 =====
 print(string.format('\n== view_title_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
