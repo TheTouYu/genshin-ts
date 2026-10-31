@@ -2,21 +2,23 @@
  tests-lua/run_cases.lua —— headless 用例驱动器（lua5.3，秒级跑 tests/*.json）
  ----------------------------------------------------------------------------
  干什么：逐条读 tests/*.json → 新建假引擎（engine_shim.lua）→ 加载 lua/main.lua
-         并跑 OnInit/OnEnable/OnStart → 按 case.dt 推虚拟时间、在 events[].at 触发
+         并跑 OnInit/OnEnable/OnStart → 按 case.dt 推虚拟时间、在 events[].t 触发
          按键/指针/点击 → 在 asserts[].at 求值 → 逐例 PASS/FAIL + 汇总。
  用法：
-   lua5.3 tests-lua/run_cases.lua                # 全量 70 例
-   lua5.3 tests-lua/run_cases.lua 01 08           # 文件名子串过滤
-   lua5.3 tests-lua/run_cases.lua '4?-*'          # glob 过滤（* ? 通配）
-   lua5.3 tests-lua/run_cases.lua --list          # 只列用例
+   lua5.3 tests-lua/run_cases.lua                  # 全量 70 例（默认 --jobs=auto）
+   lua5.3 tests-lua/run_cases.lua 01 08            # 文件名子串过滤
+   lua5.3 tests-lua/run_cases.lua '4?-*'           # glob 过滤（* ? 通配）
+   lua5.3 tests-lua/run_cases.lua --list           # 只列用例
+   lua5.3 tests-lua/run_cases.lua --jobs=1         # 单进程顺序跑（排查用）
+   lua5.3 tests-lua/run_cases.lua --source=save    # 跑存档内嵌 Lua（与模拟器同源，做交叉对照）
  退出码：全部已实现断言通过（且无 unsupported）→ 0；否则 1。
 
  断言语义以模拟器 studio/autotest/{assert,runner,format}.js 为准：
-   · log     = 客户端日志文本包含 contains（source=server 无通道 ⇒ unsupported）
+   · log     = 客户端日志文本包含 contains（source=server ⇒ unsupported：无服务端日志通道）
    · control = 按 name 递归找控件，读快照字段与 equals 深比较（找不到即失败）
    · tree    = 按 name 递归找控件，存在性 == exists
    · lua     = 在**新建沙箱**里 load(source) 执行，只有抛错算失败（return false 不算）
-   · audioExpect/audioExclude = case 级，读 PlayAudio2D 调用序列（同 runner.mjs 的 audio.recent）
+   · audioExpect/audioExclude = case 级，读 PlayAudio2D 调用序列（同 qxqy/runner.mjs 的 audio.recent）
  时间线（同 runner.js replayCase）：
    time=0 先派发 t<=1e-9 的事件、再按文件顺序求值 at<=1e-9 的断言；
    然后 while time+1e-9 < end：step(dt) → time=round(time+dt,1e-9) → 事件 → 断言。
@@ -24,6 +26,9 @@
 
  硬线（防假绿）：任何未实现的断言 kind/字段/事件 kind ⇒ 记 unsupported 并**计入失败**，
  不会静默跳过；汇总行把 unsupported 数单独列出来。
+
+ 源码来源：默认跑**仓库当前** lua/（跟踪 lead 的重构）；--source=save 跑 tetris.save.json
+ 里内嵌的那份（模拟器实际执行的那份，用来做同源交叉对照）。
 =========================================================================]]
 
 local script_path = arg and arg[0] or 'tests-lua/run_cases.lua'
@@ -70,14 +75,44 @@ local function fmt_value(value)
   return tostring(value)
 end
 
+local function shell_quote(text)
+  return "'" .. tostring(text):gsub("'", "'\\''") .. "'"
+end
+
+local function read_text(path)
+  local fh = io.open(path, 'rb')
+  if not fh then return nil end
+  local text = fh:read('a')
+  fh:close()
+  return text
+end
+
+local function write_text(path, text)
+  local fh = assert(io.open(path, 'wb'), 'cannot write ' .. path)
+  fh:write(text)
+  fh:close()
+end
+
+local function now_ms()
+  local pipe = io.popen('date +%s%3N 2>/dev/null')
+  if pipe then
+    local line = pipe:read('*l')
+    pipe:close()
+    local ms = tonumber(line or '')
+    if ms then return ms end
+  end
+  return os.time() * 1000
+end
+
 local function list_case_files()
   local files = {}
-  local pipe = io.popen('ls -1 ' .. string.format('%q', project_root .. '/tests') .. ' 2>/dev/null')
+  local pipe = io.popen('ls -1 ' .. shell_quote(project_root .. '/tests') .. ' 2>/dev/null')
   if not pipe then return files end
   for line in pipe:lines() do
     if line:match('%.json$') then files[#files + 1] = line end
   end
   pipe:close()
+  table.sort(files)
   return files
 end
 
@@ -85,6 +120,17 @@ local function glob_to_pattern(glob)
   local out = glob:gsub('[%^%$%(%)%%%.%[%]%+%-]', '%%%0')
   out = out:gsub('%*', '.*'):gsub('%?', '.')
   return '^' .. out .. '$'
+end
+
+local function default_jobs()
+  local pipe = io.popen('nproc 2>/dev/null')
+  local n = 0
+  if pipe then
+    n = tonumber(pipe:read('l')) or 0
+    pipe:close()
+  end
+  if n <= 0 then return 1 end
+  return math.max(1, math.min(8, n))
 end
 
 --------------------------------------------------------------------------------
@@ -98,16 +144,11 @@ local function eval_log(engine, assert)
   if assert.level and assert.level ~= 'info' then
     return { unsupported = 'log 断言 level=' .. tostring(assert.level) .. '（shim 只记录 info 级）' }
   end
-  local needle = assert.contains
   local texts = engine.log_texts
   if assert.regex then
-    local ok, pattern = pcall(string.pattern, nil)
-    if not ok then pattern = nil end
-    local matched = false
     for i = 1, #texts do
-      if tostring(texts[i]):find(assert.regex) then matched = true break end
+      if tostring(texts[i]):find(assert.regex) then return { ok = true, actual = assert.regex, expected = assert.regex } end
     end
-    if matched then return { ok = true, actual = assert.regex, expected = assert.regex } end
     return { ok = false, actual = texts[#texts] or '', expected = assert.regex, message = '无日志匹配该 Lua 模式' }
   end
   if assert.equals then
@@ -116,6 +157,7 @@ local function eval_log(engine, assert)
     end
     return { ok = false, actual = texts[#texts] or '', expected = assert.equals, message = '无日志整行等于期望' }
   end
+  local needle = assert.contains
   if type(needle) ~= 'string' then
     return { unsupported = 'log 断言缺 contains 字段' }
   end
@@ -142,10 +184,9 @@ local function eval_control(engine, assert)
       message = 'control not found: ' .. tostring(name),
     }
   end
-  local field = assert.field
-  local actual, why = engine:field_of(control, field)
+  local actual, why = engine:field_of(control, assert.field)
   if why then
-    return { unsupported = 'control 断言字段 ' .. tostring(field) .. '（shim 未建模该快照字段）' }
+    return { unsupported = 'control 断言字段 ' .. tostring(assert.field) .. '（shim 未建模该快照字段）' }
   end
   if deep_equal(actual, assert.equals) then return { ok = true, actual = actual, expected = assert.equals } end
   return { ok = false, actual = actual, expected = assert.equals }
@@ -167,7 +208,7 @@ local function make_query(engine)
   local function control_row(name)
     local control = engine:find(tostring(name))
     if not control then return nil end
-    local row = {
+    return {
       id = engine:field_of(control, 'id'),
       name = engine:field_of(control, 'name'),
       kind = engine:field_of(control, 'kind'),
@@ -177,7 +218,6 @@ local function make_query(engine)
       text = engine:field_of(control, 'text'),
       interactable = engine:field_of(control, 'interactable'),
     }
-    return row
   end
   return {
     var = function(entity_type, name) return nil end,
@@ -359,7 +399,6 @@ local function replay_case(engine, case)
     run_due_asserts()
   end
 
-  -- 未求值的断言（例如 at > 实际推进到的时刻）：记账为 unsupported，不静默丢
   for _, entry in ipairs(asserts) do
     if not entry.done then
       unsupported[#unsupported + 1] = string.format(
@@ -403,68 +442,29 @@ local function check_audio(engine, case)
     checked = #expect + #exclude,
     missing = missing,
     forbidden = forbidden,
-    tally = table.concat(tally_parts, ' ') ,
+    tally = table.concat(tally_parts, ' '),
     ok = (#missing == 0 and #forbidden == 0),
   }
 end
 
 --------------------------------------------------------------------------------
--- 主流程
+-- 跑一个用例 → report（passed / 打印块 / 计数）
 --------------------------------------------------------------------------------
-local filters = {}
-local list_only = false
-for i = 1, #arg do
-  if arg[i] == '--list' then list_only = true
-  elseif arg[i] == '--help' or arg[i] == '-h' then
-    print('用法：lua5.3 tests-lua/run_cases.lua [过滤子串|glob]* [--list]')
-    os.exit(0)
-  else
-    filters[#filters + 1] = arg[i]
-  end
-end
-
-local case_files = list_case_files()
-if #case_files == 0 then
-  io.stderr:write('没有找到用例：' .. project_root .. '/tests/*.json\n')
-  os.exit(1)
-end
-if #filters > 0 then
-  local kept = {}
-  for _, file in ipairs(case_files) do
-    local hit = false
-    for _, filter in ipairs(filters) do
-      if file:find(filter, 1, true) or file:find(glob_to_pattern(filter)) then hit = true break end
-    end
-    if hit then kept[#kept + 1] = file end
-  end
-  case_files = kept
-end
-if #case_files == 0 then
-  io.stderr:write('没有匹配的用例（过滤器：' .. table.concat(filters, ' ') .. '）\n')
-  os.exit(1)
-end
-if list_only then
-  for _, file in ipairs(case_files) do print(file) end
-  os.exit(0)
-end
-
-local save_text = assert(io.open(project_root .. '/tetris.save.json', 'rb'), 'tetris.save.json 不存在'):read('a')
-local save = json.decode(save_text)
-
-local started = os.clock()
-local pass = 0
-local failures = {}
-local unsupported_total = 0
-local per_case = {}
-
-for _, file in ipairs(case_files) do
+local function run_one_case(file, save, opts)
   local case_started = os.clock()
-  local raw = io.open(project_root .. '/tests/' .. file, 'rb')
-  local case = json.decode(assert(raw, '读不到 ' .. file):read('a'))
-  raw:close()
+  local source_text = read_text(project_root .. '/tests/' .. file)
+  local case = source_text and json.decode(source_text)
+  if not case then
+    return {
+      passed = false, error = '读不到用例文件 ' .. file,
+      results = {}, counts = { log = 0, control = 0, tree = 0, lua = 0 },
+      unsupported = {}, failure = nil, audio_checked = 0, elapsed = 0,
+    }
+  end
   local canvas_id = case.canvasId or 'mobile-16-9'
   local engine_ok, engine = pcall(shim.new, {
     save = save, canvas_id = canvas_id, project_root = project_root,
+    source_mode = opts.source_mode,
   })
   local report
   if not engine_ok then
@@ -493,94 +493,272 @@ for _, file in ipairs(case_files) do
         if audio.tally == '' then audio.tally = '(空)' end
         if not report.failure then
           report.failure = {
-            kind = 'audio', at = report.time_end,
-            ok = false, actual = audio.tally,
+            kind = 'audio', at = report.time_end, ok = false,
+            actual = audio.tally,
             expected = { expect = case.audioExpect, exclude = case.audioExclude },
           }
         end
       end
     end
   end
+  report.elapsed = os.clock() - case_started
+  return report
+end
 
-  local elapsed = os.clock() - case_started
-  per_case[#per_case + 1] = { file = file, elapsed = elapsed, report = report }
-  unsupported_total = unsupported_total + #report.unsupported
+local function count_list(values)
+  local out = {}
+  for i, v in ipairs(values) do out[i] = tostring(v) end
+  return table.concat(out, ',')
+end
 
+-- 把一个用例的结果渲染成一段可打印文本（worker 模式写盘、单进程模式直接打印，格式一致）
+local function render_case_block(file, report)
+  local lines = {}
+  local function emit(line) lines[#lines + 1] = line end
   if report.passed then
-    pass = pass + 1
     local counts = report.counts
-    print(string.format(
+    emit(string.format(
       'PASS %s  (%d 断言：log %d / control %d / tree %d / lua %d；audio %d；%.2fs)',
       file, (counts.log + counts.control + counts.tree + counts.lua),
       counts.log, counts.control, counts.tree, counts.lua,
-      report.audio_checked or 0, elapsed))
+      report.audio_checked or 0, report.elapsed or 0))
   else
-    failures[#failures + 1] = { file = file, report = report }
-    print(string.format('FAIL %s  (%.2fs)', file, elapsed))
-    if report.error then print('  · ' .. report.error) end
+    emit(string.format('FAIL %s  (%.2fs)', file, report.elapsed or 0))
+    if report.error then emit('  · ' .. report.error) end
     for _, row in ipairs(report.results) do
       if not row.ok then
-        print(string.format(
+        emit(string.format(
           '  · %s@%s 期望=%s 实得=%s %s',
           row.kind, tostring(row.at), fmt_value(row.expected), fmt_value(row.actual),
           row.unsupported and ('UNSUPPORTED: ' .. row.unsupported) or (row.message or '')))
       end
     end
     for _, note in ipairs(report.unsupported) do
-      print('  · UNSUPPORTED: ' .. note)
+      emit('  · UNSUPPORTED: ' .. note)
     end
     local audio = report.audio
     if audio then
       if #audio.missing > 0 then
-        print('  · audio 期望含 ' .. table.concat((function()
-          local out = {}
-          for i, id in ipairs(audio.missing) do out[i] = tostring(id) end
-          return out
-        end)(), ',') .. '，实得历史：' .. audio.tally)
+        emit('  · audio 期望含 ' .. count_list(audio.missing) .. '，实得历史：' .. audio.tally)
       end
       if #audio.forbidden > 0 then
-        print('  · audio 不该出现 ' .. table.concat((function()
-          local out = {}
-          for i, id in ipairs(audio.forbidden) do out[i] = tostring(id) end
-          return out
-        end)(), ',') .. '，实得历史：' .. audio.tally)
+        emit('  · audio 不该出现 ' .. count_list(audio.forbidden) .. '，实得历史：' .. audio.tally)
       end
     end
     if report.engine and #report.engine.errors > 0 then
-      local seen = {}
-      local shown = 0
+      local seen, shown = {}, 0
       for _, err in ipairs(report.engine.errors) do
         local key = err.where .. '|' .. err.message
         if not seen[key] and shown < 3 then
           seen[key] = true
           shown = shown + 1
-          print(string.format('  · lua 错误[%s] %s', err.where, err.message))
+          emit(string.format('  · lua 错误[%s] %s', err.where, err.message))
         end
       end
     end
   end
+  return table.concat(lines, '\n')
 end
 
-local elapsed = os.clock() - started
-print(string.format('\n%d/%d 用例通过，%.2fs（headless lua5.3）', pass, #case_files, elapsed))
+--------------------------------------------------------------------------------
+-- 命令行
+--------------------------------------------------------------------------------
+local filters = {}
+local list_only = false
+local jobs = nil
+local source_mode = 'repo'
+local worker_list, worker_outdir, worker_id = nil, nil, nil
+do
+  local i = 1
+  while i <= #arg do
+    local a = arg[i]
+    if a == '--list' then
+      list_only = true
+    elseif a == '--help' or a == '-h' then
+      print('用法：lua5.3 tests-lua/run_cases.lua [过滤子串|glob]* [--list] [--jobs=N] [--source=repo|save]')
+      os.exit(0)
+    elseif a:match('^%-%-jobs=') then
+      jobs = tonumber(a:match('=(%d+)$'))
+    elseif a == '--jobs' then
+      i = i + 1
+      jobs = tonumber(arg[i] or '')
+    elseif a:match('^%-%-source=') then
+      source_mode = a:match('=(.+)$')
+    elseif a:match('^%-%-worker%-list=') then
+      worker_list = a:match('=(.+)$')
+    elseif a:match('^%-%-worker%-outdir=') then
+      worker_outdir = a:match('=(.+)$')
+    elseif a:match('^%-%-worker%-id=') then
+      worker_id = a:match('=(.+)$')
+    elseif a:sub(1, 2) == '--' then
+      io.stderr:write('未知参数：' .. a .. '\n')
+      os.exit(2)
+    else
+      filters[#filters + 1] = a
+    end
+    i = i + 1
+  end
+end
+if source_mode ~= 'repo' and source_mode ~= 'save' then
+  io.stderr:write('--source 只支持 repo|save\n')
+  os.exit(2)
+end
+
+local save_text = read_text(project_root .. '/tetris.save.json')
+if not save_text then
+  io.stderr:write('找不到 ' .. project_root .. '/tetris.save.json\n')
+  os.exit(1)
+end
+local save = json.decode(save_text)
+
+-- ===== worker 模式：只跑自己那一份用例，逐例写块文件，最后写状态文件 =====
+if worker_list then
+  local list_text = read_text(worker_list)
+  if not list_text then
+    io.stderr:write('worker 读不到用例清单 ' .. worker_list .. '\n')
+    os.exit(1)
+  end
+  local files = {}
+  for line in list_text:gmatch('[^\n]+') do files[#files + 1] = line end
+  local pass, unsupported_total = 0, 0
+  for _, file in ipairs(files) do
+    local report = run_one_case(file, save, { source_mode = source_mode })
+    write_text(worker_outdir .. '/' .. file .. '.txt', render_case_block(file, report) .. '\n')
+    unsupported_total = unsupported_total + #report.unsupported
+    if report.passed then pass = pass + 1 end
+  end
+  write_text(worker_outdir .. '/worker-' .. tostring(worker_id or '0') .. '.status',
+    string.format('pass=%d total=%d unsupported=%d\n', pass, #files, unsupported_total))
+  os.exit((pass == #files and unsupported_total == 0) and 0 or 1)
+end
+
+-- ===== 用例清单 / 过滤 =====
+local case_files = list_case_files()
+if #case_files == 0 then
+  io.stderr:write('没有找到用例：' .. project_root .. '/tests/*.json\n')
+  os.exit(1)
+end
+if #filters > 0 then
+  local kept = {}
+  for _, file in ipairs(case_files) do
+    local hit = false
+    for _, filter in ipairs(filters) do
+      if file:find(filter, 1, true) or file:find(glob_to_pattern(filter)) then hit = true break end
+    end
+    if hit then kept[#kept + 1] = file end
+  end
+  case_files = kept
+end
+if #case_files == 0 then
+  io.stderr:write('没有匹配的用例（过滤器：' .. table.concat(filters, ' ') .. '）\n')
+  os.exit(1)
+end
+if list_only then
+  for _, file in ipairs(case_files) do print(file) end
+  os.exit(0)
+end
+
+local started_ms = now_ms()
+
+-- ===== 并行模式（默认）：分片 → 后台 worker → 按文件名顺序汇总 =====
+local requested_jobs = jobs or default_jobs()
+local use_parallel = (#case_files > 1) and requested_jobs and requested_jobs > 1
+local blocks = {}
+local case_passed = {}
+local unsupported_total = 0
+local pass = 0
+
+if use_parallel then
+  local n = math.min(requested_jobs, #case_files)
+  local outdir = string.format('%s/tetris-shim-%d-%d', os.getenv('TMPDIR') or '/tmp', os.time(), math.random(100000))
+  local mk = os.execute('mkdir -p ' .. shell_quote(outdir) .. ' >/dev/null 2>&1')
+  if not mk then
+    io.stderr:write('并行模式建临时目录失败，回退单进程\n')
+    use_parallel = false
+  else
+    local cmds = {}
+    for i = 1, n do
+      local list_path = outdir .. '/shard-' .. i .. '.txt'
+      local text = {}
+      for idx = i, #case_files, n do text[#text + 1] = case_files[idx] end
+      write_text(list_path, table.concat(text, '\n') .. '\n')
+      cmds[#cmds + 1] = string.format(
+        "lua5.3 %s --worker-list=%s --worker-outdir=%s --worker-id=%d --source=%s >%s 2>&1 &",
+        shell_quote(script_path), shell_quote(list_path), shell_quote(outdir), i, source_mode,
+        shell_quote(outdir .. '/worker-' .. i .. '.log'))
+    end
+    os.execute(table.concat(cmds, '\n') .. '\nwait\n')
+    for _, file in ipairs(case_files) do
+      local block = read_text(outdir .. '/' .. file .. '.txt')
+      if block then
+        blocks[file] = block
+      else
+        blocks[file] = string.format('FAIL %s  (worker 没有产出结果；看 %s/worker-*.log)', file, outdir)
+        case_passed[file] = false
+      end
+    end
+    for i = 1, n do
+      local status = read_text(outdir .. '/worker-' .. i .. '.status')
+      if status then
+        local p, t, u = status:match('pass=(%d+) total=(%d+) unsupported=(%d+)')
+        if p then
+          unsupported_total = unsupported_total + (tonumber(u) or 0)
+        end
+      else
+        local log = read_text(outdir .. '/worker-' .. i .. '.log')
+        io.stderr:write(string.format('worker %d 没有状态文件（%s）\n', i, outdir .. '/worker-' .. i .. '.log'))
+        if log and #log > 0 then io.stderr:write(log:sub(-800) .. '\n') end
+      end
+    end
+    -- 清掉临时目录（只删自己刚建的、路径已解析过的那一个）
+    local resolved = outdir:gsub('/+$', '')
+    if resolved:match('^/tmp/tetris%-shim%-%d+%-%d+$') or resolved:match('/tetris%-shim%-%d+%-%d+$') then
+      os.execute('rm -rf ' .. shell_quote(resolved))
+    end
+  end
+end
+
+-- 单进程模式（或并行失败回退）
+if not use_parallel then
+  for _, file in ipairs(case_files) do
+    local report = run_one_case(file, save, { source_mode = source_mode })
+    blocks[file] = render_case_block(file, report)
+    case_passed[file] = report.passed
+    unsupported_total = unsupported_total + #report.unsupported
+  end
+end
+
+-- 按文件名顺序打印（并行模式下也保持稳定输出）
+local failures = {}
+for _, file in ipairs(case_files) do
+  local block = blocks[file] or ('FAIL ' .. file .. '  (没有结果)')
+  print(block)
+  local passed = case_passed[file]
+  if passed == nil then passed = block:sub(1, 4) == 'PASS' end
+  if passed then
+    pass = pass + 1
+  else
+    failures[#failures + 1] = file
+  end
+end
+
+local elapsed = (now_ms() - started_ms) / 1000
+local mode_note = use_parallel and string.format('jobs=%d', math.min(requested_jobs, #case_files)) or 'jobs=1'
+print(string.format('\n%d/%d 用例通过，%.2fs（headless lua5.3，%s，source=%s）',
+  pass, #case_files, elapsed, mode_note, source_mode))
 if unsupported_total > 0 then
   print(string.format('unsupported 断言/事件 %d 条（按约定计入失败，未静默跳过）', unsupported_total))
 end
 if #failures > 0 then
   print('\n--- 失败用例清单 ---')
-  for _, item in ipairs(failures) do
-    local failure = item.report.failure
-    local detail = ''
-    if failure then
-      detail = string.format('%s@%s 期望=%s 实得=%s',
-        tostring(failure.kind), tostring(failure.at),
-        fmt_value(failure.expected), fmt_value(failure.actual))
-    elseif item.report.error then
-      detail = item.report.error
-    end
-    print(string.format('  %s :: %s', item.file, detail))
+  for _, file in ipairs(failures) do
+    local block = blocks[file] or ''
+    local first = block:match('\n  · ([^\n]*)') or block:match('FAIL[^\n]*')
+    print(string.format('  %s :: %s', file, tostring(first)))
   end
 end
 print('\n不可信边界（本 shim 未建模，勿把通过当证明）：')
 print('  · 渲染/字体度量/裁剪、音频时长与白名单、容器 Scroll/Grid 排版、Tween/动画/信号收发、真机差异')
+print('  · Lua 整数位宽：lua5.3 是 64 位、模拟器 Fengari 是 JS 双精度 ⇒ 依赖溢出的算式（如 core_rng 的 LCG）')
+print('    两边序列不同，凡是断言逐块/逐色等出块序列的用例会差异（详见任务汇报）')
 os.exit((pass == #case_files and unsupported_total == 0) and 0 or 1)

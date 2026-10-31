@@ -533,19 +533,19 @@ local function remove_listener(store, typeName, fn)
 end
 
 function METHODS.AddKeyEventListener(self, typeName, fn)
-  add_listener(FIELD[self].keys, typeName, fn)
+  add_listener(FIELD[self].key_listeners, typeName, fn)
 end
 
 function METHODS.RemoveKeyEventListener(self, typeName, fn)
-  remove_listener(FIELD[self].keys, typeName, fn)
+  remove_listener(FIELD[self].key_listeners, typeName, fn)
 end
 
 function METHODS.RemoveKeyEventListeners(self, typeName)
-  remove_listener(FIELD[self].keys, typeName, nil)
+  remove_listener(FIELD[self].key_listeners, typeName, nil)
 end
 
 function METHODS.RemoveAllKeyEventListeners(self)
-  FIELD[self].keys = {}
+  FIELD[self].key_listeners = {}
 end
 
 function METHODS.AddCursorEventListener(self, typeName, fn)
@@ -735,6 +735,30 @@ end
 --------------------------------------------------------------------------------
 -- 5. 假引擎
 --------------------------------------------------------------------------------
+-- 编译缓存：同一个进程里跑 70 个用例时，main.lua + 27 个模块的 load() 不必重复做
+-- （每例 ~50ms × 70 ≈ 3.5s）。只缓存**编译产物**，每次调用前用 debug.setupvalue 重绑 _ENV，
+-- 模块返回的表仍然每例重新执行得到（模块内状态不跨例共享，与模拟器每例新运行时一致）。
+local CHUNK_CACHE = {}
+
+local function compile_into(source, name, env)
+  local entry = CHUNK_CACHE[name]
+  if entry and entry.source == source then
+    -- 用字节码重载：每次都能把 _ENV 绑到**本用例**的环境（复用同一个函数再
+    -- debug.setupvalue 会漏掉 'b' 之外的情形，实测在 51/57 上产生跨例串味）
+    local chunk = load(entry.bytecode, '@' .. name, 'b', env)
+    if chunk then return chunk end
+  end
+  local chunk, err = load(source, '@' .. name, 't', env)
+  if not chunk then return nil, err end
+  local ok, bytecode = pcall(string.dump, chunk)
+  if ok and type(bytecode) == 'string' then
+    CHUNK_CACHE[name] = { source = source, bytecode = bytecode }
+  end
+  return chunk
+end
+
+M.reset_chunk_cache = function() CHUNK_CACHE = {} end
+
 local function read_file(path)
   local fh = io.open(path, 'rb')
   if not fh then return nil, 'cannot open ' .. path end
@@ -826,6 +850,19 @@ function M.new(spec)
 
   if not self.save then
     error('engine_shim: spec.save 必须是已解析的 tetris.save.json（run_cases 会传）', 3)
+  end
+
+  -- 源码来源：repo = 仓库当前 lua/（默认，跟踪 lead 的重构）；save = 存档内嵌源码
+  -- （= 模拟器实际运行的那一份，用来和 node qxqy/runner.mjs 做同源交叉对照）
+  self.source_mode = spec.source_mode or 'repo'
+  self.save_sources = {}
+  if self.source_mode == 'save' then
+    for _, script in ipairs((self.save.assets and self.save.assets.scripts) or {}) do
+      local path = script.path or ''
+      if script.source then
+        self.save_sources[self:normalize_require_path(path)] = script.source
+      end
+    end
   end
 
   -- 模板表：guid → 编译后 spec（惰性？容器模板要深拷贝，这里先编译一次缓存）
@@ -924,8 +961,6 @@ function Engine:build_env()
       f.disableKeyEventPassthrough = spec.disableKeyEventPassthrough == true
       f.disableCursorEventPassthrough = spec.disableCursorEventPassthrough == true
       f.showCursor = spec.showCursor == true
-      f.keys = {}
-      f.cursor_listeners = {}
     elseif kind == 'textbox' or kind == 'textwindow' then
       f.text = spec.text or ''
       f.fontSize = spec.fontSize or 20
@@ -1017,7 +1052,9 @@ function Engine:build_env()
   end
 
   function game.GetUICanvasSize()
-    return self.canvas.w, self.canvas.h
+    -- 模拟器里 canvasWidth/Height 是 JS number ⇒ Lua 侧读到的是 **float**（tostring → "1600.0"）。
+    -- 这里保持同形态：整数会改变 `tostring(W)` 类日志文本（main.lua 的 `canvas 1600.0x900.0`）。
+    return self.canvas.w + 0.0, self.canvas.h + 0.0
   end
 
   function game.GetCursorUIPos()
@@ -1246,26 +1283,33 @@ function Engine:require_script(raw)
   local cached = self.require_cache[key]
   if cached ~= nil then return cached end
 
-  local candidates = {
-    self.project_root .. '/' .. key .. '.lua',
-    self.project_root .. '/lua/tetris/' .. (key:match('([^/]+)$') or key) .. '.lua',
-  }
-  local file = nil
-  for _, path in ipairs(candidates) do
-    local fh = io.open(path, 'rb')
-    if fh then fh:close() file = path break end
+  local file, source
+  if self.source_mode == 'save' then
+    source = self.save_sources[key]
+    if not source then
+      error(string.format("failed to load script '%s'（存档 scripts[] 里没有这条）", tostring(raw)), 0)
+    end
+    file = key
+  else
+    local candidates = {
+      self.project_root .. '/' .. key .. '.lua',
+      self.project_root .. '/lua/tetris/' .. (key:match('([^/]+)$') or key) .. '.lua',
+    }
+    for _, path in ipairs(candidates) do
+      local fh = io.open(path, 'rb')
+      if fh then fh:close() file = path break end
+    end
+    if not file then
+      error(string.format("failed to load script '%s'", tostring(raw)), 0)
+    end
+    source = read_file(file)
+    if not source then error('read error: ' .. tostring(file), 0) end
   end
-  if not file then
-    error(string.format("failed to load script '%s'", tostring(raw)), 0)
-  end
-
-  local source, read_err = read_file(file)
-  if not source then error(read_err, 0) end
   source = substitute_guids(source, self.guids)
   -- 模块环境：有自己的全局表，读回落到引擎环境（沙箱里模块看不到 main 的全局）
   local module_env = setmetatable({}, { __index = self.env })
   module_env._G = module_env
-  local chunk, compile_err = load(source, '@' .. file, 't', module_env)
+  local chunk, compile_err = compile_into(source, file, module_env)
   if not chunk then
     error(string.format("failed to load script '%s': %s", tostring(raw), tostring(compile_err)), 0)
   end
@@ -1281,11 +1325,20 @@ end
 -- ===== 生命周期 =====
 function Engine:load_main()
   self.phase = 'OnInit'
-  local source, read_err = read_file(self.project_root .. '/' .. self.main_script)
-  if not source then return 'read error: ' .. tostring(read_err) end
+  local source, read_err
+  if self.source_mode == 'save' then
+    source = self.save_sources[self:normalize_require_path(self.main_script)]
+    if not source then return '存档里没有 ' .. self.main_script .. ' 的源码（scripts[] 缺这条）' end
+  else
+    source, read_err = read_file(self.project_root .. '/' .. self.main_script)
+    if not source then return 'read error: ' .. tostring(read_err) end
+  end
   source = substitute_guids(source, self.guids)
-  local chunk, compile_err = load(source, '@' .. self.main_script, 't', self.env)
-  if not chunk then return 'compile error: ' .. tostring(compile_err) end
+  local chunk, compile_err = compile_into(source, self.main_script, self.env)
+  if not chunk then
+    return 'compile error: ' .. tostring(compile_err)
+      .. '（若大面积红：先跑 luac5.3 -p lua/main.lua，确认不是读到半写入的文件）'
+  end
   local ok, chunk_err = pcall(chunk)
   if not ok then return 'chunk error: ' .. tostring(chunk_err) end
 
