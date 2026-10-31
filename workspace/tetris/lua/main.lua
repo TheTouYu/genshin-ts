@@ -144,7 +144,10 @@ MODE = 'casual'
 MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
 pendingMode, pendingT = nil, 0
 -- v2.1 ③：H 游戏说明层（v2.7 起改成独立整页 + 常驻入口；任意键=先关层不开局）
-HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
+-- v6.3 说明页：纯描述 + 独立 render 实例（与 SETTLEV 同一套手法，绝不复用棋盘 BR）
+-- 为什么必须独立：BR 每帧只喂棋盘那 200+ 个 key，把手册喂给它会把棋盘当场判成"不在列表"销毁。
+HLV = { M = loadModule('view_help'), KIT_M = loadModule('view_kit'), KIT = nil, S = nil,
+        R = nil, live = false, n = 0, nodes = nil }
 -- v2.8 ④：结算三动作挂表（200-local 红线，D612 先例）——实现在 OnStart 赋值，showGameOver 热区引用
 local SETTLE_ACT = {}
 -- v6.2 结算屏：`view_settle` 纯描述 + **独立** render 实例 SR（不复用棋盘协调器 BR）。
@@ -1761,312 +1764,48 @@ local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡�
 -- + 页脚提示。全用运行时实例（cell 暗底 + stext 文字），不加新模板。
 -- 框高判据（D566 实测）：h ≥ fontSize×1.45+4，否则整行静默不画——下面按字号自动算。
 local function destroyHelpLayer()
-  local n = 0
-  for i = 1, #HL do
-    local ok = pcall(function() game.DestroyClientUIControl(HL[i]) end)
-    if ok then n = n + 1 end
+  local n = HLV.n or 0
+  if HLV.R and HLV.live then
+    HLV.R.clear()                       -- 只清自己那份（棋盘 BR / 结算 SR 的 key 都不归它管）
+    if n > 0 then print('guide help off n=' .. n) end
   end
-  HL = {}
-  if n > 0 then print('guide help off n=' .. n) end
+  HLV.live, HLV.n, HLV.nodes = false, 0, nil
 end
--- 版式三选一（CFG.HELP.variant）：
---   A 委托板 —— 左侧通用按键（键帽胶囊）／右侧四张模式委托卡（角色色徽章 + 该模式的键位与胜负）
---               ／底部「怎么算分」标签行（四角色色做分档色标）／顶部派蒙气泡给阅读顺序
---   B 旅行手记 —— 摊开两页：左页按键、右页**分值柱状图**（100/300/500/800 柱高即分值），书脊分栏
---   C 四张委托卡 —— 四张竖卡各自带键位与规则，底部一条「人人都要会的三件事」
--- 三版共用 CFG.HELP 同一份文案与配色，切版只改一个字段。
+-- v6.3：说明页整页改由 view_help 的**纯描述**产出（271–289 节点，按画布 fit 缩放），
+-- 原来的三种版式（A 委托板 / B 旅行手记 / C 四张委托卡，各 ~290 行手搓控件）全部退役；
+-- 文案仍取自 config.HELP（view_help 通过 spec.config 读它，版本切换不再靠改 main）。
 local function buildHelpLayer()
-  if not TPL_CELL then print('guide help no cell tpl') return end
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('guide help no text tpl') return end
-  destroyHelpLayer()
+  if not (HLV.M and HLV.S and HLV.R) then
+    print('guide help module=none（view_help 未装配）')
+    return
+  end
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local S = CFG.HELP or {}
-  -- 设计基准 1600×900，按画布等比缩放（两块画布同为 16:9 ⇒ 比例不变，文字框宽同步缩放不会裁字）
-  -- v4.0 ⑤：帮助页缩放改成 **fit**（min(W/1600, H/900)）。旧实现只按宽度缩放 ⇒ 21:9 画布上
-  -- 1548×848 的设计板被放大 1.31 倍变成 2032×1113，比画布还高 213px：页脚与右上角「合上手册」
-  -- 整个掉到屏幕外（全控件巡检在 pc-21-9 / mobile-19.5-9 上抓到的真 bug）。
+  local nodes = HLV.S.help {
+    canvas = { W, H },
+    device = IS_MOBILE and 'mobile' or 'pc',
+    page = helpPage or 1,
+    pages = 1,                          -- 单页 v1：文案一页讲全（翻页是 view_help 的新几何，未启用）
+    onClose = function()                -- 右上「合上手册」热区（PC 透明 / mobile 金边胶囊由模块决定）
+      sfx(SFX.press, true)
+      print('tap help close')
+      closeHelp()
+    end,
+  }
+  HLV.R.clear()                         -- 每次开页先清：实例上限约 430、常驻约 240，手册 271–289 节点
+  HLV.R.apply(nodes)
+  HLV.live, HLV.n, HLV.nodes = true, #nodes, nodes
+  -- 巡检通道：把关页热区登记进 UI4 注册表（qxqy/audit-controls.mjs 读 dump('help') 找 help.close 再按坐标点）
+  local z = HLV.R.get('helpCloseHit')
   local s = math.min(W / 1600, H / 900)
   if s <= 0 then s = 1 end
-  local function u(v) return v * s end
-  local function fs(v)
-    local r = math.floor(v * s + 0.5)
-    if r < 12 then r = 12 end
-    return r
-  end
-  local PANEL = THEME.panel
-  local CARD = C(255, 255, 255, 255)
-  local GOLD, GOLDD = THEME.gold, THEME.goldDeep
-  local INK, SUB = THEME.textMain, THEME.textSub
-  local WHITE = C(255, 255, 255, 255)
-
-  local function inst(name)
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-    if not ok or not c then return nil end
-    c.name = name
-    HL[#HL + 1] = c
-    return c
-  end
-  local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
-  -- 图元：同一张 cell 模板换 image（100001 矩形 / 100002 圆 / 100003 三角 / 100004 四角星 / 100005 五角星 / 100006 圆环）
-  local function shape(name, sp, x, y, w, h, color, rot)
-    local c = inst(name)
-    if not c then return nil end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-    local img = BG_IMG[sp]
-    if img then
-      local done = false
-      if enumIS and enumIS.StaticReference ~= nil then
-        done = pcall(function() c:SetImage(enumIS.StaticReference, img) end)
-      end
-      if not done then pcall(function() c:SetImage('StaticReference', img) end) end
-    end
-    trySet(c, 'imageColor', color)
-    if rot and rot ~= 0 then tryCall(c, 'SetLocalRotation', 0, 0, rot) end
-    return c
-  end
-  local function rect(name, x, y, w, h, color)
-    return shape(name, 'rect', u(x), u(y), u(w), u(h), color)
-  end
-  -- 圆角矩形 = 2 块矩形 + 4 个角圆（真机没有圆角矩形图元）。同色不透明 ⇒ 叠合处无接缝。
-  local function rrect(tag, x, y, w, h, r, color)
-    if r > h / 2 then r = h / 2 end
-    if r > w / 2 then r = w / 2 end
-    local ix, iy = w - 2 * r, h - 2 * r
-    if ix < 1 then ix = 1 end
-    if iy < 1 then iy = 1 end
-    rect(tag .. 'a', x, y, ix, h, color)
-    rect(tag .. 'b', x, y, w, iy, color)
-    local dx, dy = w / 2 - r, h / 2 - r
-    shape(tag .. 'c1', 'circle', u(x - dx), u(y - dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c2', 'circle', u(x + dx), u(y - dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c3', 'circle', u(x - dx), u(y + dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c4', 'circle', u(x + dx), u(y + dy), u(2 * r), u(2 * r), color)
-  end
-  -- 文字：框高按 h ≥ fontSize×1.45+4 的硬判据给（1.5+6），宽度不满足会被静默裁尾 ⇒ 调用处给足宽
-  local function text(name, str, x, y, w, size, color, align)
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-    if not ok or not c then return nil end
-    c.name = name
-    c.text = str
-    trySet(c, 'fontSize', size)
-    trySet(c, 'fontColor', color)
-    trySet(c, 'bgColor', C(0, 0, 0, 0))
-    trySet(c, 'horizontalAlignment', align or 'Middle')
-    trySet(c, 'verticalAlignment', 'Middle')
-    trySet(c, 'enableOutline', true)
-    trySet(c, 'outlineColor', C(205, 255, 255, 255))   -- 浅底用柔白描边；深描边会让字发脏
-    tryCall(c, 'SetSizeDelta', u(w), math.floor(size * 1.5 + 6))
-    tryCall(c, 'SetAnchoredPosition', u(x), u(y))
-    HL[#HL + 1] = c
-    return c
-  end
-  local function t(name, str, x, y, w, dsize, color, align)
-    return text(name, str, x, y, w, fs(dsize), color, align)
-  end
-  -- 键帽（深墨底 + 白字）：左端从 xl 起排，返回排完后的右沿（设计单位）
-  local function caps(tag, xl, y, list)
-    local x = xl
-    for i, cap in ipairs(list) do
-      -- 键帽宽度按字数算（『空格』两字 19 号约 44px，旧实现 66 宽但文字框居中仍压边）
-      local cw = (#cap >= 2) and 74 or 40
-      rrect(tag .. i, x + cw / 2, y, cw, 34, 9, INK)
-      text(tag .. 't' .. i, cap, x + cw / 2, y, cw - 4, fs(19), WHITE, 'Middle')
-      x = x + cw + 7
-    end
-    return x
-  end
-
-  -- ── 版式 A：冒险家协会委托板（落地版）────────────────────────────────────────
-  local function buildA()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
-    rrect('helpFrame', 0, 0, 1548, 848, 26, GOLD)          -- 描金外框
-    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))   -- 暖奶油纸面（白卡才浮得起来）
-    shape('helpStar', 'fourstar', u(-716), u(386), u(30), u(30), GOLD)
-    t('helpEyebrow', S.eyebrow, -470, 396, 460, 17, GOLDD, 'Left')
-    t('helpTitle', S.title, -420, 344, 560, 40, INK, 'Left')
-    t('helpSub', S.sub, -420, 304, 560, 19, SUB, 'Left')
-    rect('helpRule', 0, 278, 1400, 2, GOLD)
-    -- v5.6（用户二轮二-1：右上角「合上手册」按钮与这行提示重叠）：提示改为**右对齐并整体左移**，
-    -- 让它停在关闭胶囊的左侧，两者各占一段；行右缘留出按钮宽度（196/2+24 ≈ 122 设计单位）。
-    t('helpHint', S.hint, 268, 396, 380, 17, SUB, 'Right')
-    -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
-    -- v5.19（用户 2026-10-30 图2 红框）：气泡右端原本伸到 x=638，正好压在右上角
-    -- 「合上手册」胶囊（x 542..738）下面 ⇒ 缩到 560 宽并左移中心到 230（右端 510），
-    -- 两个元素彻底分开；字号降到 17 并在文案里去掉括号补充（见 config.HELP.paimon）。
-    rrect('helpBubble', 230, 344, 560, 56, 28, GOLD)
-    rrect('helpBubble2', 230, 344, 552, 48, 24, CARD)
-    t('helpPaimon', S.paimon, 230, 344, 524, 17, INK, 'Middle')
-    -- 左栏：通用按键
-    -- 行表起点 208（键帽 34 高 ⇒ 上沿 191）；标题放 252 才不会压到第一行键帽
-    t('helpKeysTitle', S.keysTitle, -550, 252, 300, 22, INK, 'Left')
-    -- v5.1：键表从 7 行变 8 行（新增 Z/U/Y 技能行）⇒ 行距 56→47、起点 190→208，
-    -- 否则第 8 行 (y=-202) 会压住下面的「怎么算分」标题 (y=-200)——手机画布上实测叠字。
-    for i, k in ipairs(S.keys) do
-      local y = 208 - (i - 1) * 47
-      -- 无键帽的行（技能行）整行按一句话排：键帽只画 3 个就会顶到标签文字上（实测叠字）
-      local hasCaps = (type(k.caps) == 'table') and (#k.caps > 0)
-      if hasCaps then caps('helpCap' .. i .. '_', -700, y, k.caps) end
-      -- ⚠ text() 的第 3 个实参是**框中心**（不是左沿）：Left 对齐时左沿 = 中心 - 宽/2。
-      -- 键帽行：左沿 -560、宽 380 ⇒ 中心 -370（键帽最右 -572，留 12px）；整句行：左沿 -700、宽 900 ⇒ 中心 -250。
-      if hasCaps then
-        -- v5.31（用户：左边那个箭头和文字重叠了）：键帽组最右约 -572，标签左沿必须再往右
-        t('helpKey' .. i, k.label, -410, y, 230, 21, INK, 'Left')
-      else
-        t('helpKey' .. i, k.label, -250, y, 900, 21, THEME.textMain, 'Left')
-      end
-    end
-    -- 右侧：四张模式委托卡
-    for i, m in ipairs(S.modes) do
-      local cx, cy = -212 + (i - 1) * 278, 40
-      rrect('helpCard' .. i, cx, cy, 252, 320, 22, m.tint)        -- 角色色浅底
-      rrect('helpCardB' .. i, cx, cy, 244, 312, 19, CARD)         -- 白卡（露出 4px 色边）
-      rrect('helpCardH' .. i, cx, cy + 114, 228, 70, 15, m.tint)  -- 卡头色带
-      shape('helpEmblem' .. i, 'circle', u(cx - 76), u(cy + 114), u(46), u(46), m.color)
-      shape('helpRing' .. i, 'ring', u(cx - 76), u(cy + 114), u(28), u(28), m.deep)
-      -- 卡头数字原来是白字压在浅色 tint 上（实测 1.07~1.54:1，白字看不见）⇒ 用该模式的深色档
-      t('helpCardK' .. i, m.key, cx - 76, cy + 114, 40, 21, m.deep, 'Middle')
-      t('helpCardN' .. i, m.name, cx + 24, cy + 114, 150, 26, m.deep, 'Middle')
-      for li, line in ipairs(m.lines) do
-        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 40 - (li - 1) * 44, 232, 19, SUB, 'Middle')
-      end
-      rrect('helpWin' .. i, cx, cy - 112, 216, 40, 20, m.tint)
-      t('helpWinT' .. i, m.win, cx, cy - 112, 208, 17, m.deep, 'Middle')
-    end
-    -- 底部：怎么算分（四角色色做 1/2/3/4 消的档位色标）
-    t('helpScoreTitle', S.scoreTitle, -550, -200, 300, 22, INK, 'Left')
-    for row = 1, #S.score do
-      local y = -258 - (row - 1) * 66
-      for col = 1, #S.score[row] do
-        local cx = -534 + (col - 1) * 356
-        local bar = GOLD
-        if row == 1 and S.modes[col] then bar = S.modes[col].color end
-        local fill = CARD
-        if row == 1 and S.modes[col] then fill = S.modes[col].tint end
-        -- v5.31（用户：「下面的还是没做圆款」）：算分条改成**圆角胶囊**，与外层卡片同一语汇
-        rrect('helpChip' .. row .. col, cx, y, 340, 52, 26, fill)
-        t('helpChipT' .. row .. col, S.score[row][col], cx + 6, y, 312, 19, INK, 'Middle')
-      end
-    end
-    t('helpFoot1', S.foot1, 0, -372, 1500, 18, SUB, 'Middle')
-    t('helpFoot2', S.foot2, 0, -404, 1500, 17, SUB, 'Middle')
-  end
-
-  -- ── 版式 B：派蒙的旅行手记（对比稿：分值图形化，两页摊开）────────────────────
-  local function buildB()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, C(255, 250, 244, 252))
-    rrect('helpPageL', -370, -10, 720, 800, 20, CARD)
-    rrect('helpPageR', 370, -10, 720, 800, 20, CARD)
-    rect('helpSpine', 0, -10, 3, 780, GOLD)
-    shape('helpDot1', 'circle', 0, u(120), u(14), u(14), GOLD)
-    shape('helpDot2', 'circle', 0, u(-140), u(14), u(14), GOLD)
-    t('helpTitle', '派蒙的旅行手记', 0, 410, 700, 34, INK, 'Middle')
-    t('helpSub', S.hint, 0, -430, 900, 17, SUB, 'Middle')
-    -- 左页：今天怎么玩
-    t('helpKeysTitle', '今天怎么玩', -370, 330, 600, 26, INK, 'Middle')
-    rect('helpRuleL', -370, 296, 560, 2, GOLD)
-    for i, k in ipairs(S.keys) do
-      local y = 240 - (i - 1) * 74
-      caps('helpCap' .. i .. '_', -620, y, k.caps)
-      -- 框中心 -330 宽 300 ⇒ 右沿 -180 伸进模式卡区（-338 起）造成叠字 ⇒ 收窄到 230 并贴左
-      t('helpKey' .. i, k.label, -470, y, 230, 22, INK, 'Left')
-    end
-    -- 右页：报酬怎么算（柱高即分值）
-    t('helpScoreTitle', '报酬怎么算', 370, 330, 600, 26, INK, 'Middle')
-    rect('helpRuleR', 370, 296, 560, 2, GOLD)
-    local base = -50                     -- 柱底
-    local hs = { 100, 300, 500, 800 }
-    for i, v in ipairs(hs) do
-      local bx = 155 + (i - 1) * 145
-      local bh = 34 + (v / 800) * 210
-      local mc = S.modes[i] and S.modes[i].color or GOLD
-      rect('helpBar' .. i, bx, base + bh / 2, 92, bh, mc)
-      t('helpBarT' .. i, tostring(v), bx, base + bh + 26, 120, 22, S.modes[i] and S.modes[i].deep or INK, 'Middle')
-    end
-    rect('helpAxis', 370, base, 580, 2, THEME.bezel)
-    t('helpMul', '× 等级（每 10 行 +1，上限 12）', 370, base - 34, 600, 20, INK, 'Middle')
-    t('helpCmb', '连击 +50×链×等级　·　触底 0.5 秒内还能救', 370, base - 76, 600, 19, SUB, 'Middle')
-    t('helpGrb', '垃圾行：2/3/4 消 → 送对方 1/2/4 行', 370, base - 114, 600, 19, SUB, 'Middle')
-    t('helpWin0', '判负：新块出生位置被占满', 370, base - 152, 600, 19, SUB, 'Middle')
-    -- 底部：四模式一人一句
-    for i, m in ipairs(S.modes) do
-      local cx = -540 + (i - 1) * 360
-      shape('helpEmblem' .. i, 'circle', u(cx - 120), u(-330), u(26), u(26), m.color)
-      t('helpCardN' .. i, m.name, cx - 60, -330, 140, 21, m.deep, 'Middle')
-      t('helpCardL' .. i .. '_1', m.win, cx + 90, -330, 240, 18, SUB, 'Middle')
-    end
-  end
-
-  -- ── 版式 C：四位旅伴的委托卡（对比稿：没有左键位栏，键位写在卡里）────────────
-  local function buildC()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
-    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))
-    t('helpTitle', '四位旅伴的委托卡', 0, 392, 900, 34, INK, 'Middle')
-    t('helpSub', S.sub, 0, 350, 900, 18, SUB, 'Middle')
-    for i, m in ipairs(S.modes) do
-      local cx, cy = -540 + (i - 1) * 360, 70
-      rrect('helpCard' .. i, cx, cy, 348, 420, 22, CARD)
-      rrect('helpCardH' .. i, cx, cy + 122, 332, 156, 18, m.color)
-      t('helpCardK' .. i, '[' .. m.key .. ']', cx - 118, cy + 156, 90, 22, WHITE, 'Middle')
-      t('helpCardN' .. i, m.name, cx + 10, cy + 156, 220, 28, WHITE, 'Middle')
-      t('helpCardW' .. i, m.win, cx, cy + 96, 300, 19, WHITE, 'Middle')
-      for li, line in ipairs(m.lines) do
-        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 20 - (li - 1) * 52, 320, 20, INK, 'Middle')
-      end
-      rect('helpCardS' .. i, cx, cy - 118, 300, 2, m.tint)
-      t('helpWinT' .. i, '键位：' .. m.lines[1], cx, cy - 156, 320, 17, m.deep, 'Middle')
-    end
-    -- 底部共用条：与四张卡无关、但每局都要用的算分规则
-    rrect('helpShared', 0, -262, 1440, 168, 18, CARD)
-    t('helpScoreTitle', S.scoreTitle, -600, -204, 300, 20, INK, 'Left')
-    for row = 1, 2 do
-      local y = -204 - row * 40
-      for col = 1, 4 do
-        local cx = -540 + (col - 1) * 340
-        local bar = GOLD
-        if row == 1 and S.modes[col] then bar = S.modes[col].color end
-        rect('helpChipA' .. row .. col, cx - 158, y, 4, 32, bar)
-        t('helpChipT' .. row .. col, S.score[row][col], cx + 4, y, 316, row == 1 and 18 or 17,
-          row == 1 and INK or SUB, 'Middle')
-      end
-    end
-    t('helpFoot2', S.foot2, 0, -368, 1440, 16, SUB, 'Middle')
-  end
-
-  local v = (S.variant or 'A'):upper()
-  if v == 'B' then buildB() elseif v == 'C' then buildC() else buildA() end
-  -- v4.0 ④：帮助页必须有**看得见、点得到**的关闭入口（用户 2026-10-29 反馈：「帮助点了之后，
-  -- 移动端看不到在哪里可以点回来」）。旧实现只有一行提示「H / E 合上手册」——移动端没有 H 键。
-  -- 做法：右上角一颗描金胶囊 + 光标热区（同在实例层；层序由下面的 SetAsLastSibling 统一处理）。
-  -- 设计坐标 (655, 380) 在 1600×900 设计板的画板内沿右上角；A 版实测不与页眉/派蒙气泡相撞。
   UI4.regScreen('help')
-  do
-    local bw2, bh2 = 196, 56
-    local cx2, cy2 = 640, 378
-    rrect('helpClosePill', cx2, cy2, bw2, bh2, 26, GOLD)
-    rrect('helpClosePill2', cx2, cy2, bw2 - 8, bh2 - 8, 22, CARD)
-    text('helpCloseTx', '合上手册', cx2, cy2, bw2 - 16, fs(21), INK, 'Middle')
-    local z = UI4.hit('helpCloseHit', u(bw2), u(bh2))
-    if z then
-      tryCall(z, 'SetAnchoredPosition', u(cx2), u(cy2))
-      addCursor(z, 'CursorDown', function()
-        sfx(SFX.press, true)
-        print('tap help close')
-        closeHelp()
-      end)
-      HL[#HL + 1] = z
-      UI4.regAdd('help.close', z, u(bw2), u(bh2))
-      UI4.dump('help')
-    else
-      print('help close zone=none（无 cursor 模板）')
-    end
+  if z then
+    UI4.regAdd('help.close', z, 196 * s, 56 * s)
+    UI4.dump('help')
+  else
+    print('help close zone=none（描述里没有 helpCloseHit）')
   end
-  -- 层序强制：last sibling = 最上层（实测：改成 first 会把整层压到底，标题展台全透上来）。
-  for i = 1, #HL do
-    if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
-  end
-  print('guide help on n=' .. #HL .. ' v=' .. v .. ' page=help')
+  print('guide help on n=' .. #nodes)
 end
 -- 关页：恢复开页前的 stage（局内=1 继续，标题页=0 继续演出）
 closeHelp = function()
@@ -2115,23 +1854,17 @@ toggleHelp = function()
     print('help off')                    -- v2.8 ② 时停恢复锚（保留）
   else
     helpOpen = true
-    -- 层序靠"创建顺序"决定，而 `SetAsLastSibling` 在本引擎是空操作（实测开页后 node 顺序
-    -- helpTitle=256 < menuBig=320 ⇒ 展台永远压着手册，PC/手机都出现双层文字叠印）。
-    -- 所以标题页开手册前先把展台拆掉，关页时再建回来（buildMenuCards 本身是"先拆后建"的幂等函数）。
+    -- 标题页开手册前必须先把展台拆掉：层序=创建顺序，展台是后建的（在上），
+    -- 而 `SetAsLastSibling` 在本引擎是空操作（实测 helpTitle=256 < menuBig=320 ⇒ 双层叠印）。
+    -- 关页时再建回来（buildMenuCards 本身是"先拆后建"的幂等函数）。
     if guideStage == 0 then
       local okS = pcall(MS.teardown)
       local okC = pcall(destroyMenuCards)
       print('help stage hide ok=' .. tostring(okS and okC))
     end
-    -- #7（真机日志：`guide help on n=326` ×4）重建开销：同一页的重复打开**复用现有层**。
-    -- 判据：日志里重复打开打 `guide help reuse n=…`，只有换页/首次才打 `guide help on`。
-    local samePage = (HL and #HL > 0 and (FN.helpPageShown or 1) == (helpPage or 1))
-    if samePage then
-      print('guide help reuse n=' .. #HL)
-    else
-      buildHelpLayer()
-      FN.helpPageShown = helpPage or 1
-    end
+    -- v6.3：不再做"复用现有层"（旧实现的 #7 优化）。每次开页 clear()+apply 一份描述——
+    -- 层序靠创建顺序，重建一次就天然浮在最上（旧实现靠 SetAsLastSibling，而它是本引擎的空操作）。
+    buildHelpLayer()
     if UI4.refreshHelpLabel then UI4.refreshHelpLabel(true) end
     if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
   end
@@ -5389,6 +5122,15 @@ function OnStart()
     SETTLEV.S = SETTLEV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = SETTLEV.KIT })
     SETTLEV.SR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
     print('v6 settle view ok')
+  end
+  -- v6.3 说明页装配：自己一份 kit 实例 + 自己一个 render 实例（与结算 SR 互不相干）
+  if HLV.M and HLV.KIT_M and PT then
+    HLV.KIT = HLV.KIT_M.new({ layers = VIEW_LAYERS_M })
+    HLV.S = HLV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = HLV.KIT })
+    HLV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 help view ok')
+  else
+    print('v6 help view MISSING: view_help/view_kit')
   end
 
   -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
