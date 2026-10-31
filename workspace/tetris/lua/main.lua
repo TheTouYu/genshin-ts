@@ -1214,9 +1214,11 @@ local function startIfWaiting()
   MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
   setText(topBanner, '')
   setText(botBanner, '')
-  -- v3.3 ②：双写位的 textbox 份保持隐藏（实例份在上可见；此前 layout 恢复段把它重新显示=双份叠字）
   if not HUD_INST.hud then
-    for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+    for _, t in ipairs(HUD_TEXT) do                    -- 名单单源（textbox 份复位）
+      local c = HUD_TEXT.boxOf(t[1])
+      if c and t[3] then tryCall(c, 'SetVisible', true) end
+    end
   end
   -- v2.9 ②：实例 HUD 同步单屏位（与 layout 的 textbox 位一致，防 dual/单屏切换后叠两行）
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
@@ -1932,14 +1934,9 @@ FN.syncStage = function()
     if MS.teardown then pcall(MS.teardown) end
   end
   -- 服务端 textbox 永远在运行时实例层之下 ⇒ 浮层盖不住它们，只能清文字。
-  -- 判据同上（标题页且浮层开）：开→清空 9 个文字位，关→由 buildMenuCards/renderHud 重写。
-  -- 注意：角色页/帮助页打开时 guideStage 会被改成 2（时停），所以判据只看「展台该不该在」，
-  -- 不能再要求 guideStage==0 —— 那一条正是「清了但底部还在」的根因（实测 hide 恒 false）。
-  -- 🔴 v5.36 修回归：原来写 `hide = not want`，而 want 在**对局中恒为 false**（guideStage≠0）
-  -- ⇒ 局内也把文字层清空，HUD/得分/旁白全消失（用户：图片渲染失败了）。
-  -- 正确判据＝**只是浮层打开时**才藏文字层，对局中一律照常显示。
-  -- 结算层也是覆盖屏（有自己的 scrim），但以前没进这个判据 ⇒ 结算期间服务端 textbox
-  -- 照写不误，压在结算卡上（出图实测 sk1name 的"纳西妲"一直透出来）。补上 SETTLEV.live。
+  -- 判据＝**只是浮层打开时**才藏文字层（对局中一律照常显示）：角色页/帮助页会把 guideStage 改成 2
+  -- （时停），所以不能要求 guideStage==0；v5.36 曾因 `hide = not want` 在局内清空导致 HUD 全消失。
+  -- 覆盖屏集合必须含结算（SETTLEV.live），否则结算期 textbox 照写（出图实测 sk1name 透出）。
   local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER
     or (SETTLEV and SETTLEV.live)) and true or false
   local hide = overlayNow
@@ -1948,30 +1945,19 @@ FN.syncStage = function()
   if hide then
     -- 每轮都清（不是只在翻转时）：标题页常驻提示是**每帧重写**的（showPersistTip/renderHud），
     -- 清一次会被下一帧写回来 —— 这是「清了但还在」的原因。
+    -- 每轮都清（不是只在翻转时）：常驻提示是每帧重写的，清一次会被下一帧写回来。
+    -- 名单只走 HUD_TEXT（单源）：textbox 份 → setText('')；实例份 → 直接写 .text
+    -- （setTextRaw 走 textbox 通道，对实例不生效；实测残留在底部那行就是 ibotBanner）。
     FN.textForce = true
-    for i = 1, 9 do
-      local c = ({ topBanner, botBanner, hint, hud, best, hudNext, keyA, keyB, keyC })[i]
-      if c then setText(c, '') end
-    end
-    -- 技能名/状态：走裸 setText 的通道，之前漏清（透出"纳西妲"）
-    -- 直接按名寻址（不依赖缓存句柄是否已建）：技能名/状态是纯服务端 textbox，
-    -- 它们压在覆盖屏之上（实测 sk1name z=42 < 结算卡 z=51），只能清空。
-    do
-      -- 用 findIn 递归找（这些 textbox 挂在 n1 之下，不是 script.object 的直接子节点）
-      for _, nm in ipairs({ 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
-        local ok, c = pcall(findIn, root, { nm })
-        if ok and c then setText(c, '') end
+    for _, t in ipairs(HUD_TEXT) do
+      if t[3] then
+        local box = HUD_TEXT.boxOf(t[1])
+        if box then setText(box, '') end
       end
+      local inst = HUD_INST and HUD_INST[t[1]]
+      if inst then pcall(function() inst.text = '' end) end
     end
     FN.textForce = false
-    if HUD_INST then
-      -- 实例份直接写 .text（setTextRaw 走的是服务端 textbox 的通道，对实例不生效）；
-      -- 实测残留在底部那行就是实例 ibotBanner。
-      for _, k in ipairs({ 'hint', 'botBanner', 'topBanner', 'hud', 'best', 'hudNext', 'keyA', 'keyB', 'keyC' }) do
-        local c = HUD_INST[k]
-        if c then pcall(function() c.text = '' end) end
-      end
-    end
   elseif FN.textLayerWasHidden then
     if guideStage == 0 and buildMenuCards then pcall(buildMenuCards) end
     if renderHud then pcall(renderHud) end
@@ -2584,8 +2570,8 @@ FN.layoutDual = function()
     tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 110))
     tryCall(HUD_INST.hint, 'SetVisible', true)
   end
-  -- ⑤ 收口：textbox 份一律隐藏（实例份在上可见；断言只读 text/anchoredPositionX，不受影响）
-  for _, box in ipairs({ hud, best, keyA, keyB, keyC, hint, hudNext }) do
+  for _, t in ipairs(HUD_TEXT) do
+    local box = t[3] and HUD_TEXT.boxOf(t[1]) or nil
     if box then tryCall(box, 'SetVisible', false) end
   end
   print('layout dual')
@@ -2600,127 +2586,100 @@ HUD_INST.txt = function(box, txt)
   local inst = box and HUD_INST[box.name]
   if inst then pcall(function() inst.text = txt end) end
 end
+-- v6.5 ③：HUD 文字控件**唯一名单**（单源）。此前同一份名字散在 6 处（建实例两段/隐藏/layoutDual 收口/hideAll-hideStats-showStats/syncStage 三段清空）⇒ 新增控件要改 6 处，「技能列 4 个漏做镜像」就是这么漏的。
+-- 字段：
+--   [1] name  [2] mirror=建运行时实例  [3] hideBox=隐藏服务端 textbox 份
+--   [4] stats=属于"战况列"（结算只下架这些：横幅要留作兜底文案）  [5] show=settle 结束后重新上架
+HUD_TEXT = {
+  { 'hud', true, true, true, true },      { 'best', true, true, true, true },
+  { 'keyA', true, true, true, false },    { 'keyB', true, true, true, false },
+  { 'keyC', true, true, true, false },    { 'hint', true, true, true, true },
+  { 'hudNext', true, true, true, true },  { 'holdLab', true, true, false, false },
+  { 'botBanner', true, true, false, false }, { 'topBanner', true, true, false, false },
+  { 'sk1name', true, true, true, true },  { 'sk1state', true, true, true, true },
+  { 'sk2name', true, true, true, true },  { 'sk2state', true, true, true, true },
+}
+-- textbox 份：直连局部优先（layout 里抓到的句柄），其余递归找（技能列挂在 n1 之下）
+HUD_TEXT.boxOf = function(name)
+  local direct = ({ hud = hud, best = best, keyA = keyA, keyB = keyB, keyC = keyC, hint = hint,
+    hudNext = hudNext, topBanner = topBanner, botBanner = botBanner })[name]
+  if direct then return direct end
+  local ok, c = pcall(findIn, root, { name })
+  if ok then return c end
+  return nil
+end
 HUD_INST.build = function()
   if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end
+  if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end   -- 保留降级路径
   local made = 0
-  -- v3.2 ①：botBanner/topBanner 也入双写（用户打回：PERSIST_TIP/H 提示/接管文案
-  -- 被 wash 盖住——服务端 textbox 永远在实例层下，凡常驻文字一律实例份）
-  -- v3.3 ②：textbox 份建完即隐藏（此前实例+textbox 双份叠字；断言读 text 字段，不受 visible 影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext', 'holdLab' }) do
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-    if ok and c then
-      c.name = 'i' .. nm
-      local isBanner = (nm == 'botBanner' or nm == 'topBanner')
-      local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700) or (nm == 'hudNext' and 240) or 640
-      local fs = isBanner and 22 or 20
-      if nm == 'hudNext' then fs = 22 end
-      trySet(c, 'fontSize', fs)
-      trySet(c, 'fontColor', THEME.textMain)
-      -- v3.5 ④：hudNext 也要够高（22 号框高判据 35.9，取 44 留余量；valign=Middle 防顶部裁字）
-      -- v3.5 ⑧：横幅实例的框高必须按它**实际字号**算——topBanner 排的是 34 号（需 53.3），
-      -- 原来按 22 号算成 39 ⇒ 出图判据报 `itopBanner 框=1480x39 需高=53.3 fits=false` 整行裁字。
-      local hh = (nm == 'hudNext') and 44
-        or ((nm == 'topBanner') and 64)
-        or ((nm == 'botBanner') and 48)
-        or math.floor(fs * 1.45 + 8)
-      c:SetSizeDelta(w, hh)   -- v2.9 ①/v3.2 ②：宽按最长文案、高按框高判据
-      HUD_INST[nm] = c
-      -- v3.3 ③：keyA-C 常驻文案最长 24 全角（PERSIST_TIP 整串），20 号需 ~480px > 框宽
-      -- → 实例份字号降 14（需 336px < 360-4），fits 判据过；textbox 份字号不变（仅断言）
-      if nm == 'keyA' or nm == 'keyB' or nm == 'keyC' then
-        trySet(c, 'fontSize', 14)
-      end
-      -- v3.5 ④：所有 HUD 实例统一 垂直居中（模板缺省 Top 会裁掉字形顶部）
-      trySet(c, 'verticalAlignment', 'Middle')
-      -- v5.5：水平方向也必须显式居中——真机截图里右侧「P2 盘 / 得分…」被右缘切掉半个字，
-      -- 底栏键位提示不居中，都是模板缺省对齐（非 Middle）导致的溢出裁切。
-      trySet(c, 'horizontalAlignment', 'Middle')
-      made = made + 1
-    end
-  end
-  -- v3.2 ①：banner 系实例摆到与 textbox 同位（画布上下横幅位；layout 改位时同步调这里）
-  local halfH = (CANVAS_H or 720) / 2
-  if HUD_INST.topBanner then
-    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, halfH - 36)
-    trySet(HUD_INST.topBanner, 'fontSize', 34)
-  end
-  if HUD_INST.botBanner then
-    -- v5.4：底栏常驻说明离画布底缘只有 28px，22 号字（框高 48）下沿会被裁 ⇒ 上移 12px
-    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 40))
-  end
-  -- v3.5 ④：「下一个」标签实例摆到预览块正上方（预览块实测 y 78..189，标签中心 215 不压块）
-  -- 为什么贴在预览块上而不是屏幕右上：原 (RIGHT_CX, halfH-150) 离预览块 90px，读起来像独立标题。
-  if HUD_INST.hudNext then
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or 570, 255)
-  end
-  -- v6.5 ①：技能列（sk1/sk2 的名字与状态）——**最后 4 个没有实例镜像、且可见**的常驻文字。
-  -- 它们压在覆盖屏之上（帧级实测 sk1name z=42 < 结算卡 z=51），此前只能靠 syncStage 每帧清空兜底，
-  -- 而 skillHud 又在同一帧后段把它们写回来（出图实测：结算帧里 sk1name 仍是「纳西妲」）。
-  -- 修法同 HUD 其它件：建镜像 + textbox 份隐藏 ⇒ 层号说话；内容同步仍走 setText 的双写。
-  local skillMade = 0
-  for _, nm in ipairs({ 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
-    local okF, box = pcall(findIn, root, { nm })
-    if okF and box then
-      local okC, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-      if okC and c then
+  for _, t in ipairs(HUD_TEXT) do
+    local nm, box = t[1], HUD_TEXT.boxOf(t[1])
+    if t[2] then
+      local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+      if ok and c then
         c.name = 'i' .. nm
-        -- 几何/字号/对齐从 textbox **现读现拷**（这些由关卡 UI 定，硬编码会随布局漂移）
-        local sw = tonumber(PT and PT.get(box, 'sizeDeltaX')) or 210
-        local sh = tonumber(PT and PT.get(box, 'sizeDeltaY')) or 36
-        local sx, sy = 0, 0
-        local okP, px, py = pcall(function() return box:GetAnchoredPosition() end)
-        if okP then sx, sy = tonumber(px) or 0, tonumber(py) or 0 end
-        tryCall(c, 'SetSizeDelta', sw, sh)
-        tryCall(c, 'SetAnchoredPosition', sx, sy)
-        trySet(c, 'fontSize', tonumber(PT and PT.get(box, 'fontSize')) or 20)
+        local isBanner = (nm == 'botBanner' or nm == 'topBanner')
+        local isSk = nm:sub(1, 2) == 'sk'
+        local fs = isBanner and 22 or (nm == 'hudNext' and 22) or 20
+        local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700)
+          or (nm == 'hudNext' and 240) or 640
+        local hh = (nm == 'hudNext') and 44 or (nm == 'topBanner') and 64
+          or (nm == 'botBanner') and 48 or math.floor(fs * 1.45 + 8)
+        if isSk and box then
+          -- 技能列：几何/字号从 textbox **现读现拷**（位置由关卡 UI 定，硬编码会随布局漂移）
+          w = tonumber(PT and PT.get(box, 'sizeDeltaX')) or 210
+          hh = tonumber(PT and PT.get(box, 'sizeDeltaY')) or 36
+          fs = tonumber(PT and PT.get(box, 'fontSize')) or 20
+          local sx, sy = 0, 0
+          local okP, px, py = pcall(function() return box:GetAnchoredPosition() end)
+          if okP then sx, sy = tonumber(px) or 0, tonumber(py) or 0 end
+          tryCall(c, 'SetAnchoredPosition', sx, sy)
+        end
+        trySet(c, 'fontSize', fs)
         trySet(c, 'fontColor', THEME.textMain)
+        tryCall(c, 'SetSizeDelta', w, hh)
+        -- 对齐必须显式（v3.5 ④ / v5.5：模板缺省 Top/Left 会裁掉字形，真机右侧被切半个字）
         trySet(c, 'verticalAlignment', 'Middle')
         trySet(c, 'horizontalAlignment', 'Middle')
         HUD_INST[nm] = c
         made = made + 1
-        skillMade = skillMade + 1
       end
-      tryCall(box, 'SetVisible', false)     -- textbox 份一律隐藏（断言读 text 字段，不受影响）
     end
+    if t[3] and box then tryCall(box, 'SetVisible', false) end   -- 断言读 text 字段，不受 visible 影响
   end
-  if skillMade > 0 then print('skill inst n=' .. skillMade .. ' (textbox hidden)') end
-  -- v3.3 ②：textbox 份隐藏防双份（实例在上可见；断言只读 text 字段不受影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext', 'holdLab' }) do
-    local box = (nm == 'hud' and hud) or (nm == 'best' and best) or (nm == 'keyA' and keyA)
-      or (nm == 'keyB' and keyB) or (nm == 'keyC' and keyC) or (nm == 'botBanner' and botBanner)
-      or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint) or (nm == 'hudNext' and hudNext)
-    if box then tryCall(box, 'SetVisible', false) end
+  local halfH = (CANVAS_H or 720) / 2
+  local function put(nm, x, y) local c = HUD_INST[nm] if c then tryCall(c, 'SetAnchoredPosition', x, y) end end
+  put('topBanner', 0, halfH - 36)
+  if HUD_INST.topBanner then trySet(HUD_INST.topBanner, 'fontSize', 34) end
+  put('botBanner', 0, -(halfH - 40))          -- v5.4：离底缘 28px 会被裁 ⇒ 上移 12px
+  put('hudNext', RIGHT_CX or 570, 255)        -- 贴预览块正上方（原位置像独立标题）
+  -- keyA-C 常驻文案最长 24 全角 ⇒ 实例份字号降 14（fits 判据过；textbox 份字号不变）
+  for _, nm in ipairs({ 'keyA', 'keyB', 'keyC' }) do
+    local c = HUD_INST[nm]
+    if c then trySet(c, 'fontSize', 14) end
   end
   print('hud inst n=' .. made .. ' (textbox hidden)')
 end
 
--- v3.5 ④：标题页/回菜单把 HUD 实例整体下架（`SetVisible(false)` 在真机对运行时实例不一定生效
--- ⇒ 同时挪到画布外 y=-4000 兜底；进局由 startIfWaiting 把「位 + 显」一起还原）
 HUD_INST.hideAll = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext',
-    'holdLab', 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
-    local inst = HUD_INST[nm]
-    if inst then
-      tryCall(inst, 'SetVisible', false)
-      tryCall(inst, 'SetAnchoredPosition', 0, -4000)
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c then
+      tryCall(c, 'SetVisible', false)
+      tryCall(c, 'SetAnchoredPosition', 0, -4000)   -- 真机 SetVisible 对实例不一定生效 ⇒ 挪出画布兜底
     end
   end
 end
--- v3.5 ⑥：只下架「战况列」（结算遮罩半透明，那几行会从面板外透出来）；
--- 横幅保留——结算层建不出来时走 topBanner/botBanner 兜底文案，把横幅一起藏掉等于兜底全黑。
-HUD_INST.hideStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'hint', 'hudNext',
-    'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
-    local inst = HUD_INST[nm]
-    if inst then tryCall(inst, 'SetVisible', false) end
+HUD_INST.hideStats = function()      -- 只下架「战况列」：横幅要留作结算兜底文案
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c and t[4] then tryCall(c, 'SetVisible', false) end
   end
 end
--- 与 hideStats 对称：结算期下架的站况列重新上架（casual 重开不走 startIfWaiting，必须显式还原）
 HUD_INST.showStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'hint', 'hudNext', 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
-    local inst = HUD_INST[nm]
-    if inst then tryCall(inst, 'SetVisible', true) end
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c and t[5] then tryCall(c, 'SetVisible', true) end
   end
 end
 
