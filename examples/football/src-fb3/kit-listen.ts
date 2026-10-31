@@ -22,6 +22,25 @@ const graph = g
     id: 1073741826, // 真值：assets:node-graphs create 分配（20000 服务端图）
     name: '_GSTS_kitListen'
   })
+  // ———— 实体创建时登记角色实体（用户 2026-10-31 提议：创建时把角色实体写入变量）————
+  // 官方语义（events-payload.ts:220-238）：whenEntityIsCreated「所有类型实体均可触发；关卡实体、
+  // 角色实体和玩家实体会在**进入关卡时**触发」⇒ 角色一进关就登记，不必等第一拍 'B'。
+  // 注：服务端图挂在常驻实体（载体）上；角色是运行时生成的、挂不上图，但事件本身覆盖角色实体。
+  .on('whenEntityIsCreated', (_evt: any, f: any) => {
+    const owner = f.getSelfEntity()
+    const playerGuid = f.getPlayerGuidByPlayerId(1n)
+    const playerE = f.queryEntityByGuid(playerGuid)
+    const chars = f.getAllCharacterEntitiesOfSpecifiedPlayer(playerE)
+    f.doubleBranch(
+      f.greaterThan(f.getListLength(chars), 0n),
+      () => {
+        const c = f.getCorrespondingValueFromList(chars, 0n)
+        f.setCustomVariable(owner, 'fb_char_e', c, false)
+        f.setCustomVariable(owner, 'fbc_e', c, false)
+      },
+      () => {}
+    )
+  })
   .onSignal(KitSignal.kit_state, (evt: any, f: any) => {
     f.doubleBranch(
       f.equal(evt.params.tag, 'B'),
@@ -43,6 +62,8 @@ const graph = g
               () => {
                 const c = f.getCorrespondingValueFromList(chars, 0n)
                 f.setCustomVariable(owner, 'fb_char_e', c, false)
+                // 同步写 fbc_e：内核 §3 首选读它做 0 延时位置查询 ⇒ 不再依赖"点过球的选项卡"
+                f.setCustomVariable(owner, 'fbc_e', c, false)
               },
               () => {}
             )

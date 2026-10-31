@@ -25,7 +25,9 @@
 | 2 | 服务端每拍写 `fbvx/fbvz` | 1 拍（0.133s） | 上一级失效 |
 | 3 | **冻结上一拍位置** | — | 两级都失效（绝不回 0，回 0 会把球吸向中圈） |
 
-20008 白名单**没有** `getCurrentCharacter` / `getCharacterEntityOfSpecifiedPlayer` / `getEntityLocationAndRotation`（编译期实测拒收）⇒ 句柄只能由服务端给一次，位置查询搬到客户端。
+20008 白名单**没有** `getCurrentCharacter` / `getCharacterEntityOfSpecifiedPlayer` / `getEntityLocationAndRotation`（编译期实测拒收）⇒ 句柄只能由服务端给，位置查询搬到客户端。
+
+**句柄登记（2026-10-31 用户提议落地）**：kitListen 的 `whenEntityIsCreated` 事件（官方语义：角色实体进入关卡时触发）里解析玩家角色并写 `fb_char_e` + `fbc_e`；`kit_state('B')` 的缓存解析也同步双写。⇒ **不再依赖"玩家点过球的选项卡"**，角色一进关就有句柄，换角色/倒下重解析也覆盖。
 
 ## 2. 每拍管线（顺序固定，改顺序 = 改物理）
 
