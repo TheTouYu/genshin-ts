@@ -1782,24 +1782,15 @@ end
 -- 别加新模板（task-12 约束）：色块复用 TEMPLATES.cell、文字复用 settleText 模板，全运行时实例化。
 -- ===== v2.7 ④ 独立规则说明页（H 常驻入口；整页三栏讲全：操作/计分判定/四种模式）=====
 -- 用户原话（2026-10-28 反馈④）：「h按钮应该常驻，并且目前按下没有任何反应，h按钮请设计一个独立的页面，
--- 介绍游戏的全部规则，按键说明，和不同模式下的规则」。
--- 两处硬修：①**键名错了**——真机/网页物理 H 发的是 CraftspersonKey15（craftCodes[15]='KeyH'），
--- 而 v1 只监听 CharacterSkill1Key（那是物理 E）⇒ 真机按 H 永远没反应（用例注入虚拟键名，测不出来）。
--- ②说明层原来是 stage0 专属的 10 行小字，局内/结算页看不到；改成**任何阶段都能开**的整页。
--- 版式（按画布自适应）：暗底整屏 + 顶部标题 + 三栏（左=操作与按键 / 中=计分与判定 / 右=四种模式）
--- + 页脚提示。全用运行时实例（cell 暗底 + stext 文字），不加新模板。
--- 框高判据（D566 实测）：h ≥ fontSize×1.45+4，否则整行静默不画——下面按字号自动算。
 local function destroyHelpLayer()
   local n = HLV.n or 0
   if HLV.R and HLV.live then
-    HLV.R.clear()                       -- 只清自己那份（棋盘 BR / 结算 SR 的 key 都不归它管）
+    if APP then APP.closeOverlay() else HLV.R.clear() end   -- 只清自己那份（BR/SR 的 key 不归它管）
     if n > 0 then print('guide help off n=' .. n) end
   end
   HLV.live, HLV.n, HLV.nodes = false, 0, nil
 end
--- v6.3：说明页整页改由 view_help 的**纯描述**产出（271–289 节点，按画布 fit 缩放），
--- 原来的三种版式（A 委托板 / B 旅行手记 / C 四张委托卡，各 ~290 行手搓控件）全部退役；
--- 文案仍取自 config.HELP（view_help 通过 spec.config 读它，版本切换不再靠改 main）。
+-- v6.3：说明页整页由 view_help 纯描述产出（271–289 节点，按画布 fit；旧 A/B/C 三版式全退役）。
 local function buildHelpLayer()
   if not (HLV.M and HLV.S and HLV.R) then
     print('guide help module=none（view_help 未装配）')
@@ -1817,8 +1808,13 @@ local function buildHelpLayer()
       closeHelp()
     end,
   }
-  HLV.R.clear()                         -- 每次开页先清：实例上限约 430、常驻约 240，手册 271–289 节点
-  HLV.R.apply(nodes)
+  -- 试点：走场景栈的 openOverlay（内部 = 先 clear 再 apply + push 场景；隔离仍是 HLV.R 这个独立实例）
+  if APP then
+    APP.openOverlay('help', { name = 'help', view = 'view_help', opaque = true }, nodes)
+  else
+    HLV.R.clear()
+    HLV.R.apply(nodes)
+  end
   HLV.live, HLV.n, HLV.nodes = true, #nodes, nodes
   -- 巡检通道：把关页热区登记进 UI4 注册表（qxqy/audit-controls.mjs 读 dump('help') 找 help.close 再按坐标点）
   local z = HLV.R.get('helpCloseHit')
@@ -4696,6 +4692,9 @@ function OnStart()
     HLV.KIT = HLV.KIT_M.new({ layers = VIEW_LAYERS_M })
     HLV.S = HLV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = HLV.KIT })
     HLV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+  -- v6.7 场景栈试点：说明页改走 app.openOverlay（场景栈 + 独立 render 实例 + 先 clear 再 apply）
+  APP = loadModule('app').new({ platform = PT, render = HLV.R, layers = VIEW_LAYERS_M,
+    scenes = loadModule('scenes').new(), overlayRender = HLV.R, log = function(m) print(m) end })
     print('v6 help view ok')
   else
     print('v6 help view MISSING: view_help/view_kit')
