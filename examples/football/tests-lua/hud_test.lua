@@ -140,9 +140,9 @@ eq(w.controls.hud_title.horizontalAlignment, 'hM', 'title 水平居中=枚举 Te
 eq(w.controls.hud_title.verticalAlignment, 'vM', 'title 垂直居中=枚举 TextVerticalAlignment.Middle')
 ok(w.controls.hud_title.fontColor ~= 0, 'title 颜色已设', tostring(w.controls.hud_title.fontColor))
 
-eq(#w.listeners, 12, '12 条监听（6 动作键 + 6 数字键）')
+eq(#w.listeners, 16, '16 条监听（9 动作/探针 + 7 面板）')
 ok(hasLog(w, '[fb-in] onstart v2'), '日志 onstart v2')
-ok(hasLog(w, 'listen ok 6/6'), '日志 listen ok 6/6')
+ok(hasLog(w, 'listen ok 16/16'), '日志 listen ok 16/16')
 ok(#w.sent >= 1 and w.sent[1].v == 0, 'OnStart 发心跳 key=0', fmt(w.sent[1] and w.sent[1].v))
 
 -- ② 计时（OnUpdate 累计到整秒才刷）
@@ -196,7 +196,7 @@ for _, k in ipairs({ 'OnStart', 'OnUpdate', 'OnDestroy', 'OnInit', 'setScore' })
 dofile(SRC)
 local okNoEnum = pcall(OnStart)
 ok(okNoEnum, '枚举缺名时 OnStart 不抛错（走字符串兜底）')
-ok(hasLog(w4, 'listen ok 6/6'), '枚举缺名仍靠字符串兜底注册 6 个动作（12 条监听）')
+ok(hasLog(w4, 'listen ok 16/16'), '枚举缺名仍靠字符串兜底注册全部键（16 条监听）')
 
 -- ---------------------------------------------------------------- 汇总
 io.write('\n========================================\n')

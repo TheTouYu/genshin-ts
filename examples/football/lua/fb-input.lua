@@ -44,7 +44,15 @@ local KEYS = {
   -- 施力探针（只走独立服务端图 _GSTS_forceTest，不碰内核）
   { id = 7, names = { 'KeyboardCraftspersonKey7Down' }, line = '⑦ 施力 +x（探针）· 7' },
   { id = 8, names = { 'KeyboardCraftspersonKey8Down' }, line = '⑧ 施力 +y（探针）· 8' },
-  { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 清力（探针）· 9' }
+  { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 清力（探针）· 9' },
+  -- —— 调参面板（2026-10-31 用户口径）：点一次永久累加，之后每脚踢球都按「朝向×力度 + 右偏/上偏」 ——
+  { id = 23, names = { 'KeyboardCraftspersonKey23Down' }, line = '⚙ 力度 +0.2  · F5',  panel = 'pow',   d =  0.2 },
+  { id = 24, names = { 'KeyboardCraftspersonKey24Down' }, line = '⚙ 力度 −0.2  · F6',  panel = 'pow',   d = -0.2 },
+  { id = 25, names = { 'KeyboardCraftspersonKey25Down' }, line = '⚙ 右偏 +1    · F7',  panel = 'right', d =  1.0 },
+  { id = 26, names = { 'KeyboardCraftspersonKey26Down' }, line = '⚙ 右偏 −1    · F8',  panel = 'right', d = -1.0 },
+  { id = 27, names = { 'KeyboardCraftspersonKey27Down' }, line = '⚙ 上偏 +1    · F9',  panel = 'up',    d =  1.0 },
+  { id = 28, names = { 'KeyboardCraftspersonKey28Down' }, line = '⚙ 上偏 −1    · F10', panel = 'up',    d = -1.0 },
+  { id = 10, names = { 'KeyboardCraftspersonKey10Down' }, line = '⚙ 复位 1.0/0/0 · 0',  panel = 'reset' }
 }
 
 -- 控件名 → 字号/颜色（文案在 setStatic / 事件里写）
@@ -205,11 +213,36 @@ local function applyStyles()
   for _, s in pairs(STYLE) do setStyle(s.name, s.fs, s.color) end
 end
 
+-- —— 面板本地镜像（服务端 _GSTS_aimPanel 同步累加同一组增量，两边初值相同 ⇒ 不会漂）——
+local PANEL = { pow = 1.0, right = 0, up = 0 }
+local function panelText()
+  return string.format('⚙ 力度 %+.1f · 右 %+d · 上 %+d', PANEL.pow, PANEL.right, PANEL.up)
+end
+local function panelApply(entry)
+  if entry.panel == 'reset' then
+    PANEL.pow, PANEL.right, PANEL.up = 1.0, 0, 0
+  elseif entry.panel == 'pow' then
+    PANEL.pow = PANEL.pow + entry.d
+    if PANEL.pow < 0 then PANEL.pow = 0 end
+    if PANEL.pow > 3 then PANEL.pow = 3 end
+  elseif entry.panel == 'right' then
+    PANEL.right = PANEL.right + entry.d
+  elseif entry.panel == 'up' then
+    PANEL.up = PANEL.up + entry.d
+  end
+  setText(STYLE.k6.name, panelText())
+end
+
 local function makeHandler(entry)
   return function()
     log('key ' .. tostring(entry.id))
-    setState(entry.line .. ' · 已触发')
-    showToast(entry.line, 1.2, COL.hot)
+    if entry.panel ~= nil then
+      panelApply(entry)
+      showToast(entry.line, 0.8, COL.gold)
+    else
+      setState(entry.line .. ' · 已触发')
+      showToast(entry.line, 1.2, COL.hot)
+    end
     send(entry.id, 1)
     return true
   end

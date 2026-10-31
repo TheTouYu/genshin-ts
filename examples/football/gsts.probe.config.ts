@@ -8,7 +8,9 @@ const config: GstsConfig = {
     './src-fb3/zz-probe-char.ts',
     './src-fb3/zz-probe-char-srv.ts',
     './src-fb3/zz-char-init.ts',
-    './src-fb3/zz-force-test.ts'
+    './src-fb3/zz-force-test.ts',
+    './src-fb3/zz-char-srv.ts',
+    './src-fb3/zz-aim-panel.ts'
   ],
   outDir: './dist-fb3',
   inject: {

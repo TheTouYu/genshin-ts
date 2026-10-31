@@ -170,7 +170,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => { dt.set(DT_DEFAULT) }
   )
   const kickRaw = f.getCustomVariable(ballE, 'fb_kick').asType('float')
-  const km = f.localVariable('float')
+  const km = f.localVariable('float')  // = fb_kick × 面板力度
   f.doubleBranch(f.greaterThan(kickRaw, 0.05), () => { km.set(kickRaw) }, () => { km.set(KICK_DEFAULT) })
   const kpRaw = f.getCustomVariable(ballE, 'fb_drib_kp').asType('float')
   const kp = f.localVariable('float')
@@ -358,19 +358,44 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const distBP = f._3dVectorModuloOperation(f.create3dVector(bpx, 0.0, bpz))
       const dirX = f.division(bpx, f.addition(distBP, 0.0001))
       const dirZ = f.division(bpz, f.addition(distBP, 0.0001))
-      // 瞄准：跑动时按速度方向（脚随身体走），站定时按「玩家→球」
+      // 瞄准 = **角色朝向**（用户 2026-10-31 口径）：把 (0,0,1) 绕 Y 旋 yaw 度得到世界前向。
+      // 兜底：yaw 无效（0 且球在身后）时退回「玩家→球」，避免开局朝向未就绪时踢空。
+      const yawDeg = f.getCustomVariable(carrierE, 'fb_yaw').asType('float')
+      const fwdV = f._3dVectorRotation(
+        f.create3dVector(0.0, 0.0, 1.0),
+        f.create3dVector(0.0, yawDeg, 0.0)
+      )
+      const fwdS = f.split3dVector(fwdV)
+      const rightV = f._3dVectorRotation(
+        f.create3dVector(1.0, 0.0, 0.0),
+        f.create3dVector(0.0, yawDeg, 0.0)
+      )
+      const rightS = f.split3dVector(rightV)
       const aimX = f.localVariable('float')
       const aimZ = f.localVariable('float')
+      // 面板：力度倍率 + 右偏/上偏（m/s），latch 在载体变量上，点一次永久生效
+      const powT = f.getCustomVariable(carrierE, 'fb_t_pow').asType('float')
+      const offR = f.getCustomVariable(carrierE, 'fb_t_right').asType('float')
+      const offU = f.getCustomVariable(carrierE, 'fb_t_up').asType('float')
       f.doubleBranch(
-        f.greaterThan(pSpd, 0.5),
+        f.greaterThan(f._3dVectorModuloOperation(fwdV), 0.5),
         () => {
-          aimX.set(f.division(vpxV.value, pSpd))
-          aimZ.set(f.division(vpzV.value, pSpd))
+          aimX.set(fwdS.xComponent)
+          aimZ.set(fwdS.zComponent)
         },
         () => {
           aimX.set(dirX)
           aimZ.set(dirZ)
         }
+      )
+      // 踢球方向 = 前向×力度倍率 + 右轴×右偏（m/s）；带球目标仍用单位 aim（距离不随力度变）
+      const kickX = f.addition(
+        f.multiplication(aimX.value, powT),
+        f.multiplication(rightS.xComponent, offR)
+      )
+      const kickZ = f.addition(
+        f.multiplication(aimZ.value, powT),
+        f.multiplication(rightS.zComponent, offR)
       )
 
       // ═══════════ 8. 冲量累加器 + 动作分发 ═══════════
@@ -398,8 +423,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 1n),
                 () => {
-                  impX.set(f.multiplication(aimX.value, f.multiplication(K1_SPD, km.value)))
-                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K1_SPD, km.value)))
+                  impX.set(f.multiplication(kickX, f.multiplication(K1_SPD, km.value)))
+                  impZ.set(f.multiplication(kickZ, f.multiplication(K1_SPD, km.value)))
                   impY.set(f.multiplication(K1_LIFT, km.value))
                   wy.set(0.0)
                 },
@@ -408,8 +433,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 2n),
                 () => {
-                  impX.set(f.multiplication(aimX.value, f.multiplication(K2_SPD, km.value)))
-                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K2_SPD, km.value)))
+                  impX.set(f.multiplication(kickX, f.multiplication(K2_SPD, km.value)))
+                  impZ.set(f.multiplication(kickZ, f.multiplication(K2_SPD, km.value)))
                   impY.set(f.multiplication(K2_LIFT, km.value))
                   wy.set(K2_SPIN)
                 },
@@ -418,8 +443,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 3n),
                 () => {
-                  impX.set(f.multiplication(aimX.value, f.multiplication(K3_SPD, km.value)))
-                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K3_SPD, km.value)))
+                  impX.set(f.multiplication(kickX, f.multiplication(K3_SPD, km.value)))
+                  impZ.set(f.multiplication(kickZ, f.multiplication(K3_SPD, km.value)))
                   impY.set(f.multiplication(K3_LIFT, km.value))
                   wy.set(0.0)
                 },
@@ -428,8 +453,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.equal(keyRaw, 4n),
                 () => {
-                  impX.set(f.multiplication(aimX.value, f.multiplication(K4_SPD, km.value)))
-                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K4_SPD, km.value)))
+                  impX.set(f.multiplication(kickX, f.multiplication(K4_SPD, km.value)))
+                  impZ.set(f.multiplication(kickZ, f.multiplication(K4_SPD, km.value)))
                   impY.set(f.multiplication(K4_LIFT, km.value))
                   wy.set(0.0)
                 },
@@ -447,13 +472,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                     () => { signNew.set(1.0) }
                   )
                   f.setSkillVariable(S_SPINSIGN, signNew.value)
-                  impX.set(f.multiplication(aimX.value, f.multiplication(K5_SPD, km.value)))
-                  impZ.set(f.multiplication(aimZ.value, f.multiplication(K5_SPD, km.value)))
+                  impX.set(f.multiplication(kickX, f.multiplication(K5_SPD, km.value)))
+                  impZ.set(f.multiplication(kickZ, f.multiplication(K5_SPD, km.value)))
                   impY.set(f.multiplication(K5_LIFT, km.value))
                   wy.set(f.multiplication(signNew.value, K5_SPIN))
                 },
                 () => {}
               )
+              // 面板竖直偏移（上偏，m/s）：点一次永久生效，之后每脚都带
+              impY.set(f.addition(impY.value, offU))
               // —— 踢球自旋：由**本拍冲量**推出（不读回写后的 vx/vz；旧的独立块要二次消费
               //    kickNow，会被「本拍写回 S_LASTSEQ」污染 ⇒ 实测踢出 10m/s 但 spin 恒 0）——
               wx.set(f.division(impZ.value, BALL_R))
@@ -464,8 +491,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.logicalAndOperation(f.equal(keyRaw, 1n), f.lessThan(distBP, 2.5)),
                 () => {
-                  impX.set(f.multiplication(aimX.value, 7.0))
-                  impZ.set(f.multiplication(aimZ.value, 7.0))
+                  impX.set(f.multiplication(kickX, 7.0))
+                  impZ.set(f.multiplication(kickZ, 7.0))
                   impY.set(4.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
                 },
@@ -474,8 +501,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(
                 f.logicalAndOperation(f.equal(keyRaw, 2n), f.lessThan(distBP, 3.0)),
                 () => {
-                  impX.set(f.multiplication(aimX.value, 14.0))
-                  impZ.set(f.multiplication(aimZ.value, 14.0))
+                  impX.set(f.multiplication(kickX, 14.0))
+                  impZ.set(f.multiplication(kickZ, 14.0))
                   impY.set(5.0)
                   f.setSkillVariable(S_COOLDOWN, f.dataTypeConversion(f.addition(tick, 4n), 'float'))
                 },
