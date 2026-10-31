@@ -21,6 +21,45 @@ local M = {}
 -- 每个模板需要什么能力才接受（其余探测到即销毁）。缺省 'any'。
 local DEFAULT_ACCEPTS = { cell = 'image', hit = 'cursor', stext = 'text' }
 
+-- 文字拟合（引擎语义）：requiredHeight = 1.2f×行数 + (0.25f+4)；放不下时 fits=false、
+-- visibleLineCount=0 —— 真机表现是**整条一个字都不画**（本项目踩过：移动端字号未缩放而
+-- 框宽缩放了 ⇒ 折行 2 行 ⇒ 糊里糊涂"文字消失"）。mock 复刻这条，才能把"字被裁"
+-- 从"结构估算"升级成"引擎行为断言"。
+local function textMetrics(t)
+  local text = tostring(t.text or '')
+  local font = tonumber(t.fontSize) or 16
+  local w = tonumber(t.sizeDeltaX) or 0
+  local h = tonumber(t.sizeDeltaY) or 0
+  -- 保守折行：每个多字节字符按 1 em，ASCII 按 0.55 em
+  local function em(ch) return (#ch > 1) and 1 or 0.55 end
+  local lines, cur = 1, 0
+  local i = 1
+  while i <= #text do
+    local b = string.byte(text, i)
+    local len = 1
+    if b >= 0xF0 then len = 4 elseif b >= 0xE0 then len = 3 elseif b >= 0xC0 then len = 2 end
+    local ch = string.sub(text, i, i + len - 1)
+    if ch == '\n' then
+      lines = lines + 1
+      cur = 0
+    else
+      local adv = em(ch) * font
+      if w > 0 and cur > 0 and cur + adv > w then
+        lines = lines + 1
+        cur = adv
+      else
+        cur = cur + adv
+      end
+    end
+    i = i + len
+  end
+  local required = 1.2 * font * lines + (0.25 * font + 4)
+  local fits = (w > 0) and (h >= required)
+  return { fits = fits, requiredHeight = required, lines = lines,
+    visibleLineCount = fits and lines or 0,
+    text = text, font = font, width = w, height = h }
+end
+
 local function mockNode(spec, kind, parent, seq)
   local n = {
     __kind = kind, __seq = seq, __children = {}, __cursors = {}, __keys = {},
@@ -30,6 +69,10 @@ local function mockNode(spec, kind, parent, seq)
   }
   if kind == 'image' then n.imageColor = 0 end
   if kind == 'text' then n.text = '' n.fontSize = 16 n.fontColor = 0 end
+  setmetatable(n, { __index = function(t, k)
+    if k == 'textLayout' and t.__kind == 'text' then return textMetrics(t) end
+    return nil
+  end })
   function n.SetSizeDelta(self, w, h) self.sizeDeltaX, self.sizeDeltaY = w, h end
   function n.SetAnchoredPosition(self, x, y) self.anchoredPositionX, self.anchoredPositionY = x, y end
   function n.SetVisible(self, v) self.visible = v end
@@ -356,5 +399,7 @@ M.new = function(spec)
 
   return P
 end
+
+M.textMetrics = textMetrics
 
 return M
