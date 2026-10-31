@@ -31,6 +31,18 @@ import { KitSignal } from './signals.js'
 
 // ———— 技能变量槽（段内 553..568，16 个全部排满）————
 const SLOT_TICK = 1207959557n // 拍号（chanIncr 自增）
+
+// 物理参数槽（初始化时从球实体读一次，之后只用技能变量——避免每拍跨实体读取的延时）
+const S_P_G = 1207959572n
+const S_P_E = 1207959573n
+const S_P_MU = 1207959574n
+const S_P_ROLL = 1207959575n
+const S_P_SPIN = 1207959576n
+const S_P_AIR = 1207959577n
+const S_P_MAGNUS = 1207959578n
+const S_P_MAXV = 1207959579n
+const S_P_REST = 1207959580n
+const S_P_INIT = 1207959581n
 const S_BX = 1207959553n // 球位置 x
 const S_BY = 1207959554n // 球位置 y
 const S_BZ = 1207959555n // 球位置 z
@@ -147,6 +159,26 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
     }
   )
+  // ———— 物理参数一次性初始化（用户口径：只在初始化时从球实体读，之后用技能变量）————
+  const ballE = f.queryEntityByGuid(1077936135n)
+  f.doubleBranch(
+    f.lessThan(f.dataTypeConversion(f.querySkillVariableValue(S_P_INIT), 'int'), 1n),
+    () => {
+      f.setSkillVariable(S_P_G, f.getCustomVariable(ballE, 'fb_g').asType('float'))
+      f.setSkillVariable(S_P_E, f.getCustomVariable(ballE, 'fb_e').asType('float'))
+      f.setSkillVariable(S_P_MU, f.getCustomVariable(ballE, 'fb_mu').asType('float'))
+      f.setSkillVariable(S_P_ROLL, f.getCustomVariable(ballE, 'fb_roll').asType('float'))
+      f.setSkillVariable(S_P_SPIN, f.getCustomVariable(ballE, 'fb_spin').asType('float'))
+      f.setSkillVariable(S_P_AIR, f.getCustomVariable(ballE, 'fb_air').asType('float'))
+      f.setSkillVariable(S_P_MAGNUS, f.getCustomVariable(ballE, 'fb_magnus').asType('float'))
+      f.setSkillVariable(S_P_MAXV, f.getCustomVariable(ballE, 'fb_maxv').asType('float'))
+      f.setSkillVariable(S_P_REST, f.getCustomVariable(ballE, 'fb_rest').asType('float'))
+      f.setSkillVariable(S_P_INIT, 1.0)
+    },
+    () => {}
+  )
+  // 之后所有物理计算只用技能变量
+  const readPhys = (slot: bigint) => f.querySkillVariableValue(slot)
   // ———— 输入：fb_seq（有没有新输入）+ fb_key（哪一种踢法）————
   const carrier = f.queryEntityByGuid(CARRIER_GUID)
   const seqStd = f.getCustomVariable(carrier, 'fb_seq').asType('int')
@@ -506,9 +538,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         f.logicalAndOperation(notDribble, f.logicalNotOperation(onGround)),
         () => {
-          vy.set(f.subtraction(vy.value, f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_g').asType('float'), dtv.value)))
+          vy.set(f.subtraction(vy.value, f.multiplication(f.querySkillVariableValue(S_P_G), dtv.value)))
           const magVec = f._3dVectorZoom(
-            f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_magnus').asType('float'),
+            f.querySkillVariableValue(S_P_MAGNUS),
             f._3dVectorCrossProduct(
               f.create3dVector(wx.value, wy.value, wz.value),
               f.create3dVector(vx.value, vy.value, vz.value)
@@ -534,10 +566,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // ⚠️ 2026-10-30 数据修正（PHYSICS-DATA-REPORT slot7：ω −44.9%/1.12s 而 v 只 −21%）
           // 滚动状态下 ω 必须跟着 v 走（ω=v/R），再额外乘 SPIN_K 就会「越滚越不转」。
           // ⇒ 只对**竖直轴自旋 wy**（弧线球的自旋）施加 SPIN_K；wx/wz 交给摩擦约束，只加很小的空气衰减。
-          const spinAir = f.subtraction(1.0, f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_air').asType('float'), dtv.value))
+          const spinAir = f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_AIR), dtv.value))
           wx.set(f.multiplication(wx.value, spinAir))
           wz.set(f.multiplication(wz.value, spinAir))
-          wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_spin').asType('float'), dtv.value))))
+          wy.set(f.multiplication(wy.value, f.subtraction(1.0, f.multiplication(f.querySkillVariableValue(S_P_SPIN), dtv.value))))
           bx.set(f.addition(bx.value, f.multiplication(vx.value, dtv.value)))
           by.set(f.addition(by.value, f.multiplication(vy.value, dtv.value)))
           bz.set(f.addition(bz.value, f.multiplication(vz.value, dtv.value)))
@@ -558,15 +590,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           f.doubleBranch(
             hitting,
             () => {
-              vy.set(f.multiplication(vyIn, f.multiplication(-1.0, f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_e').asType('float'))))
+              vy.set(f.multiplication(vyIn, f.multiplication(-1.0, f.querySkillVariableValue(S_P_E))))
               jn.set(
-                f.multiplication(f.multiplication(vyIn, -1.0), f.addition(1.0, f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_e').asType('float')))
+                f.multiplication(f.multiplication(vyIn, -1.0), f.addition(1.0, f.querySkillVariableValue(S_P_E)))
               )
               mode.set(1n)
             },
             () => {
               vy.set(0.0)
-              jn.set(f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_g').asType('float'), dtv.value))
+              jn.set(f.multiplication(f.querySkillVariableValue(S_P_G), dtv.value))
             }
           )
           // 接触点滑移：v_slip = v + ω×r_c，r_c=(0,−R,0) ⇒ (vx + wz·R, 0, vz − wx·R)
@@ -575,7 +607,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           const slip = f._3dVectorModuloOperation(f.create3dVector(sx, 0.0, sz))
           // 库仑上限：γ = min(1, μ·jn / |slip|) —— 压力大（撞击）就抓得死，压力小就慢慢磨
           const gammaRaw = f.division(
-            f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_mu').asType('float'), jn.value),
+            f.multiplication(f.querySkillVariableValue(S_P_MU), jn.value),
             f.addition(slip, 0.001)
           )
           const gamma = f.localVariable('float')
@@ -607,7 +639,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // 滚动阻力：**恒定减速度**（ROLL_MU·g），与帧率无关
           //   旧写法 v*=0.985/拍 在 10Hz 与 26Hz 下衰减速率差 2.6 倍，且几乎没有阻尼
           const spH = f._3dVectorModuloOperation(f.create3dVector(vx.value, 0.0, vz.value))
-          const decel = f.multiplication(f.multiplication(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_roll').asType('float'), f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_g').asType('float')), dtv.value)
+          const decel = f.multiplication(f.multiplication(f.querySkillVariableValue(S_P_ROLL), f.querySkillVariableValue(S_P_G)), dtv.value)
           const keepF = f.localVariable('float')
           f.doubleBranch(
             f.greaterThan(spH, decel),
@@ -629,7 +661,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             f.create3dVector(vx.value, vy.value, vz.value)
           )
           f.doubleBranch(
-            f.lessThan(spG, f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_rest').asType('float')),
+            f.lessThan(spG, f.querySkillVariableValue(S_P_REST)),
             () => {
               vx.set(0.0)
               vy.set(0.0)
@@ -734,9 +766,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       // ⑥ 限速（防隧穿）
       const sp = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
       f.doubleBranch(
-        f.greaterThan(sp, f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_maxv').asType('float')),
+        f.greaterThan(sp, f.querySkillVariableValue(S_P_MAXV)),
         () => {
-          const k = f.division(f.getCustomVariable(f.queryEntityByGuid(1077936135n), 'fb_maxv').asType('float'), sp)
+          const k = f.division(f.querySkillVariableValue(S_P_MAXV), sp)
           vx.set(f.multiplication(vx.value, k))
           vy.set(f.multiplication(vy.value, k))
           vz.set(f.multiplication(vz.value, k))
