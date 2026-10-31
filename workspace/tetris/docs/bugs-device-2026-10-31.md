@@ -13,7 +13,7 @@
 | **B. 页面上报口径错** | 3 | `gameover score=0` vs `guide score=10702` | ✅ 已修（补 `aiScore` + `inst=p1/p2`） |
 | **C. 信号 API 形态假设** | 12 | rec25428 `attempt to index a function value (field 'ServerSignal')` → rec25429 回落成功 | ✅ 已修（记住可用形态，不再刷 FAILED） |
 | **D. 高频调试打印淹没日志** | 23–26 | `demo act *` 4580 + `fall y=` 4885 = 9465 行（37%） | ✅ 已修（`CFG.VERBOSE` 开关，实测 20s 窗口 0 行） |
-| **E. 浮层/页层重建开销** | 6,7,8 | 角色页 135 控件 ×33 次、手册 326 ×4 次 | ⬜ 待修（下一步：缓存复用） |
+| **E. 浮层/页层重建开销** | 6,7,8 | 角色页 135 控件 ×33 次、手册 326 ×4 次 | 🔧 部分已修：同角色+同页签的重复打开不再重建（新锚 `char codex reuse`）；手册路径待同类处理 |
 | **F. 关键路径缺锚点（不可观测）** | 4,5 | 33 次 open / 0 次 close / 0 次 select | 🔧 已补锚（`roster close btn` / `char select i= role=`），待真机复测确认 |
 | **G. 结算层生命周期** | 11 | `settle build ok n=9` ×7 / `settle destroy n=13` ×6（末次未销毁） | ⬜ 待查（需区分"未销毁"与"本局未结束"） |
 | **H. 技能/能量提示时序** | 14–18 | 待逐条复核 | ⬜ |

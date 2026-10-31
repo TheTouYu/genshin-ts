@@ -170,6 +170,10 @@ function M.new(env)
     return out
   end
 
+  -- #6（真机日志：`char codex open n=135` ×33）重建开销：
+  -- 同角色 + 同页签的重复打开**不重建**，直接复用现有控件（真机上每次重建 135 个实例，
+  -- 33 次 = 4455 次实例化，是卡顿与 invalid object 的主要来源）。
+  -- 判据：日志里 `char codex open` 只在真正变化时出现。
   FN.rosterBuild = function(keepSel, keepTab)
     if UI4 and UI4.regScreen then pcall(UI4.regScreen, 'roster') end
     -- 组件工厂是懒创建的（main 的 MS.build 里才建）⇒ 每次构建时现取
