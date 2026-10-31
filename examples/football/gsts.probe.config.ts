@@ -4,7 +4,12 @@ import type { GstsConfig } from '../../src/compiler/gsts_config.js'
 //   cd examples/football && node ../../dist/src/cli/gsts.js --config ./gsts.probe.config.ts --noinject
 const config: GstsConfig = {
   compileRoot: '.',
-  entries: ['./src-fb3/zz-probe-char.ts', './src-fb3/zz-probe-char-srv.ts'],
+  entries: [
+    './src-fb3/zz-probe-char.ts',
+    './src-fb3/zz-probe-char-srv.ts',
+    './src-fb3/zz-char-init.ts',
+    './src-fb3/zz-force-test.ts'
+  ],
   outDir: './dist-fb3',
   inject: {
     gameRegion: 'China',
