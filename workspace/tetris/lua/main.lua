@@ -2483,7 +2483,15 @@ toggleHelp = function()
       local okC = pcall(destroyMenuCards)
       print('help stage hide ok=' .. tostring(okS and okC))
     end
-    buildHelpLayer()
+    -- #7（真机日志：`guide help on n=326` ×4）重建开销：同一页的重复打开**复用现有层**。
+    -- 判据：日志里重复打开打 `guide help reuse n=…`，只有换页/首次才打 `guide help on`。
+    local samePage = (HL and #HL > 0 and (FN.helpPageShown or 1) == (helpPage or 1))
+    if samePage then
+      print('guide help reuse n=' .. #HL)
+    else
+      buildHelpLayer()
+      FN.helpPageShown = helpPage or 1
+    end
     if UI4.refreshHelpLabel then UI4.refreshHelpLabel(true) end
     if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
   end
