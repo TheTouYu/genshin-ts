@@ -40,7 +40,11 @@ local KEYS = {
   { id = 3, names = { 'KeyboardCraftspersonKey3Down' }, line = '③ 吊射 / 停球  · 3' },
   { id = 4, names = { 'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）· 4' },
   { id = 5, names = { 'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球  · 5' },
-  { id = 6, names = { 'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · 6' }
+  { id = 6, names = { 'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · 6' },
+  -- 施力探针（只走独立服务端图 _GSTS_forceTest，不碰内核）
+  { id = 7, names = { 'KeyboardCraftspersonKey7Down' }, line = '⑦ 施力 +x（探针）· 7' },
+  { id = 8, names = { 'KeyboardCraftspersonKey8Down' }, line = '⑧ 施力 +y（探针）· 8' },
+  { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 清力（探针）· 9' }
 }
 
 -- 控件名 → 字号/颜色（文案在 setStatic / 事件里写）

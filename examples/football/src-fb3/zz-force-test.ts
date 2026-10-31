@@ -38,13 +38,12 @@ g.server({ id: 1073741832, name: '_GSTS_forceTest' })
   .onSignal(KitSignal.fb_input, (evt: any, f: any) => {
     const k = evt.params.key
     // 多分支（官方 multipleBranches，int 控制表达式）：一张表看全所有键位
+    // ⚠️ 只用 7/8/9：1-6 是内核的踢球键，两图同吃一条 fb_input 信号 ⇒ 若也绑 1-6，
+    //    每次踢球都会额外叠一个 ±40 的 3 拍力脉冲（实测 tick424「按2抽射」被 −x 脉冲污染）。
     f.multipleBranches(k, {
-      1: () => { pulse(f, PULSE, 0.0, 0.0) },
-      2: () => { pulse(f, -PULSE, 0.0, 0.0) },
-      3: () => { pulse(f, 0.0, 0.0, PULSE) },
-      4: () => { pulse(f, 0.0, 0.0, -PULSE) },
-      5: () => { pulse(f, 0.0, PULSE, 0.0) },
-      6: () => { writeForce(f, 0.0, 0.0, 0.0) },
+      7: () => { pulse(f, PULSE, 0.0, 0.0) },
+      8: () => { pulse(f, 0.0, PULSE, 0.0) },
+      9: () => { writeForce(f, 0.0, 0.0, 0.0) },
       default: () => {}
     })
   })
