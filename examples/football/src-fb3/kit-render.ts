@@ -10,6 +10,7 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 
 const GRAPH_ID = 1073741828
 const TELEPORT_DIST = 5.0
+const BALL_R = 0.25 // 球半径（滚动约束 ω = v/R）
 // 运动器时长 = 一拍（内核 7.5Hz ⇒ 0.1333s；取 0.14 略长一点，保证下一拍到来前已走完，无空档）
 // 2026-10-29 修：原来 0.25s + FixedSpeed，运动器比拍长一倍 ⇒ 每拍都在"重启"未完成的运动，
 //   实测（日志 3412）tick 61 之后球实体一直停在 (0,0,1.5) 不动，而内核目标已走到 3m 外。
@@ -224,15 +225,20 @@ g
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
         // 用户指正（2026-10-27）：同时加多个运动器是可以的，**同名才会替换前者**。
         // ⇒ 位移设备与旋转设备名字必须不同且固定：fb_movex / fb_spinx（旧名 fb_phys 可能被历史设备占用）。
-        const spd = f._3dVectorModuloOperation(spin)
-        const rotDue = f.greaterThanOrEqualTo(
-          f.subtraction(tickNow, f.get('fb_rot_tick')),
-          4n
+        // 用户反馈①：旋转设备原来独立按 4 拍节流下发给，与线性设备不同拍 ⇒ 旋转/速度"分离"。
+        //   现在**同拍下发**（与线性设备同一 tick、同一 duration）。
+        // 用户反馈②：带球时内核 spin≈0 会把旋转整段关掉 ⇒ 角速度改由**球速**推导：
+        //   滚动约束 ω = (v_z, 0, −v_x)/R，y 分量仍取内核 wy（弧线球）。
+        const rollOmega = f.create3dVector(
+          f.division(f.split3dVector(velToTarget).zComponent, BALL_R),
+          f.split3dVector(spin).yComponent,
+          f.multiplication(f.division(f.split3dVector(velToTarget).xComponent, BALL_R), -1.0)
         )
+        const spd = f._3dVectorModuloOperation(rollOmega)
         f.doubleBranch(
-          f.logicalAndOperation(f.greaterThan(spd, new float(0.001)), rotDue),
+          f.greaterThan(spd, new float(0.05)),
           () => {
-            const axis = f._3dVectorNormalization(spin)
+            const axis = f._3dVectorNormalization(rollOmega)
             // 视觉自旋夹紧（2026-10-30）：真实滚动 ω=v/R ⇒ 10m/s 时 40rad/s=2292°/s，
             // 14Hz 渲染下每拍要转 164° ⇒ 观感是乱转。夹到 540°/s 内，保留方向感又不糊。
             // 物理侧的内核 ω 不受影响。
