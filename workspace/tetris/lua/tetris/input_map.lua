@@ -72,6 +72,33 @@ M.ACTIONS = {
   debugUnlock = { 'KeyboardCraftspersonKey30Down' },   -- 调试：解锁全部角色
 }
 
+-- ===== ①b 这颗键归哪块盘（pvp 双盘路由；coop 分工过滤也读它）=====
+-- 注意粒度是**键**不是动作：`left` 动作名下同时有 ←（pvp 里归 P2）与手柄/移动键（归 P1），
+-- 所以 playerOf 用键判定；动作只作缺省（未列出的键一律 p1）。
+M.P2KEYS = {
+  KeyboardCraftspersonKey38Down = true,   -- ←
+  KeyboardCraftspersonKey39Down = true,   -- →
+  KeyboardCraftspersonKey36Down = true,   -- ↑（旋转）
+  KeyboardCraftspersonKey37Down = true,   -- ↓（软降）
+  KeyboardDropKeyDown = true,             -- X（硬降）
+  KeyboardInteractKeyDown = true,         -- F（Hold）
+}
+
+function M.playerOf(keyName, action)
+  if keyName and M.P2KEYS[keyName] then return 'p2' end
+  return 'p1'
+end
+
+-- ===== ①c 手机按钮 → 它冒充的键盘键 =====
+-- 为什么不做成"按钮 → 动作"直接派发：`coopAllowed` 的 P1/P2 分工**按键名**判定，
+-- 触屏键若改成合成名（touch:left）会被一律判成 P1 而**挡掉行动手**（coop 的 left/right/soft/hard）。
+-- 所以先只把"按钮冒充哪颗键"这份数据搬进来（行为逐字不变），行为改动留到 route/coop 也吃动作名的那一轮。
+M.PHONE = {
+  left = 'KeyboardMoveLeftKeyDown', right = 'KeyboardMoveRightKeyDown',
+  rot = 'KeyboardMoveForwardKeyDown', soft = 'KeyboardMoveBackwardKeyDown',
+  hard = 'KeyboardJumpKeyDown', hold = 'KeyboardCraftspersonKey14Down',
+}
+
 -- ===== ② 松开事件（DAS 清方向 / 刻晴长按测量）=====
 M.UPKEYS = {
   left  = { 'KeyboardCraftspersonKey38Up', 'KeyboardMoveLeftKeyUp' },

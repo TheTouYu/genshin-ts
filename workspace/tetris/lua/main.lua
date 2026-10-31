@@ -4897,19 +4897,16 @@ function OnStart()
   --   pvp：方向键(38/39/36/37)/X(Drop)/F(Interact) 归 P2=G[2]，WASD/Space/G 归 P1=G[1]（§3.3 定版）
   --   coop：全部键归共盘 G[1]（P1 旋转手=W/G，P2 行动手=←→↓/X），越权键由 coopAllowed 过滤
   --   casual/ai-battle：全部归 G[1]
-  local P2_KEYS = {
-    KeyboardCraftspersonKey38Down = true, KeyboardCraftspersonKey39Down = true,
-    KeyboardCraftspersonKey36Down = true, KeyboardCraftspersonKey37Down = true,
-    KeyboardDropKeyDown = true, KeyboardInteractKeyDown = true,
-  }
+  -- 「这颗键归哪块盘」的**唯一真源**已搬进 input_map（M.P2KEYS / M.playerOf）
+  local function isP2(keyName) return INPUT_M.playerOf(keyName) == 'p2' end
   local function routePlayer(keyName)
-    if MODE == 'pvp' and P2_KEYS[keyName] and G[2] then return G[2] end
+    if MODE == 'pvp' and isP2(keyName) and G[2] then return G[2] end
     return G[1]
   end
   -- coop 分工过滤（裁决① 用户方案）：P1=旋转手（只 rot/hold），P2=行动手（只 left/right/soft/hard）
   local function coopAllowed(keyName, action)
     if MODE ~= 'coop' then return true end
-    local isP1Key = not P2_KEYS[keyName]
+    local isP1Key = not isP2(keyName)
     if isP1Key then return action == 'rot' or action == 'hold'
     else return action == 'left' or action == 'right' or action == 'soft' or action == 'hard' end
   end
@@ -4931,14 +4928,14 @@ function OnStart()
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
         -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
-        if P2_KEYS[keyName] then GK.p2ready = true
+        if isP2(keyName) then GK.p2ready = true
         else GK.p1ready = true end
         if MODE == 'ai-battle' then GK.p2ready = true end
         if GK.p1ready then HUD_INST.txt(keyA, 'P1 准备好了 ✓') end
         if GK.p2ready and MODE ~= 'ai-battle' then HUD_INST.txt(keyB, 'P2 准备好了 ✓') end
         setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
           or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))   -- v2.8 ① ready 进度
-        print('guide ready ' .. (P2_KEYS[keyName] and 'p2' or 'p1'))
+        print('guide ready ' .. (isP2(keyName) and 'p2' or 'p1'))
         if GK.p1ready and GK.p2ready then
           GK.phase, GK.t = 'count', 0
           setText(topBanner, '')
@@ -4960,7 +4957,7 @@ function OnStart()
   -- 动作执行体（KEYMAP 与 P2 补充键共用；g 已由 act 路由到位）
   local function doPlay(action, keyName)
     if not coopAllowed(keyName, action) then return end   -- coop 越权键无效（裁决①）
-    if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
+    if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (isP2(keyName) and 2 or 1)) end
     if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
     if action == 'left' then
       g.pieceMoved = true
@@ -5143,13 +5140,8 @@ function OnStart()
   -- ===== v4.0 设备适配接线（移动端按钮 / 手柄 / 焦点导航）=====
   -- 动作派发一律走键盘同一条链（act(key, fn) + doPlay）：于是"帮助页开着先关页""入场态按键
   -- 既开局也执行动作""MODE_OVER 冻结输入""接管中按键交还"这些语义自动一致，不用重写第二套。
-  local PHONE_KEY = {
-    left = 'KeyboardMoveLeftKeyDown', right = 'KeyboardMoveRightKeyDown',
-    rot = 'KeyboardMoveForwardKeyDown', soft = 'KeyboardMoveBackwardKeyDown',
-    hard = 'KeyboardJumpKeyDown', hold = 'KeyboardCraftspersonKey14Down',
-  }
-  UI4.runAct = function(action)
-    local key = PHONE_KEY[action]
+  UI4.runAct = function(action)                 -- 手机按钮冒充的键名：真源在 input_map.M.PHONE
+    local key = INPUT_M.PHONE[action]
     if not key then return end
     act(key, function() doPlay(action, key) end)()
   end
