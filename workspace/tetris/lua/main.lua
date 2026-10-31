@@ -451,7 +451,17 @@ end
 --   ② game.ServerSignal('名'):SendSignal()     —— 模拟器 Lua 桥的工厂形态（D112 实测）
 -- 两种都失败 ⇒ 本机 Lua 无信号通道，退出改法（Q 退回原来的「结算明细」开关，按键不失效）。
 local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
+-- v5.43（真机日志 rec25428 实证）：真机 `game.ServerSignal` 是**函数**，形态① 每次都会报
+-- `attempt to index a function value` 才回落到形态②。第一次探测成功后把可用形态记住，
+-- 之后直接走对的那条 —— 少一次必然失败 pcall，也不再在日志里刷 FAILED 假警报。
+local settleSignalForm = nil
 local function sendSettleSignal()
+  if settleSignalForm == 2 then
+    pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
+    settleSignalState = 'sent'
+    print('settle signal sent')
+    return true
+  end
   local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
   if ok then
     settleSignalState = 'sent'
@@ -461,6 +471,7 @@ local function sendSettleSignal()
   print('settle signal FAILED :: ' .. tostring(err))
   local ok2, err2 = pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
   if ok2 then
+    settleSignalForm = 2          -- 记住可用形态，后续不再重试失败那条
     settleSignalState = 'sent'
     print('settle signal sent (factory form)')
     return true
