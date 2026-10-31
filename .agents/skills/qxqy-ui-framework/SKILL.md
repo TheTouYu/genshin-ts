@@ -116,6 +116,20 @@ cd /path/to/new-game && lua5.3 tests/run_all.lua   # 期望 ALL GREEN
 ```
 构建接入：多数项目按平铺 `*.lua` 扫描模块目录，需让构建脚本也扫 `lua/qxqy_ui`，或把文件平铺拷进去。
 
+## 8.5 L0.5 台阶（假引擎跑真用例）也可以复用
+
+若你的项目也用 `createStudio` + `build.mjs` 那条生产线（存档 `*.save.json` + 客户端模板 guid），可以直接复用参考实现里的三件套：
+
+| 文件 | 作用 | 前置条件 |
+|---|---|---|
+| `workspace/tetris/tests-lua/engine_shim.lua` | 假引擎：`game/script/Enum/typeof/print/require` + 控件代理；服务端控件树与模板 guid 从存档读（不硬编码） | 存档里的控件树结构与你项目一致 |
+| `workspace/tetris/tests-lua/run_cases.lua` | 用例驱动：`log/control/tree/lua` 断言 + 音效序列；支持 `--jobs=N`、`--source=repo|save` | 用例格式与模拟器 `autotest` 一致 |
+| `workspace/tetris/tests-lua/json.lua` | 最小 JSON 解析（含 `\uXXXX`） | 无 |
+
+**收益读数（本项目实测）**：同一批 71 个用例，模拟器 **425s** → 假引擎 **7.8s（jobs=8）**，通过 70/71；唯一的红是"必须留模拟器"的那条。这条通道把"改一行看效果"从分钟级拉到秒级，是整套重构能跑起来的前提。
+
+**它证明不了什么（必须写在你的验收报告里）**：渲染/字体度量/裁剪、音频时长与白名单、容器排版与变换、Tween/动画/信号、真机差异、宿主数值语义（整数位宽 / `pairs` 序）。
+
 ## 9. 本框架**不**覆盖
 
 字体真实折行（用保守估算）、音频时长/白名单、容器 Scroll/Grid 排版、Tween/动画/信号、真机差异（模板 guid 重编号、`SetVisible(false)` 对运行时实例无效、Enum 键位形态）。这些必须走 L1/L2。
