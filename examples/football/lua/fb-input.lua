@@ -31,13 +31,16 @@ local COL = {
 -- id=发给服务端的 keyId；names=候选枚举名（按序试）；line=HUD 文案
 -- 每个动作绑两种物理键：**动作键（左键/E/空格/右键/F/X）+ 数字键 1~6**
 -- 2026-10-29 真机实证：只绑动作键时「按 1~6 完全没反应」（用户按的是数字键）；两种都绑最稳
+-- 2026-10-31 用户口径：**只认数字键 1-6**。
+-- 之前每题还挂了游戏具名键作别名（左键/E/空格/右键/F/X），其中 E 与角色技能同键 ⇒
+-- 把用户在编辑器里配的角色技能触发抢掉了（真机实测：按 E 只踢球、技能不施放）。别名全部移除。
 local KEYS = {
-  { id = 1, names = { 'KeyboardNormalAttackKeyDown',    'KeyboardCraftspersonKey1Down' }, line = '① 推射 / 抢断  · 左键 或 1' },
-  { id = 2, names = { 'KeyboardCharacterSkill1KeyDown', 'KeyboardCraftspersonKey2Down' }, line = '② 抽射 / 解围  · E 或 2' },
-  { id = 3, names = { 'KeyboardJumpKeyDown',            'KeyboardCraftspersonKey3Down' }, line = '③ 吊射 / 停球  · 空格 或 3' },
-  { id = 4, names = { 'KeyboardSprintKeyDown',          'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）· 右键 或 4' },
-  { id = 5, names = { 'KeyboardInteractKeyDown',        'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球  · F 或 5' },
-  { id = 6, names = { 'KeyboardDropKeyDown',            'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · X 或 6' }
+  { id = 1, names = { 'KeyboardCraftspersonKey1Down' }, line = '① 推射 / 抢断  · 1' },
+  { id = 2, names = { 'KeyboardCraftspersonKey2Down' }, line = '② 抽射 / 解围  · 2' },
+  { id = 3, names = { 'KeyboardCraftspersonKey3Down' }, line = '③ 吊射 / 停球  · 3' },
+  { id = 4, names = { 'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）· 4' },
+  { id = 5, names = { 'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球  · 5' },
+  { id = 6, names = { 'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · 6' }
 }
 
 -- 控件名 → 字号/颜色（文案在 setStatic / 事件里写）

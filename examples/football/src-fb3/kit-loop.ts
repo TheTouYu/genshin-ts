@@ -52,6 +52,10 @@ const S_PPZ = 1207959566n
 const S_WZ = 1207959567n
 const S_COOLDOWN = 1207959568n // 抢断/解围后的带球抑制截止拍
 const S_SPINSIGN = 1207959570n // 弧线球侧旋方向（±1，逐次翻转；0=未初始化 ⇒ 取 +1）
+// 外力脉冲门控（测试台图已删，569/571 两槽空出来给生产用）
+const S_FSEQ = 1207959569n  // 已消费的 fb_f_seq
+const S_FWIN = 1207959571n  // 剩余脉冲拍数
+const PULSE_TICKS = 3n // 一次施力持续几拍
 
 // 物理参数槽（首拍从球实体读一次，之后只用技能变量）
 const S_P_G = 1207959572n
@@ -269,9 +273,31 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const kickNow = f.greaterThan(drv.value, lastSeqV.value)
 
   // 外部施力通道（载体变量，单位质量力 m/s²）
+  // ⚠️ 做成**脉冲**：服务端每次施力会把 fb_f_seq 自增；内核只在该序号变化后的 PULSE_TICKS 拍内
+  //    真的施加，其余拍当作 0。教训（日志 3454）：外力常驻会让球在滚动/飞行中一直加速——
+  //    实测 vx 从 −3.6 线性涨到 −17.76（−8 m/s²），肉眼就是"球自己往左飘"。
   const extFx = f.getCustomVariable(carrierE, 'fb_fx').asType('float')
   const extFy = f.getCustomVariable(carrierE, 'fb_fy').asType('float')
   const extFz = f.getCustomVariable(carrierE, 'fb_fz').asType('float')
+  const fSeqNow = f.getCustomVariable(carrierE, 'fb_f_seq').asType('int') // 已是 int，别再转（int→int 被拒）
+  const fSeqLast = f.dataTypeConversion(f.querySkillVariableValue(S_FSEQ), 'int')
+  const fWinLast = f.dataTypeConversion(f.querySkillVariableValue(S_FWIN), 'int')
+  const fWin = f.localVariable('int')
+  f.doubleBranch(
+    f.logicalNotOperation(f.equal(fSeqNow, fSeqLast)),
+    () => {
+      fWin.set(PULSE_TICKS)
+      f.setSkillVariable(S_FSEQ, f.dataTypeConversion(fSeqNow, 'float'))
+    },
+    () => {
+      f.doubleBranch(
+        f.greaterThan(fWinLast, 0n),
+        () => { fWin.set(f.subtraction(fWinLast, 1n)) },
+        () => { fWin.set(0n) }
+      )
+    }
+  )
+  f.setSkillVariable(S_FWIN, f.dataTypeConversion(fWin.value, 'float'))
 
   // ═════════════ 5. 状态读入（技能变量 = 唯一真值）═══════════════════════════════════════
   const bx = f.localVariable('float')
@@ -503,9 +529,20 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const accX = f.localVariable('float')
       const accY = f.localVariable('float')
       const accZ = f.localVariable('float')
-      accX.set(extFx)
-      accY.set(f.subtraction(extFy, G))
-      accZ.set(extFz)
+      // 外力只在脉冲窗口内生效（窗口外当作 0），重力始终在
+      f.doubleBranch(
+        f.greaterThan(fWin.value, 0n),
+        () => {
+          accX.set(extFx)
+          accY.set(f.subtraction(extFy, G))
+          accZ.set(extFz)
+        },
+        () => {
+          accX.set(0.0)
+          accY.set(f.multiplication(G, -1.0))
+          accZ.set(0.0)
+        }
+      )
       const groundedBefore = f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.05))
 
       // 带球助力（弹簧-阻尼，力而不是速度改写 ⇒ 没有速度悬崖）：
