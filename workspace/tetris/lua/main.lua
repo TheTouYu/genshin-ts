@@ -5211,7 +5211,8 @@ function OnStart()
   -- 第二次按 Z 撞 CD，日志里没有 skill ai end，接管被 playerTouched 打断了）。
   -- v6：记录技能键的按住秒数（刻晴「长按·跨地形」判 ≥0.35s）
   FN.skillKeyHoldSec = 0
-  local function skillKey(fn, keyName)
+  -- 第二参数是**动作名**（不是键名）：键位真源在 input_map，这里只留"同一动作再按一次可关闭"的判断
+  local function skillKey(fn, mark)
     return function()
       FN.skillKeyHoldSec = tonumber(FN.skillKeyHoldSec) or 0
       if helpOpen then closeHelp() return end
@@ -5219,18 +5220,18 @@ function OnStart()
       -- 之前 skillKey 不看 ROSTER.on、act() 又把所有键吞掉 ⇒ 只能鼠标点「合上」，
       -- 键盘玩家直接**卡在角色页里出不来**（真机日志：连续 30+ 条 key blocked by overlay，零条 roster close）。
       if ROSTER and ROSTER.on then
-        if keyName == 'KeyboardCraftspersonKey16Down' then
+        if mark == 'roster' then
           keyConsumedFrame = frameSeq
           if FN.rosterToggle then FN.rosterToggle() end
         else
-          print('key blocked by overlay ' .. tostring(keyName))
+          print('key blocked by overlay ' .. tostring(mark))
         end
         return
       end
       startIfWaiting()
       -- 角色页/说明页**不要求** guideStage==1：它们从标题页就能开，也就必须能关
       if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then
-        if keyName == 'KeyboardCraftspersonKey16Down' and FN.rosterToggle then FN.rosterToggle() end
+        if mark == 'roster' and FN.rosterToggle then FN.rosterToggle() end
         return
       end
       fn()
@@ -5254,7 +5255,7 @@ function OnStart()
       skillKey(function() FN.skillCast(1) end)()
     end
   end
-  local function actSkill2() skillKey(function() FN.skillCast(2) end, 'KeyboardCraftspersonKey11Down')() end
+  local function actSkill2() skillKey(function() FN.skillCast(2) end, 'skill2')() end
   local function actSkillSwitch() skillKey(function()
     -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
     if not (SK and SK.party and #SK.party > 0) then return end
@@ -5263,7 +5264,7 @@ function OnStart()
     FN.skillHud()
     print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
   end)() end
-  local function actRoster() skillKey(function() FN.rosterToggle() end, 'KeyboardCraftspersonKey16Down')() end
+  local function actRoster() skillKey(function() FN.rosterToggle() end, 'roster')() end
   -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
   local function actDebugUnlock() skillKey(function()
     if not (SK and SKILLS) then return end
@@ -5285,9 +5286,7 @@ function OnStart()
   end)() end
 
   -- 入场态兜底：43 个可编程键位里凡是没被动作表认领的，都只做"开始游戏"这一件事。
-  -- v6.1：排除表（mapped）与 43 次 listen 循环一起退役——input_map.fallbackPool() 从动作表
-  -- **自动派生**兜底池（43 - 已被认领的 16 个 = 27），物理上不可能再出现"同一个键两个监听"。
-  -- 兜底语义不丢：六个技能/Hold 键的执行体自己都调 startIfWaiting()（见 skillKey / act）。
+  -- v6.1：43 次 listen 与排除表 mapped 已退役——兜底池由 input_map.fallbackPool() 从动作表自动派生。
   local function anyKeyStart()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
