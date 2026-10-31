@@ -681,6 +681,13 @@ local function buildSettleLayer()
     if members[i] then n = n + 1 end
   end
   print('settle build ok n=' .. n .. ' via=' .. (g.settleLayer and 'container' or 'textbox'))
+  -- 真机 16:24 日志实证：7 次结算只发出 1 次 `settle signal`——因为信号只在**按 Q** 时发。
+  -- 玩家用 R/V 离开结算，官方结算（Victory/结算关卡）就永远不会触发。
+  -- 改为**结算页建好即上报一次**（每局一次），Q 仍保留为手动重试。
+  if not g.settleSignaled then
+    g.settleSignaled = true
+    sendSettleSignal()
+  end
   layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
 end
 
@@ -1439,6 +1446,7 @@ local function newGame()
   g.combo, g.maxCombo, g.b2b = 0, 0, false
   g.elapsed = 0
   g.gameOver, g.tickCount, g.acc = false, 0, 0
+  g.settleSignaled = false      -- 每局允许上报一次真结算
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
   g.settleOn, g.settleT, g.settleDone, g.settleFade, g.settleSize = false, 0, false, -1, 44
   g.dimRatio, g.dimApplied = 0, -1
