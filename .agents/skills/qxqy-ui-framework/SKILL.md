@@ -79,6 +79,15 @@ wash 10 → bg 20 → plate 25 → board 30 → frame 35 → hud 40
 
 **L4 的两个坑**：① 判据不能留 1px 余量（22.85 vs 22 的边界会漏）；② 报错文案里打浮点尺寸必须 `%.1f`，用 `%d` 会**在报缺陷那一刻抛异常**。
 
+**L4 要做两条路线**：描述层 `V.lint` 给估算；引擎层读 `ctl.textLayout`（mock 按同一公式实现）：
+```lua
+R.apply(nodes)
+assert(R.get('charPanelS').textLayout.fits, ...)         -- 引擎会判定能放下
+assert(R.get('charPanelS').textLayout.visibleLineCount > 0)
+```
+实测锚：18 号/宽 240/高 32 → 2 行、需 51.7、fits=false；16 号/宽 200/高 46 → 需 46.4、fits=false。
+只做描述层会漏掉"估算放过、引擎判不画"的边界——这类"整条文字消失"的 bug 靠人眼极难定位。
+
 ## 5. 三条硬约束
 
 1. **覆盖屏必须用独立 render 实例。** 基础层每帧增量更新同一张 key 表；覆盖屏整屏重建。共用一张表 ⇒ 覆盖屏 apply 把基础层当"不在列表里"销毁 ⇒ 表现是"开浮层时棋盘偶尔整片消失"。
