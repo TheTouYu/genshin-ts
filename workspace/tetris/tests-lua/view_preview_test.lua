@@ -450,6 +450,57 @@ do
 end
 
 -- ======================================================================
+-- ⑨ 接线期选项（cx 覆盖 / noLabel / legacyNames）
+-- ======================================================================
+print('--- ⑨ 接线期选项 ---')
+do
+  -- ⑨1 opts.cx 覆盖画布推算：main 的 RIGHT_CX 是单一真源（ui.lua 的 plan 决定）
+  local nodes = S.next(optOf(PC, { queue = { 'I' }, cx = 410 }))
+  local lab = findKey(nodes, 'pvNextLabel')
+  local cells = nodesOf('nextCell', nodes)
+  local cxOfCells = cells[1].pos[1] - (cfg.SHAPES.I.cells[1][2] - 2.5) * 20
+  ok(lab.pos[1] == 410 and cxOfCells == 410, '⑨1 opts.cx 覆盖画布推算（标题与格子同源）',
+    lab.pos[1] .. '/' .. cxOfCells)
+  local hold = S.hold(optOf(PC, { holdName = 'I', canHold = true, cx = 410 }))
+  ok(findKey(hold, 'pvHoldLabel').pos[1] == -410, '⑨2 opts.cx 在暂存侧镜像（-cx）')
+end
+do
+  -- ⑨3 noLabel：现网「下一个/暂存」是服务端 textbox，运行时再出一份就是双影
+  local a = S.next(optOf(PC, { queue = { 'I', 'T' }, noLabel = true }))
+  local b = S.next(optOf(PC, { queue = { 'I', 'T' } }))
+  ok(#a == #b - 1 and #nodesOf('label', a) == 0, '⑨3 noLabel 少出 1 个标题节点', #a .. '/' .. #b)
+  local h = S.hold(optOf(PC, { holdName = 'I', noLabel = true }))
+  ok(#h == 4 and #nodesOf('label', h) == 0, '⑨4 noLabel 对暂存同样生效', #h)
+end
+do
+  -- ⑨5 legacyNames：引擎侧名沿用现网 next1.. / hold1..，render 键仍是 pv*
+  local nodes = S.next(optOf(PC, { queue = { 'I', 'T' }, legacyNames = true }))
+  local cells = nodesOf('nextCell', nodes)
+  local names = {}
+  for i = 1, #cells do names[cells[i].name] = true end
+  ok(names.next1 and names.next5 and names.next8 and #cells == 8,
+    '⑨5 legacyNames ⇒ 引擎侧名 next1..next8', #cells)
+  local keysArePv = true
+  for i = 1, #cells do if not cells[i].key:match('^pvNext%dC%d$') then keysArePv = false end end
+  ok(keysArePv, '⑨6 legacyNames 不改 render 键（仍是 pvNext<slot>C<k>）')
+  local h = S.hold(optOf(PC, { holdName = 'I', legacyNames = true }))
+  local hc = nodesOf('holdCell', h)
+  ok(hc[1].name == 'hold1' and hc[4].name == 'hold4' and hc[1].key == 'pvHoldC1',
+    '⑨7 暂存 legacyNames ⇒ hold1..hold4、键仍 pvHoldC1', hc[1].name)
+  local all = {}
+  for i = 1, #nodes do all[#all + 1] = nodes[i] end
+  for i = 1, #h do all[#all + 1] = h[i] end
+  local seen, dup = {}, nil
+  for i = 1, #all do
+    if seen[all[i].name] then dup = all[i].name end
+    seen[all[i].name] = true
+  end
+  ok(dup == nil, '⑨8 legacyNames 下 12 个控件名互不重复', dup)
+  ok(#V.lint(all) == 0, '⑨9 legacyNames 下 lint 仍 0 issue',
+    #V.lint(all) > 0 and V.lint(all)[1].msg or nil)
+end
+
+-- ======================================================================
 -- ③ HOLD：空槽 vs 有块
 -- ======================================================================
 print('--- ③ HOLD 空槽 / 有块 ---')
