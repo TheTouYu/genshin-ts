@@ -133,11 +133,15 @@ M.new = function(spec)
     end
     stats.created = stats.created + 1
     live = live + 1
-    if not warned and live >= maxInstances * warnAt then
+    -- 上限是**全工程总量**：多个 render 实例（棋盘 / 覆盖屏 / 预览）各建各的，
+    -- 只守自己那份会漏掉"240 常驻 + 277 手册 = 517"这种情况。platform 记总账。
+    local total = (P.liveCount and P.liveCount()) or live
+    if not warned and total >= maxInstances * warnAt then
       warned = true
       issues[#issues + 1] = { code = 'R2', key = n.key,
-        msg = string.format('实例数逼近引擎上限：在场 %d / 上限 %d（场景切换应先 R.clear()）',
-          live, maxInstances) }
+        msg = string.format('实例数逼近引擎上限：全工程在场 %d（本屏 %d）/ 上限 %d'
+          .. '（场景切换应先 clear；上限约 430 是全脚本总量，不是单实例量）',
+          total, live, maxInstances) }
     end
     return ctl, applied
   end

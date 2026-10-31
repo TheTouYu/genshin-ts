@@ -83,6 +83,14 @@ M.new = function(spec)
 
   local P = { mock = mock, root = root }
 
+  -- ===== 全局实例台账 =====
+  -- 引擎的实例上限（约 430）是**整个脚本**的总量，不是单个 render 实例的量。
+  -- 只让 render 守自己那份是不够的：常驻 240 + 说明页 277 = 517 早已越界，
+  -- 而每个 render 都觉得自己"才 277，没问题"。台账放在 platform——它是唯一
+  -- 知道"到底建了几个控件"的地方。
+  local liveCount = 0
+  function P.liveCount() return liveCount end
+
   local function record(tag, err)
     local key = tostring(tag) .. '|' .. tostring(err)
     if S.failSeen[key] then return end
@@ -125,10 +133,12 @@ M.new = function(spec)
     return true
   end
 
+  -- 所有实例化路径（mock / 真机缓存 / 真机候选扫描）都收口到这里 ⇒ 台账不会漏计
   local function register(ctl)
     S.seqOf[ctl] = S.seq
     S.seq = S.seq + 1
     S.stats.inst = S.stats.inst + 1
+    liveCount = liveCount + 1
     return ctl
   end
 
@@ -189,6 +199,7 @@ M.new = function(spec)
 
   function P.destroy(ctl)
     if not ctl then return false end
+    liveCount = math.max(0, liveCount - 1)
     if ctl.__kind then
       local p = ctl.__parent
       if p then

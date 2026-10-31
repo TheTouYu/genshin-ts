@@ -193,5 +193,30 @@ local mobilePill = VS.settle {
 ok(#mobileText == #mobilePill, 'F7.2 mobile 传 text 仍出胶囊（触摸屏没有键盘的兜底）',
   #mobileText .. ' vs ' .. #mobilePill)
 
+-- ===== F8 实例上限是「全工程总量」，不是单个 render 实例的量 =====
+-- 真实场景：常驻约 240 + 说明页 277 = 517，而每个 render 都觉得自己"才 277"。
+-- 判据：platform 记总账；第二个实例在总量越线时就报警，而不是等它自己涨到 366。
+local P2 = platformM.new { mock = true, canvas = { 1280, 720 },
+  templates = { cell = { kind = 'image' } } }
+local RL = layers
+local Rbig = renderM.new { platform = P2, layers = RL, maxInstances = 430 }
+local Rsmall = renderM.new { platform = P2, layers = RL, maxInstances = 430 }
+local function many(n, pre)
+  local t = {}
+  for i = 1, n do t[i] = { key = pre .. i, layer = 'card', tpl = 'cell', name = pre .. i,
+    pos = { 0, 0 }, size = { 8, 8 }, color = 0 } end
+  return t
+end
+Rbig.apply(many(300, 'big'))
+ok(P2.liveCount() == 300, 'F8.1 platform 台账记到 300', P2.liveCount())
+ok(#Rsmall.issues() == 0, 'F8.2 未越线时不误报')
+Rsmall.apply(many(100, 'small'))
+ok(P2.liveCount() == 400, 'F8.3 两个实例合计 400（台账跨实例）', P2.liveCount())
+local sawR2 = false
+for _, is in ipairs(Rsmall.issues()) do if is.code == 'R2' then sawR2 = true end end
+ok(sawR2, 'F8.4 总量越线时，**仅建了 100 个**的那个实例也报 R2（守的是总量）')
+Rbig.clear()
+ok(P2.liveCount() == 100, 'F8.5 清一个大实例，台账正确回落', P2.liveCount())
+
 print(string.format('\n== flow_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
