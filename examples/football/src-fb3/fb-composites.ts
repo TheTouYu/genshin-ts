@@ -79,10 +79,14 @@ export const fbWritePlayerPos = g.defineComposite('fb_write_player_pos', {
   outputs: {},
   outflows: ['done'],
   build: ({ owner, char, tick }, f) => {
-    const l = f.split3dVector(f.getEntityLocationAndRotation(char).location)
+    const lr = f.getEntityLocationAndRotation(char)
+    const l = f.split3dVector(lr.location)
+    const rot = f.split3dVector(lr.rotate)
     f.setCustomVariable(owner, 'fbvx', l.xComponent, false)
     f.setCustomVariable(owner, 'fbvz', l.zComponent, false)
     f.setCustomVariable(owner, 'fbvy', l.yComponent, false)
+    // 角色朝向（yaw，度）：内核用它当**踢球基准方向**（角色面朝哪就往哪踢）
+    f.setCustomVariable(owner, 'fb_yaw', rot.yComponent, false)
     // 最后一个写用 registerExecNode 拿句柄：f.setCustomVariable 不返回节点，outflow 需要句柄
     const last = f.registerExecNode('set_custom_variable', [
       owner,
