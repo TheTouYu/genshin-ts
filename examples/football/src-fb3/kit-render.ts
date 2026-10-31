@@ -30,6 +30,9 @@ const GROUND_Y_MIN = 0.25 // 球心贴地高度（= 球半径），预测位不�
 //   LIN_EVERY = 下发的拍间隔；MARGIN = 重叠系数（>1 保证下一段在上一段结束前开始）。
 const LIN_EVERY = 4n
 const MARGIN = 1.25
+/** 球实体上的可调时长变量名（默认 0.18s，学习旧版足球做法：参数放球上，服务端只读） */
+const BALL_DUR_VAR = 'fb_dur'
+const BALL_DUR_DEFAULT = 0.18
 /** 旧常量：仅在拿不到 fb_dt 时兜底 */
 const LOOKAHEAD_FALLBACK = 0.28
 const VEL_CAP = 25.0 // 速度上限，防预测位把球吹飞（内核限速 18，留余量）
@@ -60,9 +63,23 @@ g
     // 于是把「是否到点」提到**所有计算之前**：不到点的信号只走 3~4 个节点就结束，
     // 避免每条信号都白跑预测位/轴换算/分支。
     const tickEarly = evt.params.tick
+    const durProbe = f.getCustomVariable(f.getSelfEntity(), BALL_DUR_VAR).asType('float')
+    const dtProbe = f.getCustomVariable(f.queryEntityByGuid(1082130445n), 'fb_dt').asType('float')
+    const everyEarly = f.localVariable('int')
+    const calcEarly = f.division(durProbe, dtProbe)
+    const calcEarlyI = f.dataTypeConversion(calcEarly, 'int')
+    f.doubleBranch(
+      f.lessThan(calcEarlyI, 1n),
+      () => {
+        everyEarly.set(1n)
+      },
+      () => {
+        everyEarly.set(calcEarlyI)
+      }
+    )
     const dueEarly = f.greaterThanOrEqualTo(
       f.subtraction(tickEarly, f.get('fb_lin_tick')),
-      LIN_EVERY
+      everyEarly.value
     )
     f.doubleBranch(
       f.logicalAndOperation(f.equal(evt.params.tag, 'B'), dueEarly),
@@ -98,13 +115,35 @@ g
         driveDur.set(DRIVE_DUR)
       }
     )
-    // 器件时长 = 下发间隔（LIN_EVERY 拍）× 真实步长 × 重叠系数
+    // ———— 段时长由**球实体上的变量 fb_dur**决定（学习旧版足球：参数放球上，服务端只读）————
+    // 段时长 = 0.18s（默认）；下发间隔 = ceil(段时长/真实步长) 拍，保证下一段在上一段结束前开始。
+    const ballNow = f.getSelfEntity()
+    const durVar = f.getCustomVariable(ballNow, BALL_DUR_VAR).asType('float')
+    const durVarLen = f._3dVectorModuloOperation(f.create3dVector(durVar, 0.0, 0.0))
     const lookahead = f.localVariable('float')
-    lookahead.set(
-      f.multiplication(
-        f.multiplication(driveDur.value, f.dataTypeConversion(LIN_EVERY, 'float')),
-        MARGIN
-      )
+    f.doubleBranch(
+      f.greaterThan(durVarLen, 0.01),
+      () => {
+        lookahead.set(durVar)
+      },
+      () => {
+        lookahead.set(BALL_DUR_DEFAULT)
+      }
+    )
+    // 下发间隔（拍）= max(1, floor(段时长 / 每拍秒数))；用整数除法直接截断
+    const everyTicks = f.localVariable('int')
+    const calcTicks = f.dataTypeConversion(
+      f.division(lookahead.value, driveDur.value),
+      'int'
+    )
+    f.doubleBranch(
+      f.lessThan(calcTicks, 1n),
+      () => {
+        everyTicks.set(1n)
+      },
+      () => {
+        everyTicks.set(calcTicks)
+      }
     )
     const pos = evt.params.pos
     const vel = evt.params.vel
@@ -155,7 +194,7 @@ g
         const tickNow = evt.params.tick
         const linDue = f.greaterThanOrEqualTo(
           f.subtraction(tickNow, f.get('fb_lin_tick')),
-          LIN_EVERY
+          everyTicks.value
         )
         f.doubleBranch(
           f.logicalAndOperation(f.lessThan(dist, 0.012), f.logicalNotOperation(linDue)),
