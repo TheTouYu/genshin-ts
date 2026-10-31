@@ -348,6 +348,13 @@ local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.appl
 -- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
 -- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
 local function setText(ctl, value)
+  -- 浮层（帮助/结算/档案）打开时，服务端 textbox 仍在运行时实例**之上**（实测 sk1name z=42
+  -- 压着结算卡 z=51），只能靠"不写"来隐藏。以前只在 HUD_INST.txt 一条通道做了抑制，
+  -- 技能名/状态这类走裸 setText 的控件就会透出来（2026-10-31 出图抓到的"纳西妲"）。
+  -- 这里做成系统性抑制：任何服务端 textbox 写入在浮层期间一律不生效，除非显式强制（清空时用）。
+  -- 只抑制**非空写入**：清空（''）必须放行，否则"浮层时收起技能条"这类既有清屏逻辑
+  -- 会被自己拦住（写空被挡 ⇒ 文字留在屏幕上，正好反了）。
+  if FN.textLayerHidden and not FN.textForce and value ~= nil and value ~= '' then return end
   if FN.textLayerHidden then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
@@ -1927,17 +1934,32 @@ FN.syncStage = function()
   -- 🔴 v5.36 修回归：原来写 `hide = not want`，而 want 在**对局中恒为 false**（guideStage≠0）
   -- ⇒ 局内也把文字层清空，HUD/得分/旁白全消失（用户：图片渲染失败了）。
   -- 正确判据＝**只是浮层打开时**才藏文字层，对局中一律照常显示。
-  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER) and true or false
+  -- 结算层也是覆盖屏（有自己的 scrim），但以前没进这个判据 ⇒ 结算期间服务端 textbox
+  -- 照写不误，压在结算卡上（出图实测 sk1name 的"纳西妲"一直透出来）。补上 SETTLEV.live。
+  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER
+    or (SETTLEV and SETTLEV.live)) and true or false
   local hide = overlayNow
   if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
   FN.textLayerHidden = hide and true or false
   if hide then
     -- 每轮都清（不是只在翻转时）：标题页常驻提示是**每帧重写**的（showPersistTip/renderHud），
     -- 清一次会被下一帧写回来 —— 这是「清了但还在」的原因。
+    FN.textForce = true
     for i = 1, 9 do
       local c = ({ topBanner, botBanner, hint, hud, best, hudNext, keyA, keyB, keyC })[i]
       if c then setText(c, '') end
     end
+    -- 技能名/状态：走裸 setText 的通道，之前漏清（透出"纳西妲"）
+    -- 直接按名寻址（不依赖缓存句柄是否已建）：技能名/状态是纯服务端 textbox，
+    -- 它们压在覆盖屏之上（实测 sk1name z=42 < 结算卡 z=51），只能清空。
+    do
+      -- 用 findIn 递归找（这些 textbox 挂在 n1 之下，不是 script.object 的直接子节点）
+      for _, nm in ipairs({ 'sk1name', 'sk1state', 'sk2name', 'sk2state' }) do
+        local ok, c = pcall(findIn, root, { nm })
+        if ok and c then setText(c, '') end
+      end
+    end
+    FN.textForce = false
     if HUD_INST then
       -- 实例份直接写 .text（setTextRaw 走的是服务端 textbox 的通道，对实例不生效）；
       -- 实测残留在底部那行就是实例 ibotBanner。
@@ -3089,6 +3111,10 @@ end
 
 -- HUD：两格技能状态（名字+状态+能量条）。控件由 ui.lua 建；不在就退回左栏 hint 文本。
 FN.skillHud = function()
+  -- 覆盖屏（帮助/结算/档案）打开时整块不画：技能名/状态是**服务端 textbox**，
+  -- 在真机上压在运行时实例之上（实测 sk1name z=42 < 结算卡 z=51），遮罩盖不住，
+  -- 只能靠"不写"。这里直接不画，比逐控件清空可靠（清空后别的路径又会写回来）。
+  if (SETTLEV and SETTLEV.live) or (ROSTER and ROSTER.on) or helpOpen or MODE_OVER then return end
   if not (SK and SKILLS and SKILLS.snapshot) then return end
   -- 只有局内才写技能 HUD 文字：标题/结算/名册页把文字清空（控件本身的显隐由 ui.lua 的逐屏布局负责，
   -- 但真机 SetVisible 对实例靠不住，所以这里至少保证"文字不会留在标题页上"）
@@ -3175,12 +3201,14 @@ FN.skillHud = function()
         tryCall(stripCtl, 'SetSizeDelta', 8, 76)
       end
       if cName then
+        FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'name'] = cName
         -- v5.5（用户 2026-10-30 二轮反馈：「前后台和已就绪的说明增加玩家负担，用特效和动画区分」）：
         -- 名字行只留**角色名**（键位标签在可点时才有意义）；台前/台后靠卡面亮度+描边+能量条表达。
         setText(cName, nm)
         trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
       end
       if cState then
+        FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'state'] = cState
         -- v6：把「倍率 + 生效中的天赋」写进台前角色的状态行（玩家要能看到自己吃到了什么加成）
         local extra = ''
         if active then
