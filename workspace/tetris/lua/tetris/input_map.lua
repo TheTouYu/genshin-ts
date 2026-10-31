@@ -99,6 +99,13 @@ M.PHONE = {
   hard = 'KeyboardJumpKeyDown', hold = 'KeyboardCraftspersonKey14Down',
 }
 
+-- ===== ①d 浮层里"按它就关浮层"的键（角色表，不是动作）=====
+-- 为什么不做成 ACTIONS 条目：这颗键**已经在 hold 动作**里，重复登记 = 同一个键两个监听（D762 的坑）。
+-- 所以它是**角色**：`isOverlayClose(keyName)` 供 act() 判"这颗键在浮层里语义是关闭"。
+M.OVERLAY_CLOSE = { KeyboardInteractKeyDown = true }
+
+function M.isOverlayClose(keyName) return keyName ~= nil and M.OVERLAY_CLOSE[keyName] == true end
+
 -- ===== ② 松开事件（DAS 清方向 / 刻晴长按测量）=====
 M.UPKEYS = {
   left  = { 'KeyboardCraftspersonKey38Up', 'KeyboardMoveLeftKeyUp' },

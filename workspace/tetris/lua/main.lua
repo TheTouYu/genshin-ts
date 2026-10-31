@@ -97,6 +97,9 @@ local FN = {}    -- v3.6：把一批大函数的 local 声明挂表（真机 Lua
 -- v4.0：设备适配子系统（移动端操作控件 / 手柄映射与焦点导航 / 移动端多人引导浮层）。
 -- 挂表不挂 local（main chunk 已 134 个 local，真机 200 上限只剩 ~10 槽；D591 教训）。
 local UI4 = { btns = {}, pad = { fk = 1, t = 0, last = 0 }, note = {}, rep = nil }
+-- v6.6：TEMPLATES 是模板探测结果的唯一载体（cell/hit/stext），由 templates 模块在 OnStart 填充；
+-- 先建空表 ⇒ 早于 OnStart 的读取是 nil 而不是"未定义全局"（可读，也不会静默假绿）。
+TEMPLATES = { cell = nil, hit = nil, stext = nil }
 -- v6 架构（docs/ARCH.md）：platform / render / view_board 三件由本文件在 OnStart 里装配。
 -- 声明在顶部是因为 paint() 等早期函数要用；装配失败直接 error（模块随构建自动注册，不会缺）。
 local PT, BR, VB
@@ -191,8 +194,6 @@ local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，
 -- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
 local MIRRORQ = {}
 local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
-local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘控件复用，T6b-2）
-local TPL_HIT       -- v2.7：cursor（光标检测区）模板 guid —— 标题页四模式三态热区用
 IS_MOBILE = true   -- OnStart 探测后写入；菜单选择/热区逻辑在模块级函数里也要读它
 -- v2.7 ⑤：标题页模式选择（键盘 Digit 与鼠标点击共用一条入口；实现见菜单段）
 local menuSelectMode
@@ -1159,7 +1160,6 @@ local function rotate()
 end
 
 -- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
--- 实现内联在 OnStart 键位监听（listen(NUM.HOLD_KEY, ...)）里——main 函数 200 个 local 已满，
 -- 连 local function doHold 都加不进去（实测 lua5.3 报 too many local variables at :1646）；
 -- 闭包体内的 local 独立计数不受 main 上限约束。
 -- canHold 闸（g.st.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
@@ -1779,8 +1779,7 @@ end
 -- ===== v2.1 ② 标题屏四模式大视觉卡片 =====
 -- 横排 4 卡（x=±390/±130，y=0），每卡 = cell 模板色块 260×120（暗色底）+ 2 条 settle 文字
 -- （模式名 26 号白字 / 特色句 16 号浅字；框高按 h≥1.45×fontSize+4 给 48/32）。
--- 别加新模板（task-12 约束）：色块复用 TPL_CELL、文字复用 settleText 模板，全运行时实例化。
-local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存；说明层共用）
+-- 别加新模板（task-12 约束）：色块复用 TEMPLATES.cell、文字复用 settleText 模板，全运行时实例化。
 -- ===== v2.7 ④ 独立规则说明页（H 常驻入口；整页三栏讲全：操作/计分判定/四种模式）=====
 -- 用户原话（2026-10-28 反馈④）：「h按钮应该常驻，并且目前按下没有任何反应，h按钮请设计一个独立的页面，
 -- 介绍游戏的全部规则，按键说明，和不同模式下的规则」。
@@ -1858,10 +1857,10 @@ local function destroyCountBig()
   end
 end
 local function buildCountBig(txt)
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then return nil end
+  if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+  if not TEMPLATES.stext then return nil end
   destroyCountBig()
-  local c = game.InstantiateClientUIControl(TPL_TEXT, root)
+  local c = game.InstantiateClientUIControl(TEMPLATES.stext, root)
   if c then
     c.name = 'countBig'
     c.text = txt
@@ -2242,10 +2241,10 @@ destroyMenuCards = function() return TITLEV.close() end
 -- ===== T6b-2 双屏控件与布局 =====
 -- G[2] 棋盘（p2cell/p2frame 前缀防与 G[1] 撞名；坐标=基准+boardOX）。
 local function buildBoardControls(inst)
-  if not TPL_CELL or not inst then return false end
+  if not TEMPLATES.cell or not inst then return false end
   local save = g
   g = inst
-  local plate = game.InstantiateClientUIControl(TPL_CELL, root)
+  local plate = game.InstantiateClientUIControl(TEMPLATES.cell, root)
   if plate then                            -- v2.4 ①：对家盘同样需要背板（缝里不漏亮底）
     plate.name = 'p2plate'
     plate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
@@ -2255,7 +2254,7 @@ local function buildBoardControls(inst)
   end
   g.cells = {}
   for i = 1, COLS * ROWS do
-    local c = game.InstantiateClientUIControl(TPL_CELL, root)
+    local c = game.InstantiateClientUIControl(TEMPLATES.cell, root)
     if not c then g = save return false end
     local col = (i - 1) % COLS
     local row = (i - 1) // COLS
@@ -2278,7 +2277,7 @@ local function buildBoardControls(inst)
     { 0, frameY, 2 * frameX + 2, 2 }, { 0, -frameY, 2 * frameX + 2, 2 },
   }
   for i = 1, #specs do
-    local fr = game.InstantiateClientUIControl(TPL_CELL, root)
+    local fr = game.InstantiateClientUIControl(TEMPLATES.cell, root)
     if fr then
       local sp = specs[i]
       fr.name = 'p2frame' .. i
@@ -2365,7 +2364,7 @@ FN.layoutDual = function()
   -- 中缝装饰（v6.6）：改由 view_board.dualDeco 出描述 + BR.spawn 按需建（despawn 退场时删）。
   -- 为什么不用整表 apply：那会把 200 格颜色重置成底色；为什么不能常驻隐藏：
   -- 真机 SetVisible(false) 对运行时实例不生效（D581），单人局会露出来。
-  if not DUAL_DECO.on and TPL_CELL then
+  if not DUAL_DECO.on and TEMPLATES.cell then
     DUAL_DECO.on = true
     BR.spawn(VB.dualDeco { halfH = CANVAS_H, laneColor = THEME.gold, starColor = THEME.goldDeep })
   end
@@ -2483,13 +2482,13 @@ HUD_TEXT.boxOf = function(name)
   return nil
 end
 HUD_INST.build = function()
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end   -- 保留降级路径
+  if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+  if not TEMPLATES.stext then print('hud inst none（无模板，HUD 走 textbox）') return end   -- 保留降级路径
   local made = 0
   for _, t in ipairs(HUD_TEXT) do
     local nm, box = t[1], HUD_TEXT.boxOf(t[1])
     if t[2] then
-      local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+      local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
       if ok and c then
         c.name = 'i' .. nm
         local isBanner = (nm == 'botBanner' or nm == 'topBanner')
@@ -2749,12 +2748,12 @@ end
 -- 特效引擎懒初始化：第一次要用时才建池（此时棋盘 200 格已经建好 ⇒ 特效天然压在棋盘之上）
 FN.fxInit = function()
   if FN.FX or not FN.FXM then return FN.FX end
-  -- ⚠ TPL_TEXT 是**懒探测**的（第一次建结算/帮助/模式卡文字时才赋值）。fx 池在首次技能时才建，
+  -- ⚠ TEMPLATES.stext 是**懒探测**的（第一次建结算/帮助/模式卡文字时才赋值）。fx 池在首次技能时才建，
   -- 若此刻它还是 nil，名卡就只有色块没有字（2026-10-29 实测：`fx pool ok ctl=21 bad=0 text=0`）。
   -- 这里主动补探一次（probeSettleTextbox 内部有缓存 + pcall 护栏，重复调用无副作用）。
-  if not TPL_TEXT and probeSettleTextbox then
-    TPL_TEXT = probeSettleTextbox()
-    print('fx tpl text resolve=' .. tostring(TPL_TEXT))
+  if not TEMPLATES.stext and probeSettleTextbox then
+    TEMPLATES.stext = probeSettleTextbox()
+    print('fx tpl text resolve=' .. tostring(TEMPLATES.stext))
   end
   local ok, inst = pcall(FN.FXM.new, {
     game = game,
@@ -2766,7 +2765,7 @@ FN.fxInit = function()
     colorOf = FN.skillColor,
     -- 图元模板 guid：card = 棋盘格（image，可当色块/圆环载体），text = 文字模板（名卡用）。
     -- 真机导入后 guid 会被重编号 ⇒ 这里传的是**已探测解析过的**运行期值（可能为 nil，fx 内部要能降级）。
-    tpl = { card = TPL_CELL, text = TPL_TEXT },
+    tpl = { card = TEMPLATES.cell, text = TEMPLATES.stext },
     -- 棋盘矩形（本地坐标，中心原点）：环波/描边/边缘光按它定位与限幅，
     -- 否则 1600×900 上会画出直径 900 的大圈，糊到左右两栏（2026-10-29 出图实测）。
     -- 双盘模式（AI 对抗 / 双人对战 / 双人合作）：玩家盘不在屏幕中心，特效必须跟着走
@@ -4285,9 +4284,9 @@ do
         return c
       end,
       instText = function(nm, txt, w, h, fs)
-        if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-        if not TPL_TEXT then return nil end
-        local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+        if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+        if not TEMPLATES.stext then return nil end
+        local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
         if not ok or not c then return nil end
         c.name = nm
         trySet(c, 'text', txt or '')
@@ -4302,16 +4301,16 @@ do
       -- 热区必须走**直连路径**（与标题页模式卡 menuZone 同一条，已被点击用例验证）：
       -- instInto 的能力探测在真机会销毁重建，模拟器里探测过的实例坐标读回正常却收不到光标事件。
       instHit2 = function(nm, w, h)
-        if not TPL_HIT then return nil end
-        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+        if not TEMPLATES.hit then return nil end
+        local ok, z = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.hit, root) end)
         if not ok or not z then return nil end
         z.name = nm
         tryCall(z, 'SetSizeDelta', w, h)
         return z
       end,
       instHit = function(nm, w, h)
-        if not TPL_HIT then return nil end
-        local z = instInto({ TPL_HIT }, root, true)
+        if not TEMPLATES.hit then return nil end
+        local z = instInto({ TEMPLATES.hit }, root, true)
         if not z then return nil end
         z.name = nm
         tryCall(z, 'SetSizeDelta', w, h)
@@ -4426,8 +4425,8 @@ UI4.pill = function(name, w, h, color)
 end
 
 UI4.label = function(name, text, w, h, size, color)
-  if not TPL_TEXT then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+  if not TEMPLATES.stext then return nil end
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
   if not ok or not c then return nil end
   c.name = name
   c.text = text
@@ -4445,8 +4444,8 @@ UI4.label = function(name, text, w, h, size, color)
 end
 
 UI4.hit = function(name, w, h)
-  if not TPL_HIT then return nil end
-  local z = instInto({ TPL_HIT }, root, true)
+  if not TEMPLATES.hit then return nil end
+  local z = instInto({ TEMPLATES.hit }, root, true)
   if not z then return nil end
   z.name = name
   tryCall(z, 'SetSizeDelta', w, h)
@@ -4762,12 +4761,12 @@ function OnStart()
   -- 只多一次 Instantiate + 一次 Destroy（实例上限 430，当前常驻约 240，安全）。
   pcall(function() game.DestroyClientUIControl(firstCell) end)
   firstCell = nil
-  TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
+  TEMPLATES.cell = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
   -- v2.7 ⑤：cursor 模板 guid **提前**探测（标题页四模式三态热区要用它建实例，
   -- 而 buildMenuCards 在本函数中段就跑；原来这段探测在按钮段，太晚）。探针实例复用给手机热区。
   local hitSeed
-  hitSeed, TPL_HIT = TEMPLATES:probeHit()
-  TPL_TEXT = TEMPLATES:probeText()
+  hitSeed, TEMPLATES.hit = TEMPLATES:probeHit()
+  TEMPLATES.stext = TEMPLATES:probeText()
   TEMPLATES:report()
   -- 探针实例留在 (0,0) 会变成一个 76×76 的隐形热区压在屏幕正中（qa-shots 审计实测
   -- `phswitch ∩ hit` 重叠 4400px²）⇒ 挪出画布（真机 SetVisible 不可靠，只信坐标）
@@ -4915,7 +4914,7 @@ function OnStart()
       -- v5.6：角色页 / 手机引导浮层开着时，游戏键一律吞掉（否则会在浮层后面操作棋盘）
       if (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) then
         -- F（InteractKey）当成"关闭浮层"，其余键继续吞掉（v5.7）
-        if ROSTER and ROSTER.on and keyName == 'KeyboardInteractKeyDown' then
+        if ROSTER and ROSTER.on and INPUT_M.isOverlayClose(keyName) then
           keyConsumedFrame = frameSeq
           if FN.rosterToggle then FN.rosterToggle() end
           return
@@ -5276,7 +5275,7 @@ function OnStart()
   end)() end
 
   -- 入场态兜底：43 个可编程键位里凡是没被动作表认领的，都只做"开始游戏"这一件事。
-  -- v6.1：43 次 listen 与排除表 mapped 已退役——兜底池由 input_map.fallbackPool() 从动作表自动派生。
+  -- v6.1：43 次 listen 与排除表 mapped 已退役，兜底池由 input_map.fallbackPool() 派生
   local function anyKeyStart()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
