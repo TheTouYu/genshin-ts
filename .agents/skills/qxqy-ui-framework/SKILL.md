@@ -140,6 +140,19 @@ cd /path/to/new-game && lua5.3 tests/run_all.lua   # 期望 ALL GREEN
 
 **它证明不了什么（必须写在你的验收报告里）**：渲染/字体度量/裁剪、音频时长与白名单、容器排版与变换、Tween/动画/信号、真机差异、宿主数值语义（整数位宽 / `pairs` 序）。
 
+## 8.6 模拟器侧要打的两个小补丁（让"引擎自己算的派生量"可断言）
+
+`control` 断言原只能读**平铺标量**字段（`text`/`fontSize`/`sizeDeltaY`…），读不到引擎算出来的 `textLayout`。两处补丁（都在 `studio/` 下，各 3~6 行）：
+
+1. `studio/autotest/assert.js` 的 `readField`：支持**点号路径**（`'textLayout.fits'`）。
+2. `studio/play/session.js` 的 `controlSnapshot`：给文本类控件挂 `textLayout: textLayout(control, box.width, box.height)`，并**用 try/catch 兜住**（这条通道被全部用例共享，任何异常都不能让整份快照挂掉）。
+
+补完即可写：
+```json
+{ "at": 1.2, "kind": "control", "name": "charPanelL1", "field": "textLayout.fits", "equals": true }
+```
+**判据顺序**：先确认 `playGet({inspect:true}).tree` 里那个节点真的有 `textLayout` 键（`Object.keys`），再写断言——否则读到的永远是 `null`，而 `null` 和"放不下"看起来一样。
+
 ## 9. 本框架**不**覆盖
 
 字体真实折行（用保守估算）、音频时长/白名单、容器 Scroll/Grid 排版、Tween/动画/信号、真机差异（模板 guid 重编号、`SetVisible(false)` 对运行时实例无效、Enum 键位形态）。这些必须走 L1/L2。
