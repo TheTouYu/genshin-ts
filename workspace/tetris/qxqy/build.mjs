@@ -242,7 +242,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // 存档：官方 save 格式（importData('json') / createStudio(seed) 都能直接加载）
   const save = s.exportData('save')
   const saveJson = Buffer.from(save.data, 'base64').toString('utf8')
-  writeFileSync(join(root, 'tetris.save.json'), saveJson)
+  // 存档自辨识（2026-10-31）：模拟器网页的存档选择器**只显示 meta.name**，不设就一律显示
+  // 「未命名存档」——网盘里同时躺着霜华纪/花间茶会/足球等多份存档，接手时分不清哪份是本次构建。
+  // 版本号直接取 main.lua 的 BUILD_TAG（唯一来源），别在这里另写一份。
+  const BUILD_TAG = (/^BUILD_TAG = '([^']*)'/m
+    .exec(readFileSync(join(root, 'lua/main.lua'), 'utf8')) || [])[1] || 'dev'
+  const saveObj = JSON.parse(saveJson)
+  saveObj.meta = Object.assign({}, saveObj.meta, { name: `俄罗斯方块 ${BUILD_TAG}` })
+  writeFileSync(join(root, 'tetris.save.json'), JSON.stringify(saveObj))
 
   // GIA 整合包
   mkdirSync(join(root, 'device-package'), { recursive: true })

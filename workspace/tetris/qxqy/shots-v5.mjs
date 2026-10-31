@@ -133,7 +133,7 @@ function readings(logs) {
     padNoteWhich: pad ? Number(pad[1]) : null,
     gameOver: has('游戏结束') || has('settle build ok'),
     helpOpen: has('guide help on n='),
-    rosterOpen: has('roster open n='),
+    rosterOpen: has('char codex open n='),   // 锚点真名在 roster.lua:573（『roster open n=』全仓 0 命中=死判据）
     skillCastOk: has('skill cast') && has('ok=true'),
     phonePlayBar: has('phone play bar=true'),
   }
@@ -190,8 +190,8 @@ function reachScreen(ctx, screen) {
       ctx.press(KEY.roster)
       ctx.step(24)
       const logs = ctx.logs()
-      const open = logs.some((l) => l.includes('roster open n='))
-      return { reached: open, note: open ? 'roster open' : 'roster 未打开' }
+      const open = logs.some((l) => l.includes('char codex open n='))
+      return { reached: open, note: open ? 'char codex open' : 'roster 未打开（无 char codex open 锚）' }
     }
     case 'settle': {
       const over = settlePath(ctx)
