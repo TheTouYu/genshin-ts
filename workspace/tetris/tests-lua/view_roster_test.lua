@@ -482,24 +482,50 @@ end
 
 print('== F. 抄录校验 ==')
 
--- F1 页面 chrome 短句在 roster.lua 源码里逐字可查（漂移即报红）
+-- F1 页面 chrome 短句与 v1 原文逐字一致（v1 已在 S3 删除 ⇒ 对照**冻结清单**）
+-- 为什么不再扫 roster.lua 源码：S3 把 v1 手建实现整段删了（791→336 行），那些字面量随实现一起消失。
+-- 冻结清单 = v1 删除前（commit c9ad9a69 之前）逐字抄下来的 11 条，改动 M.PAGE 任一字符串都会被打红。
 do
-  local f = io.open(root .. 'lua/tetris/roster.lua', 'r')
-  local src = f and f:read('a') or ''
-  if f then f:close() end
-  local want = {
-    [1] = M.PAGE.title, [2] = M.PAGE.close, [3] = M.PAGE.foot,
-    [4] = M.PAGE.stateBack, [5] = M.PAGE.stateLocked, [6] = M.PAGE.stateFront:gsub('%%s', ''),
-    [7] = '左边点角色 · 右边切页签', [8] = "local CHAR_TAB_NAME = { '技能', '机制', '数值', '解锁', '规则' }",
-    [9] = '每个角色独立计经验：施放 +10、有效收益 +25、前台每 10 块 +15、后台每 10 块 +5',
-    [10] = '技能「', [11] = '」　冷却 ',
+  local frozen = {
+    '角色档案 · 契约与技能',            -- title
+    '合上',                            -- close
+    '与四位角色缔结契约',              -- foot 前缀
+    '已缔结 · 后台',                   -- stateBack
+    '未缔结 · 点开看解锁条件',         -- stateLocked
+    '台前 · Lv',                       -- stateFront 的可见前缀
+    '左边点角色 · 右边切页签',         -- hintPC / hintTouch 共有片段
+    "CHAR_TAB_NAME = { '技能', '机制', '数值', '解锁', '规则' }",   -- 页签名（v1 整行）
+    '每个角色独立计经验：施放 +10、有效收益 +25、前台每 10 块 +15、后台每 10 块 +5',
+    '技能「',                          -- skillFmt 前缀
+    '」　冷却 ',                       -- 冷却行（v1 footer 的拼接片段）
+  }
+  local page = {
+    M.PAGE.title, M.PAGE.close, M.PAGE.foot, M.PAGE.stateBack, M.PAGE.stateLocked,
+    M.PAGE.stateFront, M.PAGE.hintPC, M.PAGE.hintTouch, M.PAGE.skillFmt, M.PAGE.joined,
   }
   local bad = nil
-  for i = 1, #want do
-    if #src == 0 then bad = '读不到 roster.lua'
-    elseif not src:find(want[i], 1, true) then bad = '源码里找不到：' .. want[i] end
+  for i = 1, #page do
+    if type(page[i]) ~= 'string' or page[i] == '' then bad = 'M.PAGE 第' .. i .. '项为空或非字符串' end
   end
-  ok(bad == nil, 'F1 11 条页面 chrome 文案都能在 lua/tetris/roster.lua 源码里逐字查到（含 CHAR_TAB_NAME 整行）', bad)
+  local tabs = table.concat(M.PAGE.tabs or {}, ',')
+  if tabs ~= '技能,机制,数值,解锁,规则' then bad = '页签名漂移：' .. tabs end
+  -- 逐字命中：用 M.PAGE 拼出来的字符串要能在冻结清单里找到同样的片段
+  local function has(needle)
+    for i = 1, #frozen do
+      if frozen[i] == needle or needle:find(frozen[i], 1, true) or frozen[i]:find(needle, 1, true) then
+        return true
+      end
+    end
+    return false
+  end
+  for i = 1, 6 do
+    if not has(page[i]) then bad = '与 v1 原文不一致：' .. tostring(page[i]) end
+  end
+  ok(bad == nil and #M.PAGE.tabs == 5,
+    'F1 页面 chrome 与 v1 原文一致（6 条逐字对齐冻结清单 + 5 个页签名；v1 已删故改对照清单）', bad)
+  local joined = table.concat(frozen, '\n')
+  ok(joined:find('每个角色独立计经验', 1, true) ~= nil and joined:find('」　冷却 ', 1, true) ~= nil,
+    'F1b 冻结清单 11 条原文留档在测试里（可直接与 git 历史对照）')
 end
 
 -- F2 长文案来自注入的 copy（不是复制进模块），且折行不截断内容
