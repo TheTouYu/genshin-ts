@@ -96,8 +96,14 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
 BUILD_TAG = 'v5.38 · 10-31 02:1x'
-seed = 20261023
+-- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 可对拍）。
+-- RNG1 = 主盘；RNG_P2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
+seed = 20261023                          -- 兜底路径用（模块缺失时）
+local RNG1 = CORE_RNG_M and CORE_RNG_M.new { bag = CFG.BAG, seed = 20261023 } or nil
+local RNG_P2
+local BOARD = CORE_BOARD_M and CORE_BOARD_M.new { rows = ROWS, cols = COLS, empty = 0 } or nil
 local function rand(n)
+  if RNG1 then return RNG1.rand(n) end
   seed = (seed * 1103515245 + 12345) % 2147483648
   return (seed // 65536) % n + 1
 end
@@ -203,24 +209,35 @@ g = G[1]
 
 local aiRand                           -- 前向声明（实现见 AI 段；refillBag 在更早处用 G[2] 独立洗牌）
 local function refillBag()
-  -- v2.8 ③：双屏第二盘（G[2]）独立出块——用 aiRand 独立洗袋（不动全局 LCG ⇒ G[1] 序列与
-  -- 全部既有断言不变）；公平性靠 7-bag 保底本身 + hard 档 AI，不再镜像等待（用户裁决）。
-  local isP2 = (g ~= G[1] and G[2] ~= nil)
-  local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
-  for i = #t, 2, -1 do                 -- Fisher-Yates：6 次 rand()，保证确定性与均匀性
-    local j = isP2 and aiRand(i) or rand(i)
-    t[i], t[j] = t[j], t[i]
-  end
-  if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
-    for i = 2, #t do
-      if t[i] ~= 'S' and t[i] ~= 'Z' then
-        t[1], t[i] = t[i], t[1]
-        break
+  -- v6：洗袋逻辑搬到 core_rng；这里只决定「用哪条随机流」。
+  -- v2.8 ③：双屏第二盘（G[2]）用 aiRand 流（与 AI 决策/垃圾洞位共用同一条 ⇒ 序列不漂），
+  -- 公平性靠 7-bag 保底本身 + hard 档 AI，不再镜像等待（用户裁决）。
+  if not RNG1 then
+    -- 模块缺失时的旧路径（理论上不会走到：build 会把 core_rng 一起注册）
+    local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
+    local isP2 = (g ~= G[1] and G[2] ~= nil)
+    for i = #t, 2, -1 do
+      local j = isP2 and aiRand(i) or rand(i)
+      t[i], t[j] = t[j], t[i]
+    end
+    if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
+      for i = 2, #t do
+        if t[i] ~= 'S' and t[i] ~= 'Z' then t[1], t[i] = t[i], t[1] break end
       end
     end
+    g.bagSeq = g.bagSeq + 1
+    for i = 1, #t do g.bagQ[#g.bagQ + 1] = { name = t[i], bag = g.bagSeq } end
+    return
   end
-  g.bagSeq = g.bagSeq + 1
-  for i = 1, #t do g.bagQ[#g.bagQ + 1] = { name = t[i], bag = g.bagSeq } end
+  local isP2 = (g ~= G[1] and G[2] ~= nil)
+  local RNG = RNG1
+  if isP2 then
+    if not RNG_P2 then
+      RNG_P2 = CORE_RNG_M.new { bag = CFG.BAG, rand = function(n) return aiRand(n) end }
+    end
+    RNG = RNG_P2
+  end
+  g.bagSeq = RNG.refill(g.bagQ, { firstBag = (g.bagSeq == 0) })
 end
 local function takeFromBag()
   if #g.bagQ == 0 then refillBag() end
@@ -321,6 +338,8 @@ local PLATFORM_M = loadModule('platform')
 local VIEW_LAYERS_M = loadModule('view_layers')
 local RENDER_M = loadModule('render')
 local VIEW_BOARD_M = loadModule('view_board')
+local CORE_RNG_M = loadModule('core_rng')
+local CORE_BOARD_M = loadModule('core_board')
 if not (PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M) then
   print('v6 modules MISSING: platform/view_layers/render/view_board（棋盘会退回旧路径）')
 end
@@ -1078,7 +1097,9 @@ renderPiece = function()
   end
 end
 
+-- v6：碰撞判定搬到 core_board（纯函数，headless 可断言）
 collides = function(cs, px, py)
+  if BOARD then return BOARD.collides(g.board, cs, px, py) end
   for i = 1, #cs do
     local br = py + cs[i][1] - 1
     local bc = px + cs[i][2] - 1
@@ -1484,6 +1505,8 @@ local function newGame()
     end
   end
   g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
+  if RNG1 then RNG1.reset() end           -- v6：袋序归零（LCG 种子延续 ⇒ 第二局序列≠第一局）
+  if RNG_P2 then RNG_P2.reset() end
   g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
   -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
   if G[2] and g == G[2] then
@@ -3317,11 +3340,10 @@ buildMenuCards = function()
   if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
   local okZone = pcall(MS.buildHoverZones)              -- v2.7 ⑤：三态热区（最后建 = 在最上层）
   if not okZone then print('menu zones error') end
-  -- 帮助页先开、展台后建 ⇒ 展台会盖在手册上面（PC/手机都出现"双层文字叠印"）。这里补一次置顶。
-  if helpOpen and HL and #HL > 0 then
-    for i = 1, #HL do if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end end
-    print('help restack n=' .. #HL)
-  end
+  -- v6 重构：删掉「用 SetAsLastSibling 给帮助页补置顶」那段死代码。
+  -- 实测该 API 在本引擎是空操作，原来的 `help restack n=` 日志会伪造「已置顶」的成功信号，
+  -- 让后来按日志判断层序的人被骗（tests/ 与 tests-lua/ 对该字面量 0 断言，可安全删除）。
+  -- 正确的修法是「先拆展台再建浮层」（创建顺序即层序）——迁移到场景栈后由 opaque 场景保证。
   print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
   return true
 end
