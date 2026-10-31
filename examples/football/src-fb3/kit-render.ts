@@ -24,7 +24,14 @@ const GROUND_Y_MIN = 0.25 // 球心贴地高度（= 球半径），预测位不�
 //   运动器下发间隔 0.16s（隔 4 拍），而 duration 曾设 0.35s ⇒ 每个补间只走完 46% 就被重启，
 //   观感就是"动一下停一下"（实体当拍位移 0.0000m，下一窗跳 3~4.5m）。
 //   ⇒ duration **等于下发间隔**，让每个窗口走完再被替换。
-const LOOKAHEAD = 0.16
+// ⚠️ 2026-10-31 定谳（日志 3443：运动器每 4 拍下发一次=261/269 次间隔恰为 4 拍，
+//   而 duration 恒 0.16s < 4 拍实际 0.27s ⇒ 每次只动 0.16s、停 0.11s ⇒ "跑一下停一下"）。
+//   修法：时长由**下发间隔 × 真实步长**决定，不再写死常量。
+//   LIN_EVERY = 下发的拍间隔；MARGIN = 重叠系数（>1 保证下一段在上一段结束前开始）。
+const LIN_EVERY = 4n
+const MARGIN = 1.25
+/** 旧常量：仅在拿不到 fb_dt 时兜底 */
+const LOOKAHEAD_FALLBACK = 0.28
 const VEL_CAP = 25.0 // 速度上限，防预测位把球吹飞（内核限速 18，留余量）
 const VIS_SPIN_CAP = 540.0 // 视觉自旋上限（度/秒）
 const DUR_MIN = 0.033 // 补间时长下限：太短会让运动器每拍重开、观感发顿
@@ -55,7 +62,7 @@ g
     const tickEarly = evt.params.tick
     const dueEarly = f.greaterThanOrEqualTo(
       f.subtraction(tickEarly, f.get('fb_lin_tick')),
-      4n
+      LIN_EVERY
     )
     f.doubleBranch(
       f.logicalAndOperation(f.equal(evt.params.tag, 'B'), dueEarly),
@@ -91,6 +98,14 @@ g
         driveDur.set(DRIVE_DUR)
       }
     )
+    // 器件时长 = 下发间隔（LIN_EVERY 拍）× 真实步长 × 重叠系数
+    const lookahead = f.localVariable('float')
+    lookahead.set(
+      f.multiplication(
+        f.multiplication(driveDur.value, f.dataTypeConversion(LIN_EVERY, 'float')),
+        MARGIN
+      )
+    )
     const pos = evt.params.pos
     const vel = evt.params.vel
     const spin = evt.params.spin
@@ -100,7 +115,7 @@ g
         // 于是每拍算出的 (target−cur) 忽大忽小 ⇒ 运动器每拍被换成速度不一致的一段
         // ⇒ 60fps 下看就是一顿一顿。改成朝 **pos + vel×dt**（预测位）走，
         // 相邻两段的衔接才连续。
-        const predictedRaw = f._3dVectorAddition(pos, f._3dVectorZoom(vel, LOOKAHEAD))
+        const predictedRaw = f._3dVectorAddition(pos, f._3dVectorZoom(vel, lookahead.value))
         // 预测位必须钳制在地面之上（数据实证：不钳制时实体 y 最低 −1.99m，球钻到地下）
         const predY = f.localVariable('float')
         f.doubleBranch(
@@ -121,7 +136,7 @@ g
         const dist = f._3dVectorModuloOperation(delta)
         // 位移速度 = (目标点 − 实体当前位置)/时长（docs/game-engine-knowledge/motion-devices.md §10 已验证配方：
         //   「直线设备的 velocity 显式算成 (target-current)/duration，可同时拿到精确到点与不漂移」）
-        const velRaw = f._3dVectorZoom(delta, f.division(1.0, LOOKAHEAD))
+        const velRaw = f._3dVectorZoom(delta, f.division(1.0, lookahead.value))
         // 速度夹紧
         const velLen = f._3dVectorModuloOperation(velRaw)
         const velScale = f.localVariable('float')
@@ -140,7 +155,7 @@ g
         const tickNow = evt.params.tick
         const linDue = f.greaterThanOrEqualTo(
           f.subtraction(tickNow, f.get('fb_lin_tick')),
-          4n
+          LIN_EVERY
         )
         f.doubleBranch(
           f.logicalAndOperation(f.lessThan(dist, 0.012), f.logicalNotOperation(linDue)),
@@ -161,7 +176,7 @@ g
             //   本轮真机日志 3412 复现同形态：参数照发、实体停在 (0,0.25,1.5)。
             // 参数：add_uniform_basic_linear_motion_device(实体, 设备名, 时长(秒), 速度向量(m/s))
             f.set('fb_lin_tick', tickNow)
-            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', LOOKAHEAD, velToTarget)
+            f.addUniformBasicLinearMotionDevice(ball, 'fb_movex', lookahead.value, velToTarget)
           }
         )
         // 旋转：世界轴 → 局部轴（YXZ 内旋），设备名 fb_spin
@@ -189,7 +204,7 @@ g
             const afterX = f._3dVectorRotation(f.create3dVector(negX, 0.0, 0.0), afterY)
             const localAxis = f._3dVectorRotation(f.create3dVector(0.0, 0.0, negZ), afterX)
             f.set('fb_rot_tick', tickNow)
-            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', LOOKAHEAD, angVel, localAxis)
+            f.addUniformBasicRotationBasedMotionDevice(ball, 'fb_spinx', lookahead.value, angVel, localAxis)
           },
           () => {}
         )
