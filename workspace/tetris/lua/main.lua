@@ -2039,99 +2039,6 @@ end
 -- 提示条呼吸 / 手记轮播 / 模式名大字脉冲这些逐帧动效走 render.write / writePos（不重建）。
 -- 回调用闭包只捕获下标 i（控件只在首次创建时注册监听 ⇒ 重 apply 不会重复注册）。
 
--- ===== ⚠ 临时兜底（TEMP）：controls.lua 组件工厂（CTL）=====
--- **这是过渡代码，不是设计。** 等档案页 v2（view_roster）接线落地后，本段整体删除——
--- 删法：删掉 TITLEV.extra / clearExtra / shape / text / over / ctl 这六个函数与 ROSTER_ENV.ctl，
---      再把 roster.lua 的旧版式（FN.rosterBuild 那条路）一起退役即可。
--- 现状：标题屏自己已经不用它（入口卡改由描述层出），但**角色档案页的 v1 版式仍在用**：
--- roster.lua 的页签 / 条目框 / 合上键全部走 CTL.btn / CTL.textPanel，且 CTL 原本是在
--- MS.build 里惰性创建的 ⇒ 删掉标题屏旧实现后 CTL 变 nil，实测 `char codex open n=135 → 35`
--- （tests/58-roster 的 tree 断言直接红）。view_roster 接线之前这里是唯一的兜底。
--- 它建的控件是**裸实例**（不经 render）⇒ 收进 TITLEV.extra，跟标题屏一起销毁（旧 MS.parts 语义）。
-TITLEV.extra = {}
-TITLEV.clearExtra = function()
-  for i = #TITLEV.extra, 1, -1 do
-    local c = TITLEV.extra[i]
-    if c then pcall(function() game.DestroyClientUIControl(c) end) end
-    TITLEV.extra[i] = nil
-  end
-end
-TITLEV.shape = function(name, spec)
-  if not (spec and TPL_CELL) then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  tryCall(c, 'SetSizeDelta', spec.w, spec.h)
-  tryCall(c, 'SetAnchoredPosition', spec.x, spec.y)
-  c.imageColor = spec.c
-  if spec.rot and spec.rot ~= 0 then pcall(function() c:SetLocalRotation(0, 0, spec.rot) end) end
-  local img = BG_IMG[spec.s or 'rect'] or BG_IMG.rect
-  local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
-  local okImg = false
-  if enumT and enumT.StaticReference ~= nil then
-    okImg = pcall(function() c:SetImage(enumT.StaticReference, img) end)
-  end
-  if not okImg then pcall(function() c:SetImage('StaticReference', img) end) end
-  TITLEV.extra[#TITLEV.extra + 1] = c
-  return c
-end
-TITLEV.text = function(name, txt, x, y, w, h, size, color, align)
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  c.text = txt
-  trySet(c, 'fontSize', size)
-  trySet(c, 'fontColor', color)
-  trySet(c, 'bgColor', C(0, 0, 0, 0))
-  trySet(c, 'horizontalAlignment', align or 'Middle')
-  trySet(c, 'verticalAlignment', 'Middle')
-  trySet(c, 'enableOutline', true)
-  trySet(c, 'outlineColor', C(200, 255, 255, 255))   -- 浅底：浅色描边=柔光
-  -- 引擎硬规则：requiredHeight > 框高 ⇒ fits=false ⇒ 整条文字一个字都不画（不是裁切，是消失）
-  h = math.max(h or 0, math.floor((size or 20) * 1.45 + 6))
-  tryCall(c, 'SetSizeDelta', w, h)
-  tryCall(c, 'SetAnchoredPosition', x, y)
-  TITLEV.extra[#TITLEV.extra + 1] = c
-  return c
-end
--- 预混色（盖在底面上的合成色，alpha 恒 255）：组件工厂与旧入口卡共用同一算法
-TITLEV.over = function(base, c, k)
-  local br, bg_, bb = (base // 65536) % 256, (base // 256) % 256, base % 256
-  local r, g, b = (c // 65536) % 256, (c // 256) % 256, c % 256
-  return C(255, math.floor(br + (r - br) * k + 0.5),
-    math.floor(bg_ + (g - bg_) * k + 0.5), math.floor(bb + (b - bb) * k + 0.5))
-end
-TITLEV.ctl = function()
-  if CTL then return CTL end
-  local m = loadModule('controls')
-  if not (m and m.new) then print('controls module FAIL（按钮回退到手写实现）') return nil end
-  CTL = m.new({
-    trySet = trySet, tryCall = tryCall, addCursor = addCursor, sfx = sfx, SFX = SFX,
-    addShape = function(n, sp) return TITLEV.shape(n, sp) end,
-    addText = function(n, txt, x, y, w, h, fs, col, al) return TITLEV.text(n, txt, x, y, w, h, fs, col, al) end,
-    addHit = function(n, w, h)
-      local ok2, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-      if not ok2 or not z then return nil end
-      z.name = n
-      tryCall(z, 'SetSizeDelta', w, h)
-      TITLEV.extra[#TITLEV.extra + 1] = z
-      return z
-    end,
-    onPart = function(c) TITLEV.extra[#TITLEV.extra + 1] = c end,
-    regAdd = function(n, c, w, h) UI4.regAdd(n, c, w, h) end,
-    regScreen = function(n) UI4.regScreen(n) end,
-    wall = MS.WALL, gold = THEME.gold, goldDeep = THEME.goldDeep,
-    cyan = MS.CYAN, cyanDeep = THEME.cyanDeep, ink = THEME.textMain, subInk = THEME.textSub,
-    over = function(base, c, k) return TITLEV.over(base, c, k) end,
-    scale = function() return math.min((CANVAS_W or 1600) / 1600, (CANVAS_H or 900) / 900) end,
-    print = print,
-  })
-  if not CTL then print('controls module FAIL（按钮回退到手写实现）') end
-  return CTL
-end
-
 -- 描述参数：唯一入口（hover/press/选中/展台状态都从这里进）
 TITLEV.opts = function()
   local function rosterClick()
@@ -2222,7 +2129,6 @@ TITLEV.open = function()
     print('menu cards no view（view_title 未装配）')
     return false
   end
-  TITLEV.clearExtra()                   -- 先清裸实例（角色页 CTL 建的那批，旧 MS.parts 语义）
   TITLEV.R.clear()                      -- 再清自己那份（实例上限 430 是全工程总账，先清后建）
   TITLEV.hover, TITLEV.press, TITLEV.sel = nil, nil, nil   -- 重建即清三态（复局防串）
   TITLEV.pendingMode, TITLEV.pendingSize = nil, nil
@@ -2241,7 +2147,6 @@ end
 TITLEV.close = function()
   if not TITLEV.R then return end
   local n = TITLEV.n or 0
-  TITLEV.clearExtra()
   TITLEV.R.clear()
   TITLEV.live, TITLEV.n, TITLEV.nodes = false, 0, nil
   TITLEV.zones = {}
@@ -3574,8 +3479,6 @@ ROSTER = { on = false, items = {} }
 -- `char codex open n=<数> … v=2 issues=0`（v1 那条没有 `v=2`）。缺任一条就是没真接上。
 ROSTER_ENV = {
   FN = FN, C = C, THEME = THEME, CP = FN.COPY, sk = function() return SK end,
-  -- CTL 现在是 TITLEV.ctl() 惰性创建（原来在 MS.build 里建；标题屏改纯描述后挪到兼容层，roster v2 上线后删）
-  ctl = function() return TITLEV.ctl() end,
   SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
   game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
   roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
