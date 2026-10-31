@@ -93,17 +93,33 @@
       若要的是「落底后延迟锁定」（另一读法），那是 `gates.softLockMs`，本模块不实现：
       锁定延迟属游戏循环，加在这里会制造第二份真源。
 
- 六、接口
+ 六、消费契约（**接线必须遵守，否则门禁就是死值**）
+   ★ canMove：输入层的「横移 / 软降」分支在做任何位移之前**必须**先问
+     `E.canMove(state)`；为 false 就丢弃这一次输入（不是放慢、不是排队）。
+     不接这一步的后果不是"少个功能"，而是 `blink{lockSec}`、`holdCut{ms}` 这些
+     写进 gates 的门禁**永远是死值**——这正是 v6 之前 KEQING.LOCK / holdCutMs
+     只被角色页展示、玩家侧毫无手感变化的根因（D733 五条断链里两条）。
+     对称的读侧还有三条：吃垃圾前问 `E.canReceiveGarbage`（freeze 的门禁）、
+     重力间隔用 `E.gravityMult(state)` 乘（天地交泰）、锁定延迟用
+     `E.lockDelayCut(state)` 减（少女削延迟）。
+   ★ mark：雷楔「还在不在」只有一份真源 = `gates.markCol/markLeft`
+     （由 `mark{col,sec}` 写、`markBlink` 消费、`tick` 到期清）。HUD 倒计时读
+     `E.mark(state).left`，复按判定读 `E.hasMark(state)`——**不要再读 skills 的
+     `tal.keqing.markT`**，那是第二份真源。
+
+ 七、接口
    E = M.new{ rows=ROWS, cols=COLS, num=SKILLS.NUM, fill=CFG.COL_GRAY }
    E.newState{ board?, piece?, role? }        -> state（含 gates 默认值）
    E.newBoard()                               -> rows×cols 的空矩阵
    E.gates(state)                             -> gates（惰性创建/补齐）
    E.gravityMult(state) / E.freezeRows(state) / E.lockDelayCut(state)
    E.canMove(state) / E.canReceiveGarbage(state) / E.canTakeOver(state)
+   E.mark(state) -> {col=, left=} | nil     E.hasMark(state) -> boolean
    E.collides(board,cells,x,y) / E.dropRows(board,cells,x,y) / E.landY(board,cells,x,y)
    E.stackTop(board) / E.colHeight(board,col) / E.emptyCol(board)
    E.apply(state, effect)                     -> events, result
-   E.applyTo(pair, effect)                     -> events, result（pair={self=,opp=}）
+   E.applyTo(pair, effect, opts)               -> events, result（pair={self=,opp=}）
+     opts.strictOwner = true 时校验盘归属（默认关，见 applyTo 注释）
    E.applyAll(state, effects)                 -> events, results
    E.tick(state, dt)                          -> events（门禁倒计时/到期）
    E.normalize(kind)                          -> 规范 kind 或 nil（吃旧 kebab 写法）
@@ -127,6 +143,7 @@ M.KIND = {
   markBlink     = 'markBlink',
   holdCut       = 'holdCut',
   takeOver      = 'takeOver',
+  mark          = 'mark',        -- 雷楔标记单源（写 gates.markCol/markLeft）
 }
 
 -- 旧词 → 规范词（吃 skills.lua 老 kebab 写法，接线时不必先改 core_skills）
@@ -156,6 +173,7 @@ M.REASON = {
   frozen       = 'frozen',        -- 冻结期拒绝接收垃圾
   noHole       = 'no-hole',       -- addGarbage 缺洞位来源（不猜，避免静默变化）
   empty        = 'empty',         -- clearStackTop 空盘
+  wrongOwner   = 'wrong-owner',   -- applyTo(strictOwner=true) 时盘归属不符
 }
 
 function M.normalize(kind)
@@ -270,6 +288,8 @@ function M.new(spec)
       lockDelayCutLeft = 0,
       takeOverSec = 0,
       takeOverTier = 0,
+      markCol = 0,
+      markLeft = 0,
       cost = 0,
     }
   end
@@ -329,6 +349,20 @@ function M.new(spec)
   function E.lockDelayCut(state)
     local g = E.gates(state)
     return g and numOr(g.lockDelayCutMs, 0) or 0
+  end
+
+  -- 雷楔标记：单源读取。left<=0 或 col<1 视为「没有标记」
+  function E.mark(state)
+    local g = E.gates(state)
+    if not g then return nil end
+    local left = numOr(g.markLeft, 0)
+    local col = numOr(g.markCol, 0)
+    if left <= 0 or col < 1 then return nil end
+    return { col = col, left = left }
+  end
+
+  function E.hasMark(state)
+    return E.mark(state) ~= nil
   end
 
   function E.canTakeOver(state)
@@ -562,6 +596,14 @@ function M.new(spec)
       res.kind = kind
       res.clearedCol = col
       res.clearedCells = #hit
+      -- 引爆即清标记（「雷楔还在不在」必须只有一份真源 ⇒ 消费方负责清）
+      if effect.keepMark ~= true and numOr(g.markLeft, 0) > 0 then
+        res.markCol = numOr(g.markCol, 0)
+        g.markCol = 0
+        g.markLeft = 0
+        res.markConsumed = true
+        events[#events + 1] = ev({ kind = 'markConsumed', col = res.markCol })
+      end
       return events, res
     elseif kind == 'holdCut' then
       local ms = math.max(0, numOr(effect.ms, 0))
@@ -577,6 +619,15 @@ function M.new(spec)
       g.takeOverTier = tier
       return { ev({ kind = kind, sec = sec, tier = tier }) },
         okr({ kind = kind, sec = sec, tier = tier })
+    elseif kind == 'mark' then
+      -- 雷楔标记：col 必给（雷楔落点列，0/缺省 = 打错，明确拒绝而不是静默置空）
+      local col = clampInt(effect.col or 0, 0, COLS)
+      local sec = math.max(0, numOr(effect.sec, 0))
+      if col < 1 then return fail(M.REASON.badState, { col = col }) end
+      g.markCol = col
+      g.markLeft = sec
+      return { ev({ kind = kind, col = col, sec = sec }) },
+        okr({ kind = kind, col = col, sec = sec })
     end
     return fail(M.REASON.unknownKind, { kind = effect.kind })
   end
@@ -587,9 +638,23 @@ function M.new(spec)
 
   -- 按 target 选盘：一次性把「用调用时的全局 g」这类串盘问题堵住
   -- pair = { self = <state 我方盘>, opp = <state 对方盘|nil> }
-  E.applyTo = function(pair, effect)
+  -- opts.strictOwner（**默认关**，保证现有调用约定不变）：
+  --   ① pair.self.role 与 effect.role 都存在且不等 ⇒ wrong-owner
+  --      （施放者盘不是这个角色 = 拿错盘了，pvp 里会变成「给对方加自己的效果」）
+  --   ② pair.opp 与 pair.self 是同一张表 ⇒ wrong-owner
+  --      （串盘：两个玩家指向同一块棋盘，冰莲/冻结双源那类 bug 的入口）
+  E.applyTo = function(pair, effect, opts)
     if type(pair) ~= 'table' or type(effect) ~= 'table' then
       return fail(M.REASON.badState)
+    end
+    if type(opts) == 'table' and opts.strictOwner then
+      local selfRole = type(pair.self) == 'table' and pair.self.role or nil
+      if selfRole and effect.role and selfRole ~= effect.role then
+        return fail(M.REASON.wrongOwner, { selfRole = selfRole, effectRole = effect.role })
+      end
+      if pair.self ~= nil and pair.opp ~= nil and pair.self == pair.opp then
+        return fail(M.REASON.wrongOwner, { sameBoard = true })
+      end
     end
     local target = effect.target
     local st = pair.self
@@ -655,6 +720,15 @@ function M.new(spec)
       if g.takeOverSec == 0 then
         g.takeOverTier = 0
         events[#events + 1] = ev({ kind = 'takeOverEnd' })
+      end
+    end
+
+    if g.markLeft > 0 then
+      g.markLeft = math.max(0, g.markLeft - d)
+      if g.markLeft == 0 then
+        local col = g.markCol
+        g.markCol = 0
+        events[#events + 1] = ev({ kind = 'markEnd', col = col })
       end
     end
 

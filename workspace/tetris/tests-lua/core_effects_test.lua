@@ -12,6 +12,7 @@
    组8  blink（含 lockSec 禁横移门禁）          组9  blinkBest
    组10 markBlink（断链③） 组11 applyTo 归属    组12 holdCut/takeOver（断链⑤）
    组13 确定性             组14 与旧 dispatchEffect / raiseGarbage 的差异（对拍）
+   组15 mark 单源（雷楔「还在不在」）  组16 canMove 消费契约   组17 wrong-owner（opt-in）
  ----------------------------------------------------------------------------
  注意：本文件**故意不 require core_effects 之外的业务模块**做断言（只在与 core_board
  对拍时 loadfile 一次，缺文件则跳过该组并把 SKIP 打出来，不假装通过）。
@@ -768,6 +769,148 @@ do
       local _, rr = E.apply(s, { kind = 'clearStackTop', rows = 2 })
       return rr.fromRow .. '-' .. rr.toRow
     end)(), '18-19')
+end
+
+--==========================================================================
+-- 组15 mark：雷楔「还在不在」单源（gates.markCol/markLeft）
+--==========================================================================
+do
+  local st = E.newState{ role = 'keqing' }
+  local ev, res = E.apply(st, { kind = 'mark', col = 4, sec = 5 })
+  eq('15.01 ok', res.ok, true)
+  eq('15.02 gates.markCol 写入', E.gates(st).markCol, 4)
+  eq('15.03 gates.markLeft 写入', E.gates(st).markLeft, 5)
+  eq('15.04 事件 kind = mark', ev[1].kind, 'mark')
+  eq('15.05 E.mark 返回单源视图', (E.mark(st).col .. '/' .. E.mark(st).left), '4/5')
+  eq('15.06 E.hasMark = true', E.hasMark(st), true)
+
+  eq('15.07 col 越界夹到 COLS', select(2, E.apply(E.newState{}, { kind = 'mark', col = 99, sec = 1 })).col, 10)
+  eq('15.08 col=0 明确拒绝（不静默置空）', select(2, E.apply(E.newState{}, { kind = 'mark', col = 0 })).ok, false)
+
+  -- 二次 mark = 覆盖（单源，不留两份）
+  E.apply(st, { kind = 'mark', col = 7, sec = 2 })
+  eq('15.09 二次 mark 覆盖旧值', E.mark(st).col, 7)
+
+  -- tick 倒计时与到期
+  E.tick(st, 1)
+  eq('15.10 tick 1s 后剩 1s', E.mark(st).left, 1)
+  local evt = E.tick(st, 1)
+  eq('15.11 到期后 E.mark = nil', E.mark(st), nil)
+  eq('15.12 到期发 markEnd', evt[1] and evt[1].kind, 'markEnd')
+  eq('15.13 到期后 hasMark = false', E.hasMark(st), false)
+
+  -- 消费方：markBlink 引爆即清标记
+  local st2 = E.newState{ role = 'keqing' }
+  st2.piece = oPiece(1, 1)
+  E.apply(st2, { kind = 'mark', col = 3, sec = 5 })
+  local ev2, r2 = E.apply(st2, { kind = 'markBlink', col = 3, rows = 2 })
+  eq('15.14 引爆后标记被消费', r2.markConsumed, true)
+  eq('15.15 标记列记录在 result', r2.markCol, 3)
+  eq('15.16 引爆后 E.mark = nil（不会留第二份）', E.mark(st2), nil)
+  eq('15.17 事件里有 markConsumed', (function()
+    for i = 1, #ev2 do if ev2[i].kind == 'markConsumed' then return true end end
+    return false
+  end)(), true)
+  eq('15.18 引爆仍然清列（机制没被标记逻辑挤掉）', r2.clearedCells, 0)
+
+  -- keepMark = true 时保留（给「引爆不消耗」的另一种设计留口子）
+  local st3 = E.newState{}
+  st3.piece = oPiece(1, 1)
+  E.apply(st3, { kind = 'mark', col = 2, sec = 3 })
+  local _, r3 = E.apply(st3, { kind = 'markBlink', col = 2, rows = 1, keepMark = true })
+  eq('15.19 keepMark=true 时不消费', r3.markConsumed, nil)
+  eq('15.20 keepMark 时标记仍在', E.hasMark(st3), true)
+end
+
+--==========================================================================
+-- 组16 canMove 消费契约：门禁值只有在**被问**时才成立
+--==========================================================================
+do
+  local st = E.newState{}
+  eq('16.01 默认 canMove = true', E.canMove(st), true)
+
+  -- 契约原文：moveLockMs > 0 ⇒ canMove == false
+  E.gates(st).moveLockMs = 1
+  eq('16.02 moveLockMs>0（1ms）⇒ canMove==false', E.canMove(st), false)
+  E.gates(st).moveLockMs = 0
+  eq('16.03 moveLockMs=0 ⇒ canMove==true', E.canMove(st), true)
+
+  local st2 = E.newState{}
+  st2.piece = oPiece(1, 1)
+  E.apply(st2, { kind = 'blink', col = 5, lockSec = 0.2 })
+  eq('16.04 blink{lockSec} 后 canMove==false', E.canMove(st2), false)
+  eq('16.05 门禁毫秒 = 200', E.gates(st2).moveLockMs, 200)
+  E.tick(st2, 0.1)
+  eq('16.06 中途仍禁横移', E.canMove(st2), false)
+  E.tick(st2, 0.15)
+  eq('16.07 到期后 canMove==true', E.canMove(st2), true)
+
+  -- 语义区分：holdCut 削的是**锁定延迟**，不是横移；freeze 管的是吃垃圾
+  local st3 = E.newState{}
+  E.apply(st3, { kind = 'holdCut', ms = 9, sec = 3 })
+  eq('16.08 holdCut 不影响 canMove（它改锁延迟）', E.canMove(st3), true)
+  eq('16.09 holdCut 有自己的读侧', E.lockDelayCut(st3), 9)
+  local st4 = E.newState{}
+  E.apply(st4, { kind = 'freeze', rows = 2, sec = 2, role = 'ganyu' })
+  eq('16.10 freeze 不影响 canMove（它管吃垃圾）', E.canMove(st4), true)
+  eq('16.11 freeze 拦的是 canReceiveGarbage', E.canReceiveGarbage(st4), false)
+end
+
+--==========================================================================
+-- 组17 wrong-owner：opt-in 的盘归属校验（默认关，调用约定不变）
+--==========================================================================
+do
+  local st = E.newState{ role = 'keqing' }
+  local eff = { kind = 'clearBottom', rows = 1, role = 'ganyu', target = 'self' }
+
+  -- 默认关：角色不符也照做
+  local _, r1 = E.applyTo({ self = st }, eff)
+  eq('17.01 默认不校验（角色不符照做）', r1.ok, true)
+
+  -- strictOwner=true：角色不符 ⇒ wrong-owner
+  local st2 = E.newState{ role = 'keqing' }
+  fillRect(st2, 20, 20, 1, 10)
+  local before = snapshot(st2.board)
+  local _, r2 = E.applyTo({ self = st2 }, eff, { strictOwner = true })
+  eq('17.02 strictOwner 下角色不符 ⇒ ok=false', r2.ok, false)
+  eq('17.03 reason = wrong-owner', r2.reason, 'wrong-owner')
+  ok('17.04 被拒时盘面不变', sameBoard(before, st2.board))
+  eq('17.05 附带双方角色便于排查', r2.selfRole .. '/' .. r2.effectRole, 'keqing/ganyu')
+
+  -- 角色一致 ⇒ 正常施加
+  local st3 = E.newState{ role = 'ganyu' }
+  fillRect(st3, 20, 20, 1, 10)
+  local _, r3 = E.applyTo({ self = st3 }, { kind = 'clearBottom', rows = 1, role = 'ganyu' },
+    { strictOwner = true })
+  eq('17.06 角色一致时正常施加', r3.ok, true)
+  eq('17.07 盘面确实被清了一行', E.colHeight(st3.board, 1), 0)
+
+  -- 信息缺失不猜：任一侧没有 role 就不校验
+  local noRole = E.newState{}
+  eq('17.08 self 无 role 时不报错', select(2, E.applyTo({ self = noRole },
+    { kind = 'clearBottom', rows = 1, role = 'ganyu' }, { strictOwner = true })).ok, true)
+  eq('17.09 effect 无 role 时不报错', select(2, E.applyTo({ self = E.newState{ role = 'keqing' } },
+    { kind = 'clearBottom', rows = 1 }, { strictOwner = true })).ok, true)
+
+  -- 串盘：self 与 opp 是同一张表
+  local same = E.newState{ role = 'keqing' }
+  eq('17.10 串盘（self==opp）⇒ wrong-owner',
+    select(2, E.applyTo({ self = same, opp = same },
+      { kind = 'addGarbage', rows = 1, holeOf = { 1 } }, { strictOwner = true })).reason, 'wrong-owner')
+  eq('17.11 默认关时不拦串盘（保持旧约定）',
+    select(2, E.applyTo({ self = same, opp = same },
+      { kind = 'addGarbage', rows = 1, holeOf = { 1 } })).ok, true)
+  eq('17.12 wrong-owner 在 REASON 词表里', CE.REASON.wrongOwner, 'wrong-owner')
+
+  -- 校验不能影响正常路由
+  local a, b = E.newState{ role = 'keqing' }, E.newState{ role = 'ganyu' }
+  fillRect(a, 20, 20, 1, 10)
+  fillRect(b, 20, 20, 1, 10)
+  local _, r4 = E.applyTo({ self = a, opp = b },
+    { kind = 'addGarbage', rows = 1, holeOf = { 2 }, fill = 8, role = 'keqing', target = 'opp' },
+    { strictOwner = true })
+  eq('17.13 strictOwner 下 target=opp 路由不变', r4.target, 'opp')
+  eq('17.14 垃圾落在对手盘', b.board[20][1], 8)
 end
 
 --==========================================================================
