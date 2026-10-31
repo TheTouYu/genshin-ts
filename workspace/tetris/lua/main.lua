@@ -354,8 +354,12 @@ local function setText(ctl, value)
   -- 这里做成系统性抑制：任何服务端 textbox 写入在浮层期间一律不生效，除非显式强制（清空时用）。
   -- 只抑制**非空写入**：清空（''）必须放行，否则"浮层时收起技能条"这类既有清屏逻辑
   -- 会被自己拦住（写空被挡 ⇒ 文字留在屏幕上，正好反了）。
-  if FN.textLayerHidden and not FN.textForce and value ~= nil and value ~= '' then return end
-  if FN.textLayerHidden then return end
+  -- 🔴 v6.4 修「结算遮罩下透出"纳西妲"」：以前这里是**两条** return——
+  --   ①非空写入丢弃（对）；②`if FN.textLayerHidden then return end`（**把清空也吞了**）。
+  -- 于是 syncStage 每帧都在清 sk1name/sk1state…（置 textForce=true 后 setText(c,'')），
+  -- 每一帧都被第②条拦回 ——"清了但还在"的真因就是它（探针实测：hidden=true force=true 仍 DROP）。
+  -- 现在只保留一条：浮层期间**除强制清屏外**一律不写；清屏阶段靠 textForce 放行。
+  if FN.textLayerHidden and not FN.textForce then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
