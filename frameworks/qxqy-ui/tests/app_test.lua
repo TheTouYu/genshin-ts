@@ -227,5 +227,30 @@ ok(A_ok ~= nil, 'I5 三个必需字段齐了就正常构造')
 local A_min = appM.new { platform = P, render = R, scenes = S, layers = layers }
 ok(A_min ~= nil, 'I6 layers 可选（构造仍成功）')
 
+-- ===== J 基础层 + 覆盖屏的组合（setBase）=====
+local JS = scenesM.new { log = function() end }
+local JR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local JA = appM.new { platform = P, render = JR, scenes = JS, layers = layers,
+  overlayRender = JR, log = function() end }
+local baseNodes = { { key = 'jb', layer = 'board', tpl = 'cell', name = 'jb',
+  pos = { 0, 0 }, size = { 10, 10 }, color = 0 } }
+ok(JA.setBase({ name = 'play', opaque = true, view = function() return baseNodes end }) == true,
+  'J1 setBase 成功')
+ok(JA.baseName() == 'play', 'J2 基础层名可读', JA.baseName())
+ok(JS.depth() == 1, 'J3 栈底一个场景', JS.depth())
+JA.openOverlay('help', { name = 'help', opaque = true,
+  view = function() return { { key = 'jh', layer = 'card', tpl = 'cell', name = 'jh',
+    pos = { 0, 0 }, size = { 10, 10 }, color = 0 } } end })
+ok(JS.topName() == 'help', 'J4 overlay 压栈（openOverlay 会补注册未注册的场景）', tostring(JS.topName()))
+ok(JS.depth() == 2, 'J5 栈深 2', JS.depth())
+ok(#JS.view() == 1, 'J6 opaque 截断：只合成栈顶那屏', #JS.view())
+JA.closeOverlay()
+ok(JS.topName() == 'play' and JS.depth() == 1, 'J7 关覆盖屏回到基础层', tostring(JS.topName()))
+ok(#JS.view() == 1, 'J8 回基础层后仍只有一屏（opaque）', #JS.view())
+-- 重复 setBase 幂等（不能因为重复注册抛错）
+ok(JA.setBase({ name = 'play', opaque = true, view = function() return baseNodes end }) == true,
+  'J9 重复 setBase 幂等（不因重复注册抛错）')
+ok(JS.depth() == 1, 'J10 重复 setBase 不叠栈', JS.depth())
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

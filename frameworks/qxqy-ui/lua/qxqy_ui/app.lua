@@ -133,7 +133,12 @@ M.new = function(spec)
       return false
     end
     if def then
-      overlayPushed = S.push(def.name or name, def) and true or false
+      local dname = def.name or name
+      -- 未注册就先注册：scenes.push 对未注册场景是**返回 false**（不抛），
+      -- 静默不压栈会让"开了覆盖屏但栈没变"这种错误极难发现。这里补注册而不是忽略失败。
+      if not S.registered(dname) then S.register(def) end
+      overlayPushed = S.push(dname, def) and true or false
+      if not overlayPushed then log('app overlay push fail :: ' .. tostring(dname)) end
     end
     overlayName = name
     return true
@@ -146,6 +151,49 @@ M.new = function(spec)
     overlayPushed = false
     overlayName = nil
     return was
+  end
+
+  -- ===== 基础层（标题 / 棋盘 / 预览 / 手机 pad）=====
+  -- 这四个屏是**常驻基础层**：不是 overlay，但也会切换（标题↔对局）与随画布重开。
+  -- 场景栈里它就是栈底那一屏；overlay 压在上面。语义与 openOverlay 的差别只有一条：
+  -- 换基础层时**栈被清空只留它**（不能把上一局的 overlay 留在栈里）。
+  function A.setBase(def, nodes)
+    if not def then
+      log('app setBase missing def')
+      return false
+    end
+    local name = def.name or 'base'
+    -- 已注册过就别再 register（scenes 对重复注册是抛错——这是对的，别把抛错改成静默）
+    if not S.registered(name) then S.register(def) end
+    if S.depth() == 0 then
+      if not S.push(name) then
+        log('app setBase fail :: ' .. tostring(name))
+        return false
+      end
+    else
+      S.popTo(name)                     -- 已有同名就回到它；否则 replace
+      if S.topName() ~= name then
+        S.replace(name)
+        if S.topName() ~= name then
+          log('app setBase replace fail :: ' .. tostring(name))
+          return false
+        end
+      end
+    end
+    overlayName, overlayPushed = nil, false
+    if nodes and overlayR then
+      -- 基础层也走 render 时（如棋盘描述），直接喂给它自己的实例
+      local ok, err = pcall(overlayR.apply, nodes)
+      if not ok then log('app setBase render fail :: ' .. tostring(err)) return false end
+    end
+    return true
+  end
+
+  function A.baseName()
+    if S.depth() == 0 then return nil end
+    local e = S.stack()[1]
+    if type(e) == 'table' then return e.name or e.key end
+    return e
   end
 
   function A.overlay() return overlayName end
