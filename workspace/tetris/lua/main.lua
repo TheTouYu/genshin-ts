@@ -4797,6 +4797,9 @@ NUM.aiStripQueue = function(q, info)
 end
 
 FN.aiTickCore = function(dt, onOver, lvIdx)
+  -- #16（真机日志：开角色页后仍有 `demo plan/act/fall`）——浮层期间暂停标题演示，
+  -- 否则玩家在看角色页时背后的棋盘还在动（既费算力又分心）。
+  if onOver == 'demo' and ((ROSTER and ROSTER.on) or helpOpen) then return false end
   if g.gameOver then
     if onOver == 'demo' then demoLoopReset() end
     return false

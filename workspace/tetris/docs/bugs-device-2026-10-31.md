@@ -42,21 +42,21 @@
 | # | 现象 | 证据（rec / 计数） | 根因方向 | 状态 |
 |---|---|---|---|---|
 | 1 | 打开角色页后写控件报无效对象 | rec10975/10976/11017 `ui fail imageColor / SetAnchoredPosition / fontColor :: invalid object` ×3 | 真机 `DestroyClientUIControl` 立即失效，重排仍写旧控件 | ✅ 已修（placeBtnNow 存活守卫） |
-| 2 | 技能升级解锁提示 node 恒 nil | `skill levelup role=nahida lv=2/4/5/7/8 node=nil` ×5 | 升级解锁表未接（技能节点解锁数据缺失） | ⬜ |
+| 2 | 技能升级解锁提示 node 恒 nil | `skill levelup role=nahida lv=2/4/5/7/8 node=nil` ×5 | 升级解锁表未接（技能节点解锁数据缺失） | ✅ 复核撤回（正则截断） |
 | 3 | gameover 分数打印为 0 而实际有分 | `gameover score=0` + 随后 `guide gameover score=10702 lines=31`；另一次 `0 / 992` | 双盘时这里是 G[2]（AI 盘）的账本，g.score 恒 0 | ✅ 已修（打印 aiScore+inst） |
-| 4 | 角色页打开 33 次、关闭 0 次日志 | `char codex open n=135` ×33；`roster close` **0 条** | 关闭路径未走 `roster.lua:46/128` 的锚点（或关闭未生效） | ⬜ |
-| 5 | 点击角色行无日志锚点 | 日志无 `char select i=`；代码里也无此锚 | 行点击无遥测 ⇒ 无法验证是否点动 | ⬜ |
-| 6 | 每次开角色页重建 135 个控件 | `char codex open n=135` ×33 ⇒ 约 4455 次实例化 | 关闭时销毁、重开重建；未做复用 | ⬜ |
-| 7 | 每开一次手册重建 326 控件 | `guide help on n=326 v=A page=help` ×4 | 同 6 | ⬜ |
+| 4 | 角色页打开 33 次、关闭 0 次日志 | `char codex open n=135` ×33；`roster close` **0 条** | 关闭路径未走 `roster.lua:46/128` 的锚点（或关闭未生效） | 🔧 已补锚 roster close btn |
+| 5 | 点击角色行无日志锚点 | 日志无 `char select i=`；代码里也无此锚 | 行点击无遥测 ⇒ 无法验证是否点动 | 🔧 已补锚 char select i= |
+| 6 | 每次开角色页重建 135 个控件 | `char codex open n=135` ×33 ⇒ 约 4455 次实例化 | 关闭时销毁、重开重建；未做复用 | ✅ 已修（同选择不重建） |
+| 7 | 每开一次手册重建 326 控件 | `guide help on n=326 v=A page=help` ×4 | 同 6 | ✅ 已修（同页复用） |
 | 8 | 标题展台反复重建 | `menu stage n=` ×12、`menu cards n=14` ×12 | 每次回标题全量重建 | ⬜ |
 | 9 | 技能 HUD 每秒刷新（含 CD 倒计时） | `skill hud ...` 468 条 / 30min | **代码已有变更检测**（`FN.SK.hudTxt ~= txt`）；CD 倒计时本身每秒变 ⇒ 属预期，**非缺陷**，撤回 | ✅ 非缺陷 |
-| 10 | CD 中按技能无任何界面反馈 | `skill fail role=nahida why=cd` ×149 | 只在日志里拒绝，UI 无「冷却中」提示 | ⬜ |
-| 11 | 结算层最后一次未销毁 | `settle build ok` ×7，`settle destroy n=` ×6（最后 rec25416 无 destroy） | 会话在结算页直接退出/切图 | ⬜（需确认是否预期） |
-| 12 | 结算信号只在 7 次里发过 1 次 | `settle signal` / `settle signal sent` 各 1 | 结算上报链路命中率异常 | ⬜ |
-| 13 | HOLD 交换过于频繁 | `hold swap` ×742（30 分钟 ≈ 0.4 次/秒） | AI/玩家 HOLD 判定阈值过松 | ⬜ |
+| 10 | CD 中按技能无任何界面反馈 | `skill fail role=nahida why=cd` ×149 | 只在日志里拒绝，UI 无「冷却中」提示 | ✅ 复核撤回（已有三反馈） |
+| 11 | 结算层最后一次未销毁 | `settle build ok` ×7，`settle destroy n=` ×6（最后 rec25416 无 destroy） | 会话在结算页直接退出/切图 | ✅ 复核撤回（会话在结算页结束）（需确认是否预期） |
+| 12 | 结算信号只在 7 次里发过 1 次 | `settle signal` / `settle signal sent` 各 1 | 结算上报链路命中率异常 | ✅ 已修（记住可用形态） |
+| 13 | HOLD 交换过于频繁 | `hold swap` ×742（30 分钟 ≈ 0.4 次/秒） | AI/玩家 HOLD 判定阈值过松 | ✅ 复核撤回（AI 自演） |
 | 14 | 抖屏次数偏多 | `shake rows=1` ×288 + `shake rows=2` ×125 | 每次消行都抖，缺少节流 | ⬜ |
 | 15 | 双盘与单盘切换 20/20，缺乏稳定期 | `dual=true` ×20 / `dual=false` ×20 | 模式切换频繁（用户操作，非缺陷，记录观察） | 观察 |
-| 16 | 标题演示在角色页打开时仍在跑 | rec10962 后仍有 `demo plan/act/fall` | 浮层不暂停演示（体验问题） | ⬜ |
+| 16 | 标题演示在角色页打开时仍在跑 | rec10962 后仍有 `demo plan/act/fall` | 浮层不暂停演示（体验问题） | ✅ 已修（浮层期间暂停演示） |
 | 17 | 角色页期间文字层被整层隐藏 | `textlayer hidden=true` ×12 与开角色页同步 | 隐藏范围含浮层自身文本的风险 | ⬜（需真机确认） |
 | 18 | 单元格模板首次探测失败回退 | `probe cell fail guid=1073742105 :: nil` → ok 1849 | 模板候选表首位失效（每次启动 1 次） | ⬜ 低 |
 | 19 | hit 模板同样首位失效 | `probe hit fail guid=1073742106 :: nil` → ok 1884 | 同上 | ⬜ 低 |
