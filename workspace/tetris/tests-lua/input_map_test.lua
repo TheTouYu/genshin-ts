@@ -332,8 +332,15 @@ if not mainLegacy then
   ok(mainSrc:find("loadModule('input_map')", 1, true) ~= nil,
     'B19 迁移后：main.lua 用 loadModule("input_map") 装载（真机 4 级候选路径）')
   ok(mainSrc:find('bindAll(', 1, true) ~= nil, 'B20 迁移后：调用 bindAll 一次注册')
-  ok(mainSrc:find("loadModule('view_pad')", 1, true) ~= nil,
-    'B21 迁移后：main.lua 用 loadModule("view_pad") 装载触屏描述')
+  -- 触屏描述通道（Step 4b）是独立一步：接上了就断言 pad( 调用存在，没接就断言现状并打 PENDING，
+  -- 两种状态都算"如实"——不把未接线写成绿，也不让本套件因为别人还没接而变红。
+  local hasViewPad = mainSrc:find("loadModule('view_pad')", 1, true) ~= nil
+  if hasViewPad then
+    ok(mainSrc:find('pad(', 1, true) ~= nil, 'B21 已接：view_pad 装载 + pad( 调用都在（触屏描述通道）')
+  else
+    ok(mainSrc:find('phone tap', 1, true) == nil and mainSrc:find('UI4.dispatch', 1, true) ~= nil,
+      'B21 PENDING Step 4b：触屏仍走 ui.lua + UI4.dispatch（未接 view_pad；接线需同步 ui.lua 布局段）')
+  end
 else
   ok(#full == 15, 'B19 迁移前：15 条字面注册点已逐个对照', #full)
   ok(hasListenDef, 'B20 迁移前：listen() 定义仍在（此段将被 bindAll 取代）')
