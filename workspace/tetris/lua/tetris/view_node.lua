@@ -170,11 +170,14 @@ M.new = function(spec)
         local w = n.size and n.size[1] or 0
         local h = n.size and n.size[2] or 0
         local needH, needW = V.textNeed(n.text, font, w)
-        if h > 0 and needH > h + 1 then
+        -- 判据必须与引擎逐字一致：引擎 requiredHeight = 1.2f + 0.25f + 4 = 1.45f + 4，
+        -- 留 1px 余量会放过「差 0.85px」的边界（2026-10-31 实机：13 号字 h=22 时
+        -- 引擎 fits=false 整条不画，而旧判据 22.85 <= 22+1 判它过）。这里只留 0.01 的浮点容差。
+        if h > 0 and needH > h + 0.01 then
           add('L4', n.key, string.format('文字放不下：需高 %.1f > 高 %d（%d 行）', needH, h,
             math.ceil(needH / (font * 1.45 + 4))), { needH = needH, needW = needW })
         end
-        if w > 0 and needW > w + 1 and not cfg.allowOverflowWidth then
+        if w > 0 and needW > w + 0.01 and not cfg.allowOverflowWidth then
           add('L4w', n.key, string.format('单行超宽：需宽 %.1f > 宽 %d', needW, w))
         end
       end

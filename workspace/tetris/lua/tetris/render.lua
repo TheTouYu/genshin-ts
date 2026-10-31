@@ -96,6 +96,11 @@ M.new = function(spec)
         touched = true
       end
     end
+    if n.rot ~= nil and applied.__rot ~= n.rot then
+      applied.__rot = n.rot
+      if P.setRotation then P.setRotation(ctl, n.rot) end
+      touched = true
+    end
     if n.text ~= nil and setIfChanged(ctl, applied, 'text', n.text) then touched = true end
     if n.font ~= nil and setIfChanged(ctl, applied, 'fontSize', n.font) then touched = true end
     if n.fcolor ~= nil and setIfChanged(ctl, applied, 'fontColor', n.fcolor) then touched = true end

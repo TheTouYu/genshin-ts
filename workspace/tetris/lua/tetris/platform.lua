@@ -45,6 +45,7 @@ local function mockNode(spec, kind, parent, seq)
   -- 图元贴图：mock 也要能记录，否则 image 通道在 headless 里既不可断言也不会被 pcall 拦下报错
   -- （2026-10-31 实测：缺这一行时 P.failures() 会多出 setImage:rect/circle 两条假失败）
   function n.SetImage(self, src, id) self.imageSource = src self.imageId = id return true end
+  function n.SetLocalRotation(self, x, y, z) self.rotX = x self.rotY = y self.rotZ = z return true end
   function n.AddKeyEventListener(self, ev, fn) self.__keys[tostring(ev)] = fn return true end
   if parent then
     parent.__children[#parent.__children + 1] = n
@@ -244,6 +245,14 @@ M.new = function(spec)
   -- 胶囊的左右半圆靠 circle 图元，不做这一步就只能拿到矩形（圆角丢失）。
   local IMAGE_PRIMITIVES = { rect = 100001, circle = 100002, triangle = 100003,
     fourstar = 100004, fivestar = 100005, ring = 100006 }
+  -- 旋转（花瓣/雷纹等斜装饰要用）：引擎接 SetLocalRotation(x, y, z)，单位度
+  function P.setRotation(ctl, deg)
+    if not ctl or not deg or deg == 0 then return false end
+    local ok, err = pcall(function() ctl:SetLocalRotation(0, 0, deg) end)
+    if not ok then record('setRotation', err) end
+    return ok
+  end
+
   function P.setImage(ctl, kindName, sourceName)
     if not ctl then return false end
     local id = IMAGE_PRIMITIVES[kindName] or IMAGE_PRIMITIVES.rect
