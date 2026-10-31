@@ -1,0 +1,477 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "72 v6.3 结算三胶囊 三态+音效：hover 播 50870 且 imageColor 0xFF7FCF6A→0xFF71B65E →复位；press 播 50884 + 改色下沉；按 Q 明细不退出结算",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 9.0,
+   "kind": "pointer",
+   "type": "move",
+   "x": 563,
+   "y": 204
+  },
+  {
+   "t": 9.8,
+   "kind": "pointer",
+   "type": "move",
+   "x": 838,
+   "y": 204
+  },
+  {
+   "t": 10.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1075,
+   "y": 204
+  },
+  {
+   "t": 11.0,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1075,
+   "y": 204
+  },
+  {
+   "t": 11.3,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1075,
+   "y": 204
+  }
+ ],
+ "asserts": [
+  {
+   "at": 9.4,
+   "kind": "log",
+   "contains": "settle hover bind n=3 enter=3",
+   "source": "client"
+  },
+  {
+   "at": 9.4,
+   "kind": "log",
+   "contains": "settle hover R",
+   "source": "client"
+  },
+  {
+   "at": 9.4,
+   "kind": "control",
+   "name": "settleCapRestartB",
+   "field": "imageColor",
+   "equals": -9324962
+  },
+  {
+   "at": 10.2,
+   "kind": "log",
+   "contains": "settle hover out R",
+   "source": "client"
+  },
+  {
+   "at": 10.2,
+   "kind": "control",
+   "name": "settleCapRestartB",
+   "field": "imageColor",
+   "equals": -8401046
+  },
+  {
+   "at": 11.0,
+   "kind": "log",
+   "contains": "settle hover Q",
+   "source": "client"
+  },
+  {
+   "at": 11.4,
+   "kind": "log",
+   "contains": "settle press Q",
+   "source": "client"
+  },
+  {
+   "at": 11.2,
+   "kind": "control",
+   "name": "settleCapDetailB",
+   "field": "imageColor",
+   "equals": -1843496
+  },
+  {
+   "at": 11.8,
+   "kind": "log",
+   "contains": "settle detail on",
+   "source": "client"
+  }
+ ],
+ "audioExpect": [
+  50870,
+  50884
+ ]
+}
