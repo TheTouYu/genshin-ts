@@ -44,6 +44,8 @@
 | `[sim-2d]` | `node qxqy/runner.mjs`（在 `workspace/hmlt-qixia`，等用户导入） | 17/17 PASS（上一活跃工程，冻结态） | 2026-10-24 11:4x |
 | `[football]` | `npm run test:creations` | 6 断言，契据=与编辑器逐字节相等 | 2026-10-24 00:1x |
 | `[football]` | 地图 1073741827 结构自检（`assets:ui list` / `assets:scripts mounts` / `sha256sum`） | 11 个 client-textbox 位置尺寸一致；mounts=1；Save_Level==Temp sha `7893105f…`；Lua 静态审计 PASS | 2026-10-29 14:2x |
+| `[football]` | 物理引擎 v3 离线验收（`node .scratch/football-phys-audit/sim-v3.mjs`，exit 0） | 弹跳峰高误差 <3%（解析 0.688/0.172/0.043）；滑行 7.84 m/s²；纯滚动 8m/s 9.93s 停；带球稳态 0.98m/4.97m/s；门柱 z=3.3 擦柱不进、z=2.9 进；18m/s 无隧穿 | 2026-10-31 18:0x |
+| `[football]` | 引擎 v3 结构层（`gsts --config gsts.kit3.config.ts --noinject`，exit 0） | kit-loop **979** 节点（原 645）/ test 1123 / render 66（原 118）/ listen 73（原 228）；`GSTS-DUPLICATE-EXEC-INPUT` 全是「多来源同出口」启发式（同来源双写 = 0）；Lua 单测 29 PASS / 0 FAIL | 2026-10-31 18:0x |
 | `[football]` | 行为层（真机试玩日志） | **9 份近期日志 `[fb-in]` 命中 0**（Lua 从未在带日志试玩中跑过）⇒ 物理/输入/HUD 三层行为证据为零 | 2026-10-29 14:2x |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
 
