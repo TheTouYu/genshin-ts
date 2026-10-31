@@ -337,9 +337,21 @@ M.new = function(spec)
     return out
   end
 
+  -- 最接近达成的那条未达成条件（**展示用**：即使整体已达成也会返回，便于角色页
+  -- 显示「还差 1 局」而不是一句「已解锁」）
   C.closest = function(role, counts)
     local d = C.deficits(role, counts)
     return d[1]
+  end
+
+  -- 解锁还差什么（**判定用**）：OR 语义下任一条达成 ⇒ 已经能解锁 ⇒ nil
+  C.blocking = function(role, counts)
+    if type(counts) == 'string' then counts = parseStr(counts) end
+    local c = C.contractsOf(role, isTable(counts) and counts or {})
+    for i = 1, #c.conditions do
+      if c.conditions[i].ok then return nil end
+    end
+    return C.closest(role, counts)
   end
 
   -- =========================================================================
