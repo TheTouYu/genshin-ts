@@ -2367,38 +2367,12 @@ FN.layoutDual = function()
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
   placeBoard(G[2], 236)
-  -- 中缝细线：把两块屏分开（2 个实例，一次性建，exitToMenu 里拆）
-  if not DUAL_DECO[1] and TPL_CELL then
-    for i = 1, 2 do
-      local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-      if ok and c then
-        c.name = 'duoLane' .. i
-        DUAL_DECO[i] = c
-      end
-    end
-  end
-  if DUAL_DECO[1] then
-    local H2 = CANVAS_H or 720
-    tryCall(DUAL_DECO[1], 'SetSizeDelta', 2, H2 * 0.66)
-    tryCall(DUAL_DECO[1], 'SetAnchoredPosition', 0, 0)
-    trySet(DUAL_DECO[1], 'imageColor', THEME.gold)
-  end
-  if DUAL_DECO[2] then
-    -- v5.4（用户 2026-10-30 二-1：「右边帮助区域拥挤」一并修的构图）：中缝方块读起来像掉了一个格子，
-    -- 换成 14px 描金圆点，作为"分隔符/VS 点"更像我方设计语言。
-    tryCall(DUAL_DECO[2], 'SetSizeDelta', 14, 14)
-    tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
-    -- 换图元要走枚举形态并带字符串回退（直接 SetImage(100006) 会让 imageId 变 undefined，
-    -- 出图管线 assertLosslessJson 当场炸；见 fx.lua setImg 同一处理）
-    do
-      local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
-      local ok = false
-      if enumIS and enumIS.StaticReference ~= nil then
-        ok = pcall(function() DUAL_DECO[2]:SetImage(enumIS.StaticReference, BG_IMG.circle) end)
-      end
-      if not ok then pcall(function() DUAL_DECO[2]:SetImage('StaticReference', BG_IMG.circle) end) end
-    end
-    trySet(DUAL_DECO[2], 'imageColor', THEME.goldDeep)
+  -- 中缝装饰（v6.6）：改由 view_board.dualDeco 出描述 + BR.spawn 按需建（despawn 退场时删）。
+  -- 为什么不用整表 apply：那会把 200 格颜色重置成底色；为什么不能常驻隐藏：
+  -- 真机 SetVisible(false) 对运行时实例不生效（D581），单人局会露出来。
+  if not DUAL_DECO.on and TPL_CELL then
+    DUAL_DECO.on = true
+    BR.spawn(VB.dualDeco { halfH = CANVAS_H, laneColor = THEME.gold, starColor = THEME.goldDeep })
   end
   -- ===== v3.5 双屏 HUD 摆位（唯一真源；此前这里有个 nil 全局炸点，见下）=====
   -- 🔴 事故记录（v3.4 起潜伏）：本函数原先引用全局 `halfH`——layout() 里那是 **local**，
@@ -3523,9 +3497,9 @@ end
 -- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
 FN.exitToMenu = function()
   MODE_OVER = false                    -- v2.2 ③：终局标志复位（R 回菜单）
-  for i = 1, #DUAL_DECO do             -- v2.4 ③：拆中缝装饰（防实例累积）
-    if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
-    DUAL_DECO[i] = nil
+  if DUAL_DECO.on then                 -- v2.4 ③/v6.6：中缝装饰交给 render 记总账（防实例累积）
+    DUAL_DECO.on = nil
+    if BR then BR.despawn({ 'dualDeco1', 'dualDeco2' }) end
   end
   if G[2] then
     settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
@@ -3569,9 +3543,9 @@ restartMatch = function()
     setText(hint, '堆满一行即消除')
     showPersistTip()
   else
-    for i = 1, #DUAL_DECO do
-      if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
-      DUAL_DECO[i] = nil
+    if DUAL_DECO.on then
+      DUAL_DECO.on = nil
+      if BR then BR.despawn({ 'dualDeco1', 'dualDeco2' }) end
     end
     if G[2] then
       settleDestroy()

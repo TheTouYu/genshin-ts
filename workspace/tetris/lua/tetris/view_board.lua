@@ -73,6 +73,20 @@ M.new = function(spec)
     return list
   end
 
+  -- 双屏中缝装饰（2 节点）：描金竖线 + 描金圆点（VS 点）。**不进 B.board 的整表 apply** ——
+  -- 那会把 200 格颜色重置成底色（描述里不带当前棋盘内容）；由 main 用 R.spawn / R.despawn 按需增删。
+  -- 层号走 hud(40)：压住棋盘(30)/外框(35)，又不盖覆盖屏(50+)。
+  function B.dualDeco(opts)
+    opts = opts or {}
+    local h = tonumber(opts.halfH) or 720
+    return {
+      { key = 'dualDeco1', layer = 'hud', tpl = 'cell', name = 'duoLane1',
+        pos = { 0, 0 }, size = { 2, h * 0.66 }, color = opts.laneColor },
+      { key = 'dualDeco2', layer = 'hud', tpl = 'cell', name = 'duoLane2',
+        pos = { 0, 0 }, size = { 14, 14 }, color = opts.starColor, image = { s = 'circle' } },
+    }
+  end
+
   return B
 end
 
