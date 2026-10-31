@@ -566,8 +566,16 @@ M.new = function(spec)
     return b
   end
 
+  -- 真机日志（16:24 第二场）仍有 3 条 `ui fail imageColor/SetAnchoredPosition/fontColor
+  -- on an invalid object`：角色页重建销毁旧控件后，**已排队的 cursor 回调**仍对它涂三态。
+  -- 涂之前先探测活（只读），失效静默跳过。
+  local function aliveCtl(ctl)
+    if not ctl then return false end
+    return (pcall(function() return ctl:GetAnchoredPosition() end))
+  end
   U.paint = function(b, st)
     if not b then return end
+    if b.bg and not aliveCtl(b.bg) then b.dead = true return end
     local col = COL.btnBg
     if st == 'hover' then col = COL.btnHover elseif st == 'down' then col = COL.btnPress end
     setPillColor(b.bg, col)
