@@ -256,6 +256,10 @@ M.new = function(spec)
   function A.resumeBase() baseSuspended = false return true end
   function A.baseSuspended() return baseSuspended end
   function A.baseRender() return baseR end
+  -- 外部事件把基础层标脏（首次建、画布变化、标题重建都要用）。
+  -- baseStatic 的'脏时才 apply'默认只在 setBase 时置脏——启动帧若先 setBase 后建控件，
+  -- 或画布尺寸变了要重建，都需要显式再标一次，否则表现为'棋盘 200 格没建出来'。
+  function A.markBaseDirty() baseDirty = true return true end
 
   function A.baseName()
     if S.depth() == 0 then return nil end

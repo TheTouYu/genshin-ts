@@ -355,5 +355,11 @@ local c0 = DR.stats().created
 DA.tick(1/60) DA.tick(1/60)
 ok(DR.stats().created >= c0, 'N4 默认（非 static）仍按原语义每帧走 render 路径')
 
+-- ===== O markBaseDirty：静态基础层的外部标脏入口 =====
+ok(NA.markBaseDirty() == true, 'O1 markBaseDirty 可调用')
+NR_base.get('nb').imageColor = 0
+NA.render()
+ok(NR_base.get('nb').imageColor == 0, 'O2 标脏后会重新 apply（描述里的值覆盖每帧写）')
+MA_render_test = nil
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
