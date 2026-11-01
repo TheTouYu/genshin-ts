@@ -95,6 +95,8 @@ M.new = function(spec)
   end
 
   function A.render()
+    -- 基础层被抑制且没有覆盖屏在开 ⇒ 本帧不动（保留上一帧，避免自己重建后压回别人上层）
+    if baseSuspended and overlayName == nil then return true end
     local nodes = S.view()
     local ok, err = pcall(R.apply, nodes)
     if not ok then
@@ -226,6 +228,15 @@ M.new = function(spec)
     end
     return true
   end
+
+  -- 基础层可被**临时抑制**：标题屏的显示是"状态推导"的（浮层/结算/引导任一开就要拆），
+  -- 而场景栈只有一个"当前基础场景"槽。若浮层关掉时基础层抢先重建，它会压回浮层之上
+  -- （这正是历史上"角色页被首页卡片压住"的重演路径）。抑制期间基础层不参与合成，
+  -- 覆盖屏照常；恢复后下一帧自然重画。
+  local baseSuspended = false
+  function A.suspendBase() baseSuspended = true return true end
+  function A.resumeBase() baseSuspended = false return true end
+  function A.baseSuspended() return baseSuspended end
 
   function A.baseName()
     if S.depth() == 0 then return nil end

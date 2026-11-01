@@ -300,5 +300,30 @@ ok(LA.frame(nil) == false, 'L8 非函数返回 false')
 LA.clearFrame()
 ok(LA.frameCount() == 0, 'L9 clearFrame 清空')
 
+-- ===== M suspendBase/resumeBase：抑制期间不重画基础层 =====
+local MS_ = scenesM.new { log = function() end }
+local MR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local MA = appM.new { platform = P, render = MR, scenes = MS_, layers = layers,
+  overlayRender = MR, log = function() end }
+MA.setBase({ name = 'title', opaque = true, view = function()
+  return { { key = 'mt', layer = 'card', tpl = 'cell', name = 'mt', pos = {0,0}, size = {8,8}, color = 0 } }
+end })
+MA.render()
+ok(MR.get('mt') ~= nil, 'M1 基础层已渲染')
+local before = MR.stats().created
+ok(MA.suspendBase() == true, 'M2 suspendBase 成功')
+ok(MA.baseSuspended() == true, 'M3 状态可读')
+MA.render()
+ok(MR.stats().created == before, 'M4 抑制期间不重画（created 未增）', MR.stats().created)
+ok(MA.resumeBase() == true, 'M5 resumeBase 成功')
+ok(MA.baseSuspended() == false, 'M6 恢复后状态为假')
+-- 抑制期间开覆盖屏仍要能画
+MA.suspendBase()
+MA.openOverlay('help', { name = 'help', opaque = true, view = function() return {} end },
+  { { key = 'mh', layer = 'card', tpl = 'cell', name = 'mh', pos = {0,0}, size = {8,8}, color = 0 } })
+ok(MR.get('mh') ~= nil, 'M7 抑制基础层时覆盖屏照常渲染')
+MA.closeOverlay()
+MA.resumeBase()
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
