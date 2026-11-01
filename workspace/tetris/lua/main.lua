@@ -154,7 +154,7 @@ HLV = { M = loadModule('view_help'), KIT_M = loadModule('view_kit'), KIT = nil, 
 local SETTLE_ACT = {}
 -- v6.2 结算屏：`view_settle` 纯描述 + **独立** render 实例 SR（不复用棋盘协调器 BR）。
 -- 为什么必须独立：BR 每帧 `BR.apply(...)` 只喂棋盘那 200+ 个 key，把结算描述喂给它，它会把
--- 棋盘全部判成"不在列表里"当场销毁。SR 只在结算时 SR.clear()→SR.apply(一份描述)，离开即 clear()。
+
 -- 为什么挂表不挂 local：main chunk 的 local 数量贴着 Lua 5.3 硬上限 200（D591/D612 教训）。
 local SETTLEV = { M = nil, KIT_M = nil, KIT = nil, S = nil, SR = nil, live = false }
 -- v6.4 标题屏：`view_title` 纯描述 + **独立** render 实例 TR（与 SETTLEV/HLV 同一套手法，绝不复用棋盘 BR）。
@@ -4690,7 +4690,8 @@ function OnStart()
     HLV.KIT = HLV.KIT_M.new({ layers = VIEW_LAYERS_M })
     HLV.S = HLV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = HLV.KIT })
     HLV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
-  APP = loadModule('app').new({ platform = PT, render = HLV.R, layers = VIEW_LAYERS_M,
+  APP = loadModule('app').new({ platform = PT, render = HLV.R, baseRender = BR, baseStatic = true,
+    layers = VIEW_LAYERS_M,
     scenes = loadModule('scenes').new(), overlayRender = HLV.R, log = function(m) print(m) end })
     print('v6 help view ok')
   else
@@ -4785,7 +4786,6 @@ function OnStart()
     trySet(ctl, 'imageColor', C(0, 0, 0, 0))
     g.bgPool[i] = ctl
   end
-  -- 整屏底色压在最下（池第 1 件复用为底色：所有模式都先铺一层深底再构图）
   local wash = g.bgPool[1]
   if wash then
     tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
@@ -4794,22 +4794,21 @@ function OnStart()
   end
   print('bg pool n=' .. #g.bgPool)
 
-  -- v6 架构：棋盘 = 一份纯描述（view_board）→ render 按**语义层序**创建
-  -- 层序 plate(25) < board(30) < frame(35) 由 view_layers 决定，不再取决于「谁先写」。
-  -- A13「左上角恒有灰方块」的根因（探针实例建得最早 ⇒ 被 wash/背板盖住）结构上不可能再发生。
   local FRAME_COL = (MODE_THEME[MODE] or MODE_THEME.casual).frame
-  -- v5.2：单人局棋盘框染台前角色色（美术评审「刻晴局和纳西妲局一模一样」）
   if MODE == 'casual' and SK and SK.party and SK.party[SK.active or 1] and FN.skillColor then
     local rc = FN.skillDark and FN.skillDark(FN.skillColor(SK.party[SK.active or 1]), 120)
     if rc then FRAME_COL = rc end
   end
   if not (BR and VB) then error('tetris: v6 模块缺失（platform/render/view_board）') end
   g.cells, g.frames = {}, {}
-  BR.apply(VB.board {
+  local BOARD_NODES = VB.board {
     plateColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate,
     cellColor = CFG.COL_EMPTY,
     frameColor = FRAME_COL,
-  })
+  }
+  -- 首次仍显式 apply 一次：baseStatic 的"脏时才 apply"在启动帧还没有脏标记。
+  if APP then APP.setBase({ name = 'play', opaque = true }, BOARD_NODES) end
+  BR.apply(BOARD_NODES)
   g.plate = BR.ctl('boardPlate')
   for i = 1, COLS * ROWS do
     g.cells[i] = BR.ctl('cell' .. i)
