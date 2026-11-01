@@ -277,5 +277,28 @@ KA.closeOverlay()
 ok(KR_settle.live() == 0, 'K9 关屏清的是登记的实例')
 ok(KA.provideOverlay('x', nil) == false, 'K10 缺参返回 false（不抛）')
 
+-- ===== L 每帧回调：有序 + 单个失败不中断后续 =====
+local LS = scenesM.new { log = function() end }
+LS.register { name = 's1', view = function() return {} end }
+LS.push('s1')
+local LR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local Llogs = {}
+local LA = appM.new { platform = P, render = LR, scenes = LS, layers = layers,
+  log = function(m) Llogs[#Llogs + 1] = m end }
+local order = {}
+ok(LA.frame(function() order[#order + 1] = 'a' end) == 1, 'L1 frame 注册返回序号')
+ok(LA.frame(function() order[#order + 1] = 'b' end) == 2, 'L2 第二个回调序号 2')
+ok(LA.frame(function() error('boom') end) == 3, 'L3 注册一个会抛错的')
+ok(LA.frame(function() order[#order + 1] = 'd' end) == 4, 'L4 第四个回调')
+ok(LA.frameCount() == 4, 'L5 frameCount 正确', LA.frameCount())
+LA.tick(1/60)
+ok(table.concat(order, '') == 'abd', 'L6 **按注册顺序执行**且抛错的那个不中断后续', table.concat(order, ''))
+local sawErr = false
+for i = 1, #Llogs do if Llogs[i]:find('app frame fail #3', 1, true) then sawErr = true end end
+ok(sawErr, 'L7 抛错时记日志（不静默）')
+ok(LA.frame(nil) == false, 'L8 非函数返回 false')
+LA.clearFrame()
+ok(LA.frameCount() == 0, 'L9 clearFrame 清空')
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

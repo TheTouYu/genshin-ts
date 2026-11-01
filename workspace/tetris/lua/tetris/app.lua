@@ -68,9 +68,29 @@ M.new = function(spec)
 
   -- 每帧：推场景 + 合成视图 + 协调渲染
   -- 渲染失败不该中断逻辑：真机一处抛错会中断整段回调（历史事故），所以这里兜住并记账。
+  -- 每帧回调（有序）：基础层里有几块是"每帧写"而非"一次性重建"——
+  -- 棋盘 200 格的棋子/消除、预览列的位置、pad 的 focus 高亮。它们必须**同帧且有序**
+  -- （先在棋盘上画棋子、再算预览、最后刷 pad），否则会出现"预览先于棋盘一帧"的闪烁。
+  -- 用一张有序表，而不是让各模块自己挂 OnUpdate —— 顺序就成了显式契约。
+  local frameFns = {}
+  function A.frame(fn)
+    if type(fn) ~= 'function' then return false end
+    frameFns[#frameFns + 1] = fn
+    return #frameFns
+  end
+  function A.frameCount() return #frameFns end
+  function A.clearFrame() frameFns = {} end
+
   function A.tick(dt)
     A.tickCount = A.tickCount + 1
     S.update(dt)
+    for i = 1, #frameFns do
+      local ok, err = pcall(frameFns[i], dt)
+      if not ok then
+        log('app frame fail #' .. i .. ' :: ' .. tostring(err))
+        if onError then pcall(onError, err) end
+      end
+    end
     return A.render()
   end
 
