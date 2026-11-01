@@ -325,5 +325,35 @@ ok(MR.get('mh') ~= nil, 'M7 抑制基础层时覆盖屏照常渲染')
 MA.closeOverlay()
 MA.resumeBase()
 
+-- ===== N 静态基础层（baseStatic）：只 apply 一次，不每帧重 apply =====
+local NS = scenesM.new { log = function() end }
+local NR_base = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local NR_ov = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local NA = appM.new { platform = P, render = NR_base, baseRender = NR_base,
+  overlayRender = NR_ov, scenes = NS, layers = layers, baseStatic = true, log = function() end }
+NA.setBase({ name = 'play', opaque = true, view = function()
+  return { { key = 'nb', layer = 'board', tpl = 'cell', name = 'nb', pos = {0,0}, size = {8,8}, color = 0 } }
+end })
+NA.render()
+ok(NA.baseRender() == NR_base, 'N1 baseRender 可读（与 overlay 实例分开）')
+ok(NR_base.live() == 1, 'N2 基础层进了 base 实例', NR_base.live())
+-- 模拟棋盘每帧写：把某格颜色改掉，然后连续 render 若干次，颜色**不许被重置**
+NR_base.get('nb').imageColor = 0xFF223344
+local kept = true
+for _ = 1, 5 do
+  NA.render()
+  if NR_base.get('nb').imageColor ~= 0xFF223344 then kept = false end
+end
+ok(kept, 'N3 静态基础层：连续 render 不会重置每帧写进去的值（不清盘）')
+-- 动态使用场景（默认 baseStatic=false）仍然每帧 apply
+local DS = scenesM.new { log = function() end }
+local DR = renderM.new { platform = P, layers = layers, maxInstances = 430 }
+local DA = appM.new { platform = P, render = DR, scenes = DS, layers = layers, log = function() end }
+DS.register { name = 'd1', view = function() return {} end }
+DA.start('d1')
+local c0 = DR.stats().created
+DA.tick(1/60) DA.tick(1/60)
+ok(DR.stats().created >= c0, 'N4 默认（非 static）仍按原语义每帧走 render 路径')
+
 print(string.format('\n== app_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

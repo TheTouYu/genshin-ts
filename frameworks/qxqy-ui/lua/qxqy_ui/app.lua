@@ -97,8 +97,20 @@ M.new = function(spec)
   function A.render()
     -- 基础层被抑制且没有覆盖屏在开 ⇒ 本帧不动（保留上一帧，避免自己重建后压回别人上层）
     if baseSuspended and overlayName == nil then return true end
+    -- 选实例：覆盖屏用自己那份（provideOverlay 登记的优先），否则用基础层那份
+    local target
+    if overlayName then
+      target = provided[overlayName] or overlayR or R
+    else
+      -- baseStatic=true：基础层的动态内容（200 格棋子/消除）由 app.frame 每帧写，
+      -- 描述里只带静态骨架 ⇒ 每帧整屏 apply 会把没写进描述的状态重置（实测=清盘）。
+      -- 因此静态基础层**只在脏时** apply；默认（false）保持原来"每帧 apply"的行为不变。
+      if baseStatic and not baseDirty then return true end
+      target = baseR or R
+      baseDirty = false
+    end
     local nodes = S.view()
-    local ok, err = pcall(R.apply, nodes)
+    local ok, err = pcall(target.apply, nodes)
     if not ok then
       log('app render fail :: ' .. tostring(err))
       if onError then pcall(onError, err) end
@@ -106,7 +118,7 @@ M.new = function(spec)
     end
     if L and spec.assertOrder ~= false then
       -- 层序自检（可选）：render 已按层号排序创建，这里只做一次性告警，不重复刷屏
-      local issues = R.issues()
+      local issues = target.issues()
       if issues and #issues > 0 and not A.__orderWarned then
         A.__orderWarned = true
         log('app order issue :: ' .. tostring(issues[1].msg))
@@ -140,6 +152,10 @@ M.new = function(spec)
   -- 为什么 open 必须先 clear：说明页 271–289 节点、常驻约 240 ⇒ 240+280 撞引擎实例上限 430。
   -- 这条以前靠人记（写在 view_help 头注释里），现在收进代码。
   local overlayR = spec.overlayRender
+  -- 基础层与覆盖屏**必须是两个实例**（基础层每帧增量写、覆盖屏整屏重建）。
+  -- 早先只有一个默认 render，setBase 会把棋盘描述 apply 进覆盖屏的实例（实测：cellCount 消失、
+  -- g.cells 为空）；这里显式分开，缺省回落到 render。
+  local baseR = spec.baseRender or spec.render
   local overlayName, overlayPushed = nil, false
 
   -- 让场景在"要开的时候"声明它用哪个 render 实例（懒创建屏用：结算在第一次 gameOver
@@ -221,11 +237,8 @@ M.new = function(spec)
       end
     end
     overlayName, overlayPushed = nil, false
-    if nodes and overlayR then
-      -- 基础层也走 render 时（如棋盘描述），直接喂给它自己的实例
-      local ok, err = pcall(overlayR.apply, nodes)
-      if not ok then log('app setBase render fail :: ' .. tostring(err)) return false end
-    end
+    baseDefNodes = nodes
+    baseDirty = true          -- 只标脏：真正 apply 在 render() 里做一次
     return true
   end
 
@@ -234,9 +247,15 @@ M.new = function(spec)
   -- （这正是历史上"角色页被首页卡片压住"的重演路径）。抑制期间基础层不参与合成，
   -- 覆盖屏照常；恢复后下一帧自然重画。
   local baseSuspended = false
+  local baseDirty = true
+  local baseStatic = spec.baseStatic == true
+  local baseDefNodes = nil
   function A.suspendBase() baseSuspended = true return true end
+  -- 恢复**不重 apply**：基础层的控件一直在它自己的实例里，覆盖屏用的是另一个实例，
+  -- 所以覆盖屏关掉后基础层自然还在（重 apply 反而会清掉 200 格的当前内容）。
   function A.resumeBase() baseSuspended = false return true end
   function A.baseSuspended() return baseSuspended end
+  function A.baseRender() return baseR end
 
   function A.baseName()
     if S.depth() == 0 then return nil end
