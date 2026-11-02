@@ -35,9 +35,19 @@
  ],
  "asserts": [
   {
+   "at": 1.0,
+   "kind": "lua",
+   "source": "local n=0\nlocal pick=''\nfor i=1,200 do\n  local c=query.control('cell'..i)\n  if c then\n    if c.imageColor==nil then error('cell'..i..' 读不到 imageColor —— 断言层缺字段，本用例会恒真，先修工具') end\n    if c.imageColor~=-197121 then n=n+1 pick=pick..i..' ' end\n  end\nend\nassert(n>=8,'落块后只有 '..n..' 格（开局 demo 自带 4 格，硬降应再加 4 => 至少 8）：硬降没生效。'..pick)\nreturn 'AFTER_HARDDROP nonempty='..n"
+  },
+  {
+   "at": 1.6,
+   "kind": "lua",
+   "source": "local n=0\nlocal pick=''\nfor i=1,200 do\n  local c=query.control('cell'..i)\n  if c then\n    if c.imageColor==nil then error('cell'..i..' 读不到 imageColor —— 断言层缺字段，本用例会恒真，先修工具') end\n    if c.imageColor~=-197121 then n=n+1 pick=pick..i..' ' end\n  end\nend\nassert(n>=8,'开着档案页时棋盘格掉到 '..n..'（应 >=8）：覆盖屏把基础层拆了。'..pick)\nreturn 'DURING_OVERLAY nonempty='..n"
+  },
+  {
    "at": 2.4,
    "kind": "lua",
-   "source": "local EMPTY=-197121\nlocal seen,nonempty,colors=0,0,{}\nfor i=1,200 do\n  local c=query.control('cell'..i)\n  if c then\n    seen=seen+1\n    if c.imageColor==nil then error('cell'..i..' 读不到 imageColor —— 断言层缺字段，本用例会恒真，先修工具') end\n    if c.imageColor~=EMPTY then nonempty=nonempty+1 colors[#colors+1]=i..'='..tostring(c.imageColor) end\n  end\nend\nassert(seen==200,'棋盘格只找到 '..seen..' 个（应为 200）')\nassert(nonempty>0,'开覆盖屏回来后棋盘是空的：nonempty=0 说明要么没落块、要么被重置')\nreturn 'nonempty='..nonempty..' cells='..table.concat(colors,',',1,math.min(4,#colors))"
+   "source": "local n=0\nlocal pick=''\nfor i=1,200 do\n  local c=query.control('cell'..i)\n  if c then\n    if c.imageColor==nil then error('cell'..i..' 读不到 imageColor —— 断言层缺字段，本用例会恒真，先修工具') end\n    if c.imageColor~=-197121 then n=n+1 pick=pick..i..' ' end\n  end\nend\nassert(n>=8,'关掉档案页后棋盘格掉到 '..n..'（应 >=8）：被重置或丢失。'..pick)\nreturn 'AFTER_CLOSE nonempty='..n"
   },
   {
    "at": 2.4,

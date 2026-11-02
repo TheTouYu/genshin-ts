@@ -26,6 +26,22 @@
 
 local M = {}
 
+--[[! 接线现状（2026-11-02 审计，别把"有实现 + 有单测"当成"在跑"）：
+
+     生产里**实际被调用**的只有记账类 API：
+         openOverlay / closeOverlay / provideOverlay / setBase / overlay
+     而 render / tick / frame / suspendBase / resumeBase / markBaseDirty
+     **在 lua/main.lua 里一次都没被调用**（`grep -c "APP\.render" = 0`）。
+
+     为什么：6 个屏各自持有独立 render 实例，渲染由各屏自己驱动；
+     app 目前只是"谁开着"的记账本。所以：
+       · `baseStatic` / `markBaseDirty` 现在**不影响画面**（棋盘不丢是因为覆盖屏用独立实例）
+       · `frame()` 注册的回调**不会执行**（没人调 tick）
+       · `suspendBase()` 只改一个标志位，没人读
+
+     要用它们必须先把 OnUpdate 的渲染段交给 app.tick()——那是一次跨屏改动，
+     会同时改变 6 个屏的驱动方式。**在那之前，请不要在别处依赖这些 API 的行为。**
+]]
 -- 四个必需字段：platform / render / scenes（layers 可选、overlayRender 可选）。
 M.REQUIRED = { 'platform', 'render', 'scenes' }
 
@@ -260,6 +276,7 @@ M.new = function(spec)
   -- baseStatic 的'脏时才 apply'默认只在 setBase 时置脏——启动帧若先 setBase 后建控件，
   -- 或画布尺寸变了要重建，都需要显式再标一次，否则表现为'棋盘 200 格没建出来'。
   function A.markBaseDirty() baseDirty = true return true end
+  A.__forceDirtyEachFrame = false
 
   function A.baseName()
     if S.depth() == 0 then return nil end
