@@ -53,9 +53,29 @@ json.dump(d, open('/tmp/.gs_badshots/pc-16-9/x.frame.json','w'))
     else echo "  ❌ 闸门8 没抓到有缺陷的出图"; bad_gates=$((bad_gates+1)); fi
     rm -rf /tmp/.gs_badshots
   }
-  t1; t2; t3; t4
+  t5() { # 网页存档过期 + 版本号漂移
+    rm -rf /tmp/.gs_ws && mkdir -p /tmp/.gs_ws
+    python3 -c "
+import json
+d=json.load(open('tetris.save.json')); d['meta']['name']='俄罗斯方块 v4.0'
+json.dump(d, open('/tmp/.gs_ws/tetris.save.json','w'))
+"
+    out5=$(QXQY_WORKSPACE=/tmp/.gs_ws bash "$SELF" --fast 2>&1)
+    if printf "%s" "$out5" | grep -q '网页工作区存档过期' && printf "%s" "$out5" | grep -q 'meta.name 与 BUILD_TAG'; then
+      echo "  ✅ 闸门9 抓到过期存档 + 版本号漂移"
+    else echo "  ❌ 闸门9 没抓到过期存档/版本号漂移"; bad_gates=$((bad_gates+1)); fi
+    # 写死版本号字面量（还原靠 trap 之外的单点 cp，失败也不污染仓库）
+    cp qxqy/deploy.mjs /tmp/.gs_deploy.bak
+    printf "\n// selftest: const t = '俄罗斯方块 v9.99'\n" >> qxqy/deploy.mjs
+    out5b=$(bash "$SELF" --fast 2>&1)
+    cp /tmp/.gs_deploy.bak qxqy/deploy.mjs
+    if printf "%s" "$out5b" | grep -q '写死的版本号'; then echo "  ✅ 闸门9 抓到写死的版本号"
+    else echo "  ❌ 闸门9 没抓到写死的版本号"; bad_gates=$((bad_gates+1)); fi
+    rm -rf /tmp/.gs_ws
+  }
+  t1; t2; t3; t4; t5
   echo
-  if [ "$bad_gates" -eq 0 ]; then echo "GUARD-SELFTEST PASS（4 条闸门都真的会响）"; exit 0
+  if [ "$bad_gates" -eq 0 ]; then echo "GUARD-SELFTEST PASS（5 条闸门都真的会响）"; exit 0
   else echo "GUARD-SELFTEST FAIL: $bad_gates 条闸门空转"; exit 1; fi
 fi
 
@@ -125,6 +145,42 @@ if [ -d "$SHOTS_DIR" ]; then
 else
   echo "== 8. 出图质检：跳过（无 $SHOTS_DIR；先跑 node qxqy/shots-v5.mjs --all --out $SHOTS_DIR）=="
 fi
+
+# ---- 9. 网页试玩存档新鲜度 + 版本号单一真源 ----
+# 事故（两次）：
+#   ① 2026-10-28 只重建了仓库存档、没同步 ~/qxqy-workspace ⇒ 用户在网页核验的是旧版，
+#      问「你有更新到模拟器试玩存档里面去吗」；
+#   ② 2026-11-02 deploy.mjs 把标题写死成 '俄罗斯方块 v4.0'，网页下拉一直显示 v4.0，
+#      而仓库存档走 BUILD_TAG ⇒ 用户问「我在网页试玩，5.38 版本…它是最新版本吗？」
+# 判据：两份存档逐字节相同，且 meta.name 与内联 main.lua 的 BUILD_TAG 一致。
+echo "== 9. 网页存档新鲜度 / 版本号单一真源 =="
+WS_SAVE="${QXQY_WORKSPACE:-$HOME/qxqy-workspace}/tetris.save.json"
+if [ ! -f "$WS_SAVE" ]; then
+  bad "网页工作区存档不存在：$WS_SAVE"
+else
+  repo_sha=$(sha256sum tetris.save.json | cut -d' ' -f1)
+  ws_sha=$(sha256sum "$WS_SAVE" | cut -d' ' -f1)
+  if [ "$repo_sha" = "$ws_sha" ]; then ok "网页工作区存档与仓库逐字节相同（${repo_sha:0:8}）"
+  else bad "网页工作区存档过期（repo=${repo_sha:0:8} ws=${ws_sha:0:8}）⇒ 用户在网页看到的是旧版，跑 node qxqy/deploy.mjs"; fi
+  # 版本号必须来自 main.lua（BUILD_TAG），且两份存档的 meta.name 都得带上它
+  tag=$(sed -n "s/^BUILD_TAG = '\([^']*\)'.*/\1/p" lua/main.lua | head -1)
+  if [ -z "$tag" ]; then bad "lua/main.lua 找不到 BUILD_TAG 行（版本号无真源）"
+  else
+    names=$(python3 -c "
+import json,sys
+for p in ['tetris.save.json', sys.argv[1]]:
+    try: print(json.load(open(p)).get('meta',{}).get('name',''))
+    except Exception as e: print('ERR')
+" "$WS_SAVE")
+    gone=$(printf '%s\n' "$names" | grep -cvF "$tag" || true)
+    if [ "${gone:-0}" -eq 0 ]; then ok "版本号单一真源 BUILD_TAG='$tag'（两份存档 meta.name 都带上）"
+    else bad "存档 meta.name 与 BUILD_TAG('$tag') 不一致：$(printf '%s' "$names" | tr '\n' '|')"; fi
+  fi
+fi
+# 写死版本号的字面量：deploy/build 之外出现 '俄罗斯方块 v<数字>' 且不等于 BUILD_TAG 即视为漂移
+hard=$(grep -rn "俄罗斯方块 v[0-9]" qxqy/*.mjs | grep -v "俄罗斯方块 \${" || true)
+if [ -z "$hard" ]; then ok "构建脚本里没有写死的版本号字面量"
+else bad "写死的版本号（应改用 BUILD_TAG）：$hard"; fi
 
 echo
 if [ "$fail" -eq 0 ]; then echo "GUARD PASS"; exit 0

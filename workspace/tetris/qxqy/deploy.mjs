@@ -80,7 +80,12 @@ const save = studio.exportData('save')
   // 存档显示名：网页工作区下拉显示 `meta.name · 文件名`，不设就是「未命名存档」⇒ 每次构建看起来都像旧的
   const saveObj = JSON.parse(Buffer.from(save.data, 'base64').toString('utf8'))
   saveObj.meta = saveObj.meta || {}
-  saveObj.meta.name = opt('--title', '俄罗斯方块 v4.0')
+  // ⚠ 版本号必须与 build.mjs 同源（main.lua 的 BUILD_TAG），别写死字面量。
+  // 事故：这里曾硬编码存档名（含旧版本号 v4.0），网页工作区那份存档因此一直显示 v4.0，
+  // 与仓库存档（build.mjs 写 BUILD_TAG）不同名，谁都分不清网页跑的是哪一版。
+  const buildTag = (/^BUILD_TAG = '([^']*)'/m
+    .exec(readFileSync(luaSource, 'utf8')) || [])[1] || 'dev'
+  saveObj.meta.name = opt('--title', `俄罗斯方块 ${buildTag}`)
   writeFileSync(join(root, 'tetris.save.json'), JSON.stringify(saveObj))
 }
 mkdirSync(join(root, 'device-package'), { recursive: true })
