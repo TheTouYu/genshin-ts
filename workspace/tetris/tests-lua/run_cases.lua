@@ -217,6 +217,16 @@ local function make_query(engine)
       pressed = engine:field_of(control, 'pressed'),
       text = engine:field_of(control, 'text'),
       interactable = engine:field_of(control, 'interactable'),
+      -- 2026-11-02：与模拟器侧对齐，补齐引擎真值字段。
+      -- 此前两边都只给 9 个标量 ⇒ `c.imageColor ~= EMPTY` 在 nil 上恒真 ⇒ 断言恒过（假绿）。
+      imageColor = engine:field_of(control, 'imageColor'),
+      imageId = engine:field_of(control, 'imageId'),
+      anchoredPositionX = engine:field_of(control, 'anchoredPositionX'),
+      anchoredPositionY = engine:field_of(control, 'anchoredPositionY'),
+      sizeDeltaX = engine:field_of(control, 'sizeDeltaX'),
+      sizeDeltaY = engine:field_of(control, 'sizeDeltaY'),
+      fontSize = engine:field_of(control, 'fontSize'),
+      fontColor = engine:field_of(control, 'fontColor'),
     }
   end
   return {
