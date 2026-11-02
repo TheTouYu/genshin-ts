@@ -16,7 +16,12 @@ bash qxqy/tetris-guard.sh            # 完整（约 6 分钟，含模拟器全�
 bash qxqy/tetris-guard.sh --fast     # 快（约 1 分钟，跳过模拟器）
 bash qxqy/tetris-guard.sh --selftest # 验证闸门自己不是空转（注入故障必须红）
 ```
-**退出码 0 = 可交付。** 7 条闸门各自对应一次真实事故，别删（见脚本内注释）。
+**退出码 0 = 可交付。** 9 条闸门各自对应一次真实事故，别删（见脚本内注释）。
+闸门 9（2026-11-02 新增）= **网页工作区存档必须与仓库逐字节相同 + 版本号单一真源**，
+对应两次真实事故：①只重建没同步 `~/qxqy-workspace`（用户在网页核验的是旧版）；
+②`deploy.mjs:83` 把标题写死成 `v4.0`（网页下拉一直显示旧版本，用户问「它是最新版本吗」）。
+**发布流程（改完 lua 想让用户在网页看到）**：
+改 `lua/main.lua` 的 `BUILD_TAG` → `node qxqy/deploy.mjs` → `bash qxqy/tetris-guard.sh --fast`。
 
 ## 2. 当前读数（2026-11-02 14:10，全部可真跑复算）
 
