@@ -40,9 +40,22 @@ if [ "$SELFTEST" = "1" ]; then
     else echo "  ❌ 闸门2 没抓到框架副本漂移"; bad_gates=$((bad_gates+1)); fi
     cp /tmp/.gs_render.bak lua/tetris/render.lua
   }
-  t1; t2; t3
+  t4() { # 出图质检
+    rm -rf /tmp/.gs_badshots && mkdir -p /tmp/.gs_badshots/pc-16-9
+    python3 -c "
+import json
+d={'nodes':[{'name':'badText','text':'x','sizeDeltaY':10,'textLayout':{'fits':False,'requiredHeight':88.5}}]}
+json.dump(d, open('/tmp/.gs_badshots/pc-16-9/x.frame.json','w'))
+"
+    out4=$(SHOTS_DIR=/tmp/.gs_badshots bash "$SELF" --fast 2>&1)
+    if printf "%s" "$out4" | grep -q '出图质检未通过'; then
+      echo "  ✅ 闸门8 抓到有缺陷的出图"
+    else echo "  ❌ 闸门8 没抓到有缺陷的出图"; bad_gates=$((bad_gates+1)); fi
+    rm -rf /tmp/.gs_badshots
+  }
+  t1; t2; t3; t4
   echo
-  if [ "$bad_gates" -eq 0 ]; then echo "GUARD-SELFTEST PASS（3 条闸门都真的会响）"; exit 0
+  if [ "$bad_gates" -eq 0 ]; then echo "GUARD-SELFTEST PASS（4 条闸门都真的会响）"; exit 0
   else echo "GUARD-SELFTEST FAIL: $bad_gates 条闸门空转"; exit 1; fi
 fi
 
@@ -98,6 +111,19 @@ if [ "$FAST" -eq 0 ]; then
   else bad "模拟器用例有红（见 /tmp/guard-full.log）"; fi
 else
   echo "== 7. 模拟器全量：已跳过（--fast）=="
+fi
+
+# ---- 8. 出图质检（不靠人眼：帧数据 + 像素统计）----
+SHOTS_DIR="${SHOTS_DIR:-.scratch/lead/shots/final}"
+if [ -d "$SHOTS_DIR" ]; then
+  echo "== 8. 出图质检（$SHOTS_DIR）=="
+  if node qxqy/shot-audit.mjs "$SHOTS_DIR" 2>/dev/null | grep -q 'SHOT-AUDIT PASS'; then
+    ok "出图质检通过（七条判据：空屏/字裁/越界/纯色/空白/配色漂移/设备互斥）"
+  else
+    bad "出图质检未通过（node qxqy/shot-audit.mjs $SHOTS_DIR 看明细）"
+  fi
+else
+  echo "== 8. 出图质检：跳过（无 $SHOTS_DIR；先跑 node qxqy/shots-v5.mjs --all --out $SHOTS_DIR）=="
 fi
 
 echo
