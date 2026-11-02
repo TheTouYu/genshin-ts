@@ -80,79 +80,6 @@ M.new = function(spec)
   -- 注册场景（转发给场景栈，便于一处配置）
   function A.register(def) return S.register(def) end
 
-  -- 进入初始场景
-  function A.start(name, params)
-    local ok = S.push(name, params)
-    if not ok then log('app start fail ' .. tostring(name)) end
-    A.frames = 0
-    A.render()          -- 进场景立刻渲染一帧：否则第一帧是空的，且 start 后的断言只能等 tick
-    return ok
-  end
-
-  -- 每帧：推场景 + 合成视图 + 协调渲染
-  -- 渲染失败不该中断逻辑：真机一处抛错会中断整段回调（历史事故），所以这里兜住并记账。
-  -- ⚠️ EXPERIMENTAL（2026-11-02 审计：以下 API 生产未接线，见文件头。改行为前先读那段）
-  -- 每帧回调（有序）：基础层里有几块是"每帧写"而非"一次性重建"——
-  -- 棋盘 200 格的棋子/消除、预览列的位置、pad 的 focus 高亮。它们必须**同帧且有序**
-  -- （先在棋盘上画棋子、再算预览、最后刷 pad），否则会出现"预览先于棋盘一帧"的闪烁。
-  -- 用一张有序表，而不是让各模块自己挂 OnUpdate —— 顺序就成了显式契约。
-  local frameFns = {}
-  function A.frame(fn)
-    if type(fn) ~= 'function' then return false end
-    frameFns[#frameFns + 1] = fn
-    return #frameFns
-  end
-  function A.frameCount() return #frameFns end
-  function A.clearFrame() frameFns = {} end
-
-  -- ⚠️ EXPERIMENTAL：生产未调用 tick（OnUpdate 仍自己驱动各屏渲染）
-  function A.tick(dt)
-    A.tickCount = A.tickCount + 1
-    S.update(dt)
-    for i = 1, #frameFns do
-      local ok, err = pcall(frameFns[i], dt)
-      if not ok then
-        log('app frame fail #' .. i .. ' :: ' .. tostring(err))
-        if onError then pcall(onError, err) end
-      end
-    end
-    return A.render()
-  end
-
-  -- ⚠️ EXPERIMENTAL：生产未调用 render
-  function A.render()
-    -- 基础层被抑制且没有覆盖屏在开 ⇒ 本帧不动（保留上一帧，避免自己重建后压回别人上层）
-    if baseSuspended and overlayName == nil then return true end
-    -- 选实例：覆盖屏用自己那份（provideOverlay 登记的优先），否则用基础层那份
-    local target
-    if overlayName then
-      target = provided[overlayName] or overlayR or R
-    else
-      -- baseStatic=true：基础层的动态内容（200 格棋子/消除）由 app.frame 每帧写，
-      -- 描述里只带静态骨架 ⇒ 每帧整屏 apply 会把没写进描述的状态重置（实测=清盘）。
-      -- 因此静态基础层**只在脏时** apply；默认（false）保持原来"每帧 apply"的行为不变。
-      if baseStatic and not baseDirty then return true end
-      target = baseR or R
-      baseDirty = false
-    end
-    local nodes = S.view()
-    local ok, err = pcall(target.apply, nodes)
-    if not ok then
-      log('app render fail :: ' .. tostring(err))
-      if onError then pcall(onError, err) end
-      return false
-    end
-    if L and spec.assertOrder ~= false then
-      -- 层序自检（可选）：render 已按层号排序创建，这里只做一次性告警，不重复刷屏
-      local issues = target.issues()
-      if issues and #issues > 0 and not A.__orderWarned then
-        A.__orderWarned = true
-        log('app order issue :: ' .. tostring(issues[1].msg))
-      end
-    end
-    return true
-  end
-
   -- 输入：动作由 input_map 给出（'left'/'confirm'/…），交给场景栈决定谁消费
   function A.dispatch(action, keyName)
     return S.onAction(action, keyName)
@@ -265,32 +192,8 @@ M.new = function(spec)
       end
     end
     overlayName, overlayPushed = nil, false
-    baseDefNodes = nodes
-    baseDirty = true          -- 只标脏：真正 apply 在 render() 里做一次
     return true
   end
-
-  -- 基础层可被**临时抑制**：标题屏的显示是"状态推导"的（浮层/结算/引导任一开就要拆），
-  -- 而场景栈只有一个"当前基础场景"槽。若浮层关掉时基础层抢先重建，它会压回浮层之上
-  -- （这正是历史上"角色页被首页卡片压住"的重演路径）。抑制期间基础层不参与合成，
-  -- 覆盖屏照常；恢复后下一帧自然重画。
-  -- ⚠️ EXPERIMENTAL：suspendBase/resumeBase 生产未调用（只改标志位，无人读）
-  local baseSuspended = false
-  local baseDirty = true
-  local baseStatic = spec.baseStatic == true
-  local baseDefNodes = nil
-  function A.suspendBase() baseSuspended = true return true end
-  -- 恢复**不重 apply**：基础层的控件一直在它自己的实例里，覆盖屏用的是另一个实例，
-  -- 所以覆盖屏关掉后基础层自然还在（重 apply 反而会清掉 200 格的当前内容）。
-  function A.resumeBase() baseSuspended = false return true end
-  function A.baseSuspended() return baseSuspended end
-  function A.baseRender() return baseR end
-  -- 外部事件把基础层标脏（首次建、画布变化、标题重建都要用）。
-  -- baseStatic 的'脏时才 apply'默认只在 setBase 时置脏——启动帧若先 setBase 后建控件，
-  -- 或画布尺寸变了要重建，都需要显式再标一次，否则表现为'棋盘 200 格没建出来'。
-  -- ⚠️ EXPERIMENTAL：生产未调用 markBaseDirty
-  function A.markBaseDirty() baseDirty = true return true end
-  A.__forceDirtyEachFrame = false
 
   function A.baseName()
     if S.depth() == 0 then return nil end

@@ -85,10 +85,12 @@ A.register {
   end,
 }
 
-ok(A.start('title') == true, 'F1.0 启动标题屏')
+-- app 已收缩为"覆盖屏记账 + 基础层注册表"，不再驱动渲染（见 app.lua 文件头）。
+-- 本文件测的是**场景栈 + 渲染**的跨屏流程，直接驱动 scenes/render 即可，语义不变。
+ok(S.push('title') == true, 'F1.0 启动标题屏')
 local titleLive = R.live()
-A.render()
-local playNodes = S.push('play') and A.render()
+R.apply(S.view())
+local playNodes = S.push('play') and R.apply(S.view())
 ok(R.get('titleCard') == nil and R.get('titleText') == nil, 'F1.1 进对局后标题节点被销毁（不残留）')
 ok(R.get('cell1') ~= nil and R.get('cell200') ~= nil, 'F1.2 棋盘 200 格建起来')
 ok(R.get('hudScore') ~= nil, 'F1.3 HUD 文本在场')
