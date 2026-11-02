@@ -93,6 +93,13 @@ const MAGNUS_DEFAULT = 0.03 // 马格努斯系数 a = K·(ω×v)
 const MAXV_DEFAULT = 18.0 // 限速 m/s
 const REST_DEFAULT = 0.35 // 静止阈值 m/s
 const KICK_DEFAULT = 1.0 // 踢球力度倍率（活参数）
+// 面板力度硬边界（内核侧夹）：面板图只做累加，实测连按 14 次 → 3.8，
+// 水平冲量 38 m/s 被限速夹到 18 而自旋按 38 算 ⇒ 球打滑注能、越跑越快。
+const POW_MIN = 0.2
+const POW_MAX = 2.5
+// 踢球自旋 = (冲量/R) × SLIP。纯滚动=1.0；0.7 让「力度撞限速」时刚好接近纯滚动，
+// 力度小则自旋偏慢（球先滑后滚，摩擦让它转起来），永远不会出现自旋 > 滚动（那会注能）。
+const KICK_SPIN_SLIP = 0.7
 const DRIB_KP_DEFAULT = 45.0 // 带球弹簧刚度 1/s²
 const DRIB_KD_DEFAULT = 12.0 // 带球相对速度阻尼 1/s
 const DRIB_R_DEFAULT = 2.0 // 带球助力半径 m
@@ -373,8 +380,23 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       const rightS = f.split3dVector(rightV)
       const aimX = f.localVariable('float')
       const aimZ = f.localVariable('float')
-      // 面板：力度倍率 + 右偏/上偏（m/s），latch 在载体变量上，点一次永久生效
-      const powT = f.getCustomVariable(carrierE, 'fb_t_pow').asType('float')
+      // 面板：力度倍率 + 右偏/上偏（m/s），latch 在载体变量上，点一次永久生效。
+      // ⚠️ 边界夹在**内核侧**（面板图只累加不夹）：实测连按 14 次 +0.2 → powT=3.8，
+      //    水平冲量 38 m/s 被限速夹到 18，而自旋按 38 算（152 rad/s，纯滚动只需 72）
+      //    ⇒ 接触点滑移 20 m/s，摩擦把滑移转成动能，球越跑越快（实测 vz 17.99→19.01）。
+      const powRaw = f.getCustomVariable(carrierE, 'fb_t_pow').asType('float')
+      const powT = f.localVariable('float')
+      f.doubleBranch(
+        f.lessThan(powRaw, POW_MIN),
+        () => { powT.set(POW_MIN) },
+        () => {
+          f.doubleBranch(
+            f.greaterThan(powRaw, POW_MAX),
+            () => { powT.set(POW_MAX) },
+            () => { powT.set(powRaw) }
+          )
+        }
+      )
       const offR = f.getCustomVariable(carrierE, 'fb_t_right').asType('float')
       const offU = f.getCustomVariable(carrierE, 'fb_t_up').asType('float')
       f.doubleBranch(
@@ -390,11 +412,11 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       )
       // 踢球方向 = 前向×力度倍率 + 右轴×右偏（m/s）；带球目标仍用单位 aim（距离不随力度变）
       const kickX = f.addition(
-        f.multiplication(aimX.value, powT),
+        f.multiplication(aimX.value, powT.value),
         f.multiplication(rightS.xComponent, offR)
       )
       const kickZ = f.addition(
-        f.multiplication(aimZ.value, powT),
+        f.multiplication(aimZ.value, powT.value),
         f.multiplication(rightS.zComponent, offR)
       )
 
@@ -479,12 +501,23 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
                 },
                 () => {}
               )
-              // 面板竖直偏移（上偏，m/s）：点一次永久生效，之后每脚都带
+              // 力度同时放大竖直（力度大 ⇒ 又高又远）：修前 powT 只作用水平，
+              // 调力度只得到「更快更打滑」，球照样贴地滑 —— 手感像换了台机器不是加了力气。
+              impY.set(f.multiplication(impY.value, powT.value))
+              // 面板竖直偏移（上偏，m/s）：点一次永久生效，之后每脚都带。绝对量，不被力度放大。
               impY.set(f.addition(impY.value, offU))
               // —— 踢球自旋：由**本拍冲量**推出（不读回写后的 vx/vz；旧的独立块要二次消费
               //    kickNow，会被「本拍写回 S_LASTSEQ」污染 ⇒ 实测踢出 10m/s 但 spin 恒 0）——
-              wx.set(f.division(impZ.value, BALL_R))
-              wz.set(f.division(f.multiplication(impX.value, -1.0), BALL_R))
+              // ⚠️ 乘 KICK_SPIN_SLIP：踢球瞬间球是**打滑**的，不是纯滚动。纯滚动 ω=imp/R 在
+              //    力度被限速夹住时给出远超实际的角速度（38/0.25=152，实际 18/0.25=72），
+              //    接触点滑移 20 m/s ⇒ 库仑摩擦把滑移转成动能 ⇒ 球越跑越快、突破限速。
+              wx.set(f.multiplication(f.division(impZ.value, BALL_R), KICK_SPIN_SLIP))
+              wz.set(
+                f.multiplication(
+                  f.division(f.multiplication(impX.value, -1.0), BALL_R),
+                  KICK_SPIN_SLIP
+                )
+              )
             },
             () => {
               // —— 无球：抢断 / 解围 / 停球 ——

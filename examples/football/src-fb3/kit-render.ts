@@ -5,7 +5,8 @@
 //   · 物理全部在客户端内核（kit-loop）算完，本图**不做任何物理**；
 //   · 本图有**自己的帧率/节奏参数**（球实体变量 fb_dur = 每段补间时长，默认 0.2s），
 //     不读内核 dt、不读 Lua 帧时长；
-//   · 每条 'B' 信号：朝「pos + vel·fb_dur」下发给运动器，段长 = fb_dur ⇒ 每段走到点再被替换。
+//   · 每条 'B' 信号：朝**内核位 pos** 下发给运动器，段长 = fb_dur（缺省 1/拍频）
+//     ⇒ 每拍正好走到内核位，零滞后零超前（不做 vel·dur 前瞻，那会稳定超前 P95 2.65m）。
 //
 // 两条硬教训（别改回去）：
 //   ① 平移必须用**基础线性运动器**，不能与定点器混用同一链（motion-devices.md §10：定点器 + 旋转设备
@@ -22,12 +23,16 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 const GRAPH_ID = 1073741828
 const TELEPORT_DIST = 5.0 // 单段位移超过此值 ⇒ 定点瞬移（防百米条纹）
 const BALL_R = 0.25 // 滚动约束用的球半径（只在世界轴→局部轴换算时不需要，保留作注释常量）
-const GROUND_Y_MIN = 0.25 // 球心贴地高度，预测位不得低于它
+// 球心贴地高度：内核物理已保证 y >= 0.25，渲染层不再钳制（目标直接取内核位）
+const GROUND_Y_MIN = 0.25
 const VEL_CAP = 30.0 // 位移速度上限（内核限速 18，留追赶余量）
 const SPIN_EPS = 0.05 // 低于此角速度不发旋转设备（rad/s）
 const RAD2DEG = 57.29577951308232
 const BALL_DUR_VAR = 'fb_dur' // 球实体上的渲染节奏参数（每段补间时长，秒）
-const BALL_DUR_DEFAULT = 0.2
+// 段长缺省 = 1/拍频（实测 7.41 拍/秒）。这个值**不是随便的**：段长 ≈ 拍间隔时
+// 「目标=内核位」的插值器每拍正好走到位，稳态误差 0.00（离线回放 replay3.mjs）。
+// 段长明显大于拍间隔（旧值 0.2）⇒ 每段中途被替换，球稳定滞后/超前半个身位。
+const BALL_DUR_DEFAULT = 0.135
 
 g
   .server({
@@ -59,28 +64,24 @@ g
           () => { dur.set(BALL_DUR_DEFAULT) }
         )
         const pos = evt.params.pos
-        const vel = evt.params.vel
         const spin = evt.params.spin
         const loc = f.getEntityLocationAndRotation(ball).location
-        // ——— 预测位 = pos + vel·dur（dur 段结束时球应在的位置）———
-        const predictedRaw = f._3dVectorAddition(pos, f._3dVectorZoom(vel, dur.value))
-        const predY = f.localVariable('float')
+        // ——— 目标 = **内核当前位置**（不做 vel·dur 前瞻）———
+        // 三条实测判据（离线回放日志 3457 的 459 个运动拍，脚本
+        // `.scratch/football-phys-audit/replay3.mjs`）：
+        //   ① 目标写成 pos + vel·dur 时，dur(0.2) 比拍间隔(0.135) 大 ⇒ 球被推到内核
+        //      前面并稳定超前 p95 **2.65 m**（射门判定的视觉/逻辑会差半个身位）；
+        //   ② 目标 = pos、dur ≈ 拍间隔 ⇒ 稳态每拍正好走到内核位，误差 p50/p95 都是 **0.00**；
+        //   ③ 瞬移判据只能用 |pos − loc|。旧判据 |predicted − loc| 把前瞻距离算进去，
+        //      19 m/s 时恒 6.2 > 5.0 ⇒ 高速段**每拍瞬移**、线性/旋转设备从不工作
+        //      （实测 nframes=42 且帧里没有 fb_spinx，球在空中完全不转）。
+        // 所以：delta = pos − loc，判据 = |delta|，速度 = delta/dur。
+        const delta = f._3dVectorSubtraction(pos, loc)
+        const chase = f._3dVectorModuloOperation(delta)
         f.doubleBranch(
-          f.lessThan(f.split3dVector(predictedRaw).yComponent, GROUND_Y_MIN),
-          () => { predY.set(GROUND_Y_MIN) },
-          () => { predY.set(f.split3dVector(predictedRaw).yComponent) }
-        )
-        const predicted = f.create3dVector(
-          f.split3dVector(predictedRaw).xComponent,
-          predY.value,
-          f.split3dVector(predictedRaw).zComponent
-        )
-        const delta = f._3dVectorSubtraction(predicted, loc)
-        const dist = f._3dVectorModuloOperation(delta)
-        f.doubleBranch(
-          f.greaterThan(dist, TELEPORT_DIST),
+          f.greaterThan(chase, TELEPORT_DIST),
           () => {
-            // 大跳：定点瞬移到内核给的 pos（不是预测位），本拍不发旋转设备
+            // 真·大跳（球被重置/回中）：定点瞬移到内核位，本拍不发旋转设备
             f.activateFixedPointMotionDevice(
               ball,
               'fb_movex',
