@@ -21,11 +21,15 @@ import { KitSignal } from './signals.js'
 import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/enum'
 
 const GRAPH_ID = 1073741828
-const TELEPORT_DIST = 5.0 // 单段位移超过此值 ⇒ 定点瞬移（防百米条纹）
+const TELEPORT_DIST = 5.0 // 单段差距超过此值 ⇒ 走「定点器匀速回程」分支（球被重置/回中时用）
 const BALL_R = 0.25 // 滚动约束用的球半径（只在世界轴→局部轴换算时不需要，保留作注释常量）
 // 球心贴地高度：内核物理已保证 y >= 0.25，渲染层不再钳制（目标直接取内核位）
 const GROUND_Y_MIN = 0.25
-const VEL_CAP = 30.0 // 位移速度上限（内核限速 18，留追赶余量）
+const VEL_CAP = 30.0 // 插值分支的位移速度上限（内核限速 22，留追赶余量）
+// 回程分支的速度：球被重置到中场时用它走回去。30 m/s 走 20m 要 0.67s（偏慢、像被拖），
+// 60 m/s 只要 0.33s（≈2.5 拍），既看不出「瞬移」也不会拖沓。实测 3458 用 30 时
+// 25 段回程各耗 6~10 拍，用户观感偏慢。
+const RECOVER_SPEED = 60.0
 const SPIN_EPS = 0.05 // 低于此角速度不发旋转设备（rad/s）
 const RAD2DEG = 57.29577951308232
 const BALL_DUR_VAR = 'fb_dur' // 球实体上的渲染节奏参数（每段补间时长，秒）
@@ -95,7 +99,7 @@ g
               ball,
               'fb_movex',
               MovementMode.UniformLinearMotion,
-              VEL_CAP,
+              RECOVER_SPEED,
               pos,
               f.create3dVector(0.0, 0.0, 0.0),
               true,
