@@ -26,12 +26,12 @@
 
 | # | 动作 | 验收（可机检） | 状态 |
 |---|---|---|---|
-| 1 | **手机双盘恢复 hint 通道**：`ui.lua` 双盘分支给 hint 一条底部中带（实测该带无可见件），并让 `layoutDual` 不再把它写回 `-4000` | 手机双盘可见文字 10→11 且含 `ihint`；PC 侧一字不变 | ✅ 半完成（hint 已回，layoutDual 待接） |
-| 2 | **设备文案收敛**：`:1732`/`:4888` 两处 `IS_MOBILE and …` 文案改为查 `CFG.COPY_DEV`（键=语义位，值={pc,mobile}）；**不碰** `device = IS_MOBILE and 'mobile' or 'pc'` 那 4 处（它们是设备判据本身，不是文案） | 两处字面量 `grep` 消失；`tests/60`、`tests/42`、`tests/29` 仍绿 | 待做 |
-| 3 | **结算信号探测降到一次**：OnStart 探一次可用形态落表，结算时直走；保留双形态兜底 | `node qxqy/scan-runtime-errors.mjs` 异常行 12 → 0；`tests/06/37/38/72` 仍绿 | 待做 |
-| 4 | **验收脚本入库**：`qxqy/scan-runtime-errors.mjs`、`qxqy/probe-freeze.mjs`、`qxqy/visible-text.mjs`（从 /tmp 搬进来，可复现） | `node qxqy/scan-runtime-errors.mjs` 可独立跑出同一个数字 | 待做 |
-| 5 | **出图回归（按实际可进入组合）**：桌面 4 模式 + 手机 casual/ai-battle + 手机「请回 PC」浮层 ×2 = **6 张**；手机 pvp/coop **不是缺陷**（v5.0 设计：手机拦 3/4 并给引导浮层） | 6 张图 + 每张的可见文字清单；`tests/26/27` 保桌面 pvp/coop 行为 | 待做 |
-| 6 | **部署 + 收尾**：`node qxqy/build.mjs` → `node qxqy/deploy.mjs` → 校验两份 save 的 sha 一致 → 精确提交 | `sha256sum ~/qxqy-workspace/tetris.save.json tetris.save.json` 相等；`bash qxqy/tetris-guard.sh --fast` 通过 | 待做 |
+| 1 | **手机双盘恢复 hint 通道**：`ui.lua` 双盘分支给 hint 一条底部中带（实测该带无可见件），并让 `layoutDual` 不再把它写回 `-4000` | 手机双盘可见文字 10→11 且含 `ihint`；PC 侧一字不变 | ✅ 完成（`ihint x[200,1080] y[2,54]`；layoutDual 已单源） |
+| 2 | **设备文案收敛**：`:1732`/`:4888` 两处 `IS_MOBILE and …` 文案改为查 `CFG.COPY_DEV`（键=语义位，值={pc,mobile}）；**不碰** `device = IS_MOBILE and 'mobile' or 'pc'` 那 4 处（它们是设备判据本身，不是文案） | 两处字面量 `grep` 消失；`tests/60`、`tests/42`、`tests/29` 仍绿 | ✅ 完成（6 处三元→COPY_DEV；`tests 07/25/29/42/60` 5/5） |
+| 3 | **结算信号探测降到一次**：OnStart 探一次可用形态落表，结算时直走；保留双形态兜底 | `node qxqy/scan-runtime-errors.mjs` 异常行 12 → 0；`tests/06/37/38/72` 仍绿 | ✅ 完成（异常行 12 → 0） |
+| 4 | **验收脚本入库**：`qxqy/scan-runtime-errors.mjs`、`qxqy/probe-freeze.mjs`、`qxqy/visible-text.mjs`（从 /tmp 搬进来，可复现） | `node qxqy/scan-runtime-errors.mjs` 可独立跑出同一个数字 | ✅ 完成（4 个脚本入库，均可独立跑） |
+| 5 | **出图回归（按实际可进入组合）**：桌面 4 模式 + 手机 casual/ai-battle + 手机「请回 PC」浮层 ×2 = **6 张**；手机 pvp/coop **不是缺陷**（v5.0 设计：手机拦 3/4 并给引导浮层） | 6 张图 + 每张的可见文字清单；`tests/26/27` 保桌面 pvp/coop 行为 | ✅ 完成（8 张图 / 0 处 Lua 错误；多出 2 张是 note×2） |
+| 6 | **部署 + 收尾**：`node qxqy/build.mjs` → `node qxqy/deploy.mjs` → 校验两份 save 的 sha 一致 → 精确提交 | `sha256sum ~/qxqy-workspace/tetris.save.json tetris.save.json` 相等；`bash qxqy/tetris-guard.sh --fast` 通过 | ✅ 完成（commit 238f7287；guard PASS；sha 04db4d28 一致） |
 
 ## 3. 不做（有理由）
 
