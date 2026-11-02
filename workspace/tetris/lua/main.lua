@@ -2427,17 +2427,16 @@ FN.layoutDual = function()
     tryCall(hud, 'SetAnchoredPosition', gutterX, 250)
     trySet(hud, 'fontSize', 17)
   end
-  if best then
-    tryCall(best, 'SetSizeDelta', 330, 36)
-    tryCall(best, 'SetAnchoredPosition', gutterX, 202)
-  end
+  -- v6.16：best/hudNext 的几何改由 ui.lua 的 plan 决定（原先这里写死 gutterX/202、RIGHT_CX/255，
+  -- 与 plan 打架；手机双盘已在 plan 里给它们真实空位，见 ui.lua 双盘分支注释）。
+  if best then tryCall(best, 'SetSizeDelta', 330, 36) end
   if HUD_INST.hud then
     tryCall(HUD_INST.hud, 'SetSizeDelta', 348, 40) trySet(HUD_INST.hud, 'fontSize', 17)
     tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true)
   end
   if HUD_INST.best then
     tryCall(HUD_INST.best, 'SetSizeDelta', 330, 36) trySet(HUD_INST.best, 'fontSize', 20)
-    tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true)
+    tryCall(HUD_INST.best, 'SetVisible', true)
   end
   -- ② 右栏：AI/P2 盘战况三行（x=600/宽 360 → 跨 420..780，画布右缘留 20）
   --    行距 44（原 40 且框高 38 ⇒ 净空只剩 2px，用户读成「两行挤在一起」）；
@@ -2455,13 +2454,9 @@ FN.layoutDual = function()
     tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 600, -134) tryCall(HUD_INST.keyC, 'SetVisible', true)
   end
   -- ③「下一个」标签：贴预览块上方（预览块实测 y 78..189，标签中心 215、框高 44、valign=Middle）
-  if hudNext then
-    tryCall(hudNext, 'SetSizeDelta', 240, 44)
-    tryCall(hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
-  end
+  if hudNext then tryCall(hudNext, 'SetSizeDelta', 240, 44) end
   if HUD_INST.hudNext then
     tryCall(HUD_INST.hudNext, 'SetSizeDelta', 240, 44)
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
     tryCall(HUD_INST.hudNext, 'SetVisible', true)
   end
   -- ③b「暂存」标签（v5.37：左列 hold 槽原来没有任何标签，方块孤零零飘着 —— 用户报"渲染失败"）
