@@ -17,7 +17,7 @@ const CARRIER = 1082130445n
 // 修前 bump 只累加不夹 ⇒ 连按 14 次力度到 3.8，水平冲量 38 m/s 被限速夹到 18、
 // 自旋却按 38 算（152 rad/s vs 纯滚动 72）⇒ 球打滑注能、越跑越快。
 const POW_MIN = 0.2
-const POW_MAX = 2.5
+const POW_MAX = 2.2 // 与球实体 fb_maxv(22)/K1_SPD(10) 对齐：全程线性有效
 const OFF_LIM = 8.0 // 右偏/上偏范围 ±8 m/s
 
 function bump(f: any, name: string, delta: number, lo: number, hi: number): void {
