@@ -26,6 +26,29 @@
 
 local M = {}
 
+--[[! 接线现状（2026-11-02 审计，别把"有实现 + 有单测"当成"在跑"）：
+     —— 复算命令：`grep -c "APP\.render\|APP\.tick\|APP\.frame" lua/main.lua` = 0
+
+     生产里**实际被调用**的只有记账类 API：
+         openOverlay / closeOverlay / provideOverlay / setBase / overlay
+     而 render / tick / frame / suspendBase / resumeBase / markBaseDirty
+     **在 lua/main.lua 里一次都没被调用**（`grep -c "APP\.render" = 0`）。
+
+     为什么：6 个屏各自持有独立 render 实例，渲染由各屏自己驱动；
+     app 目前只是"谁开着"的记账本。所以：
+       · `baseStatic` / `markBaseDirty` 现在**不影响画面**（棋盘不丢是因为覆盖屏用独立实例）
+       · `frame()` 注册的回调**不会执行**（没人调 tick）
+       · `suspendBase()` 只改一个标志位，没人读
+
+     要用它们必须先把 OnUpdate 的渲染段交给 app.tick()。但 2026-11-02 实测**这条路走不通**：
+     OnUpdate 里的渲染调用不是一段连续 phase，而是**散在条件分支里的行内副作用**
+     （例：`renderHud()` 在"刚写完状态、注释写明要立刻刷"的分支里；`settleTick(d)` 是
+     状态推进与渲染混合）。硬搬只有两条路——把条件判断搬进 frame（frame 变成游戏逻辑），
+     或延后到帧末（丢掉"立刻刷"语义，会打红 tests/40/41/64）。
+
+     ⇒ 结论：**"渲染归口到一个 tick"这个设计在当前代码结构下不成立**。
+        在重构 OnUpdate 之前，这些 API 标 EXPERIMENTAL，不要在别处依赖它们的行为。
+]]
 -- 四个必需字段：platform / render / scenes（layers 可选、overlayRender 可选）。
 M.REQUIRED = { 'platform', 'render', 'scenes' }
 
@@ -68,6 +91,7 @@ M.new = function(spec)
 
   -- 每帧：推场景 + 合成视图 + 协调渲染
   -- 渲染失败不该中断逻辑：真机一处抛错会中断整段回调（历史事故），所以这里兜住并记账。
+  -- ⚠️ EXPERIMENTAL（2026-11-02 审计：以下 API 生产未接线，见文件头。改行为前先读那段）
   -- 每帧回调（有序）：基础层里有几块是"每帧写"而非"一次性重建"——
   -- 棋盘 200 格的棋子/消除、预览列的位置、pad 的 focus 高亮。它们必须**同帧且有序**
   -- （先在棋盘上画棋子、再算预览、最后刷 pad），否则会出现"预览先于棋盘一帧"的闪烁。
@@ -81,6 +105,7 @@ M.new = function(spec)
   function A.frameCount() return #frameFns end
   function A.clearFrame() frameFns = {} end
 
+  -- ⚠️ EXPERIMENTAL：生产未调用 tick（OnUpdate 仍自己驱动各屏渲染）
   function A.tick(dt)
     A.tickCount = A.tickCount + 1
     S.update(dt)
@@ -94,6 +119,7 @@ M.new = function(spec)
     return A.render()
   end
 
+  -- ⚠️ EXPERIMENTAL：生产未调用 render
   function A.render()
     -- 基础层被抑制且没有覆盖屏在开 ⇒ 本帧不动（保留上一帧，避免自己重建后压回别人上层）
     if baseSuspended and overlayName == nil then return true end
@@ -158,6 +184,7 @@ M.new = function(spec)
   local baseR = spec.baseRender or spec.render
   local overlayName, overlayPushed = nil, false
 
+  -- ✅ 生产在用：provideOverlay
   -- 让场景在"要开的时候"声明它用哪个 render 实例（懒创建屏用：结算在第一次 gameOver
   -- 才建 SR，构造期还没有实例可注入）。与 openOverlay 同族：注册即声明。
   local provided = {}
@@ -210,6 +237,7 @@ M.new = function(spec)
   end
 
   -- ===== 基础层（标题 / 棋盘 / 预览 / 手机 pad）=====
+  -- ✅ 生产在用：setBase
   -- 这四个屏是**常驻基础层**：不是 overlay，但也会切换（标题↔对局）与随画布重开。
   -- 场景栈里它就是栈底那一屏；overlay 压在上面。语义与 openOverlay 的差别只有一条：
   -- 换基础层时**栈被清空只留它**（不能把上一局的 overlay 留在栈里）。
@@ -246,6 +274,7 @@ M.new = function(spec)
   -- 而场景栈只有一个"当前基础场景"槽。若浮层关掉时基础层抢先重建，它会压回浮层之上
   -- （这正是历史上"角色页被首页卡片压住"的重演路径）。抑制期间基础层不参与合成，
   -- 覆盖屏照常；恢复后下一帧自然重画。
+  -- ⚠️ EXPERIMENTAL：suspendBase/resumeBase 生产未调用（只改标志位，无人读）
   local baseSuspended = false
   local baseDirty = true
   local baseStatic = spec.baseStatic == true
@@ -259,7 +288,9 @@ M.new = function(spec)
   -- 外部事件把基础层标脏（首次建、画布变化、标题重建都要用）。
   -- baseStatic 的'脏时才 apply'默认只在 setBase 时置脏——启动帧若先 setBase 后建控件，
   -- 或画布尺寸变了要重建，都需要显式再标一次，否则表现为'棋盘 200 格没建出来'。
+  -- ⚠️ EXPERIMENTAL：生产未调用 markBaseDirty
   function A.markBaseDirty() baseDirty = true return true end
+  A.__forceDirtyEachFrame = false
 
   function A.baseName()
     if S.depth() == 0 then return nil end
