@@ -1,0 +1,23 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "76 触屏点按 ◀ 只走 1 格（v6.12：抬起补派发清 DAS，修「移动端点一下一直移动」）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    { "t": 0.2, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
+    { "t": 0.28, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
+    { "t": 1.4, "kind": "pointer", "type": "down", "x": 168, "y": 60 },
+    { "t": 1.55, "kind": "pointer", "type": "up", "x": 168, "y": 60 }
+  ],
+  "asserts": [
+    { "at": 1.3, "kind": "log", "contains": "screen=game", "source": "client" },
+    { "at": 1.45, "kind": "log", "contains": "phone tap left", "source": "client" },
+    {
+      "at": 2.2,
+      "kind": "lua",
+      "source": "local moves, stop = 0, 0\nfor _, l in ipairs(query.logs()) do\n  if l:match('^move x=%d+$') then moves = moves + 1 end\n  if l:match('^das stop reason=timeout') then stop = stop + 1 end\nend\nassert(moves == 1, '点按 ◀ 应只走 1 格（抬起清 DAS），实得 moves=' .. moves)\nassert(stop == 0, '点按后仍出现 DAS 超时停 —— 抬起没清方向，stop=' .. stop)\nreturn true"
+    }
+  ],
+  "note": "v6.12 根因：触屏键只派发 CursorDown，而清 `g.das.dir` 的唯一路径是键盘 Up ⇒ 点一下，DAS 继续连走到 DAS_HOLD 上限（修复前实测 3 次 move + 1 条 das timeout）。修法：ui.lua 在 CursorUp/CursorExit 补 spec.release → main.lua UI4.release → dispatch(action, key, 'up')。判据两层：行为层 `phone tap left`（按钮可达）+ 语义层 move 条数恰好 1 且无 das 超时。◀ 键中心 = 计划几何 (colL-72, botY+30) = (168,60)，与 ui.lua planMobile 同源。"
+}

@@ -54,7 +54,7 @@
 | 前缀 | 含义 | 例 |
 |---|---|---|
 | `core_` | 纯逻辑，零引擎 | `core_board.lua`、`core_state.lua`、`core_ai.lua` |
-| `view_` | 纯视图（state → 节点描述） | `view_board.lua`、`view_settle.lua` |
+| `view_` | 纯视图（state → 节点描述） | `view_board.lua`、`view_settle.lua`、`view_help.lua`、`view_note.lua` |
 | `scr_` | 屏（声明 + 事件绑定 + 生命周期） | `scr_title.lua`、`scr_play.lua` |
 | `ui_` | 通用控件/主题/度量 | `ui_theme.lua`、`ui_text.lua` |
 | `plat_` | 平台/后端/输入 | `platform.lua`、`input_map.lua` |

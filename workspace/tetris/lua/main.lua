@@ -160,6 +160,10 @@ local SETTLE_ACT = {}
 
 -- 为什么挂表不挂 local：main chunk 的 local 数量贴着 Lua 5.3 硬上限 200（D591/D612 教训）。
 local SETTLEV = { M = nil, KIT_M = nil, KIT = nil, S = nil, SR = nil, live = false }
+-- v6.13 手机「双人请回 PC」浮层：`view_note` 纯描述 + **独立** render 实例 R。
+-- 为什么独立：它要整屏压住标题页展台/模式卡（modal 层），与 BR/SR/HLV.R 混用会被
+-- "不在列表里就销毁"的 diff 语义拆掉别的屏；它与 HLV 共用一份 kit 实例（纯函数，无状态）。
+local NOTEV = { M = loadModule('view_note'), KIT = nil, S = nil, R = nil, live = false, which = 1 }
 -- v6.4 标题屏：`view_title` 纯描述 + **独立** render 实例 TR（与 SETTLEV/HLV 同一套手法，绝不复用棋盘 BR）。
 -- 为什么独立：BR 每帧只喂棋盘那 200+ 个 key，把展台/卡片喂给它 ⇒ 棋盘会被当场判成"不在列表"销毁。
 -- 为什么挂一张表：main chunk 的 local 贴着 200 上限（D591/D612），整屏的状态都收进字段。
@@ -4356,6 +4360,8 @@ do
       end,
       party = function() return (SK and SK.party and #SK.party) or 1 end,
       sfx = function() sfx(SFX.press, true) end,
+      -- 触屏「抬起」：清 DAS 方向（与键盘 Up 同一条路径，见 ui.lua makeBtn 的 releaseDown）
+      release = function(action, id) if UI4.release then UI4.release(action, id) end end,
     })
     -- 触屏动作派发：本层先吃掉"本模块自己新增的 act"（关页/回标题/翻页/技能），其余交给 UI4.dispatch
     FN.U.dispatch = function(action, id, rep)
@@ -4522,78 +4528,47 @@ UI4.refreshHelpLabel = function(open)
 end
 
 -- ── 移动端「双人玩法请回 PC」引导浮层（原神风文案；点模式卡触发，不静默吞点击）──
--- 层序：每个实例建完立刻 SetAsFirstSibling（first sibling = 最上层，见 runtime.js injectKey 注释），
--- 于是最终顺序 = 按钮 > 正文 > 标题 > 装饰线 > 卡片 > 暗底 > 标题页 —— 与结算页同一套手法。
+-- v6.13：节点由 `lua/tetris/view_note.lua` 纯描述产出，本函数只负责"装配 + 日志"。
+-- 层序由语义层号决定（modal=90 压在 card/panel/hud 之上），不再靠"后建在上"的调用顺序；
+-- 旧实现的 SetAsFirstSibling 反而会把浮层压到标题页底下（官方 :4803「数值越大越靠上」）。
 UI4.noteOpen = function(which)
   if UI4.noteOn then return end
   local N = NUM.PAD_NOTE or {}
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local L = UI4.note
+  if not (NOTEV.S and NOTEV.R) then
+    print('pad note missing view_note :: which=' .. tostring(which))
+    return
+  end
   UI4.noteOn = true
-  -- 创建顺序 = 绘制顺序（D647 实测：运行时实例「后建在上」；SetAsFirstSibling 在模拟器不分层，
-  -- 而在真机 Unity 语义里 FirstSibling = 最底层 ⇒ 绝不能用它"置顶"）。
-  local function top(c) return c end
-  local cw = math.min(760, W - 120)
-  local tw = math.min(700, W - 160)
-  -- 点卡片外任意处也能关（触屏没有 Esc）：全屏 cursor 垫在最下，命中优先于标题页模式卡
-  L.block = top(UI4.hit('padNoteBlock', W + 40, H + 40))
-  if L.block then
-    addCursor(L.block, 'CursorDown', function()
-      print('pad note close which=' .. tostring(which) .. ' via=block')
-      UI4.noteClose()
-    end)
-  end
-  L.dim = top(UI4.pill('padNoteDim', W + 40, H + 40, C(160, 30, 46, 66)))
-  L.card = top(UI4.pill('padNoteCard', cw, 330, THEME.panel))
-  L.line = top(UI4.pill('padNoteLine', tw, 3, THEME.gold))
-  L.title = top(UI4.label('padNoteTitle', N.title or '旅行者，请回到更大的屏幕', tw, 60, 30, THEME.textMain))
-  L.b1 = top(UI4.label('padNoteB1', N.body1 or '', tw, 34, 20, THEME.textSub))
-  L.b2 = top(UI4.label('padNoteB2', N.body2 or '', tw, 34, 20, THEME.textMain))
-  L.b3 = top(UI4.label('padNoteB3', N.body3 or '', tw, 34, 18, THEME.textSub))
-  local bw, bh = 220, 60
-  L.btnBg = top(UI4.pill('padNoteBtnBg', bw, bh, THEME.gold))
-  L.btnTx = top(UI4.label('padNoteBtnTx', N.btn or '知道了', bw, bh, 24, THEME.textMain))
-  L.btn = top(UI4.hit('padNoteBtnHit', bw, bh))
-  UI4.regScreen('note')
-  UI4.regAdd('note.ok', L.btn, bw, bh)
-  if L.btn then
-    addCursor(L.btn, 'CursorDown', function()
+  NOTEV.which = which
+  -- v6.13（用户 2026-11-02：这个弹窗还没用我们的 ui 框架重做）：描述层 view_note 出节点，
+  -- 独立 render 实例应用（层号 modal=90 ⇒ 压在标题页模式卡/展台上，不再靠"后建在上"的调用顺序）。
+  local nodes = NOTEV.S.note {
+    canvas = { W, H },
+    text = { title = N.title, body1 = N.body1, body2 = N.body2, body3 = N.body3, btn = N.btn },
+    colors = { dim = C(160, 30, 46, 66), panel = THEME.panel, gold = THEME.gold,
+      main = THEME.textMain, sub = THEME.textSub },
+    onClose = function(via)
       sfx(SFX.press, true)
-      print('pad note close which=' .. tostring(which))
+      print('pad note close which=' .. tostring(which) .. ' via=' .. tostring(via))
       UI4.noteClose()
-    end)
-  end
-  local cy = 40
-  local function at(c, x, y, w, h)
-    if not c then return end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-  end
-  at(L.block, 0, 0, W + 40, H + 40)
-  at(L.dim, 0, 0, W + 40, H + 40)
-  at(L.card, 0, cy, cw, 330)
-  at(L.line, 0, cy + 128, tw, 3)
-  at(L.title, 0, cy + 92, tw, 60)
-  at(L.b1, 0, cy + 34, tw, 34)
-  at(L.b2, 0, cy - 2, tw, 34)
-  at(L.b3, 0, cy - 40, tw, 34)
-  at(L.btnBg, 0, cy - 108, bw, bh)
-  at(L.btnTx, 0, cy - 108, bw, bh)
-  at(L.btn, 0, cy - 108, bw, bh)
+    end,
+  }
+  NOTEV.R.clear()
+  NOTEV.R.apply(nodes)
+  NOTEV.live, NOTEV.n = true, #nodes
+  UI4.regScreen('note')
+  local hit = NOTEV.R.get('note.btnHit')   -- render 的 key 是描述节点 key（不是控件名）
+  if hit then UI4.regAdd('note.ok', hit, 220, 60) end
   UI4.dump('note')
-  print('pad note open which=' .. tostring(which))
+  print('pad note open which=' .. tostring(which) .. ' n=' .. #nodes)
 end
 
 UI4.noteClose = function()
   if not UI4.noteOn then return end
-  local L = UI4.note
-  for _, k in ipairs({ 'block', 'dim', 'card', 'line', 'title', 'b1', 'b2', 'b3', 'btnBg', 'btnTx', 'btn' }) do
-    if L[k] then
-      pcall(function() game.DestroyClientUIControl(L[k]) end)
-      L[k] = nil
-    end
-  end
   UI4.noteOn = false
+  if NOTEV.R then NOTEV.R.clear() end
+  NOTEV.live = false
   print('pad note close')
 end
 
@@ -4732,6 +4707,15 @@ function OnStart()
     print('v6 help view ok')
   else
     print('v6 help view MISSING: view_help/view_kit')
+  end
+  -- v6.13 手机「双人请回 PC」浮层装配（用户 2026-11-02：这个弹窗还没用框架重做）
+  if NOTEV.M and HLV.KIT and PT then
+    NOTEV.KIT = HLV.KIT
+    NOTEV.S = NOTEV.M.new({ layers = VIEW_LAYERS_M, kit = NOTEV.KIT })
+    NOTEV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 note view ok')
+  else
+    print('v6 note view MISSING: view_note（浮层退回旧路径）')
   end
   -- v6.4 标题屏装配：独立 kit + 独立 render 实例（与前两屏同一套手法，绝不复用 BR/SR/HLV.R）
   if TITLEV.M and TITLEV.KIT_M and PT then
@@ -5377,6 +5361,14 @@ function OnStart()
     if action == 'debugUnlock' then actDebugUnlock() return true end
     if action == 'anyKey' then anyKeyStart() return true end
     return false
+  end
+
+  -- 触屏键「抬起」入口（v6.12）：手机胶囊的 Up/CursorExit 走这里补派发一次 phase='up'，
+  -- 复用上面 dispatch 的 Up 分支（唯一清 `g.das.dir` 的地方）。没有对应键盘键的动作直接返回。
+  UI4.release = function(action)
+    local key = (INPUT_M and INPUT_M.PHONE and INPUT_M.PHONE[action]) or nil
+    if not key then return end
+    dispatch(action, key, 'up')
   end
 
   if INPUT_M and PT then

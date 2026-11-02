@@ -150,6 +150,20 @@ M.new = function(spec)
   local function T(name, x, y, w, h, fs) return { name = name, x = x, y = y, w = w, h = h, fs = fs } end
   local function B(id, x, y, w, h, fs) return { id = id, x = x, y = y, w = w, h = h, fs = fs } end
 
+  -- 导航键（角色 / 说明）的**画布两角**：PC 与移动端同一份几何 ——
+  -- v6.12（用户 2026-11-02「pc 端没有移动端的角色和帮助按钮，需要统一」）：
+  -- 以前只有移动端 nav，PC 只能靠键盘 H / 名册键；现在两端都出这两颗胶囊（鼠标点 ≡ 键盘）。
+  local function navCorners(W, H)
+    local halfW, halfH = W / 2, H / 2
+    local nw, nh = (NUM.PHONE and NUM.PHONE.NAV_W) or 116, (NUM.PHONE and NUM.PHONE.NAV_H) or 56
+    local pad = KIT.MARGIN or 18
+    -- 左上 = 角色，右上 = 说明（两角对称；PC 的 topBanner 已按 W-180 宽留出 90px 边距 ⇒ 不压字）
+    return {
+      B('roster', -halfW + pad + nw / 2, halfH - pad - nh / 2, nw, nh, KIT.FS),
+      B('help', halfW - pad - nw / 2, halfH - pad - nh / 2, nw, nh, KIT.FS),
+    }
+  end
+
   -- PC：逐字保留 v4.0 `layout()` 的数值（PC 不许因为移动端改动而变样）
   local function planPC(W, H)
     local halfW, halfH = W / 2, H / 2
@@ -158,9 +172,12 @@ M.new = function(spec)
     local rightCX = halfW - panelW / 2 - 20
     local t = {
       title = T('title', leftCX, 130, panelW, 100),
-      hud = T('hud', leftCX, 40, panelW + 40, 40, 20),
-      best = T('best', leftCX, -10, panelW, 36, 20),
-      hint = T('hint', leftCX, -95, panelW, 150, 22),
+      -- v6.13（用户 2026-11-02「pc 和移动端除了操作逻辑，其他应该差不多」）：
+      -- 左栏 HUD 三行从"列中段"上移到**与移动端同一相对高度**（18.6% / 23.6% / 33%），
+      -- 技能卡移走后中段本来就空了；顶上是「角色」键（y∈[376,432]），hud 中心 283 不打架。
+      hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
+      best = T('best', leftCX, 238, panelW, 36, 20),
+      hint = T('hint', leftCX, 153, panelW, 150, 22),
       hudNext = T('hudNext', rightCX, 255, 200, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
@@ -170,9 +187,9 @@ M.new = function(spec)
     }
     -- 实例份尺寸与 textbox 份不同（历史上按实测定的，见 v3.5 ④）：hudNext 240 / 其余同宽
     local ti = {
-      hud = T('hud', leftCX, 40, panelW + 40, 40, 20),
-      best = T('best', leftCX, -10, panelW, 36, 20),
-      hint = T('hint', leftCX, -95, panelW, 150, 22),
+      hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
+      best = T('best', leftCX, 238, panelW, 36, 20),
+      hint = T('hint', leftCX, 153, panelW, 150, 22),
       hudNext = T('hudNext', rightCX, 255, 240, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
@@ -191,7 +208,7 @@ M.new = function(spec)
     sk.sk2state = T('sk2state', leftCX + 105, -284, 190, 36, 20)
     sk.sk2bar = T('sk2bar', leftCX - 95, -306, 220, 14)
     sk.sk2barBg = T('sk2barBg', leftCX - 95, -306, 220, 14)
-    return { text = t, inst = ti, slots = {}, nav = {}, acts = {}, skill = sk,
+    return { text = t, inst = ti, slots = {}, nav = navCorners(W, H), acts = {}, skill = sk,
              rightCX = rightCX, leftCX = leftCX, panelW = panelW }
   end
 
@@ -250,7 +267,7 @@ M.new = function(spec)
       sk2bar = T('sk2bar', gutterX, -306, 330, 12),
       sk2barBg = T('sk2barBg', gutterX, -306, 330, 12),
     }
-    return { text = t, inst = ti, slots = {}, nav = {}, acts = {}, skill = sk,
+    return { text = t, inst = ti, slots = {}, nav = navCorners(W, H), acts = {}, skill = sk,
              rightCX = rightCX, leftCX = gutterX, panelW = 420, dual = true }
   end
 
@@ -433,6 +450,18 @@ M.new = function(spec)
     local p
     if not isMobile then p = dual and planPCDual(W, H, guide) or planPC(W, H)
     else p = planMobile(W, H, dual, guide) end
+    -- 技能 UI 整组移走（config.NUM.SKILL_UI == false，用户 2026-11-02 要求；PC 与移动端一起）：
+    -- 清空 p.skill（角色名卡/能量条/技能状态行）并摘掉 skill1/skill2/switch 三个槽位 ——
+    -- 两者都走「不在 plan 里 ⇒ applyText/applyButtons 把它挪出画布」的同一条语义，
+    -- 不新开隐藏通道（真机 SetVisible 对实例不可靠，只有坐标这一种"藏"）。
+    if NUM.SKILL_UI == false then
+      p.skill = {}
+      local keep = {}
+      for _, r in ipairs(p.slots or {}) do
+        if r.id ~= 'skill1' and r.id ~= 'skill2' and r.id ~= 'switch' then keep[#keep + 1] = r end
+      end
+      p.slots = keep
+    end
     local halfW, halfH = W / 2, H / 2
     local nw, nh = NUM.PHONE and NUM.PHONE.NAV_W or 116, NUM.PHONE and NUM.PHONE.NAV_H or 56
     local pad = KIT.MARGIN or 18
@@ -465,7 +494,7 @@ M.new = function(spec)
       p.nav = isMobile and {
         B('page', -halfW + pad + nw / 2, -(halfH - pad - nh / 2), nw, nh, KIT.FS),
         B('home', -halfW + pad + nw / 2, -(halfH - pad - nh / 2) + 70, nw, nh, KIT.FS),
-      } or {}
+      } or navCorners(W, H)
       p.text.topBanner = T('topBanner', 0, -4000, W, 64, 34)
       p.inst.topBanner = T('topBanner', 0, -4000, W, 64)
       p.text.botBanner = T('botBanner', 0, -4000, W - 180, 48, 20)
@@ -557,10 +586,23 @@ M.new = function(spec)
       trySet(b.txt, 'verticalAlignment', 'Middle')
       trySet(b.txt, 'horizontalAlignment', 'Middle')
     end
+    -- v6.12（用户 2026-11-02「移动端还有严重 bug，左右移动点一下会一直移动」）：
+    -- 触屏以前只派发「按下」；键盘那侧的 Up（**唯一**清 `g.das.dir` 的地方）永远不会来
+    -- ⇒ 点一下，DAS 继续连走到 DAS_HOLD 上限。实测一次点按 = 3 格 + `das stop reason=timeout`。
+    -- 修法：按下置 b.down，抬起**补一次 release**，走与键盘 Up 同一条清 DAS 的路径；
+    -- 滑出（CursorExit）同样收口 —— 手指蹭出胶囊后重复派发不停，是同一个「一直移动」的另一入口。
+    -- release 只对真正按下过的键生效（纯悬停进出不会误清键盘按住的 DAS）。
+    local function releaseDown()
+      if not b.down then return end
+      b.down = false
+      U.stopRep(b)
+      if spec.release then spec.release(b.act, id) end
+    end
     addCursor(b.hit, 'CursorEnter', function() U.paint(b, 'hover') end)
-    addCursor(b.hit, 'CursorExit', function() U.paint(b, 'normal') end)
-    addCursor(b.hit, 'CursorUp', function() U.paint(b, 'hover') U.stopRep(b) end)
+    addCursor(b.hit, 'CursorExit', function() U.paint(b, 'normal') releaseDown() end)
+    addCursor(b.hit, 'CursorUp', function() U.paint(b, 'hover') releaseDown() end)
     addCursor(b.hit, 'CursorDown', function()
+      b.down = true
       if spec.sfx then spec.sfx() end
       U.paint(b, 'down')
       print('phone tap ' .. id)
@@ -614,21 +656,27 @@ M.new = function(spec)
   U.padBuildNow = function(isMobile)
     U.mobile = isMobile and true or false
     U.btns, U.navBtns, U.actBtns = {}, {}, {}
+    U.pageBtn = nil
     U.regScreen('play')
+    local n = 0
+    -- v6.12（用户 2026-11-02「pc 端……没有移动端的角色和帮助按钮」）：导航键**两种设备都建**。
+    -- 触屏靠它开角色/说明，PC 靠鼠标点（键盘 H / 名册键仍并行有效，dispatch 同一个动作）。
+    for _, it in ipairs(NUM.PHONE.nav or {}) do
+      local b = makeBtn(it, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
+      if b then U.navBtns[#U.navBtns + 1] = b n = n + 1 end
+    end
     if not U.mobile then
-      print('phone build skip device=pc')
+      U.allBtns = {}
+      for _, b in ipairs(U.navBtns) do U.allBtns[#U.allBtns + 1] = b end
+      U.reapply()
+      print('phone build skip device=pc nav=' .. #U.navBtns)
       return
     end
-    local n = 0
     for _, it in ipairs(NUM.PHONE.items or {}) do
       local w, h = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
       if it.slot and it.slot:sub(1, 1) == 'M' then w, h = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H end
       local b = makeBtn(it, w, h, KIT.FS, 'p')
       if b then b.slot = it.slot U.btns[#U.btns + 1] = b n = n + 1 end
-    end
-    for _, it in ipairs(NUM.PHONE.nav or {}) do
-      local b = makeBtn(it, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
-      if b then U.navBtns[#U.navBtns + 1] = b n = n + 1 end
     end
     -- 帮助页翻页键（第 2/2 页才标「次页」，U.sync 里改字）
     local pb = makeBtn({ id = 'page', label = '次页', act = 'page' }, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
@@ -694,7 +742,7 @@ M.new = function(spec)
 
   -- 按 id 找几何：先槽位键（游戏键）→ 导航键 → 结算键
   local function applyButtons(p)
-    if not U.mobile then return end
+    -- v6.12：PC 也走这里（U.allBtns 里只有角色/说明两颗导航键；触屏簇在 PC 上不建）
     local byId = {}
     for _, list in ipairs({ p.slots or {}, p.nav or {}, p.acts or {} }) do
       for _, r in ipairs(list) do byId[r.id] = r end
