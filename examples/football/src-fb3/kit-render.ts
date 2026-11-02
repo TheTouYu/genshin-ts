@@ -81,17 +81,26 @@ g
         f.doubleBranch(
           f.greaterThan(chase, TELEPORT_DIST),
           () => {
-            // 真·大跳（球被重置/回中）：定点瞬移到内核位，本拍不发旋转设备
+            // 大跳（球被重置/回中）：**定点运动器的匀速直线模式**，不是瞬移。
+            // 官方节点「开启定点运动器」的移动方式有两个值：瞬间移动 / **匀速直线运动**
+            // （src/definitions/enum.ts MovementMode），参数类型分固定速度 / 固定时间
+            // （FixedMotionParameterType）。初版 eea2e0b8 用的是 InstantMovement（注释
+            // 「超过这个距离改用瞬时定点运动器」= 防 delta/dur 拉出条纹的兜底），
+            // 2026-11-02 用户要求改成平滑：UniformLinearMotion + FixedSpeed 让球以
+            // VEL_CAP 匀速走过去，差距越大走得越久，但每一帧都是连续的。
+            // lockRotation=true：保留当前朝向（传 false 会把球朝向清零成 (0,0,0)）。
+            // 注：定点器不可与本链的旋转器同链（motion-devices.md §10，直线会被秒停）；
+            //     这条分支本来就不发旋转设备，所以安全。
             f.activateFixedPointMotionDevice(
               ball,
               'fb_movex',
-              MovementMode.InstantMovement,
-              0.0,
+              MovementMode.UniformLinearMotion,
+              VEL_CAP,
               pos,
               f.create3dVector(0.0, 0.0, 0.0),
-              false,
+              true,
               FixedMotionParameterType.FixedSpeed,
-              0.0
+              dur.value
             )
           },
           () => {
