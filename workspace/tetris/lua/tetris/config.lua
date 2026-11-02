@@ -895,4 +895,51 @@ M.COL_RED, M.COL_BLUE, M.COL_ORANGE, M.COL_BG, M.COL_GRAY =
 -- 默认不打；需要复现 AI 节奏或下落轨迹时置 true。
 M.VERBOSE = true   -- 先保回归绿（用例断言依赖这些行）；真机需要瘦身时再关
 
+-- ── 设备文案单源（v6.16）────────────────────────────────────────────────────
+-- 用户 2026-11-02 图三：「PC 有提示、移动端没有，逻辑和文字设计代码应该共享」。
+-- 以前同一句文案写成 `IS_MOBILE and '手机版' or 'PC 版'` 三元表达式散在各处，
+-- 每次只有一端被试到，另一端就悄悄漂移（或干脆像双盘 hint 那样被布局藏掉）。
+-- 规矩：**文案只写在这张表里**（键 = 语义位，不是控件名），调用点一律查表不写三元。
+-- 缺省回落 pc（PC 是本工程的完整形态）。
+M.COPY_DEV = {
+  -- 标题页底栏提示（stage0）
+  title = {
+    pc = '按 1-4 选模式 · 任意键=休闲 · H 游戏说明',
+    mobile = '点卡片选模式 · 右上角：角色 · 说明',
+  },
+  -- 双盘准备期：底部横幅（手机在这里承接「准备开始」，因为两盘净空放不下长句）
+  ready = {
+    pc = '',
+    mobile = '准备开始 · 按任意键',
+  },
+  -- 双盘准备期的 keyA / keyB（玩家键位说明 / 对家状态）
+  readyKeys = {
+    pc = '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存',
+    mobile = '点击盘面开始',
+  },
+  readyPeer = {
+    pc = 'AI 已就绪 · 与你同规则对战',
+    mobile = 'AI 已就绪',
+  },
+  -- 准备期中缝提示（手机没有键盘，「H 帮助」在手机上是指不到的键）
+  readyHintAI = {
+    pc = '按任意键开始 · H 帮助',
+    mobile = '点屏幕开始 · 右上角：说明',
+  },
+  readyHintDual = {
+    pc = '双方按任意键准备 · H 帮助',
+    mobile = '点屏幕开始 · 右上角：说明',
+  },
+  -- 准备期底栏技能键位（手机是触屏施放，不列键盘键）
+  readySkillBar = {
+    pc = 'Z 技能1 · U 技能2 · Y 换台前 · H 说明',
+    mobile = '',
+  },
+}
+M.copyOf = function(key, mobile)
+  local row = M.COPY_DEV[key]
+  if not row then return '' end
+  return (mobile and row.mobile) or row.pc or ''
+end
+
 return M

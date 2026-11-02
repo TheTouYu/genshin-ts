@@ -695,29 +695,39 @@ end
 -- 真结算：把「游戏结束」发成服务端信号 tetris_settle —— 地图 hl 里的服务端图 1082130480
 -- 收到后「设玩家结算状态 = Victory」→「结算关卡」，弹出官方结算页。
 local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
-local settleSignalForm = nil
+local settleSignalForm = nil          -- nil=未探测 | 1=静态 .send() | 2=工厂 + :SendSignal()
+-- v6.16（生产级）：信号 API 有两种形态（真机工厂 / 模拟器静态），旧实现每次结算都先试错一遍，
+-- 于是**每个新会话的第一次结算都会打一条 `settle signal FAILED :: attempt to index a function value`**
+-- —— 功能是对的，但日志里躺着一行像崩溃的东西，真机排查时是噪声源（75 条用例里 12 条命中同一行）。
+-- 现在：启动时探一次形态落表，结算时直接走；探测本身只在 OnStart 打一行中性日志。
+local function probeSettleSignalForm()
+  if settleSignalForm then return settleSignalForm end
+  -- 探"静态 send"：函数值上取 .send 会抛 ⇒ pcall 捕获即说明是工厂形态
+  local ok = pcall(function() return game.ServerSignal.send end)
+  settleSignalForm = ok and 1 or 2
+  print('settle signal form=' .. tostring(settleSignalForm) .. (ok and ' (static)' or ' (factory)'))
+  return settleSignalForm
+end
 local function sendSettleSignal()
-  if settleSignalForm == 2 then
-    pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
-    settleSignalState = 'sent'
-    print('settle signal sent')
-    return true
+  local form = probeSettleSignalForm()
+  if form == 1 then
+    local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
+    if ok then
+      settleSignalState = 'sent'
+      print('settle signal sent')
+      return true
+    end
+    -- 形态探测过一次但发送仍失败：只在这里说明一次，不再反复刷
+    print('settle signal send failed :: ' .. tostring(err))
+    settleSignalForm = 2          -- 换形态再试（下次不再走这条）
   end
-  local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
-  if ok then
-    settleSignalState = 'sent'
-    print('settle signal sent')
-    return true
-  end
-  print('settle signal FAILED :: ' .. tostring(err))
   local ok2, err2 = pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
   if ok2 then
-    settleSignalForm = 2          -- 记住可用形态，后续不再重试失败那条
     settleSignalState = 'sent'
-    print('settle signal sent (factory form)')
+    print('settle signal sent')
     return true
   end
-  print('settle signal FAILED (factory form) :: ' .. tostring(err2))
+  print('settle signal unavailable :: ' .. tostring(err2))
   settleSignalState = 'none'
   return false
 end
@@ -1294,12 +1304,13 @@ local function startIfWaiting()
     GK.phase, GK.t, GK.count = 'keys', 0, 3
     -- v3.1 四-2：ai-battle=单人页——keyA 显示玩家键组（方向键系，非 WASD），keyB 只显示 AI 就绪
     -- 手机不用键盘：准备期只给触屏话术（键盘图例在手机上是 3 行字，塞不进 200×32 ⇒ 整条不画）
-    local keys2 = IS_MOBILE and '点击盘面开始' or (MODE == 'coop')
+    -- v6.16：手机的两句从 config.COPY_DEV 取（单源）；PC 侧仍按模式分支（那是玩法差异，不是设备差异）。
+    local keys2 = IS_MOBILE and CFG.copyOf('readyKeys', true) or (MODE == 'coop')
       and 'P1：W 旋转 · G 暂存'
       or (MODE == 'ai-battle')
         and '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存'
         or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
-    local keys2b = IS_MOBILE and 'AI 已就绪' or (MODE == 'ai-battle')
+    local keys2b = IS_MOBILE and CFG.copyOf('readyPeer', true) or (MODE == 'ai-battle')
       and 'AI 已就绪 · 与你同规则对战'
       or (MODE ~= 'coop')
         and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
@@ -1307,12 +1318,11 @@ local function startIfWaiting()
     -- v6.15（用户 2026-11-02 图一：横幅被两块棋盘压掉右半截）：服务端 textbox 永远在
     -- 运行时实例**之下**（D646），而手机双盘两块棋盘之间的净空只有 170px ⇒ 任何宽于 170 的
     -- 居中文字都会被棋盘盖住。手机上只放模式名（4 字≈96px，落在净空内），「准备开始」交给底部横幅。
-    if IS_MOBILE then
-      setText(topBanner, MODE_TITLE[MODE] or MODE)
-      setText(botBanner, '准备开始 · 按任意键')
-    else
-      setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
-    end
+    -- v6.16：设备差异收敛到 config.COPY_DEV 一张表（此前是散落的三元表达式）。
+    -- 手机两盘净空只有 170px ⇒ 顶部只放模式名，'准备开始' 由底部横幅承接（底部文案见 COPY_DEV.ready）。
+    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. (IS_MOBILE and '' or ' · 准备开始'))
+    local readyTip = CFG.copyOf('ready', IS_MOBILE)
+    if readyTip ~= '' then setText(botBanner, readyTip) end
     GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
     setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
@@ -1366,13 +1376,15 @@ local function startIfWaiting()
     tryCall(hint, 'SetAnchoredPosition', 0, rowY)
     -- v5.4（用户 2026-10-30 二-2「右边的简易帮助完全没提角色技能」）：
     -- 准备期底栏补一行技能键位（Z 技能1 / U 技能2 / Y 换台前），玩家在开局前就知道有技能。
-    setText(botBanner, 'Z 技能1 · U 技能2 · Y 换台前 · H 说明')
+    local skillBar = CFG.copyOf('readySkillBar', IS_MOBILE)
+    if skillBar ~= '' then setText(botBanner, skillBar) end
     if HUD_INST.botBanner then
       trySet(HUD_INST.botBanner, 'fontColor', THEME.textSub)
       tryCall(HUD_INST.botBanner, 'SetVisible', true)
     end
-    setText(hint, (MODE == 'ai-battle') and '按任意键开始 · H 帮助'
-      or '双方按任意键准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
+    -- v6.16：设备差异收进 COPY_DEV（手机上「H 帮助」是指不到的键）
+    setText(hint, (MODE == 'ai-battle') and CFG.copyOf('readyHintAI', IS_MOBILE)
+      or CFG.copyOf('readyHintDual', IS_MOBILE))   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
     if HUD_INST.hint then
       trySet(HUD_INST.hint, 'fontSize', 18)
       trySet(HUD_INST.hint, 'fontColor', THEME.textSub)
@@ -1729,8 +1741,7 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
-    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, CFG.copyOf('title', IS_MOBILE))
   pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
   -- v3.5 ④：回标题屏同样下架 HUD 实例（含横幅/下一个；标题页只看展台）
   if HUD_INST.hideAll then HUD_INST.hideAll() end
@@ -2467,17 +2478,10 @@ FN.layoutDual = function()
     trySet(HUD_INST.holdLab, 'verticalAlignment', 'Middle')
     trySet(HUD_INST.holdLab, 'fontColor', THEME.textMain)
   end
-  -- ④ 引导/准备提示（hint）：中缝一行，压在底栏常驻之上（1600 画布：y=-340 → ypx770..810，
-  --    底栏常驻 ypx852..892，互不相压；宽 260 只占中缝，不再横穿两侧键位卡）
-  if hint then
-    tryCall(hint, 'SetSizeDelta', 260, 40)
-    tryCall(hint, 'SetAnchoredPosition', 0, -(halfH - 110))
-  end
-  if HUD_INST.hint then
-    tryCall(HUD_INST.hint, 'SetSizeDelta', 260, 40)
-    tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 110))
-    tryCall(HUD_INST.hint, 'SetVisible', true)
-  end
+  -- ④ 引导/准备提示（hint）：**几何单源 = ui.lua 的 plan**（PC 双盘上带 / 手机双盘底部带）。
+  -- v6.16：这里原来写死 (0, -(halfH-110))，与 plan 打架——实测 plan 生效是因为 applyText 在其后跑，
+  -- 属于"靠调用顺序碰对"，不是契约。删掉本段，hint 位置只由 plan 决定。
+  if HUD_INST.hint then tryCall(HUD_INST.hint, 'SetVisible', true) end
   for _, t in ipairs(HUD_TEXT) do
     local box = t[3] and HUD_TEXT.boxOf(t[1]) or nil
     if box then tryCall(box, 'SetVisible', false) end
@@ -4885,8 +4889,7 @@ function OnStart()
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
   -- v2.1 ②：大视觉卡片承载模式选择；botBanner 呼吸提示改短句+H 说明入口
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
-    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, CFG.copyOf('title', IS_MOBILE))
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
   pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
