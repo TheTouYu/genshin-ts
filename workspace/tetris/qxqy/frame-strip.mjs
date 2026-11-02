@@ -63,14 +63,19 @@ export function openPlay(canvasId, { root = PROJECT_ROOT, save = null } = {}) {
 }
 
 /**
- * 出图保真补丁（从 qxqy/shot-style.mjs 抽出，语义不变）：
- * host-png 按 z 升序绘制，而 z 是控件创建序 —— 运行时后建的实例（HUD/召唤物）会压住服务端布局层
- * 的 textbox，出图看起来「字没了」；真机观感是文字可见。故出图时把 textbox 放到最后画。
- * hud=true 时再把 HUD 名集抬到 textbox 之后（shot-style 的可选行为）。
+ * 出图保真补丁（**默认关闭**，2026-11-02 修正）：
+ * 原实现**无条件**把 textbox 放到最后画，理由是"真机观感是文字可见"。
+ * 那条理由只对「服务端 textbox 被背景池 wash 盖住」成立；对「同一套描述里
+ * 胶囊压住自己的标签」它会把 bug 画成正确的 —— 用户 2026-11-02 截图指出结算页
+ * 「再来一局」绿胶囊里没有字，而我们的出图**有字**，正被这一行掩盖。
+ * 判据：**出图必须能复现用户看到的缺陷，否则它不是证据。**
+ * 现在只有显式 `textboxOnTop: true`（CLI: `--textbox-on-top`）才补，默认按真实 z 序画。
+ * hud=true 时仍把 HUD 名集抬到最上（shot-style 的可选行为，与上面那条无关）。
  */
-export function paintOrdered(scene, { hud = false } = {}) {
+export function paintOrdered(scene, { hud = false, textboxOnTop = false } = {}) {
   const paint = flattenScenePaint(scene)
   const isHud = (item) => hud && HUD_NAMES.has(item.name)
+  if (!textboxOnTop) return [...paint.filter((i) => !isHud(i)), ...paint.filter(isHud)]
   const layers = [
     paint.filter((item) => !isHud(item) && item.kind !== 'textbox'),
     paint.filter((item) => !isHud(item) && item.kind === 'textbox'),

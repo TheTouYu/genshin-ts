@@ -6,9 +6,13 @@
    2) 按字段**增量更新**（值没变就不写控件 —— 60fps 下写 200 格会很贵）
    3) **销毁**本帧不再需要的节点（场景切换/收起）
 
- 引擎事实：没有可靠的 z 重排（SetAsLastSibling 在模拟器不准）⇒ 一个已经建好的节点
- 若需要「下沉到已有节点之下」，唯一正确做法是重建整棵树（rebuild）。检测到这种情况
- 会记 issue 并把节点建在当前最上层（可见但不合层序）——让 bug 暴露而不是静默。
+ 层序（2026-11-02 校正，见 view_layers.lua 头注释的官方出处）：
+   官方：层级越大越靠上；同层级按创建时序、**后创建的在上**。
+   本模块用**创建顺序**实现层号（Lua 侧没有设层级的 API）⇒ 建完才发现该「下沉」的节点
+   无法原地重排；此时记 issue 并把节点建在当前层（可见但不合层序）——让 bug 暴露而不是静默。
+   ⚠ 旧结论「SetAsLastSibling 在模拟器不准/是空操作」已作废：真因是 platform.lua 曾把
+   SetAsLastSibling/SetAsFirstSibling 写成空函数。现在它们是真实现（SetSiblingIndex 家族，
+   返回 boolean），**需要运行时重排可以直接用**，不必重建整棵树。
 ========================================================================]]
 
 local M = {}
@@ -298,6 +302,28 @@ M.new = function(spec)
   end
 
   function R.live() return live end
+
+  -- ===== 运行时提层（官方 sibling API；2026-11-02 新增）=====
+  -- 场景：同一屏里「底板/胶囊」先建、「标签/文字」后建，但业务上要求标签压在底板上。
+  -- 官方 :4803「SetSiblingIndex(index)……数值越大通常越靠后、显示越靠上」、
+  --      :4821-4829 SetAsFirstSibling/SetAsLastSibling。
+  -- 本函数的语义 = 「把 key 这个节点在同级里提到最上（= 最后绘制）」。
+  -- 返回 true=真的调成功（可断言）；false=节点不存在或无父级。
+  -- ⚠ 只在**同一父级**内有效（跨父级要由构造层保证，见 view_settle 的 capLabel 注释）。
+  function R.raise(key)
+    local ent = prev[key]
+    if not ent or not ent.ctl then return false end
+    return P.call(ent.ctl, 'SetAsLastSibling') == true
+  end
+
+  -- 按给定顺序把一串 key 依次提到最上（后面的最后提 ⇒ 最终最上）
+  function R.raiseAll(keys)
+    local okAll = true
+    for i = 1, #keys do
+      if not R.raise(keys[i]) then okAll = false end
+    end
+    return okAll
+  end
 
   return R
 end

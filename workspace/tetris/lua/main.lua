@@ -909,6 +909,19 @@ SETTLEV.open = function(overTitle)
     SETTLEV.SR.clear()
     SETTLEV.SR.apply(nodes)
   end
+  -- v6.11（用户 2026-11-02 图二「这个按钮渲染有问题」：绿胶囊里没有字）
+  -- 三颗胶囊的标签是**后建**的，但引擎里「同层后建在上」只在同一父级内成立，
+  -- 而这里胶囊与标签都是 SR 的直接子节点 ⇒ 显式提层，别赌创建序。
+  -- 用官方 sibling API（platform 已从空函数改为真实现）：标签最后提 ⇒ 最终最上。
+  if SETTLEV.SR and SETTLEV.SR.raiseAll then
+    local order = {}
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.role == 'capLabel' then order[#order + 1] = n.key end
+    end
+    local okRaise = SETTLEV.SR.raiseAll(order)
+    print('settle labels raised n=' .. #order .. ' ok=' .. tostring(okRaise))
+  end
   FN.settleLiveSync()
   local mtS = MODE_THEME[MODE] or MODE_THEME.casual or {}
   SETTLEV.bindHover(nodes, mtS.accent or THEME.textMain, mtS.frame or THEME.textMain)
@@ -1221,8 +1234,13 @@ local function startIfWaiting()
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
   if HUD_INST.hud then
     local halfW = (CANVAS_W or 1280) / 2
-    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 40)
-    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), -10)
+    -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」）：左上空区同时挂着「角色」导航键
+    -- （view_pad slot('roster')：中心 x=-halfW+18+58、高 56 ⇒ 占 y∈[halfH-74, halfH-18]），
+    -- 而 HUD 两行原在 y=40/-10（1280×720 ⇒ raw 400/350）正好压进按钮的行高里。
+    -- 几何判据（1280×720）：按钮底边 raw y=286；HUD 首行中心 250、次行 202 ⇒ 净空 36px。
+    -- ⚠ 这一对数值与 layoutDual(gutterX/250/202) 是**同一份几何的两处写法**：改一处必须改两处。
+    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 250)
+    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), 202)
     tryCall(HUD_INST.hud, 'SetVisible', true)
     tryCall(HUD_INST.best, 'SetVisible', true)
   end
@@ -2507,6 +2525,11 @@ HUD_INST.build = function()
         end
         trySet(c, 'fontSize', fs)
         trySet(c, 'fontColor', THEME.textMain)
+        -- v6.11（用户 2026-11-02 图一修完暴露的第二层）：HUD 文字实例的**背景**必须显式透明。
+        -- 模板 stext 的 bgColor 缺省是 0xFFFFFF（不透明白），此前这些实例一直压在按钮那一行
+        -- 底下、白底被按钮盖住看不出来；把两行挪到按钮下方后，白底直接露成了一块块白斑。
+        -- 官方口径：Color(r,g,b,a) 省略 a = 255 不透明，要透明必须显式 a=0 ⇒ 0x00FFFFFF。
+        trySet(c, 'bgColor', 16777215)          -- 0x00FFFFFF：r/g/b 保留、alpha=0
         tryCall(c, 'SetSizeDelta', w, hh)
         -- 对齐必须显式（v3.5 ④ / v5.5：模板缺省 Top/Left 会裁掉字形，真机右侧被切半个字）
         trySet(c, 'verticalAlignment', 'Middle')
@@ -2518,7 +2541,17 @@ HUD_INST.build = function()
     if t[3] and box then tryCall(box, 'SetVisible', false) end   -- 断言读 text 字段，不受 visible 影响
   end
   local halfH = (CANVAS_H or 720) / 2
+  local halfW = (CANVAS_W or 1280) / 2
   local function put(nm, x, y) local c = HUD_INST[nm] if c then tryCall(c, 'SetAnchoredPosition', x, y) end end
+  -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」，红箭头指向左上「角色」胶囊）：
+  -- 左上空区同时挂着「角色」导航键（view_pad slot('roster')：中心 x=-halfW+18+58、高 56
+  -- ⇒ 占屏幕 y∈[18,74]），而「得分…」那行原在 y=40（屏幕 y∈[60,100]）⇒ 横向 20..460 与
+  -- 按钮 18..134 相交、纵向 60..100 与 18..74 相交 ⇒ 真的压上了。
+  -- 修法：把这两行挪到**按钮下沿之外**（首次 build 就在这里定，不靠进局那段补写——
+  -- 实例坐标是建时复制 textbox 的，等一下再改会露一帧旧位置）。
+  -- 几何判据（1280×720，屏幕坐标）：按钮底 74 ⇒ 首行中心 raw 250 = 屏幕 110（y∈[90,130]）。
+  put('hud', -(halfW - 230), 250)
+  put('best', -(halfW - 230), 202)
   put('topBanner', 0, halfH - 36)
   if HUD_INST.topBanner then trySet(HUD_INST.topBanner, 'fontSize', 34) end
   put('botBanner', 0, -(halfH - 40))          -- v5.4：离底缘 28px 会被裁 ⇒ 上移 12px
@@ -5509,7 +5542,12 @@ function OnUpdate(dt)
     end
   end
   -- v2.8 ②：局内开帮助=游戏时停（重力/AI/接管计时全停；结算态不冻结）。关闭即恢复。
-  if helpOpen and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
+  -- v6.11（用户 2026-11-02 图一「角色点击之后应该暂停游戏，和右边的说明按钮一个逻辑」）：
+  -- 角色页同样算时停。此前只有 helpOpen 一条判据 ⇒ 局内点「角色」把角色页盖上来，
+  -- 而重力/AI/接管**照常推进**，玩家在翻档案时方块还在掉（比"没反应"更糟）。
+  -- ⚠ 判据必须与 FN.stageWanted 的"浮层"口径一致（下面另加的浮层类型要同步加进来）。
+  local paused = helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn)
+  if paused and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
   g = G[1]                         -- 主流程段（横幅/演出/自演）作用于主盘（v1 语义）
   if bannerTimer > 0 and not g.gameOver then

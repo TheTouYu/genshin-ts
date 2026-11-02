@@ -277,24 +277,39 @@ M.new = function(spec)
     local t, ti, slots, nav = {}, {}, {}, {}
     if not dual then
       -- ── 单盘：侧列放 HUD/技能/拇指簇；下带放技能行 + 导航；上带放常驻提示 ──
-      t.hud = T('hud', colL, halfH - 80, tw, 40, 20)
-      t.best = T('best', colL, halfH - 116, tw, 34, 20)
-      t.hint = T('hint', colL, halfH - 186, tw, 96, 20)
+      -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」，红箭头指向左上「角色」胶囊）：
+      -- 「角色」导航键占屏幕 y∈[18,74]（中心 raw -halfH+18+28、高 56），
+      -- 而 hud 原来在 halfH-80（1280×720 ⇒ 屏幕 y 中心 80、行高 40 ⇒ y∈[60,100]）——纵向压上。
+      -- 我们自己的审计早就报过：日志 `ui audit !! over-text:roster@hud`（没人处理，本轮修）。
+      -- 修法：整列下移到按钮下沿之外 ⇒ hud 中心 raw halfH-134（屏幕 y=134, 行 ∈[114,154]），
+      -- best 依次 -36，hint 跟着让位。留 40px 净空给按钮。
+      t.hud = T('hud', colL, halfH - 134, tw, 40, 20)
+      t.best = T('best', colL, halfH - 170, tw, 34, 20)
+      t.hint = T('hint', colL, halfH - 240, tw, 96, 20)
       -- 预览列心 RIGHT_CX 沿用 PC 公式（1280 → 410）：用例 15/16 断言预览块绝对 x，
       -- 擅自改成侧列中线 400 会让它们红（实测 400→390），且 410 仍在右列内。
+      -- ⚠ 2026-11-02 实测再证一次：把 rcx 从 halfW-230 改成 halfW-270 后
+      -- `15-next-preview` / `16-hold-swap` 立刻红（期望 400 实得 360）。**x 不许动**。
       local rcx = halfW - 230
-      t.hudNext = T('hudNext', rcx, halfH - 60, 240, 44, 22)
+      -- 原来 hudNext 在 halfH-60（屏幕 y∈[38,82]）与右上「说明」键（y∈[18,74]、x∈[1146,1262]）
+      -- 横向重叠 24px ⇒ 审计报 `over-text:help@hudNext`。改**纵向**下移 46px 让开（不动 x）。
+      t.hudNext = T('hudNext', rcx, halfH - 106, 240, 44, 22)
       -- v5.4（用户 2026-10-30 真机截图：手机上这条横幅横穿棋盘）：手机画布只有 720 高、
       -- 棋盘 600 高居中 ⇒ 顶部只剩 60px，横幅放不下，原来 y=+60（屏幕 y=300）正好压在棋盘腰部。
       -- 改到**画布底部中央**（棋盘下沿之下、两块拇指簇之间）：常驻键位提示仍在顶部，二者不再打架。
-      t.topBanner = T('topBanner', 0, -((H / 2) - 34), math.min(820, W - 200), 40, 22)
+      -- v6.11：底部这条仍然太宽——实测拇指簇 `ptpright` x∈[252,372]、`ptpsoft` x∈[908,1028]
+      -- 都在 y∈[624,696]，而横幅原宽 820（x∈[230,1050]）与两簇**双双重叠**，
+      -- 审计报 `over-text:right@topBanner` / `over-text:soft@topBanner`。
+      -- 收窄到两簇净空（372..908）以内并居中：宽 500 ⇒ x∈[390,890]，左右各留 18px。
+      t.topBanner = T('topBanner', 0, -((H / 2) - 34), math.min(500, W - 200), 40, 22)
       t.botBanner = T('botBanner', 0, g5.topY, W - 360, 44, 20)
       t.keyA = T('keyA', colR, -4000, tw, 34, 18)      -- 单盘无对家盘：挪出画布
       t.keyB = T('keyB', colR, -4000, tw, 34, 18)
       t.keyC = T('keyC', colR, -4000, tw, 34, 18)
       t.title = T('title', colL, -4000, tw, 80, 20)
       ti.hud, ti.best, ti.hint = t.hud, t.best, t.hint
-      ti.hudNext = T('hudNext', rcx, halfH - 60, 240, 44)
+      -- 实例份必须与 textbox 份同位（见上面 t.hudNext 的说明：纵向让开「说明」键）
+      ti.hudNext = T('hudNext', rcx, halfH - 106, 240, 44)
       ti.topBanner = T('topBanner', 0, 60, math.min(560, W - 160), 72)
       ti.botBanner = t.botBanner
       ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC

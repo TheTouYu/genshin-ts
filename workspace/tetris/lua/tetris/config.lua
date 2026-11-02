@@ -786,7 +786,10 @@ NUM.PHONE = {
   actions = {
     { id = 'again', label = '再来一局', act = 'restart', key = 'R', rank = 1 },
     { id = 'home',  label = '回主页',   act = 'home',    key = 'V', rank = 2 },
-    { id = 'detail', label = '明细',    act = 'detail',  key = 'Q', rank = 3 },
+    -- v6.11（用户 2026-11-02 图二「这个的文字应该是结算」）：手机端第三颗键从「明细」改为「结算」。
+    -- 注意 PC 端键位提示仍是 `[Q] 结算明细`（config.SETTLE_OPT.items + tests/37 逐字契约），
+    -- 两者是**不同通道**：PC 是键位提示文字，手机是胶囊上的按钮标签，不要一起改。
+    { id = 'detail', label = '结算',    act = 'detail',  key = 'Q', rank = 3 },
   },
 }
 
