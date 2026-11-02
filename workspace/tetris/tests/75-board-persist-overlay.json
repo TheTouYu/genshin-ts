@@ -1,0 +1,48 @@
+{
+ "name": "75-board-persist-overlay",
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Down"
+  },
+  {
+   "t": 1.3,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Up"
+  },
+  {
+   "t": 1.8,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Down"
+  },
+  {
+   "t": 1.9,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey16Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 2.4,
+   "kind": "lua",
+   "source": "local EMPTY=-197121\nlocal seen,nonempty,colors=0,0,{}\nfor i=1,200 do\n  local c=query.control('cell'..i)\n  if c then\n    seen=seen+1\n    if c.imageColor==nil then error('cell'..i..' 读不到 imageColor —— 断言层缺字段，本用例会恒真，先修工具') end\n    if c.imageColor~=EMPTY then nonempty=nonempty+1 colors[#colors+1]=i..'='..tostring(c.imageColor) end\n  end\nend\nassert(seen==200,'棋盘格只找到 '..seen..' 个（应为 200）')\nassert(nonempty>0,'开覆盖屏回来后棋盘是空的：nonempty=0 说明要么没落块、要么被重置')\nreturn 'nonempty='..nonempty..' cells='..table.concat(colors,',',1,math.min(4,#colors))"
+  },
+  {
+   "at": 2.4,
+   "kind": "log",
+   "contains": "char codex open n="
+  }
+ ]
+}
