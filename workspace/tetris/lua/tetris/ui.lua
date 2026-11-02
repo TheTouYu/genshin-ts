@@ -177,24 +177,28 @@ M.new = function(spec)
       -- 技能卡移走后中段本来就空了；顶上是「角色」键（y∈[376,432]），hud 中心 283 不打架。
       hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
       best = T('best', leftCX, 238, panelW, 36, 20),
-      hint = T('hint', leftCX, 153, panelW, 150, 22),
+      hint = T('hint', leftCX, 153, panelW, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 200, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
       keyC = T('keyC', rightCX, -120, panelW, 38, 22),
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
     }
     -- 实例份尺寸与 textbox 份不同（历史上按实测定的，见 v3.5 ④）：hudNext 240 / 其余同宽
     local ti = {
       hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
       best = T('best', leftCX, 238, panelW, 36, 20),
-      hint = T('hint', leftCX, 153, panelW, 150, 22),
+      hint = T('hint', leftCX, 153, panelW, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 240, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
       keyC = T('keyC', rightCX, -120, panelW, 38, 22),
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
     }
     -- 技能 HUD（PC 也上屏：用户 2026-10-29「四个角色技能和没做没区别」）；摆在左栏 hint 下方
@@ -222,12 +226,14 @@ M.new = function(spec)
     local t = {
       hud = T('hud', gutterX, 250, 348, 40, 17),
       best = T('best', gutterX, 202, 330, 36, 20),
-      hint = T('hint', gutterX, -95, 330, 150, 22),
+      hint = T('hint', gutterX, -95, 330, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 240, 44, 22),
       -- keyA-C 的 x 由 FN.layoutDual 负责；本模块只**改框高与行位**（qa-shots 实测 ikeyA 需高 73.3、
       -- ikeyB 需 51.7，而旧框都是 40 ⇒ 折行被裁）。coop 模式下这两行装的是协作键位说明（x=∓280），
       -- 位置由 coop 分支自己写，本模块一律不碰（用例 33 断言 keyA.x=-280）。
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
       title = T('title', gutterX, 130, 420, 100),
     }
@@ -301,8 +307,9 @@ M.new = function(spec)
       -- 修法：整列下移到按钮下沿之外 ⇒ hud 中心 raw halfH-134（屏幕 y=134, 行 ∈[114,154]），
       -- best 依次 -36，hint 跟着让位。留 40px 净空给按钮。
       t.hud = T('hud', colL, halfH - 134, tw, 40, 20)
-      t.best = T('best', colL, halfH - 170, tw, 34, 20)
-      t.hint = T('hint', colL, halfH - 240, tw, 96, 20)
+      t.best = T('best', colL, halfH - 172, tw, 32, 20)
+      -- v6.14：提示盒宽度收到 300 —— 顶部横幅从 x=360 起，440 宽会与它相交 70px
+      t.hint = T('hint', colL, halfH - 240, math.min(tw, 240), 96, 20)
       -- 预览列心 RIGHT_CX 沿用 PC 公式（1280 → 410）：用例 15/16 断言预览块绝对 x，
       -- 擅自改成侧列中线 400 会让它们红（实测 400→390），且 410 仍在右列内。
       -- ⚠ 2026-11-02 实测再证一次：把 rcx 从 halfW-230 改成 halfW-270 后
@@ -743,6 +750,9 @@ M.new = function(spec)
   -- 按 id 找几何：先槽位键（游戏键）→ 导航键 → 结算键
   local function applyButtons(p)
     -- v6.12：PC 也走这里（U.allBtns 里只有角色/说明两颗导航键；触屏簇在 PC 上不建）
+    -- v6.14：登记表 = **本次 apply 的快照**。旧实现只在 padBuildNow 里清 ⇒ 同一颗键被登记
+    -- 两次，U.dump 打出 `overlap:phone.left∩phone.left`（10 条"自己压自己"的假重叠）。
+    U.regScreen(U.screen or 'play')
     local byId = {}
     for _, list in ipairs({ p.slots or {}, p.nav or {}, p.acts or {} }) do
       for _, r in ipairs(list) do byId[r.id] = r end
@@ -1027,6 +1037,11 @@ M.new = function(spec)
   end
   U.regAdd = function(name, ctl, w, h)
     if not ctl then return end
+    -- v6.14：同名控件在同一屏只登记一次 —— 帮助页的 page/home 既在 p.nav 又在 U.navBtns 里，
+    -- 旧实现会登记两遍，U.dump 打出 `overlap:phone.home∩phone.home`（假重叠，掩盖真问题）。
+    for i = 1, #U.reg do
+      if U.reg[i].screen == U.cur and U.reg[i].name == name then return end
+    end
     U.reg[#U.reg + 1] = { screen = U.cur, name = name, ctl = ctl, w = w or 0, h = h or 0 }
   end
   U.pos = function(ctl)

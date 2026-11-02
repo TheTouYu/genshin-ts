@@ -329,7 +329,7 @@ local STYLE_A = {
     gold = C(255, 168, 216, 238), goldDeep = C(255, 47, 110, 143),
     bezel = C(255, 191, 224, 238), tick = C(200, 120, 176, 204),
     btnBg = C(226, 232, 246, 253), scrim = C(236, 246, 253, 255), helpBg = C(255, 246, 251, 255),
-    shadow = C(30, 40, 96, 128), hint = C(255, 96, 126, 152),
+    shadow = C(30, 40, 96, 128), hint = C(255, 72, 96, 128),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = A_ICE, colorDeep = A_DEEP },
@@ -369,7 +369,7 @@ local STYLE_B = {
     gold = C(255, 246, 226, 150), goldDeep = C(255, 176, 130, 46),
     bezel = C(255, 214, 226, 190), tick = C(200, 150, 190, 132),
     btnBg = C(226, 240, 250, 235), scrim = C(238, 249, 253, 242), helpBg = C(255, 250, 253, 245),
-    shadow = C(30, 62, 98, 66), hint = C(255, 108, 136, 112),
+    shadow = C(30, 62, 98, 66), hint = C(255, 82, 108, 88),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = B_GREEN, colorDeep = B_DEEP },
@@ -411,7 +411,7 @@ local STYLE_C = {
     gold = C(255, 226, 198, 122), goldDeep = C(255, 176, 138, 60),
     bezel = C(255, 222, 210, 240), tick = C(200, 160, 146, 208),
     btnBg = C(230, 238, 233, 252), scrim = C(240, 243, 247, 255), helpBg = C(255, 249, 247, 255),
-    shadow = C(30, 60, 50, 120), hint = C(255, 112, 104, 152),
+    shadow = C(30, 60, 50, 120), hint = C(255, 86, 80, 128),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 140, 190, 214), colorDeep = C(255, 52, 118, 146) },
@@ -454,7 +454,7 @@ local STYLE_D = {
     gold = C(255, 232, 200, 138), goldDeep = C(255, 185, 138, 60),
     bezel = C(255, 226, 213, 184), tick = C(210, 215, 190, 130),
     btnBg = C(230, 234, 245, 252), scrim = C(234, 246, 251, 255), helpBg = C(255, 249, 253, 255),
-    shadow = C(26, 110, 140, 176), hint = C(255, 93, 118, 148),
+    shadow = C(26, 110, 140, 176), hint = C(255, 70, 94, 126),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = D_LEAF, colorDeep = C(255, 63, 139, 60) },

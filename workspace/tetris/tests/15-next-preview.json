@@ -1,33 +1,153 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "15 NEXT 双块预览（第 1 块=下一块、第 2 块缩 14px/55% 亮度=下下块，随硬降推进）",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [
-    { "t": 0.25, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
-    { "t": 0.25, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
-    { "t": 0.5, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
-    { "t": 0.5, "kind": "key", "typeName": "KeyboardJumpKeyUp" }
-  ],
-  "asserts": [
-    { "at": 0.15, "kind": "lua", "source": "local first = nil\nfor _, line in ipairs(query.logs()) do\n  local n, x = line:match('^preview v2 apply pvN=(%d+) holdX=([%-%d%.]+)')\n  if n and not first then first = { tonumber(n), tonumber(x) } end\nend\nassert(first ~= nil, '新预览通道未运行：日志里没有 preview v2 apply')\nassert(first[1] == 12, 'pv* 控件数=' .. tostring(first[1]))\nassert(first[2] == -4000, '空槽 hold 首格 x=' .. tostring(first[2]))\nreturn true" },
-    { "at": 0.15, "kind": "tree", "name": "next5", "exists": true },
-    { "at": 0.15, "kind": "tree", "name": "next8", "exists": true },
-    { "at": 0.15, "kind": "control", "name": "next1", "field": "sizeDeltaX", "equals": 18 },
-    { "at": 0.15, "kind": "control", "name": "next5", "field": "sizeDeltaX", "equals": 14 },
-    { "at": 0.15, "kind": "control", "name": "next1", "field": "imageColor", "equals": -10822546 },
-    { "at": 0.15, "kind": "control", "name": "next1", "field": "anchoredPositionX", "equals": 400 },
-    { "at": 0.15, "kind": "control", "name": "next1", "field": "anchoredPositionY", "equals": 180 },
-    { "at": 0.15, "kind": "control", "name": "next5", "field": "imageColor", "equals": -3038729 },
-    { "at": 0.15, "kind": "control", "name": "next5", "field": "anchoredPositionY", "equals": 99 },
-    { "at": 0.4, "kind": "control", "name": "next1", "field": "imageColor", "equals": -5615376 },
-    { "at": 0.4, "kind": "control", "name": "next4", "field": "imageColor", "equals": -5615376 },
-    { "at": 0.4, "kind": "control", "name": "next5", "field": "imageColor", "equals": -6570761 },
-    { "at": 0.4, "kind": "control", "name": "next8", "field": "imageColor", "equals": -6570761 },
-    { "at": 0.65, "kind": "control", "name": "next1", "field": "imageColor", "equals": -12156176 },
-    { "at": 0.65, "kind": "control", "name": "next5", "field": "imageColor", "equals": -6886153 },
-    { "at": 0.65, "kind": "control", "name": "next5", "field": "anchoredPositionX", "equals": 389 },
-    { "at": 0.65, "kind": "log", "contains": "bag=1 piece=T x=4 y=1", "source": "client" }
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "15 NEXT 双块预览（第 1 块=下一块、第 2 块缩 14px/55% 亮度=下下块，随硬降推进）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  {
+   "t": 0.25,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.25,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.15,
+   "kind": "lua",
+   "source": "local first = nil\nfor _, line in ipairs(query.logs()) do\n  local n, x = line:match('^preview v2 apply pvN=(%d+) holdX=([%-%d%.]+)')\n  if n and not first then first = { tonumber(n), tonumber(x) } end\nend\nassert(first ~= nil, '新预览通道未运行：日志里没有 preview v2 apply')\nassert(first[1] == 12, 'pv* 控件数=' .. tostring(first[1]))\nassert(first[2] == -4000, '空槽 hold 首格 x=' .. tostring(first[2]))\nreturn true"
+  },
+  {
+   "at": 0.15,
+   "kind": "tree",
+   "name": "next5",
+   "exists": true
+  },
+  {
+   "at": 0.15,
+   "kind": "tree",
+   "name": "next8",
+   "exists": true
+  },
+  {
+   "at": 0.15,
+   "kind": "control",
+   "name": "next1",
+   "field": "sizeDeltaX",
+   "equals": 18
+  },
+  {
+   "at": 0.15,
+   "kind": "control",
+   "name": "next5",
+   "field": "sizeDeltaX",
+   "equals": 14
+  },
+  {
+   "at": 0.15,
+   "kind": "control",
+   "name": "next1",
+   "field": "imageColor",
+   "equals": -10822546
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "hold1",
+   "field": "anchoredPositionX",
+   "equals": -4000
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "hold1",
+   "field": "anchoredPositionY",
+   "equals": -4000
+  },
+  {
+   "at": 0.15,
+   "kind": "control",
+   "name": "next5",
+   "field": "imageColor",
+   "equals": -3038729
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "hold4",
+   "field": "anchoredPositionX",
+   "equals": -4000
+  },
+  {
+   "at": 0.4,
+   "kind": "control",
+   "name": "next1",
+   "field": "imageColor",
+   "equals": -5615376
+  },
+  {
+   "at": 0.4,
+   "kind": "control",
+   "name": "next4",
+   "field": "imageColor",
+   "equals": -5615376
+  },
+  {
+   "at": 0.4,
+   "kind": "control",
+   "name": "next5",
+   "field": "imageColor",
+   "equals": -6570761
+  },
+  {
+   "at": 0.4,
+   "kind": "control",
+   "name": "next8",
+   "field": "imageColor",
+   "equals": -6570761
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "next1",
+   "field": "imageColor",
+   "equals": -12156176
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "next5",
+   "field": "imageColor",
+   "equals": -6886153
+  },
+  {
+   "at": 0.65,
+   "kind": "control",
+   "name": "next5",
+   "field": "anchoredPositionX",
+   "equals": 389
+  },
+  {
+   "at": 0.65,
+   "kind": "log",
+   "contains": "bag=1 piece=T x=4 y=1",
+   "source": "client"
+  }
+ ],
+ "note": " ｜ v6.14：标题页收起预览列（原先与右侧模式卡重叠、方块透在卡面上）⇒ 原来三处\"格子绝对坐标\"断言（next1 x=400 / y=180、next5 y=99）改在进局后 0.65s 判，并换成**与块型无关**的契约：暂存为空时 4 格必须在画布外（hold1/hold4 = -4000，v3.5 脏格守卫）。格子存在、尺寸、颜色断言不变。"
 }

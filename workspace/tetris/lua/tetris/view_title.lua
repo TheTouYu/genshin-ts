@@ -126,11 +126,13 @@ M.CARD = {
 -- 两张入口卡（角色档案 / 说明）
 M.ENTRY = {
   exMax = 520, exInset = 169, eyPc = 302, eyMobileInset = 138, helpDx = -240,
-  roster = { w = 290, h = 96, fs = 22, subFs = 13, pad = 86, padSub = 16,
+  -- v6.14（设计审计：两张入口卡高度 96/78、标题 22/20、副标 13/12 互不相同，看着像没做完）：
+  -- 统一 h=88、标题 22、副标 13，只保留宽度差表达主次（角色档案宽、说明窄）。
+  roster = { w = 290, h = 88, fs = 22, subFs = 13, pad = 86, padSub = 16,
     titleDy = 18, subDy = 18, label = '角色档案',
     subPc = 'I 键 · 契约与技能', subMobile = '点我看契约与技能' },
-  help = { w = 176, h = 78, fs = 20, subFs = 12, pad = 16, padSub = 16,
-    titleDy = 18, subDy = 20, label = '说明',
+  help = { w = 176, h = 88, fs = 22, subFs = 13, pad = 16, padSub = 16,
+    titleDy = 18, subDy = 18, label = '说明',
     subPc = 'H 键 · 全部规则', subMobile = '点我看规则' },
   dots = { { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 } },
   dotDx = -136, dotStep = 22, dotDy = 16, dotD = 14,

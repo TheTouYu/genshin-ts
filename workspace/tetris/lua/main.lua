@@ -1983,10 +1983,15 @@ FN.syncStage = function()
     and true or false
   -- 预览/暂存槽（12 颗格子在棋盘外左/右栏）：浮层期间也收走，否则角色页左侧会露出
   -- 一块紫色小方块与一条深色竖条（用户 2026-10-30 截图里那两个残留点）。
-  if overlayOn ~= FN.prevParkedNow then
-    FN.prevParkedNow = overlayOn
+  -- v6.14（用户 2026-11-02「我看了组件之间的重叠」）：**标题页也收走预览列**。
+  -- 演示盘的「下一个/暂存」小方阵正好落在右侧两张模式卡的位置上（hud 层在 card 层之下，
+  -- 卡面是半透明奶白 ⇒ 小方块透出来，看着像"方块压在卡片上"）。判据从 overlayOn 扩成
+  -- "要不要在画面上出现预览"这件事本身，标题页(guideStage=0)一并不出现。
+  local wantPark = (overlayOn or guideStage == 0) and true or false
+  if wantPark ~= FN.prevParkedNow then
+    FN.prevParkedNow = wantPark
     -- v6.5：预览列改由描述层停靠（12 格统一挪出画布），不再逐个 SetAnchoredPosition
-    PVW.parked = overlayOn and true or false
+    PVW.parked = wantPark
     if renderNext then pcall(renderNext) end
   end
   -- 每 6 帧兜底：结算键不属于局内/标题，一律收起（它们与手机按键位置重叠，会冒充成棕色按键）
