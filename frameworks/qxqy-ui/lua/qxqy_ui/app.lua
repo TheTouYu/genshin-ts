@@ -80,23 +80,6 @@ M.new = function(spec)
   -- 注册场景（转发给场景栈，便于一处配置）
   function A.register(def) return S.register(def) end
 
-  -- 输入：动作由 input_map 给出（'left'/'confirm'/…），交给场景栈决定谁消费
-  function A.dispatch(action, keyName)
-    return S.onAction(action, keyName)
-  end
-
-  -- 便捷：把 input_map 实例接上（每个键只注册一次，回调统一进 dispatch）
-  function A.bindInput(inputMap, extraAction)
-    if not inputMap then return false end
-    return inputMap.bindAll(function(action, keyName)
-      local consumed = A.dispatch(action, keyName)
-      if not consumed and extraAction then
-        return extraAction(action, keyName)
-      end
-      return consumed
-    end)
-  end
-
   -- ===== 覆盖屏（帮助 / 结算 / 档案页 / 标题）=====
   -- 为什么必须是**独立的 render 实例**：基础层（棋盘/预览/HUD）是「每帧增量更新同一张 key 表」，
   -- 覆盖屏是「整屏一次性重建」。两者共用一张 key 表时，覆盖屏的 apply 会把基础层节点当成
