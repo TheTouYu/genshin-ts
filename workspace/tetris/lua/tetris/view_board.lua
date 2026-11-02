@@ -80,8 +80,10 @@ M.new = function(spec)
     opts = opts or {}
     local h = tonumber(opts.halfH) or 720
     return {
+      -- v6.15（用户 2026-11-02 图一：中缝金线横穿顶部横幅）：线高 0.66h 且居中 ⇒ 顶端压到
+      -- 横幅（raw y 220~280）。改 0.50h 且整体下移 0.05h ⇒ y∈[-216,144]，让开横幅与两角导航键。
       { key = 'dualDeco1', layer = 'hud', tpl = 'cell', name = 'duoLane1',
-        pos = { 0, 0 }, size = { 2, h * 0.66 }, color = opts.laneColor },
+        pos = { 0, -(h * 0.05) }, size = { 2, h * 0.50 }, color = opts.laneColor },
       { key = 'dualDeco2', layer = 'hud', tpl = 'cell', name = 'duoLane2',
         pos = { 0, 0 }, size = { 14, 14 }, color = opts.starColor, image = { s = 'circle' } },
     }

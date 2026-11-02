@@ -1304,7 +1304,15 @@ local function startIfWaiting()
       or (MODE ~= 'coop')
         and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
         or 'P2：← → 移动 · ↓ 软降 · X 直落'
-    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
+    -- v6.15（用户 2026-11-02 图一：横幅被两块棋盘压掉右半截）：服务端 textbox 永远在
+    -- 运行时实例**之下**（D646），而手机双盘两块棋盘之间的净空只有 170px ⇒ 任何宽于 170 的
+    -- 居中文字都会被棋盘盖住。手机上只放模式名（4 字≈96px，落在净空内），「准备开始」交给底部横幅。
+    if IS_MOBILE then
+      setText(topBanner, MODE_TITLE[MODE] or MODE)
+      setText(botBanner, '准备开始 · 按任意键')
+    else
+      setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
+    end
     GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
     setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
@@ -2448,7 +2456,10 @@ FN.layoutDual = function()
   -- ③b「暂存」标签（v5.37：左列 hold 槽原来没有任何标签，方块孤零零飘着 —— 用户报"渲染失败"）
   if HUD_INST.holdLab then
     tryCall(HUD_INST.holdLab, 'SetSizeDelta', 200, 44)
-    tryCall(HUD_INST.holdLab, 'SetAnchoredPosition', -(halfW - 230), 255)
+    -- v6.15（用户 2026-11-02 图一：左盘上方漂着「暂存」）：双盘没有暂存槽的位置，
+    -- 描述层已经把 hudNext 收走，这行是旧布局直接写死的漏网。统一收走（不是隐藏——
+    -- 真机 SetVisible 对实例不可靠，见 D581）。
+    tryCall(HUD_INST.holdLab, 'SetAnchoredPosition', 0, -4000)
     tryCall(HUD_INST.holdLab, 'SetVisible', true)
     pcall(function() HUD_INST.holdLab.text = '暂存' end)
     trySet(HUD_INST.holdLab, 'fontSize', 22)

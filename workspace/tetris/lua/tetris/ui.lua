@@ -393,7 +393,9 @@ M.new = function(spec)
     t.best = T('best', gutL, -4000, 200, 34, 18)   -- 顶部两角让给导航键（最高分已在底栏/结算页）
     t.hint = T('hint', 0, -4000, 240, 96, 18)          -- 双盘局内 hint 由 layoutDual 自己藏（此处同口径）
     t.hudNext = T('hudNext', gutR, -4000, 200, 40, 20)  -- 同 best：避免被右上角「说明」压住
-    t.topBanner = T('topBanner', 0, 250, 240, 60, 24)
+    -- v6.15（用户 2026-11-02 图一：横幅被裁成「准备开」）：240 宽装不下 12 个字，
+    -- 按设计单位放到 380（1280 宽下中缝两侧仍有余量），字号 24 不变。
+    t.topBanner = T('topBanner', 0, 250, math.min(380, W - 240), 60, 24)
     t.botBanner = T('botBanner', 0, -4000, W - 40, 40, 18)   -- 底带让给拇指簇：手机上常驻键位提示本就不需要
     -- 引导态（guideStage==3）keyA-C 装的是长句键位说明（24 全角 ≈ 430px），手机侧栏只有 200px
     -- ⇒ 手机上「键位说明就是按钮本身」，这三行整体挪出画布；对局期它们换回 3 条短战况再回来。
@@ -410,7 +412,9 @@ M.new = function(spec)
     ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC
     local bw, bh = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
     -- 拇指簇竖排：底边必须留 6px（首版直接放 botY=-330，72 高 ⇒ 底边 -366 出画布，审计抓到 oob）
-    local col0 = g5.botY + 6
+    -- v6.15（用户 2026-11-02 图一：最下方的 ◀ 贴着画布底边被切）：原来 botY+6 = -324，
+    -- 72 高的胶囊底边落在 -360 正好压画布边缘；上移 34 让三颗竖排整体在安全区内。
+    local col0 = g5.botY + 40
     slots[#slots + 1] = B('left', gutL, col0, bw, bh, KIT.FS)
     slots[#slots + 1] = B('right', gutL, col0 + 86, bw, bh, KIT.FS)
     slots[#slots + 1] = B('rot', gutL, col0 + 172, bw, bh, KIT.FS)

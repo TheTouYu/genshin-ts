@@ -435,7 +435,9 @@ M.new = function(spec)
         key = key, x = x, y = y, w = w, h = h,
         label = o.label, sub = o.sub, font = o.font, subFont = o.subFont,
         fill = o.fill, ink = o.ink, subInk = o.subInk,
-        pad = o.pad, titleDy = o.titleDy or u(M.LIST.TITLE_DY),
+        -- v6.15（用户 2026-11-02 图二「这几个按钮的文字没有居中」）：
+        -- 列表行有副标 ⇒ 标题上移是设计；页签/关闭这类单行按钮沿用同一偏移就会整体偏高。
+        pad = o.pad, titleDy = o.titleDy or (o.sub and u(M.LIST.TITLE_DY) or 0),
         subDy = o.subDy or u(M.LIST.SUB_DY),
         preset = o.preset, layer = M.LAYER.text, hitLayer = M.LAYER.hit,
         hitPadW = (o.hitPadW ~= nil) and o.hitPadW or M.HITPAD.w,

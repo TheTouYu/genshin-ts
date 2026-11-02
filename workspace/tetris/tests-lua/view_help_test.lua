@@ -88,10 +88,10 @@ local mob = H.help { canvas = { 1600, 900 }, device = 'mobile', page = 1, pages 
 -- ===== A 结构与层号 =====
 print('--- A 结构与层号')
 
-ok(#pc == 271, 'A1 PC/单页 271 个节点（13 面板 + 257 文字与图元 + 1 热区）', #pc)
+ok(#pc == 275, 'A1 PC/单页 275 个节点（13 面板 + 261 文字与图元 + 1 热区；v6.15 关闭胶囊两端共用 +4）', #pc)
 local lay = countBy(pc, 'layer')
-ok(lay.panel == 13 and lay.card == 257 and lay.touch == 1,
-  string.format('A2 层号分布 panel=13 card=257 touch=1（实际 %d/%d/%d）',
+ok(lay.panel == 13 and lay.card == 261 and lay.touch == 1,
+  string.format('A2 层号分布 panel=13 card=261 touch=1（实际 %d/%d/%d）',
     lay.panel or 0, lay.card or 0, lay.touch or 0))
 
 local panelKeys = {}
@@ -191,19 +191,23 @@ local kPc, kMob = keySet(pc), keySet(mob)
 local onlyPc, onlyMob = diffKeys(kPc, kMob), diffKeys(kMob, kPc)
 ok(#onlyPc == 1 and onlyPc[1] == 'helpHint',
   'C1 PC 独有 = 恰好 {helpHint}（键位提示）', table.concat(onlyPc, ','))
-local closeKeys = { 'helpCloseB', 'helpCloseL', 'helpCloseR',
-  'helpCloseInB', 'helpCloseInL', 'helpCloseInR', 'helpCloseTx' }
-local onlyMobOk = (#onlyMob == #closeKeys)
-for i = 1, #closeKeys do if not kMob[closeKeys[i]] then onlyMobOk = false end end
-ok(onlyMobOk, 'C2 mobile 独有 = 恰好 7 个关闭胶囊节点（外圈 3 + 内面 3 + 文字）',
-  table.concat(onlyMob, ','))
+-- v6.15（用户 2026-11-02 图四）：关闭胶囊**两端共用 K.button**，不再有"仅 mobile"的分支。
+local closeKeys = { 'helpCloseB', 'helpCloseL', 'helpCloseR', 'helpCloseT', 'helpCloseHit' }
+local bothOk = (#onlyMob == 0)
+for i = 1, #closeKeys do
+  if not kMob[closeKeys[i]] or not kPc[closeKeys[i]] then bothOk = false end
+end
+ok(bothOk, 'C2 关闭胶囊两端同构（胶囊 3 段 + 文字 + 热区，PC 也看得见）',
+  'onlyMob=' .. table.concat(onlyMob, ','))
 ok(kPc.helpHint and kPc.helpHint.layer == 'card',
   'C3 PC 的键位提示在 card 层（文字压在纸面上）')
 ok(not kMob.helpHint, 'C4 mobile 不出现键位提示（手机没有 H 键 —— 用户 2026-10-29 反馈）')
 ok(kPc.helpCloseHit and kMob.helpCloseHit,
   'C5 两种设备都有帮助关闭热区（PC 靠鼠标也能点，热区不可见）')
-ok(not kMob.helpCloseTx or kMob.helpCloseTx.text == '合上手册',
-  'C6 mobile 关闭胶囊文案 = 合上手册', kMob.helpCloseTx and kMob.helpCloseTx.text)
+ok(kMob.helpCloseT and kMob.helpCloseT.text == '合上手册',
+  'C6 关闭胶囊文案 = 合上手册（两端同一份）', kMob.helpCloseT and kMob.helpCloseT.text)
+ok(kPc.helpCloseT and kPc.helpCloseT.text == '合上手册',
+  'C6b PC 关闭胶囊也可见且同文案（旧分支只有透明热区）', kPc.helpCloseT and kPc.helpCloseT.text)
 
 local pc3 = H.help { canvas = { 1600, 900 }, device = 'pc', page = 2, pages = 3 }
 local mob3 = H.help { canvas = { 1600, 900 }, device = 'mobile', page = 2, pages = 3 }
@@ -400,8 +404,8 @@ ok(byKey(one, 'helpKey1').text == '测试行' and byKey(one, 'helpCapT1_1').text
   'G3 覆盖后的行内容 + 键帽都来自 sections')
 
 local dflt = H.help()
-ok(#dflt == 271 and byKey(dflt, 'helpTitle').font == 40,
-  'G4 无 opts 调用可用（缺省 1600×900 / pc / 单页，271 节点）', #dflt)
+ok(#dflt == 275 and byKey(dflt, 'helpTitle').font == 40,
+  'G4 无 opts 调用可用（缺省 1600×900 / pc / 单页，275 节点）', #dflt)
 
 local okDev = pcall(function() H.help { device = 'tablet' } end)
 ok(not okDev, 'G5 未知 device 当场报错（不静默按 pc 处理）')
@@ -420,7 +424,7 @@ local leaked = {}
 for k in pairs(_G) do if not before[k] then leaked[#leaked + 1] = k end end
 ok(#leaked == 0 and type(probe.help) == 'function',
   'G9 加载 + new() 不写任何全局，返回 { help=fn, count=fn }', table.concat(leaked, ','))
-ok(#probe.help { canvas = { 1600, 900 }, device = 'pc' } == 271 and probe.count { } == 271,
+ok(#probe.help { canvas = { 1600, 900 }, device = 'pc' } == 275 and probe.count { } == 275,
   'G10 count(opts) 与 #help(opts) 一致（接线的 `help build n=` 日志读数）')
 
 -- ===== H 引擎侧图元（读控件字段，不读描述）=====
