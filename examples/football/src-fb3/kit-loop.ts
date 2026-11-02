@@ -69,6 +69,7 @@ const S_P_MAGNUS = 1207959578n
 const S_P_MAXV = 1207959579n
 const S_P_REST = 1207959580n
 const S_P_INIT = 1207959581n
+const S_HB = 1207959582n // S3 心跳计数：静止期连续静止拍数（满 15 发一条 'B' 保 kit-listen 时钟）
 
 // ═════════════════════ 世界几何（field.structure.json / goal.structure.json 实测）═══════════
 const BALL_R = 0.25
@@ -360,15 +361,40 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   )
 
   const warm = f.lessThanOrEqualTo(tick, WARMUP_TICKS)
+  // ═════════════ 6.5 S4 静止早退门（2026-11-02 用户「负载=Σ频率×单节点负载」）═══════════════
+  // 静止=显式积分的不动点：|v|、|w|≈0、落地、无按键、无外力窗、玩家不在带球圈内、玩家没在动
+  // ——这六个条件全真时跳过 §7-§17 物理块是**恒等变换**（不改算法）。
+  // ⚠️ pstep<0.01 项（审查必修 A）：'B' 同时是 kit-listen 的时钟——fb_yaw（踢球方向基准）、
+  //    玩家位置兜底、角色实体失效重解析全挂在 'B' 上。玩家一动必须照发，否则静止期踢球
+  //    用过期 yaw、球朝旧朝向飞（用户每轮流程=复位→调→踢，必踩）。
+  // ⚠️ distBP 用**初始化之后**的值求（审查必修 B）：init 拍把球放玩家前方 1.5m<带球圈 ⇒ 门必开，
+  //    'B' 必发——可见球从编辑器位走到脚下。warmup 拍在发送门另兜底。
+  // ⚠️ 早退范围只有 §7-§17；§18 复位（自守卫）、§20 载体跟随、§21 发送（门控）一律保留
+  //    ——载体一停跟，距离节流会把施放率 7.5/s 打到 1.6/s（D615 实测）。
+  const bpx = f.subtraction(bx.value, pPxV.value)
+  const bpz = f.subtraction(bz.value, pPzV.value)
+  const distBP = f._3dVectorModuloOperation(f.create3dVector(bpx, 0.0, bpz))
+  const stillSpd = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+  const stillW = f._3dVectorModuloOperation(f.create3dVector(wx.value, wy.value, wz.value))
+  const restNow = f.logicalAndOperation(
+    f.logicalAndOperation(f.lessThan(stillSpd, 0.01), f.lessThan(stillW, 0.01)),
+    f.logicalAndOperation(
+      f.lessThan(by.value, f.addition(GROUND_Y, 0.05)),
+      f.logicalAndOperation(
+        f.equal(keyRaw, 0n),
+        f.logicalAndOperation(
+          f.equal(fWin.value, 0n),
+          f.logicalAndOperation(f.lessThan(pstep, 0.01), f.greaterThan(distBP, dribR.value))
+        )
+      )
+    )
+  )
   f.doubleBranch(
-    f.logicalNotOperation(warm),
+    f.logicalAndOperation(f.logicalNotOperation(warm), f.logicalNotOperation(restNow)),
     () => {
       // ═══════════ 7. 架势：玩家速度向量与瞄准方向 ═══════════
       const pSpd = f._3dVectorModuloOperation(f.create3dVector(vpxV.value, 0.0, vpzV.value))
-      // 球相对玩家的水平向量（dir = 玩家→球）
-      const bpx = f.subtraction(bx.value, pPxV.value)
-      const bpz = f.subtraction(bz.value, pPzV.value)
-      const distBP = f._3dVectorModuloOperation(f.create3dVector(bpx, 0.0, bpz))
+      // dir = 玩家→球（bpx/bpz/distBP 已提升到 §6.5 静止门处）
       const dirX = f.division(bpx, f.addition(distBP, 0.0001))
       const dirZ = f.division(bpz, f.addition(distBP, 0.0001))
       // 瞄准 = **角色朝向**（用户 2026-10-31 口径）：把 (0,0,1) 绕 Y 旋 yaw 度得到世界前向。
@@ -379,11 +405,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         f.create3dVector(0.0, yawDeg, 0.0)
       )
       const fwdS = f.split3dVector(fwdV)
-      const rightV = f._3dVectorRotation(
-        f.create3dVector(1.0, 0.0, 0.0),
-        f.create3dVector(0.0, yawDeg, 0.0)
-      )
-      const rightS = f.split3dVector(rightV)
       const aimX = f.localVariable('float')
       const aimZ = f.localVariable('float')
       // 面板：力度倍率 + 右偏/上偏（m/s），latch 在载体变量上，点一次永久生效。
@@ -403,7 +424,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           )
         }
       )
-      const offR = f.getCustomVariable(carrierE, 'fb_t_right').asType('float')
+      // S6（2026-11-02 用户「粒度不够」）：右偏 m/s 改**角度制** fb_t_ang（度，面板每次 ±5°）。
+      // 旧 fb_t_right 是"右轴×偏移速度"，偏多少取决于球速，观感不线性；角度制直转踢球方向。
+      const angT = f.getCustomVariable(carrierE, 'fb_t_ang').asType('float')
       const offU = f.getCustomVariable(carrierE, 'fb_t_up').asType('float')
       f.doubleBranch(
         f.greaterThan(f._3dVectorModuloOperation(fwdV), 0.5),
@@ -416,15 +439,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           aimZ.set(dirZ)
         }
       )
-      // 踢球方向 = 前向×力度倍率 + 右轴×右偏（m/s）；带球目标仍用单位 aim（距离不随力度变）
-      const kickX = f.addition(
-        f.multiplication(aimX.value, powT.value),
-        f.multiplication(rightS.xComponent, offR)
+      // 踢球方向 = 前向绕 Y 旋 fb_t_ang 度 × 力度倍率。带球目标仍用**不带角度**的 aim
+      // （瞄准偏移只改踢球方向，不影响带球位）；绕 Y 同轴旋转可与 yaw 合成，无兜底路径问题。
+      const kickDirV = f._3dVectorRotation(
+        f.create3dVector(aimX.value, 0.0, aimZ.value),
+        f.create3dVector(0.0, angT, 0.0)
       )
-      const kickZ = f.addition(
-        f.multiplication(aimZ.value, powT.value),
-        f.multiplication(rightS.zComponent, offR)
-      )
+      const kickDirS = f.split3dVector(kickDirV)
+      const kickX = f.multiplication(kickDirS.xComponent, powT.value)
+      const kickZ = f.multiplication(kickDirS.zComponent, powT.value)
 
       // ═══════════ 8. 冲量累加器 + 动作分发 ═══════════
       const impX = f.localVariable('float')
@@ -614,8 +637,20 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       // 带球助力（弹簧-阻尼，力而不是速度改写 ⇒ 没有速度悬崖）：
       // 只在落地、未踢球、球没飞走时生效；目标点 = 玩家前方 1.0m
       const ballSpdNow = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
+      // S5（2026-11-02 用户「跑步磕到球，慢走不会」）：**前半球门**。离线仿真证明直跑稳态
+      // 球总在玩家前 1.65-1.91m（永不重叠）——磕脚只能来自「球在身后被拖回身前」：助力把球
+      // 以最高 pSpd+4（≈10 m/s）**穿过玩家两腿**去追身前 1m 的目标点，视觉=跑步踢到球。
+      // 修法：球-玩家方向与面朝夹角 >96°（dot<−0.1，球在身后）不给助力——球自然减速停下，
+      // 玩家回头拿球（真实足球行为），两腿间不再穿越。
+      const dotFront = f.addition(
+        f.multiplication(dirX, aimX.value),
+        f.multiplication(dirZ, aimZ.value)
+      )
       const assistOn = f.logicalAndOperation(
-        f.logicalAndOperation(f.logicalNotOperation(kickNow), groundedBefore),
+        f.logicalAndOperation(
+          f.logicalAndOperation(f.logicalNotOperation(kickNow), groundedBefore),
+          f.greaterThan(dotFront, -0.1)
+        ),
         f.logicalAndOperation(
           f.lessThan(distBP, dribR.value),
           f.lessThan(ballSpdNow, f.addition(pSpd, 3.0))
@@ -1135,7 +1170,24 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     () => {}
   )
 
-  // ═════════════ 21. 回传（每拍一条 'B'；进球额外一条 'G'）═════════════════════════════
+  // ═════════════ 21. 回传（S3：静止跳发 + 15 拍心跳；进球额外一条 'G'）═════════════════
+  // 心跳不是可选项：kit-listen 的 'B' 处理体里住着 fbc_e 解析、fb_yaw、玩家位置兜底三件事，
+  // 完全断发 ⇒ 开局（球静止）解析不到角色实体 ⇒ 踢球死锁。每 15 拍（≈2s）一条保时钟。
+  const hbV = f.localVariable('int')
+  hbV.set(f.dataTypeConversion(f.querySkillVariableValue(S_HB), 'int'))
+  const hbNext = f.localVariable('int')
+  f.doubleBranch(
+    restNow,
+    () => {
+      f.doubleBranch(
+        f.greaterThan(hbV.value, 14n),
+        () => { hbNext.set(0n) },
+        () => { hbNext.set(f.addition(hbV.value, 1n)) }
+      )
+    },
+    () => { hbNext.set(0n) }
+  )
+  f.setSkillVariable(S_HB, f.dataTypeConversion(hbNext.value, 'float'))
   f.doubleBranch(
     f.equal(goalFlag.value, 1n),
     () => {
@@ -1152,14 +1204,27 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     },
     () => {}
   )
-  chanSendState6(
-    f,
-    KitSignal.kit_state,
-    'B',
-    tick,
-    f.create3dVector(bx.value, by.value, bz.value),
-    f.create3dVector(vx.value, vy.value, vz.value),
-    f.create3dVector(wx.value, wy.value, wz.value),
-    mode.value
+  // 发送门：非静止（含玩家在动=pstep 项）∥ 复位拍 ∥ warmup 拍（兜底初始化跳变）∥ 心跳到点。
+  f.doubleBranch(
+    f.logicalOrOperation(
+      f.logicalNotOperation(restNow),
+      f.logicalOrOperation(
+        f.equal(resetFlag.value, 1n),
+        f.logicalOrOperation(warm, f.greaterThan(hbV.value, 14n))
+      )
+    ),
+    () => {
+      chanSendState6(
+        f,
+        KitSignal.kit_state,
+        'B',
+        tick,
+        f.create3dVector(bx.value, by.value, bz.value),
+        f.create3dVector(vx.value, vy.value, vz.value),
+        f.create3dVector(wx.value, wy.value, wz.value),
+        mode.value
+      )
+    },
+    () => {}
   )
 })

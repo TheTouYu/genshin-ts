@@ -46,12 +46,12 @@ local KEYS = {
   { id = 8, names = { 'KeyboardCraftspersonKey8Down' }, line = '⑧ 施力 +y（探针）· 8' },
   { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 清力（探针）· 9' },
   -- —— 调参面板（2026-10-31 用户口径）：点一次永久累加，之后每脚踢球都按「朝向×力度 + 右偏/上偏」 ——
-  { id = 23, names = { 'KeyboardCraftspersonKey23Down' }, line = '⚙ 力度 +0.2  · F5',  panel = 'pow',   d =  0.2 },
-  { id = 24, names = { 'KeyboardCraftspersonKey24Down' }, line = '⚙ 力度 −0.2  · F6',  panel = 'pow',   d = -0.2 },
-  { id = 25, names = { 'KeyboardCraftspersonKey25Down' }, line = '⚙ 右偏 +1    · F7',  panel = 'right', d =  1.0 },
-  { id = 26, names = { 'KeyboardCraftspersonKey26Down' }, line = '⚙ 右偏 −1    · F8',  panel = 'right', d = -1.0 },
-  { id = 27, names = { 'KeyboardCraftspersonKey27Down' }, line = '⚙ 上偏 +1    · F9',  panel = 'up',    d =  1.0 },
-  { id = 28, names = { 'KeyboardCraftspersonKey28Down' }, line = '⚙ 上偏 −1    · F10', panel = 'up',    d = -1.0 },
+  { id = 23, names = { 'KeyboardCraftspersonKey23Down' }, line = '⚙ 力度 +5%   · F5',  panel = 'pow', m = 1.05 },
+  { id = 24, names = { 'KeyboardCraftspersonKey24Down' }, line = '⚙ 力度 −5%   · F6',  panel = 'pow', m = 1 / 1.05 },
+  { id = 25, names = { 'KeyboardCraftspersonKey25Down' }, line = '⚙ 角度 +5°   · F7',  panel = 'ang', d = 5 },
+  { id = 26, names = { 'KeyboardCraftspersonKey26Down' }, line = '⚙ 角度 −5°   · F8',  panel = 'ang', d = -5 },
+  { id = 27, names = { 'KeyboardCraftspersonKey27Down' }, line = '⚙ 上偏 +1    · F9',  panel = 'up',  d = 1.0 },
+  { id = 28, names = { 'KeyboardCraftspersonKey28Down' }, line = '⚙ 上偏 −1    · F10', panel = 'up',  d = -1.0 },
   { id = 10, names = { 'KeyboardCraftspersonKey10Down' }, line = '⚙ 复位 1.0/0/0 · 0',  panel = 'reset' }
 }
 
@@ -213,22 +213,28 @@ local function applyStyles()
   for _, s in pairs(STYLE) do setStyle(s.name, s.fs, s.color) end
 end
 
--- —— 面板本地镜像（服务端 _GSTS_aimPanel 同步累加同一组增量，两边初值相同 ⇒ 不会漂）——
-local PANEL = { pow = 1.0, right = 0, up = 0 }
+-- —— 面板本地镜像（服务端 _GSTS_aimPanel 同步做同一组运算，clamp 边界逐字对齐 ⇒ 不漂）——
+-- S6（2026-11-02）：力度=百分比步进（×1.05 / ÷1.05，clamp [0.2,2.2]），右偏 m/s 改角度 ±5°（±75）。
+-- ⚠️ clamp 必须与 zz-aim-panel.ts 的 POW_MIN/POW_MAX/ANG_MAX/OFF_LIM 完全一致，漂移教训见上。
+local PANEL = { pow = 1.0, ang = 0, up = 0 }
 local function panelText()
-  return string.format('⚙ 力度 %+.1f · 右 %+d · 上 %+d', PANEL.pow, PANEL.right, PANEL.up)
+  return string.format('⚙ 力度 %d%% · 角 %+d° · 上 %+d', math.floor(PANEL.pow * 100 + 0.5), PANEL.ang, PANEL.up)
 end
 local function panelApply(entry)
   if entry.panel == 'reset' then
-    PANEL.pow, PANEL.right, PANEL.up = 1.0, 0, 0
+    PANEL.pow, PANEL.ang, PANEL.up = 1.0, 0, 0
   elseif entry.panel == 'pow' then
-    PANEL.pow = PANEL.pow + entry.d
-    if PANEL.pow < 0 then PANEL.pow = 0 end
-    if PANEL.pow > 3 then PANEL.pow = 3 end
-  elseif entry.panel == 'right' then
-    PANEL.right = PANEL.right + entry.d
+    PANEL.pow = PANEL.pow * entry.m
+    if PANEL.pow < 0.2 then PANEL.pow = 0.2 end
+    if PANEL.pow > 2.2 then PANEL.pow = 2.2 end
+  elseif entry.panel == 'ang' then
+    PANEL.ang = PANEL.ang + entry.d
+    if PANEL.ang > 75 then PANEL.ang = 75 end
+    if PANEL.ang < -75 then PANEL.ang = -75 end
   elseif entry.panel == 'up' then
     PANEL.up = PANEL.up + entry.d
+    if PANEL.up > 8 then PANEL.up = 8 end
+    if PANEL.up < -8 then PANEL.up = -8 end
   end
   setText(STYLE.k6.name, panelText())
 end

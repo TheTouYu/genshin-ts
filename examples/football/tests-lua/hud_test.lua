@@ -173,8 +173,8 @@ eq(w.controls.hud_toast.text, '', '1.3s 横幅自清')
 --    等通道真正接上时，这里的断言与 Lua 侧实现一起恢复。
 -- ⑥ 外部 setScore（进球事件驱动）
 setScore(5, 4)
-eq(w2.controls.hud_score.text, '5 : 4', 'setScore 改比分')
-eq(w2.controls.hud_toast.text, '进球！5 : 4', 'setScore 弹进球横幅')
+eq(w.controls.hud_score.text, '5 : 4', 'setScore 改比分')
+eq(w.controls.hud_toast.text, '进球！5 : 4', 'setScore 弹进球横幅')
 
 -- ⑦ 缺控件兜底：删掉 hud_state，脚本不崩且只报一次
 local w3 = makeWorld()
@@ -197,6 +197,31 @@ dofile(SRC)
 local okNoEnum = pcall(OnStart)
 ok(okNoEnum, '枚举缺名时 OnStart 不抛错（走字符串兜底）')
 ok(hasLog(w4, 'listen ok 16/16'), '枚举缺名仍靠字符串兜底注册全部键（16 条监听）')
+
+-- ⑨ 面板镜像步进（S6 2026-11-02：力度百分比 ×1.05、角度 ±5°；Lua 镜像必须与服务端 clamp 一致）
+-- 监听序号 = KEYS 顺序：10=F5(23) 11=F6(24) 12=F7(25) 13=F8(26) 14=F9(27) 15=F10(28) 16=0(10)
+local w5 = makeWorld()
+install(w5)
+for _, k in ipairs({ 'OnStart', 'OnUpdate', 'OnDestroy', 'OnInit', 'setScore' }) do _G[k] = nil end
+dofile(SRC)
+OnStart()
+w5.listeners[10].fn()  -- F5 ×1.05
+ok(w5.controls.hud_k6.text:find('力度 105%%', 1, false) ~= nil, 'F5 一次 → 力度 105%', w5.controls.hud_k6.text)
+w5.listeners[10].fn()  -- 1.05^2 = 1.1025 → 110%
+ok(w5.controls.hud_k6.text:find('力度 110%%', 1, false) ~= nil, 'F5 两次 → 110%（四舍五入）', w5.controls.hud_k6.text)
+w5.listeners[11].fn()  -- ÷1.05 → 回 105%
+ok(w5.controls.hud_k6.text:find('力度 105%%', 1, false) ~= nil, 'F6 → 回 105%', w5.controls.hud_k6.text)
+w5.listeners[12].fn()  -- F7 +5°
+ok(w5.controls.hud_k6.text:find('角 %+5°', 1, false) ~= nil, 'F7 一次 → 角 +5°', w5.controls.hud_k6.text)
+w5.listeners[16].fn()  -- 0 复位
+ok(w5.controls.hud_k6.text:find('力度 100%%', 1, false) ~= nil, '复位 → 力度 100%', w5.controls.hud_k6.text)
+ok(w5.controls.hud_k6.text:find('角 %+0°', 1, false) ~= nil, '复位 → 角 +0°', w5.controls.hud_k6.text)
+-- clamp 上限：F5 连按 40 次应停在 220%（镜像与服务端 POW_MAX=2.2 对齐）
+for _ = 1, 40 do w5.listeners[10].fn() end
+ok(w5.controls.hud_k6.text:find('力度 220%%', 1, false) ~= nil, 'F5×40 → 顶在 220%（clamp 对齐）', w5.controls.hud_k6.text)
+-- 角度 clamp：F7 连按 20 次应停在 75°
+for _ = 1, 20 do w5.listeners[12].fn() end
+ok(w5.controls.hud_k6.text:find('角 %+75°', 1, false) ~= nil, 'F7×20 → 顶在 +75°（clamp 对齐）', w5.controls.hud_k6.text)
 
 -- ---------------------------------------------------------------- 汇总
 io.write('\n========================================\n')
