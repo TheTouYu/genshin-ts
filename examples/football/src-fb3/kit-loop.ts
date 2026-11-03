@@ -70,7 +70,8 @@ const S_P_MAXV = 1207959579n
 const S_P_REST = 1207959580n
 const S_P_INIT = 1207959581n
 const S_HB = 1207959582n
-const S_PSPD1 = 1207959583n // 修1：上拍 pSpd（差分塌缩防护，2 拍滑动最大值的另一半） // S3 心跳计数：静止期连续静止拍数（满 15 发一条 'B' 保 kit-listen 时钟）
+const S_PSPD1 = 1207959583n
+const S_TCD = 1207959584n // 触碰冷却截止拍（deadline 式：触发时写 tick+6，条件 tcd≤tick） // 修1：上拍 pSpd（差分塌缩防护，2 拍滑动最大值的另一半） // S3 心跳计数：静止期连续静止拍数（满 15 发一条 'B' 保 kit-listen 时钟）
 
 // ═════════════════════ 世界几何（field.structure.json / goal.structure.json 实测）═══════════
 const BALL_R = 0.25
@@ -107,7 +108,7 @@ const POW_MAX = 2.2
 // 0.7 实测（日志 3458）：29 脚比值 p50=0.72，落在 0.62~1.11，全部 < 1.15 ⇒ 不注能，但视觉
 // 上偏「滑着转」。调到 0.85 让球更「咬草皮」：比值 p50≈0.85，仍略低于纯滚动（保留真实足球
 // 「踢出瞬间打滑、摩擦再把它转起来」的序列），且上限仍远低于会注能的 1.2。
-const KICK_SPIN_SLIP = 0.85
+const KICK_SPIN_SLIP = 0.5
 const DRIB_KP_DEFAULT = 45.0 // 带球弹簧刚度 1/s²
 const DRIB_KD_DEFAULT = 12.0 // 带球相对速度阻尼 1/s
 const DRIB_R_DEFAULT = 2.0 // 带球助力半径 m
@@ -117,6 +118,13 @@ const DRIB_AHEAD_K = 0.25 // 目标距离随速度外推系数：冲刺时前脚
 // 必须推出步幅打击区。实测 3461：5.3m/s 冲刺时球贴根位 0.5-0.9m=正处前脚落点 ⇒ 每步踢到球。
 // ahead = 1.0 + 0.25·pSpd：走 1.2m/s→1.3m（不变），跑 5.3→2.3m（步幅外）。门半径同系数外推防锯齿。
 const DRIB_AMAX = 30.0
+// —— 触碰式带球（2026-11-03 用户设计）：不做速度一致的连续拖拽，改为周期性小踢——
+const TOUCH_R = 1.2 // 触碰半径：玩家追到球 1.2m 内才「踢」它（不是在外圈就拉）
+const TV_K = 1.3 // 触碰后球速 = 玩家速+TV_K（球先快后慢，玩家追上再踢）
+const CATCH_K = 1.2 // 追赶模式期望速度增益 = clamp(差距·K, 0.5, 3.0)
+const DRIB_AHEAD_PARK = 0.9 // 原地停球目标：面朝前 0.9m
+const K_TOPSPIN = 0.01 // 上/下旋气动系数（独立于 fb_magnus：踢球 wx≈36 rad/s 是侧旋 2.6 倍，
+//   复用 0.08 会得 52m/s²=5.3g 下压当场砸地；0.01 ⇒ 5-7 m/s² 量级，可感知不失控）
 const DRIB_VMAX = 4.0 // 带球助力给球的目标速度上限（相对玩家速度，m/s） // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动 m/s
 const SETTLE_VY = 1.0 // 触地 |vy| 低于此值 ⇒ 直接贴地不再弹
@@ -595,6 +603,47 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         () => {}
       )
 
+      // —— 触碰式带球：移动态（pSpd≥0.8）玩家追到球 TOUCH_R 内且球更慢 ⇒ 小踢一脚 ——
+      // 走踢球的冲量累加器同槽（积分前生效，vPre 快照捕到触碰后速度，位置当拍走满速）。
+      // 方向=玩家速度方向（不是面朝）：转弯时球自由滚，不被朝向拖着横移（用户「怪异转向」的根）。
+      const pSpdT = f._3dVectorModuloOperation(f.create3dVector(vpxV.value, 0.0, vpzV.value))
+      const tcdDue = f.lessThanOrEqualTo(f.dataTypeConversion(f.querySkillVariableValue(S_TCD), 'int'), tick)
+      const touchHit = f.logicalAndOperation(
+        f.logicalAndOperation(
+          f.greaterThanOrEqualTo(pSpdT, 0.8),
+          f.logicalAndOperation(
+            f.lessThanOrEqualTo(by.value, f.addition(GROUND_Y, 0.05)),
+            f.logicalAndOperation(f.logicalNotOperation(kickNow), tcdDue)
+          )
+        ),
+        f.logicalAndOperation(
+          f.lessThan(distBP, TOUCH_R),
+          f.lessThan(
+            f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value)),
+            f.addition(pSpdT, 0.5)
+          )
+        )
+      )
+      const ctrlActive = f.localVariable('int')
+      ctrlActive.set(0n)
+      f.doubleBranch(
+        touchHit,
+        () => {
+          const tvDirX = f.division(vpxV.value, f.addition(pSpdT, 0.0001))
+          const tvDirZ = f.division(vpzV.value, f.addition(pSpdT, 0.0001))
+          const tvSpd = f.addition(pSpdT, TV_K)
+          // 冲量 = 目标速度 − 当前速度（精确落到 dir·(pSpd+TV_K)）
+          impX.set(f.addition(impX.value, f.subtraction(f.multiplication(tvDirX, tvSpd), vx.value)))
+          impZ.set(f.addition(impZ.value, f.subtraction(f.multiplication(tvDirZ, tvSpd), vz.value)))
+          // 自旋同步纯滚动（否则 slip≈9 会吃掉当拍 ~1 m/s：γ=3.5·μ·jn/slip≈0.4）
+          wx.set(f.division(f.multiplication(tvDirZ, tvSpd), BALL_R))
+          wz.set(f.division(f.multiplication(tvDirX, tvSpd), -1.0 * BALL_R))
+          f.setSkillVariable(S_TCD, f.dataTypeConversion(f.addition(tick, 6n), 'float'))
+          ctrlActive.set(1n)
+        },
+        () => {}
+      )
+
       // 施加冲量
       vx.set(f.addition(vx.value, impX.value))
       vy.set(f.addition(vy.value, impY.value))
@@ -651,7 +700,6 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       // 修1（差分塌缩防护）：vpx 是分量差分，玩家掉头那 1-2 拍位置先减速再反向 ⇒ pSpd 塌到
       // ≈0 ⇒ 旧门 ballSpd<pSpd+3 在转身瞬间关门、助力断供——球被摩擦拖住而玩家已变向加速，
       // 距离塌到腿下（每次变向一次「跟不上」）。修法：门用 2 拍滑动最大值
-      // pSpdHold = max(pSpd, 上拍 pSpd)（不变量#4 公式 (a+b+|a−b|)/2），转身瞬态不再关门。
       const pSpdLast = f.querySkillVariableValue(S_PSPD1)
       const pSpdHold = f.division(
         f.addition(
@@ -661,82 +709,132 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         2.0
       )
       f.setSkillVariable(S_PSPD1, pSpd)
-      // 修2（回追门）：S5 前半球门只挡「球被旧朝向目标拉过两腿」，但它把「玩家回头追球」
-      // 也挡了（球在新朝向身后=完全不助力 ⇒ 被遗弃）。放宽：球在身后但**玩家正朝球跑**
-      // （速度·(球−玩家)方向 > 0.2）时仍给助力，只是推力减半（dv 上限 ×0.5，温和回收）。
-      const chaseDot = f.addition(
-        f.multiplication(vpxV.value, dirX),
-        f.multiplication(vpzV.value, dirZ)
+      // —— 触碰式带球（2026-11-03 用户设计裁决）——连续助力删除（它的两个固有症状：
+      //    球偏远 2.3m、玩家后方转身球被朝向横拖=「怪异转向」，都来自「目标=玩家位+朝向×距离」
+      //    这个公式本身）。剩两个态：
+      // ① 追赶：球在身后且更慢（被反超/起步瞬态），在外圈内加速追人——期望速度=
+      //    pSpd+clamp(差距·CATCH_K, 0.5, 3.0)，方向指向玩家位置（不是面朝）。
+      //    离线仿真 touch-dribble-sim.mjs：周期 1.08s、距离 0.5~2.4m、球不失联。
+      // ② 原地停球：玩家几乎站定（pSpd<0.8）球又慢又近 ⇒ 软弹簧停到面朝前 0.9m。
+      const behindP = f.greaterThan(pPxV.value, bx.value)
+      const pxSide = f.subtraction(pPxV.value, bx.value)
+      const pzSide = f.subtraction(pPzV.value, bz.value)
+      const gapLen = f._3dVectorModuloOperation(f.create3dVector(pxSide, 0.0, pzSide))
+      const catchGap = f.localVariable('float')
+      f.doubleBranch(
+        f.greaterThan(f.multiplication(gapLen, CATCH_K), 3.0),
+        () => { catchGap.set(3.0) },
+        () => {
+          f.doubleBranch(
+            f.lessThan(f.multiplication(gapLen, CATCH_K), 0.5),
+            () => { catchGap.set(0.5) },
+            () => { catchGap.set(f.multiplication(gapLen, CATCH_K)) }
+          )
+        }
       )
-      const chaseOK = f.greaterThan(chaseDot, 0.2)
-      const assistOn = f.logicalAndOperation(
+      const catchOn = f.logicalAndOperation(
         f.logicalAndOperation(
-          f.logicalAndOperation(f.logicalNotOperation(kickNow), groundedBefore),
-          f.logicalOrOperation(frontOK, chaseOK)
+          f.greaterThanOrEqualTo(pSpd, 0.8),
+          f.logicalAndOperation(behindP, groundedBefore)
         ),
         f.logicalAndOperation(
-          // 门半径随速度同系数外推（目标在 1.0+0.25·pSpd 处，半径不跟着放大 ⇒ 冲刺时目标点
-          // 出圈 → 门关 → 球失速 → 锯齿。半径与目标同 k 才自洽）
-          f.lessThan(distBP, f.addition(dribR.value, f.multiplication(pSpd, DRIB_AHEAD_K))),
-          f.lessThan(ballSpdNow, f.addition(pSpdHold, 3.0))
+          f.logicalNotOperation(kickNow),
+          f.logicalAndOperation(
+            f.lessThan(gapLen, f.addition(dribR.value, f.multiplication(pSpd, DRIB_AHEAD_K))),
+            f.lessThan(
+              f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value)),
+              f.addition(pSpdHold, 0.5)
+            )
+          )
         )
       )
       f.doubleBranch(
-        assistOn,
+        catchOn,
         () => {
-          // 一阶跟随（不是弹簧-阻尼）：7.5Hz 下 kp=45/kd=12 的显式积分会自激——实测
-          // tick217..220 球速每拍翻号（1.13→−0.75→1.72→−0.73），玩家站着球在原地抖。
-          //   desiredV = 玩家速度 + clamp(误差·posGain, ±DRIB_VMAX)
-          //   a        = (desiredV − 球速)/tau        （tau≈0.3s ⇒ 每拍走 44%，无过冲）
-          const aheadDist = f.addition(DRIB_AHEAD, f.multiplication(pSpd, DRIB_AHEAD_K))
-          const tX = f.addition(pPxV.value, f.multiplication(aimX.value, aheadDist))
-          const tZ = f.addition(pPzV.value, f.multiplication(aimZ.value, aheadDist))
-          const errX = f.subtraction(tX, bx.value)
-          const errZ = f.subtraction(tZ, bz.value)
-          const posGain = f.division(kp.value, 10.0)
-          const tau = f.addition(0.2, f.division(kd.value, 100.0))
-          const dvxRaw = f.multiplication(errX, posGain)
-          const dvzRaw = f.multiplication(errZ, posGain)
-          // 修2 配套：正常追点满档 DRIB_VMAX；回追（球在身后、玩家朝球跑）半档——温和回收
-          const dvCap = f.localVariable('float')
-          f.doubleBranch(
-            frontOK,
-            () => { dvCap.set(DRIB_VMAX) },
-            () => { dvCap.set(f.multiplication(DRIB_VMAX, 0.5)) }
-          )
-          const dvx = f.localVariable('float')
-          const dvz = f.localVariable('float')
-          f.doubleBranch(f.greaterThan(dvxRaw, dvCap.value), () => { dvx.set(dvCap.value) }, () => {
-            f.doubleBranch(f.lessThan(dvxRaw, f.multiplication(dvCap.value, -1.0)), () => { dvx.set(f.multiplication(dvCap.value, -1.0)) }, () => { dvx.set(dvxRaw) })
-          })
-          f.doubleBranch(f.greaterThan(dvzRaw, dvCap.value), () => { dvz.set(dvCap.value) }, () => {
-            f.doubleBranch(f.lessThan(dvzRaw, f.multiplication(dvCap.value, -1.0)), () => { dvz.set(f.multiplication(dvCap.value, -1.0)) }, () => { dvz.set(dvzRaw) })
-          })
-          const aX = f.division(f.subtraction(f.addition(vpxV.value, dvx.value), vx.value), tau)
-          const aZ = f.division(f.subtraction(f.addition(vpzV.value, dvz.value), vz.value), tau)
-          const am = f._3dVectorModuloOperation(f.create3dVector(aX, 0.0, aZ))
+          // 追赶方向：指向玩家（gap 归一）
+          const cDirX = f.division(pxSide, f.addition(gapLen, 0.0001))
+          const cDirZ = f.division(pzSide, f.addition(gapLen, 0.0001))
+          const wantV = f.addition(pSpd, catchGap.value)
+          const aCX = f.division(f.subtraction(f.multiplication(cDirX, wantV), vx.value), 0.32)
+          const aCZ = f.division(f.subtraction(f.multiplication(cDirZ, wantV), vz.value), 0.32)
+          const am = f._3dVectorModuloOperation(f.create3dVector(aCX, 0.0, aCZ))
           const sc = f.localVariable('float')
           f.doubleBranch(
             f.greaterThan(am, DRIB_AMAX),
             () => { sc.set(f.division(DRIB_AMAX, am)) },
             () => { sc.set(1.0) }
           )
-          accX.set(f.addition(accX.value, f.multiplication(aX, sc.value)))
-          accZ.set(f.addition(accZ.value, f.multiplication(aZ, sc.value)))
+          accX.set(f.addition(accX.value, f.multiplication(aCX, sc.value)))
+          accZ.set(f.addition(accZ.value, f.multiplication(aCZ, sc.value)))
+          ctrlActive.set(1n)
         },
-        () => {}
+        () => {
+          // 原地停球（软弹簧，dv 上限 1.5）
+          f.doubleBranch(
+            f.logicalAndOperation(
+              f.logicalAndOperation(f.lessThan(pSpd, 0.8), groundedBefore),
+              f.logicalAndOperation(
+                f.lessThan(
+                  f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value)),
+                  0.6
+                ),
+                f.lessThan(distBP, 1.6)
+              )
+            ),
+            () => {
+              const target = f.addition(pPxV.value, f.multiplication(aimX.value, DRIB_AHEAD_PARK))
+              const err = f.subtraction(target, bx.value)
+              const dv = f.localVariable('float')
+              f.doubleBranch(f.greaterThan(f.multiplication(err, 0.45), 1.5),
+                () => { dv.set(1.5) },
+                () => {
+                  f.doubleBranch(f.lessThan(f.multiplication(err, 0.45), -1.5),
+                    () => { dv.set(-1.5) },
+                    () => { dv.set(f.multiplication(err, 0.45)) })
+                })
+              // z 向用 aimZ 同式
+              const targetZ = f.addition(pPzV.value, f.multiplication(aimZ.value, DRIB_AHEAD_PARK))
+              const errZ = f.subtraction(targetZ, bz.value)
+              const dvz = f.localVariable('float')
+              f.doubleBranch(f.greaterThan(f.multiplication(errZ, 0.45), 1.5),
+                () => { dvz.set(1.5) },
+                () => {
+                  f.doubleBranch(f.lessThan(f.multiplication(errZ, 0.45), -1.5),
+                    () => { dvz.set(-1.5) },
+                    () => { dvz.set(f.multiplication(errZ, 0.45)) })
+                })
+              accX.set(f.addition(accX.value, f.division(f.subtraction(dv.value, vx.value), 0.32)))
+              accZ.set(f.addition(accZ.value, f.division(f.subtraction(dvz.value, vz.value), 0.32)))
+              ctrlActive.set(1n)
+            },
+            () => {}
+          )
+        }
       )
 
       // 马格努斯：只在空中（a = K·ω×v）
       f.doubleBranch(
         f.logicalNotOperation(groundedBefore),
         () => {
-          // 马格努斯只取**竖直轴自旋 wy**（弧线/香蕉球）：a = K·(ŷ·wy)×v = K·wy·(vz, 0, −vx)
-          // 不让滚动自旋 wx/wz 参与气动力：15Hz 下贴地滚动 ω=v/R≈40rad/s，K=0.03 会给出
-          // ~12m/s² 的"砸地"力（旧测试台 slot2 漏清 wz 时球被吹到 6.59m 就是同一机制）。
+          // 侧旋（弧线/香蕉球）wy：a = K·(ŷ·wy)×v = K·wy·(vz, 0, −vx)
           const magK = f.multiplication(f.querySkillVariableValue(S_P_MAGNUS), wy.value)
           accX.set(f.addition(accX.value, f.multiplication(magK, vz.value)))
           accZ.set(f.subtraction(accZ.value, f.multiplication(magK, vx.value)))
+          // 上/下旋气动（2026-11-03 用户「上下旋转影响落地快慢」）：y 分量 (ω×v)_y =
+          // wz·vx − wx·vz，独立系数 K_TOPSPIN=0.01（踢球 wx≈36 rad/s 是侧旋 2.6 倍，
+          // 复用 fb_magnus=0.08 ⇒ 52m/s²=5.3g 当场砸地；0.01 ⇒ 5-7m/s² 可感知不失控）。
+          // 上旋（wx 与滚动同向）⇒ 分量负=下压更坠；下旋 ⇒ 抬升滞空。
+          // 贴地滚动 wx=v/R≈40+ 进不了本分支（air-only 门），不会假砸地。
+          accY.set(f.addition(
+            accY.value,
+            f.multiplication(
+              K_TOPSPIN,
+              f.subtraction(
+                f.multiplication(wz.value, vx.value),
+                f.multiplication(wx.value, vz.value)
+              )
+            )
+          ))
         },
         () => {}
       )
@@ -1141,7 +1239,7 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         () => { mode.set(3n) },
         () => {}
       )
-      f.doubleBranch(assistOn, () => { mode.set(5n) }, () => {})
+      f.doubleBranch(f.equal(ctrlActive.value, 1n), () => { mode.set(5n) }, () => {})
     },
     () => {}
   )
