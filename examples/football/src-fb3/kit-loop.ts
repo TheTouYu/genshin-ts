@@ -112,7 +112,10 @@ const DRIB_KP_DEFAULT = 45.0 // 带球弹簧刚度 1/s²
 const DRIB_KD_DEFAULT = 12.0 // 带球相对速度阻尼 1/s
 const DRIB_R_DEFAULT = 2.0 // 带球助力半径 m
 
-const DRIB_AHEAD = 1.0 // 带球目标点：玩家前方多远
+const DRIB_AHEAD = 1.0 // 带球目标点：玩家前方多远（基础值，慢走适用）
+const DRIB_AHEAD_K = 0.25 // 目标距离随速度外推系数：冲刺时前脚步幅 ~0.7-1.0m，目标点
+// 必须推出步幅打击区。实测 3461：5.3m/s 冲刺时球贴根位 0.5-0.9m=正处前脚落点 ⇒ 每步踢到球。
+// ahead = 1.0 + 0.25·pSpd：走 1.2m/s→1.3m（不变），跑 5.3→2.3m（步幅外）。门半径同系数外推防锯齿。
 const DRIB_AMAX = 30.0
 const DRIB_VMAX = 4.0 // 带球助力给球的目标速度上限（相对玩家速度，m/s） // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动 m/s
@@ -672,7 +675,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           f.logicalOrOperation(frontOK, chaseOK)
         ),
         f.logicalAndOperation(
-          f.lessThan(distBP, dribR.value),
+          // 门半径随速度同系数外推（目标在 1.0+0.25·pSpd 处，半径不跟着放大 ⇒ 冲刺时目标点
+          // 出圈 → 门关 → 球失速 → 锯齿。半径与目标同 k 才自洽）
+          f.lessThan(distBP, f.addition(dribR.value, f.multiplication(pSpd, DRIB_AHEAD_K))),
           f.lessThan(ballSpdNow, f.addition(pSpdHold, 3.0))
         )
       )
@@ -683,8 +688,9 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // tick217..220 球速每拍翻号（1.13→−0.75→1.72→−0.73），玩家站着球在原地抖。
           //   desiredV = 玩家速度 + clamp(误差·posGain, ±DRIB_VMAX)
           //   a        = (desiredV − 球速)/tau        （tau≈0.3s ⇒ 每拍走 44%，无过冲）
-          const tX = f.addition(pPxV.value, f.multiplication(aimX.value, DRIB_AHEAD))
-          const tZ = f.addition(pPzV.value, f.multiplication(aimZ.value, DRIB_AHEAD))
+          const aheadDist = f.addition(DRIB_AHEAD, f.multiplication(pSpd, DRIB_AHEAD_K))
+          const tX = f.addition(pPxV.value, f.multiplication(aimX.value, aheadDist))
+          const tZ = f.addition(pPzV.value, f.multiplication(aimZ.value, aheadDist))
           const errX = f.subtraction(tX, bx.value)
           const errZ = f.subtraction(tZ, bz.value)
           const posGain = f.division(kp.value, 10.0)

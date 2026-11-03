@@ -83,10 +83,13 @@ g
         // **覆盖差**（不是整段 vel·dur——那会稳定超前 p95 2.65m）。稳态滞后仍=一拍位移。
         // 离线丢拍仿真 replay4-droptick.mjs：每 8 拍丢 1 条 'B' 冻结拍 56→6（−90%），
         // 无丢拍代价 err p95 0.24m。fb_dur 调回 0.135 ⇒ 前瞻=0，自动退回旧行为。
+        // 前瞻量 L = max(0, dur−0.02)。稳态可见滞后 = v·(dur−L)（3461 实测 5-8m/s 时
+        // 滞后 0.9-1.1m=v·0.135 ⇒ 可见球=内核球−1m=玩家腿间 ⇒ 与步幅打击区叠加成连续碰撞）。
+        // L→dur−0.02 把滞后压到 0.02v（7m/s 时 0.14m）；丢 1 拍时段恰好走完到目标，无冻结。
         const laTime = f.localVariable('float')
         f.doubleBranch(
-          f.greaterThan(dur.value, TICK_INTERVAL),
-          () => { laTime.set(f.subtraction(dur.value, TICK_INTERVAL)) },
+          f.greaterThan(dur.value, 0.02),
+          () => { laTime.set(f.subtraction(dur.value, 0.02)) },
           () => { laTime.set(0.0) }
         )
         const laRaw = f._3dVectorAddition(pos, f._3dVectorZoom(vel, laTime.value))
