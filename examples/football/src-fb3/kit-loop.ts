@@ -69,7 +69,8 @@ const S_P_MAGNUS = 1207959578n
 const S_P_MAXV = 1207959579n
 const S_P_REST = 1207959580n
 const S_P_INIT = 1207959581n
-const S_HB = 1207959582n // S3 心跳计数：静止期连续静止拍数（满 15 发一条 'B' 保 kit-listen 时钟）
+const S_HB = 1207959582n
+const S_PSPD1 = 1207959583n // 修1：上拍 pSpd（差分塌缩防护，2 拍滑动最大值的另一半） // S3 心跳计数：静止期连续静止拍数（满 15 发一条 'B' 保 kit-listen 时钟）
 
 // ═════════════════════ 世界几何（field.structure.json / goal.structure.json 实测）═══════════
 const BALL_R = 0.25
@@ -637,23 +638,42 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       // 带球助力（弹簧-阻尼，力而不是速度改写 ⇒ 没有速度悬崖）：
       // 只在落地、未踢球、球没飞走时生效；目标点 = 玩家前方 1.0m
       const ballSpdNow = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
-      // S5（2026-11-02 用户「跑步磕到球，慢走不会」）：**前半球门**。离线仿真证明直跑稳态
-      // 球总在玩家前 1.65-1.91m（永不重叠）——磕脚只能来自「球在身后被拖回身前」：助力把球
-      // 以最高 pSpd+4（≈10 m/s）**穿过玩家两腿**去追身前 1m 的目标点，视觉=跑步踢到球。
-      // 修法：球-玩家方向与面朝夹角 >96°（dot<−0.1，球在身后）不给助力——球自然减速停下，
-      // 玩家回头拿球（真实足球行为），两腿间不再穿越。
+      // —— 门条件三处（2026-11-03 用户「跑动时球跟不上，经常碰撞」归因修正后重写）——
+      // dotFront：球-玩家方向与面朝的点积（+1=正前，−1=正后）。
       const dotFront = f.addition(
         f.multiplication(dirX, aimX.value),
         f.multiplication(dirZ, aimZ.value)
       )
+      const frontOK = f.greaterThan(dotFront, -0.1)
+      // 修1（差分塌缩防护）：vpx 是分量差分，玩家掉头那 1-2 拍位置先减速再反向 ⇒ pSpd 塌到
+      // ≈0 ⇒ 旧门 ballSpd<pSpd+3 在转身瞬间关门、助力断供——球被摩擦拖住而玩家已变向加速，
+      // 距离塌到腿下（每次变向一次「跟不上」）。修法：门用 2 拍滑动最大值
+      // pSpdHold = max(pSpd, 上拍 pSpd)（不变量#4 公式 (a+b+|a−b|)/2），转身瞬态不再关门。
+      const pSpdLast = f.querySkillVariableValue(S_PSPD1)
+      const pSpdHold = f.division(
+        f.addition(
+          f.addition(pSpd, pSpdLast),
+          f.absoluteValueOperation(f.subtraction(pSpd, pSpdLast))
+        ),
+        2.0
+      )
+      f.setSkillVariable(S_PSPD1, pSpd)
+      // 修2（回追门）：S5 前半球门只挡「球被旧朝向目标拉过两腿」，但它把「玩家回头追球」
+      // 也挡了（球在新朝向身后=完全不助力 ⇒ 被遗弃）。放宽：球在身后但**玩家正朝球跑**
+      // （速度·(球−玩家)方向 > 0.2）时仍给助力，只是推力减半（dv 上限 ×0.5，温和回收）。
+      const chaseDot = f.addition(
+        f.multiplication(vpxV.value, dirX),
+        f.multiplication(vpzV.value, dirZ)
+      )
+      const chaseOK = f.greaterThan(chaseDot, 0.2)
       const assistOn = f.logicalAndOperation(
         f.logicalAndOperation(
           f.logicalAndOperation(f.logicalNotOperation(kickNow), groundedBefore),
-          f.greaterThan(dotFront, -0.1)
+          f.logicalOrOperation(frontOK, chaseOK)
         ),
         f.logicalAndOperation(
           f.lessThan(distBP, dribR.value),
-          f.lessThan(ballSpdNow, f.addition(pSpd, 3.0))
+          f.lessThan(ballSpdNow, f.addition(pSpdHold, 3.0))
         )
       )
       f.doubleBranch(
@@ -671,13 +691,20 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           const tau = f.addition(0.2, f.division(kd.value, 100.0))
           const dvxRaw = f.multiplication(errX, posGain)
           const dvzRaw = f.multiplication(errZ, posGain)
+          // 修2 配套：正常追点满档 DRIB_VMAX；回追（球在身后、玩家朝球跑）半档——温和回收
+          const dvCap = f.localVariable('float')
+          f.doubleBranch(
+            frontOK,
+            () => { dvCap.set(DRIB_VMAX) },
+            () => { dvCap.set(f.multiplication(DRIB_VMAX, 0.5)) }
+          )
           const dvx = f.localVariable('float')
           const dvz = f.localVariable('float')
-          f.doubleBranch(f.greaterThan(dvxRaw, DRIB_VMAX), () => { dvx.set(DRIB_VMAX) }, () => {
-            f.doubleBranch(f.lessThan(dvxRaw, -DRIB_VMAX), () => { dvx.set(-DRIB_VMAX) }, () => { dvx.set(dvxRaw) })
+          f.doubleBranch(f.greaterThan(dvxRaw, dvCap.value), () => { dvx.set(dvCap.value) }, () => {
+            f.doubleBranch(f.lessThan(dvxRaw, f.multiplication(dvCap.value, -1.0)), () => { dvx.set(f.multiplication(dvCap.value, -1.0)) }, () => { dvx.set(dvxRaw) })
           })
-          f.doubleBranch(f.greaterThan(dvzRaw, DRIB_VMAX), () => { dvz.set(DRIB_VMAX) }, () => {
-            f.doubleBranch(f.lessThan(dvzRaw, -DRIB_VMAX), () => { dvz.set(-DRIB_VMAX) }, () => { dvz.set(dvzRaw) })
+          f.doubleBranch(f.greaterThan(dvzRaw, dvCap.value), () => { dvz.set(dvCap.value) }, () => {
+            f.doubleBranch(f.lessThan(dvzRaw, f.multiplication(dvCap.value, -1.0)), () => { dvz.set(f.multiplication(dvCap.value, -1.0)) }, () => { dvz.set(dvzRaw) })
           })
           const aX = f.division(f.subtraction(f.addition(vpxV.value, dvx.value), vx.value), tau)
           const aZ = f.division(f.subtraction(f.addition(vpzV.value, dvz.value), vz.value), tau)
