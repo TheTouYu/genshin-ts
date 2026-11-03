@@ -580,12 +580,12 @@ local SETTLE_OPT = {
 --   休闲 casual「叶簇光点」 · AI 对抗「雷纹星芒」 · 双人对战「樱瓣小星」 · 双人合作「雪山冰晶」
 -- 字段：s=图元 x,y=中心 w,h=尺寸 c=ARGB rot=Z 旋转角度（度）；由 main.lua 的 bg 池换肤（不新建实例，
 -- 因为背景必须在棋盘**之下**，运行中新建的实例会盖住棋盘）。
-MODE_BG = STYLE.bg
+local MODE_BG = STYLE.bg
 -- 背景池容量 = **最大条目数 + 1**（第 1 件是整屏底色；本版各模式 ≤15 条 ⇒ 池 18 有余量）
-MODE_BG_POOL = 18
+local MODE_BG_POOL = 18
 -- 背景池容量 = **最大条目数 + 1**（第 1 件是整屏底色；2026-10-28 实测 ai-battle 17 条 ⇒ 池 18）。
 -- 池在 OnStart 一次性建好（必须早于棋盘 ⇒ 压在棋盘之下），换模式只换肤不新建实例。
-MODE_BG_POOL = 18
+local MODE_BG_POOL = 18
 M.MODE_BG, M.MODE_BG_POOL = MODE_BG, MODE_BG_POOL
 
 -- ===== v3.2 原神世界观文案表（40 条；玩家身份 = 周游提瓦特的旅行者）====================

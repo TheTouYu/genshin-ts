@@ -459,16 +459,11 @@ M.new = function(spec)
       return p
     end
     if screen == 'settle' then
-      -- 结算页：只出三颗行动键（再来一局 / 回主页 / 明细），不出游戏键
+      -- v6.2：结算页**不再出触控三键**——三颗行动键现在由 view_settle 的触控胶囊自己出
+      -- （同时存在会让同一动作在一屏出现两遍 = 用户实测缺陷③；旧键还和卡重叠 12px = 缺陷②）。
+      -- ⚠ 这是本次接线里唯一授权的 ui.lua 改动（lead 2026-10-31 指令）。
       p.slots = {}
-      local aw, ah = NUM.PHONE.ACT_W or 208, NUM.PHONE.ACT_H or 64
-      local y = isMobile and -(halfH - pad - ah / 2) or -4000
-      p.acts = {
-        B('again', 0, y + 90, aw * 1.15, ah, KIT.FS + 2),
-        B('home', -(aw * 0.62), y, aw, ah, KIT.FS),
-        B('detail', aw * 0.62, y, aw, ah, KIT.FS),
-      }
-      if not isMobile then p.acts = {} end
+      p.acts = {}
       p.nav = {}
       return p
     end

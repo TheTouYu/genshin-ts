@@ -355,6 +355,13 @@ local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.appl
 -- （出图实测：PERSIST_TIP 常驻键位提示、开场句、纳西妲接管文案全都没有墨迹）。
 -- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
 -- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
+-- v6.17：浮层在场的**唯一判定**。syncStage（藏/还文字层）与 setText（浮层期拒写）共用这一份，
+-- 不再各自维护一份条件表——两处条件曾经同步漏项，正是"透出纳西妲"和"重开左栏空白"这两个 bug 的土壤。
+-- 只在调用时求值（各全局在本文件不同位置赋值，定义期读会拿到 nil）。
+local function overlayLive()
+  return (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn)
+    or MODE_OVER or (SETTLEV and SETTLEV.live)) and true or false
+end
 local function setText(ctl, value)
   -- 浮层（帮助/结算/档案）打开时，服务端 textbox 仍在运行时实例**之上**（实测 sk1name z=42
   -- 压着结算卡 z=51），只能靠"不写"来隐藏。以前只在 HUD_INST.txt 一条通道做了抑制，
@@ -367,7 +374,13 @@ local function setText(ctl, value)
   -- 于是 syncStage 每帧都在清 sk1name/sk1state…（置 textForce=true 后 setText(c,'')），
   -- 每一帧都被第②条拦回 ——"清了但还在"的真因就是它（探针实测：hidden=true force=true 仍 DROP）。
   -- 现在只保留一条：浮层期间**除强制清屏外**一律不写；清屏阶段靠 textForce 放行。
-  if FN.textLayerHidden and not FN.textForce then return end
+  -- 🔴 v6.17（用户 2026-11-03 图一①「重新开始左栏文字就空白」）：判据不能读 FN.textLayerHidden。
+  -- 那是 syncStage 写下的**上一帧缓存**（每 6 帧才刷一次），而「关结算 → 写重开文案」发生在同一帧里：
+  -- 此刻缓存仍是「结算浮层在」，于是 setText(hint,'堆满一行即消除') / setText(botBanner, PERSIST_TIP)
+  -- 被当成"浮层期写入"整条丢弃，而这两句**只在重开时写一次**（不像 hud/best 由 renderHud 每帧重写，
+  -- 所以它们能自己恢复）⇒ 左栏提示与底栏键位提示永久空白，直到下一次触碰才回来。
+  -- 修法：就地算**当下**的浮层状态（overlayLive，与 syncStage 共用同一份判定，不复制条件）。
+  if not FN.textForce and overlayLive() then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
@@ -1045,6 +1058,26 @@ renderAll = function()
   end
 end
 
+-- v6.17（用户 2026-11-03 图一②）：暂存列该摆多高，由**当前屏 plan 里真实的文字行**算出来，
+-- 不再用固定的 150。旧值让暂存格落在左栏 hud/best/hint 同一竖带上（实测 PC 2204px²、手机 986px²×2 处）。
+-- 取文字行的下沿（raw y 更小 = 屏幕更靠下）再留 24px 净空，整列（含方块半高 30）随之落下。
+-- 没有 plan（首帧/降级路径）时退回旧值 150 ⇒ 行为与 v6.16 相同。
+local function holdCyFor()
+  local p = FN.U and FN.U.lastPlan
+  local t = p and p.text
+  if not t then return nil end
+  local lowest = nil
+  for _, nm in ipairs({ 'hud', 'best', 'hint' }) do
+    local r = t[nm]
+    if r and type(r.y) == 'number' and r.y > -1000 then
+      local bottom = r.y - (r.h or 40) / 2      -- raw：下沿 = 中心 - 半高
+      if not lowest or bottom < lowest then lowest = bottom end
+    end
+  end
+  if not lowest then return nil end
+  return lowest - 24 - 30                      -- 再留 24 净空 + 方块半高 30
+end
+
 -- v6.5 预览列描述：NEXT 两块（8 格）+ HOLD 一块（4 格）—— 老 renderNext 的三段逻辑一一对应：
 --   ① 主预览 18px/20 距/满色；没 nextName（或结算）⇒ 8 格停靠 —— v3.5 ⑩ 的脏格就此绝迹
 --      （旧实现先刷 COL_BG 再 return，格子留在原位）
@@ -1062,7 +1095,7 @@ local function previewDesc(parked)
   push(PVW.S.next({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
     noLabel = true, legacyNames = true, queue = queue, slots = 2 }))
   push(PVW.S.hold({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
-    noLabel = true, legacyNames = true,
+    noLabel = true, legacyNames = true, holdCy = holdCyFor(),
     holdName = g.st and g.st.name or nil, canHold = g.st and g.st.can }))
   if parked then
     -- 浮层期把 12 格挪出画布（旧实现同手法：运行时实例的 SetVisible 不可靠）
@@ -1320,11 +1353,17 @@ local function startIfWaiting()
     -- 居中文字都会被棋盘盖住。手机上只放模式名（4 字≈96px，落在净空内），「准备开始」交给底部横幅。
     -- v6.16：设备差异收敛到 config.COPY_DEV 一张表（此前是散落的三元表达式）。
     -- 手机两盘净空只有 170px ⇒ 顶部只放模式名，'准备开始' 由底部横幅承接（底部文案见 COPY_DEV.ready）。
+    -- 🔴 v6.17（用户 2026-11-03 图二①②）：这两行原先是
+    --     if readyTip ~= '' then setText(botBanner, readyTip) end
+    --     ...
+    --     setText(botBanner, '')
+    -- 即**刚写进去就被下一行抹掉**的死写入 ⇒ 手机双盘的「准备开始 · 按任意键」从未上过屏，
+    -- 而 PC 那侧是空串（COPY_DEV.ready.pc = ''）所以看不出差异。PC 的「准备开始」走 topBanner，
+    -- 手机走 botBanner（两盘净空只有 170px，顶部只放得下模式名），因此清空只对 PC 成立。
     setText(topBanner, (MODE_TITLE[MODE] or MODE) .. (IS_MOBILE and '' or ' · 准备开始'))
     local readyTip = CFG.copyOf('ready', IS_MOBILE)
-    if readyTip ~= '' then setText(botBanner, readyTip) end
+    setText(botBanner, readyTip)
     GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
-    setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
     -- （服务端 textbox 永远在运行时棋盘格之下，出图 v23-pvp-guide.png 可见被格子切一半）。
     local seat1 = C(255, 47, 126, 158)                                  -- P1 深冰蓝
@@ -1969,9 +2008,8 @@ FN.syncStage = function()
   -- 判据＝**只是浮层打开时**才藏文字层（对局中一律照常显示）：角色页/帮助页会把 guideStage 改成 2
   -- （时停），所以不能要求 guideStage==0；v5.36 曾因 `hide = not want` 在局内清空导致 HUD 全消失。
   -- 覆盖屏集合必须含结算（SETTLEV.live），否则结算期 textbox 照写（出图实测 sk1name 透出）。
-  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER
-    or (SETTLEV and SETTLEV.live)) and true or false
-  local hide = overlayNow
+  -- v6.17：条件表搬到 overlayLive() 单一实现（setText 的浮层拒写判据也用它），这里只取值。
+  local hide = overlayLive()
   if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
   FN.textLayerHidden = hide and true or false
   if hide then
@@ -3576,6 +3614,13 @@ restartMatch = function()
   MODE_OVER = false
   TK.state, TK.t = 'play', 0
   settleDestroy()
+  -- v6.17（用户 2026-11-03 图一①）：结算态的横幅/遮罩**先**清，再由各分支写回该有的文案。
+  -- 旧顺序是「分支写文案 → 函数末尾清 botBanner」，于是 casual 分支刚写好的常驻键位提示
+  -- 被本函数自己抹掉（实测重开后 ibotBanner 恒为空，而 ihint 因为有下一帧重写才活下来）。
+  -- 清场只做一次、放在写之前：这是"先复位再落值"的顺序，不是"落值再复位"。
+  setText(topBanner, '')
+  setText(botBanner, '')
+  if overlay then tryCall(overlay, 'SetVisible', false) end
   if mode == 'casual' then
     newGame()
     -- v3.5 ⑥：结算期下架的战况列在这里必须显式上架——casual 重开只走 newGame，
@@ -3605,9 +3650,6 @@ restartMatch = function()
     FN.enterMode()                           -- 重建对家盘 + 双屏布局
     startIfWaiting()                      -- 进模式开局引导（keys → 3-2-1）
   end
-  setText(topBanner, '')
-  setText(botBanner, '')
-  if overlay then tryCall(overlay, 'SetVisible', false) end
   -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
   if CANVAS_W and CANVAS_H then
     local okL, errL = pcall(layout, CANVAS_W, CANVAS_H)
@@ -5085,22 +5127,17 @@ function OnStart()
     end
   end
   -- ===== v2.8 ④：结算三动作（键监听与鼠标热区共用）=====
-  SETTLE_ACT.restart = function()   -- = R 键体（重开/回菜单按模式）
+  -- v6.17（用户 2026-11-03 图一①②③）：本函数原先是 restartMatch 的**第二套实现**，
+  -- 三处与它不一致，全部由用户实测暴露：
+  --   ① casual 重开只走 newGame()，漏掉「战况列上架 + 左栏常驻文案」⇒ 重开后左栏整片空白
+  --      （restartMatch 在 v3.5 ⑥/v6.x 已补齐这两步并写明理由，这份副本没跟上）；
+  --   ② 非 casual 直接 exitToMenu() ⇒ 结算页点「再来一局」回主页，与按钮文案相反；
+  --   ③ 平局/暂停等分支靠 guideStage 判断，与键路径的 (g.gameOver or MODE_OVER) 口径不同。
+  -- 现在它就是 restartMatch 本身：一份实现，键/点/手柄三条入口共用，不会再漂。
+  SETTLE_ACT.restart = function()
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
-    if MODE ~= 'casual' and guideStage == 1 then
-      FN.exitToMenu()
-      return
-    end
-    settleDestroy()
-    newGame()
-    setText(topBanner, '')
-    setText(botBanner, '')
-    if overlay then tryCall(overlay, 'SetVisible', false) end
-    if CANVAS_W and CANVAS_H then
-      local okRelayout, errRelayout = pcall(layout, CANVAS_W, CANVAS_H)
-      if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
-    end
+    restartMatch()
   end
   SETTLE_ACT.backHome = function()  -- = V 键体（含 keyConsumedFrame 防双触，core 修复保留）
     if guideStage ~= 1 then return end

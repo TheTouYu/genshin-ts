@@ -1,0 +1,221 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "77 v6.17 结算页【点击】再来一局 = 同一模式重开（casual）—— 与 R 键同一实现",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.62,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.72,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.82,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.9,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.92,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.02,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.1,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.12,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.22,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.3,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.32,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.42,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.5,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.52,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.62,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.1,
+   "kind": "pointer",
+   "type": "move",
+   "x": 563,
+   "y": 204
+  },
+  {
+   "t": 3.2,
+   "kind": "pointer",
+   "type": "down",
+   "x": 563,
+   "y": 204
+  },
+  {
+   "t": 3.35,
+   "kind": "pointer",
+   "type": "up",
+   "x": 563,
+   "y": 204
+  }
+ ],
+ "asserts": [
+  {
+   "at": 2.6,
+   "kind": "log",
+   "contains": "gameover score=",
+   "source": "client"
+  },
+  {
+   "at": 2.6,
+   "kind": "log",
+   "contains": "settle hotzones n=3 v=P",
+   "source": "client"
+  },
+  {
+   "at": 4.0,
+   "kind": "log",
+   "contains": "restart mode=casual",
+   "source": "client"
+  },
+  {
+   "at": 4.2,
+   "kind": "control",
+   "name": "hud",
+   "field": "text",
+   "equals": "得分 0　消行 0　等级 1　已填 0"
+  },
+  {
+   "at": 4.2,
+   "kind": "control",
+   "name": "hint",
+   "field": "text",
+   "equals": "堆满一行即消除"
+  },
+  {
+   "at": 4.2,
+   "kind": "control",
+   "name": "botBanner",
+   "field": "text",
+   "equals": "← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存 · H 说明"
+  }
+ ]
+}

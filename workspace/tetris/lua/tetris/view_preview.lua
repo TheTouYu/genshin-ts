@@ -240,16 +240,24 @@ M.new = function(spec)
   end
 
   -- ===== HOLD：标题 + 4 格（can=false ⇒ 白化 + 文字灰化）=====
+  -- v6.17（用户 2026-11-03 图一②「方块和文字重叠了」，红箭头指着「堆满一行即消除」旁的黄格）：
+  -- 暂存列恒在 y=G.holdY(150)、x=-CX —— 而左栏同一竖线上就是 HUD 三行文字（hud/best/hint）。
+  -- 实测重叠：PC 1600×900 与 ihint 2204px²；手机 1280×720 同时压 best 与 hint 各 986px²。
+  -- 这不是"再挪几个点"，而是**暂存列与文字列抢同一条竖带**的结构问题，所以给 hold 一个显式锚点：
+  -- 调用方（main 的 previewDesc）按当前屏的 HUD 布局把整列放到文字带之外；缺省仍取 G.holdY
+  -- ⇒ 不传 opts.holdCy 时行为与旧版逐字相同（既有 119 条描述断言不受影响）。
   function S.hold(opts)
     opts = opts or {}
     local cx = cxOf(opts)
+    local cy = tonumber(opts.holdCy) or G.holdY
     local can = opts.canHold ~= false
     local out = {}
     if not opts.noLabel then
-      out[#out + 1] = labelNode('pvHoldLabel', M.LABEL_HOLD, -cx, G.labelY, G.labelWHold,
+      local labY = G.labelY + (cy - G.holdY)
+      out[#out + 1] = labelNode('pvHoldLabel', M.LABEL_HOLD, -cx, labY, G.labelWHold,
         can and TH.textMain or TH.textDim)
     end
-    local g = { cell = G.holdCell, pitch = G.holdPitch, y = G.holdY, fade = G.holdFade }
+    local g = { cell = G.holdCell, pitch = G.holdPitch, y = cy, fade = G.holdFade }
     putPiece(out, 'pvHoldC', 'hold', 0, opts.holdName, cx, g.y, g, -1, opts, 'holdCell', not can)
     return out
   end

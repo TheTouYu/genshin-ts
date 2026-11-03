@@ -70,11 +70,39 @@ local NUM, SHAPES, BAG, C = CFG.NUM, CFG.SHAPES, CFG.BAG, CFG.C
 local THEME, MODE_INFO, MODE_TITLE, MODE_THEME, HELP_COLS =
   CFG.THEME, CFG.MODE_INFO, CFG.MODE_TITLE, CFG.MODE_THEME, CFG.HELP_COLS
 local MODE_BG, MODE_BG_POOL = CFG.MODE_BG, CFG.MODE_BG_POOL
+-- ===== v6 core_* 装配（玩法纯逻辑在 lua/tetris/core_*.lua；本文件只做接线与表现）=====
+-- ⚠ 必须在这里装载：RNG1（102 行）与 newInst（191 行）都要用。2026-10-31 接线审查发现：
+--   CORE_RNG_M 原先在 341 行才 local ⇒ 102 行读到的是**全局 nil** ⇒ core_rng 恒走兜底旧路径，
+--   「接线第一步」名接实未接（当时全绿是因为两条路径逐字等价，不是因为模块生效）。
+local CORE = { hooks = {} }
+do
+  local function mod(name)
+    local m = loadModule(name)
+    if not m then print('v6 core module MISSING: ' .. name) end
+    return m
+  end
+  CORE.RNG_M, CORE.PIECES_M = mod('core_rng'), mod('core_pieces')
+  CORE.BOARD_M, CORE.STATE_M = mod('core_board'), mod('core_state')
+  if not (CORE.RNG_M and CORE.PIECES_M and CORE.BOARD_M and CORE.STATE_M) then
+    error('tetris: core_* 模块缺失（build 未注册？）——玩法逻辑现在只走 core_*，不再有兜底路径')
+  end
+  CORE.board = CORE.BOARD_M.new { rows = ROWS, cols = COLS, empty = 0 }
+  CORE.pieces = CORE.PIECES_M.new { shapes = SHAPES, cols = COLS }
+  -- 洞位随机源（障碍行/垃圾行）：现网两个板的洞位都走 aiRand，不动 bag 流。
+  -- 用字段间接引用——aiRand 的 local 声明在本块之后，闭包直接写 aiRand 会绑到全局（283 行有同样教训）。
+  CORE.holeRng = { rand = function(n) return CORE.aiRand(n) end }
+end
 local HUD_INST = {}
 local FN = {}    -- v3.6：把一批大函数的 local 声明挂表（真机 LuaJIT 计 local 严格，省槽防 200 上限）    -- v2.8 ⑤：HUD 实例双写表（txt/build 挂字段；声明在 renderHud 等全部调用点之前）
 -- v4.0：设备适配子系统（移动端操作控件 / 手柄映射与焦点导航 / 移动端多人引导浮层）。
 -- 挂表不挂 local（main chunk 已 134 个 local，真机 200 上限只剩 ~10 槽；D591 教训）。
 local UI4 = { btns = {}, pad = { fk = 1, t = 0, last = 0 }, note = {}, rep = nil }
+-- v6.6：TEMPLATES 是模板探测结果的唯一载体（cell/hit/stext），由 templates 模块在 OnStart 填充；
+-- 先建空表 ⇒ 早于 OnStart 的读取是 nil 而不是"未定义全局"（可读，也不会静默假绿）。
+TEMPLATES = { cell = nil, hit = nil, stext = nil }
+-- v6 架构（docs/ARCH.md）：platform / render / view_board 三件由本文件在 OnStart 里装配。
+-- 声明在顶部是因为 paint() 等早期函数要用；装配失败直接 error（模块随构建自动注册，不会缺）。
+local PT, BR, VB
 -- 官方内置图元 id（模拟器 studio/constants.js: IMAGE_PRIMITIVES 实证；真机为「六类代理图元」）
 local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 100004,
                  fivestar = 100005, ring = 100006 }
@@ -93,11 +121,10 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
 BUILD_TAG = 'v5.38 · 10-31 02:1x'
-seed = 20261023
-local function rand(n)
-  seed = (seed * 1103515245 + 12345) % 2147483648
-  return (seed // 65536) % n + 1
-end
+-- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
+-- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
+local RNG1 = CORE.RNG_M.new { bag = CFG.BAG, seed = 20261023 }
+local BOARD = CORE.board
 
 -- 7-bag 出块（T1，替换纯随机 nextName = BAG[rand(#BAG)]）：
 -- 每袋 I,O,T,S,Z,J,L 各一、袋内 Fisher-Yates 洗牌（继续用上面 LCG，种子不变 ⇒ 序列可复现）；
@@ -117,13 +144,31 @@ local ACTIVE = { 1 }                     -- 激活实例下标表：单屏={1}�
 MODE = 'casual'
 -- v2.1 ②：标题屏四模式大视觉卡片（用户原话「真正花了大力气做的东西要让玩家看到」）。
 -- pendingMode/pendingT = 按 Digit 后的模式名大字动画窗（0.5s，introT 渐变手法），窗后 enterMode 开局。
-MC = {}                          -- 菜单卡片组实例表（色块×4 + 文字×8；stage0 建、开局销毁）
 pendingMode, pendingT = nil, 0
 -- v2.1 ③：H 游戏说明层（v2.7 起改成独立整页 + 常驻入口；任意键=先关层不开局）
-HL = {}                          -- 说明层实例表（暗底 + 三栏文字条 + 标题/页脚）
-local SETTLE_HOTS = {}                 -- v2.8 ④：结算三键鼠标热区（settleDestroy 一并销毁）
+-- v6.3 说明页：纯描述 + 独立 render 实例（与 SETTLEV 同一套手法，绝不复用棋盘 BR）
+-- 为什么必须独立：BR 每帧只喂棋盘那 200+ 个 key，把手册喂给它会把棋盘当场判成"不在列表"销毁。
+HLV = { M = loadModule('view_help'), KIT_M = loadModule('view_kit'), KIT = nil, S = nil,
+        R = nil, live = false, n = 0, nodes = nil }
 -- v2.8 ④：结算三动作挂表（200-local 红线，D612 先例）——实现在 OnStart 赋值，showGameOver 热区引用
 local SETTLE_ACT = {}
+-- v6.2 结算屏：`view_settle` 纯描述 + **独立** render 实例 SR（不复用棋盘协调器 BR）。
+-- 为什么必须独立：BR 每帧 `BR.apply(...)` 只喂棋盘那 200+ 个 key，把结算描述喂给它，它会把
+
+-- 为什么挂表不挂 local：main chunk 的 local 数量贴着 Lua 5.3 硬上限 200（D591/D612 教训）。
+local SETTLEV = { M = nil, KIT_M = nil, KIT = nil, S = nil, SR = nil, live = false }
+-- v6.4 标题屏：`view_title` 纯描述 + **独立** render 实例 TR（与 SETTLEV/HLV 同一套手法，绝不复用棋盘 BR）。
+-- 为什么独立：BR 每帧只喂棋盘那 200+ 个 key，把展台/卡片喂给它 ⇒ 棋盘会被当场判成"不在列表"销毁。
+-- 为什么挂一张表：main chunk 的 local 贴着 200 上限（D591/D612），整屏的状态都收进字段。
+local TITLEV = { M = nil, KIT_M = nil, KIT = nil, S = nil, R = nil, live = false, n = 0,
+  zones = {}, hover = nil, press = nil, sel = nil, noteIdx = 1, noteKey = nil,
+  hintKey = nil, pendingMode = nil, pendingSize = nil }
+-- v6.5 预览列：`view_preview` 纯描述 + **独立** render 实例 R（理由同 SETTLEV/TITLEV：
+-- 绝不复用棋盘 BR——BR 每帧只喂棋盘那 200 个 key，喂它别的东西会把棋盘当场销毁）。
+-- 12 颗格子（下下块 8 + 暂存 4）每帧重算描述交给 render 做 diff：值没变就不写控件。
+-- 标题「下一个/暂存」仍由服务端 textbox（hudNext/holdLab）负责 ⇒ 描述带 noLabel。
+-- 引擎侧控件名沿用现网 next1..next8 / hold1..hold4（legacyNames），render 键仍是 pv*。
+local PVW = { M = loadModule('view_preview'), S = nil, R = nil, n = 0, sig = nil, parked = false }
 helpOpen = false
 helpFromStage = 1                -- 开层前的 guideStage（关层时恢复；说明页期间 2=暂停）
 helpPage = 1                     -- （保留：单页版恒 1；多页时按 ←/→ 切换）
@@ -149,8 +194,6 @@ local RHO = { pieces = 0, lines = 0 }    -- AI 消行率统计（跨局累计，
 -- 同源同序（裁决④）＝公平对抗的前提；AI 盘快过主盘时 piece=nil 空转等待（aiTickCore 判 not piece 停）。
 local MIRRORQ = {}
 local feedMirror    -- 前向声明（实现见 enterMode 前：需 spawn 已赋值；spawn 尾部与 G[2] doLock 都调它）
-local TPL_CELL      -- cell 模板 guid（OnStart 探测后保存；G[2] 棋盘控件复用，T6b-2）
-local TPL_HIT       -- v2.7：cursor（光标检测区）模板 guid —— 标题页四模式三态热区用
 IS_MOBILE = true   -- OnStart 探测后写入；菜单选择/热区逻辑在模块级函数里也要读它
 -- v2.7 ⑤：标题页模式选择（键盘 Digit 与鼠标点击共用一条入口；实现见菜单段）
 local menuSelectMode
@@ -165,7 +208,7 @@ local function newAIState()
 end
 
 -- 实例构造：v1 显式初值逐项等价搬入（v1 声明区原 nil 的字段保持 nil，newGame 会赋）。
-local function newInst()
+local function newInst(isP2)
   local t = {}
   t.cellBX, t.cellBY, t.frameBX, t.frameBY = {}, {}, {}, {}
   t.bagQ, t.bagSeq = {}, 0
@@ -175,12 +218,11 @@ local function newInst()
   t.aiAccount = false
   t.elapsed = 0
   t.settleReady = false
-  t.settleBuildTried = false
   t.settleOn, t.settleT, t.settleDone = false, 0, false
   t.settleFade = -1
   t.settleSize = 44
-  t.settleTitleY, t.settleOptsY = 150, -150
-  t.settleTitleOff, t.settleOptsOff = 420, -420
+  t.settleTitleY = 150
+  t.settleTitleOff = 420
   t.dimRatio, t.dimApplied = 0, -1
   t.pieceCount = 0
   t.combo, t.maxCombo, t.b2b = 0, 0, false
@@ -193,36 +235,48 @@ local function newInst()
   t.st = { name = nil, bag = 0, can = true }  -- Hold 槽（T3）
   t.lastRot = false                     -- T-spin 判定前置（T8）
   t.AI = newAIState()
+  -- v6：本盘的玩法 reducer 集合（core_state 实例）。每盘一份，核心区别只有随机源：
+  -- 主盘用 RNG1；双屏第二盘挂 aiRand 流（与现网 refillBag 的 isP2 分支同源）。
+  do
+    local rng = RNG1
+    if isP2 then
+      if not CORE.rngP2 then
+        CORE.rngP2 = CORE.RNG_M.new { bag = BAG, rand = function(n) return CORE.aiRand(n) end }
+      end
+      rng = CORE.rngP2
+    end
+    t.core = CORE.STATE_M.new {
+      pieces = CORE.pieces, board = CORE.board, num = NUM, cols = COLS, rows = ROWS,
+      step = CFG.STEP, rng = rng, holeRng = CORE.holeRng, hooks = CORE.hooks,
+      -- 甘雨「天地交泰」：冻结期内重力间隔 ×1.20（skills.params 的 gravityMult，原实现从没接上）
+      gravityMult = function()
+        if SK and SK.freezeT and tonumber(SK.freezeT) > 0 and SK.gravityMult then
+          return tonumber(SK.gravityMult) or 1
+        end
+        return 1
+      end,
+    }
+  end
   return t
 end
-G[1] = newInst()
+G[1] = newInst(false)
 g = G[1]
 
 local aiRand                           -- 前向声明（实现见 AI 段；refillBag 在更早处用 G[2] 独立洗牌）
 local function refillBag()
-  -- v2.8 ③：双屏第二盘（G[2]）独立出块——用 aiRand 独立洗袋（不动全局 LCG ⇒ G[1] 序列与
-  -- 全部既有断言不变）；公平性靠 7-bag 保底本身 + hard 档 AI，不再镜像等待（用户裁决）。
+  -- v6：洗袋逻辑在 core_rng（LCG + 7-bag + 首袋排 S/Z，headless 对拍过生产序列）。
+  -- 这里只决定「用哪条随机流」：主盘 RNG1；双屏第二盘挂 aiRand 那条流
+  -- （与 AI 决策/垃圾洞位共用同一条 ⇒ 序列不漂）。公平性靠 7-bag 保底本身，不镜像等待（用户裁决）。
   local isP2 = (g ~= G[1] and G[2] ~= nil)
-  local t = { 'I', 'O', 'T', 'S', 'Z', 'J', 'L' }
-  for i = #t, 2, -1 do                 -- Fisher-Yates：6 次 rand()，保证确定性与均匀性
-    local j = isP2 and aiRand(i) or rand(i)
-    t[i], t[j] = t[j], t[i]
-  end
-  if g.bagSeq == 0 and (t[1] == 'S' or t[1] == 'Z') then
-    for i = 2, #t do
-      if t[i] ~= 'S' and t[i] ~= 'Z' then
-        t[1], t[i] = t[i], t[1]
-        break
-      end
+  local RNG = RNG1
+  if isP2 then
+    if not CORE.rngP2 then
+      -- 闭包间接引用 CORE.aiRand：aiRand 的 local 声明在本行之后（283 行有同样教训）
+      CORE.rngP2 = CORE.RNG_M.new { bag = BAG, rand = function(n) return CORE.aiRand(n) end }
     end
+    RNG = CORE.rngP2
   end
-  g.bagSeq = g.bagSeq + 1
-  for i = 1, #t do g.bagQ[#g.bagQ + 1] = { name = t[i], bag = g.bagSeq } end
-end
-local function takeFromBag()
-  if #g.bagQ == 0 then refillBag() end
-  local e = table.remove(g.bagQ, 1)
-  return e.name, e.bag
+  g.bagSeq = RNG.refill(g.bagQ, { firstBag = (g.bagSeq == 0) })
 end
 
 -- 前向声明（局部化，避免污染全局表）：控件句柄类里，棋盘四件（cells/preview/frames/抖动基准）
@@ -236,13 +290,12 @@ guideStage, bannerTimer = 0, 0    -- 全局流程阶段（0=AI 演出/1=游戏/2
 introT, overlay = nil, nil
 introFont, introPulse = nil, nil
 CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
-local settleDestroy, settleSetColors, layoutSettle   -- 定义见「结算层」/「布局」段（前向声明）
+local settleDestroy                   -- 定义见「结算层」段（前向声明；v6.2 只剩它）
 local layout                              -- 布局函数前向声明（exitToMenu 在它定义之前就调用）
 bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
--- v2.4 ① 标题页「展台」实例表（MS）：这里只声明空表 + 配色/文案常量，
--- 方法（build/destroy/tick/focusLock/teardown）在「v2.3 卡片」段附近挂上——
--- 那个位置 trySet/TPL_TEXT/probeSettleTextbox 都在作用域内；而 startIfWaiting（更早）
--- 只调 MS.teardown()，那时表已存在、方法已在运行时挂好。
+-- v2.4 ① 标题页「展台」实例表（MS）：v6.4 起渲染全部交给 view_title 的纯描述，
+-- 这张表只剩配色/文案常量、背景池告警位与几个**行为**入口（teardown/tick/hover/select 转到
+-- TITLEV 的实现；startIfWaiting 更早就调 MS.teardown()，那时方法已在运行时挂好）。
 local MS = {
   parts = {}, hint = {}, arrow = {},
   hintKey = { -1, -1, -1 }, arrowKey = { -1, -1 },
@@ -258,16 +311,8 @@ local MS = {
 }
 local DUAL_DECO = {}                  -- 双屏中缝装饰（2 实例；exitToMenu 拆）
 local showGameOver, updateBest
-local collides, doLock, renderAll, renderPiece, renderHud, spawn, clearLines
+local collides, doLock, renderAll, renderPiece, renderHud, spawn
 local raiseGarbage    -- T7 垃圾行（实现见 enterMode 前；clearLines 消行后跨盘调用）
--- 结算层成员表：**固定 9 槽 + 数字 for 遍历**，绝不能用 ipairs({...})——
--- 里面只要有一个 nil（比如没造 border），ipairs 就在那里停住，后面的成员会被静默跳过（销毁会漏）。
--- 成员全部收进实例表 g（T0）；双屏时每盘各自的结算层。
-local function settleMembers()
-  return { g.settleScrim, g.settleCard, g.settleBorder, g.settleTitle,
-           g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts }
-end
-
 local function cellIndex(r, c) return (r - 1) * COLS + c end
 
 local function paint(r, c, color)
@@ -304,7 +349,18 @@ local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.appl
 -- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
 -- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
 local function setText(ctl, value)
-  if FN.textLayerHidden then return end
+  -- 浮层（帮助/结算/档案）打开时，服务端 textbox 仍在运行时实例**之上**（实测 sk1name z=42
+  -- 压着结算卡 z=51），只能靠"不写"来隐藏。以前只在 HUD_INST.txt 一条通道做了抑制，
+  -- 技能名/状态这类走裸 setText 的控件就会透出来（2026-10-31 出图抓到的"纳西妲"）。
+  -- 这里做成系统性抑制：任何服务端 textbox 写入在浮层期间一律不生效，除非显式强制（清空时用）。
+  -- 只抑制**非空写入**：清空（''）必须放行，否则"浮层时收起技能条"这类既有清屏逻辑
+  -- 会被自己拦住（写空被挡 ⇒ 文字留在屏幕上，正好反了）。
+  -- 🔴 v6.4 修「结算遮罩下透出"纳西妲"」：以前这里是**两条** return——
+  --   ①非空写入丢弃（对）；②`if FN.textLayerHidden then return end`（**把清空也吞了**）。
+  -- 于是 syncStage 每帧都在清 sk1name/sk1state…（置 textForce=true 后 setText(c,'')），
+  -- 每一帧都被第②条拦回 ——"清了但还在"的真因就是它（探针实测：hidden=true force=true 仍 DROP）。
+  -- 现在只保留一条：浮层期间**除强制清屏外**一律不写；清屏阶段靠 textForce 放行。
+  if FN.textLayerHidden and not FN.textForce then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
@@ -313,6 +369,26 @@ local probeTemplate, instInto, findIn = WIDGETS.probeTemplate, WIDGETS.instInto,
 local AUDIO = loadModule('audio')
 if not AUDIO then error('tetris: 模块 audio 装载失败') end
 local AUDIO_ENGINE = AUDIO.new({ game = game, frameOf = function() return frameSeq end })
+-- ===== v6 架构骨架（本文件只做装配，不实现视图）=====
+local PLATFORM_M = loadModule('platform')
+local VIEW_LAYERS_M = loadModule('view_layers')
+local RENDER_M = loadModule('render')
+local VIEW_BOARD_M = loadModule('view_board')
+local INPUT_M = loadModule('input_map')   -- v6.1 键位唯一真源（动作表 + 一次注册 + 栈式分发）
+SETTLEV.M = loadModule('view_settle')     -- v6.2 结算屏纯描述（opts → node 数组，零引擎调用）
+SETTLEV.KIT_M = loadModule('view_kit')    -- 结算屏要用的控件工厂（胶囊/热区/文字）
+TITLEV.M = loadModule('view_title')       -- v6.4 标题屏纯描述（展台 + 四模式卡 + 入口卡 + 三态热区）
+TITLEV.KIT_M = loadModule('view_kit')     -- 标题屏共用的控件工厂（与结算/说明各持一份实例）
+if not (PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M) then
+  print('v6 modules MISSING: platform/view_layers/render/view_board（棋盘会退回旧路径）')
+end
+if not INPUT_M then print('v6 input_map MISSING（键位退回散装 listen 路径）') end
+if not (SETTLEV.M and SETTLEV.KIT_M) then
+  print('v6 settle modules MISSING: view_settle/view_kit（结算屏退回旧实现）')
+end
+if not (TITLEV.M and TITLEV.KIT_M) then
+  print('v6 title modules MISSING: view_title/view_kit（标题屏退回旧实现）')
+end
 local SFX, SFX_CLEAR, sfx = AUDIO_ENGINE.ids, AUDIO_ENGINE.clear, AUDIO_ENGINE.play
 -- v4.0 ③ 角色技能：纯逻辑在 lua/tetris/skills.lua（111 断言单测），这里只持状态 + 派发效果。
 -- 设计见 docs/characters-design.md；局外养成 v1 = 会话内跨盘（真持久化是缺口，见 05-open）。
@@ -362,6 +438,196 @@ local function startShake(rows)
   print('shake rows=' .. rows .. ' amp=' .. g.shakeAmp .. ' dur=' .. g.shakeDur)
 end
 
+-- ===== v6 玩法接线：core_state 的 reducer + 「事件 → 表现」=====
+-- 设计（docs/ARCH.md §3）：玩法纯逻辑在 core_state，本文件只剩翻译层。
+-- ⚠ 事件里的**日志字面量逐字保留**——tests/ 的 154 条去重 contains 断言依赖
+--   move x= / lock / clear n= / ldstart / harddrop rows= / bag= / piece= / tspin / gameover score=。
+-- 钩子（core 在结算点回调；core 本身零引擎、零文案、零 UI）：
+--   addScore(s,gain)          记账分流（AI 自演进 aiScore / 玩家进 score）
+--   addLines(s,cleared)->累计  等级计算用的行数（AI 自演时 g.lines 不动 ⇒ 等级恒 1，与现网同口径）
+--   onLock(s,piece)           天赋落块结算（必须在消行之前）
+--   onClear(s,cleared,info)   天赋消行倍率（floor(gain×mult+bonus)，相加不相乘）
+--   onGarbage(s,n,reason)     机制A 干燥垃圾：**必须在 spawn 之前落盘**，否则顶死漏判
+CORE.hooks.addScore = function(s, gain)
+  if s.autoDriving then s.AI.score = s.AI.score + gain else s.score = s.score + gain end
+end
+CORE.hooks.addLines = function(s, cleared)
+  if s.autoDriving then
+    s.AI.lines = s.AI.lines + cleared
+    return s.lines
+  end
+  s.lines = s.lines + cleared
+  return s.lines
+end
+CORE.hooks.onLock = function(s, piece)
+  if not (SK and SKILLS and SKILLS.onLock) then return end
+  local okL, evL = pcall(SKILLS.onLock, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+    { piece = piece and piece.name, hard = (s.hardDrop == true),
+      moved = (s.pieceMoved == true), rotated = (s.pieceRotated == true),
+      flipped = (s.lastFlip == true), dwell = tonumber(s.pieceAge) or 0, mode = MODE })
+  if okL and type(evL) == 'table' and evL.log then print(evL.log) end
+end
+CORE.hooks.onClear = function(s, cleared, info)
+  if not (SK and SKILLS and SKILLS.onClear) then return nil end
+  local okE, ev = pcall(SKILLS.onClear, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
+    cleared, { level = info.level, combo = info.combo, b2b = info.b2b, mode = MODE })
+  if not okE then print('talent onClear ERR ' .. tostring(ev)) return nil end
+  if type(ev) ~= 'table' then return nil end
+  print('talent onClear role=' .. tostring(FN.skillRoleOf and FN.skillRoleOf(1)) ..
+    ' cleared=' .. tostring(cleared) .. ' mult=' .. tostring(ev.mult) .. ' nfx=' ..
+    tostring(type(ev.effects) == 'table' and #ev.effects or 0))
+  if ev.log then print(ev.log) end
+  if type(ev.effects) == 'table' then
+    for ei = 1, #ev.effects do pcall(FN.dispatchEffect, s, ev.effects[ei]) end
+  end
+  return ev.mult, ev.bonus
+end
+CORE.hooks.onGarbage = function(s, n)
+  if not raiseGarbage then return end
+  raiseGarbage(s, n)                     -- 内部 save/restore g；这里已经是 spawn 之前
+  print('garbage n=' .. n .. ' dryness reset (lv=' .. s.level .. ')')
+end
+
+-- 消行事件的表现层（原 clearLines 的后半段；计分/等级/连击已由 core 算完）
+CORE.onClearEvent = function(e)
+  local cleared, gain, b2bApplied = e.n, e.score, e.b2b
+  for r2 = 1, ROWS do                       -- 整盘已落方块闪白（按行数分档，恒短于抖屏）
+    for c2 = 1, COLS do
+      if g.board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
+    end
+  end
+  if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
+  if SK and SKILLS and SKILLS.addExp then   -- 消行给前台角色加经验
+    local active = (FN.skillRoleOf and FN.skillRoleOf(1)) or SK.party[SK.active or 1] or 'nahida'
+    local up = SKILLS.addExp(SK, active, cleared * 10)
+    if up and up.leveled then
+      print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
+    end
+  end
+  if not g.autoDriving then
+    FN.skillCount('lines', cleared)
+    if cleared >= 4 then FN.skillCount('tetris', 1) end
+    FN.skillUnlockTick()
+  end
+  if e.levelUp and not g.autoDriving then   -- 升级文案（低频高价值：不被连击横幅压住）
+    local ups = { '风带来了新的歌，方块也跟上了节奏。', '这一层的重力，开始变得认真了。',
+      '脚下的路快了一点点——别慌，先深呼吸。', '提瓦特的时间在走，你的手也跟上了。' }
+    setText(botBanner, ups[(g.level - 2) % #ups + 1] or ups[1])
+    trySet(botBanner, 'fontSize', 20)
+    bannerTimer = 1.8
+    print('copy levelup lv=' .. g.level)
+  end
+  if cleared >= 2 and G[2] then             -- T7 垃圾行：2/3/4 消送对方 1/2/4 行（B2B 再 +1）
+    local other = (g == G[1]) and G[2] or G[1]
+    raiseGarbage(other, NUM.GARBAGE[cleared] + (b2bApplied and 1 or 0))
+    sfx(SFX.garbageSend, true)
+  end
+  sfx(SFX_CLEAR[cleared], true)             -- 消行音 + 抖屏（AI 自演同样出声、同样抖）
+  startShake(cleared)
+  if g.autoDriving then
+    g.AI.fx = 0.5
+    print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
+      .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
+  else
+    print('clear n=' .. cleared .. ' score=' .. g.score .. ' lines=' .. g.lines
+      .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
+  end
+  if not g.taughtClear and not g.autoDriving then
+    g.taughtClear = true
+    setText(hint, '一次消 4 行 +800')
+    setText(botBanner, '空格 直落到底')
+    bannerTimer = 4.0
+    print('guide clear-tip')
+  end
+  if not g.autoDriving and bannerTimer <= 0 then   -- 提示优先级：升级 > 四消 > 连击 > 普通
+    local CP = CFG.COPY
+    if e.levelUp then
+      local rec = CP.level[(g.level >= NUM.LEVEL_CAP) and 2 or 1]
+      setText(botBanner, (rec.text:gsub('{n}', tostring(g.level))))
+      bannerTimer = NUM.LEVEL_TIP
+      sfx(SFX.level, true)
+      print('tip level=' .. g.level)
+    elseif cleared == 4 then
+      setText(botBanner, (CP.clear[4].text:gsub('{分}', tostring(gain))))
+      bannerTimer = NUM.LEVEL_TIP
+      print('tip clear=4')
+    elseif g.combo >= 2 then
+      local rec = CP.combo[(g.combo >= 5) and 3 or ((g.combo >= 3) and 2 or 1)]
+      setText(botBanner, (rec.text:gsub('{n}', tostring(g.combo))))
+      bannerTimer = NUM.COMBO_TIP
+      print('tip combo=' .. g.combo)
+    else
+      setText(botBanner, (CP.clear[cleared].text:gsub('{分}', tostring(gain))))
+      bannerTimer = NUM.COMBO_TIP
+      print('tip clear=' .. cleared)
+    end
+  end
+end
+
+-- 事件 → 表现。spawn 的 renderPiece/renderHud 必须**排在 gameover 之后**（与旧 spawn 同序：
+-- 先 showGameOver 再重画，否则压暗被重绘复原——D569 的层序教训）。
+CORE.dispatch = function(ev)
+  if type(ev) ~= 'table' then return end
+  local needRender, hadLock, hadClear = false, false, false
+  for i = 1, #ev do
+    local e = ev[i]
+    local k = e.kind
+    if k == 'move' then
+      renderPiece()
+      print('move x=' .. e.x)
+      sfx(SFX.move)
+    elseif k == 'fall' then
+      renderPiece()
+      if CFG.VERBOSE then print('fall y=' .. e.y) end
+    elseif k == 'rotate' then
+      print('rotate ' .. e.name)
+      sfx(SFX.rotate)
+      renderPiece()
+    elseif k == 'ldstart' then
+      print('ldstart')                        -- 观测锚（用例 17）
+    elseif k == 'harddrop' then
+      print('harddrop rows=' .. e.rows .. ' y=' .. e.y)
+    elseif k == 'lock' then
+      hadLock = true
+      print('lock ' .. e.name .. ' cells=' .. table.concat(e.cells, ','))
+    elseif k == 'clear' then
+      hadClear = true
+      CORE.onClearEvent(e)
+    elseif k == 'tspin' then
+      print('tspin corners>=3 lines=' .. e.lines .. ' bonus=' .. e.bonus)
+      sfx(SFX.tspin, true)
+      if not g.autoDriving then
+        bannerTimer = NUM.COMBO_TIP
+        setText(botBanner, 'T-SPIN ' .. (e.lines > 0 and (e.lines .. ' 消 +' .. e.bonus) or '!'))
+      end
+    elseif k == 'garbage' then
+      -- 已在 hooks.onGarbage 里落盘并打印（必须在 spawn 之前），这里不重复
+    elseif k == 'spawn' then
+      if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. e.name) end
+      print('bag=' .. (e.bag or 0) .. ' piece=' .. e.name .. ' x=' .. e.x .. ' y=' .. e.y
+        .. (e.holdswap and ' holdswap=1' or ''))
+      needRender = true
+    elseif k == 'gameover' then
+      print('gameover score=' .. tostring(g.score) .. ' aiScore=' .. tostring(g.AI and g.AI.score)
+        .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
+      sfx(SFX.over, true)
+      if not g.autoDriving then updateBest() end
+      showGameOver()
+    end
+  end
+  if hadLock then
+    -- 落地音：只有"没消行"时才播（消行已经有一条更强的音，同帧不叠两条，见 sfx 的帧闸）
+    if not hadClear then sfx(SFX.lock, true) end
+    -- 首次锁定：只教"堆满一行即消除"这一条（排在消行提示之后，与旧 doLock 同序）
+    if not g.taughtLock and not g.autoDriving then
+      g.taughtLock = true
+      bannerTimer = 2.5
+      print('guide lock-tip')
+    end
+  end
+  if needRender then renderPiece(); renderHud() end
+end
+
 -- 服务端 textbox 按名字取；某个控件缺失不应炸整段 OnStart（真机与模拟器控件集可能不同）
 
 -- v4.0：老的「服务端 textbox + cursor 叠层」按钮表已退役（坐标写死 x=±410、真机控件名一变就消失）。
@@ -409,51 +675,19 @@ UI_STYLE = {
 -- 销毁整层：SetVisible(false) 在真机不保险（实测重开后结算页还在），所以重开就真销毁。
 -- 逐个 pcall：真机某个控件销毁抛错不能中断后面（同 OnStart 的护栏思路）。
 settleDestroy = function()
-  for i = 1, #SETTLE_HOTS do
-    pcall(function() game.DestroyClientUIControl(SETTLE_HOTS[i]) end)
-  end
-  SETTLE_HOTS = {}                      -- v2.8 ④：结算热区随层销毁（v3.3 起含三选项贴片/文字）
-  g.optRecs = nil
-  if not (g.settleReady or g.settleLayer or g.settleTitle) then return end
-  local n = 0
-  local members = settleMembers()
-  for i = 1, 9 do
-    local ctl = members[i]
-    if ctl then
-      local ok = pcall(function() game.DestroyClientUIControl(ctl) end)
-      if ok then n = n + 1 end
-    end
-  end
-  if g.settleLayer then
-    local ok = pcall(function() game.DestroyClientUIControl(g.settleLayer) end)
-    if ok then n = n + 1 end
-  end
-  if g.settleBars then                                   -- v2.4 ②：面板分隔线（两条细带）
-    for i = 1, #g.settleBars do
-      if g.settleBars[i] then
-        local ok = pcall(function() game.DestroyClientUIControl(g.settleBars[i]) end)
-        if ok then n = n + 1 end
-      end
-    end
-    g.settleBars = nil
-  end
-  g.settleLayer, g.settleScrim, g.settleCard, g.settleBorder = nil, nil, nil, nil
-  g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts = nil, nil, nil, nil, nil, nil
-  g.settleReady, g.settleBuildTried = false, false
+  -- v6.2：结算屏只剩这一个 render 实例（SR）。D581 的教训不变：运行时实例靠**销毁**收场，
+  -- SetVisible(false) 在真机对实例不生效。这里同时把本盘结算态归零（重开/回菜单都走它，幂等）。
+  local had = SETTLEV.live and 1 or 0
+  if SETTLEV.live then SETTLEV.close() end
+  g.settleReady, g.settleV2 = false, false
   g.settleOn, g.settleT, g.settleDone, g.settleFade = false, 0, false, -1
-  print('settle destroy n=' .. n)
+  g.dimRatio, g.dimApplied = 0, -1
+  print('settle destroy n=' .. had)
 end
 
 -- 真结算：把「游戏结束」发成服务端信号 tetris_settle —— 地图 hl 里的服务端图 1082130480
 -- 收到后「设玩家结算状态 = Victory」→「结算关卡」，弹出官方结算页。
--- 真机是否有 game.ServerSignal 事先未知，所以两种形态都 pcall 探测、结果逐条打日志：
---   ① game.ServerSignal.send('名')             —— 本轮任务单给的形态
---   ② game.ServerSignal('名'):SendSignal()     —— 模拟器 Lua 桥的工厂形态（D112 实测）
--- 两种都失败 ⇒ 本机 Lua 无信号通道，退出改法（Q 退回原来的「结算明细」开关，按键不失效）。
 local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
--- v5.43（真机日志 rec25428 实证）：真机 `game.ServerSignal` 是**函数**，形态① 每次都会报
--- `attempt to index a function value` 才回落到形态②。第一次探测成功后把可用形态记住，
--- 之后直接走对的那条 —— 少一次必然失败 pcall，也不再在日志里刷 FAILED 假警报。
 local settleSignalForm = nil
 local function sendSettleSignal()
   if settleSignalForm == 2 then
@@ -481,436 +715,232 @@ local function sendSettleSignal()
   return false
 end
 
--- 每个结算槽位在"容器模板"里的候选子控件名（模拟器的 settle 模板 / 真机的 客户端控件容器_1 两套命名）
-local SETTLE_KEY_NAMES = {
-  title = { 'settleTitle', 'title' },
-  score = { 'settleScore', 'hud' },
-  best  = { 'settleBest', 'best' },
-  info  = { 'settleInfo', 'hint' },
-  extra = { 'settleExtra', 'keyA' },
-  opts  = { 'settleOpts', 'botBanner' },
-}
-
--- 按 kind 分类子控件（typeof 返回的是 ClientUIImageControl / ClientUITextBoxControl /
--- ClientUIContainerControl 这类名字；**不按控件名挑**——编辑器新建的容器模板子件就叫「图片/文本框/容器节点」）
-local function classifyKids(ctl)
-  local out = { image = {}, text = {}, container = {} }
-  if not ctl then return out end
-  local ok, kids = pcall(function() return ctl:GetChildren() end)
-  if not (ok and type(kids) == 'table') then return out end
-  for i = 1, #kids do
-    local kid = kids[i]
-    local okT, t = pcall(function() return typeof(kid) end)
-    local low = (okT and type(t) == 'string') and string.lower(t) or ''
-    if string.find(low, 'image') then
-      out.image[#out.image + 1] = kid
-    elseif string.find(low, 'text') then
-      out.text[#out.text + 1] = kid
-    elseif string.find(low, 'container') then
-      out.container[#out.container + 1] = kid
-    end
-  end
-  return out
-end
-
--- ① 容器整棵实例化：逐条候选打印结果（真机 2026-10-24 实证容器组返回 nil，所以这里是排查主入口）
-local function probeSettleContainer()
-  for _, g in ipairs(TPL_GUIDS.settle) do
-    local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
-    if ok and ctl then
-      local okc, kids = pcall(function() return ctl:GetChildren() end)
-      local n = (okc and type(kids) == 'table') and #kids or -1
-      local cls = classifyKids(ctl)
-      print('settle try tpl=' .. g .. ' -> ok kids=' .. n
-        .. ' img=' .. #cls.image .. ' text=' .. #cls.text .. ' cont=' .. #cls.container
-        .. ' title=' .. tostring(findIn(ctl, SETTLE_KEY_NAMES.title) ~= nil)
-        .. ' opts=' .. tostring(findIn(ctl, SETTLE_KEY_NAMES.opts) ~= nil))
-      -- 按**结构**判定可用：有 figure 也行（图片=面板底、文本框=至少一行字）
-      if (#cls.text >= 1) then return ctl, cls end
-      -- 名字命中的老模板（模拟器 settle / 真机上一版容器）也接受
-      if findIn(ctl, SETTLE_KEY_NAMES.title) and findIn(ctl, SETTLE_KEY_NAMES.opts) then
-        return ctl, cls
-      end
-      pcall(function() game.DestroyClientUIControl(ctl) end)   -- 不命中别留垃圾
-    else
-      print('settle try tpl=' .. g .. ' -> nil')
-    end
-  end
-  return nil, nil
-end
-
--- ② 单控件（textbox）模板：只探 guid（探针实例用完就销毁——否则它先造出来会被后造的遮罩盖住）
-local function probeSettleTextbox()
+function probeTextRaw()
   for _, g in ipairs(TPL_GUIDS.settleText) do
     local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
-    if ok and ctl then
-      local okc, kids = pcall(function() return ctl:GetChildren() end)
-      print('settle try text tpl=' .. g .. ' -> ok kids='
-        .. ((okc and type(kids) == 'table') and #kids or -1))
-      pcall(function() game.DestroyClientUIControl(ctl) end)
-      return g
-    end
-    print('settle try text tpl=' .. g .. ' -> nil')
+    if ok and ctl then pcall(function() game.DestroyClientUIControl(ctl) end) return g end
   end
   return nil
 end
+local function probeSettleTextbox() return TEMPLATES and TEMPLATES:text() or nil end
 
-local function buildSettleLayer()
-  local container, cls = probeSettleContainer()
-  local textGuid                       -- 文字模板 guid（容器里文字不够时补行用）
-  local sl = {}                        -- 六个文字槽位，按顺序分配
-  if container then
-    g.settleLayer = container
-    -- 先按现在这套模板的名字取（模拟器 settle / 早期真机容器）
-    sl[1] = findIn(container, SETTLE_KEY_NAMES.title)
-    sl[2] = findIn(container, SETTLE_KEY_NAMES.score)
-    sl[3] = findIn(container, SETTLE_KEY_NAMES.best)
-    sl[4] = findIn(container, SETTLE_KEY_NAMES.info)
-    sl[5] = findIn(container, SETTLE_KEY_NAMES.extra)
-    sl[6] = findIn(container, SETTLE_KEY_NAMES.opts)
-    -- 名字取不到 ⇒ 按结构取：编辑器新建的容器模板子件就叫「图片/文本框/容器节点」
-    if cls then
-      for i = 1, 6 do
-        if not sl[i] and cls.text[i] then sl[i] = cls.text[i] end
-      end
-      if cls.image[1] then g.settleCard = cls.image[1] end
-    end
-    print('settle via=container kids=' .. ((cls and (#cls.image + #cls.text + #cls.container)) or 0)
-      .. ' img=' .. ((cls and #cls.image) or 0) .. ' text=' .. ((cls and #cls.text) or 0)
-      .. ' cont=' .. ((cls and #cls.container) or 0))
-  end
-  -- 文字模板 guid（容器占位框替换与补行都要用）
-  local textGuid = probeSettleTextbox()
-  -- 六个槽位里还缺的，用文字模板补（真机容器只有 1 个文本框，要补 5 个；全是容器最省）
-  local missing = 0
-  for i = 1, 6 do
-    if not sl[i] then missing = missing + 1 end
-  end
-  if missing > 0 then
-    if textGuid then
-      for i = 1, 6 do
-        if not sl[i] then
-          local ok, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
-          if ok and c then sl[i] = c end
-        end
-      end
-      print('settle via=textbox guid=' .. tostring(textGuid) .. ' filled=' .. missing)
-    end
-  end
-  -- 容器自带的那个 textbox 在真机上是编辑器默认占位（会显示一个大「？」），
-  -- 而 SetVisible(false) 对运行时实例不生效、藏不住 ⇒ 直接销毁它，文字全部走文字模板。
-  if cls and cls.text[1] and sl[1] == cls.text[1] then
-    pcall(function() game.DestroyClientUIControl(sl[1]) end)
-    sl[1] = nil
-    local ok2, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
-    if ok2 and c then sl[1] = c end
-    print('settle container-textbox replaced (placeholder removed)')
-  end
-  -- ===== v2.4 ② 结算层序修正（用户「黑色窗口异常」的直接解）=====
-  -- 运行时实例是「后建的在上面」（两宿主同规则；D570 实测）。而这层是**懒创建**的：
-  -- gameOver 那一刻棋盘 200 格与左右栏文字早就存在，容器里的 6 行文字又比遮罩/面板先建
-  -- ⇒ 46 号「游戏结束」被半透明面板压在下面，看起来是一团灰雾（v23-settle.png 可证）。
-  -- 修法：按 遮罩 → 面板外沿 → 面板底 → 六行文字 的顺序重建，得到
-  --   棋盘/左右栏 < 遮罩 < 边框 < 面板 < 文字
-  if textGuid then
-    for i = 1, 6 do
-      if sl[i] then pcall(function() game.DestroyClientUIControl(sl[i]) end) end
-      sl[i] = nil
-    end
-    g.settleScrim = instInto(TPL_GUIDS.cell, root, nil)          -- ① 全屏遮罩：盖住棋盘与左右栏
-    g.settleBorder = instInto(TPL_GUIDS.cell, root, nil)         -- ② 面板外沿（4px 描边感）
-    g.settleCard = instInto(TPL_GUIDS.cell, root, nil)           -- ③ 面板底
-    for i = 1, 6 do                                             -- ④ 六行文字：最上层
-      local ok, c = pcall(function() return game.InstantiateClientUIControl(textGuid, root) end)
-      if ok and c then c.name = 'settleText' .. i sl[i] = c end
-    end
-    -- ⑤ 面板装饰：顶部强调条（红）+ 标题下／选项上两条细带（不压字，都在行的缝里）
-    g.settleBars = {}
-    for i = 1, 3 do
-      local bar = instInto(TPL_GUIDS.cell, root, nil)
-      if bar then
-        bar.name = 'settleBar' .. i
-        g.settleBars[#g.settleBars + 1] = bar
-      end
-    end
-    print('settle reorder scrim=' .. (g.settleScrim and 'y' or 'n')
-      .. ' border=' .. (g.settleBorder and 'y' or 'n')
-      .. ' card=' .. (g.settleCard and 'y' or 'n') .. ' texts=6')
-  end
-  g.settleTitle, g.settleScore, g.settleBest = sl[1], sl[2], sl[3]
-  g.settleInfo, g.settleExtra, g.settleOpts = sl[4], sl[5], sl[6]
-  if not (g.settleTitle and g.settleOpts) then
-    -- 全部候选都不可实例化 ⇒ 清掉半成品，让 showGameOver 走布局横幅
-    local members = settleMembers()
-    for i = 1, 9 do
-      if members[i] then pcall(function() game.DestroyClientUIControl(members[i]) end) end
-    end
-    if g.settleLayer then pcall(function() game.DestroyClientUIControl(g.settleLayer) end) end
-    g.settleLayer, g.settleScrim, g.settleCard, g.settleBorder = nil, nil, nil, nil
-    g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts = nil, nil, nil, nil, nil, nil
-    g.settleReady = false
-    print('settle layer=none  (所有候选模板都不可实例化 ⇒ 退化为布局横幅结算)')
-    return
-  end
-  g.settleReady = true
-  local okKids, kids = pcall(function() return (g.settleLayer or root):GetChildren() end)
-  print('settle layer ok children=' .. ((okKids and type(kids) == 'table') and #kids or 0)
-    .. ' title=' .. (g.settleTitle and 'y' or 'n') .. ' score=' .. (g.settleScore and 'y' or 'n')
-    .. ' best=' .. (g.settleBest and 'y' or 'n') .. ' info=' .. (g.settleInfo and 'y' or 'n')
-    .. ' opts=' .. (g.settleOpts and 'y' or 'n')
-    .. ' scrim=' .. (g.settleScrim and 'y' or 'n') .. ' card=' .. (g.settleCard and 'y' or 'n'))
-  -- 样式显式写死（真机模板是上一轮导入的旧值，不能依赖 authoring）
-  for _, ctl in ipairs({ g.settleTitle, g.settleScore, g.settleBest, g.settleInfo, g.settleExtra, g.settleOpts }) do
-    -- 这 6 个在下面要么都取到、要么整层判失败，用 ipairs 无风险
-    trySet(ctl, 'horizontalAlignment', 'Middle')
-    trySet(ctl, 'verticalAlignment', 'Middle')
-    trySet(ctl, 'bgColor', C(0, 0, 0, 0))
-  end
-  -- 字号层级（v2.4 ②：标题 44 → 本局分 34 → 最高 24 → 明细 20 → 分隔点 20 → 选项 26）
-  trySet(g.settleTitle, 'fontSize', 44)
-  trySet(g.settleScore, 'fontSize', 34)
-  trySet(g.settleBest, 'fontSize', 24)
-  trySet(g.settleInfo, 'fontSize', 20)
-  trySet(g.settleExtra, 'fontSize', 20)
-  trySet(g.settleOpts, 'fontSize', 26)
-  settleSetColors(0)
-  -- 懒创建：层刚建好就直接进入动画起点（不隐藏，也不留"隐藏态"给真机去误解）
-  local n = 0
-  local members = settleMembers()
-  for i = 1, 9 do
-    if members[i] then n = n + 1 end
-  end
-  print('settle build ok n=' .. n .. ' via=' .. (g.settleLayer and 'container' or 'textbox'))
-  -- 真机 16:24 日志实证：7 次结算只发出 1 次 `settle signal`——因为信号只在**按 Q** 时发。
-  -- 玩家用 R/V 离开结算，官方结算（Victory/结算关卡）就永远不会触发。
-  -- 改为**结算页建好即上报一次**（每局一次），Q 仍保留为手动重试。
-  if not g.settleSignaled then
-    g.settleSignaled = true
-    sendSettleSignal()
-  end
-  layoutSettle(CANVAS_W, CANVAS_H)   -- 懒创建：建完立刻摆位（此时 layout 早就跑过了）
+-- v6.9 状态源唯一化：live 只由 FN.settleLiveSync 这一处赋值（真源 = APP.overlay()）
+FN.settleLiveSync = function()
+  SETTLEV.live = (APP ~= nil and APP.overlay and APP.overlay() == 'settle') or false
+  return SETTLEV.live
 end
 
--- 结算层文字颜色（alpha 随面板淡入；a 是 0..255）。v2.4 ②：标题提亮 + 明细不再压到 0.72
--- （v2.3 出图里标题/明细都是灰雾，一是层序问题，二是 0.72 折损叠在深底上）
-settleSetColors = function(a)
-  local dimA = math.floor(a * 0.82)
-  trySet(g.settleTitle, 'fontColor', C(a, 185, 138, 60))     -- 深金标题
-  trySet(g.settleScore, 'fontColor', C(a, 214, 126, 46))     -- 暖橙分数
-  trySet(g.settleBest, 'fontColor', C(a, 62, 74, 99))        -- 墨色最高分
-  trySet(g.settleInfo, 'fontColor', C(dimA, 124, 140, 168))
-  -- v3.2：明细行现在放本局旁白（轮播 3 条，各有主色）；rgb 由 showGameOver 写进
-  -- g.settleNoteRGB，缺省回落原来的 158/174/198（textDim），alpha 仍随面板淡入。
+-- ②0.15s 起标题自上滑入（0.35s ease-out）③0.55s 起标题脉冲 44→48→44
+-- 通道分流：v2 的每一帧写入都走 SR（write/writePos），不碰任何 ctl 句柄；
+-- S3 已把旧实现（buildSettleLayer/layoutSettle/settleSetColors/settleTick 旧分支/MS.opts）整段删除。
+-- 三条硬理由（S1 已写进装配处注释）：①SR 必须独立于棋盘 BR；②每次打开 SR.clear() 再 apply；
+-- ③淡入不重建——一次性建 alpha=255，之后只写字段。
+SETTLEV.ACTS = { R = 'restart', V = 'backHome', Q = 'detail' }   -- 与键盘 R/V/Q 同一张动作表
+SETTLEV.TITLE_Y, SETTLEV.TITLE_OFF = 140, 192                  -- 标题终值 y 与滑入起点（原 layoutSettle 常量）
+
+SETTLEV.fade = function(a)
+  local SR = SETTLEV.SR
+  if not (SR and SETTLEV.live) then return end
   local nr = g.settleNoteRGB or { 96, 112, 132 }
-  -- 旧实现 alpha 只给 0.55 ⇒ 旁白字在浅面板上 1.81:1（机检 fail）。提到 0.88，颜色兜底已压深。
-  trySet(g.settleExtra, 'fontColor', C(math.floor(a * 0.88), nr[1], nr[2], nr[3]))
-  trySet(g.settleOpts, 'fontColor', C(a, 62, 74, 99))
+  SR.write('settleTitle', 'fontColor', C(a, 185, 138, 60))                     -- 深金
+  SR.write('settleScore', 'fontColor', C(a, 214, 126, 46))                     -- 暖橙
+  SR.write('settleBest', 'fontColor', C(a, 62, 74, 99))                        -- 墨
+  SR.write('settleInfo', 'fontColor', C(math.floor(a * 0.82), 124, 140, 168))
+  SR.write('settleNote', 'fontColor', C(math.floor(a * 0.88), nr[1], nr[2], nr[3]))
 end
 
--- 结算动画（0→0.9s 四段）：①0→0.45s 遮罩/面板淡入（棋盘被压到 45% 亮度）
--- ②0.15s 起标题自上滑入（0.35s ease-out）③0.35s 起选项自下滑入 ④0.55s 起标题脉冲 44→48→44
--- ===== v3.3 结算三选项：主次层级 + 三态（常态/悬停/按下）=============================
--- 用户 2026-10-28 反馈：「下面明明是三个框，但是高亮样式完全一样，没有区分度，本质上都是没有审美」。
--- 病根：旧实现把三个选项塞进**同一个服务端 textbox**（一行 '[R] 再来一局　[V] 回主页　[Q] 结算明细'），
--- 三个透明热区只能整体改这一行字色 ⇒ 三项永远同字号同颜色，悬停还连带闪另外两项。
--- 改法：选项改成**运行时实例层**的三块贴片（ImageSource 图元），各自独立配色与三态：
---   ① 主次：再来一局 = 模式色实心胶囊 + 描金外环 + 大一号（最想点的路）；
---           回主页 = 白底 + 描金细边 + 墨字；结算明细 = 纯文字 + 次字色（它给信息，不是行动）。
---   ② 三态：常态 → 悬停整体提亮（向白 22%）→ 按下整体压深（向墨 20%）并下沉 3px。
---   ③ 服务端 settleOpts 保留但隐藏（层序铁律：实例层在 textbox 之上，不隐藏会重影）。
--- 版式 variant（CFG.SETTLE_OPT）：P = 主按钮大 + 两个小（落地）/ E = 等宽三胶囊（对比稿）。
-MS.opts = function(cy)
-  -- 文字模板可能还没探过（结算层用容器路径时不会写 TPL_TEXT）⇒ 这里补探，否则选项只有贴片没有字
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  local cfg = CFG.SETTLE_OPT or {}
-  local mt = MODE_THEME[MODE] or MODE_THEME.casual
-  local accent = (mt and mt.accent) or THEME.textMain
-  local deep = (mt and mt.frame) or THEME.textMain
-  local variant = (cfg.variant or 'P'):upper()
-  local geoms
-  if variant == 'E' then
-    geoms = { { -226, 208, 56 }, { 0, 208, 56 }, { 226, 208, 56 } }
-  else
-    geoms = { { -184, 252, 64 }, { 56, 174, 52 }, { 250, 176, 44 } }
+SETTLEV.placeTitle = function(y)
+  if SETTLEV.live then SETTLEV.SR.writePos('settleTitle', 0, y) end
+end
+
+SETTLEV.pulse = function(size)
+  if SETTLEV.live then SETTLEV.SR.write('settleTitle', 'fontSize', size) end
+end
+
+SETTLEV.detail = function(text, on)
+  local SR = SETTLEV.SR
+  if not (SR and SETTLEV.live) then return end
+  SR.write('settleNote', 'text', on and text or '')
+end
+
+-- 三态混色：与旧 MS.opts 的 mix 同款（k>0 向白靠、k<0 向墨靠）——三态色板在节点的 state 里
+SETTLEV.mix = function(c, k)
+  if not k or k == 0 then return c end
+  local a = (c // 16777216) % 256
+  local r0, g0, b0 = (c // 65536) % 256, (c // 256) % 256, c % 256
+  local tt = (k > 0) and 255 or 16
+  local kk = (k < 0) and -k or k
+  local function ch(v)
+    local n = math.floor(v + (tt - v) * kk + 0.5)
+    if n < 0 then n = 0 end
+    if n > 255 then n = 255 end
+    return n
   end
-  local acts = { R = 'restart', V = 'backHome', Q = 'detail' }
-  local WHITE = C(255, 255, 255, 255)
-  local CARD = THEME.card or C(255, 255, 255, 255)
-  local GOLD = THEME.gold
-  local INK, SUB = THEME.textMain, THEME.textSub
-  -- 颜色混调：k>0 向白靠（提亮），k<0 向墨靠（压深）
-  local function mix(c, k)
-    if k == 0 then return c end
-    local a = c // 16777216
-    local r0, g0, b0 = (c // 65536) % 256, (c // 256) % 256, c % 256
-    local tt = (k > 0) and 255 or 16
-    local kk = k < 0 and -k or k
-    local function ch(v)
-      local n = math.floor(v + (tt - v) * kk + 0.5)
-      if n < 0 then n = 0 end
-      if n > 255 then n = 255 end
-      return n
-    end
-    return C(a, ch(r0), ch(g0), ch(b0))
-  end
-  local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
-  local function mk(name)
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-    if not ok or not c then return nil end
-    c.name = name
-    SETTLE_HOTS[#SETTLE_HOTS + 1] = c
-    return c
-  end
-  local function piece(name, img, x, y, w, h, col)
-    local c = mk(name)
-    if not c then return nil end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-    if img then
-      local done = false
-      if enumIS and enumIS.StaticReference ~= nil then
-        done = pcall(function() c:SetImage(enumIS.StaticReference, img) end)
+  return C(a, ch(r0), ch(g0), ch(b0))
+end
+
+-- 有界实现：只对**已存在**的控件写字段（不重建节点）；三态色板来自 view_settle 的 node.state：
+--   fill（主）= mix(base, -0.13/-0.26)      line（次）= mix(accent, +0.78/+0.60)（白底要染模式色才看得见）
+--   flat（三）= mix(base, +0.04/-0.10) 并把字色推到墨色（浅底胶囊提亮 4% 肉眼几乎无差，真正的信号是字色）
+--   rim 一律 mix(base, +0.10/-0.34)；按下整组下沉 3px（fill/rim/label 一起，热区不动）。
+SETTLEV.bindHover = function(nodes, accent, deep)
+  local SR = SETTLEV.SR
+  local groups = {}
+  for i = 1, #nodes do
+    local n = nodes[i]
+    if n.opt and n.optId then
+      local t = groups[n.optId]
+      if not t then
+        t = { fill = {}, rim = {}, sink = {} }
+        groups[n.optId] = t
       end
-      if not done then pcall(function() c:SetImage('StaticReference', img) end) end
-    end
-    trySet(c, 'imageColor', col)
-    return c
-  end
-  UI4.regScreen('settle')
-  local items, made = {}, 0
-  for i, it in ipairs(cfg.items or {}) do
-    local g0 = geoms[i] or geoms[#geoms]
-    local x, y, w, h = g0[1], (cy or -136) - 16, g0[2], g0[3]
-    local rank = it.rank or i
-    local kind = (rank == 1) and 'fill' or ((rank == 2) and 'line' or 'flat')
-    local rec = { key = it.key, parts = {}, x = x, y = y, w = w, h = h, kind = kind, rank = rank }
-    local function addPill(tag, pw, ph, col)
-      local r = ph / 2
-      local ix, iy = pw - 2 * r, ph - 2 * r
-      if ix < 1 then ix = 1 end
-      if iy < 1 then iy = 1 end
-      local role = (tag:find('rim', 1, true) and 'rim') or 'bg'
-      local function put(c, px, py, pwid, phei)
-        if c then rec.parts[#rec.parts + 1] = { c = c, col = col, x = px, y = py, role = role } end
-      end
-      put(piece(tag .. 'p', BG_IMG.rect, x, y, ix, ph, col), x, y)
-      put(piece(tag .. 'q', BG_IMG.rect, x, y, pw, iy, col), x, y)
-      local dx, dy = pw / 2 - r, ph / 2 - r
-      local q = { { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }
-      for qi = 1, 4 do
-        local px, py = x + q[qi][1] * dx, y + q[qi][2] * dy
-        put(piece(tag .. 'r' .. qi, BG_IMG.circle, px, py, 2 * r, 2 * r, col), px, py)
+      t.state = t.state or n.state
+      if n.role == 'capFill' then
+        t.fill[#t.fill + 1] = { key = n.key, base = n.color }
+        t.sink[#t.sink + 1] = { key = n.key, x = n.pos[1], y = n.pos[2] }
+      elseif n.role == 'capRim' then
+        t.rim[#t.rim + 1] = { key = n.key, base = n.color }
+        t.sink[#t.sink + 1] = { key = n.key, x = n.pos[1], y = n.pos[2] }
+      elseif n.role == 'capLabel' then
+        t.label = { key = n.key, base = n.fcolor }
+        t.sink[#t.sink + 1] = { key = n.key, x = n.pos[1], y = n.pos[2] }
+      elseif n.role == 'hit' then
+        t.hit, t.hitKey = n.key, n.hitKey
       end
     end
-    local ink, size = CARD, 20
-    if kind == 'fill' then
-      addPill('opt' .. i .. 'rim', w + 7, h + 7, GOLD)
-      addPill('opt' .. i .. 'bg', w, h, accent)
-      ink, size = WHITE, (variant == 'P') and 25 or 21
-    elseif kind == 'line' then
-      addPill('opt' .. i .. 'rim', w + 7, h + 7, GOLD)
-      addPill('opt' .. i .. 'bg', w, h, CARD)
-      ink, size = INK, (variant == 'P') and 20 or 21
-    else
-      -- v5.4 修用户 2026-10-30 四-1「第三个按钮和前面两个比太敷衍」：
-      -- 最低优先级也要有**完整按钮形态**——奶油浅底胶囊 + 一圈更淡的描金细边，
-      -- 但尺寸最小、字最浅 ⇒ 三个按钮一眼分出主/次/再次，而不是"两个按钮 + 一行裸字"。
-      addPill('opt' .. i .. 'rim', w + 5, h + 5, C(255, 214, 196, 158))
-      addPill('opt' .. i .. 'bg', w, h, C(255, 250, 245, 238))
-      ink, size = mix(INK, 0.30), (variant == 'P') and 18 or 20
-    end
-    rec.ink = ink
-    -- 文案：主行动带 [键] 前缀（键盘玩家仍一眼看到键位）
-    local label = '[' .. tostring(it.key) .. '] ' .. tostring(it.label)
-    local tw = w - 8
-    local okT, tc = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-    if okT and tc then
-      tc.name = 'optT' .. i
-      tc.text = label
-      trySet(tc, 'fontSize', size)
-      trySet(tc, 'fontColor', ink)
-      trySet(tc, 'bgColor', C(0, 0, 0, 0))
-      trySet(tc, 'horizontalAlignment', 'Middle')
-      trySet(tc, 'verticalAlignment', 'Middle')
-      trySet(tc, 'enableOutline', true)
-      trySet(tc, 'outlineColor', C(200, 255, 255, 255))
-      tryCall(tc, 'SetSizeDelta', tw, math.floor(size * 1.5 + 6))
-      tryCall(tc, 'SetAnchoredPosition', x, y - 1)
-      SETTLE_HOTS[#SETTLE_HOTS + 1] = tc
-      rec.text, rec.tx, rec.ty = tc, x, y - 1
-    end
-    items[#items + 1] = rec
   end
-  -- 三态绘制
-  local function paint(rec, st)
-    local dy = (st == 'down') and -3 or 0
-    for _, p in ipairs(rec.parts) do
-      local col = p.col
-      if st ~= 'normal' and p.role ~= 'rim' then
-        if rec.kind == 'fill' then
-          col = mix(p.col, (st == 'down') and -0.26 or -0.13)      -- 实心：悬停加深（白字更清楚）
-        elseif rec.kind == 'line' then
-          col = mix(accent, (st == 'down') and 0.60 or 0.78)       -- 白胶囊：悬停染模式浅色
-        elseif rec.kind == 'flat' then
-          col = mix(p.col, (st == 'down') and -0.10 or 0.04)       -- 浅底胶囊：极轻的悬停/按下
+  local bound, okCnt = 0, 0
+  for _, t in pairs(groups) do
+    local ctl = t.hit and SR.get(t.hit) or nil
+    local st = t.state
+    if ctl and st then
+      bound = bound + 1
+      local function paint(mode)
+        local down, hov = (mode == 'down'), (mode == 'hover')
+        for i = 1, #t.fill do
+          local f = t.fill[i]
+          local k = down and st.pressK or (hov and st.hoverK or nil)
+          local col = f.base
+          if k then
+            col = (st.kind == 'line') and SETTLEV.mix(accent, k) or SETTLEV.mix(f.base, k)
+          end
+          SR.write(f.key, 'imageColor', col)
         end
-      elseif st ~= 'normal' and p.role == 'rim' then
-        col = mix(p.col, (st == 'down') and -0.34 or 0.10)         -- 金边：悬停略亮 / 按下压深
+        for i = 1, #t.rim do
+          local r = t.rim[i]
+          local k = down and (st.rimPressK or -0.34) or (hov and (st.rimHoverK or 0.10) or nil)
+          SR.write(r.key, 'imageColor', k and SETTLEV.mix(r.base, k) or r.base)
+        end
+        if t.label then
+          local lc = t.label.base
+          if st.kind == 'flat' then
+            if down then lc = SETTLEV.mix(deep or lc, -0.12)
+            elseif hov then lc = SETTLEV.mix(THEME.textMain or lc, 0.18) end
+          else
+            lc = down and SETTLEV.mix(lc, -0.12) or (hov and SETTLEV.mix(lc, 0.10) or lc)
+          end
+          SR.write(t.label.key, 'fontColor', lc)
+        end
+        local dy = down and (st.dy or -3) or 0
+        for i = 1, #t.sink do
+          SR.writePos(t.sink[i].key, t.sink[i].x, t.sink[i].y + dy)
+        end
       end
-      trySet(p.c, 'imageColor', col)
-      tryCall(p.c, 'SetAnchoredPosition', p.x, p.y + dy)
-    end
-    if rec.text then
-      local sc = rec.ink
-      if rec.kind == 'flat' then
-        -- 纯文字项：三态打在字色上（常态次色 → 悬停主色 → 按下强调色）
-        if st == 'hover' then sc = INK elseif st == 'down' then sc = deep end
-        local kk = (st == 'hover') and 0.18 or ((st == 'down') and -0.12 or 0)
-        if st == 'normal' then sc = rec.ink else sc = mix(sc, kk) end
-      else
-        sc = mix(rec.ink, (st == 'hover') and 0.10 or ((st == 'down') and -0.12 or 0))
-      end
-      trySet(rec.text, 'fontColor', sc)
-      tryCall(rec.text, 'SetAnchoredPosition', rec.tx, rec.ty + dy)
+      if PT.onCursor(ctl, 'CursorEnter', function()
+        paint('hover') sfx(SFX.hover, true) print('settle hover ' .. tostring(t.hitKey))
+      end) then okCnt = okCnt + 1 end
+      PT.onCursor(ctl, 'CursorExit', function()
+        paint('normal') print('settle hover out ' .. tostring(t.hitKey))
+      end)
+      PT.onCursor(ctl, 'CursorDown', function()
+        paint('down') sfx(SFX.press, true) print('settle press ' .. tostring(t.hitKey))
+      end)
+      PT.onCursor(ctl, 'CursorUp', function()
+        paint('hover') print('settle release ' .. tostring(t.hitKey))
+      end)
     end
   end
-  -- 热区（cursor 只做命中；视觉三态全在贴片/文字上——image 类控件没有 AddCursorEventListener）
-  if TPL_HIT then
-    for i, rec in ipairs(items) do
-      local okz, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-      if okz and z then
-        local it = (cfg.items or {})[i] or {}
-        z.name = 'hotSettle' .. tostring(it.key)
-        tryCall(z, 'SetSizeDelta', rec.w + 12, rec.h + 12)
-        tryCall(z, 'SetAnchoredPosition', rec.x, rec.y)
-        addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) paint(rec, 'hover') end)
-        addCursor(z, 'CursorExit', function() paint(rec, 'normal') end)
-        addCursor(z, 'CursorUp', function() paint(rec, 'hover') end)
-        addCursor(z, 'CursorDown', function()
-          sfx(SFX.press, true)
-          paint(rec, 'down')
-        end)
-        -- v5.5：动作挂在 Click（=Up+Click 之后一次），否则按住/连点会重复触发
-        -- （真机日志 `hot settle Q` 2 秒内 6 次；toggle 类动作会被连点抵消）。
-        addCursor(z, 'CursorClick', function()
-          print('hot settle ' .. tostring(it.key))
-          local fn = SETTLE_ACT[acts[it.key] or '']
-          if fn then fn() end
-        end)
-        SETTLE_HOTS[#SETTLE_HOTS + 1] = z
-        UI4.regAdd('settle.' .. tostring(it.key), z, rec.w + 12, rec.h + 12)
+  print('settle hover bind n=' .. bound .. ' enter=' .. okCnt)
+end
+
+SETTLEV.close = function()
+  if APP then APP.closeOverlay() elseif SETTLEV.SR then SETTLEV.SR.clear() end
+  FN.settleLiveSync()
+  g.settleV2 = false
+end
+
+SETTLEV.open = function(overTitle)
+  if not (SETTLEV.SR and SETTLEV.S) then return false end
+  local noteRecs = CFG.COPY and CFG.COPY.settle
+  if type(noteRecs) ~= 'table' or #noteRecs < 1 then return false end
+  g.settleNoteIdx = (g.settleNoteIdx or 0) % #noteRecs + 1
+  local noteRec = noteRecs[g.settleNoteIdx]
+  g.settleNoteRGB = { (noteRec.color // 65536) % 256, (noteRec.color // 256) % 256,
+    noteRec.color % 256 }
+  local function onKey(key)
+    return function()
+      print('hot settle ' .. key)
+      local fn = SETTLE_ACT[SETTLEV.ACTS[key] or '']
+      if fn then fn() end
+    end
+  end
+  local optv = CFG.SETTLE_OPT or {}
+  local nodes = SETTLEV.S.settle {
+    canvas = { CANVAS_W, CANVAS_H },
+    device = IS_MOBILE and 'mobile' or 'pc',
+    -- 裁决 2026-10-31：PC 保持**胶囊**（就是今天的样子，用户红线是"PC 单人不退化"）。
+    -- 模块自己的缺省是 PC=键位提示 ⇒ 这里必须显式给 'pill'；config 加 style='text' 才切回纯提示。
+    style = optv.style or 'pill',
+    mode = MODE,
+    score = g.score, best = bestScore, lines = g.lines, level = g.level,
+    pieceCount = g.pieceCount,
+    noteIdx = g.settleNoteIdx,             -- 旁白文案与配色由模块从 copy.settle 取（零复制）
+    title = overTitle or '游戏结束',
+    onRestart = onKey('R'), onHome = onKey('V'), onDetail = onKey('Q'),
+  }
+  -- 试点③：懒创建的 SR 先 provideOverlay 登记，再 openOverlay（隔离仍是 SR）
+  if APP then
+    APP.provideOverlay('settle', SETTLEV.SR)
+    APP.openOverlay('settle', { name = 'settle', opaque = true }, nodes)
+  else
+    SETTLEV.SR.clear()
+    SETTLEV.SR.apply(nodes)
+  end
+  FN.settleLiveSync()
+  local mtS = MODE_THEME[MODE] or MODE_THEME.casual or {}
+  SETTLEV.bindHover(nodes, mtS.accent or THEME.textMain, mtS.frame or THEME.textMain)
+  UI4.regScreen('settle')
+  local made = 0
+  for i = 1, #nodes do
+    local n = nodes[i]
+    if n.role == 'hit' then
+      local ctl = SETTLEV.SR.get(n.key)
+      if ctl then
+        UI4.regAdd('settle.' .. tostring(n.hitKey), ctl, n.size[1], n.size[2])
         made = made + 1
       end
     end
   end
-  g.optRecs = items
-  -- 服务端 textbox 那条「[R] 再来一局　[V] 回主页　[Q] 结算明细」必须清空：
-  -- 真机 SetVisible(false) 对运行时实例不生效（D581 实证），只有清空文字在两宿主都干净。
-  if #items > 0 then setText(g.settleOpts, '') end
-  print('settle hotzones n=' .. made .. ' v=' .. variant)
+  -- 契约锚（tests/37 逐字断言这一行；tests/40 只断言前缀 'settle hotzones n=3'）
+  print('settle hotzones n=' .. made .. ' v=' .. tostring(optv.variant or 'P'):upper())
   UI4.dump('settle')
-  return #items
+  if not g.settleSignaled then
+    g.settleSignaled = true
+    sendSettleSignal()                     -- 建好即上报一次（原 buildSettleLayer 的责任）
+  end
+  -- 旧实现的那条日志锚（tests/40-ai-takeover-death 逐字断言它）⇒ v2 也照打，
+  -- 但含义变成「描述已落地成控件」；紧跟着的 v2 专用锚才是"新路径真的在跑"的证明。
+  print('settle build ok n=' .. #nodes)
+  g.settleTitleY, g.settleTitleOff = SETTLEV.TITLE_Y, SETTLEV.TITLE_OFF   -- settleTick 读这两个
+  SETTLEV.fade(0)                          -- 动画起点：文字 alpha 归 0
+  SETTLEV.placeTitle(SETTLEV.TITLE_OFF)    -- 标题先放屏外（旧口径 192）
+  g.settleReady = true                     -- 既有「结算在位」判据（actSettleQ / dump 状态）继续成立
+  g.settleV2 = true
+  g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
+  print('settle v2 open nodes=' .. #nodes)
+  return true
 end
+
 local function settleTick(d)
   if not g.settleOn or g.settleDone then return end
   g.settleT = g.settleT + d
@@ -919,7 +949,7 @@ local function settleTick(d)
   if r1 > 1 then r1 = 1 end
   if math.abs(r1 - g.settleFade) >= 0.05 or (r1 >= 1 and g.settleFade < 1) then
     g.settleFade = r1
-    settleSetColors(math.floor(255 * r1))     -- 只动文字颜色 alpha（真机验证过的通道）
+    SETTLEV.fade(math.floor(255 * r1))        -- v6.2：走 SR 的 fontColor 通道（不重建）
     -- v2.4 ②：棋盘压暗**始终**做（不只无结算层的兜底）——结算层在位时棋盘还在半透明遮罩
     -- 后面，亮格会透过面板抢文字；renderAll 会擦活动块 ⇒ 统一走 renderPiece。
     g.dimRatio, g.dimApplied = 0.45 * r1, r1
@@ -932,25 +962,24 @@ local function settleTick(d)
   end
   local p2 = e((t - 0.15) / 0.35)
   if p2 > 0 then
-    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff + (g.settleTitleY - g.settleTitleOff) * p2)
+    SETTLEV.placeTitle(g.settleTitleOff + (g.settleTitleY - g.settleTitleOff) * p2)
   end
-  local p3 = e((t - 0.35) / 0.35)
-  if p3 > 0 then
-    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff + (g.settleOptsY - g.settleOptsOff) * p3)
-  end
+  -- v6.2：选项带落位由 view_settle 按卡底反解（静态不参与滑入）⇒ 原 p3 段删除
   local p4 = (t - 0.55) / 0.3
   if p4 > 0 and p4 < 1 then
     local size = 44 + math.floor(4 * math.sin(math.pi * p4) + 0.5)
-    if size ~= g.settleSize then g.settleSize = size trySet(g.settleTitle, 'fontSize', size) end
+    if size ~= g.settleSize then
+      g.settleSize = size
+      SETTLEV.pulse(size)
+    end
   elseif p4 >= 1 and g.settleSize ~= 44 then
     g.settleSize = 44
-    trySet(g.settleTitle, 'fontSize', 44)
+    SETTLEV.pulse(44)
   end
   if t >= 0.9 then
     g.settleDone = true
-    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleY)
-    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsY)
-    trySet(g.settleTitle, 'fontSize', 44)
+    SETTLEV.placeTitle(g.settleTitleY)
+    SETTLEV.pulse(44)
     print('settle anim done')
   end
 end
@@ -986,46 +1015,50 @@ renderAll = function()
   end
 end
 
+-- v6.5 预览列描述：NEXT 两块（8 格）+ HOLD 一块（4 格）—— 老 renderNext 的三段逻辑一一对应：
+--   ① 主预览 18px/20 距/满色；没 nextName（或结算）⇒ 8 格停靠 —— v3.5 ⑩ 的脏格就此绝迹
+--      （旧实现先刷 COL_BG 再 return，格子留在原位）
+--   ② 下下块 14px/14 距/白化 0.46（bagQ[1] 只读不取：渲染永不改出块序列）
+--   ③ 暂存左栏镜像、18px/20 距；canHold=false 白化 0.5；空槽 4 格停靠 (-4000,-4000)
+-- 标题不在这里出（noLabel）：现网「下一个/暂存」是服务端 textbox，再出一份就是双影。
+local function previewDesc(parked)
+  local nodes = {}
+  if not (PVW.S and g) then return nodes end
+  local cx, cw, ch = RIGHT_CX, CANVAS_W or 1280, CANVAS_H or 720
+  local dev, dual = IS_MOBILE and 'mobile' or 'pc', (G[2] ~= nil)
+  local queue = { g.nextName, g.bagQ[1] and g.bagQ[1].name }
+  if g.gameOver then queue = {} end               -- 结算期不出预览（同旧语义）
+  local function push(list) for i = 1, #list do nodes[#nodes + 1] = list[i] end end
+  push(PVW.S.next({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
+    noLabel = true, legacyNames = true, queue = queue, slots = 2 }))
+  push(PVW.S.hold({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
+    noLabel = true, legacyNames = true,
+    holdName = g.st and g.st.name or nil, canHold = g.st and g.st.can }))
+  if parked then
+    -- 浮层期把 12 格挪出画布（旧实现同手法：运行时实例的 SetVisible 不可靠）
+    for i = 1, #nodes do nodes[i].pos = { 0, -4000 } end
+  end
+  return nodes
+end
+
 local function renderNext()
-  if not g.preview or not g.preview[5] then return end
-  for i = 1, 8 do g.preview[i].imageColor = CFG.COL_BG end
-  if g.gameOver or not g.nextName then return end
-  local s = SHAPES[g.nextName]
-  for i = 1, 4 do
-    local ctl = g.preview[i]
-    local r, c = s.cells[i][1], s.cells[i][2]
-    ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
-    ctl.imageColor = s.color
+  -- 预览列只反映 G[1]（双屏时 G[2] 的 renderHud 也调本函数；旧实现因 G[2].preview 为空而天然 no-op）
+  if not (PVW.S and PVW.R) or (G[1] and g ~= G[1]) then return end
+  PVW.R.apply(previewDesc(PVW.parked))
+  -- 引擎侧读数（签名变化才打一行，避免 60fps 刷日志）：
+  --   pvN   = render 键里 pv* 前缀的控件数（应为 12）
+  --   holdX = 暂存首格的实际坐标（空槽时应为 -4000 —— v3.5 脏格守卫的对象级读数）
+  local cnt = 0
+  for k in pairs(PVW.R.controls()) do
+    if tostring(k):sub(1, 2) == 'pv' then cnt = cnt + 1 end
   end
-  -- T2：第二块预览 = bagQ 队头（下下块）。缩 14px、55% 亮度、排第一块下方（中心 y=78）。
-  -- bagQ 只读不取——渲染永不改出块序列（refill 只发生在 takeFromBag 内）。
-  local e2 = g.bagQ[1]
-  if e2 then
-    local s2 = SHAPES[e2.name]
-    for i = 1, 4 do
-      local ctl = g.preview[4 + i]
-      local r, c = s2.cells[i][1], s2.cells[i][2]
-      ctl:SetAnchoredPosition(RIGHT_CX + (c - 2.5) * 14, 78 + (2.5 - r) * 14)
-      ctl.imageColor = MS.fade(s2.color, 0.46)          -- v3.0 浅底：淡一档而不是压暗
-    end
-  end
-  -- T3 Hold 槽（preview[9..12]，左栏镜像位；空槽=底色，canHold=false 时 55% 亮度提示本落子已用掉）
-  if g.preview[9] then
-    for i = 9, 12 do g.preview[i].imageColor = CFG.COL_BG end
-    if not g.st.name then
-      -- v3.5 ⑩：空槽把 4 格挪出画布——只刷底色的话格子停在出生位，
-      -- 盘面上会留一块 COL_BG 脏格（出图实测：左盘左上角一个 20px 灰方块）
-      for i = 9, 12 do tryCall(g.preview[i], 'SetAnchoredPosition', -4000, -4000) end
-    end
-    if g.st.name then
-      local sh = SHAPES[g.st.name]
-      for i = 1, 4 do
-        local ctl = g.preview[8 + i]
-        local r, c = sh.cells[i][1], sh.cells[i][2]
-        ctl:SetAnchoredPosition(-RIGHT_CX + (c - 2.5) * 20, 150 + (2.5 - r) * 20)
-        ctl.imageColor = g.st.can and sh.color or MS.fade(sh.color, 0.5)   -- 已用掉=淡一档
-      end
-    end
+  local hc = PVW.R.get('pvHoldC1')
+  local hx = (hc and PT) and PT.get(hc, 'anchoredPositionX') or nil
+  local sig = cnt .. '/' .. tostring(hx) .. '/' .. tostring(PVW.parked)
+  if sig ~= PVW.sig then
+    PVW.sig, PVW.n = sig, cnt
+    print(string.format('preview v2 apply pvN=%d holdX=%s parked=%s', cnt, tostring(hx),
+      tostring(PVW.parked)))
   end
 end
 
@@ -1067,7 +1100,9 @@ renderPiece = function()
   end
 end
 
+-- v6：碰撞判定搬到 core_board（纯函数，headless 可断言）
 collides = function(cs, px, py)
+  if BOARD then return BOARD.collides(g.board, cs, px, py) end
   for i = 1, #cs do
     local br = py + cs[i][1] - 1
     local bc = px + cs[i][2] - 1
@@ -1078,280 +1113,15 @@ collides = function(cs, px, py)
 end
 
 spawn = function(overrideName, overrideBag)
-  -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序，
-  -- 日志加 holdswap=1 尾标供用例区分自然出块与槽换出块）；自然出块（无参）才 takeFromBag。
-  local name = overrideName or g.nextName or 'T'
-  local nameBag = overrideBag or g.nextBag          -- 当前块所属袋序（出块日志 bag=<袋序>）
-  if not overrideName then g.nextName, g.nextBag = takeFromBag() end
-  if G[2] and g == G[2] then print('p2 bag=' .. (g.bagSeq or 0) .. ' piece=' .. name) end   -- v2.8 ③ 独立出块锚
-  -- v6：每块重置"这一块做过什么"的标记（供 keqing 四叠 / ganyu 蓄力 判定）
-  g.pieceMoved, g.pieceRotated, g.hardDrop = false, false, false
-  g.pieceAge = 0
-  local s = SHAPES[name]
-  g.piece = {
-    name = name, n = s.n, color = s.color,
-    cells = { { s.cells[1][1], s.cells[1][2] }, { s.cells[2][1], s.cells[2][2] },
-              { s.cells[3][1], s.cells[3][2] }, { s.cells[4][1], s.cells[4][2] } },
-    x = (COLS - s.n) // 2 + 1,
-    y = 1,
-  }
-  print('bag=' .. (nameBag or 0) .. ' piece=' .. name .. ' x=' .. g.piece.x .. ' y=' .. g.piece.y
-    .. (overrideName and ' holdswap=1' or ''))
-  g.ld.t, g.ld.resets, g.lastRot = -1, 0, false   -- T8：新块清锁定延迟与旋转标记
-  if collides(g.piece.cells, g.piece.x, g.piece.y) then
-    g.gameOver = true
-    -- 台账 #3：双盘时这块可能是 G[2]（AI 盘），它的分数在 AI 账本里 ⇒ 直接打 g.score 恒 0，
-    -- 与随后 guide 的 10702 对不上（真机日志 rec17749/17752）。这里把两个账本都打出来。
-    print('gameover score=' .. tostring(g.score) .. ' aiScore=' .. tostring(g.AI and g.AI.score)
-      .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
-    sfx(SFX.over, true)          -- 结束音（结算页滑入的同时播）
-    -- 入场自演顶死时不写最高分：bestScore 是玩家账（与 P0 同一口径，docs §7.1）
-    if not g.autoDriving then updateBest() end
-    showGameOver()
-  end
-  -- v2.8 ③：镜像队列退役（用户裁决「不用两边出块一样也不用等」）——G[2] 独立 bag（aiRand 洗）。
-  -- p2 出块日志锚在自然出块路径（takeFromBag 后）；主日志锚（bag=/piece=）不动。
-  renderPiece()
-  renderHud()
-end
-
-clearLines = function()
-  local cleared = 0
-  local r = ROWS
-  while r >= 1 do
-    local full = true
-    for c = 1, COLS do
-      if g.board[r][c] == 0 then full = false end
-    end
-    if full then
-      table.remove(g.board, r)
-      local row = {}
-      for c = 1, COLS do row[c] = 0 end
-      table.insert(g.board, 1, row)
-      cleared = cleared + 1
-      -- 不递减 r：删除并把空行插到顶部后，原 r-1 行已落到索引 r，要再判一次
-    else
-      r = r - 1
-    end
-  end
-  if cleared > 0 then
-    -- 视觉反馈：整盘已落方块闪白（按行数分档：1 行 0.10s → 4 行 0.22s，恒短于抖屏时长）
-    for r2 = 1, ROWS do
-      for c2 = 1, COLS do
-        if g.board[r2][c2] ~= 0 then paint(r2, c2, C(255, 245, 250, 255)) end
-      end
-    end
-    g.flashT = NUM.FLASH[cleared] or NUM.FLASH[4]
-    -- 计分（docs/数值策划.md §2）：基础分 × 等级 + 连击加成；四消连击（B2B）基础分再 ×1.5。
-    -- 连击口径：连续"有消行的锁定"计数，combo=1 是第一次，≥2 才给加成；没消行的锁定归零（见 doLock）
-    g.combo = g.combo + 1
-    if g.combo > g.maxCombo then g.maxCombo = g.combo end
-    local base = NUM.SCORE[cleared]
-    local b2bApplied = (cleared == 4 and g.b2b)     -- 这一次是否吃到 ×1.5（日志里 b2b=1 表示吃到了）
-    if b2bApplied then base = base * NUM.B2B_NUM // NUM.B2B_DEN end   -- 800 → 1200
-    g.b2b = (cleared == 4)
-    local comboBonus = 0
-    if g.combo >= 2 then comboBonus = NUM.COMBO * (g.combo - 1) * g.level end
-    -- T4 两套账本：AI 自演的分进 aiScore（玩家接管不清、best 不收）；玩家分进 score。
-    -- 连击/B2B 状态共享，但 startIfWaiting/newGame 都归零 ⇒ AI 的连击不会漏进玩家局。
-    local gain = base * g.level + comboBonus
-    -- v6 天赋：消行结算（倍率相加不相乘，见设计书 §5.3）
-    if SK and SKILLS and SKILLS.onClear then
-      local okE, ev = pcall(SKILLS.onClear, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
-        cleared, { level = g.level, combo = g.combo, b2b = b2bApplied, mode = MODE })
-      if not okE then print('talent onClear ERR ' .. tostring(ev)) end
-      if okE and type(ev) == 'table' then
-        print('talent onClear role=' .. tostring(FN.skillRoleOf and FN.skillRoleOf(1)) ..
-          ' cleared=' .. tostring(cleared) .. ' mult=' .. tostring(ev.mult) .. ' nfx=' ..
-          tostring(type(ev.effects) == 'table' and #ev.effects or 0))
-        gain = math.floor(gain * (tonumber(ev.mult) or 1) + (tonumber(ev.bonus) or 0))
-        if ev.log then print(ev.log) end
-        if type(ev.effects) == 'table' then
-          for ei = 1, #ev.effects do pcall(FN.dispatchEffect, g, ev.effects[ei]) end
-        end
-      end
-    end
-    if g.autoDriving then g.AI.score = g.AI.score + gain else g.score = g.score + gain end
-    if g.autoDriving then g.AI.lines = g.AI.lines + cleared else g.lines = g.lines + cleared end
-    if g.autoDriving then RHO.lines = RHO.lines + cleared end   -- T5 ρ 统计跨局累计（newGame 不清）
-    -- v4.0 ③：消行给前台角色加经验（用户：「哪个技能用的更多，加点更多，就可以获得更好的效果」）
-    if SK and SKILLS and SKILLS.addExp then
-      local active = (FN.skillRoleOf and FN.skillRoleOf(1)) or SK.party[SK.active or 1] or 'nahida'
-      local up = SKILLS.addExp(SK, active, cleared * 10)
-      if up and up.leveled then
-        print('skill levelup role=' .. active .. ' lv=' .. tostring(up.lv) .. ' node=' .. tostring(up.node))
-      end
-    end
-    -- v4.0 ③：解锁计数（累计消行 / 四消次数）——四消是少女的解锁条件之一
-    if not g.autoDriving then
-      FN.skillCount('lines', cleared)
-      if cleared >= 4 then FN.skillCount('tetris', 1) end
-      FN.skillUnlockTick()
-    end
-    local levelBefore = g.level
-    g.level = g.lines // NUM.LEVEL_UP_LINES + 1
-    if g.level > NUM.LEVEL_CAP then g.level = NUM.LEVEL_CAP end          -- 到顶不再加速（速度表只有 12 档）
-    -- v4.0 ②：升级场景文案（用户：「可以在游戏内出现文案和触发文案的场景太少了」）
-    -- 不加 bannerTimer 守卫：升级是低频高价值事件（一局最多 11 次），被连击横幅压住就永远不播了
-    if g.level > levelBefore and not g.autoDriving then
-      local ups = { '风带来了新的歌，方块也跟上了节奏。', '这一层的重力，开始变得认真了。',
-        '脚下的路快了一点点——别慌，先深呼吸。', '提瓦特的时间在走，你的手也跟上了。' }
-      setText(botBanner, ups[(g.level - 2) % #ups + 1] or ups[1])
-      trySet(botBanner, 'fontSize', 20)
-      bannerTimer = 1.8
-      print('copy levelup lv=' .. g.level)
-    end
-    -- T7 垃圾行（v2-plan §三/设计书 §四）：双屏模式 2/3/4 消送对方盘 1/2/4 行（B2B 再 +1）。
-    -- 送出方向：g == G[1] → 送 G[2]，反之亦然（ai-battle/coop 人↔AI、pvp 玩家互送）。
-    if cleared >= 2 and G[2] then
-      local other = (g == G[1]) and G[2] or G[1]
-      raiseGarbage(other, NUM.GARBAGE[cleared] + (b2bApplied and 1 or 0))
-      sfx(SFX.garbageSend, true)     -- 送出音（攻方反馈；force 防同帧被消行音吞，D619 教训）
-    end
-    -- 视听反馈：消行音（按行数换 id）+ 抖屏（行数越多越强，1 行 0.18s / 4 行 0.28s）
-    -- T4：AI 自演同样出声、同样抖屏——统一走这一条链路，不再有静音旁路
-    sfx(SFX_CLEAR[cleared], true)
-    startShake(cleared)
-    if g.autoDriving then
-      g.AI.fx = 0.5   -- v2.1 C：AI 演示视觉反馈（浏览器 autoplay 锁下音效听不到——分数弹跳放大）
-      print('demo clear n=' .. cleared .. ' aiScore=' .. g.AI.score .. ' aiLines=' .. g.AI.lines
-        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))   -- 自演心跳（AI 账本口径）
-    else
-      print('clear n=' .. cleared .. ' score=' .. g.score .. ' lines=' .. g.lines
-        .. ' combo=' .. g.combo .. ' b2b=' .. (b2bApplied and 1 or 0))
-    end
-    -- 首次消行：由简入深——把"分值表"这项进阶信息押到玩家已经会消行之后
-    -- （入场 AI 自演期间的消行不算，否则玩家真正上手时这条引导已经被吃掉）
-    if not g.taughtClear and not g.autoDriving then
-      g.taughtClear = true
-      setText(hint, '一次消 4 行 +800')
-      setText(botBanner, '空格 直落到底')
-      bannerTimer = 4.0
-      print('guide clear-tip')
-    end
-    -- 升级 / 消行 / 连击提示（走 botBanner；HUD 不加第 5 字段——22 号字尾部会被裁，docs §8.1）
-    -- 优先级：升级 > 四消 > 连击 > 普通消行；已有横幅在播时让位（bannerTimer > 0 不抢）
-    -- v3.2 原神文案：措辞全部来自 CFG.COPY（docs/genshin-copy-design.md §2.3–2.5）；
-    -- 数字（等级/连击/本次得分）仍留在文案里——玩家看的是数值反馈，风味只做前缀/后缀。
-    if not g.autoDriving and bannerTimer <= 0 then
-      local CP = CFG.COPY
-      if g.level > levelBefore then
-        local rec = CP.level[(g.level >= NUM.LEVEL_CAP) and 2 or 1]
-        setText(botBanner, (rec.text:gsub('{n}', tostring(g.level))))
-        bannerTimer = NUM.LEVEL_TIP
-        sfx(SFX.level, true)          -- 升级音（force：与其他音效同帧也不吞）
-        print('tip level=' .. g.level)
-      elseif cleared == 4 then
-        setText(botBanner, (CP.clear[4].text:gsub('{分}', tostring(gain))))
-        bannerTimer = NUM.LEVEL_TIP
-        print('tip clear=4')
-      elseif g.combo >= 2 then
-        local rec = CP.combo[(g.combo >= 5) and 3 or ((g.combo >= 3) and 2 or 1)]
-        setText(botBanner, (rec.text:gsub('{n}', tostring(g.combo))))
-        bannerTimer = NUM.COMBO_TIP
-        print('tip combo=' .. g.combo)
-      else
-        setText(botBanner, (CP.clear[cleared].text:gsub('{分}', tostring(gain))))
-        bannerTimer = NUM.COMBO_TIP
-        print('tip clear=' .. cleared)
-      end
-    end
-  end
-  return cleared   -- 调用方（doLock）用它决定"落地音还是消行音"
+  -- v6：出块逻辑在 core_state.spawn（袋序/出生位/顶死判定），这里只播事件。
+  -- overrideName/overrideBag：Hold 换出的块走这里（不消耗 bag 队列、沿用入槽时的袋序 ⇒ 日志 holdswap=1）。
+  CORE.dispatch(g.core.spawn(g, overrideName, overrideBag))
 end
 
 doLock = function()
-  -- T8 T-spin 判定（在写入盘面前做——角占用看的是锁定前盘面+本块无关）：
-  -- 3 角规则=T 块 + 最后动作是旋转（g.lastRot）+ 包围盒四角中被占（出界或已填）≥3。
-  local isTspin = false
-  if g.piece.name == 'T' and g.lastRot then
-    local corners = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
-    local occ = 0
-    for i = 1, 4 do
-      local cr = g.piece.y + corners[i][1] - 1
-      local cc = g.piece.x + corners[i][2] - 1
-      if cr < 1 or cr > ROWS or cc < 1 or cc > COLS or g.board[cr][cc] ~= 0 then occ = occ + 1 end
-    end
-    if occ >= 3 then isTspin = true end
-  end
-  for i = 1, 4 do
-    local br = g.piece.y + g.piece.cells[i][1] - 1
-    local bc = g.piece.x + g.piece.cells[i][2] - 1
-    if br >= 1 and br <= ROWS and bc >= 1 and bc <= COLS then
-      g.board[br][bc] = g.piece.color
-    end
-  end
-  local landed = {}
-  for i = 1, 4 do
-    local br = g.piece.y + g.piece.cells[i][1] - 1
-    local bc = g.piece.x + g.piece.cells[i][2] - 1
-    if br >= 1 and br <= ROWS then landed[#landed + 1] = (br - 1) * COLS + bc end
-  end
-  g.pieceCount = g.pieceCount + 1
-  print('lock ' .. g.piece.name .. ' cells=' .. table.concat(landed, ','))
-  g.st.can = true    -- T3：锁定后恢复 Hold 可用（每次落子仅可换一次）
-  g.ld.t, g.ld.resets = -1, 0     -- T8：锁定延迟复位（下一块重新计）
-  g.lastRot = false
-  g.das.t, g.das.arr = 0, 0  -- T8：DAS 计时归零（按住方向跨块继续）。hold 不随块复位——跨块累计才能兜「Up 丢失」（单块最多 8-9 格到不了 12）；Down/换向时归零
-  -- v6 天赋：落块结算（蓄力/二段/四叠），必须在 clearLines 之前
-  if SK and SKILLS and SKILLS.onLock then
-    local okL, evL = pcall(SKILLS.onLock, SK, (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida',
-      { piece = g.piece and g.piece.name, hard = (g.hardDrop == true),
-        moved = (g.pieceMoved == true), rotated = (g.pieceRotated == true),
-        flipped = (g.lastFlip == true), dwell = tonumber(g.pieceAge) or 0, mode = MODE })
-    if okL and type(evL) == 'table' and evL.log then print(evL.log) end
-  end
-  local cleared = clearLines()
-  -- v3.1 二-1 机制A 垃圾行侵蚀：每盘独立账本；连续 N 块无消行（N 按等级段 DRYNESS_N）→
-  -- 顶起 1 行带洞垃圾并清零重计（不叠加）。raiseGarbage 的洞位用 aiRand（不动 bag）。
-  do
-    local seg = g.level >= 9 and 3 or g.level >= 5 and 2 or 1
-    local N = NUM.DRYNESS_N[seg] or 14
-    if cleared > 0 then
-      g.AI.dryness = 0
-    else
-      g.AI.dryness = g.AI.dryness + 1
-      if g.AI.dryness >= N then
-        g.AI.dryness = 0
-        local save = g
-        raiseGarbage(g, 1)
-        g = save
-        print('garbage n=1 dryness reset (lv=' .. g.level .. ')')
-      end
-    end
-  end
-  if isTspin then
-    -- T-spin 加成（v2-plan §三 T8）：bonus = 400 × 消行数 × level；0 行无分但有声光提示。
-    -- 分流玩家/AI 账本（与 clearLines 同口径：autoDriving 时入 AI.score）。
-    local bonus = NUM.TSPIN_BONUS * cleared * g.level
-    if bonus > 0 then
-      if g.autoDriving then g.AI.score = g.AI.score + bonus else g.score = g.score + bonus end
-    end
-    print('tspin corners>=3 lines=' .. cleared .. ' bonus=' .. bonus)
-    sfx(SFX.tspin, true)
-    if not g.autoDriving then
-      bannerTimer = NUM.COMBO_TIP
-      setText(botBanner, 'T-SPIN ' .. (cleared > 0 and (cleared .. ' 消 +' .. bonus) or '!'))
-    end
-  end
-  if cleared == 0 then
-    g.combo = 0     -- 没消行的锁定打断连击（连击只在"连续消行"时成立）
-    g.b2b = false   -- 同样打断 B2B（连续两次四消之间不能夹空落）
-  end
-  -- 落地音：只有"没消行"时才播 —— 消行已经有一条更强的音，同一帧不叠两条（见 sfx 的帧闸）
-  -- T4：AI 自演的落块同样播（消行音/落地音统一链路，AI 不再静音）
-  if cleared == 0 then sfx(SFX.lock, true) end   -- T8 改 force：DAS 连移音与锁定可能同帧，锁
-                                                 -- 定是节点性反馈，不让帧闸吞（消行/升级同例）
-  -- 首次锁定：只教"堆满一行即消除"这一条，不叠加其它信息
-  if not g.taughtLock and not g.autoDriving then
-    g.taughtLock = true
-    bannerTimer = 2.5
-    print('guide lock-tip')
-  end
-  if not g.gameOver then
-    spawn()   -- v2.8 ③：全部自然出块（G[2] 用 aiRand 独立 bag）
-  end
-  renderHud()
+  -- v6：锁定/消行/计分/等级/连击/干燥垃圾/T-spin 全在 core_state.lockAndClear，
+  -- 这里只剩「把事件翻译成日志/音效/横幅/送行」（CORE.dispatch + CORE.hooks）。
+  CORE.dispatch(g.core.lockAndClear(g))
 end
 
 -- 下落一格。manual=true 表示玩家自己按的（↓ / S / 手机↓）：成功下落才给软降分。
@@ -1359,42 +1129,19 @@ end
 -- T8 锁定延迟：重力触底不再立即 doLock——启动 NUM.LD 计时（0.5s 缓冲，玩家移动/旋转可重置，
 -- 上限 15 次）；软降/硬降是玩家主动落，触底即时锁定（保持旧手感）。AI 走 aiDrop 直锁，不经这里。
 local function stepDown(manual)
-  if g.gameOver or not g.piece then return end
-  if not collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
-    g.piece.y = g.piece.y + 1
-    if manual then g.score = g.score + NUM.SOFT end
-    renderPiece()
-    if CFG.VERBOSE then print('fall y=' .. g.piece.y) end
-  else
-    if manual then
-      doLock()
-    elseif g.ld.t < 0 then
-      g.ld.t = 0               -- 重力触底：启动锁定延迟计时（tick 里推进，到时锁定）
-      print('ldstart')            -- 观测锚：延迟计时的启动点（用例 17 断言）
-    end
-  end
+  -- v6：下落、软降加分、触底锁定、锁定延迟启动都在 core_state.stepDown；这里只播事件
+  -- （manual=false 是重力：不加软降分，docs/数值策划.md §7-P6）。
+  CORE.dispatch(g.core.stepDown(g, manual))
 end
 
 -- 左右移动：键位（箭头 / WASD / 手机热区 / DAS 自动连移）共用一条路径 —— 成功才播移动音。
 -- T8：成功移动重置锁定延迟（未超上限）；同时清 lastRot（T-spin 判定要求"最后动作是旋转"）。
 local function moveBy(dx)
-  if g.gameOver or not g.piece then return false end
-  if collides(g.piece.cells, g.piece.x + dx, g.piece.y) then return false end
-  g.piece.x = g.piece.x + dx
-  renderPiece()
-  print('move x=' .. g.piece.x)
-  sfx(SFX.move)
-  g.lastRot = false
-  if g.ld.t >= 0 then
-    if g.ld.resets < NUM.LD_RESETS then
-      g.ld.resets = g.ld.resets + 1
-      g.ld.t = 0                 -- 重置计时（上限内）
-    else
-      doLock()                     -- 超过重置上限：强制锁定（Guideline 15 次上限）
-      return true
-    end
-  end
-  return true
+  -- v6：移动 + 清 lastRot + 锁定延迟重置（上限 LD_RESETS，超限强制锁定）都在 core_state.move。
+  -- 返回 ok 供调用点判断（DAS 循环忽略返回值）。
+  local ev, ok = g.core.move(g, dx)
+  CORE.dispatch(ev)
+  return ok == true
 end
 
 -- 顺时针 90°：(r,c) → (c, n+1-r)，盒内 1-based（n = 包围盒边长）。
@@ -1407,85 +1154,32 @@ local function rotateCells(cells, n)
 end
 
 local function rotate()
-  if g.gameOver or not g.piece then return end
-  local nc = rotateCells(g.piece.cells, g.piece.n)
-  if not collides(nc, g.piece.x, g.piece.y) then
-    g.piece.cells = nc
-    print('rotate ' .. g.piece.name)
-    sfx(SFX.rotate)
-    renderPiece()
-    g.lastRot = true
-    if g.ld.t >= 0 then
-      if g.ld.resets < NUM.LD_RESETS then
-        g.ld.resets = g.ld.resets + 1
-        g.ld.t = 0
-      else
-        doLock()
-      end
-    end
-  end
+  -- v6：旋转（默认无踢墙，与现网同语义）+ lastRot + 锁定延迟重置在 core_state.rotate。
+  CORE.dispatch(g.core.rotate(g, 1))
 end
 
 -- T3 Hold 暂存：当前块入槽、槽内旧块换出（走完整 spawn 链路——出生位/碰撞校验/顶死判定）。
--- 实现内联在 OnStart 键位监听（listen(NUM.HOLD_KEY, ...)）里——main 函数 200 个 local 已满，
 -- 连 local function doHold 都加不进去（实测 lua5.3 报 too many local variables at :1646）；
 -- 闭包体内的 local 独立计数不受 main 上限约束。
 -- canHold 闸（g.st.can）：每次落子仅可换一次，doLock 重置；空槽首换=当前块入槽+bag 自然出下一块；
 -- 换出块不消耗 bag 队列（spawn override 路径），入槽记录原袋序（换出日志 bag= 沿用）。
 
 local function newGame()
-  g.board = {}
-  for r = 1, ROWS do
-    local row = {}
-    for c = 1, COLS do row[c] = 0 end
-    g.board[r] = row
-  end
-  g.score, g.lines, g.level = 0, 0, 1
+  -- v6：玩法状态（棋盘/账本/连击/等级/袋序/Hold/首块/spawn）由 core_state.newGame 原地重置；
+  -- 本文件只留表现态（结算层/抖动/最高分闸）。
   g.AI.score, g.AI.lines = 0, 0   -- AI 局账本同样重开归零（demo reset / 玩家 R 都是"新一局"）
-  g.pieceCount = 0
-  g.combo, g.maxCombo, g.b2b = 0, 0, false
-  g.elapsed = 0
-  g.gameOver, g.tickCount, g.acc = false, 0, 0
-  g.settleSignaled = false      -- 每局允许上报一次真结算
+  g.settleSignaled = false        -- 每局允许上报一次真结算
   -- 结算层复位（R 重开必须归零：settleT/settlePhase/压暗比例，否则下一次结算从半路开始）
   g.settleOn, g.settleT, g.settleDone, g.settleFade, g.settleSize = false, 0, false, -1, 44
   g.dimRatio, g.dimApplied = 0, -1
   settleDestroy()                    -- 重开即销毁整层（不靠 SetVisible）
   stopShake(true)                    -- 重开时把抖动坐标复位（抖动中按 R 不能留歪的棋盘）
-  g.AI.dryness = 0                        -- v3.1 二-1 机制A：干燥计数（连续无消行块数，每盘独立）
-  -- v3.1 二-1 机制B：开局障碍行（进局首帧可见——建在取块/spawn 前，renderPiece 全盘重画即显示）。
-  -- 行数按等级段（OBSTACLE 表）；每行洞数：第1行2洞/第2行2洞/第3行1洞（高等级更挤）。
-  -- 双盘各自独立随机洞位（aiRand=AI 盘独立 LCG，不动主盘 bag 序列——同 raiseGarbage 口径）。
-  do
-    local seg = g.level >= 11 and 4 or g.level >= 8 and 3 or g.level >= 5 and 2 or 1
-    local rows = NUM.OBSTACLE[seg] or 0
-    if rows > 0 then
-      local holesPer = { 0, 2, 2, 1 }
-      for i = 1, rows do
-        local r = ROWS - rows + i          -- 从下往上填：r=ROWS-rows+1..ROWS
-        local holes = {}
-        for h = 1, (holesPer[i] or 1) do holes[aiRand(COLS)] = true end
-        for c = 1, COLS do
-          g.board[r][c] = holes[c] and 0 or CFG.COL_GRAY
-        end
-      end
-      print('obstacle n=' .. rows .. ' lv=' .. g.level)
-    end
-  end
-  g.bagQ, g.bagSeq = {}, 0                -- T1：每局重洗 7-bag（首袋排 S/Z 开局）
-  g.st.name, g.st.bag, g.st.can = nil, 0, true   -- T3：Hold 槽每局清空、闸复位
-  -- T6b：ai-battle 的 AI 盘（G[2]）不自己取块——板与状态就绪后等主盘 spawn 镜像唤醒（同源同序）。
-  if G[2] and g == G[2] then
-    -- v2.8 ③：独立出块——AI/对家盘自己跑 bag（aiRand 洗牌），不等主盘镜像。
-    g.nextName, g.nextBag = takeFromBag()
-    spawn()
-    renderHud()
-    return
-  end
-  g.nextName, g.nextBag = takeFromBag()   -- 第一块
-  spawn()                             -- spawn 内部 renderPiece() 已重画整盘+方块
+  -- core.newGame 内部：清盘 → 账本归零 → 干燥计数 → 开局障碍行（现网恒 0 行，见 config.OBSTACLE[1]=0）
+  -- → 袋序归零 + 首袋排 S/Z → Hold 清空 → 取首块 → spawn（含顶死判定）
+  local _, evNew = g.core.newGame({ state = g })   -- ⚠ newGame 返回 (state, events)：多返回值直接传会丢事件
+  CORE.dispatch(evNew)
   renderHud()
-  if not g.autoDriving then print('newgame') end
+  if not (G[2] and g == G[2]) and not g.autoDriving then print('newgame') end
 end
 
 --------------------------------------------------------------------------------
@@ -1514,9 +1208,11 @@ local function startIfWaiting()
   MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
   setText(topBanner, '')
   setText(botBanner, '')
-  -- v3.3 ②：双写位的 textbox 份保持隐藏（实例份在上可见；此前 layout 恢复段把它重新显示=双份叠字）
   if not HUD_INST.hud then
-    for _, c in ipairs({ hud, best, hint, keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
+    for _, t in ipairs(HUD_TEXT) do                    -- 名单单源（textbox 份复位）
+      local c = HUD_TEXT.boxOf(t[1])
+      if c and t[3] then tryCall(c, 'SetVisible', true) end
+    end
   end
   -- v2.9 ②：实例 HUD 同步单屏位（与 layout 的 textbox 位一致，防 dual/单屏切换后叠两行）
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
@@ -1721,57 +1417,13 @@ showGameOver = function(overTitle)
   -- 重开/回菜单由 startIfWaiting / layout 还原。
   if HUD_INST.hideStats then HUD_INST.hideStats() end
   print('guide gameover score=' .. g.score .. ' lines=' .. g.lines)
-  -- 懒创建：第一次结算才建这一层（建的时候棋盘格早就存在 ⇒ 天然在它上面）
-  if not g.settleReady and not g.settleBuildTried then
-    g.settleBuildTried = true
-    buildSettleLayer()
-  end
-  if g.settleReady then
-    -- 结算层：先把文字写好，位置由 settleTick 从屏幕外滑入（0→0.9s 四段动画）
-    setText(g.settleTitle, overTitle or '游戏结束')
-    setText(g.settleScore, '本局 ' .. g.score .. ' 分')
-    setText(g.settleBest, '最高 ' .. bestScore)
-    setText(g.settleInfo, '消行 ' .. g.lines .. ' 行　　落块 ' .. g.pieceCount .. '　　等级 ' .. g.level)
-    -- v2.4 ②：明细行先做成分隔点（Q 键的结算明细会覆盖这一行）
-    -- v3.2 原神文案：改成**本局旁白轮播**（3 条，带本局消行数）——原来这一行只是装饰点，
-    -- 换掉零成本且不占信息位；颜色由 settleSetColors 用 g.settleNoteRGB 上色（随淡入 alpha）。
-    local noteRecs = CFG.COPY.settle
-    g.settleNoteIdx = (g.settleNoteIdx or 0) % #noteRecs + 1
-    local noteRec = noteRecs[g.settleNoteIdx]
-    g.settleNoteRGB = { (noteRec.color // 65536) % 256, (noteRec.color // 256) % 256,
-      noteRec.color % 256 }
-    setText(g.settleExtra, (noteRec.text:gsub('{lines}', tostring(g.lines))))
-    setText(g.settleOpts, '[R] 再来一局　[V] 回主页　[Q] 结算明细')
-    -- v3.3：三个选项改成运行时实例贴片（主次层级 + 三态），见 MS.opts
-    MS.opts(g.settleOptsY or -136)
-    trySet(g.settleTitle, 'fontSize', 44)
-    g.settleSize, g.settleT, g.settleFade, g.settleDone, g.settleOn = 44, 0, -1, false, true
-    -- image 一次性给**终值**：真机可能不认 imageColor 的 A 通道（不认就变不透明纯色），
-    -- 所以"渐暗"只靠文字 fontColor 的 A 通道渐入（这条通道在真机是一直在用的）。
-    -- v2.4 ②：遮罩做成真·全屏（层序上它在棋盘/左右栏之上、面板之下）⇒ 结算时只剩面板世界
-    -- v3.0：遮罩/面板/描边全部换成清透浅色（奶油面板 + 描金边 + 模式色顶条）
-    local mt = MODE_THEME[MODE] or MODE_THEME.casual
-    if g.settleScrim then trySet(g.settleScrim, 'imageColor', THEME.scrim) end
-    if g.settleBars then
-      trySet(g.settleBars[1], 'imageColor', mt.frame)                -- 顶部强调条（模式色）
-      trySet(g.settleBars[2], 'imageColor', THEME.gold)              -- 标题下细带
-      trySet(g.settleBars[3], 'imageColor', THEME.gold)              -- 选项上细带
-    end
-    if g.settleCard then trySet(g.settleCard, 'imageColor', THEME.panel) end
-    if g.settleBorder then trySet(g.settleBorder, 'imageColor', THEME.bezel) end
-    settleSetColors(0)
-    tryCall(g.settleTitle, 'SetAnchoredPosition', 0, g.settleTitleOff)
-    tryCall(g.settleOpts, 'SetAnchoredPosition', 0, g.settleOptsOff)
-    local members = settleMembers()
-    for i = 1, 9 do
-      tryCall(members[i], 'SetVisible', true)
-    end
-    -- 布局横幅不参与结算（避免与结算层重复信息）
+  -- v6.2 结算屏：新路径优先（一份描述 → 独立 SR）；不可用才回落到旧实现（S3 删除）
+  if SETTLEV.open and SETTLEV.open(overTitle) then
     setText(topBanner, '') setText(botBanner, '') setText(hint, '')
     renderAll()
     return
   end
-  -- 兜底：结算层不可用（模板探测失败）时仍用布局横幅
+  -- 兜底：结算屏不可用（模块缺失/依赖不全）时仍用布局横幅
   renderAll()
   -- 顶部大字：40 号 → 框高必须 >= 40*1.45+4 = 62（layout 给 64），否则整行静默不画
   -- 为什么不是更大：棋盘顶框在屏幕 y=59，上方净空只有 59px，40 号居中后墨迹 16..56 恰好不压框
@@ -1819,10 +1471,19 @@ AI_RESET_ROWS, W_WALL, W_WELL, WELL_DEPTH = AIC.RESET_ROWS, AIC.W_WALL, AIC.W_WE
 
 -- 自演专用小随机：独立 LCG，不动方块袋那条序列 ⇒ 用例/出图仍可复现
 local aiSeed = 20261024
+-- ⚠⚠ 这条 LCG **必须保持整数算术**，别跟 core_rng.rand 一起"统一"成浮点。
+-- 2026-10-31 实测（每条都是 build 后真跑，两次复现完全一致）：
+--   A) core_rng 浮点 + aiRand **浮点** ⇒ 模拟器 57-copy-garbage **FAIL**（922 行日志）
+--   B) core_rng 浮点 + aiRand **整数** ⇒ 57-copy-garbage **PASS**（944 行），headless 仍 69/70
+-- 原因不是文案，是 AI 用 aiRand(100)/aiRand(1000) 做阈值判定：序列一挪，AI 演出时间线整体位移。
+-- 结论：**出块流（core_rng）与 AI/垃圾流（aiRand）是两条独立的随机流，各自取证、不许统一**。
+-- 出块流为什么必须浮点：见 core_rng.lua 头注释「三端同序」（lua5.3 的 64 位整数 vs Fengari/LuaJIT 的
+-- IEEE-754 double；不显式浮点则 headless 与模拟器序列分叉，9 条用例红）。
 aiRand = function(n)
   aiSeed = (aiSeed * 1103515245 + 12345) % 2147483648
   return (aiSeed // 65536) % n + 1
 end
+CORE.aiRand = aiRand      -- v6：core 侧（洞位随机源）间接引用；本行之后闭包才绑到 local
 local function aiRange(lo, hi) return lo + (hi - lo) * (aiRand(1000) / 1000) end
 local function aiFmt(x) return string.format('%.2f', x) end
 
@@ -2117,324 +1778,54 @@ end
 -- ===== v2.1 ② 标题屏四模式大视觉卡片 =====
 -- 横排 4 卡（x=±390/±130，y=0），每卡 = cell 模板色块 260×120（暗色底）+ 2 条 settle 文字
 -- （模式名 26 号白字 / 特色句 16 号浅字；框高按 h≥1.45×fontSize+4 给 48/32）。
--- 别加新模板（task-12 约束）：色块复用 TPL_CELL、文字复用 settleText 模板，全运行时实例化。
-local TPL_TEXT = nil                   -- settleText 模板 guid（首次建卡时探测缓存；说明层共用）
+-- 别加新模板（task-12 约束）：色块复用 TEMPLATES.cell、文字复用 settleText 模板，全运行时实例化。
 -- ===== v2.7 ④ 独立规则说明页（H 常驻入口；整页三栏讲全：操作/计分判定/四种模式）=====
 -- 用户原话（2026-10-28 反馈④）：「h按钮应该常驻，并且目前按下没有任何反应，h按钮请设计一个独立的页面，
--- 介绍游戏的全部规则，按键说明，和不同模式下的规则」。
--- 两处硬修：①**键名错了**——真机/网页物理 H 发的是 CraftspersonKey15（craftCodes[15]='KeyH'），
--- 而 v1 只监听 CharacterSkill1Key（那是物理 E）⇒ 真机按 H 永远没反应（用例注入虚拟键名，测不出来）。
--- ②说明层原来是 stage0 专属的 10 行小字，局内/结算页看不到；改成**任何阶段都能开**的整页。
--- 版式（按画布自适应）：暗底整屏 + 顶部标题 + 三栏（左=操作与按键 / 中=计分与判定 / 右=四种模式）
--- + 页脚提示。全用运行时实例（cell 暗底 + stext 文字），不加新模板。
--- 框高判据（D566 实测）：h ≥ fontSize×1.45+4，否则整行静默不画——下面按字号自动算。
 local function destroyHelpLayer()
-  local n = 0
-  for i = 1, #HL do
-    local ok = pcall(function() game.DestroyClientUIControl(HL[i]) end)
-    if ok then n = n + 1 end
+  local n = HLV.n or 0
+  if HLV.R and HLV.live then
+    if APP then APP.closeOverlay() else HLV.R.clear() end   -- 只清自己那份（BR/SR 的 key 不归它管）
+    if n > 0 then print('guide help off n=' .. n) end
   end
-  HL = {}
-  if n > 0 then print('guide help off n=' .. n) end
+  HLV.live, HLV.n, HLV.nodes = false, 0, nil
 end
--- 版式三选一（CFG.HELP.variant）：
---   A 委托板 —— 左侧通用按键（键帽胶囊）／右侧四张模式委托卡（角色色徽章 + 该模式的键位与胜负）
---               ／底部「怎么算分」标签行（四角色色做分档色标）／顶部派蒙气泡给阅读顺序
---   B 旅行手记 —— 摊开两页：左页按键、右页**分值柱状图**（100/300/500/800 柱高即分值），书脊分栏
---   C 四张委托卡 —— 四张竖卡各自带键位与规则，底部一条「人人都要会的三件事」
--- 三版共用 CFG.HELP 同一份文案与配色，切版只改一个字段。
+-- v6.3：说明页整页由 view_help 纯描述产出（271–289 节点，按画布 fit；旧 A/B/C 三版式全退役）。
 local function buildHelpLayer()
-  if not TPL_CELL then print('guide help no cell tpl') return end
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('guide help no text tpl') return end
-  destroyHelpLayer()
+  if not (HLV.M and HLV.S and HLV.R) then
+    print('guide help module=none（view_help 未装配）')
+    return
+  end
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local S = CFG.HELP or {}
-  -- 设计基准 1600×900，按画布等比缩放（两块画布同为 16:9 ⇒ 比例不变，文字框宽同步缩放不会裁字）
-  -- v4.0 ⑤：帮助页缩放改成 **fit**（min(W/1600, H/900)）。旧实现只按宽度缩放 ⇒ 21:9 画布上
-  -- 1548×848 的设计板被放大 1.31 倍变成 2032×1113，比画布还高 213px：页脚与右上角「合上手册」
-  -- 整个掉到屏幕外（全控件巡检在 pc-21-9 / mobile-19.5-9 上抓到的真 bug）。
+  local nodes = HLV.S.help {
+    canvas = { W, H },
+    device = IS_MOBILE and 'mobile' or 'pc',
+    page = helpPage or 1,
+    pages = 1,                          -- 单页 v1：文案一页讲全（翻页是 view_help 的新几何，未启用）
+    onClose = function()                -- 右上「合上手册」热区（PC 透明 / mobile 金边胶囊由模块决定）
+      sfx(SFX.press, true)
+      print('tap help close')
+      closeHelp()
+    end,
+  }
+  -- 试点：走场景栈的 openOverlay（内部 = 先 clear 再 apply + push 场景；隔离仍是 HLV.R 这个独立实例）
+  if APP then
+    APP.openOverlay('help', { name = 'help', view = 'view_help', opaque = true }, nodes)
+  else
+    HLV.R.clear()
+    HLV.R.apply(nodes)
+  end
+  HLV.live, HLV.n, HLV.nodes = true, #nodes, nodes
+  local z = HLV.R.get('helpCloseHit')
   local s = math.min(W / 1600, H / 900)
   if s <= 0 then s = 1 end
-  local function u(v) return v * s end
-  local function fs(v)
-    local r = math.floor(v * s + 0.5)
-    if r < 12 then r = 12 end
-    return r
-  end
-  local PANEL = THEME.panel
-  local CARD = C(255, 255, 255, 255)
-  local GOLD, GOLDD = THEME.gold, THEME.goldDeep
-  local INK, SUB = THEME.textMain, THEME.textSub
-  local WHITE = C(255, 255, 255, 255)
-
-  local function inst(name)
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-    if not ok or not c then return nil end
-    c.name = name
-    HL[#HL + 1] = c
-    return c
-  end
-  local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
-  -- 图元：同一张 cell 模板换 image（100001 矩形 / 100002 圆 / 100003 三角 / 100004 四角星 / 100005 五角星 / 100006 圆环）
-  local function shape(name, sp, x, y, w, h, color, rot)
-    local c = inst(name)
-    if not c then return nil end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-    local img = BG_IMG[sp]
-    if img then
-      local done = false
-      if enumIS and enumIS.StaticReference ~= nil then
-        done = pcall(function() c:SetImage(enumIS.StaticReference, img) end)
-      end
-      if not done then pcall(function() c:SetImage('StaticReference', img) end) end
-    end
-    trySet(c, 'imageColor', color)
-    if rot and rot ~= 0 then tryCall(c, 'SetLocalRotation', 0, 0, rot) end
-    return c
-  end
-  local function rect(name, x, y, w, h, color)
-    return shape(name, 'rect', u(x), u(y), u(w), u(h), color)
-  end
-  -- 圆角矩形 = 2 块矩形 + 4 个角圆（真机没有圆角矩形图元）。同色不透明 ⇒ 叠合处无接缝。
-  local function rrect(tag, x, y, w, h, r, color)
-    if r > h / 2 then r = h / 2 end
-    if r > w / 2 then r = w / 2 end
-    local ix, iy = w - 2 * r, h - 2 * r
-    if ix < 1 then ix = 1 end
-    if iy < 1 then iy = 1 end
-    rect(tag .. 'a', x, y, ix, h, color)
-    rect(tag .. 'b', x, y, w, iy, color)
-    local dx, dy = w / 2 - r, h / 2 - r
-    shape(tag .. 'c1', 'circle', u(x - dx), u(y - dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c2', 'circle', u(x + dx), u(y - dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c3', 'circle', u(x - dx), u(y + dy), u(2 * r), u(2 * r), color)
-    shape(tag .. 'c4', 'circle', u(x + dx), u(y + dy), u(2 * r), u(2 * r), color)
-  end
-  -- 文字：框高按 h ≥ fontSize×1.45+4 的硬判据给（1.5+6），宽度不满足会被静默裁尾 ⇒ 调用处给足宽
-  local function text(name, str, x, y, w, size, color, align)
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-    if not ok or not c then return nil end
-    c.name = name
-    c.text = str
-    trySet(c, 'fontSize', size)
-    trySet(c, 'fontColor', color)
-    trySet(c, 'bgColor', C(0, 0, 0, 0))
-    trySet(c, 'horizontalAlignment', align or 'Middle')
-    trySet(c, 'verticalAlignment', 'Middle')
-    trySet(c, 'enableOutline', true)
-    trySet(c, 'outlineColor', C(205, 255, 255, 255))   -- 浅底用柔白描边；深描边会让字发脏
-    tryCall(c, 'SetSizeDelta', u(w), math.floor(size * 1.5 + 6))
-    tryCall(c, 'SetAnchoredPosition', u(x), u(y))
-    HL[#HL + 1] = c
-    return c
-  end
-  local function t(name, str, x, y, w, dsize, color, align)
-    return text(name, str, x, y, w, fs(dsize), color, align)
-  end
-  -- 键帽（深墨底 + 白字）：左端从 xl 起排，返回排完后的右沿（设计单位）
-  local function caps(tag, xl, y, list)
-    local x = xl
-    for i, cap in ipairs(list) do
-      -- 键帽宽度按字数算（『空格』两字 19 号约 44px，旧实现 66 宽但文字框居中仍压边）
-      local cw = (#cap >= 2) and 74 or 40
-      rrect(tag .. i, x + cw / 2, y, cw, 34, 9, INK)
-      text(tag .. 't' .. i, cap, x + cw / 2, y, cw - 4, fs(19), WHITE, 'Middle')
-      x = x + cw + 7
-    end
-    return x
-  end
-
-  -- ── 版式 A：冒险家协会委托板（落地版）────────────────────────────────────────
-  local function buildA()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
-    rrect('helpFrame', 0, 0, 1548, 848, 26, GOLD)          -- 描金外框
-    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))   -- 暖奶油纸面（白卡才浮得起来）
-    shape('helpStar', 'fourstar', u(-716), u(386), u(30), u(30), GOLD)
-    t('helpEyebrow', S.eyebrow, -470, 396, 460, 17, GOLDD, 'Left')
-    t('helpTitle', S.title, -420, 344, 560, 40, INK, 'Left')
-    t('helpSub', S.sub, -420, 304, 560, 19, SUB, 'Left')
-    rect('helpRule', 0, 278, 1400, 2, GOLD)
-    -- v5.6（用户二轮二-1：右上角「合上手册」按钮与这行提示重叠）：提示改为**右对齐并整体左移**，
-    -- 让它停在关闭胶囊的左侧，两者各占一段；行右缘留出按钮宽度（196/2+24 ≈ 122 设计单位）。
-    t('helpHint', S.hint, 268, 396, 380, 17, SUB, 'Right')
-    -- 派蒙气泡（描金细边 + 白底）：一句话给阅读顺序，替代原来那行灰色页脚命令
-    -- v5.19（用户 2026-10-30 图2 红框）：气泡右端原本伸到 x=638，正好压在右上角
-    -- 「合上手册」胶囊（x 542..738）下面 ⇒ 缩到 560 宽并左移中心到 230（右端 510），
-    -- 两个元素彻底分开；字号降到 17 并在文案里去掉括号补充（见 config.HELP.paimon）。
-    rrect('helpBubble', 230, 344, 560, 56, 28, GOLD)
-    rrect('helpBubble2', 230, 344, 552, 48, 24, CARD)
-    t('helpPaimon', S.paimon, 230, 344, 524, 17, INK, 'Middle')
-    -- 左栏：通用按键
-    -- 行表起点 208（键帽 34 高 ⇒ 上沿 191）；标题放 252 才不会压到第一行键帽
-    t('helpKeysTitle', S.keysTitle, -550, 252, 300, 22, INK, 'Left')
-    -- v5.1：键表从 7 行变 8 行（新增 Z/U/Y 技能行）⇒ 行距 56→47、起点 190→208，
-    -- 否则第 8 行 (y=-202) 会压住下面的「怎么算分」标题 (y=-200)——手机画布上实测叠字。
-    for i, k in ipairs(S.keys) do
-      local y = 208 - (i - 1) * 47
-      -- 无键帽的行（技能行）整行按一句话排：键帽只画 3 个就会顶到标签文字上（实测叠字）
-      local hasCaps = (type(k.caps) == 'table') and (#k.caps > 0)
-      if hasCaps then caps('helpCap' .. i .. '_', -700, y, k.caps) end
-      -- ⚠ text() 的第 3 个实参是**框中心**（不是左沿）：Left 对齐时左沿 = 中心 - 宽/2。
-      -- 键帽行：左沿 -560、宽 380 ⇒ 中心 -370（键帽最右 -572，留 12px）；整句行：左沿 -700、宽 900 ⇒ 中心 -250。
-      if hasCaps then
-        -- v5.31（用户：左边那个箭头和文字重叠了）：键帽组最右约 -572，标签左沿必须再往右
-        t('helpKey' .. i, k.label, -410, y, 230, 21, INK, 'Left')
-      else
-        t('helpKey' .. i, k.label, -250, y, 900, 21, THEME.textMain, 'Left')
-      end
-    end
-    -- 右侧：四张模式委托卡
-    for i, m in ipairs(S.modes) do
-      local cx, cy = -212 + (i - 1) * 278, 40
-      rrect('helpCard' .. i, cx, cy, 252, 320, 22, m.tint)        -- 角色色浅底
-      rrect('helpCardB' .. i, cx, cy, 244, 312, 19, CARD)         -- 白卡（露出 4px 色边）
-      rrect('helpCardH' .. i, cx, cy + 114, 228, 70, 15, m.tint)  -- 卡头色带
-      shape('helpEmblem' .. i, 'circle', u(cx - 76), u(cy + 114), u(46), u(46), m.color)
-      shape('helpRing' .. i, 'ring', u(cx - 76), u(cy + 114), u(28), u(28), m.deep)
-      -- 卡头数字原来是白字压在浅色 tint 上（实测 1.07~1.54:1，白字看不见）⇒ 用该模式的深色档
-      t('helpCardK' .. i, m.key, cx - 76, cy + 114, 40, 21, m.deep, 'Middle')
-      t('helpCardN' .. i, m.name, cx + 24, cy + 114, 150, 26, m.deep, 'Middle')
-      for li, line in ipairs(m.lines) do
-        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 40 - (li - 1) * 44, 232, 19, SUB, 'Middle')
-      end
-      rrect('helpWin' .. i, cx, cy - 112, 216, 40, 20, m.tint)
-      t('helpWinT' .. i, m.win, cx, cy - 112, 208, 17, m.deep, 'Middle')
-    end
-    -- 底部：怎么算分（四角色色做 1/2/3/4 消的档位色标）
-    t('helpScoreTitle', S.scoreTitle, -550, -200, 300, 22, INK, 'Left')
-    for row = 1, #S.score do
-      local y = -258 - (row - 1) * 66
-      for col = 1, #S.score[row] do
-        local cx = -534 + (col - 1) * 356
-        local bar = GOLD
-        if row == 1 and S.modes[col] then bar = S.modes[col].color end
-        local fill = CARD
-        if row == 1 and S.modes[col] then fill = S.modes[col].tint end
-        -- v5.31（用户：「下面的还是没做圆款」）：算分条改成**圆角胶囊**，与外层卡片同一语汇
-        rrect('helpChip' .. row .. col, cx, y, 340, 52, 26, fill)
-        t('helpChipT' .. row .. col, S.score[row][col], cx + 6, y, 312, 19, INK, 'Middle')
-      end
-    end
-    t('helpFoot1', S.foot1, 0, -372, 1500, 18, SUB, 'Middle')
-    t('helpFoot2', S.foot2, 0, -404, 1500, 17, SUB, 'Middle')
-  end
-
-  -- ── 版式 B：派蒙的旅行手记（对比稿：分值图形化，两页摊开）────────────────────
-  local function buildB()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, C(255, 250, 244, 252))
-    rrect('helpPageL', -370, -10, 720, 800, 20, CARD)
-    rrect('helpPageR', 370, -10, 720, 800, 20, CARD)
-    rect('helpSpine', 0, -10, 3, 780, GOLD)
-    shape('helpDot1', 'circle', 0, u(120), u(14), u(14), GOLD)
-    shape('helpDot2', 'circle', 0, u(-140), u(14), u(14), GOLD)
-    t('helpTitle', '派蒙的旅行手记', 0, 410, 700, 34, INK, 'Middle')
-    t('helpSub', S.hint, 0, -430, 900, 17, SUB, 'Middle')
-    -- 左页：今天怎么玩
-    t('helpKeysTitle', '今天怎么玩', -370, 330, 600, 26, INK, 'Middle')
-    rect('helpRuleL', -370, 296, 560, 2, GOLD)
-    for i, k in ipairs(S.keys) do
-      local y = 240 - (i - 1) * 74
-      caps('helpCap' .. i .. '_', -620, y, k.caps)
-      -- 框中心 -330 宽 300 ⇒ 右沿 -180 伸进模式卡区（-338 起）造成叠字 ⇒ 收窄到 230 并贴左
-      t('helpKey' .. i, k.label, -470, y, 230, 22, INK, 'Left')
-    end
-    -- 右页：报酬怎么算（柱高即分值）
-    t('helpScoreTitle', '报酬怎么算', 370, 330, 600, 26, INK, 'Middle')
-    rect('helpRuleR', 370, 296, 560, 2, GOLD)
-    local base = -50                     -- 柱底
-    local hs = { 100, 300, 500, 800 }
-    for i, v in ipairs(hs) do
-      local bx = 155 + (i - 1) * 145
-      local bh = 34 + (v / 800) * 210
-      local mc = S.modes[i] and S.modes[i].color or GOLD
-      rect('helpBar' .. i, bx, base + bh / 2, 92, bh, mc)
-      t('helpBarT' .. i, tostring(v), bx, base + bh + 26, 120, 22, S.modes[i] and S.modes[i].deep or INK, 'Middle')
-    end
-    rect('helpAxis', 370, base, 580, 2, THEME.bezel)
-    t('helpMul', '× 等级（每 10 行 +1，上限 12）', 370, base - 34, 600, 20, INK, 'Middle')
-    t('helpCmb', '连击 +50×链×等级　·　触底 0.5 秒内还能救', 370, base - 76, 600, 19, SUB, 'Middle')
-    t('helpGrb', '垃圾行：2/3/4 消 → 送对方 1/2/4 行', 370, base - 114, 600, 19, SUB, 'Middle')
-    t('helpWin0', '判负：新块出生位置被占满', 370, base - 152, 600, 19, SUB, 'Middle')
-    -- 底部：四模式一人一句
-    for i, m in ipairs(S.modes) do
-      local cx = -540 + (i - 1) * 360
-      shape('helpEmblem' .. i, 'circle', u(cx - 120), u(-330), u(26), u(26), m.color)
-      t('helpCardN' .. i, m.name, cx - 60, -330, 140, 21, m.deep, 'Middle')
-      t('helpCardL' .. i .. '_1', m.win, cx + 90, -330, 240, 18, SUB, 'Middle')
-    end
-  end
-
-  -- ── 版式 C：四位旅伴的委托卡（对比稿：没有左键位栏，键位写在卡里）────────────
-  local function buildC()
-    rect('helpBg', 0, 0, (W + 20) / s, (H + 20) / s, THEME.helpBg)
-    rrect('helpBoard', 0, 0, 1540, 840, 24, C(255, 253, 247, 236))
-    t('helpTitle', '四位旅伴的委托卡', 0, 392, 900, 34, INK, 'Middle')
-    t('helpSub', S.sub, 0, 350, 900, 18, SUB, 'Middle')
-    for i, m in ipairs(S.modes) do
-      local cx, cy = -540 + (i - 1) * 360, 70
-      rrect('helpCard' .. i, cx, cy, 348, 420, 22, CARD)
-      rrect('helpCardH' .. i, cx, cy + 122, 332, 156, 18, m.color)
-      t('helpCardK' .. i, '[' .. m.key .. ']', cx - 118, cy + 156, 90, 22, WHITE, 'Middle')
-      t('helpCardN' .. i, m.name, cx + 10, cy + 156, 220, 28, WHITE, 'Middle')
-      t('helpCardW' .. i, m.win, cx, cy + 96, 300, 19, WHITE, 'Middle')
-      for li, line in ipairs(m.lines) do
-        t('helpCardL' .. i .. '_' .. li, line, cx, cy + 20 - (li - 1) * 52, 320, 20, INK, 'Middle')
-      end
-      rect('helpCardS' .. i, cx, cy - 118, 300, 2, m.tint)
-      t('helpWinT' .. i, '键位：' .. m.lines[1], cx, cy - 156, 320, 17, m.deep, 'Middle')
-    end
-    -- 底部共用条：与四张卡无关、但每局都要用的算分规则
-    rrect('helpShared', 0, -262, 1440, 168, 18, CARD)
-    t('helpScoreTitle', S.scoreTitle, -600, -204, 300, 20, INK, 'Left')
-    for row = 1, 2 do
-      local y = -204 - row * 40
-      for col = 1, 4 do
-        local cx = -540 + (col - 1) * 340
-        local bar = GOLD
-        if row == 1 and S.modes[col] then bar = S.modes[col].color end
-        rect('helpChipA' .. row .. col, cx - 158, y, 4, 32, bar)
-        t('helpChipT' .. row .. col, S.score[row][col], cx + 4, y, 316, row == 1 and 18 or 17,
-          row == 1 and INK or SUB, 'Middle')
-      end
-    end
-    t('helpFoot2', S.foot2, 0, -368, 1440, 16, SUB, 'Middle')
-  end
-
-  local v = (S.variant or 'A'):upper()
-  if v == 'B' then buildB() elseif v == 'C' then buildC() else buildA() end
-  -- v4.0 ④：帮助页必须有**看得见、点得到**的关闭入口（用户 2026-10-29 反馈：「帮助点了之后，
-  -- 移动端看不到在哪里可以点回来」）。旧实现只有一行提示「H / E 合上手册」——移动端没有 H 键。
-  -- 做法：右上角一颗描金胶囊 + 光标热区（同在实例层；层序由下面的 SetAsLastSibling 统一处理）。
-  -- 设计坐标 (655, 380) 在 1600×900 设计板的画板内沿右上角；A 版实测不与页眉/派蒙气泡相撞。
   UI4.regScreen('help')
-  do
-    local bw2, bh2 = 196, 56
-    local cx2, cy2 = 640, 378
-    rrect('helpClosePill', cx2, cy2, bw2, bh2, 26, GOLD)
-    rrect('helpClosePill2', cx2, cy2, bw2 - 8, bh2 - 8, 22, CARD)
-    text('helpCloseTx', '合上手册', cx2, cy2, bw2 - 16, fs(21), INK, 'Middle')
-    local z = UI4.hit('helpCloseHit', u(bw2), u(bh2))
-    if z then
-      tryCall(z, 'SetAnchoredPosition', u(cx2), u(cy2))
-      addCursor(z, 'CursorDown', function()
-        sfx(SFX.press, true)
-        print('tap help close')
-        closeHelp()
-      end)
-      HL[#HL + 1] = z
-      UI4.regAdd('help.close', z, u(bw2), u(bh2))
-      UI4.dump('help')
-    else
-      print('help close zone=none（无 cursor 模板）')
-    end
+  if z then
+    UI4.regAdd('help.close', z, 196 * s, 56 * s)
+    UI4.dump('help')
+  else
+    print('help close zone=none（描述里没有 helpCloseHit）')
   end
-  -- 层序强制：last sibling = 最上层（实测：改成 first 会把整层压到底，标题展台全透上来）。
-  for i = 1, #HL do
-    if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end
-  end
-  print('guide help on n=' .. #HL .. ' v=' .. v .. ' page=help')
+  print('guide help on n=' .. #nodes)
 end
 -- 关页：恢复开页前的 stage（局内=1 继续，标题页=0 继续演出）
 closeHelp = function()
@@ -2460,10 +1851,10 @@ local function destroyCountBig()
   end
 end
 local function buildCountBig(txt)
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then return nil end
+  if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+  if not TEMPLATES.stext then return nil end
   destroyCountBig()
-  local c = game.InstantiateClientUIControl(TPL_TEXT, root)
+  local c = game.InstantiateClientUIControl(TEMPLATES.stext, root)
   if c then
     c.name = 'countBig'
     c.text = txt
@@ -2483,338 +1874,22 @@ toggleHelp = function()
     print('help off')                    -- v2.8 ② 时停恢复锚（保留）
   else
     helpOpen = true
-    -- 层序靠"创建顺序"决定，而 `SetAsLastSibling` 在本引擎是空操作（实测开页后 node 顺序
-    -- helpTitle=256 < menuBig=320 ⇒ 展台永远压着手册，PC/手机都出现双层文字叠印）。
-    -- 所以标题页开手册前先把展台拆掉，关页时再建回来（buildMenuCards 本身是"先拆后建"的幂等函数）。
+    -- 标题页开手册前必须先把展台拆掉：层序=创建顺序，展台是后建的（在上），
+    -- 而 `SetAsLastSibling` 在本引擎是空操作（实测 helpTitle=256 < menuBig=320 ⇒ 双层叠印）。
+    -- 关页时再建回来（buildMenuCards 本身是"先拆后建"的幂等函数）。
     if guideStage == 0 then
       local okS = pcall(MS.teardown)
       local okC = pcall(destroyMenuCards)
       print('help stage hide ok=' .. tostring(okS and okC))
     end
-    -- #7（真机日志：`guide help on n=326` ×4）重建开销：同一页的重复打开**复用现有层**。
-    -- 判据：日志里重复打开打 `guide help reuse n=…`，只有换页/首次才打 `guide help on`。
-    local samePage = (HL and #HL > 0 and (FN.helpPageShown or 1) == (helpPage or 1))
-    if samePage then
-      print('guide help reuse n=' .. #HL)
-    else
-      buildHelpLayer()
-      FN.helpPageShown = helpPage or 1
-    end
+    -- v6.3：不再做"复用现有层"（旧实现的 #7 优化）。每次开页 clear()+apply 一份描述——
+    -- 层序靠创建顺序，重建一次就天然浮在最上（旧实现靠 SetAsLastSibling，而它是本引擎的空操作）。
+    buildHelpLayer()
     if UI4.refreshHelpLabel then UI4.refreshHelpLabel(true) end
     if guideStage == 1 and not g.gameOver then print('help pause') end   -- v2.8 ② 局内时停锚
   end
 end
 
-destroyMenuCards = function()
-  local n = 0
-  for i = 1, #MC do
-    local ok = pcall(function() game.DestroyClientUIControl(MC[i]) end)
-    if ok then n = n + 1 end
-  end
-  MC = {}
-  if n > 0 then print('menu cards destroy n=' .. n) end
-  -- v2.4 ①：这里**只销卡片**。展台（墙/框/标题/提示条）要留到进局那一刻才拆
-  -- （MS.teardown）——否则 0.5s 的模式名动画窗会露出生裸棋盘，闪一下。
-end
--- ===== v2.4 ① 标题页「展台」（menu stage）==========================================
--- 视觉验收第一轮读数（docs/v23-title.png 复看）：
---   ① 17 张卡片浮在模拟器天空蓝背景上，没有任何「舞台」⇒ 标题页没有边界感；
---   ② 中央棋盘的青色边框是画面最响的元素，左上 hold 槽 / 右上 next 预览 / 左栏 HUD 散在外圈；
---   ③ 副标题 'DEEP SPACE NEON' 居中落在棋盘投影区 x∈[-165,165] 里，像一行错位水印。
--- 做法：一套**随卡片同时建/销**的展台零件（与 MC 分开——日志锚 menu cards n=17 只数卡片）：
---   ▸ 深空墙 4 块：把棋盘视窗以外的整屏压成深底 ⇒ HUD/预览/hold 槽自动退场
---     （层序铁律：运行时实例后建的在上面，服务端 textbox 永远在实例层之下——2026-10-24 踩过）；
---   ▸ 视窗边框 4 条 + 四角括号 8 条：中央棋盘变成一块「屏幕」，不再是散落的网格；
---   ▸ 标题 44/52 号大字（实例版）：topBanner 的 fontColor A 置 0 让位（真机唯一验过的通道是 A）；
---   ▸ 底部分段提示条：3 段 + 2 点 + 2 侧箭头，逐段高亮轮播 + 呼吸（用户 2026-10-27 令）。
--- 只占 1 个 chunk local（MS 表，空表与配色在文件头部声明区）——main chunk 贴着 200 local
--- 硬上限，零件全挂字段。
-MS.addCell = function(name, x, y, w, h, color)
-  if not TPL_CELL then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  tryCall(c, 'SetSizeDelta', w, h)
-  tryCall(c, 'SetAnchoredPosition', x, y)
-  c.imageColor = color
-  MS.parts[#MS.parts + 1] = c
-  return c
-end
-MS.addText = function(name, text, x, y, w, h, size, color, align)
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  c.text = text
-  trySet(c, 'fontSize', size)
-  trySet(c, 'fontColor', color)
-  trySet(c, 'bgColor', C(0, 0, 0, 0))
-  trySet(c, 'horizontalAlignment', align or 'Middle')
-  trySet(c, 'verticalAlignment', 'Middle')
-  trySet(c, 'enableOutline', true)
-  trySet(c, 'outlineColor', C(200, 255, 255, 255))   -- v3.0 浅底：浅色描边=柔光，深色描边像脏边
-  -- ⚠ 引擎排版硬规则（studio/play/text-layout.js）：requiredHeight = 行高(fontSize×1.2)
-  --   + blockInset(fontSize×0.25+4)；**requiredHeight > 框高 ⇒ fits=false ⇒ 整条文字一个字都不画**
-  --   （不是裁切，是消失）。2026-10-30 实测：「说明」胶囊 120×34 装 22 号字（需 35.9）⇒ 空胶囊。
-  --   这里统一兜底，调用方给的框高太小就抬到够用。
-  h = math.max(h or 0, math.floor((size or 20) * 1.45 + 6))
-  tryCall(c, 'SetSizeDelta', w, h)
-  tryCall(c, 'SetAnchoredPosition', x, y)
-  MS.parts[#MS.parts + 1] = c
-  return c
-end
--- 卡片顶部发丝线（模式色 2px）：给扁平的卡底一个「刀线」，是街机菜单的常见语汇
-MS.hairline = function(i, cx, cy, color)
-  local a = 150
-  local w = 344
-  local r, gg, b = (color // 65536) % 256, (color // 256) % 256, color % 256
-  local c = MS.addCell('menuHair' .. i, cx, cy + 54, w, 2, C(a, r, gg, b))
-  if c then
-    MS.hair = MS.hair or {}
-    MS.hair[i] = { ctl = c, r = r, g = gg, b = b }
-  end
-end
--- v3.0 预混色：把半透明色「盖在底面上」算成不透明色。
--- 为什么必须：胶囊/云/花瓣都是多件图元互相重叠拼出来的，半透明叠加会在交界处叠两次 → 看得见接缝。
-MS.over = function(base, c, k)
-  local br, bg_, bb = (base // 65536) % 256, (base // 256) % 256, base % 256
-  local r, g, b = (c // 65536) % 256, (c // 256) % 256, c % 256
-  return C(255, math.floor(br + (r - br) * k + 0.5),
-    math.floor(bg_ + (g - bg_) * k + 0.5), math.floor(bb + (b - bb) * k + 0.5))
-end
--- v3.0 图元形状：与背景池同一套 spec 字段（s/x/y/w/h/c/rot），标题页装饰与胶囊都用它
-MS.addShape = function(name, spec)
-  if not spec then return nil end
-  local c = MS.addCell(name, spec.x, spec.y, spec.w, spec.h, spec.c)
-  if not c then return nil end
-  if spec.rot and spec.rot ~= 0 then pcall(function() c:SetLocalRotation(0, 0, spec.rot) end) end
-  local img = BG_IMG[spec.s or 'rect'] or BG_IMG.rect
-  local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
-  local ok = false
-  if enumT and enumT.StaticReference ~= nil then
-    ok = pcall(function() c:SetImage(enumT.StaticReference, img) end)
-  end
-  if not ok then pcall(function() c:SetImage('StaticReference', img) end) end
-  return c
-end
--- 胶囊零件（圆角面板）：中段矩形 + 左右两个半圆。返回三块坐标，便于整体位移/换色。
-MS.pillParts = function(name, x, y, w, h, fill)
-  local body = math.max(2, w - h)
-  return {
-    { ctl = MS.addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill }), x = x, y = y },
-    { ctl = MS.addShape(name .. 'L', { s = 'circle', x = x - body / 2, y = y, w = h, h = h, c = fill }), x = x - body / 2, y = y },
-    { ctl = MS.addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill }), x = x + body / 2, y = y },
-  }
-end
--- 胶囊（圆角面板）：矩形 + 两端半圆 = 圆润可爱的主体语汇（真机没有圆角矩形图元）
-MS.addPill = function(name, x, y, w, h, fill)
-  local body = math.max(2, w - h)
-  MS.addShape(name .. 'B', { s = 'rect', x = x, y = y, w = body, h = h, c = fill })
-  MS.addShape(name .. 'L', { s = 'circle', x = x - body / 2, y = y, w = h, h = h, c = fill })
-  MS.addShape(name .. 'R', { s = 'circle', x = x + body / 2, y = y, w = h, h = h, c = fill })
-end
-MS.destroy = function()
-  for i = #MS.parts, 1, -1 do
-    if MS.parts[i] then pcall(function() game.DestroyClientUIControl(MS.parts[i]) end) end
-    MS.parts[i] = nil
-  end
-  for i = 1, 3 do MS.hint[i] = nil MS.hintKey[i] = -1 end
-  for i = 1, 2 do MS.arrow[i] = nil MS.arrowKey[i] = -1 end
-  MS.big, MS.focus, MS.hair = nil, false, nil
-end
-MS.build = function()
-  if not TPL_CELL then return false end
-  MS.destroy()
-  local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local halfW, halfH = W / 2, H / 2
-  -- 棋盘视窗：正好收到棋盘框外沿（frame 在 ±150 / ±300，背板 306×606）。
-  local winHalf, winTop, winBot = 151, 301, -301
-  local sideW, sideH = halfW - winHalf, winTop - winBot
-  local sideCY = (winTop + winBot) / 2
-  -- ① 天空墙：左右上下四块，只留视窗（+8 遮住画布边缘的抗锯齿缝）
-  MS.addCell('menuWallL', -(winHalf + sideW / 2), sideCY, sideW, sideH, MS.WALL)
-  MS.addCell('menuWallR', winHalf + sideW / 2, sideCY, sideW, sideH, MS.WALL)
-  MS.addCell('menuWallT', 0, (halfH + winTop) / 2, W + 8, halfH - winTop + 1, MS.WALL)
-  MS.addCell('menuWallB', 0, (winBot - halfH) / 2, W + 8, halfH + winBot + 1, MS.WALL)
-  -- 顶部/底部云带（比墙深一档的极淡色，给平铺的墙一点空气感）
-  MS.addCell('menuSkyT', 0, halfH - 24, W + 8, 48, THEME.wallAlt)
-  MS.addCell('menuSkyB', 0, -halfH + 20, W + 8, 40, THEME.wallAlt)
-  -- ② 装饰：云 / 星芒 / 花瓣（配色与构图在 config.lua 的 THEME.deco；与背景池同一套 spec）
-  local deco = THEME.deco or {}
-  for i = 1, #deco do MS.addShape('menuDeco' .. i, deco[i]) end
-  -- ③ 视窗内阴影（极淡深蓝，让窗口像一块嵌进天空的屏）+ 描金细边 + 四角括号
-  MS.addCell('menuShadeT', 0, winTop - 10, 2 * winHalf + 30, 20, THEME.shadow)
-  MS.addCell('menuShadeB', 0, winBot + 10, 2 * winHalf + 30, 20, THEME.shadow)
-  MS.addCell('menuShadeL', -winHalf - 10, sideCY, 20, sideH + 8, THEME.shadow)
-  MS.addCell('menuShadeR', winHalf + 10, sideCY, 20, sideH + 8, THEME.shadow)
-  MS.addCell('menuBezelT', 0, winTop, 2 * winHalf + 8, 3, MS.BEZEL)
-  MS.addCell('menuBezelB', 0, winBot, 2 * winHalf + 8, 3, MS.BEZEL)
-  MS.addCell('menuBezelL', -winHalf, sideCY, 3, sideH + 8, MS.BEZEL)
-  MS.addCell('menuBezelR', winHalf, sideCY, 3, sideH + 8, MS.BEZEL)
-  local AR, AT = 44, 3
-  for _, sx in ipairs({ -1, 1 }) do
-    for _, sy in ipairs({ -1, 1 }) do
-      local tag = (sx > 0 and 'R' or 'L') .. (sy > 0 and 'T' or 'B')
-      MS.addCell('menuTickH' .. tag, sx * (halfW - AR / 2 - 12), sy * (halfH - 12), AR, AT, MS.TICK)
-      MS.addCell('menuTickV' .. tag, sx * (halfW - 12), sy * (halfH - AR / 2 - 12), AT, AR, MS.TICK)
-    end
-  end
-  -- ④ 标题横幅：奶油胶囊 + 一条描金细线 + 深金大字（叠在视窗上沿 = 有意为之的缎带）
-  local titleSize = (halfH > 400) and 52 or 44
-  local titleY = math.min(winTop + (halfH - winTop) * 0.5 + 2, halfH - 48)
-  local bannerH = titleSize + 20
-  MS.addPill('menuBanner', 0, titleY, 580, bannerH, MS.over(MS.WALL, THEME.gold, 0.34))
-  -- v5.11（用户：「这个质量能交付吗」）：去掉上下两条横贯金线 —— 它们比文字宽、又贴在胶囊边上，
-  -- 读起来像一条误入的边框线。标题只留胶囊本身。
-  MS.addCell('menuBannerRule', 0, titleY - bannerH / 2 + 6, 150, 3, THEME.goldDeep)
-  -- 框高硬判据 h >= fontSize*1.45+4（52 号要 79.4；旧写法 +26 在 PC 画布上少 1.4px ⇒ 整行不画）
-  MS.big = MS.addText('menuBig', '俄罗斯方块', 0, titleY, 660, math.floor(titleSize * 1.45 + 12), titleSize, THEME.goldDeep)
-  trySet(topBanner, 'fontColor', C(0, 255, 194, 76))
-  trySet(botBanner, 'fontColor', C(0, 118, 214, 255))
-  -- ⑤ 底部分段提示条（3 段 + 2 分隔点）
-  -- v3.5 ⑤：lineY 之前锚在 winBot（棋盘视窗底 -301）⇒ 1600×900 上提示条浮在云带上方 79px 处
-  -- （1280×720 恰好落进云带里，所以小画布看不出问题）。改成锚画布底：云带 = -halfH..-halfH+40，
-  -- 提示条中心落在带内（1600：ypx 872 / 1280：ypx 692），两块画布都居中在带里。
-  local lineY = -(halfH - 28)
-  MS.lineY = lineY
-  -- v5.4 修 A6（4/5 份评审：「手机画布上仍是键盘话术」）：提示条按宿主分两套。
-  -- 触屏没有 1-4 / H 键，手机端只写玩家真能做的两个动作：点卡片选模式、点右上角两个按钮。
-  -- v5.8（用户 2026-10-30：「新加的最下面两个就是废话，还原为之前的版本」）：
-  -- 底部提示条恢复三段键盘话术，两端一致；手机端也不再单独换文案。
-  local segs = { { MS.hintText[1], -290, 215, 26 }, { MS.hintText[2], 0, 250, 26 }, { MS.hintText[3], 290, 215, 26 } }
-  for i = 1, #segs do
-    -- v5.7：底部操作提示用**墨色**（原来 textSub 在奶油底上几乎看不见，用户截图里像被裁掉的灰字）
-    MS.hint[i] = MS.addText('menuHint' .. i, segs[i][1], segs[i][2], lineY, segs[i][3], 50, segs[i][4], THEME.textMain)
-  end
-  MS.segX = { -290, 0, 290 }
-  -- v5.13：标题页右下角打**版本水印** —— 以后"你看到的是哪一版"不用再靠猜/靠日志。
-  -- 用户 2026-10-30：「我刚刚去模拟器网页核验了，还是不行」——三次争议都源于没法一眼分辨新旧包。
-  MS.addText('menuBuildTag', BUILD_TAG, (CANVAS_W or 1280) / 2 - 120, -((CANVAS_H or 720) / 2 - 16),
-    220, 22, 13, THEME.textSub)
-  MS.addCell('menuDot1', -148, lineY, 6, 6, THEME.gold)
-  MS.addCell('menuDot2', 148, lineY, 6, 6, THEME.gold)
-  -- ===== v5.13 控件组件工厂（用户 2026-10-30：「按钮就该是组件，10 秒一个、可定制」）=====
-  -- 六件套：胶囊形状 / 文字高度 / 键帽 / cursor 热区(y 取负) / **UI4.regAdd 命中注册** / 三态+音效。
-  -- 历史事故：入口卡漏了 regAdd ⇒ 画得漂亮但指针完全够不到（无悬停音、无高亮、点击死）。
-  if not CTL then
-    local m = loadModule('controls')
-    CTL = (m and m.new) and m.new({
-      trySet = trySet, tryCall = tryCall, addCursor = addCursor, sfx = sfx, SFX = SFX,
-      addShape = function(n, sp) return MS.addShape(n, sp) end,
-      addText = function(n, txt, x, y, w, h, fs, col, al) return MS.addText(n, txt, x, y, w, h, fs, col, al) end,
-      addHit = function(n, w, h)
-        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-        if not ok or not z then return nil end
-        z.name = n
-        tryCall(z, 'SetSizeDelta', w, h)
-        return z
-      end,
-      onPart = function(c) MS.parts[#MS.parts + 1] = c end,
-      regAdd = function(n, c, w, h) UI4.regAdd(n, c, w, h) end,
-      regScreen = function(n) UI4.regScreen(n) end,
-      wall = MS.WALL, gold = THEME.gold, goldDeep = THEME.goldDeep,
-      cyan = MS.CYAN, cyanDeep = THEME.cyanDeep, ink = THEME.textMain, subInk = THEME.textSub,
-      over = function(base, c, k) return MS.over(base, c, k) end,
-    scale = function() return math.min((CANVAS_W or 1600) / 1600, (CANVAS_H or 900) / 900) end,
-      print = print,
-    }) or nil
-    if not CTL then print('controls module FAIL（按钮回退到手写实现）') end
-  end
-  -- v5.4 修用户 2026-10-30 反馈 一-1「开局没有看到角色相关的模块图标设计」：
-  -- 标题页右上角补一张**角色档案入口卡**（四角色色点 + I 键 + 可点热区）。
-  -- 走展台实例层（MS.parts）⇒ 进局 MS.teardown 一起拆；热区与 I 键同一入口。
-  do
-    -- 位置随画布收敛：右侧留 24px 边距；手机端下移 80px，给右上角的「说明/角色」按钮让位
-    -- （按钮中心在 top-18-28，卡片顶边必须落在它下面，否则两处控件叠在一起）。
-    local CW, CH = CANVAS_W or 1280, CANVAS_H or 720
-    local ex = math.min(520, CW / 2 - 169)
-    local ey = IS_MOBILE and (CH / 2 - 138) or 302
-    -- v5.10（用户：「角色和帮助不还是没有圆角吗」）：两张入口卡改成**同款胶囊**（三块圆角），
-    -- 与四张模式卡同一套视觉语汇；去掉了那条横贯的金线（直角面板才需要它）。
-    -- ===== v5.13：两张入口卡改由**组件工厂**生成（原来是手写四遍里的第三遍）=====
-    -- 一个按钮 = CTL.btn{...}：胶囊形状 / 文字高度 / 键帽 / 热区(y 取负) / regAdd 命中注册 / 三态+音效
-    -- 全部内置。新增同类按钮只需改 spec 里的七八个字段（下面两张卡各占 5 行）。
-    local rosterBtn = CTL and CTL.btn({
-      id = 'menu.entryRoster', screen = 'menu', x = ex, y = ey, w = 290, h = 96,
-      label = '角色档案', sub = IS_MOBILE and '点我看契约与技能' or 'I 键 · 契约与技能',
-      -- 不再画键帽：左侧要放四色点，键帽会和色点/标题挤在一起（用户截图那处溢出）；
-      -- 按键信息由副标文字承担（PC），手机上副标只说「点我看…」。
-      preset = 'gold', fs = 22, pad = 86, padSub = 16, titleDy = 18,
-      -- 诊断锚：入口卡的三态/点击各打一行日志 —— 用户实测"没反应"时可直接从日志区分
-      -- 「指针根本没到」「到了但视觉没变」「点了但回调没跑」三种情况。
-      onEnter = function() print('entry hover roster') end,
-      onClick = function() print('entry click roster') keyConsumedFrame = frameSeq FN.rosterToggle() end,
-    })
-    -- 四色点：装饰件（按钮组件不管内容插画，调用方自己叠）
-    local dots = { { 127, 207, 106 }, { 177, 140, 255 }, { 143, 218, 240 }, { 88, 208, 196 } }
-    for i = 1, #dots do
-      local d = dots[i]
-      MS.addCell('menuEntryDot' .. i, ex - 136 + (i - 1) * 22, ey + 16, 14, 14, C(255, d[1], d[2], d[3]))
-    end
-    local hx = ex - 240
-    MS.entryHelpX = hx
-    local helpBtn = CTL and CTL.btn({
-      id = 'menu.entryHelp', screen = 'menu', x = hx, y = ey, w = 176, h = 78,
-      label = '说明', sub = IS_MOBILE and '点我看规则' or 'H 键 · 全部规则',
-      preset = 'gold', fs = 20, subFs = 12, titleDy = 18, subDy = 20,
-      onEnter = function() print('entry hover help') end,
-      onClick = function()
-        keyConsumedFrame = frameSeq
-        print('menu help card tap')
-        if helpOpen then closeHelp() else toggleHelp() end
-      end,
-    })
-    -- 兼容旧引用（别处只用到这两个字段做摆位/校验）
-    MS.rosterZone = rosterBtn and rosterBtn.zone or nil
-    MS.helpZone2 = helpBtn and helpBtn.zone or nil
-    MS.entryHover = function(which, st)
-      local b = (which == 'roster') and rosterBtn or helpBtn
-      if b then b.style(st) end
-    end
-    print('menu entries via CTL ok=' .. tostring(rosterBtn ~= nil) .. '/' .. tostring(helpBtn ~= nil))
-  end
-  -- v3.2 原神文案：标题屏「旅行者手记」轮播位。
-  -- 为什么走实例文字：服务端 textbox 被展台墙（menuWall*）压在下面，标题页文案只能靠实例；
-  -- 为什么放 (x=-420, y=-215)：左列两张模式卡（y=±104，卡高 110）与底部提示条（y=-331）之间
-  -- 是两块画布（1280×720 / 1600×900）都空着的唯一横带，且与左列卡片同列、宽度装得下一行 18 号字。
-  -- 动效在 MS.tick 里（淡入 0.5s → 停 5s → 淡出 0.6s，颜色走 fontColor 的 A 通道=真机已验证通道）。
-  MS.note = MS.addText('menuNote', '', -420, -215, 380, 40, 18, THEME.textSub)
-  MS.stageOn = true
-  print('menu stage n=' .. #MS.parts)
-  return true
-end
--- 模式名大字独占画面时（pendingMode 动画窗 0.5s）：展台标题变成模式名，其余零件让位。
--- 为什么不用 topBanner：深空墙压在服务端 textbox 之上（层序铁律），只能让实例版大字来演。
-MS.focusLock = function(idx, mname)
-  if MS.focus then return end
-  MS.focus = true
-  local info = MODE_INFO[idx] or MODE_INFO[1]
-  if MS.big then
-    MS.big.text = MODE_TITLE[mname] or mname or '俄罗斯方块'
-    trySet(MS.big, 'fontColor', info.colorDeep)   -- v3.0 浅底：模式大字用深色档
-    tryCall(MS.big, 'SetSizeDelta', 720, 100)      -- 64 号要 >=96.8
-    tryCall(MS.big, 'SetAnchoredPosition', 0, 0)   -- 屏幕正中（顶部条带放不下 64 号墨迹）
-    trySet(MS.big, 'fontSize', 26)
-    MS.pendingSize = 26
-  end
-  if MS.hair then                                  -- 卡片没了，发丝线也别留在空中
-    for i = 1, #MS.hair do
-      local h = MS.hair[i]
-      if h then h.ctl.imageColor = C(0, h.r, h.g, h.b) end
-    end
-  end
-  for i = 1, 3 do
-    if MS.hint[i] then
-      trySet(MS.hint[i], 'fontColor', C(0, 214, 232, 246))
-      trySet(MS.hint[i], 'outlineColor', C(0, 0, 0, 0))   -- 否则描边还留一圈暗字影
-    end
-  end
-  for i = 1, 2 do
-    if MS.arrow[i] then MS.arrow[i].imageColor = C(0, 118, 214, 255) end
-  end
-end
--- 展台退场（进局那一刻）：拆零件 + 把服务端两条横幅的颜色还给游戏（A 通道是真机通道）
 -- ===== 展台（标题页那套墙/框/卡片/提示条）的存在条件——**全工程唯一判据** =====
 -- 为什么要有这条：引擎层序 = 创建顺序，且 SetAsLastSibling 不可靠 ⇒
 --   「浮层开在展台之后建」才盖得住；任何一条路径在浮层打开后又重建了展台
@@ -2847,31 +1922,30 @@ FN.syncStage = function()
     if MS.teardown then pcall(MS.teardown) end
   end
   -- 服务端 textbox 永远在运行时实例层之下 ⇒ 浮层盖不住它们，只能清文字。
-  -- 判据同上（标题页且浮层开）：开→清空 9 个文字位，关→由 buildMenuCards/renderHud 重写。
-  -- 注意：角色页/帮助页打开时 guideStage 会被改成 2（时停），所以判据只看「展台该不该在」，
-  -- 不能再要求 guideStage==0 —— 那一条正是「清了但底部还在」的根因（实测 hide 恒 false）。
-  -- 🔴 v5.36 修回归：原来写 `hide = not want`，而 want 在**对局中恒为 false**（guideStage≠0）
-  -- ⇒ 局内也把文字层清空，HUD/得分/旁白全消失（用户：图片渲染失败了）。
-  -- 正确判据＝**只是浮层打开时**才藏文字层，对局中一律照常显示。
-  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER) and true or false
+  -- 判据＝**只是浮层打开时**才藏文字层（对局中一律照常显示）：角色页/帮助页会把 guideStage 改成 2
+  -- （时停），所以不能要求 guideStage==0；v5.36 曾因 `hide = not want` 在局内清空导致 HUD 全消失。
+  -- 覆盖屏集合必须含结算（SETTLEV.live），否则结算期 textbox 照写（出图实测 sk1name 透出）。
+  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER
+    or (SETTLEV and SETTLEV.live)) and true or false
   local hide = overlayNow
   if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
   FN.textLayerHidden = hide and true or false
   if hide then
     -- 每轮都清（不是只在翻转时）：标题页常驻提示是**每帧重写**的（showPersistTip/renderHud），
     -- 清一次会被下一帧写回来 —— 这是「清了但还在」的原因。
-    for i = 1, 9 do
-      local c = ({ topBanner, botBanner, hint, hud, best, hudNext, keyA, keyB, keyC })[i]
-      if c then setText(c, '') end
-    end
-    if HUD_INST then
-      -- 实例份直接写 .text（setTextRaw 走的是服务端 textbox 的通道，对实例不生效）；
-      -- 实测残留在底部那行就是实例 ibotBanner。
-      for _, k in ipairs({ 'hint', 'botBanner', 'topBanner', 'hud', 'best', 'hudNext', 'keyA', 'keyB', 'keyC' }) do
-        local c = HUD_INST[k]
-        if c then pcall(function() c.text = '' end) end
+    -- 每轮都清（不是只在翻转时）：常驻提示是每帧重写的，清一次会被下一帧写回来。
+    -- 名单只走 HUD_TEXT（单源）：textbox 份 → setText('')；实例份 → 直接写 .text
+    -- （setTextRaw 走 textbox 通道，对实例不生效；实测残留在底部那行就是 ibotBanner）。
+    FN.textForce = true
+    for _, t in ipairs(HUD_TEXT) do
+      if t[3] then
+        local box = HUD_TEXT.boxOf(t[1])
+        if box then setText(box, '') end
       end
+      local inst = HUD_INST and HUD_INST[t[1]]
+      if inst then pcall(function() inst.text = '' end) end
     end
+    FN.textForce = false
   elseif FN.textLayerWasHidden then
     if guideStage == 0 and buildMenuCards then pcall(buildMenuCards) end
     if renderHud then pcall(renderHud) end
@@ -2886,18 +1960,9 @@ FN.syncStage = function()
   -- 一块紫色小方块与一条深色竖条（用户 2026-10-30 截图里那两个残留点）。
   if overlayOn ~= FN.prevParkedNow then
     FN.prevParkedNow = overlayOn
-    if g and g.preview then
-      for i = 1, #g.preview do
-        local c = g.preview[i]
-        if c then
-          if overlayOn then
-            pcall(function() c:SetAnchoredPosition(0, -4000) end)
-          elseif renderNext then
-            pcall(renderNext)
-          end
-        end
-      end
-    end
+    -- v6.5：预览列改由描述层停靠（12 格统一挪出画布），不再逐个 SetAnchoredPosition
+    PVW.parked = overlayOn and true or false
+    if renderNext then pcall(renderNext) end
   end
   -- 每 6 帧兜底：结算键不属于局内/标题，一律收起（它们与手机按键位置重叠，会冒充成棕色按键）
   if UI4 and UI4.parkActs and guideStage ~= 0 then pcall(UI4.parkActs) end
@@ -2914,349 +1979,8 @@ FN.syncStage = function()
     end
   end
 end
-MS.teardown = function()
-  MS.stageOn = false
-  if #MS.parts == 0 then return end
-  MS.destroy()
-  trySet(topBanner, 'fontColor', C_GOLD2)
-  trySet(botBanner, 'fontColor', C_ACCENT2)
-end
--- 底栏动效：4 阶段循环（0/1/2=高亮对应段，3=整条亮一口），段内 alpha 呼吸，箭头呼吸+外扩。
--- 只在值真的变化时写控件（和 introFont/introPulse 同一套防抖思路，省每帧写）。
-MS.tick = function()
-  -- v2.6 ③：轮播/下划线/箭头全撤（用户否决）——回退整条单一呼吸（26↔28 号+亮度呼吸）。
-  if #MS.parts == 0 or MS.focus then return end
-  local t = introT
-  local breathe = 0.5 + 0.5 * math.sin(t * 2.2)
-  local size = 26 + math.floor(2 * breathe + 0.5)
-  -- v5.7：alpha 下限 150→190、颜色改成墨色 —— 用户截图里这条提示像"被裁掉的灰字"
-  local alpha = math.floor(190 + 60 * breathe)
-  local k = size * 1000 + alpha
-  if MS.hintKey[1] ~= k then
-    MS.hintKey[1] = k
-    for i = 1, 3 do
-      local ctl = MS.hint[i]
-      if ctl then
-        trySet(ctl, 'fontSize', size)
-        trySet(ctl, 'fontColor', C(alpha, 46, 58, 74))
-      end
-    end
-  end
-  -- v3.2 原神文案：旅行者手记轮播（6 条，每条 6.1s：入 0.5s → 停 5s → 出 0.6s）。
-  -- 每条自带主色（金/墨/草绿/雷紫/冰蓝/樱粉）；透明度只走 fontColor 的 A 通道 + 上浮 2px，
-  -- 与底部提示条的呼吸同一套防抖：key 不变就不写控件（每帧只做两次整除）。
-  local notes = CFG.COPY and CFG.COPY.title
-  if notes and notes[1] and MS.note then
-    local span = 6.1
-    local n = #notes
-    local idx = math.floor(t / span) % n + 1
-    local ph = t - math.floor(t / span) * span
-    local a = 255
-    if ph < 0.5 then a = math.floor(255 * ph / 0.5)
-    elseif ph > 5.5 then a = math.floor(255 * (span - ph) / 0.6) end
-    if a < 0 then a = 0 elseif a > 255 then a = 255 end
-    local key = idx * 1000 + a
-    if MS.noteKey ~= key then
-      MS.noteKey = key
-      local rec = notes[idx]
-      local cc = rec.color or THEME.textSub
-      trySet(MS.note, 'fontColor', C(a, (cc // 65536) % 256, (cc // 256) % 256, cc % 256))
-      tryCall(MS.note, 'SetAnchoredPosition', -420, -215 + math.floor((255 - a) / 128))
-      pcall(function() MS.note.text = rec.text end)
-    end
-  end
-end
 
--- ===== v2.5 ① 标题页四模式选择（重设计）=============================================
--- 用户否掉 v2.4 的四张深蓝卡片（原话「那四个款太丑了，我不喜欢那个风格」）⇒ 整块重做。
--- 用户偏好线索（任务书）：偏克制/大字/不花哨；喜欢「字体放大脉冲」胜过复杂动效。
--- 定稿 = A（主机列表）：无容器、无边框、无底色 —— 每项 = 左缘 5×44 模式色细柱 + 38 号模式名
--- （左对齐）+ 15 号特色句；选中项「整行高亮 + 字放大到 44」，其余三项淡出，屏幕正中再演模式名大字。
--- 另两版留在代码里可切（各自有出图 docs/v25-b.png / docs/v25-c.png，仅作对照，不进交付）：
---   B 形状图标：三格色块拼俄罗斯方块母题 + 模式名，未选中/选中都没容器
---   C 整行高亮条：模式色 12% 暗条 + 左对齐字（最接近被否的卡片形态，仅作比对基线）
-local MENU_STYLE = 'A'
-local MC_ROW = { { -420, 104 }, { -420, -104 }, { 420, 104 }, { 420, -104 } }
-local MC_ICON = {                      -- B 用：三格朝向 L / T / S
-  { { 0, 11 }, { 0, -11 }, { 22, -11 } },
-  { { 0, 11 }, { -11, -11 }, { 11, -11 } },
-  { { -11, 11 }, { 11, 11 }, { -11, -11 } },
-}
-local function mcCell(name, x, y, w, h, color)
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  c:SetSizeDelta(w, h)
-  c:SetAnchoredPosition(x, y)
-  c.imageColor = color
-  MC[#MC + 1] = c
-  return c
-end
-local function mcText(name, text, x, y, w, h, size, color, align)
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-  if not ok or not c then return nil end
-  c.name = name
-  c.text = text
-  trySet(c, 'fontSize', size)
-  trySet(c, 'fontColor', color)
-  trySet(c, 'bgColor', C(0, 0, 0, 0))
-  trySet(c, 'horizontalAlignment', align or 'Middle')
-  trySet(c, 'verticalAlignment', 'Middle')
-  trySet(c, 'enableOutline', true)
-  trySet(c, 'outlineColor', C(190, 255, 255, 255))   -- v3.0 浅底：浅色描边
-  c:SetSizeDelta(w, h)
-  c:SetAnchoredPosition(x, y)
-  MC[#MC + 1] = c
-  return c
-end
-local function mcRGB(color, a)
-  return C(a or 255, (color // 65536) % 256, (color // 256) % 256, color % 256)
-end
-MS.modes = function()
-  MS.sel = {}
-  if MENU_STYLE == 'A' then
-    for i, info in ipairs(MODE_INFO) do
-      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
-      local leftX = cx + 30                      -- 列内统一左缘（不贴画布边）
-      -- v3.0：胶囊卡（圆润）+ 元素宝珠（圆点）+ 星芒（右上），字压在卡上（先建底、后建字）
-      -- v5.9：胶囊拆成三块并**逐块记坐标**（旧写法 addPill 没有返回值 ⇒ sel.pill 恒 nil ⇒
-      -- 卡面颜色从不跟三态变，用户看到的"没有三种样式"就是这个）。三块一起动才不会散架。
-      local pw, ph = 400, 100
-      local pbody = math.max(2, pw - ph)
-      local pillFill = MS.over(MS.WALL, info.color, 0.17)
-      local pillParts = {
-        { ctl = MS.addShape('menuPillB' .. i, { s = 'rect', x = cx + 10, y = cy, w = pbody, h = ph, c = pillFill }), x = cx + 10, y = cy },
-        { ctl = MS.addShape('menuPillL' .. i, { s = 'circle', x = cx + 10 - pbody / 2, y = cy, w = ph, h = ph, c = pillFill }), x = cx + 10 - pbody / 2, y = cy },
-        { ctl = MS.addShape('menuPillR' .. i, { s = 'circle', x = cx + 10 + pbody / 2, y = cy, w = ph, h = ph, c = pillFill }), x = cx + 10 + pbody / 2, y = cy },
-      }
-      local bead = MS.addShape('menuBead' .. i, { s = 'circle', x = cx - 160, y = cy, w = 22, h = 22, c = info.colorDeep })
-      local star = MS.addShape('menuStar' .. i, { s = 'fourstar', x = cx + 178, y = cy, w = 26, h = 26, c = mcRGB(info.color, 150) })
-      MS.sel[i] = {
-        pillParts = pillParts, bead = bead, star = star,
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name,
-          leftX, cy + 18, 330, 70, 38, THEME.textMain, 'Left'),
-        desc = mcText('menuDesc' .. i, info.desc,
-          leftX, cy - 30, 330, 32, 15, THEME.textSub, 'Left'),
-        -- 三态需要"整卡位移"：记下每个零件的基准坐标，cardStyle 再按状态加 dy
-        base = { pill = { cx + 10, cy }, bead = { cx - 160, cy }, star = { cx + 178, cy },
-                 title = { leftX, cy + 18 }, desc = { leftX, cy - 30 } },
-      }
-    end
-  elseif MENU_STYLE == 'B' then
-    for i, info in ipairs(MODE_INFO) do
-      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
-      local ix, iy = cx - 128, cy + 2
-      for j = 1, 3 do
-        local o = MC_ICON[i][j]
-        mcCell('menuIcon' .. i .. '_' .. j, ix + o[1], iy + o[2], 22, 22, mcRGB(info.color, 235))
-      end
-      MS.sel[i] = {
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx + 96, cy + 2, 340, 70, 38, THEME.textMain, 'Left'),
-        icon = { ix = ix, iy = iy, color = info.color },
-      }
-    end
-    MS.detail = mcText('menuDetail', MODE_INFO[1].desc, 0, -232, 760, 34, 18, THEME.textSub)
-  else
-    for i, info in ipairs(MODE_INFO) do
-      local cx, cy = MC_ROW[i][1], MC_ROW[i][2]
-      MS.sel[i] = {
-        row = mcCell('menuCard' .. i, cx, cy, 424, 96, mcRGB(info.color, 30)),
-        title = mcText('menuTitle' .. i, info.key .. '  ' .. info.name, cx - 34, cy + 16, 320, 70, 38, THEME.textMain, 'Left'),
-      }
-      mcText('menuDesc' .. i, info.desc, cx - 34, cy - 24, 320, 30, 14, THEME.textSub, 'Left')
-    end
-  end
-  local sub = game.InstantiateClientUIControl(TPL_TEXT, root)
-  if sub then
-    local W, H = CANVAS_W or 1280, CANVAS_H or 720
-    sub.name = 'menuSub'
-    sub.text = 'TEYVAT SKY · 四元素街机'
-    sub.fontSize = 16
-    trySet(sub, 'fontColor', THEME.textSub)
-    trySet(sub, 'horizontalAlignment', 'Left')
-    trySet(sub, 'bgColor', C(0, 0, 0, 0))
-    sub:SetSizeDelta(390, 34)
-    -- v5.4（用户 2026-10-30 截图）：真机沙箱客户端左上角有自带的 DXWK/FPS/GPU 调试浮层（约 0..40px），
-    -- 我方品牌标原来就贴在 y=top-30 与它叠字 ⇒ 下移到 y=top-72，仍在标题页左上角但不再被压。
-    sub:SetAnchoredPosition(-(W / 2 - 210), H / 2 - 72)
-    MC[#MC + 1] = sub
-  end
-end
--- 未选中的三项淡出（按下 Digit 后到进局前那 0.5s）：留下被选中的一项 + 屏幕正中模式名大字
-MS.dimOthers = function(keep)
-  for j = 1, #MODE_INFO do
-    if j ~= keep then
-      local t, d = find('menuTitle' .. j), find('menuDesc' .. j)
-      local sel = MS.sel and MS.sel[j]
-      if t then trySet(t, 'fontColor', C(0, 241, 245, 249)) trySet(t, 'outlineColor', C(0, 0, 0, 0)) end
-      if d then trySet(d, 'fontColor', C(0, 152, 166, 190)) trySet(d, 'outlineColor', C(0, 0, 0, 0)) end
-      if sel then
-        if sel.bead then trySet(sel.bead, 'imageColor', C(0, 0, 0, 0)) end
-        if sel.star then trySet(sel.star, 'imageColor', C(0, 0, 0, 0)) end
-        if sel.pill then trySet(sel.pill, 'imageColor', MS.WALL) end
-      end
-    end
-  end
-end
--- 选中态（按模式下 Digit 后、动画窗前的那 0.5s）：字放大 + 卡染深 + 宝珠变大
-MS.select = function(i)
-  local info = MODE_INFO[i]
-  local sel = MS.sel and MS.sel[i]
-  if not info or not sel then return end
-  if sel.title then
-    trySet(sel.title, 'fontSize', 44)                  -- 38 → 44（框 70 ≥ 44*1.45+4=68）
-    trySet(sel.title, 'fontColor', info.colorDeep)
-  end
-  if sel.desc then trySet(sel.desc, 'fontColor', THEME.textMain) end
-  if sel.bead then
-    tryCall(sel.bead, 'SetSizeDelta', 30, 30)
-    trySet(sel.bead, 'imageColor', info.colorDeep)
-  end
-  if sel.star then trySet(sel.star, 'imageColor', mcRGB(info.color, 230)) end
-  if sel.pill then trySet(sel.pill, 'imageColor', MS.over(MS.WALL, info.color, 0.34)) end
-  if sel.row then
-    tryCall(sel.row, 'SetSizeDelta', 436, 104)
-    trySet(sel.row, 'imageColor', mcRGB(info.color, 78))
-  end
-  if sel.icon then
-    for j = 1, 3 do
-      local o = MC_ICON[i][j]
-      local c = find('menuIcon' .. i .. '_' .. j)
-      if c then tryCall(c, 'SetSizeDelta', 26, 26) tryCall(c, 'SetAnchoredPosition', sel.icon.ix + o[1], sel.icon.iy + o[2]) end
-    end
-  end
-  if MS.detail then trySet(MS.detail, 'fontColor', info.colorDeep) setText(MS.detail, info.desc) end
-end
-
--- ===== v2.7 ⑤ 四模式「常态 / 悬浮 / 按下」三态（用户反馈⑤）=====
--- 依据（docs/research/cursor-hover-contract.md，官方 API 文档 + 模拟器源码实证）：
---   * 只有 cursor（光标检测区）与预设按钮两类控件能挂光标事件；image/textbox 没有该能力；
---   * 运行期实例可挂，前提是**模板根**就是 cursor 类（本工程 hit 模板，与手机热区同源）；
---   * 事件门控：父链上必须有 container.showCursor == true（OnStart 里已 `root.showCursor = true`）；
---   * 命中：image 不接收指针也不下钻子级 ⇒ 热区必须是卡片的**同级兄弟**（不是子节点）。
--- v3.0 三态（只在胶囊卡上做，不改布局）：
---   常态 38 号墨色 + 卡染 α46 + 宝珠 22
---   悬浮 40 号模式深色 + 卡染 α74 + 宝珠 26
---   按下 42 号模式深色 + 卡染 α110 + 宝珠 30（再按一次才开局 = 与键盘 Digit 同一条入口）
-MS.cardStyle = function(i, state)
-  local sel = MS.sel and MS.sel[i]
-  local info = MODE_INFO[i]
-  if not sel or not info then return end
-  local hover = (state == 'hover')
-  local press = (state == 'press')
-  local hot = hover or press
-  -- v5.8（用户：「鼠标悬浮 / 静止 / 按住要三种样式」）：
-  -- 悬浮=整卡**抬起 6px** + 卡底更实 + 标题放大一号；按下=**压下 6px** + 卡底更深 + 标题再收回来。
-  -- 只改颜色用户看不出来（旧实现只动 alpha 0.17→0.26），位移才是能一眼读到的状态差。
-  local dy = press and -6 or (hover and 6 or 0)
-  if sel.pillParts then
-    local fill = MS.over(MS.WALL, info.color, press and 0.46 or (hover and 0.32 or 0.17))
-    for k = 1, #sel.pillParts do
-      local part = sel.pillParts[k]
-      if part.ctl then
-        trySet(part.ctl, 'imageColor', fill)
-        tryCall(part.ctl, 'SetAnchoredPosition', part.x, part.y + dy)
-      end
-    end
-    -- 字/宝珠/星芒跟着整卡一起上下（原来只动颜色，位移读不出来）
-    local b = sel.base
-    if b then
-      local function mv(ctl, xy) if ctl and xy then tryCall(ctl, 'SetAnchoredPosition', xy[1], xy[2] + dy) end end
-      mv(sel.bead, b.bead) mv(sel.star, b.star) mv(sel.title, b.title) mv(sel.desc, b.desc)
-    end
-  end
-  if sel.title then
-    trySet(sel.title, 'fontSize', press and 40 or (hover and 44 or 38))
-    trySet(sel.title, 'fontColor', hot and info.colorDeep or THEME.textMain)
-  end
-  if sel.desc then
-    trySet(sel.desc, 'fontColor', hot and THEME.textMain or THEME.textSub)
-  end
-  if sel.bead then
-    local d = press and 26 or (hover and 30 or 22)
-    tryCall(sel.bead, 'SetSizeDelta', d, d)
-    trySet(sel.bead, 'imageColor', hot and info.colorDeep or info.color)
-  end
-  if sel.star then
-    trySet(sel.star, 'imageColor', mcRGB(info.color, hot and 230 or 150))
-  end
-
-end
-MS.hoverCard = function(i)
-  if helpOpen or pendingMode or FN.overlayOpen() then return end
-  if MS.sel_i and MS.sel_i ~= i then return end   -- 已有选中项时不再抢样式
-  MS.hover_i = i
-  MS.cardStyle(i, 'hover')
-  print('menu hover i=' .. i)
-end
-MS.hoverOut = function(i)
-  if helpOpen or pendingMode or FN.overlayOpen() then return end
-  if MS.sel_i and MS.sel_i ~= i then return end
-  if MS.hover_i == i then MS.hover_i = nil end
-  if MS.sel_i ~= i then MS.cardStyle(i, 'normal') end
-  print('menu hover out i=' .. i)
-end
-MS.pressCard = function(i)
-  if helpOpen or pendingMode or FN.overlayOpen() then return end
-  if MS.sel_i and MS.sel_i ~= i then return end
-  MS.press_i = i
-  MS.cardStyle(i, 'press')
-  print('menu press i=' .. i)
-end
--- 四张卡的透明命中热区（cursor 模板实例，PC 也可用鼠标；移动端 = 触屏点卡）
 -- @region ui-menu BEGIN (writer: ui-mobile)
-MS.buildHoverZones = function()
-  UI4.regScreen('menu')
-  if not TPL_HIT then print('menu zones=none（无 cursor 模板，仅键盘 1-4 可选）') return false end
-  MS.zones = {}
-  for i = 1, #MODE_INFO do
-    local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-    if not ok or not z then print('menu zone fail i=' .. i) return false end
-    z.name = 'menuZone' .. i
-    tryCall(z, 'SetSizeDelta', 416, 108)
-    tryCall(z, 'SetAnchoredPosition', MC_ROW[i][1] + 10, MC_ROW[i][2])
-    -- v3.1 四：三态音效（hover 进入播短音；按下播 press；Exit 不响防连扫噪）
-    addCursor(z, 'CursorEnter', function() sfx(SFX.hover, true) MS.hoverCard(i) end)
-    addCursor(z, 'CursorExit', function() MS.hoverOut(i) end)
-    addCursor(z, 'CursorDown', function() sfx(SFX.hover, true) MS.pressCard(i) end)
-    addCursor(z, 'CursorUp', function() MS.hoverCard(i) end)
-    addCursor(z, 'CursorClick', function()
-      if helpOpen then closeHelp() return end
-      menuSelectMode(i)
-    end)
-    MC[#MC + 1] = z
-    MS.zones[i] = z
-    UI4.regAdd('menu.mode' .. i, z, 416, 108)
-  end
-  -- v5.12（用户：「四个模式鼠标经过有音效和高亮，角色和说明却没有」）：
-  -- 根因=**热区没进 UI4 的命中注册表**。模式卡在下面这行 `UI4.regAdd('menu.mode'..i, ...)` 里登记，
-  -- 而入口卡当初只建了 cursor 控件、没 regAdd ⇒ 模拟器/真机的 pointer 派发根本看不到它们：
-  -- 没有 Enter/Exit（所以没悬停音、没高亮），连点击也是死的。
-  if MS.rosterZone then UI4.regAdd('menu.entryRoster', MS.rosterZone, 290, 96) end
-  if MS.helpZone2 then UI4.regAdd('menu.entryHelp', MS.helpZone2, 150, 60) end
-  -- v2.7 ④ 用户要求「H 按钮常驻」：底栏第三段「H 游戏说明」本身做成可点热区（键盘 H/E 之外的鼠标入口）
-  local okH, zh = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
-  if okH and zh then
-    zh.name = 'menuHelpZone'
-    tryCall(zh, 'SetSizeDelta', 260, 56)
-    tryCall(zh, 'SetAnchoredPosition', 290, MS.lineY or -332)
-    addCursor(zh, 'CursorDown', function()
-      sfx(SFX.hover, true)   -- v3.1 四：按下音
-      keyConsumedFrame = frameSeq
-      if helpOpen then closeHelp() else toggleHelp() end
-    end)
-    MC[#MC + 1] = zh
-    MS.helpZone = zh
-    UI4.regAdd('menu.help', zh, 260, 56)
-    print('menu help zone=ok')
-  else
-    print('menu help zone=none（仅键盘 H/E 可开说明页）')
-  end
-  print('menu zones n=' .. (#MS.zones + (MS.helpZone and 1 or 0)
-    + (MS.rosterZone and 1 or 0) + (MS.helpZone2 and 1 or 0)))
-  UI4.dump('menu')
-  return true
-end
 -- 键盘 Digit 与鼠标点击共用的选模式入口（v2.7：原逻辑内联在 listen 回调里，抽出来两处复用）
 -- 浮层（说明页/角色页/手机引导页）开着时，底层的任何输入都要被吞掉。
 -- 用户 2026-10-30 二-2：「打开了新的帮助页面，却可以和前一个页面交互、触发音效、还能直接游玩」。
@@ -3283,46 +2007,238 @@ menuSelectMode = function(i)
   local mname = ({ 'casual', 'ai-battle', 'pvp', 'coop' })[i]
   if not mname then return end
   MODE = mname
-  MS.sel_i = i
+  TITLEV.sel = i
   print('mode=' .. MODE)                             -- 选模式锚（用例断言）
-  MS.select(i)                                       -- 选中反馈（字放大 + 左柱加粗 + 整行高亮）
-  MS.dimOthers(i)                                    -- 其余三项淡出
-  MS.focusLock(i, mname)                             -- 展台标题变模式名大字（64 号）
+  MS.select(i)                                       -- 选中反馈（字放大 + 卡染色 + 宝珠变大）
+  MS.focusLock(i, mname)                             -- 展台标题变模式名大字（0.5s 窗里 26→64 脉冲）
   pendingMode, pendingT = mname, 0                   -- 0.5s 动画窗后 enterMode 开局
   setText(topBanner, MODE_TITLE[mname] or mname)
   trySet(topBanner, 'fontColor', MODE_INFO[i].color)
   setText(botBanner, '')
 end
-buildMenuCards = function()
-  if not TPL_CELL then return false end
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('menu cards no text tpl') return false end
-  destroyMenuCards()
-  MS.sel_i, MS.hover_i, MS.press_i = nil, nil, nil   -- 重建即清选中/悬浮态（复局防串）
-  -- v2.4 ①：展台先建（墙/框/角标/标题/提示条），模式选择区后建 ⇒ 压在墙上面
-  local okStage, errStage = pcall(MS.build)
-  if not okStage then print('menu stage error :: ' .. tostring(errStage)) end
-  local okModes, errModes = pcall(MS.modes)             -- v2.5 ①：四模式选择区
-  if not okModes then print('menu modes error :: ' .. tostring(errModes)) end
-  local okZone = pcall(MS.buildHoverZones)              -- v2.7 ⑤：三态热区（最后建 = 在最上层）
-  if not okZone then print('menu zones error') end
-  -- 帮助页先开、展台后建 ⇒ 展台会盖在手册上面（PC/手机都出现"双层文字叠印"）。这里补一次置顶。
-  if helpOpen and HL and #HL > 0 then
-    for i = 1, #HL do if HL[i] then tryCall(HL[i], 'SetAsLastSibling') end end
-    print('help restack n=' .. #HL)
+
+-- ===== v6.4 标题屏：`view_title` 纯描述 + 独立 render 实例 TITLEV.R =====
+-- 为什么换：现网这一屏是**三套账**——MC（卡片+热区实例）、MS.parts（展台零件）、MS.zones（手柄焦点），
+-- 层序靠 buildMenuCards 里「先建舞台、再建卡、最后建热区」的调用顺序维持（SetAsLastSibling 在本引擎
+-- 是空操作），三态靠 MS.cardStyle 逐字段写、退出靠 MS.destroy 逐个 Destroy。用户点名的
+-- 「多层级菜单展示」正是坏在这里：谁盖谁由调用顺序决定，浮层一开一关就要靠"先拆展台"的手写纪律。
+-- 纯描述后：一份 node 数组 → render 按**语义层号**建/更/删（bg 展台墙 → hud 横幅大字 → card 卡片
+-- → touch 热区）；三态 = 改描述参数后**同 key 集重 apply**（render 字段级 diff，不销毁重建）；
+-- 提示条呼吸 / 手记轮播 / 模式名大字脉冲这些逐帧动效走 render.write / writePos（不重建）。
+-- 回调用闭包只捕获下标 i（控件只在首次创建时注册监听 ⇒ 重 apply 不会重复注册）。
+
+-- 描述参数：唯一入口（hover/press/选中/展台状态都从这里进）
+TITLEV.opts = function()
+  local function rosterClick()
+    print('entry click roster')
+    keyConsumedFrame = frameSeq
+    if FN.rosterToggle then FN.rosterToggle() end
   end
-  print('menu cards n=' .. #MC .. ' style=' .. MENU_STYLE)
+  local function helpClick()
+    keyConsumedFrame = frameSeq
+    print('menu help card tap')
+    if helpOpen then closeHelp() else toggleHelp() end
+  end
+  return {
+    canvas = { CANVAS_W or 1280, CANVAS_H or 720 },
+    device = IS_MOBILE and 'mobile' or 'pc',
+    active = TITLEV.sel, hover = TITLEV.hover, pressed = TITLEV.press,
+    -- stage.mode ⇒ 模式名大字（MS.focusLock 的 0.5s 动画窗 = pendingMode 期）
+    stage = { on = true, visible = true, mode = TITLEV.pendingMode },
+    hints = MS.hintText,
+    noteIdx = TITLEV.noteIdx,
+    buildTag = BUILD_TAG,
+    onPick = function(i) sfx(SFX.hover, true) MS.pressCard(i) end,   -- 按下即高亮（触屏反馈通道）
+    onConfirm = function(i) menuSelectMode(i) end,                  -- 点一下即开（现网语义）
+    onRoster = rosterClick,
+    onHelp = helpClick,
+  }
+end
+
+-- 一份描述 → TITLEV.R；顺带刷新手柄焦点表与 MS.zones（UI4.focusMove 读它）
+TITLEV.apply = function()
+  local R, S = TITLEV.R, TITLEV.S
+  if not (R and S) then return false end
+  local nodes = S.title(TITLEV.opts())
+  R.apply(nodes)                        -- 同 key 集 ⇒ 只写变化字段（不销毁重建）
+  TITLEV.nodes, TITLEV.n = nodes, #nodes
+  local zones = {}
+  for i = 1, #MODE_INFO do
+    local ctl = R.get('menuZone' .. i)
+    if ctl then zones[i] = ctl end
+  end
+  TITLEV.zones = zones
+  MS.zones = zones                      -- 手柄/焦点导航的既有入口
   return true
 end
+
+-- 悬停/按下/抬起三态：描述层只声明 CursorDown / CursorClick（render 按 cursor 表注册），
+-- 其余三个光标事件在接线层补——只写字段，不重建（与 SETTLEV.bindHover 同一手法）。
+TITLEV.bindZones = function()
+  local R = TITLEV.R
+  if not (R and PT) then return 0 end
+  local n = 0
+  for i = 1, #MODE_INFO do
+    local ctl = R.get('menuZone' .. i)
+    if ctl then
+      PT.onCursor(ctl, 'CursorEnter', function() sfx(SFX.hover, true) MS.hoverCard(i) end)
+      PT.onCursor(ctl, 'CursorExit', function() MS.hoverOut(i) end)
+      PT.onCursor(ctl, 'CursorUp', function() MS.hoverCard(i) end)
+      n = n + 1
+    end
+  end
+  -- 入口卡：现网有 hover 音与日志，行为保留（三态色不跟，按钮语汇已收进描述）
+  local rz, hz = R.get('menuRosterZone'), R.get('menuHelpZone')
+  if rz then PT.onCursor(rz, 'CursorEnter', function() sfx(SFX.hover, true) print('entry hover roster') end) end
+  if hz then PT.onCursor(hz, 'CursorEnter', function() sfx(SFX.hover, true) print('entry hover help') end) end
+  return n
+end
+
+-- 命中注册表（qxqy/audit-controls.mjs 与 UI4 审计读它；现网只有热区控件，这里同样只登记热区）
+TITLEV.reg = function()
+  local R = TITLEV.R
+  if not (R and UI4 and UI4.regAdd) then return end
+  UI4.regScreen('menu')
+  for i = 1, #MODE_INFO do
+    local z = R.get('menuZone' .. i)
+    if z then UI4.regAdd('menu.mode' .. i, z, 416, 108) end
+  end
+  local rz, hz, kz = R.get('menuRosterZone'), R.get('menuHelpZone'), R.get('menuHintZone')
+  if rz then UI4.regAdd('menu.entryRoster', rz, 290, 96) end
+  if hz then UI4.regAdd('menu.entryHelp', hz, 176, 78) end
+  if kz then UI4.regAdd('menu.help', kz, 260, 56) end
+  UI4.dump('menu')
+  print('menu zones n=' .. (#TITLEV.zones + (rz and 1 or 0) + (hz and 1 or 0) + (kz and 1 or 0)))
+  if kz then print('menu help zone=ok') else print('menu help zone=none（仅键盘 H/E 可开说明页）') end
+end
+
+TITLEV.open = function()
+  if not (TITLEV.R and TITLEV.S) then
+    print('menu cards no view（view_title 未装配）')
+    return false
+  end
+  TITLEV.R.clear()                      -- 再清自己那份（实例上限 430 是全工程总账，先清后建）
+  TITLEV.hover, TITLEV.press, TITLEV.sel = nil, nil, nil   -- 重建即清三态（复局防串）
+  TITLEV.pendingMode, TITLEV.pendingSize = nil, nil
+  TITLEV.noteIdx, TITLEV.noteKey, TITLEV.hintKey = 1, nil, nil
+  if not TITLEV.apply() then return false end
+  TITLEV.live = true
+  MS.stageOn = true
+  TITLEV.bindZones()
+  TITLEV.reg()
+  print('menu stage n=' .. TITLEV.n)
+  print('menu cards n=' .. TITLEV.n .. ' style=view')
+  print('menu entries via view ok=true/true')
+  return true
+end
+
+TITLEV.close = function()
+  if not TITLEV.R then return end
+  local n = TITLEV.n or 0
+  TITLEV.R.clear()
+  TITLEV.live, TITLEV.n, TITLEV.nodes = false, 0, nil
+  TITLEV.zones = {}
+  MS.zones = TITLEV.zones
+  MS.stageOn = false
+  -- 服务端两条横幅的颜色还给游戏（真机唯一验过的通道是 fontColor 的 A）
+  trySet(topBanner, 'fontColor', C_GOLD2)
+  trySet(botBanner, 'fontColor', C_ACCENT2)
+  if n > 0 then print('menu cards destroy n=' .. n) end
+end
+
+-- 底栏动效（逐帧）：提示条 26↔28 号 + alpha 呼吸；旅行者手记 6 条轮播（入 0.5s → 停 5s → 出 0.6s）。
+-- 两者都走 render.write / writePos（现网是 trySet 直接写控件；同一件事，只是让缓存保持诚实）。
+TITLEV.tick = function()
+  local R = TITLEV.R
+  if not (R and TITLEV.live) then return end
+  local t = introT
+  local breathe = 0.5 + 0.5 * math.sin(t * 2.2)
+  local size = 26 + math.floor(2 * breathe + 0.5)
+  local alpha = math.floor(190 + 60 * breathe)
+  local k = size * 1000 + alpha
+  if TITLEV.hintKey ~= k then
+    TITLEV.hintKey = k
+    for i = 1, 3 do
+      R.write('menuHint' .. i, 'fontSize', size)
+      R.write('menuHint' .. i, 'fontColor', C(alpha, 46, 58, 74))
+    end
+  end
+  local notes = CFG.COPY and CFG.COPY.title
+  if notes and notes[1] then
+    local span = 6.1
+    local n = #notes
+    local idx = math.floor(t / span) % n + 1
+    local ph = t - math.floor(t / span) * span
+    local a = 255
+    if ph < 0.5 then a = math.floor(255 * ph / 0.5)
+    elseif ph > 5.5 then a = math.floor(255 * (span - ph) / 0.6) end
+    if a < 0 then a = 0 elseif a > 255 then a = 255 end
+    local key = idx * 1000 + a
+    if TITLEV.noteKey ~= key then
+      TITLEV.noteKey = key
+      local rec = notes[idx]
+      local cc = rec.color or THEME.textSub
+      TITLEV.noteIdx = idx
+      R.write('menuNote', 'text', rec.text)
+      R.write('menuNote', 'fontColor', C(a, (cc // 65536) % 256, (cc // 256) % 256, cc % 256))
+      R.writePos('menuNote', -420, -215 + math.floor((255 - a) / 128))
+    end
+  end
+end
+
+-- ===== 三态 / 选中 / 展台退场：改描述参数再 apply（不销毁重建）=====
+-- 日志锚与音效语义与现网一致（tests/41 断言 menu hover i= / menu hover out i= / menu press i=）。
+MS.hoverCard = function(i)
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
+  if TITLEV.sel and TITLEV.sel ~= i then return end   -- 已有选中项时不再抢样式
+  TITLEV.hover, TITLEV.press = i, nil
+  TITLEV.apply()
+  print('menu hover i=' .. i)
+end
+MS.hoverOut = function(i)
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
+  if TITLEV.sel and TITLEV.sel ~= i then return end
+  if TITLEV.hover == i then TITLEV.hover = nil end
+  TITLEV.press = nil
+  TITLEV.apply()
+  print('menu hover out i=' .. i)
+end
+MS.pressCard = function(i)
+  if helpOpen or pendingMode or FN.overlayOpen() then return end
+  if TITLEV.sel and TITLEV.sel ~= i then return end
+  TITLEV.press = i
+  TITLEV.apply()
+  print('menu press i=' .. i)
+end
+-- 选中态：字放大 + 卡染色 + 宝珠变大（全在描述层算，这里只切参数）
+MS.select = function(i)
+  TITLEV.sel = i
+  TITLEV.hover, TITLEV.press = nil, nil   -- 选中即吃掉悬停态（否则卡停在 hover 高度）
+  TITLEV.apply()
+end
+-- 模式名大字独占画面（pendingMode 的 0.5s 窗）：描述切到 stage.mode ⇒ 大字变模式名、横幅让位
+MS.focusLock = function(idx, mname)
+  if TITLEV.pendingMode then return end
+  TITLEV.pendingMode = mname
+  TITLEV.pendingSize = nil
+  TITLEV.apply()
+end
+MS.tick = function() TITLEV.tick() end
+MS.teardown = function() TITLEV.close() end
+
+-- 入口函数改名不变：全体调用点（startIfWaiting / exitToMenu / closeHelp / OnStart / FN.syncStage）
+-- 继续走这两个名字，只是实现换成"清一份 + apply 一份描述"。
+buildMenuCards = function() return TITLEV.open() end
+destroyMenuCards = function() return TITLEV.close() end
 
 -- @region ui-menu END (writer: ui-mobile)
 -- ===== T6b-2 双屏控件与布局 =====
 -- G[2] 棋盘（p2cell/p2frame 前缀防与 G[1] 撞名；坐标=基准+boardOX）。
 local function buildBoardControls(inst)
-  if not TPL_CELL or not inst then return false end
+  if not TEMPLATES.cell or not inst then return false end
   local save = g
   g = inst
-  local plate = game.InstantiateClientUIControl(TPL_CELL, root)
+  local plate = game.InstantiateClientUIControl(TEMPLATES.cell, root)
   if plate then                            -- v2.4 ①：对家盘同样需要背板（缝里不漏亮底）
     plate.name = 'p2plate'
     plate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
@@ -3332,7 +2248,7 @@ local function buildBoardControls(inst)
   end
   g.cells = {}
   for i = 1, COLS * ROWS do
-    local c = game.InstantiateClientUIControl(TPL_CELL, root)
+    local c = game.InstantiateClientUIControl(TEMPLATES.cell, root)
     if not c then g = save return false end
     local col = (i - 1) % COLS
     local row = (i - 1) // COLS
@@ -3355,7 +2271,7 @@ local function buildBoardControls(inst)
     { 0, frameY, 2 * frameX + 2, 2 }, { 0, -frameY, 2 * frameX + 2, 2 },
   }
   for i = 1, #specs do
-    local fr = game.InstantiateClientUIControl(TPL_CELL, root)
+    local fr = game.InstantiateClientUIControl(TEMPLATES.cell, root)
     if fr then
       local sp = specs[i]
       fr.name = 'p2frame' .. i
@@ -3439,38 +2355,12 @@ FN.layoutDual = function()
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
   placeBoard(G[2], 236)
-  -- 中缝细线：把两块屏分开（2 个实例，一次性建，exitToMenu 里拆）
-  if not DUAL_DECO[1] and TPL_CELL then
-    for i = 1, 2 do
-      local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_CELL, root) end)
-      if ok and c then
-        c.name = 'duoLane' .. i
-        DUAL_DECO[i] = c
-      end
-    end
-  end
-  if DUAL_DECO[1] then
-    local H2 = CANVAS_H or 720
-    tryCall(DUAL_DECO[1], 'SetSizeDelta', 2, H2 * 0.66)
-    tryCall(DUAL_DECO[1], 'SetAnchoredPosition', 0, 0)
-    trySet(DUAL_DECO[1], 'imageColor', THEME.gold)
-  end
-  if DUAL_DECO[2] then
-    -- v5.4（用户 2026-10-30 二-1：「右边帮助区域拥挤」一并修的构图）：中缝方块读起来像掉了一个格子，
-    -- 换成 14px 描金圆点，作为"分隔符/VS 点"更像我方设计语言。
-    tryCall(DUAL_DECO[2], 'SetSizeDelta', 14, 14)
-    tryCall(DUAL_DECO[2], 'SetAnchoredPosition', 0, 0)
-    -- 换图元要走枚举形态并带字符串回退（直接 SetImage(100006) 会让 imageId 变 undefined，
-    -- 出图管线 assertLosslessJson 当场炸；见 fx.lua setImg 同一处理）
-    do
-      local enumIS = (type(Enum) == 'table' and Enum.ImageSource) or nil
-      local ok = false
-      if enumIS and enumIS.StaticReference ~= nil then
-        ok = pcall(function() DUAL_DECO[2]:SetImage(enumIS.StaticReference, BG_IMG.circle) end)
-      end
-      if not ok then pcall(function() DUAL_DECO[2]:SetImage('StaticReference', BG_IMG.circle) end) end
-    end
-    trySet(DUAL_DECO[2], 'imageColor', THEME.goldDeep)
+  -- 中缝装饰（v6.6）：改由 view_board.dualDeco 出描述 + BR.spawn 按需建（despawn 退场时删）。
+  -- 为什么不用整表 apply：那会把 200 格颜色重置成底色；为什么不能常驻隐藏：
+  -- 真机 SetVisible(false) 对运行时实例不生效（D581），单人局会露出来。
+  if not DUAL_DECO.on and TEMPLATES.cell then
+    DUAL_DECO.on = true
+    BR.spawn(VB.dualDeco { halfH = CANVAS_H, laneColor = THEME.gold, starColor = THEME.goldDeep })
   end
   -- ===== v3.5 双屏 HUD 摆位（唯一真源；此前这里有个 nil 全局炸点，见下）=====
   -- 🔴 事故记录（v3.4 起潜伏）：本函数原先引用全局 `halfH`——layout() 里那是 **local**，
@@ -3547,8 +2437,8 @@ FN.layoutDual = function()
     tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 110))
     tryCall(HUD_INST.hint, 'SetVisible', true)
   end
-  -- ⑤ 收口：textbox 份一律隐藏（实例份在上可见；断言只读 text/anchoredPositionX，不受影响）
-  for _, box in ipairs({ hud, best, keyA, keyB, keyC, hint, hudNext }) do
+  for _, t in ipairs(HUD_TEXT) do
+    local box = t[3] and HUD_TEXT.boxOf(t[1]) or nil
     if box then tryCall(box, 'SetVisible', false) end
   end
   print('layout dual')
@@ -3563,94 +2453,100 @@ HUD_INST.txt = function(box, txt)
   local inst = box and HUD_INST[box.name]
   if inst then pcall(function() inst.text = txt end) end
 end
+-- v6.5 ③：HUD 文字控件**唯一名单**（单源）。此前同一份名字散在 6 处（建实例两段/隐藏/layoutDual 收口/hideAll-hideStats-showStats/syncStage 三段清空）⇒ 新增控件要改 6 处，「技能列 4 个漏做镜像」就是这么漏的。
+-- 字段：
+--   [1] name  [2] mirror=建运行时实例  [3] hideBox=隐藏服务端 textbox 份
+--   [4] stats=属于"战况列"（结算只下架这些：横幅要留作兜底文案）  [5] show=settle 结束后重新上架
+HUD_TEXT = {
+  { 'hud', true, true, true, true },      { 'best', true, true, true, true },
+  { 'keyA', true, true, true, false },    { 'keyB', true, true, true, false },
+  { 'keyC', true, true, true, false },    { 'hint', true, true, true, true },
+  { 'hudNext', true, true, true, true },  { 'holdLab', true, true, false, false },
+  { 'botBanner', true, true, false, false }, { 'topBanner', true, true, false, false },
+  { 'sk1name', true, true, true, true },  { 'sk1state', true, true, true, true },
+  { 'sk2name', true, true, true, true },  { 'sk2state', true, true, true, true },
+}
+-- textbox 份：直连局部优先（layout 里抓到的句柄），其余递归找（技能列挂在 n1 之下）
+HUD_TEXT.boxOf = function(name)
+  local direct = ({ hud = hud, best = best, keyA = keyA, keyB = keyB, keyC = keyC, hint = hint,
+    hudNext = hudNext, topBanner = topBanner, botBanner = botBanner })[name]
+  if direct then return direct end
+  local ok, c = pcall(findIn, root, { name })
+  if ok then return c end
+  return nil
+end
 HUD_INST.build = function()
-  if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-  if not TPL_TEXT then print('hud inst none（无模板，HUD 走 textbox）') return end
+  if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+  if not TEMPLATES.stext then print('hud inst none（无模板，HUD 走 textbox）') return end   -- 保留降级路径
   local made = 0
-  -- v3.2 ①：botBanner/topBanner 也入双写（用户打回：PERSIST_TIP/H 提示/接管文案
-  -- 被 wash 盖住——服务端 textbox 永远在实例层下，凡常驻文字一律实例份）
-  -- v3.3 ②：textbox 份建完即隐藏（此前实例+textbox 双份叠字；断言读 text 字段，不受 visible 影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext', 'holdLab' }) do
-    local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
-    if ok and c then
-      c.name = 'i' .. nm
-      local isBanner = (nm == 'botBanner' or nm == 'topBanner')
-      local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700) or (nm == 'hudNext' and 240) or 640
-      local fs = isBanner and 22 or 20
-      if nm == 'hudNext' then fs = 22 end
-      trySet(c, 'fontSize', fs)
-      trySet(c, 'fontColor', THEME.textMain)
-      -- v3.5 ④：hudNext 也要够高（22 号框高判据 35.9，取 44 留余量；valign=Middle 防顶部裁字）
-      -- v3.5 ⑧：横幅实例的框高必须按它**实际字号**算——topBanner 排的是 34 号（需 53.3），
-      -- 原来按 22 号算成 39 ⇒ 出图判据报 `itopBanner 框=1480x39 需高=53.3 fits=false` 整行裁字。
-      local hh = (nm == 'hudNext') and 44
-        or ((nm == 'topBanner') and 64)
-        or ((nm == 'botBanner') and 48)
-        or math.floor(fs * 1.45 + 8)
-      c:SetSizeDelta(w, hh)   -- v2.9 ①/v3.2 ②：宽按最长文案、高按框高判据
-      HUD_INST[nm] = c
-      -- v3.3 ③：keyA-C 常驻文案最长 24 全角（PERSIST_TIP 整串），20 号需 ~480px > 框宽
-      -- → 实例份字号降 14（需 336px < 360-4），fits 判据过；textbox 份字号不变（仅断言）
-      if nm == 'keyA' or nm == 'keyB' or nm == 'keyC' then
-        trySet(c, 'fontSize', 14)
+  for _, t in ipairs(HUD_TEXT) do
+    local nm, box = t[1], HUD_TEXT.boxOf(t[1])
+    if t[2] then
+      local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
+      if ok and c then
+        c.name = 'i' .. nm
+        local isBanner = (nm == 'botBanner' or nm == 'topBanner')
+        local isSk = nm:sub(1, 2) == 'sk'
+        local fs = isBanner and 22 or (nm == 'hudNext' and 22) or 20
+        local w = isBanner and (CANVAS_W or 1280) - 120 or (nm == 'hint' and 700)
+          or (nm == 'hudNext' and 240) or 640
+        local hh = (nm == 'hudNext') and 44 or (nm == 'topBanner') and 64
+          or (nm == 'botBanner') and 48 or math.floor(fs * 1.45 + 8)
+        if isSk and box then
+          -- 技能列：几何/字号从 textbox **现读现拷**（位置由关卡 UI 定，硬编码会随布局漂移）
+          w = tonumber(PT and PT.get(box, 'sizeDeltaX')) or 210
+          hh = tonumber(PT and PT.get(box, 'sizeDeltaY')) or 36
+          fs = tonumber(PT and PT.get(box, 'fontSize')) or 20
+          local sx, sy = 0, 0
+          local okP, px, py = pcall(function() return box:GetAnchoredPosition() end)
+          if okP then sx, sy = tonumber(px) or 0, tonumber(py) or 0 end
+          tryCall(c, 'SetAnchoredPosition', sx, sy)
+        end
+        trySet(c, 'fontSize', fs)
+        trySet(c, 'fontColor', THEME.textMain)
+        tryCall(c, 'SetSizeDelta', w, hh)
+        -- 对齐必须显式（v3.5 ④ / v5.5：模板缺省 Top/Left 会裁掉字形，真机右侧被切半个字）
+        trySet(c, 'verticalAlignment', 'Middle')
+        trySet(c, 'horizontalAlignment', 'Middle')
+        HUD_INST[nm] = c
+        made = made + 1
       end
-      -- v3.5 ④：所有 HUD 实例统一 垂直居中（模板缺省 Top 会裁掉字形顶部）
-      trySet(c, 'verticalAlignment', 'Middle')
-      -- v5.5：水平方向也必须显式居中——真机截图里右侧「P2 盘 / 得分…」被右缘切掉半个字，
-      -- 底栏键位提示不居中，都是模板缺省对齐（非 Middle）导致的溢出裁切。
-      trySet(c, 'horizontalAlignment', 'Middle')
-      made = made + 1
     end
+    if t[3] and box then tryCall(box, 'SetVisible', false) end   -- 断言读 text 字段，不受 visible 影响
   end
-  -- v3.2 ①：banner 系实例摆到与 textbox 同位（画布上下横幅位；layout 改位时同步调这里）
   local halfH = (CANVAS_H or 720) / 2
-  if HUD_INST.topBanner then
-    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, halfH - 36)
-    trySet(HUD_INST.topBanner, 'fontSize', 34)
-  end
-  if HUD_INST.botBanner then
-    -- v5.4：底栏常驻说明离画布底缘只有 28px，22 号字（框高 48）下沿会被裁 ⇒ 上移 12px
-    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(halfH - 40))
-  end
-  -- v3.5 ④：「下一个」标签实例摆到预览块正上方（预览块实测 y 78..189，标签中心 215 不压块）
-  -- 为什么贴在预览块上而不是屏幕右上：原 (RIGHT_CX, halfH-150) 离预览块 90px，读起来像独立标题。
-  if HUD_INST.hudNext then
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or 570, 255)
-  end
-  -- v3.3 ②：textbox 份隐藏防双份（实例在上可见；断言只读 text 字段不受影响）
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
-    local box = (nm == 'hud' and hud) or (nm == 'best' and best) or (nm == 'keyA' and keyA)
-      or (nm == 'keyB' and keyB) or (nm == 'keyC' and keyC) or (nm == 'botBanner' and botBanner)
-      or (nm == 'topBanner' and topBanner) or (nm == 'hint' and hint) or (nm == 'hudNext' and hudNext)
-    if box then tryCall(box, 'SetVisible', false) end
+  local function put(nm, x, y) local c = HUD_INST[nm] if c then tryCall(c, 'SetAnchoredPosition', x, y) end end
+  put('topBanner', 0, halfH - 36)
+  if HUD_INST.topBanner then trySet(HUD_INST.topBanner, 'fontSize', 34) end
+  put('botBanner', 0, -(halfH - 40))          -- v5.4：离底缘 28px 会被裁 ⇒ 上移 12px
+  put('hudNext', RIGHT_CX or 570, 255)        -- 贴预览块正上方（原位置像独立标题）
+  -- keyA-C 常驻文案最长 24 全角 ⇒ 实例份字号降 14（fits 判据过；textbox 份字号不变）
+  for _, nm in ipairs({ 'keyA', 'keyB', 'keyC' }) do
+    local c = HUD_INST[nm]
+    if c then trySet(c, 'fontSize', 14) end
   end
   print('hud inst n=' .. made .. ' (textbox hidden)')
 end
 
--- v3.5 ④：标题页/回菜单把 HUD 实例整体下架（`SetVisible(false)` 在真机对运行时实例不一定生效
--- ⇒ 同时挪到画布外 y=-4000 兜底；进局由 startIfWaiting 把「位 + 显」一起还原）
 HUD_INST.hideAll = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'botBanner', 'topBanner', 'hint', 'hudNext' }) do
-    local inst = HUD_INST[nm]
-    if inst then
-      tryCall(inst, 'SetVisible', false)
-      tryCall(inst, 'SetAnchoredPosition', 0, -4000)
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c then
+      tryCall(c, 'SetVisible', false)
+      tryCall(c, 'SetAnchoredPosition', 0, -4000)   -- 真机 SetVisible 对实例不一定生效 ⇒ 挪出画布兜底
     end
   end
 end
--- v3.5 ⑥：只下架「战况列」（结算遮罩半透明，那几行会从面板外透出来）；
--- 横幅保留——结算层建不出来时走 topBanner/botBanner 兜底文案，把横幅一起藏掉等于兜底全黑。
-HUD_INST.hideStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'keyA', 'keyB', 'keyC', 'hint', 'hudNext' }) do
-    local inst = HUD_INST[nm]
-    if inst then tryCall(inst, 'SetVisible', false) end
+HUD_INST.hideStats = function()      -- 只下架「战况列」：横幅要留作结算兜底文案
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c and t[4] then tryCall(c, 'SetVisible', false) end
   end
 end
--- 与 hideStats 对称：结算期下架的站况列重新上架（casual 重开不走 startIfWaiting，必须显式还原）
 HUD_INST.showStats = function()
-  for _, nm in ipairs({ 'hud', 'best', 'hint', 'hudNext' }) do
-    local inst = HUD_INST[nm]
-    if inst then tryCall(inst, 'SetVisible', true) end
+  for _, t in ipairs(HUD_TEXT) do
+    local c = HUD_INST[t[1]]
+    if c and t[5] then tryCall(c, 'SetVisible', true) end
   end
 end
 
@@ -3846,12 +2742,12 @@ end
 -- 特效引擎懒初始化：第一次要用时才建池（此时棋盘 200 格已经建好 ⇒ 特效天然压在棋盘之上）
 FN.fxInit = function()
   if FN.FX or not FN.FXM then return FN.FX end
-  -- ⚠ TPL_TEXT 是**懒探测**的（第一次建结算/帮助/模式卡文字时才赋值）。fx 池在首次技能时才建，
+  -- ⚠ TEMPLATES.stext 是**懒探测**的（第一次建结算/帮助/模式卡文字时才赋值）。fx 池在首次技能时才建，
   -- 若此刻它还是 nil，名卡就只有色块没有字（2026-10-29 实测：`fx pool ok ctl=21 bad=0 text=0`）。
   -- 这里主动补探一次（probeSettleTextbox 内部有缓存 + pcall 护栏，重复调用无副作用）。
-  if not TPL_TEXT and probeSettleTextbox then
-    TPL_TEXT = probeSettleTextbox()
-    print('fx tpl text resolve=' .. tostring(TPL_TEXT))
+  if not TEMPLATES.stext and probeSettleTextbox then
+    TEMPLATES.stext = probeSettleTextbox()
+    print('fx tpl text resolve=' .. tostring(TEMPLATES.stext))
   end
   local ok, inst = pcall(FN.FXM.new, {
     game = game,
@@ -3863,7 +2759,7 @@ FN.fxInit = function()
     colorOf = FN.skillColor,
     -- 图元模板 guid：card = 棋盘格（image，可当色块/圆环载体），text = 文字模板（名卡用）。
     -- 真机导入后 guid 会被重编号 ⇒ 这里传的是**已探测解析过的**运行期值（可能为 nil，fx 内部要能降级）。
-    tpl = { card = TPL_CELL, text = TPL_TEXT },
+    tpl = { card = TEMPLATES.cell, text = TEMPLATES.stext },
     -- 棋盘矩形（本地坐标，中心原点）：环波/描边/边缘光按它定位与限幅，
     -- 否则 1600×900 上会画出直径 900 的大圈，糊到左右两栏（2026-10-29 出图实测）。
     -- 双盘模式（AI 对抗 / 双人对战 / 双人合作）：玩家盘不在屏幕中心，特效必须跟着走
@@ -4078,6 +2974,10 @@ end
 
 -- HUD：两格技能状态（名字+状态+能量条）。控件由 ui.lua 建；不在就退回左栏 hint 文本。
 FN.skillHud = function()
+  -- 覆盖屏（帮助/结算/档案）打开时整块不画：技能名/状态是**服务端 textbox**，
+  -- 在真机上压在运行时实例之上（实测 sk1name z=42 < 结算卡 z=51），遮罩盖不住，
+  -- 只能靠"不写"。这里直接不画，比逐控件清空可靠（清空后别的路径又会写回来）。
+  if (SETTLEV and SETTLEV.live) or (ROSTER and ROSTER.on) or helpOpen or MODE_OVER then return end
   if not (SK and SKILLS and SKILLS.snapshot) then return end
   -- 只有局内才写技能 HUD 文字：标题/结算/名册页把文字清空（控件本身的显隐由 ui.lua 的逐屏布局负责，
   -- 但真机 SetVisible 对实例靠不住，所以这里至少保证"文字不会留在标题页上"）
@@ -4164,12 +3064,20 @@ FN.skillHud = function()
         tryCall(stripCtl, 'SetSizeDelta', 8, 76)
       end
       if cName then
+        FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'name'] = cName
         -- v5.5（用户 2026-10-30 二轮反馈：「前后台和已就绪的说明增加玩家负担，用特效和动画区分」）：
         -- 名字行只留**角色名**（键位标签在可点时才有意义）；台前/台后靠卡面亮度+描边+能量条表达。
-        setText(cName, nm)
-        trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
+        -- v6.5 ②：覆盖屏开着时**不写**（syncStage 每帧清空 textbox 份，这里再写回就等于没清——
+        -- 出图实测：结算帧里 sk1name 仍是「纳西妲」）。判据与 HUD_INST.txt 的抑制同源。
+        if not FN.textLayerHidden then
+          setText(cName, nm)
+          trySet(cName, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126))
+          local mi = HUD_INST[cName.name]
+          if mi then trySet(mi, 'fontColor', active and FN.skillInk(role) or C(190, 96, 108, 126)) end
+        end
       end
       if cState then
+        FN.SK[(sfx1 or ((i == 1) and 'sk1' or 'sk2')) .. 'state'] = cState
         -- v6：把「倍率 + 生效中的天赋」写进台前角色的状态行（玩家要能看到自己吃到了什么加成）
         local extra = ''
         if active then
@@ -4197,8 +3105,12 @@ FN.skillHud = function()
         else
           short = '充能 ' .. tostring(math.floor((en / math.max(1, (SK.cost and SK.cost[role]) or 1)) * 100)) .. '%' .. extra
         end
-        setText(cState, short)
-        trySet(cState, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126))
+        if not FN.textLayerHidden then          -- v6.5 ②：同上，覆盖屏期不写
+          setText(cState, short)
+          trySet(cState, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126))
+          local ms = HUD_INST[cState.name]
+          if ms then trySet(ms, 'fontColor', active and FN.skillInk(role) or C(200, 96, 108, 126)) end
+        end
       end
       if cBar then
         local ratio = math.max(0, math.min(1, en / 100))
@@ -4518,17 +3430,26 @@ end
 -- ===== 角色档案页已拆到 lua/tetris/roster.lua（main chunk 的 200-local 上限逼的）=====
 -- ROSTER 仍是 main 的脚本全局（浮层判定/画布轮询/输入守卫都在读它），模块只是往这张表里填函数。
 ROSTER = { on = false, items = {} }
+-- v6.4 档案页注入面：**分两段——先建表、OnStart 回填**。
+-- 为什么不能直接写成字面量（`platform = PT`）：本段在 **chunk 装载期**执行，而 PT / RENDER_M 的实例
+-- 是 **OnStart 里**才创建的 ⇒ 字面量读到的全是 nil ⇒ roster 的 v2able() 恒 false ⇒ 它会一直
+-- 悄悄走 `roster v2 skip :: 需要 main 注入 …` 的老路（**看着接线了、其实没接**；与 D744
+-- 「loadModule 写在首次使用之后 ⇒ 读到全局 nil ⇒ 假绿」同一族）。
+-- 所以：env 表挂全局、字段留空；OnStart 里按字段回填；roster.lua 只在**开页那一刻**读 env.xxx
+-- （不是装载期拷贝）⇒ 后回填成立。
+-- **接线的判据（两条都要看）**：①启动日志里 `roster v2 skip` 消失；②开页日志变成
+-- `char codex open n=<数> … v=2 issues=0`（v1 那条没有 `v=2`）。缺任一条就是没真接上。
+ROSTER_ENV = {
+  FN = FN, C = C, THEME = THEME, CP = FN.COPY, sk = function() return SK end,
+  SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
+  game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
+  roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
+  canvasH = function() return CANVAS_H or 900 end,
+  viewRoster = loadModule('view_roster'),   -- v6.4 档案页纯描述（模块级纯函数，装载期可读）
+}
 do
   local RM = loadModule('roster')
-  local okm = RM and RM.new({
-    FN = FN, C = C, THEME = THEME, CP = FN.COPY, sk = function() return SK end,
-    -- CTL 是懒创建的（在 MS.build 里），必须用 getter 传，否则模块拿到的是 nil
-    ctl = function() return CTL end,
-    SKILLS = SKILLS, NUM = NUM, UI4 = UI4,
-    game = game, setText = setText, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
-    roster = ROSTER, canvas = function() return CANVAS_W or 1600, CANVAS_H or 900 end,
-    canvasH = function() return CANVAS_H or 900 end,
-  })
+  local okm = RM and RM.new(ROSTER_ENV)
   if not okm then print('roster module FAIL（角色页禁用）') end
 end
 
@@ -4539,7 +3460,7 @@ FN.enterMode = function()
   if FN.FX then pcall(FN.FX.clear) end
   if MODE == 'ai-battle' or MODE == 'pvp' or MODE == 'coop' then
     if MODE ~= 'pvp' then NUM.AI_LEVEL = 3 end   -- ai-battle/coop AI 盘=hard；pvp 无 AI 盘不动档
-    G[2] = newInst()
+    G[2] = newInst(true)
     ACTIVE = { 1, 2 }
     MIRRORQ = {}                          -- 清镜像队列（复局防串）
     local save = g
@@ -4564,9 +3485,9 @@ end
 -- exitToMenu：非 casual 模式的 R=回标题菜单（清 AI 盘/镜像队列，回 stage0 演出）。
 FN.exitToMenu = function()
   MODE_OVER = false                    -- v2.2 ③：终局标志复位（R 回菜单）
-  for i = 1, #DUAL_DECO do             -- v2.4 ③：拆中缝装饰（防实例累积）
-    if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
-    DUAL_DECO[i] = nil
+  if DUAL_DECO.on then                 -- v2.4 ③/v6.6：中缝装饰交给 render 记总账（防实例累积）
+    DUAL_DECO.on = nil
+    if BR then BR.despawn({ 'dualDeco1', 'dualDeco2' }) end
   end
   if G[2] then
     settleDestroy()                       -- 若 G[2] 建过结算层（首版不会，防御性）
@@ -4578,11 +3499,8 @@ FN.exitToMenu = function()
   MODE = 'casual'
   g = G[1]
   placeBoard(G[1], 0)                     -- 主盘棋盘回画布中心
-  if G[1].preview then                    -- preview 回原位（next 右栏 / hold 左栏）
-    for i = 1, 4 do tryCall(G[1].preview[i], 'SetAnchoredPosition', 400, 175) end
-    for i = 5, 8 do tryCall(G[1].preview[i], 'SetAnchoredPosition', 400, 100) end
-    for i = 9, 12 do tryCall(G[1].preview[i], 'SetAnchoredPosition', -400, 175 - (i - 9) * 22) end
-  end
+  -- v6.5：预览列位置唯一真源 = renderNext（下面的 layout 末尾会调它）；
+  -- 原来这里手写 400/400/-400 三套坐标（hold 还是 175-(i-9)*22 的斜排），与 renderNext 打架。
   if CANVAS_W and CANVAS_H then
     local okL, errL = pcall(layout, CANVAS_W, CANVAS_H)   -- 服务端控件全量复位（title/hint/keyA-C 回 v1 布局）
     if not okL then print('relayout error :: ' .. tostring(errL)) end
@@ -4613,9 +3531,9 @@ restartMatch = function()
     setText(hint, '堆满一行即消除')
     showPersistTip()
   else
-    for i = 1, #DUAL_DECO do
-      if DUAL_DECO[i] then pcall(function() game.DestroyClientUIControl(DUAL_DECO[i]) end) end
-      DUAL_DECO[i] = nil
+    if DUAL_DECO.on then
+      DUAL_DECO.on = nil
+      if BR then BR.despawn({ 'dualDeco1', 'dualDeco2' }) end
     end
     if G[2] then
       settleDestroy()
@@ -5292,38 +4210,6 @@ end
 -- 布局：按画布尺寸算三栏 + 上下横幅（换设备不用重新导入）
 --------------------------------------------------------------------------------
 
--- 结算层几何（懒创建：层在 gameOver 那一刻才建，所以建完要立刻用它摆位）
--- 框高仍按 h >= fontSize*1.45+4：标题 44（脉冲到 48 ⇒ 需 73.6）⇒ 给 80；30→52；24→44；22→40；28→48。
-layoutSettle = function(W, H)
-  local halfH = H / 2
-  local function place2(ctl, x, y, w, h)
-    if not ctl then return end
-    tryCall(ctl, 'SetSizeDelta', w, h)
-    tryCall(ctl, 'SetAnchoredPosition', x, y)
-  end
-  local cw = W - 240
-  if cw > 780 then cw = 780 end
-  local ch = 400
-  place2(g.settleScrim, 0, 0, W + 60, H + 60)        -- 全屏遮罩
-  if g.settleBars then                                -- v2.4 ②：面板装饰（强调条 + 两条细带）
-    place2(g.settleBars[1], 0, ch / 2 - 3, cw, 6)     -- 顶部强调条
-    place2(g.settleBars[2], 0, 104, cw - 150, 2)      -- 标题下
-    place2(g.settleBars[3], 0, -104, cw - 150, 2)     -- 选项上
-  end
-  place2(g.settleBorder, 0, 0, cw + 8, ch + 8)       -- 强调色描边
-  place2(g.settleCard, 0, 0, cw, ch)                 -- 面板底
-  g.settleTitleY, g.settleOptsY = 140, -136
-  -- v2.4 ②：滑入起点从「屏幕外」改到「面板边缘内」——面板现在是不透明卡，
-  -- 从 -440 滑上来会在面板外飘 0.35s（出图 v23-settle-anim.png 可见正文悬在棋盘上）
-  g.settleTitleOff, g.settleOptsOff = 192, -192
-  place2(g.settleTitle, 0, g.settleTitleY, cw - 60, 80)
-  place2(g.settleScore, 0, 66, cw - 60, 56)          -- 34 号（需 53.3）
-  place2(g.settleBest, 0, 16, cw - 60, 44)           -- 24 号（需 38.8）
-  place2(g.settleInfo, 0, -26, cw - 60, 40)          -- 20 号（需 33）
-  place2(g.settleExtra, 0, -64, cw - 60, 40)         -- 分隔点行，20 号
-  place2(g.settleOpts, 0, g.settleOptsY, cw - 60, 48)
-end
-
 --------------------------------------------------------------------------------
 -- v4.0 设备适配子系统（UI4）：移动端操作控件 / 手柄 / 移动端多人玩法引导
 --------------------------------------------------------------------------------
@@ -5392,9 +4278,9 @@ do
         return c
       end,
       instText = function(nm, txt, w, h, fs)
-        if not TPL_TEXT then TPL_TEXT = probeSettleTextbox() end
-        if not TPL_TEXT then return nil end
-        local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+        if not TEMPLATES.stext then TEMPLATES.stext = probeSettleTextbox() end
+        if not TEMPLATES.stext then return nil end
+        local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
         if not ok or not c then return nil end
         c.name = nm
         trySet(c, 'text', txt or '')
@@ -5409,16 +4295,16 @@ do
       -- 热区必须走**直连路径**（与标题页模式卡 menuZone 同一条，已被点击用例验证）：
       -- instInto 的能力探测在真机会销毁重建，模拟器里探测过的实例坐标读回正常却收不到光标事件。
       instHit2 = function(nm, w, h)
-        if not TPL_HIT then return nil end
-        local ok, z = pcall(function() return game.InstantiateClientUIControl(TPL_HIT, root) end)
+        if not TEMPLATES.hit then return nil end
+        local ok, z = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.hit, root) end)
         if not ok or not z then return nil end
         z.name = nm
         tryCall(z, 'SetSizeDelta', w, h)
         return z
       end,
       instHit = function(nm, w, h)
-        if not TPL_HIT then return nil end
-        local z = instInto({ TPL_HIT }, root, true)
+        if not TEMPLATES.hit then return nil end
+        local z = instInto({ TEMPLATES.hit }, root, true)
         if not z then return nil end
         z.name = nm
         tryCall(z, 'SetSizeDelta', w, h)
@@ -5533,8 +4419,8 @@ UI4.pill = function(name, w, h, color)
 end
 
 UI4.label = function(name, text, w, h, size, color)
-  if not TPL_TEXT then return nil end
-  local ok, c = pcall(function() return game.InstantiateClientUIControl(TPL_TEXT, root) end)
+  if not TEMPLATES.stext then return nil end
+  local ok, c = pcall(function() return game.InstantiateClientUIControl(TEMPLATES.stext, root) end)
   if not ok or not c then return nil end
   c.name = name
   c.text = text
@@ -5552,8 +4438,8 @@ UI4.label = function(name, text, w, h, size, color)
 end
 
 UI4.hit = function(name, w, h)
-  if not TPL_HIT then return nil end
-  local z = instInto({ TPL_HIT }, root, true)
+  if not TEMPLATES.hit then return nil end
+  local z = instInto({ TEMPLATES.hit }, root, true)
   if not z then return nil end
   z.name = name
   tryCall(z, 'SetSizeDelta', w, h)
@@ -5678,27 +4564,8 @@ end
 -- ── 手柄：键映射 + 左摇杆 + 菜单焦点导航（真机键名以日志 `pad ev` 为准，改 config 即可换绑）──
 -- 为什么先注册探针再派发：官方手柄键位由编辑器「按键映射-手柄」决定，Lua 侧拿不到映射表；
 --   真实玩家按一遍，日志里的 `pad ev ControllerXxxKeyDown` 就是实际键名 ⇒ 表驱动改绑，不靠猜。
-UI4.padBind = function(listen)
-  local P = NUM.PAD or {}
-  local map = {}
-  for action, list in pairs(P.KEYS or {}) do
-    for _, ev in ipairs(list) do map[ev] = action end
-  end
-  local bases = {}
-  for i = 1, 14 do bases[#bases + 1] = 'CraftspersonKey' .. i end
-  for _, n in ipairs(P.PROBE_NAMED or {}) do bases[#bases + 1] = n end
-  local cnt = 0
-  for _, base in ipairs(bases) do
-    local ev = 'Controller' .. base .. 'Down'
-    local action = map[ev]
-    listen(ev, function()
-      print('pad ev ' .. ev .. (action and (' act=' .. action) or ''))
-      if action then UI4.padAct(action, ev) end
-    end)
-    cnt = cnt + 1
-  end
-  print('pad bind n=' .. cnt)
-end
+-- v6.1：padBind 退役——手柄键的登记进了 input_map.ACTIONS/PROBE，由 INPUT:bindAll 一次注册；
+-- `pad ev <键> act=<动作>` 与 `pad bind n=` 两条日志锚由派发段照原样打出（tests/48 契约）。
 
 -- 摇杆：左右移动（带连发）、向下缓降。轴的正负真机未实证 ⇒ 日志把两个数都打出来。
 UI4.padTick = function(dt)
@@ -5779,7 +4646,6 @@ layout = function(W, H)
       tryCall(ctl, 'SetAnchoredPosition', 0, -4000)
     end
   end
-  if g.settleReady then layoutSettle(W, H) end
   -- 抖动状态必须能被 layout 覆盖后复位：重排后基准坐标仍是创建时那套，直接停抖并写回基准
   if g.shakeT > 0 then stopShake(true) end
 end
@@ -5796,6 +4662,58 @@ function OnStart()
 
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
+
+  -- v6：装配引擎适配层与渲染协调器（platform 是唯一直接调 game.* 的地方）
+  if PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M then
+    PT = PLATFORM_M.new({ game = game, root = root, templates = TPL_GUIDS })
+    BR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    VB = VIEW_BOARD_M.new({ config = CFG })
+    print('v6 boot platform+render+view_board ok')
+  end
+  -- v6.5 预览列装配（S1 只装配；S2 起 renderNext 改走描述，旧 12 颗手建实例删除）
+  if PVW.M and PT and VIEW_LAYERS_M and RENDER_M then
+    PVW.S = PVW.M.new({ config = CFG, layers = VIEW_LAYERS_M })
+    PVW.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 preview assembled')
+  elseif not PVW.M then
+    print('v6 preview MISSING: view_preview（预览列退回旧路径）')
+  end
+  -- v6.2 结算屏装配：独立 render 实例（S1 只装配不接线；S2 起由 settleOpenV2 使用）
+  if SETTLEV.M and SETTLEV.KIT_M and PT then
+    SETTLEV.KIT = SETTLEV.KIT_M.new({ layers = VIEW_LAYERS_M })
+    SETTLEV.S = SETTLEV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = SETTLEV.KIT })
+    SETTLEV.SR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 settle view ok')
+  end
+  -- v6.3 说明页装配：自己一份 kit 实例 + 自己一个 render 实例（与结算 SR 互不相干）
+  if HLV.M and HLV.KIT_M and PT then
+    HLV.KIT = HLV.KIT_M.new({ layers = VIEW_LAYERS_M })
+    HLV.S = HLV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = HLV.KIT })
+    HLV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+  APP = loadModule('app').new({ platform = PT, render = HLV.R, baseRender = BR, baseStatic = true,
+    layers = VIEW_LAYERS_M,
+    scenes = loadModule('scenes').new(), overlayRender = HLV.R, log = function(m) print(m) end })
+    print('v6 help view ok')
+  else
+    print('v6 help view MISSING: view_help/view_kit')
+  end
+  -- v6.4 标题屏装配：独立 kit + 独立 render 实例（与前两屏同一套手法，绝不复用 BR/SR/HLV.R）
+  if TITLEV.M and TITLEV.KIT_M and PT then
+    TITLEV.KIT = TITLEV.KIT_M.new({ layers = VIEW_LAYERS_M })
+    TITLEV.S = TITLEV.M.new({ config = CFG, layers = VIEW_LAYERS_M, kit = TITLEV.KIT })
+    TITLEV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 title view ok')
+  else
+    print('v6 title view MISSING: view_title/view_kit')
+  end
+  -- v6.4 档案页 v2 注入面回填（ROSTER_ENV 在 chunk 期就建好了，但 PT/RENDER_M 到这里才存在）
+  -- 缺任一字段 ⇒ roster.lua 自动回落旧实现并打 `roster v2 skip :: …`（游戏不会坏，只是没换新版式）。
+  ROSTER_ENV.platform = PT
+  ROSTER_ENV.render = RENDER_M
+  ROSTER_ENV.layers = VIEW_LAYERS_M
+  ROSTER_ENV.config = CFG
+  ROSTER_ENV.kit = SETTLEV.KIT        -- 复用结算屏那份 kit 实例（省一次实例化）
+  ROSTER_ENV.app = APP                -- v6.8：档案页也走场景栈（openOverlay/closeOverlay）
 
   -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
   local isMobile = true
@@ -5827,7 +4745,10 @@ function OnStart()
       .. ' cell_cand=' .. tostring(#TPL_GUIDS.cell) .. ' hit_cand=' .. tostring(#TPL_GUIDS.hit)
       .. ' first_cell_guid=' .. tostring(TPL_GUIDS.cell[1]))
   end
-  local firstCell, tplGuid = probeTemplate(TPL_GUIDS.cell, false)
+  -- v6.6：模板探测集中到 templates 模块（返回一张表 + 每个失败都有明确日志与降级清单）
+  TEMPLATES = loadModule('templates').new({ guids = TPL_GUIDS, probeOne = probeTemplate,
+    probeTextOne = probeTextRaw, log = print })
+  local firstCell, tplGuid = TEMPLATES:probeCell()
   if not firstCell then
     error('tetris: cell 模板 guid 都不可用，候选=' .. #TPL_GUIDS.cell
       .. '（导入后跑 node qxqy/deploy.mjs --calibrate）')
@@ -5838,13 +4759,13 @@ function OnStart()
   -- 只多一次 Instantiate + 一次 Destroy（实例上限 430，当前常驻约 240，安全）。
   pcall(function() game.DestroyClientUIControl(firstCell) end)
   firstCell = nil
-  print('tpl guid=' .. tplGuid)
-  TPL_CELL = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
+  TEMPLATES.cell = tplGuid                    -- T6b-2：G[2] 棋盘控件复用同模板（enterMode 里建）
   -- v2.7 ⑤：cursor 模板 guid **提前**探测（标题页四模式三态热区要用它建实例，
   -- 而 buildMenuCards 在本函数中段就跑；原来这段探测在按钮段，太晚）。探针实例复用给手机热区。
   local hitSeed
-  hitSeed, TPL_HIT = probeTemplate(TPL_GUIDS.hit, true)
-  if TPL_HIT then print('hit tpl=' .. TPL_HIT) else print('hit tpl=none（无鼠标/触屏热区）') end
+  hitSeed, TEMPLATES.hit = TEMPLATES:probeHit()
+  TEMPLATES.stext = TEMPLATES:probeText()
+  TEMPLATES:report()
   -- 探针实例留在 (0,0) 会变成一个 76×76 的隐形热区压在屏幕正中（qa-shots 审计实测
   -- `phswitch ∩ hit` 重叠 4400px²）⇒ 挪出画布（真机 SetVisible 不可靠，只信坐标）
   if hitSeed then
@@ -5865,7 +4786,6 @@ function OnStart()
     trySet(ctl, 'imageColor', C(0, 0, 0, 0))
     g.bgPool[i] = ctl
   end
-  -- 整屏底色压在最下（池第 1 件复用为底色：所有模式都先铺一层深底再构图）
   local wash = g.bgPool[1]
   if wash then
     tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
@@ -5874,88 +4794,39 @@ function OnStart()
   end
   print('bg pool n=' .. #g.bgPool)
 
-  -- v2.4 ① 棋盘背板：格间 2px 缝（PITCH30/CELL28）会漏出后面的背景——标题页的深空墙留了
-  -- 视窗，缝里露的是模拟器/世界的亮底 ⇒ 网格线比格子还亮、figure/ground 反转。
-  -- 背板必须在**格子之前**建（层序：先建的在下），全模式一张，进局后同样让缝隙变暗。
-  local backPlate = game.InstantiateClientUIControl(tplGuid, root)
-  if backPlate then
-    backPlate.name = 'boardPlate'
-    backPlate:SetSizeDelta(COLS * PITCH + 6, ROWS * PITCH + 6)
-    backPlate:SetAnchoredPosition(0, 0)
-    backPlate.imageColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate
-    g.plate = backPlate
-  end
-
-  g.cells = {}
-  for i = 1, COLS * ROWS do
-    local c = firstCell
-    firstCell = nil
-    if not c then c = game.InstantiateClientUIControl(tplGuid, root) end
-    if not c then error('tetris: InstantiateClientUIControl failed at ' .. i) end
-    local col = (i - 1) % COLS
-    local row = (i - 1) // COLS
-    c.name = 'cell' .. i
-    -- 基准坐标存下来（抖屏用；不再各处重算字面量）
-    g.cellBX[i] = (col - 4.5) * PITCH
-    g.cellBY[i] = (9.5 - row) * PITCH
-    c:SetSizeDelta(CELL, CELL)
-    c:SetAnchoredPosition(g.cellBX[i], g.cellBY[i])
-    c.imageColor = CFG.COL_EMPTY
-    g.cells[i] = c
-  end
-  print('cellCount=' .. #g.cells)
-
-  -- 棋盘外框：4 条细长实例（后建 ⇒ 在棋格之上），给棋盘一个清晰边界
-  -- v2.4 ①：棋盘框从亮青 #4CC2FF 改成石板灰蓝——亮青框是标题页最响的元素，
-  -- 把「屏幕」的对比交给视窗边框，棋盘本体退后一层（进局后同样更耐看）
   local FRAME_COL = (MODE_THEME[MODE] or MODE_THEME.casual).frame
-  local boardEdgeW = 4.5 * PITCH + CELL / 2      -- 149
-  g.frames = {}
-  -- 四条框线与棋盘边缘对齐：竖线高 / 横线宽都取「框到框」的跨度，否则四角会伸出约 16px（实测）
-  local frameX = boardEdgeW + 1                      -- 150
-  local frameY = 9.5 * PITCH + CELL / 2 + 1          -- 300
-  -- v5.2（5 份美术评审：「刻晴局和纳西妲局看起来一模一样」）：单人局棋盘框染台前角色色
   if MODE == 'casual' and SK and SK.party and SK.party[SK.active or 1] and FN.skillColor then
     local rc = FN.skillDark and FN.skillDark(FN.skillColor(SK.party[SK.active or 1]), 120)
     if rc then FRAME_COL = rc end
   end
-  local specs = {
-    { -frameX, 0, 2, 2 * frameY + 2 },               -- 左
-    { frameX, 0, 2, 2 * frameY + 2 },                -- 右
-    { 0, frameY, 2 * frameX + 2, 2 },                -- 上
-    { 0, -frameY, 2 * frameX + 2, 2 },               -- 下
+  if not (BR and VB) then error('tetris: v6 模块缺失（platform/render/view_board）') end
+  g.cells, g.frames = {}, {}
+  local BOARD_NODES = VB.board {
+    plateColor = (MODE_THEME[MODE] or MODE_THEME.casual).plate,
+    cellColor = CFG.COL_EMPTY,
+    frameColor = FRAME_COL,
   }
-  for i = 1, #specs do
-    local fr = game.InstantiateClientUIControl(tplGuid, root)
-    if fr then
-      local sp = specs[i]
-      fr.name = 'frame' .. i
-      g.frameBX[i], g.frameBY[i] = sp[1], sp[2]
-      fr:SetSizeDelta(sp[3], sp[4])
-      fr:SetAnchoredPosition(g.frameBX[i], g.frameBY[i])
-      fr.imageColor = FRAME_COL
-    end
-    g.frames[i] = fr
+  -- 首次仍显式 apply 一次：baseStatic 的"脏时才 apply"在启动帧还没有脏标记。
+  if APP then APP.setBase({ name = 'play', opaque = true }, BOARD_NODES) end
+  BR.apply(BOARD_NODES)
+  g.plate = BR.ctl('boardPlate')
+  for i = 1, COLS * ROWS do
+    g.cells[i] = BR.ctl('cell' .. i)
+    g.cellBX[i], g.cellBY[i] = VB.cellPos(i)
   end
+  for i = 1, 4 do
+    g.frames[i] = BR.ctl('frame' .. i)
+    g.frameBX[i], g.frameBY[i] = VB.framePos(i)
+  end
+  print('cellCount=' .. #g.cells)
+  if #BR.issues() > 0 then print('board issues=' .. #BR.issues() .. ' :: ' .. BR.issues()[1].msg) end
 
   -- 结算不用中间遮罩：运行时实例的层级高于服务端文字，遮罩会把结算文字盖掉（实测）
   -- 改为「棋盘暗场 + 顶部/底部大字」，文字始终在棋盘之外，不会被遮挡
   overlay = nil
 
-  -- NEXT 预览：第一块 4 格（18px）；T2 第二块 4 格（14px 缩略、55% 亮度，renderNext 排第一块下方）
-  -- T3 Hold 槽复用本表：preview[9..12] = hold1-4（18px，左栏镜像位；不另开 local——200 上限已满）
-  g.preview = {}
-  for i = 1, 12 do
-    local c = game.InstantiateClientUIControl(tplGuid, root)
-    if c then
-      c.name = i <= 8 and ('next' .. i) or ('hold' .. i - 8)
-      c:SetSizeDelta(i <= 4 and 18 or i <= 8 and 14 or 18, i <= 4 and 18 or i <= 8 and 14 or 18)
-      c:SetAnchoredPosition(i <= 4 and 400 or i <= 8 and 400 or -400,
-        i <= 4 and 175 or i <= 8 and 100 or 175)
-      c.imageColor = CFG.COL_BG
-    end
-    g.preview[i] = c
-  end
+  -- v6.5 NEXT/HOLD 预览改由 view_preview 纯描述创建（PVW.R.apply，键 pv*、引擎侧名 next1..8/hold1..4），
+  -- 不再手建 12 个实例：那 12 颗的几何/配色/停靠逻辑已收进描述层，由 headless 用例逐值钉住。
 
   -- 结算层**不在 OnStart 建**（2026-10-25 真机：常驻 + SetVisible(false) 不保险 ⇒ 开局白屏、
   -- 重开后结算页残留）。改成第一次 gameOver 时懒创建，重开即销毁 —— 见 showGameOver / newGame。
@@ -5988,26 +4859,9 @@ function OnStart()
   -- ⇒ 同时挪到画布外 y=-4000；进局由 startIfWaiting「位+显」一起还原）
   if HUD_INST.hideAll then HUD_INST.hideAll() end
 
-  -- 按键注册一律 pcall：真机上某个键名可能不存在，抛错会整段 OnStart 中断（2026-10-24 首轮实证）
-  -- 真机要求 KeyEventType **枚举值**（传字符串报 bad argument #2: KeyEventType expected, got string，
-  -- 2026-10-24 日志实证）；模拟器接受字符串。两种都试：先枚举，失败回落字符串。
-  local enumKeys = (type(Enum) == 'table' and Enum.KeyEventType) or nil
-  local function listen(name, fn)
-    local ok, err, how
-    if enumKeys and enumKeys[name] ~= nil then
-      ok, err = pcall(function() root:AddKeyEventListener(enumKeys[name], fn) end)
-      how = 'enum'
-    end
-    if not ok then
-      ok, err = pcall(function() root:AddKeyEventListener(name, fn) end)
-      how = 'string'
-    end
-    if ok then
-      print('listen ok ' .. name .. ' via ' .. how)
-    else
-      print('listen fail ' .. name .. ' :: ' .. tostring(err))
-    end
-  end
+  -- v6.1：键位注册不再是「每处 listen 一行」——唯一入口是文件末尾的 INPUT:bindAll(dispatch)。
+  -- 旧的本地 listen(name, fn) 已并入 platform.bindKey（同样的枚举/字符串双路径回退，
+  -- 同样的日志字面量 `listen ok … via enum|string` 与 `listen fail …`，tests 与真机日志都认它）。
 
   -- 每个动作前先 startIfWaiting()：入场态按的第一个键既开始游戏也执行该动作
   -- （不吞键，用例与手感一致）；stage 2 键位表期间除 H/R 外全部忽略。
@@ -6036,19 +4890,16 @@ function OnStart()
   --   pvp：方向键(38/39/36/37)/X(Drop)/F(Interact) 归 P2=G[2]，WASD/Space/G 归 P1=G[1]（§3.3 定版）
   --   coop：全部键归共盘 G[1]（P1 旋转手=W/G，P2 行动手=←→↓/X），越权键由 coopAllowed 过滤
   --   casual/ai-battle：全部归 G[1]
-  local P2_KEYS = {
-    KeyboardCraftspersonKey38Down = true, KeyboardCraftspersonKey39Down = true,
-    KeyboardCraftspersonKey36Down = true, KeyboardCraftspersonKey37Down = true,
-    KeyboardDropKeyDown = true, KeyboardInteractKeyDown = true,
-  }
+  -- 「这颗键归哪块盘」的**唯一真源**已搬进 input_map（M.P2KEYS / M.playerOf）
+  local function isP2(keyName) return INPUT_M.playerOf(keyName) == 'p2' end
   local function routePlayer(keyName)
-    if MODE == 'pvp' and P2_KEYS[keyName] and G[2] then return G[2] end
+    if MODE == 'pvp' and isP2(keyName) and G[2] then return G[2] end
     return G[1]
   end
   -- coop 分工过滤（裁决① 用户方案）：P1=旋转手（只 rot/hold），P2=行动手（只 left/right/soft/hard）
   local function coopAllowed(keyName, action)
     if MODE ~= 'coop' then return true end
-    local isP1Key = not P2_KEYS[keyName]
+    local isP1Key = not isP2(keyName)
     if isP1Key then return action == 'rot' or action == 'hold'
     else return action == 'left' or action == 'right' or action == 'soft' or action == 'hard' end
   end
@@ -6059,7 +4910,7 @@ function OnStart()
       -- v5.6：角色页 / 手机引导浮层开着时，游戏键一律吞掉（否则会在浮层后面操作棋盘）
       if (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) then
         -- F（InteractKey）当成"关闭浮层"，其余键继续吞掉（v5.7）
-        if ROSTER and ROSTER.on and keyName == 'KeyboardInteractKeyDown' then
+        if ROSTER and ROSTER.on and INPUT_M.isOverlayClose(keyName) then
           keyConsumedFrame = frameSeq
           if FN.rosterToggle then FN.rosterToggle() end
           return
@@ -6070,14 +4921,14 @@ function OnStart()
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
         -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
-        if P2_KEYS[keyName] then GK.p2ready = true
+        if isP2(keyName) then GK.p2ready = true
         else GK.p1ready = true end
         if MODE == 'ai-battle' then GK.p2ready = true end
         if GK.p1ready then HUD_INST.txt(keyA, 'P1 准备好了 ✓') end
         if GK.p2ready and MODE ~= 'ai-battle' then HUD_INST.txt(keyB, 'P2 准备好了 ✓') end
         setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
           or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))   -- v2.8 ① ready 进度
-        print('guide ready ' .. (P2_KEYS[keyName] and 'p2' or 'p1'))
+        print('guide ready ' .. (isP2(keyName) and 'p2' or 'p1'))
         if GK.p1ready and GK.p2ready then
           GK.phase, GK.t = 'count', 0
           setText(topBanner, '')
@@ -6099,7 +4950,7 @@ function OnStart()
   -- 动作执行体（KEYMAP 与 P2 补充键共用；g 已由 act 路由到位）
   local function doPlay(action, keyName)
     if not coopAllowed(keyName, action) then return end   -- coop 越权键无效（裁决①）
-    if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (P2_KEYS[keyName] and 2 or 1)) end
+    if MODE == 'coop' then print('coop act=' .. action .. ' p=' .. (isP2(keyName) and 2 or 1)) end
     if MODE == 'pvp' and G[2] and g == G[2] then print('p2 act=' .. action) end  -- 双屏日志 p2 前缀
     if action == 'left' then
       g.pieceMoved = true
@@ -6117,58 +4968,29 @@ function OnStart()
     elseif action == 'hold' then
       NUM.doHold()
     elseif action == 'hard' then
-      g.hardDrop = true
-      if g.gameOver or not g.piece then return end
-      local dropped = 0
-      while not collides(g.piece.cells, g.piece.x, g.piece.y + 1) do
-        g.piece.y = g.piece.y + 1
-        dropped = dropped + 1
-      end
-      print('harddrop rows=' .. dropped .. ' y=' .. g.piece.y)
-      g.score = g.score + dropped * NUM.HARD
-      doLock()
+      -- v6：硬降（落点/加分/即时锁定/hardDrop 标记）都在 core_state.hardDrop
+      CORE.dispatch(g.core.hardDrop(g))
     end
   end
-  -- T8 玩家键 = NUM.KEYMAP 表驱动（原十条散装 listen 收表；DAS 需要方向键 Down+Up 成对监听；
-  -- T6 双屏输入路由：act(keyName, fn) 内按 MODE 路由到目标实例，不再散改 listen）
-  for _, m in ipairs(NUM.KEYMAP) do
-    listen(m.key, act(m.key, function() doPlay(m.action, m.key) end))
-    if m.up then
-      listen(m.up, function()                              -- T8 DAS：松开清方向（仅清自己按住的那个；T6：清目标实例）
-        g = routePlayer(m.key)   -- v3.3 根修：事件回调必须先路由（ai-battle 下 OnUpdate 循环每帧把 g 留成 G[2]，Up 曾清错实例=玩家盘连移永不停）
-        if m.action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
-        if m.action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
-      end)
-    end
-  end
-  -- T6c pvp：P2 硬降 X（Drop）/Hold F（Interact）——v1 KEYMAP 未含，补两条（经同一路由/过滤/日志）
-  listen('KeyboardDropKeyDown', act('KeyboardDropKeyDown', function() doPlay('hard', 'KeyboardDropKeyDown') end))
-  listen('KeyboardInteractKeyDown', act('KeyboardInteractKeyDown', function() doPlay('hold', 'KeyboardInteractKeyDown') end))
-  -- R/Q/H/T 与 anyKeyStart 兜底见下（不进 KEYMAP：它们不是玩法动作键）
-  -- T6 标题屏模式选择：Digit1-4（模拟器实证=CraftspersonKey1-4；真机回落字符串路径同 listen）。
-  -- 手机端只留 casual（裁决⑨）：isMobile 时 Digit2-4 忽略。
-  -- v2.7 ⑤：选择逻辑抽成 menuSelectMode(i)，与鼠标/触屏点卡（MS.buildHoverZones 的 CursorClick）共用同一条入口。
-  for i = 1, #MODE_INFO do
-    listen('KeyboardCraftspersonKey' .. i .. 'Down', function()
-      if keyConsumedFrame == frameSeq then return end
-      menuSelectMode(i)
-    end)
-  end
-  listen('KeyboardSwitchToWalkOrRunKeyDown', function()     -- T5 调试切档（具名键不被 anyKeyStart 抢）
+  -- v6.1：玩法键与模式键不再在这里逐条 listen —— 它们进了 input_map.ACTIONS，由文件末尾的
+  -- INPUT:bindAll(dispatch) 一次注册。对应关系：
+  --   left/right/rot/soft/hard/hold（含 pvp 补丁键 X=Drop、F=Interact）→ act(...)+doPlay(...)
+  --   mode1..mode4 → menuSelectMode(i)（仍带 keyConsumedFrame 同帧让位）
+  -- 双屏路由（routePlayer）与 coop 过滤（coopAllowed）都还在 act/doPlay 里，按 keyName 判定不变。
+  local function actLevel()                                -- T5 调试切档（具名键不被 anyKeyStart 抢）
     if guideStage ~= 0 then return end
     NUM.AI_LEVEL = NUM.AI_LEVEL % 3 + 1
     local lv2 = NUM.AI_LEVELS[NUM.AI_LEVEL]
     RHO.pieces, RHO.lines = 0, 0
     print('demo level=' .. lv2.name)
     demoLoopReset()
-  end)
+  end
   -- v2.6 ④：V = 结算后回主页（CraftspersonKey22；所有模式结算通用出口）
   -- v2.7 修用户反馈②③（V 回不到真正的开始页 / 第二次按 1-4 没反应）：
   -- V 自身也落在 43 键兜底池里（v1「任意键开始」），exitToMenu 把 guideStage 置 0 之后，
   -- 同一个按键事件继续派发给兜底监听 ⇒ 刚建好的标题页立刻被 startIfWaiting 吃掉。
   -- 双保险：① mapped 表排除 22（兜底循环不再注册它）② 同帧消费标记让兜底让位。
-  listen('KeyboardCraftspersonKey22Down', function() SETTLE_ACT.backHome() end)
-  listen('KeyboardCharacterSkill3KeyDown', function()       -- R 重开（键位表态也允许）
+  local function actRestart()                              -- R 重开（键位表态也允许）
     if helpOpen then closeHelp() return end
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
@@ -6197,9 +5019,9 @@ function OnStart()
     -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
     local okRelayout, errRelayout = pcall(layout, W, H)
     if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
-  end)
+  end
   -- Q：结算明细（结算态才有意义）。明细走左栏 hint（棋盘外，不会被实例格子盖住）
-  listen('KeyboardCharacterSkill2KeyDown', function()
+  local function actSettleQ()
     startIfWaiting()
     if not (g.gameOver or MODE_OVER) then return end
     -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
@@ -6213,23 +5035,21 @@ function OnStart()
     local detail = '等级 ' .. g.level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
       .. '　消行率 ' .. rate .. '%　最高连击 ' .. g.maxCombo
     if g.settleOpen then
-      if g.settleReady then
-        setText(g.settleExtra, detail)
-        tryCall(g.settleExtra, 'SetVisible', true)
+      if SETTLEV.live then
+        SETTLEV.detail(detail, true)
       else
         setText(hint, '本局落块 ' .. g.pieceCount .. '　消行 ' .. g.lines .. '　最高 ' .. bestScore)
       end
       print('settle detail on')
     else
-      if g.settleReady then
-        setText(g.settleExtra, '')
-        tryCall(g.settleExtra, 'SetVisible', false)
+      if SETTLEV.live then
+        SETTLEV.detail('', false)
       else
         setText(hint, '')
       end
       print('settle detail off')
     end
-  end)
+  end
   -- ===== v2.8 ④：结算三动作（键监听与鼠标热区共用）=====
   SETTLE_ACT.restart = function()   -- = R 键体（重开/回菜单按模式）
     startIfWaiting()
@@ -6268,18 +5088,17 @@ function OnStart()
     if g.pieceCount > 0 then rate = math.floor(g.lines * 100 / g.pieceCount) end
     local detail = '等级 ' .. g.level .. '　用时 ' .. mins .. ':' .. string.format('%02d', secs)
       .. '　消行率 ' .. rate .. '%　最高连击 ' .. g.maxCombo
+    -- v6.2：明细写进 view_settle 的旁白行（settleNote）；结算屏不在场才退回左栏 hint
     if g.settleOpen then
-      if g.settleReady then
-        setText(g.settleExtra, detail)
-        tryCall(g.settleExtra, 'SetVisible', true)
+      if SETTLEV.live then
+        SETTLEV.detail(detail, true)
       else
         setText(hint, '本局落块 ' .. g.pieceCount .. '　消行 ' .. g.lines .. '　最高 ' .. bestScore)
       end
       print('settle detail on')
     else
-      if g.settleReady then
-        setText(g.settleExtra, '')
-        tryCall(g.settleExtra, 'SetVisible', false)
+      if SETTLEV.live then
+        SETTLEV.detail('', false)
       else
         setText(hint, '')
       end
@@ -6296,31 +5115,26 @@ function OnStart()
     keyConsumedFrame = frameSeq
     if helpOpen then closeHelp() else toggleHelp() end
   end
-  listen('KeyboardCraftspersonKey15Down', onHelpKey)
-  listen('KeyboardCharacterSkill1KeyDown', onHelpKey)
   -- 鼠标/触屏：标题页常驻的「H 规则说明」热区（cursor 实例，PC 也可点）
-  -- 由 buildMenuCards 里的 MS.helpZone 建；回调在 hit 段统一注册（见下 hits 段）
+  -- 由标题屏描述（view_title 的 menuHintZone）出控件，回调在 TITLEV.opts 的 onHelp 里注册
   -- T：调试填满最底两行（不消行）。消行必须走真实路径——下一次锁定（硬降/落地）时
   -- 由 doLock -> clearLines 处理，用例 04 因此覆盖的是真实消行链路而不是调试旁路。
-  listen('KeyboardCharacterSkill4KeyDown', act('KeyboardCharacterSkill4KeyDown', function()
-    for rr = ROWS - 1, ROWS do
-      for c = 1, COLS do g.board[rr][c] = CFG.COL_BLUE end
-    end
-    print('debug-fill')
-    renderAll()
-    renderHud()
-  end))
+  local function actDebugFill()
+    act('KeyboardCharacterSkill4KeyDown', function()
+      for rr = ROWS - 1, ROWS do
+        for c = 1, COLS do g.board[rr][c] = CFG.COL_BLUE end
+      end
+      print('debug-fill')
+      renderAll()
+      renderHud()
+    end)()
+  end
 
   -- ===== v4.0 设备适配接线（移动端按钮 / 手柄 / 焦点导航）=====
   -- 动作派发一律走键盘同一条链（act(key, fn) + doPlay）：于是"帮助页开着先关页""入场态按键
   -- 既开局也执行动作""MODE_OVER 冻结输入""接管中按键交还"这些语义自动一致，不用重写第二套。
-  local PHONE_KEY = {
-    left = 'KeyboardMoveLeftKeyDown', right = 'KeyboardMoveRightKeyDown',
-    rot = 'KeyboardMoveForwardKeyDown', soft = 'KeyboardMoveBackwardKeyDown',
-    hard = 'KeyboardJumpKeyDown', hold = 'KeyboardCraftspersonKey14Down',
-  }
-  UI4.runAct = function(action)
-    local key = PHONE_KEY[action]
+  UI4.runAct = function(action)                 -- 手机按钮冒充的键名：真源在 input_map.M.PHONE
+    local key = INPUT_M.PHONE[action]
     if not key then return end
     act(key, function() doPlay(action, key) end)()
   end
@@ -6360,7 +5174,7 @@ function OnStart()
     if UI4.menuMode() and SETTLE_ACT.restart then SETTLE_ACT.restart() end
   end
   pcall(UI4.build, isMobile)         -- 移动端 6 键 + 说明键（客户端实例层）
-  pcall(UI4.padBind, listen)         -- 手柄 24 条 Controller 事件（探针 + 映射）
+  -- 手柄 24 条 Controller 事件（14 映射 + 10 探针）已并入 INPUT:bindAll（见文件末尾派发段）
   print('v4 device mobile=' .. tostring(isMobile) .. ' pad=' .. tostring(UI4.isPad)
     .. ' phone=' .. #(UI4.btns or {}))
   -- ===== v4.0 ③ 角色技能：状态机 + Z/U/Y 键 =====
@@ -6382,10 +5196,8 @@ function OnStart()
   -- 第二次按 Z 撞 CD，日志里没有 skill ai end，接管被 playerTouched 打断了）。
   -- v6：记录技能键的按住秒数（刻晴「长按·跨地形」判 ≥0.35s）
   FN.skillKeyHoldSec = 0
-  local function skillKeyUpWatch(name)
-    listen(name, function() FN.skillKeyHoldSec = 0 end)
-  end
-  local function skillKey(fn, keyName)
+  -- 第二参数是**动作名**（不是键名）：键位真源在 input_map，这里只留"同一动作再按一次可关闭"的判断
+  local function skillKey(fn, mark)
     return function()
       FN.skillKeyHoldSec = tonumber(FN.skillKeyHoldSec) or 0
       if helpOpen then closeHelp() return end
@@ -6393,18 +5205,18 @@ function OnStart()
       -- 之前 skillKey 不看 ROSTER.on、act() 又把所有键吞掉 ⇒ 只能鼠标点「合上」，
       -- 键盘玩家直接**卡在角色页里出不来**（真机日志：连续 30+ 条 key blocked by overlay，零条 roster close）。
       if ROSTER and ROSTER.on then
-        if keyName == 'KeyboardCraftspersonKey16Down' then
+        if mark == 'roster' then
           keyConsumedFrame = frameSeq
           if FN.rosterToggle then FN.rosterToggle() end
         else
-          print('key blocked by overlay ' .. tostring(keyName))
+          print('key blocked by overlay ' .. tostring(mark))
         end
         return
       end
       startIfWaiting()
       -- 角色页/说明页**不要求** guideStage==1：它们从标题页就能开，也就必须能关
       if guideStage ~= 1 or MODE_OVER or (g and g.gameOver) then
-        if keyName == 'KeyboardCraftspersonKey16Down' and FN.rosterToggle then FN.rosterToggle() end
+        if mark == 'roster' and FN.rosterToggle then FN.rosterToggle() end
         return
       end
       fn()
@@ -6416,30 +5228,30 @@ function OnStart()
   local function skillFrontName()
     return (FN.skillRoleOf and FN.skillRoleOf(1)) or 'nahida'
   end
-  listen('KeyboardCraftspersonKey12Down', function()
+  local function actSkill1Down()
     skillDownT = (g and g.elapsed) or 0
     if skillFrontName() ~= 'keqing' then
       skillKey(function() FN.skillCast(1) end)()
     end
-  end)
-  listen('KeyboardCraftspersonKey12Up', function()
+  end
+  local function actSkill1Up()
     if skillFrontName() == 'keqing' then
       FN.skillKeyHoldSec = math.max(0, ((g and g.elapsed) or 0) - skillDownT)
       skillKey(function() FN.skillCast(1) end)()
     end
-  end)
-  listen('KeyboardCraftspersonKey11Down', skillKey(function() FN.skillCast(2) end, 'KeyboardCraftspersonKey11Down'))
-  listen('KeyboardCraftspersonKey13Down', skillKey(function()
+  end
+  local function actSkill2() skillKey(function() FN.skillCast(2) end, 'skill2')() end
+  local function actSkillSwitch() skillKey(function()
     -- 模块没有 switchRole：state.active 是 party 的 1-based 下标，翻一格即可（一局最多 2 人 ⇒ 1↔2）
     if not (SK and SK.party and #SK.party > 0) then return end
     local n = #SK.party
     SK.active = ((SK.active or 1) % n) + 1
     FN.skillHud()
     print('skill switch ok=true active=' .. tostring(SK.active) .. ' role=' .. tostring(SK.party[SK.active]))
-  end))
-  listen('KeyboardCraftspersonKey16Down', skillKey(function() FN.rosterToggle() end, 'KeyboardCraftspersonKey16Down'))
+  end)() end
+  local function actRoster() skillKey(function() FN.rosterToggle() end, 'roster')() end
   -- 调试：Key30 = 解锁全部角色（只给用例/开发用；真机玩家拿不到这张键位表说明）
-  listen('KeyboardCraftspersonKey30Down', skillKey(function()
+  local function actDebugUnlock() skillKey(function()
     if not (SK and SKILLS) then return end
     for _, role in ipairs(SK.roles or {}) do
       if SK.unlocked[role] ~= true then
@@ -6456,19 +5268,11 @@ function OnStart()
     SK.active = 1
     print('skill debug unlock all party=' .. tostring(#(SK.party or {}))
       .. ' active=' .. tostring(SK.party[1] or '-'))
-  end))
+  end)() end
 
-  -- 入场态兜底：43 个可编程键位里凡是没被上面映射的，都只做"开始游戏"这一件事
-  -- T6：1-4=标题屏模式选择键（Digit1-4，先于本兜底注册）——排除，防兜底抢先以 casual 开局吃掉模式选择
-  -- v2.7：15(H)/22(V) 也必须排除——它们各有真动作（说明页 / 回主页），落进兜底会「同一个键既回主页又开局」
-  -- （用户反馈②③的根因；见 keyConsumedFrame 注释）。表由「已绑定动作」派生，别只加数字不写理由。
-  local mapped = {
-    [1] = true, [2] = true, [3] = true, [4] = true,   -- Digit1-4 = 模式选择
-    [15] = true,                                      -- H = 规则说明页（CraftspersonKey15='KeyH'）
-    [22] = true,                                      -- V = 结算后回主页（CraftspersonKey22='KeyV'）
-    [36] = true, [37] = true, [38] = true, [39] = true, -- ↑↓←→ = 旋转/软降/移动
-  }
-  local anyKeyStart = function()
+  -- 入场态兜底：43 个可编程键位里凡是没被动作表认领的，都只做"开始游戏"这一件事。
+  -- v6.1：43 次 listen 与排除表 mapped 已退役，兜底池由 input_map.fallbackPool() 派生
+  local function anyKeyStart()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
     if guideStage == 3 and GK.phase == 'keys' then
@@ -6487,10 +5291,68 @@ function OnStart()
       end
     end
   end
-  for i = 1, 43 do
-    if not mapped[i] then
-      listen('KeyboardCraftspersonKey' .. i .. 'Down', anyKeyStart)
+
+  -- ===== v6.1 输入单源：动作表在 input_map.lua，这里只留一张「动作 → 现有执行体」派发表 =====
+  -- 收表前：90 次 AddKeyEventListener / 84 个键 / 其中 6 个键注册两次（谁先注册谁先派发，
+  -- 输入类 bug 因此不可复现）。收表后：84 次 / 84 个键 / 0 重复；改键位只动 input_map.lua。
+  -- 返回值 true = 已消费（栈式分发约定）；INPUT:dispatch 还会先问栈顶（说明页/结算等场景可压栈）。
+  local INPUT
+  local function dispatch(action, keyName, phase)
+    -- 手柄：先打 tests/48 的锚 `pad ev <键> act=<动作>`（未映射的探针键只有键名）
+    if keyName:match('^Controller') then
+      local shown = (action == 'confirm') and 'ok' or action   -- 保持既有日志词（PAD.KEYS 用的是 ok）
+      print('pad ev ' .. keyName .. ((action ~= 'probe') and (' act=' .. shown) or ''))
+      if action == 'probe' then return true end
+      if UI4.padAct then UI4.padAct(shown, keyName) end
+      return true
     end
+    -- 玩法六动作（Down 走 act 链；Up 只清 DAS 方向）
+    if action == 'left' or action == 'right' or action == 'rot'
+      or action == 'soft' or action == 'hard' or action == 'hold' then
+      if phase == 'up' then
+        local dk = keyName:gsub('Up$', 'Down')
+        g = routePlayer(dk)   -- 事件回调必须先路由（ai-battle 下 g 会被 OnUpdate 留成 G[2]）
+        if action == 'left' and g.das.dir == -1 then g.das.dir = 0 end
+        if action == 'right' and g.das.dir == 1 then g.das.dir = 0 end
+        return true
+      end
+      act(keyName, function() doPlay(action, keyName) end)()
+      return true
+    end
+    local modeN = tonumber(action:match('^mode(%d)$') or '')
+    if modeN then
+      if keyConsumedFrame == frameSeq then return true end
+      menuSelectMode(modeN)
+      return true
+    end
+    if action == 'level' then actLevel() return true end
+    if action == 'back' then SETTLE_ACT.backHome() return true end
+    if action == 'restart' then actRestart() return true end
+    if action == 'settle' then actSettleQ() return true end
+    if action == 'help' then onHelpKey() return true end
+    if action == 'debugFill' then actDebugFill() return true end
+    if action == 'skill1' then
+      if phase == 'up' then actSkill1Up() else actSkill1Down() end
+      return true
+    end
+    if action == 'skill2' then actSkill2() return true end
+    if action == 'skillSwitch' then actSkillSwitch() return true end
+    if action == 'roster' then actRoster() return true end
+    if action == 'debugUnlock' then actDebugUnlock() return true end
+    if action == 'anyKey' then anyKeyStart() return true end
+    return false
+  end
+
+  if INPUT_M and PT then
+    INPUT = INPUT_M.new({ platform = PT, log = function(m) print(m) end })
+    INPUT:bindAll(dispatch, { padMoveKeys = false })   -- MoveLeft/MoveRight 是死映射，启用需同步 tests/48
+    local nPad = 0
+    for _, k in ipairs(INPUT:boundKeys()) do
+      if k:match('^Controller') then nPad = nPad + 1 end
+    end
+    print('pad bind n=' .. nPad)     -- tests/48 契约：手柄 24 条（14 映射 + 10 探针）
+  else
+    print('input: 跳过表格注册（缺 input_map 或 platform）——本局将收不到按键')
   end
 
   -- 先开局：即使某个键名注册失败，棋盘与重力也应正常跑（入场态暂停重力）
@@ -6536,15 +5398,8 @@ FN.tickInstance = function(d)
   if g.gameOver then settleTick(d) end          -- 结算层四段动画（0→0.9s）
   if guideStage == 1 and not g.gameOver then g.elapsed = g.elapsed + d end
   -- T8 锁定延迟推进（玩家局）：重力触底后 0.5s 缓冲，期间移动/旋转已重置计时（见 moveBy/rotate）
-  if g.ld.t >= 0 and not g.gameOver then
-    g.ld.t = g.ld.t + d
-    if g.ld.t >= NUM.LD_DELAY then
-      g.ld.t = -1
-      if g.piece and collides(g.piece.cells, g.piece.x, g.piece.y + 1) then
-        doLock()          -- 缓冲到时且仍触底：锁定
-      end
-    end
-  end
+  -- v6：锁定延迟推进在 core_state.tickLockDelay（与下面的重力分开，保住"LD → DAS → 重力"的帧内顺序）
+  CORE.dispatch(g.core.tickLockDelay(g, d))
   -- T8 DAS/ARR（玩家局，只对按住的方向键生效；AI/手机热区不走这里）
   -- v2.6 根治「按一下走到底」：网页旧构建 keyup 转发丢失（或焦点转移吞 keyup）会让 dir 永不清零，
   -- 点按也触发完整 DAS+ARR 连走。时间上限（DAS_HOLD）取代 v2.1 的步数上限：ARR 激活累计 hold，
@@ -6565,23 +5420,9 @@ FN.tickInstance = function(d)
       end
     end
   end
-  g.acc = g.acc + d
-  local guard = 0
-  while g.acc >= STEP and guard < 8 do
-    g.acc = g.acc - STEP
-    guard = guard + 1
-    g.tickCount = g.tickCount + 1
-    g.pieceAge = (tonumber(g.pieceAge) or 0) + (CFG.STEP or (1 / 60))   -- v6：本块存活秒数（真实秒，每步加一步长）
-    -- 下落间隔随等级变化（SPEED_TICKS，docs §3）：level 已封顶 LEVEL_CAP，表项必存在
-    local perTicks = NUM.SPEED[g.level] or NUM.SPEED[NUM.LEVEL_CAP]
-    -- v6 甘雨「天地交泰」：冻结期内重力间隔 ×1.20（旧实现只把倍率写进角色页字符串，从没生效）
-    if SK and SK.freezeT and tonumber(SK.freezeT) > 0 and SK.gravityMult then
-      perTicks = math.max(1, math.floor(perTicks * (tonumber(SK.gravityMult) or 1)))
-    end
-    if not g.gameOver and g.tickCount % perTicks == 0 then
-      stepDown(false)  -- 重力不加软降分；判负在 spawn -> showGameOver 里收口
-    end
-  end
+  -- v6：重力累加（acc/guard/tickCount/pieceAge/perTicks）在 core_state.tickGravity；
+  -- 甘雨「天地交泰」的重力倍率通过 spec.gravityMult 注入（冻结期内重力间隔 ×1.20）。
+  CORE.dispatch(g.core.tickGravity(g, d))
 end
 
 -- ===== v5.6 画布尺寸轮询（用户 2026-10-30 移动端一-1「背景没覆盖全部画面」的根因）=====
@@ -6687,10 +5528,10 @@ function OnUpdate(dt)
     if pendingMode then
       pendingT = pendingT + d
       local size = math.min(64, 26 + math.floor(pendingT * 90))
-      if MS.big then
-        if size ~= MS.pendingSize then      -- 展台标题实例演模式名（服务端横幅被墙压住）
-          MS.pendingSize = size
-          trySet(MS.big, 'fontSize', size)
+      if TITLEV.live then
+        if size ~= TITLEV.pendingSize then   -- 展台大字演模式名（服务端横幅被墙压住，只能走实例层）
+          TITLEV.pendingSize = size
+          TITLEV.R.write('menuBig', 'fontSize', size)   -- 只写字段，不重建
         end
       else
         trySet(topBanner, 'fontSize', size) -- 无展台兜底

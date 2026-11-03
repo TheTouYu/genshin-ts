@@ -1,155 +1,155 @@
 {
-  "format": "qxqy-autotest",
-  "version": 1,
-  "name": "16 Hold 暂存（G 键换块/同块二次无效/锁定后恢复/bag 不污染）",
-  "dt": 0.016666666666666666,
-  "canvasId": "mobile-16-9",
-  "events": [
-    {
-      "t": 0.2,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Down"
-    },
-    {
-      "t": 0.2,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Up"
-    },
-    {
-      "t": 0.45,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Down"
-    },
-    {
-      "t": 0.45,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Up"
-    },
-    {
-      "t": 0.7,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyDown"
-    },
-    {
-      "t": 0.7,
-      "kind": "key",
-      "typeName": "KeyboardJumpKeyUp"
-    },
-    {
-      "t": 0.95,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Down"
-    },
-    {
-      "t": 0.95,
-      "kind": "key",
-      "typeName": "KeyboardCraftspersonKey14Up"
-    }
-  ],
-  "asserts": [
-    {
-      "at": 0.3,
-      "kind": "tree",
-      "name": "hold1",
-      "exists": true
-    },
-    {
-      "at": 0.3,
-      "kind": "tree",
-      "name": "hold4",
-      "exists": true
-    },
-    {
-      "at": 0.3,
-      "kind": "log",
-      "contains": "hold in=L out=-",
-      "source": "client"
-    },
-    {
-      "at": 0.3,
-      "kind": "log",
-      "contains": "bag=1 piece=S x=4 y=1",
-      "source": "client"
-    },
-    {
-      "at": 0.3,
-      "kind": "control",
-      "name": "hold1",
-      "field": "imageColor",
-      "equals": -339810
-    },
-    {
-      "at": 0.3,
-      "kind": "control",
-      "name": "hold1",
-      "field": "anchoredPositionX",
-      "equals": -400
-    },
-    {
-      "at": 0.3,
-      "kind": "control",
-      "name": "hold1",
-      "field": "anchoredPositionY",
-      "equals": 180
-    },
-    {
-      "at": 0.3,
-      "kind": "control",
-      "name": "hold1",
-      "field": "sizeDeltaX",
-      "equals": 18
-    },
-    {
-      "at": 0.55,
-      "kind": "control",
-      "name": "hold1",
-      "field": "imageColor",
-      "equals": -339810
-    },
-    {
-      "at": 0.8,
-      "kind": "log",
-      "contains": "lock S cells=",
-      "source": "client"
-    },
-    {
-      "at": 0.8,
-      "kind": "log",
-      "contains": "bag=1 piece=T x=4 y=1",
-      "source": "client"
-    },
-    {
-      "at": 1.05,
-      "kind": "log",
-      "contains": "hold swap in=T out=L cur_drop=1",
-      "source": "client"
-    },
-    {
-      "at": 1.05,
-      "kind": "log",
-      "contains": "holdswap=1",
-      "source": "client"
-    },
-    {
-      "at": 1.05,
-      "kind": "control",
-      "name": "hold1",
-      "field": "imageColor",
-      "equals": -2774792
-    },
-    {
-      "at": 1.05,
-      "kind": "lua",
-      "source": "local logs = query.logs()\nlocal holds, natural = 0, {}\nfor _, line in ipairs(logs) do\n  if line:match('^hold in=') or line:match('^hold swap in=') or line:match('^hold forced') then holds = holds + 1 end\n  local b, p = line:match('^bag=(%d+) piece=(%u) x=%d+ y=%d+$')\n  if b then natural[#natural + 1] = p end\nend\nassert(holds == 2, 'holds=' .. holds)\nassert(table.concat(natural, ',') == 'L,S,T', 'natural=' .. table.concat(natural, ','))\nreturn true"
-    },
-    {
-      "at": 1.1,
-      "kind": "log",
-      "contains": "hold swap out_drop=1",
-      "source": "client"
-    }
-  ],
-  "audioExpect": [
-    50883
-  ]
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "16 Hold 暂存（G 键换块/同块二次无效/锁定后恢复/bag 不污染）",
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Down"
+  },
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Up"
+  },
+  {
+   "t": 0.45,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Down"
+  },
+  {
+   "t": 0.45,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Up"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.7,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.95,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Down"
+  },
+  {
+   "t": 0.95,
+   "kind": "key",
+   "typeName": "KeyboardCraftspersonKey14Up"
+  }
+ ],
+ "asserts": [
+  {
+   "at": 0.3,
+   "kind": "tree",
+   "name": "hold1",
+   "exists": true
+  },
+  {
+   "at": 0.3,
+   "kind": "tree",
+   "name": "hold4",
+   "exists": true
+  },
+  {
+   "at": 0.3,
+   "kind": "log",
+   "contains": "hold in=L out=-",
+   "source": "client"
+  },
+  {
+   "at": 0.3,
+   "kind": "log",
+   "contains": "bag=1 piece=S x=4 y=1",
+   "source": "client"
+  },
+  {
+   "at": 0.3,
+   "kind": "control",
+   "name": "hold1",
+   "field": "imageColor",
+   "equals": -339810
+  },
+  {
+   "at": 0.3,
+   "kind": "control",
+   "name": "hold1",
+   "field": "anchoredPositionX",
+   "equals": -400
+  },
+  {
+   "at": 0.3,
+   "kind": "control",
+   "name": "hold1",
+   "field": "anchoredPositionY",
+   "equals": 48
+  },
+  {
+   "at": 0.3,
+   "kind": "control",
+   "name": "hold1",
+   "field": "sizeDeltaX",
+   "equals": 18
+  },
+  {
+   "at": 0.55,
+   "kind": "control",
+   "name": "hold1",
+   "field": "imageColor",
+   "equals": -339810
+  },
+  {
+   "at": 0.8,
+   "kind": "log",
+   "contains": "lock S cells=",
+   "source": "client"
+  },
+  {
+   "at": 0.8,
+   "kind": "log",
+   "contains": "bag=1 piece=T x=4 y=1",
+   "source": "client"
+  },
+  {
+   "at": 1.05,
+   "kind": "log",
+   "contains": "hold swap in=T out=L cur_drop=1",
+   "source": "client"
+  },
+  {
+   "at": 1.05,
+   "kind": "log",
+   "contains": "holdswap=1",
+   "source": "client"
+  },
+  {
+   "at": 1.05,
+   "kind": "control",
+   "name": "hold1",
+   "field": "imageColor",
+   "equals": -2774792
+  },
+  {
+   "at": 1.05,
+   "kind": "lua",
+   "source": "local logs = query.logs()\nlocal holds, natural = 0, {}\nfor _, line in ipairs(logs) do\n  if line:match('^hold in=') or line:match('^hold swap in=') or line:match('^hold forced') then holds = holds + 1 end\n  local b, p = line:match('^bag=(%d+) piece=(%u) x=%d+ y=%d+$')\n  if b then natural[#natural + 1] = p end\nend\nassert(holds == 2, 'holds=' .. holds)\nassert(table.concat(natural, ',') == 'L,S,T', 'natural=' .. table.concat(natural, ','))\nreturn true"
+  },
+  {
+   "at": 1.1,
+   "kind": "log",
+   "contains": "hold swap out_drop=1",
+   "source": "client"
+  }
+ ],
+ "audioExpect": [
+  50883
+ ]
 }
