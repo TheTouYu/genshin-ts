@@ -2652,11 +2652,15 @@ showPersistTip = function()
   --   coop       = P1（W/G）｜P2（←→/↓/X）（共盘）
   -- v4.0 ②：**移动端不能贴键盘键位**（用户 2026-10-29：「移动端没法操作」——底栏还在教键盘）。
   -- 触屏文案跟新的 7 键丝印走（左 ◀ ▶ 旋转 / 右 锁定 缓降 暂存 / 右上 说明），文案见 docs/copy-v4.md §5。
-  if IS_MOBILE and MODE == 'casual' then
-    PERSIST_TIP = '左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明'
-    trySet(botBanner, 'fontSize', 18)
-    trySet(botBanner, 'fontColor', THEME.textSub)
-    setText(botBanner, PERSIST_TIP)
+  -- 🔴 v6.18（用户 2026-11-03 图一：手机 AI 对抗中缝冒出「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 ·
+  -- G 暂存 · H 说明」）：旧判据是 `IS_MOBILE and MODE == 'casual'`——**只有休闲走触屏文案**，
+  -- 其余三个模式在手机上一律落到下面的 PC 键位串（手机没有空格/G/H 键，这串字是指不到的）。
+  -- 用户的裁决更彻底：「移动端这个简要的按键介绍其实不需要，因为移动端操控是用按钮点击的」
+  -- ⇒ 手机端**不显示任何键位教学**（按钮本身就是说明），四条模式统一按设备分流，
+  -- 不再让"模式"参与这条判据。PERSIST_TIP 置空 ⇒ 横幅恢复时也写空，不会漏一行旧文案。
+  if IS_MOBILE then
+    PERSIST_TIP = ''
+    setText(botBanner, '')
     return
   end
   PERSIST_TIP = (MODE == 'pvp')

@@ -1,0 +1,21 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-4-3",
+ "name": "83 v6.18 手机两端一致：消行横幅必须在底部带（与休闲同款），不得飘在棋盘中间的中缝",
+ "events": [
+  {"t": 0.3,  "kind": "key", "typeName": "KeyboardCraftspersonKey2Down"},
+  {"t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey2Up"},
+  {"t": 1.0,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 1.02, "kind": "key", "typeName": "KeyboardJumpKeyUp"},
+  {"t": 1.4,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 1.42, "kind": "key", "typeName": "KeyboardJumpKeyUp"},
+  {"t": 5.0,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 5.02, "kind": "key", "typeName": "KeyboardJumpKeyUp"}
+ ],
+ "asserts": [
+  {"at": 6.0, "kind": "log", "contains": "guide start", "source": "client"},
+  {"at": 6.0, "kind": "lua", "source": "local function t(n) local c=query.control(n) return c end local b=t('botBanner') assert(b, 'botBanner 不存在') local W,H=1280,960 local y=H-(b.anchoredPositionY+H/2) local bottom=H/2-b.anchoredPositionY local wide=(b.sizeDeltaX or 0) assert(wide>=600, '横幅太窄，还是中缝那份：'..wide) assert(bottom>780, '横幅不在底部带（底沿='..bottom..'，棋盘下沿 779）') return true"}
+ ]
+}

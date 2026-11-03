@@ -1,0 +1,21 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "dt": 0.016666666666666666,
+ "canvasId": "mobile-4-3",
+ "name": "82 v6.18 手机 AI 对抗局内：中缝不得出现键盘键位串（手机只有触屏按钮）",
+ "events": [
+  {"t": 0.3,  "kind": "key", "typeName": "KeyboardCraftspersonKey2Down"},
+  {"t": 0.32, "kind": "key", "typeName": "KeyboardCraftspersonKey2Up"},
+  {"t": 1.0,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 1.02, "kind": "key", "typeName": "KeyboardJumpKeyUp"},
+  {"t": 1.4,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 1.42, "kind": "key", "typeName": "KeyboardJumpKeyUp"},
+  {"t": 5.0,  "kind": "key", "typeName": "KeyboardJumpKeyDown"},
+  {"t": 5.02, "kind": "key", "typeName": "KeyboardJumpKeyUp"}
+ ],
+ "asserts": [
+  {"at": 6.0, "kind": "log", "contains": "guide start", "source": "client"},
+  {"at": 6.0, "kind": "lua", "source": "local function t(n) local c=query.control(n) return (c and c.text) or '' end local s=t('botBanner') assert(not s:find('空格',1,true), '手机中缝出现了键盘键位串：'..s) assert(not s:find('H 说明',1,true), '手机中缝出现了 H 说明（手机没有 H 键）：'..s) assert(not s:find('G 暂存',1,true), '手机中缝出现了 G 暂存：'..s) return true"}
+ ]
+}

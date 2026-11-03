@@ -38,14 +38,14 @@
    "kind": "control",
    "name": "botBanner",
    "field": "anchoredPositionY",
-   "equals": -220
+   "equals": -298
   },
   {
    "at": 2.0,
    "kind": "control",
    "name": "botBanner",
    "field": "sizeDeltaX",
-   "equals": 168
+   "equals": 880
   },
   {
    "at": 2.0,

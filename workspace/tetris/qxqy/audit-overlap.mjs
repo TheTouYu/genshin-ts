@@ -12,7 +12,10 @@ const save = JSON.parse(readFileSync(root + '/tetris.save.json', 'utf8'))
 const flat = (ns, out = []) => { for (const n of ns || []) { out.push(n); flat(n.children, out) } return out }
 
 const TEXTS = ['ihud', 'ibest', 'ihint', 'ihudNext', 'ibotBanner', 'ikeyA', 'ikeyB']
-const canvases = process.argv.slice(2).length ? process.argv.slice(2) : ['pc-16-9', 'mobile-16-9', 'mobile-19.5-9']
+// 4:3 必须在内：用户 2026-11-03 的截图就是 1280x960，而 v6.17 的矩阵只覆盖 16:9 / 19.5:9，
+// 于是「中缝横幅」这个只在 4:3 才明显错位的缺陷逃过了审计。
+const canvases = process.argv.slice(2).length ? process.argv.slice(2)
+  : ['pc-16-9', 'pc-21-9', 'mobile-16-9', 'mobile-19.5-9', 'mobile-4-3']
 
 let worst = 0
 for (const canvasId of canvases) {
