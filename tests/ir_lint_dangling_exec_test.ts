@@ -101,4 +101,34 @@ function node(id: number, type = 'print_string'): any {
   assert.equal(diags.filter((d) => d.code === 'GSTS-DANGLING-EXEC-NODE').length, 1, 'dangling detection still works')
 }
 
-console.log('ir_lint_dangling_exec_test: PASS (6 scenarios)')
+// ===== 场景 7：顺序 if 链尾汇聚 + 多入边节点阻隔 → 合法 join 不告警（2026-11-14 回归） =====
+// 足球 kit-loop key1-5 踢球链实证形状：外层分支 H 的两臂各有顺序 if 链，
+// 链尾语句与内层 if 真体尾都汇聚到共享后续 TAIL（同 source_index=0、来源不同）。
+// 旧 branchAncestors 在多入边节点（IMP ← K1.si1 + B1.si0）处终止向上 ⇒ 证明失败误报。
+// BFS UNION 走法应找到公共分支祖先 H ⇒ 互斥汇聚，0 告警。
+{
+  const nodes = [
+    node(1, 'double_branch'),   // H（外层互斥分支）
+    node(2, 'double_branch'),   // K1（真臂内顺序 if）
+    node(3, 'print_string'),    // B1（K1 真体）
+    node(4, 'print_string'),    // IMP（K1 链尾语句，多入边汇聚：K1.si1 + B1.si0）
+    node(5, 'double_branch'),   // K1p（假臂内 if）
+    node(6, 'print_string'),    // B2（K1p 真体）
+    node(7, 'print_string')     // TAIL（共享后续，被警告的形状）
+  ]
+  const edges = edgesOf([
+    [1, [{ node_id: 2, source_index: 0 }, { node_id: 5, source_index: 1 }]], // H: true→K1, false→K1p
+    [2, [{ node_id: 3, source_index: 0 }, { node_id: 4, source_index: 1 }]], // K1: true→B1, false→IMP
+    [3, [{ node_id: 4, source_index: 0 }]],                                  // B1 → IMP
+    [4, [{ node_id: 7, source_index: 0 }]],                                  // IMP → TAIL（si0 来源一）
+    [5, [{ node_id: 6, source_index: 0 }, { node_id: 7, source_index: 1 }]], // K1p: true→B2, false→TAIL
+    [6, [{ node_id: 7, source_index: 0 }]]                                   // B2 → TAIL（si0 来源二）
+  ])
+  const diags = lintExecGraphForDangling(nodes, edges, { graphName: 'seq-if-chain-join-test' })
+  assert.equal(
+    diags.filter((d) => d.code === 'GSTS-DUPLICATE-EXEC-INPUT').length, 0,
+    'sequential if-chain convergence through multi-in nodes is a legal join (BFS union proves H)'
+  )
+}
+
+console.log('ir_lint_dangling_exec_test: PASS (7 scenarios)')

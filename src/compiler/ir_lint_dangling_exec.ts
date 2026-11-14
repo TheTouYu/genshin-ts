@@ -169,21 +169,33 @@ export function lintExecGraphForDangling(
       sources.set(from, (sources.get(from) ?? 0) + 1)
     }
   }
-  // 收集节点到根的所有分支祖先（递归向上，途经的分支节点集合）：
+  // 收集节点到根的所有分支祖先（BFS 完整可达性）：
   // 所有来源共享同一分支祖先 = 互斥汇聚（多级嵌套分支合法 join，引擎按分支互斥执行不重复。
   // 2026-09-01 增强：ball_state_transition 的 35/38 分别来自 toMotion 真/假分支（经 34/37），
-  //   公共分支祖先是 toMotion 的 double_branch(30)——原实现只查「最近分支」漏掉多级）
-  const branchAncestors = (nodeId: number, depth = 0, seen = new Set<number>()): Set<number> => {
+  //   公共分支祖先是 toMotion 的 double_branch(30)——原实现只查「最近分支」漏掉多级。
+  // 2026-11-14 增强：原实现两个缺陷让合法 join 误报——①多入边节点处直接终止向上
+  //   （顺序 if 链的链尾汇聚节点天然多入边，足球 kit-loop key1-5 踢球链 7 条误报实证）；
+  //   ②depth>12 + 跨分支共享 seen 在深图上截断可达性（1121 的祖先 269 因深度截断漏访）。
+  //   改为 BFS + 多入边 UNION 全部上游祖先：seen 防环即天然有界（≤ 节点数），无需深度上限；
+  //   祖先集只会比原实现大 ⇒ 只会减少 case② 误报；case①（同 from 双写）检测不受影响。
+  //   已知近似（与原实现一致）：不区分祖先的两臂——同臂共享祖先的来源原本也会被放过。
+  const branchAncestors = (nodeId: number): Set<number> => {
     const acc = new Set<number>()
-    if (depth > 12 || seen.has(nodeId)) return acc
-    seen.add(nodeId)
-    const ins = inEdgeByTarget.get(nodeId)
-    if (!ins || ins.length === 0) return acc
-    if (ins.length > 1) return acc // 多入边节点不能唯一归因
-    const from = ins[0].from
-    const fromType = nodeTypeById.get(from)
-    if (fromType === 'double_branch' || fromType === 'multiple_branches') acc.add(from)
-    for (const anc of branchAncestors(from, depth + 1, seen)) acc.add(anc)
+    const seen = new Set<number>([nodeId])
+    const queue: number[] = [nodeId]
+    while (queue.length > 0) {
+      const cur = queue.pop() as number
+      const ins = inEdgeByTarget.get(cur)
+      if (!ins) continue
+      for (const { from } of ins) {
+        const fromType = nodeTypeById.get(from)
+        if (fromType === 'double_branch' || fromType === 'multiple_branches') acc.add(from)
+        if (!seen.has(from)) {
+          seen.add(from)
+          queue.push(from)
+        }
+      }
+    }
     return acc
   }
   const isBranchJoin = (sources: Map<number, number>): boolean => {
