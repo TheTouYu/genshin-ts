@@ -154,7 +154,13 @@ const K5_SPIN = 14.0
 
 g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: any, f: any) => {
   const tick = chanIncr(f, SLOT_TICK)
-  const ballE = f.queryEntityByGuid(BALL_GUID)
+  // ⚠️ 性能（2026-11-14 真机定谳）：节点图的数据节点**没有缓存**——被 N 个下游消费就执行 N 次。
+  // 实测 node 9/96 的两个 queryEntityByGuid 每拍各被拉 14 次，getCustomVariable 57 次、
+  // create3dVector 48 次、querySkillVariable 44 次；总帧 1009 vs 唯一节点 592（重复 417 次）。
+  // 约 6600 帧/秒的执行量就是客户端卡顿的根。凡扇出 >1 的贵节点一律先物化到局部变量。
+  const ballEV = f.localVariable('entity')
+  ballEV.set(f.queryEntityByGuid(BALL_GUID))
+  const ballE = ballEV.value
 
   // ═════════════ 1. 参数：首拍从球实体读入技能变量（缺失/为 0 ⇒ 兜底常量）═════════════
   f.doubleBranch(
@@ -209,7 +215,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   f.doubleBranch(f.greaterThan(drRaw, 0.3), () => { dribR.set(drRaw) }, () => { dribR.set(DRIB_R_DEFAULT) })
 
   // ═════════════ 3. 输入：玩家位置（服务端每拍写 fbvx/fbvz；兜底读角色实体）══════════════
-  const carrierE = f.queryEntityByGuid(CARRIER_GUID)
+  // 同款物化：carrierE 原被 13 个 getCustomVariable 各拉一次 = 每拍查 13 次实体
+  const carrierEV = f.localVariable('entity')
+  carrierEV.set(f.queryEntityByGuid(CARRIER_GUID))
+  const carrierE = carrierEV.value
   const srvX = f.getCustomVariable(carrierE, 'fbvx').asType('float')
   const srvZ = f.getCustomVariable(carrierE, 'fbvz').asType('float')
   const charE = f.getCustomVariable(carrierE, 'fbc_e').asType('entity')
@@ -289,7 +298,11 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
   const seqStd = f.getCustomVariable(carrierE, 'fb_seq').asType('int')
   const drv = f.localVariable('int')
   drv.set(seqStd)
-  const keyRaw = f.getCustomVariable(carrierE, 'fb_key').asType('int')
+  // ⚠️ 性能物化（同上）：keyRaw 被 10 个 doubleBranch 比较 + 多处消费 ⇒ 直接内联会执行 10 次
+  //    跨实体 getCustomVariable（实测日志每拍 10 次）。必须先落局部变量再读。
+  const keyV = f.localVariable('int')
+  keyV.set(f.getCustomVariable(carrierE, 'fb_key').asType('int'))
+  const keyRaw = keyV.value
   // ⚠️ 多消费点必须物化：kickNow 在「动作分支 / 踢球自旋 / 拦截 / 带球助力」四处被消费，
   //   而本图会在动作分支里写回 S_LASTSEQ。数据节点是**执行到才求值**的——若 kickNow 直接
   //   引用 `querySkillVariableValue(S_LASTSEQ)`，后三处会读到刚写入的新值 ⇒ 恒 false。
