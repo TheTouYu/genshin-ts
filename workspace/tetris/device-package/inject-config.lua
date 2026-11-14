@@ -329,7 +329,7 @@ local STYLE_A = {
     gold = C(255, 168, 216, 238), goldDeep = C(255, 47, 110, 143),
     bezel = C(255, 191, 224, 238), tick = C(200, 120, 176, 204),
     btnBg = C(226, 232, 246, 253), scrim = C(236, 246, 253, 255), helpBg = C(255, 246, 251, 255),
-    shadow = C(30, 40, 96, 128), hint = C(255, 96, 126, 152),
+    shadow = C(30, 40, 96, 128), hint = C(255, 72, 96, 128),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = A_ICE, colorDeep = A_DEEP },
@@ -369,7 +369,7 @@ local STYLE_B = {
     gold = C(255, 246, 226, 150), goldDeep = C(255, 176, 130, 46),
     bezel = C(255, 214, 226, 190), tick = C(200, 150, 190, 132),
     btnBg = C(226, 240, 250, 235), scrim = C(238, 249, 253, 242), helpBg = C(255, 250, 253, 245),
-    shadow = C(30, 62, 98, 66), hint = C(255, 108, 136, 112),
+    shadow = C(30, 62, 98, 66), hint = C(255, 82, 108, 88),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = B_GREEN, colorDeep = B_DEEP },
@@ -411,7 +411,7 @@ local STYLE_C = {
     gold = C(255, 226, 198, 122), goldDeep = C(255, 176, 138, 60),
     bezel = C(255, 222, 210, 240), tick = C(200, 160, 146, 208),
     btnBg = C(230, 238, 233, 252), scrim = C(240, 243, 247, 255), helpBg = C(255, 249, 247, 255),
-    shadow = C(30, 60, 50, 120), hint = C(255, 112, 104, 152),
+    shadow = C(30, 60, 50, 120), hint = C(255, 86, 80, 128),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = C(255, 140, 190, 214), colorDeep = C(255, 52, 118, 146) },
@@ -454,7 +454,7 @@ local STYLE_D = {
     gold = C(255, 232, 200, 138), goldDeep = C(255, 185, 138, 60),
     bezel = C(255, 226, 213, 184), tick = C(210, 215, 190, 130),
     btnBg = C(230, 234, 245, 252), scrim = C(234, 246, 251, 255), helpBg = C(255, 249, 253, 255),
-    shadow = C(26, 110, 140, 176), hint = C(255, 93, 118, 148),
+    shadow = C(26, 110, 140, 176), hint = C(255, 70, 94, 126),
   },
   modes = {
     { key = '1', name = '休 闲', desc = 'AI 代打陪练 · 随时接管', color = D_LEAF, colorDeep = C(255, 63, 139, 60) },
@@ -752,6 +752,13 @@ NUM.UI_COL = {
   panel = THEME.panel, dim = C(160, 30, 46, 66),
 }
 
+-- ── 技能 UI 开关（用户 2026-11-02：「这两块是技能部分，先移走，我会指导你重新设计 ui 和逻辑」）──
+-- false = 把「角色名卡 + 能量条 + 技能1/技能2/换人」整组挪出画布（PC 与移动端一起）：
+--   描述层 uilua planScreen 会清掉 p.skill 与 skill1/skill2/switch 槽位 ⇒ 全部 parked。
+-- **游戏逻辑不删**：键盘 Z/U/Y 施放、技能状态机、音效文案都照常跑（tests/63 仍断言技能施放）。
+-- 重新设计时改回 true 再改 plan 里的几何即可，不用去翻一堆调用点。
+NUM.SKILL_UI = false
+
 -- ── 移动端操作控件（9 键；slot = 语义位，几何由 ui.lua 按屏现算）────────────────
 -- slot：L1..L3 左手簇（离拇指最近的先 L1）· R1..R3 右手簇 · M1..M3 中下技能行
 -- 为什么不再写 col/row：同一套 slot 在 11 种屏/画布组合里要落到完全不同的簇形（标题页不出键、
@@ -786,7 +793,10 @@ NUM.PHONE = {
   actions = {
     { id = 'again', label = '再来一局', act = 'restart', key = 'R', rank = 1 },
     { id = 'home',  label = '回主页',   act = 'home',    key = 'V', rank = 2 },
-    { id = 'detail', label = '明细',    act = 'detail',  key = 'Q', rank = 3 },
+    -- v6.11（用户 2026-11-02 图二「这个的文字应该是结算」）：手机端第三颗键从「明细」改为「结算」。
+    -- 注意 PC 端键位提示仍是 `[Q] 结算明细`（config.SETTLE_OPT.items + tests/37 逐字契约），
+    -- 两者是**不同通道**：PC 是键位提示文字，手机是胶囊上的按钮标签，不要一起改。
+    { id = 'detail', label = '结算',    act = 'detail',  key = 'Q', rank = 3 },
   },
 }
 
@@ -884,5 +894,52 @@ M.COL_RED, M.COL_BLUE, M.COL_ORANGE, M.COL_BG, M.COL_GRAY =
 -- 真机日志瘦身（2026-10-31）：`demo act` / `fall y=` 属高频路径（25433 行里占 9465 行），
 -- 默认不打；需要复现 AI 节奏或下落轨迹时置 true。
 M.VERBOSE = true   -- 先保回归绿（用例断言依赖这些行）；真机需要瘦身时再关
+
+-- ── 设备文案单源（v6.16）────────────────────────────────────────────────────
+-- 用户 2026-11-02 图三：「PC 有提示、移动端没有，逻辑和文字设计代码应该共享」。
+-- 以前同一句文案写成 `IS_MOBILE and '手机版' or 'PC 版'` 三元表达式散在各处，
+-- 每次只有一端被试到，另一端就悄悄漂移（或干脆像双盘 hint 那样被布局藏掉）。
+-- 规矩：**文案只写在这张表里**（键 = 语义位，不是控件名），调用点一律查表不写三元。
+-- 缺省回落 pc（PC 是本工程的完整形态）。
+M.COPY_DEV = {
+  -- 标题页底栏提示（stage0）
+  title = {
+    pc = '按 1-4 选模式 · 任意键=休闲 · H 游戏说明',
+    mobile = '点卡片选模式 · 右上角：角色 · 说明',
+  },
+  -- 双盘准备期：底部横幅（手机在这里承接「准备开始」，因为两盘净空放不下长句）
+  ready = {
+    pc = '',
+    mobile = '准备开始 · 按任意键',
+  },
+  -- 双盘准备期的 keyA / keyB（玩家键位说明 / 对家状态）
+  readyKeys = {
+    pc = '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存',
+    mobile = '点击盘面开始',
+  },
+  readyPeer = {
+    pc = 'AI 已就绪 · 与你同规则对战',
+    mobile = 'AI 已就绪',
+  },
+  -- 准备期中缝提示（手机没有键盘，「H 帮助」在手机上是指不到的键）
+  readyHintAI = {
+    pc = '按任意键开始 · H 帮助',
+    mobile = '点屏幕开始 · 右上角：说明',
+  },
+  readyHintDual = {
+    pc = '双方按任意键准备 · H 帮助',
+    mobile = '点屏幕开始 · 右上角：说明',
+  },
+  -- 准备期底栏技能键位（手机是触屏施放，不列键盘键）
+  readySkillBar = {
+    pc = 'Z 技能1 · U 技能2 · Y 换台前 · H 说明',
+    mobile = '',
+  },
+}
+M.copyOf = function(key, mobile)
+  local row = M.COPY_DEV[key]
+  if not row then return '' end
+  return (mobile and row.mobile) or row.pc or ''
+end
 
 return M

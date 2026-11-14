@@ -86,5 +86,27 @@ ok(img.imageId == 100002, 'P6.1 circle 图元落 imageId=100002', img.imageId)
 P.setRotation(img, 15)
 ok(img.rotZ == 15, 'P6.2 旋转落 rotZ', img.rotZ)
 
+
+-- ===== P7 真机字体：text 字段读不到时，文字模板不得被判死 =====
+-- 2026-11-14 真机日志（22-19-07_3472）铁证三条：
+--   rec45 tpl stext=1073742202 cand=8                       ← 探测通过（probeTextRaw 只要求"能实例化"）
+--   rec50 platform fail inst:stext :: all candidates rejected ← 实例化全灭
+--   rec47 bg pool n=0                                       ← 背景池 0 个（全部依赖 stext）
+-- 两个判据不一致：probe 用「能建就行」，accept 用「cap(ctl).text == true」。
+-- 真机 textbox 的 text 读不出来（pcall 静默吞）⇒ text=false ⇒ 整屏无文字。
+-- 契约：stext 的判据要先看 textbox 的**结构特征**（fontSize / textLayout 这类独有字段），
+-- 只有全读不到才退回 text 字段；绝不能因为 text 读不到就判它不是文字控件。
+-- 用 makeReal(ctl) 造"真机形态"：没有 __kind，因此走 P.cap 的字段探测分支。
+local P7logs = {}
+local P7 = platformM.new {
+  mock = true, canvas = { 1280, 720 },
+  templates = { stext = { real = { fontSize = 18 } } },   -- 无 text 字段，有 fontSize
+  logSink = function(m) P7logs[#P7logs + 1] = m end,
+}
+local realCtl = { fontSize = 18 }                          -- 真机 textbox：text 读不到
+local accepted = P7.acceptForTest('stext', realCtl)
+ok(accepted == true, 'P7.1 text 读不到但 fontSize 在 ⇒ 仍认作文字模板', tostring(accepted))
+
+
 print(string.format('\n== platform_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

@@ -202,6 +202,19 @@ M.new = function(spec)
     pcall(function() if ctl.imageColor ~= nil then image = true end end)
     pcall(function() if type(ctl.AddCursorEventListener) == 'function' then cursor = true end end)
     pcall(function() if ctl.text ~= nil then text = true end end)
+    -- 🔴 v6.20（2026-11-14 真机日志 22-19-07_3472 铁证）：真机上 textbox 的 `text` 字段**读不出来**
+    -- （访问即抛错，pcall 静默吞掉）⇒ 上面的 text 恒 false。
+    -- 后果链：rec45 探测 `tpl stext=1073742202` 通过（probeTextRaw 只要求"能实例化"），
+    -- 而 rec50 `platform fail inst:stext :: all candidates rejected`（accept 要求 text）。
+    -- **同一份代码两个判据**，真机上字面全灭：文字控件一个都建不出来、`bg pool n=0`（背景也没了）、
+    -- 结算页无字、开局面板无字——用户截图里的"全是 bug"就是这个。
+    -- 修法：text 判据加**结构特征兜底**。textbox 独有的可读字段（fontSize / textLayout /
+    -- SetText 之类）只要有一个在，就是文字控件；只有全读不到才认定"不是文字"。
+    if not text then
+      pcall(function() if ctl.fontSize ~= nil then text = true end end)
+      if not text then pcall(function() if ctl.textLayout ~= nil then text = true end end) end
+      if not text then pcall(function() if ctl.fontColor ~= nil then text = true end end) end
+    end
     return image, cursor, text
   end
 
@@ -214,6 +227,8 @@ M.new = function(spec)
     if need == 'text' then return text end
     return true
   end
+  -- 测试缝：把 accept 的判据暴露给契约测试（P7：真机 text 不可读时不得判死）
+  P.acceptForTest = accept
 
   -- 所有实例化路径（mock / 真机缓存 / 真机候选扫描）都收口到这里 ⇒ 台账不会漏计
   local function register(ctl)

@@ -120,7 +120,10 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 全局只在本脚本内可见，不会污染引擎，也不会与其他脚本冲突。
 -- **新状态一律写成全局或挂到已有表上，不要新增 `local`。**
 -- ============================================================================
-BUILD_TAG = 'v5.38 · 10-31 02:1x'
+-- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
+-- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
+-- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
+BUILD_TAG = 'v6.10 · 11-02 16:5x'
 -- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
 -- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
 local RNG1 = CORE.RNG_M.new { bag = CFG.BAG, seed = 20261023 }
@@ -157,6 +160,10 @@ local SETTLE_ACT = {}
 
 -- 为什么挂表不挂 local：main chunk 的 local 数量贴着 Lua 5.3 硬上限 200（D591/D612 教训）。
 local SETTLEV = { M = nil, KIT_M = nil, KIT = nil, S = nil, SR = nil, live = false }
+-- v6.13 手机「双人请回 PC」浮层：`view_note` 纯描述 + **独立** render 实例 R。
+-- 为什么独立：它要整屏压住标题页展台/模式卡（modal 层），与 BR/SR/HLV.R 混用会被
+-- "不在列表里就销毁"的 diff 语义拆掉别的屏；它与 HLV 共用一份 kit 实例（纯函数，无状态）。
+local NOTEV = { M = loadModule('view_note'), KIT = nil, S = nil, R = nil, live = false, which = 1 }
 -- v6.4 标题屏：`view_title` 纯描述 + **独立** render 实例 TR（与 SETTLEV/HLV 同一套手法，绝不复用棋盘 BR）。
 -- 为什么独立：BR 每帧只喂棋盘那 200+ 个 key，把展台/卡片喂给它 ⇒ 棋盘会被当场判成"不在列表"销毁。
 -- 为什么挂一张表：main chunk 的 local 贴着 200 上限（D591/D612），整屏的状态都收进字段。
@@ -348,6 +355,13 @@ local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.appl
 -- （出图实测：PERSIST_TIP 常驻键位提示、开场句、纳西妲接管文案全都没有墨迹）。
 -- 修法：setText 一处收口——凡目标控件有同名 HUD 实例，就同步写实例份 text。
 -- 为什么在这里而不是逐处改调用：调用点太多且分散在演出/结算/接管各段，单点漏一处就少一行字。
+-- v6.17：浮层在场的**唯一判定**。syncStage（藏/还文字层）与 setText（浮层期拒写）共用这一份，
+-- 不再各自维护一份条件表——两处条件曾经同步漏项，正是"透出纳西妲"和"重开左栏空白"这两个 bug 的土壤。
+-- 只在调用时求值（各全局在本文件不同位置赋值，定义期读会拿到 nil）。
+local function overlayLive()
+  return (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn)
+    or MODE_OVER or (SETTLEV and SETTLEV.live)) and true or false
+end
 local function setText(ctl, value)
   -- 浮层（帮助/结算/档案）打开时，服务端 textbox 仍在运行时实例**之上**（实测 sk1name z=42
   -- 压着结算卡 z=51），只能靠"不写"来隐藏。以前只在 HUD_INST.txt 一条通道做了抑制，
@@ -360,7 +374,13 @@ local function setText(ctl, value)
   -- 于是 syncStage 每帧都在清 sk1name/sk1state…（置 textForce=true 后 setText(c,'')），
   -- 每一帧都被第②条拦回 ——"清了但还在"的真因就是它（探针实测：hidden=true force=true 仍 DROP）。
   -- 现在只保留一条：浮层期间**除强制清屏外**一律不写；清屏阶段靠 textForce 放行。
-  if FN.textLayerHidden and not FN.textForce then return end
+  -- 🔴 v6.17（用户 2026-11-03 图一①「重新开始左栏文字就空白」）：判据不能读 FN.textLayerHidden。
+  -- 那是 syncStage 写下的**上一帧缓存**（每 6 帧才刷一次），而「关结算 → 写重开文案」发生在同一帧里：
+  -- 此刻缓存仍是「结算浮层在」，于是 setText(hint,'堆满一行即消除') / setText(botBanner, PERSIST_TIP)
+  -- 被当成"浮层期写入"整条丢弃，而这两句**只在重开时写一次**（不像 hud/best 由 renderHud 每帧重写，
+  -- 所以它们能自己恢复）⇒ 左栏提示与底栏键位提示永久空白，直到下一次触碰才回来。
+  -- 修法：就地算**当下**的浮层状态（overlayLive，与 syncStage 共用同一份判定，不复制条件）。
+  if not FN.textForce and overlayLive() then return end
   setTextRaw(ctl, value)
   local inst = ctl and ctl.name and HUD_INST[ctl.name]
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
@@ -688,29 +708,39 @@ end
 -- 真结算：把「游戏结束」发成服务端信号 tetris_settle —— 地图 hl 里的服务端图 1082130480
 -- 收到后「设玩家结算状态 = Victory」→「结算关卡」，弹出官方结算页。
 local settleSignalState = 'unknown'   -- 'unknown' | 'sent' | 'none'
-local settleSignalForm = nil
+local settleSignalForm = nil          -- nil=未探测 | 1=静态 .send() | 2=工厂 + :SendSignal()
+-- v6.16（生产级）：信号 API 有两种形态（真机工厂 / 模拟器静态），旧实现每次结算都先试错一遍，
+-- 于是**每个新会话的第一次结算都会打一条 `settle signal FAILED :: attempt to index a function value`**
+-- —— 功能是对的，但日志里躺着一行像崩溃的东西，真机排查时是噪声源（75 条用例里 12 条命中同一行）。
+-- 现在：启动时探一次形态落表，结算时直接走；探测本身只在 OnStart 打一行中性日志。
+local function probeSettleSignalForm()
+  if settleSignalForm then return settleSignalForm end
+  -- 探"静态 send"：函数值上取 .send 会抛 ⇒ pcall 捕获即说明是工厂形态
+  local ok = pcall(function() return game.ServerSignal.send end)
+  settleSignalForm = ok and 1 or 2
+  print('settle signal form=' .. tostring(settleSignalForm) .. (ok and ' (static)' or ' (factory)'))
+  return settleSignalForm
+end
 local function sendSettleSignal()
-  if settleSignalForm == 2 then
-    pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
-    settleSignalState = 'sent'
-    print('settle signal sent')
-    return true
+  local form = probeSettleSignalForm()
+  if form == 1 then
+    local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
+    if ok then
+      settleSignalState = 'sent'
+      print('settle signal sent')
+      return true
+    end
+    -- 形态探测过一次但发送仍失败：只在这里说明一次，不再反复刷
+    print('settle signal send failed :: ' .. tostring(err))
+    settleSignalForm = 2          -- 换形态再试（下次不再走这条）
   end
-  local ok, err = pcall(function() game.ServerSignal.send('tetris_settle') end)
-  if ok then
-    settleSignalState = 'sent'
-    print('settle signal sent')
-    return true
-  end
-  print('settle signal FAILED :: ' .. tostring(err))
   local ok2, err2 = pcall(function() game.ServerSignal('tetris_settle'):SendSignal() end)
   if ok2 then
-    settleSignalForm = 2          -- 记住可用形态，后续不再重试失败那条
     settleSignalState = 'sent'
-    print('settle signal sent (factory form)')
+    print('settle signal sent')
     return true
   end
-  print('settle signal FAILED (factory form) :: ' .. tostring(err2))
+  print('settle signal unavailable :: ' .. tostring(err2))
   settleSignalState = 'none'
   return false
 end
@@ -906,6 +936,19 @@ SETTLEV.open = function(overTitle)
     SETTLEV.SR.clear()
     SETTLEV.SR.apply(nodes)
   end
+  -- v6.11（用户 2026-11-02 图二「这个按钮渲染有问题」：绿胶囊里没有字）
+  -- 三颗胶囊的标签是**后建**的，但引擎里「同层后建在上」只在同一父级内成立，
+  -- 而这里胶囊与标签都是 SR 的直接子节点 ⇒ 显式提层，别赌创建序。
+  -- 用官方 sibling API（platform 已从空函数改为真实现）：标签最后提 ⇒ 最终最上。
+  if SETTLEV.SR and SETTLEV.SR.raiseAll then
+    local order = {}
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.role == 'capLabel' then order[#order + 1] = n.key end
+    end
+    local okRaise = SETTLEV.SR.raiseAll(order)
+    print('settle labels raised n=' .. #order .. ' ok=' .. tostring(okRaise))
+  end
   FN.settleLiveSync()
   local mtS = MODE_THEME[MODE] or MODE_THEME.casual or {}
   SETTLEV.bindHover(nodes, mtS.accent or THEME.textMain, mtS.frame or THEME.textMain)
@@ -1015,6 +1058,26 @@ renderAll = function()
   end
 end
 
+-- v6.17（用户 2026-11-03 图一②）：暂存列该摆多高，由**当前屏 plan 里真实的文字行**算出来，
+-- 不再用固定的 150。旧值让暂存格落在左栏 hud/best/hint 同一竖带上（实测 PC 2204px²、手机 986px²×2 处）。
+-- 取文字行的下沿（raw y 更小 = 屏幕更靠下）再留 24px 净空，整列（含方块半高 30）随之落下。
+-- 没有 plan（首帧/降级路径）时退回旧值 150 ⇒ 行为与 v6.16 相同。
+local function holdCyFor()
+  local p = FN.U and FN.U.lastPlan
+  local t = p and p.text
+  if not t then return nil end
+  local lowest = nil
+  for _, nm in ipairs({ 'hud', 'best', 'hint' }) do
+    local r = t[nm]
+    if r and type(r.y) == 'number' and r.y > -1000 then
+      local bottom = r.y - (r.h or 40) / 2      -- raw：下沿 = 中心 - 半高
+      if not lowest or bottom < lowest then lowest = bottom end
+    end
+  end
+  if not lowest then return nil end
+  return lowest - 24 - 30                      -- 再留 24 净空 + 方块半高 30
+end
+
 -- v6.5 预览列描述：NEXT 两块（8 格）+ HOLD 一块（4 格）—— 老 renderNext 的三段逻辑一一对应：
 --   ① 主预览 18px/20 距/满色；没 nextName（或结算）⇒ 8 格停靠 —— v3.5 ⑩ 的脏格就此绝迹
 --      （旧实现先刷 COL_BG 再 return，格子留在原位）
@@ -1032,7 +1095,7 @@ local function previewDesc(parked)
   push(PVW.S.next({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
     noLabel = true, legacyNames = true, queue = queue, slots = 2 }))
   push(PVW.S.hold({ cx = cx, canvas = { cw, ch }, device = dev, dual = dual,
-    noLabel = true, legacyNames = true,
+    noLabel = true, legacyNames = true, holdCy = holdCyFor(),
     holdName = g.st and g.st.name or nil, canHold = g.st and g.st.can }))
   if parked then
     -- 浮层期把 12 格挪出画布（旧实现同手法：运行时实例的 SetVisible 不可靠）
@@ -1218,8 +1281,13 @@ local function startIfWaiting()
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
   if HUD_INST.hud then
     local halfW = (CANVAS_W or 1280) / 2
-    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 40)
-    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), -10)
+    -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」）：左上空区同时挂着「角色」导航键
+    -- （view_pad slot('roster')：中心 x=-halfW+18+58、高 56 ⇒ 占 y∈[halfH-74, halfH-18]），
+    -- 而 HUD 两行原在 y=40/-10（1280×720 ⇒ raw 400/350）正好压进按钮的行高里。
+    -- 几何判据（1280×720）：按钮底边 raw y=286；HUD 首行中心 250、次行 202 ⇒ 净空 36px。
+    -- ⚠ 这一对数值与 layoutDual(gutterX/250/202) 是**同一份几何的两处写法**：改一处必须改两处。
+    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 250)
+    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), 202)
     tryCall(HUD_INST.hud, 'SetVisible', true)
     tryCall(HUD_INST.best, 'SetVisible', true)
   end
@@ -1269,19 +1337,33 @@ local function startIfWaiting()
     GK.phase, GK.t, GK.count = 'keys', 0, 3
     -- v3.1 四-2：ai-battle=单人页——keyA 显示玩家键组（方向键系，非 WASD），keyB 只显示 AI 就绪
     -- 手机不用键盘：准备期只给触屏话术（键盘图例在手机上是 3 行字，塞不进 200×32 ⇒ 整条不画）
-    local keys2 = IS_MOBILE and '点击盘面开始' or (MODE == 'coop')
+    -- v6.16：手机的两句从 config.COPY_DEV 取（单源）；PC 侧仍按模式分支（那是玩法差异，不是设备差异）。
+    local keys2 = IS_MOBILE and CFG.copyOf('readyKeys', true) or (MODE == 'coop')
       and 'P1：W 旋转 · G 暂存'
       or (MODE == 'ai-battle')
         and '← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 · G 暂存'
         or 'P1：A D 移动 · W 旋转 · S 软降 · 空格 直落 · G 暂存'
-    local keys2b = IS_MOBILE and 'AI 已就绪' or (MODE == 'ai-battle')
+    local keys2b = IS_MOBILE and CFG.copyOf('readyPeer', true) or (MODE == 'ai-battle')
       and 'AI 已就绪 · 与你同规则对战'
       or (MODE ~= 'coop')
         and 'P2：← → 移动 · ↑ 旋转 · ↓ 软降 · X 直落 · F 暂存'
         or 'P2：← → 移动 · ↓ 软降 · X 直落'
-    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. ' · 准备开始')
+    -- v6.15（用户 2026-11-02 图一：横幅被两块棋盘压掉右半截）：服务端 textbox 永远在
+    -- 运行时实例**之下**（D646），而手机双盘两块棋盘之间的净空只有 170px ⇒ 任何宽于 170 的
+    -- 居中文字都会被棋盘盖住。手机上只放模式名（4 字≈96px，落在净空内），「准备开始」交给底部横幅。
+    -- v6.16：设备差异收敛到 config.COPY_DEV 一张表（此前是散落的三元表达式）。
+    -- 手机两盘净空只有 170px ⇒ 顶部只放模式名，'准备开始' 由底部横幅承接（底部文案见 COPY_DEV.ready）。
+    -- 🔴 v6.17（用户 2026-11-03 图二①②）：这两行原先是
+    --     if readyTip ~= '' then setText(botBanner, readyTip) end
+    --     ...
+    --     setText(botBanner, '')
+    -- 即**刚写进去就被下一行抹掉**的死写入 ⇒ 手机双盘的「准备开始 · 按任意键」从未上过屏，
+    -- 而 PC 那侧是空串（COPY_DEV.ready.pc = ''）所以看不出差异。PC 的「准备开始」走 topBanner，
+    -- 手机走 botBanner（两盘净空只有 170px，顶部只放得下模式名），因此清空只对 PC 成立。
+    setText(topBanner, (MODE_TITLE[MODE] or MODE) .. (IS_MOBILE and '' or ' · 准备开始'))
+    local readyTip = CFG.copyOf('ready', IS_MOBILE)
+    setText(botBanner, readyTip)
     GK.p1ready, GK.p2ready = false, (MODE == 'ai-battle')   -- v2.5 ① 双方分别 ready
-    setText(botBanner, '')
     -- v2.4 ③：y 从 -318 下移到 -338——-318 时 20 号墨迹的上沿仍压进棋盘最后一行
     -- （服务端 textbox 永远在运行时棋盘格之下，出图 v23-pvp-guide.png 可见被格子切一半）。
     local seat1 = C(255, 47, 126, 158)                                  -- P1 深冰蓝
@@ -1333,13 +1415,15 @@ local function startIfWaiting()
     tryCall(hint, 'SetAnchoredPosition', 0, rowY)
     -- v5.4（用户 2026-10-30 二-2「右边的简易帮助完全没提角色技能」）：
     -- 准备期底栏补一行技能键位（Z 技能1 / U 技能2 / Y 换台前），玩家在开局前就知道有技能。
-    setText(botBanner, 'Z 技能1 · U 技能2 · Y 换台前 · H 说明')
+    local skillBar = CFG.copyOf('readySkillBar', IS_MOBILE)
+    if skillBar ~= '' then setText(botBanner, skillBar) end
     if HUD_INST.botBanner then
       trySet(HUD_INST.botBanner, 'fontColor', THEME.textSub)
       tryCall(HUD_INST.botBanner, 'SetVisible', true)
     end
-    setText(hint, (MODE == 'ai-battle') and '按任意键开始 · H 帮助'
-      or '双方按任意键准备 · H 帮助')   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
+    -- v6.16：设备差异收进 COPY_DEV（手机上「H 帮助」是指不到的键）
+    setText(hint, (MODE == 'ai-battle') and CFG.copyOf('readyHintAI', IS_MOBILE)
+      or CFG.copyOf('readyHintDual', IS_MOBILE))   -- v3.1 矩阵：ai-battle 单人话术（无 P2）
     if HUD_INST.hint then
       trySet(HUD_INST.hint, 'fontSize', 18)
       trySet(HUD_INST.hint, 'fontColor', THEME.textSub)
@@ -1696,8 +1780,7 @@ local function demoLoopReset()
   introT, introFont, introPulse = 0, 26, 22
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
-    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, CFG.copyOf('title', IS_MOBILE))
   pcall(buildMenuCards)                 -- v2.1 ②：回标题屏重建卡片（exitToMenu 后/演出循环复位）
   -- v3.5 ④：回标题屏同样下架 HUD 实例（含横幅/下一个；标题页只看展台）
   if HUD_INST.hideAll then HUD_INST.hideAll() end
@@ -1925,9 +2008,8 @@ FN.syncStage = function()
   -- 判据＝**只是浮层打开时**才藏文字层（对局中一律照常显示）：角色页/帮助页会把 guideStage 改成 2
   -- （时停），所以不能要求 guideStage==0；v5.36 曾因 `hide = not want` 在局内清空导致 HUD 全消失。
   -- 覆盖屏集合必须含结算（SETTLEV.live），否则结算期 textbox 照写（出图实测 sk1name 透出）。
-  local overlayNow = (helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn) or MODE_OVER
-    or (SETTLEV and SETTLEV.live)) and true or false
-  local hide = overlayNow
+  -- v6.17：条件表搬到 overlayLive() 单一实现（setText 的浮层拒写判据也用它），这里只取值。
+  local hide = overlayLive()
   if hide ~= FN.textLayerHidden then print('textlayer hidden=' .. tostring(hide) .. ' guide=' .. tostring(guideStage)) end
   FN.textLayerHidden = hide and true or false
   if hide then
@@ -1958,10 +2040,15 @@ FN.syncStage = function()
     and true or false
   -- 预览/暂存槽（12 颗格子在棋盘外左/右栏）：浮层期间也收走，否则角色页左侧会露出
   -- 一块紫色小方块与一条深色竖条（用户 2026-10-30 截图里那两个残留点）。
-  if overlayOn ~= FN.prevParkedNow then
-    FN.prevParkedNow = overlayOn
+  -- v6.14（用户 2026-11-02「我看了组件之间的重叠」）：**标题页也收走预览列**。
+  -- 演示盘的「下一个/暂存」小方阵正好落在右侧两张模式卡的位置上（hud 层在 card 层之下，
+  -- 卡面是半透明奶白 ⇒ 小方块透出来，看着像"方块压在卡片上"）。判据从 overlayOn 扩成
+  -- "要不要在画面上出现预览"这件事本身，标题页(guideStage=0)一并不出现。
+  local wantPark = (overlayOn or guideStage == 0) and true or false
+  if wantPark ~= FN.prevParkedNow then
+    FN.prevParkedNow = wantPark
     -- v6.5：预览列改由描述层停靠（12 格统一挪出画布），不再逐个 SetAnchoredPosition
-    PVW.parked = overlayOn and true or false
+    PVW.parked = wantPark
     if renderNext then pcall(renderNext) end
   end
   -- 每 6 帧兜底：结算键不属于局内/标题，一律收起（它们与手机按键位置重叠，会冒充成棕色按键）
@@ -2378,17 +2465,16 @@ FN.layoutDual = function()
     tryCall(hud, 'SetAnchoredPosition', gutterX, 250)
     trySet(hud, 'fontSize', 17)
   end
-  if best then
-    tryCall(best, 'SetSizeDelta', 330, 36)
-    tryCall(best, 'SetAnchoredPosition', gutterX, 202)
-  end
+  -- v6.16：best/hudNext 的几何改由 ui.lua 的 plan 决定（原先这里写死 gutterX/202、RIGHT_CX/255，
+  -- 与 plan 打架；手机双盘已在 plan 里给它们真实空位，见 ui.lua 双盘分支注释）。
+  if best then tryCall(best, 'SetSizeDelta', 330, 36) end
   if HUD_INST.hud then
     tryCall(HUD_INST.hud, 'SetSizeDelta', 348, 40) trySet(HUD_INST.hud, 'fontSize', 17)
     tryCall(HUD_INST.hud, 'SetAnchoredPosition', gutterX, 250) tryCall(HUD_INST.hud, 'SetVisible', true)
   end
   if HUD_INST.best then
     tryCall(HUD_INST.best, 'SetSizeDelta', 330, 36) trySet(HUD_INST.best, 'fontSize', 20)
-    tryCall(HUD_INST.best, 'SetAnchoredPosition', gutterX, 202) tryCall(HUD_INST.best, 'SetVisible', true)
+    tryCall(HUD_INST.best, 'SetVisible', true)
   end
   -- ② 右栏：AI/P2 盘战况三行（x=600/宽 360 → 跨 420..780，画布右缘留 20）
   --    行距 44（原 40 且框高 38 ⇒ 净空只剩 2px，用户读成「两行挤在一起」）；
@@ -2406,19 +2492,18 @@ FN.layoutDual = function()
     tryCall(HUD_INST.keyC, 'SetAnchoredPosition', 600, -134) tryCall(HUD_INST.keyC, 'SetVisible', true)
   end
   -- ③「下一个」标签：贴预览块上方（预览块实测 y 78..189，标签中心 215、框高 44、valign=Middle）
-  if hudNext then
-    tryCall(hudNext, 'SetSizeDelta', 240, 44)
-    tryCall(hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
-  end
+  if hudNext then tryCall(hudNext, 'SetSizeDelta', 240, 44) end
   if HUD_INST.hudNext then
     tryCall(HUD_INST.hudNext, 'SetSizeDelta', 240, 44)
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (halfW - 230), 255)
     tryCall(HUD_INST.hudNext, 'SetVisible', true)
   end
   -- ③b「暂存」标签（v5.37：左列 hold 槽原来没有任何标签，方块孤零零飘着 —— 用户报"渲染失败"）
   if HUD_INST.holdLab then
     tryCall(HUD_INST.holdLab, 'SetSizeDelta', 200, 44)
-    tryCall(HUD_INST.holdLab, 'SetAnchoredPosition', -(halfW - 230), 255)
+    -- v6.15（用户 2026-11-02 图一：左盘上方漂着「暂存」）：双盘没有暂存槽的位置，
+    -- 描述层已经把 hudNext 收走，这行是旧布局直接写死的漏网。统一收走（不是隐藏——
+    -- 真机 SetVisible 对实例不可靠，见 D581）。
+    tryCall(HUD_INST.holdLab, 'SetAnchoredPosition', 0, -4000)
     tryCall(HUD_INST.holdLab, 'SetVisible', true)
     pcall(function() HUD_INST.holdLab.text = '暂存' end)
     trySet(HUD_INST.holdLab, 'fontSize', 22)
@@ -2426,17 +2511,10 @@ FN.layoutDual = function()
     trySet(HUD_INST.holdLab, 'verticalAlignment', 'Middle')
     trySet(HUD_INST.holdLab, 'fontColor', THEME.textMain)
   end
-  -- ④ 引导/准备提示（hint）：中缝一行，压在底栏常驻之上（1600 画布：y=-340 → ypx770..810，
-  --    底栏常驻 ypx852..892，互不相压；宽 260 只占中缝，不再横穿两侧键位卡）
-  if hint then
-    tryCall(hint, 'SetSizeDelta', 260, 40)
-    tryCall(hint, 'SetAnchoredPosition', 0, -(halfH - 110))
-  end
-  if HUD_INST.hint then
-    tryCall(HUD_INST.hint, 'SetSizeDelta', 260, 40)
-    tryCall(HUD_INST.hint, 'SetAnchoredPosition', 0, -(halfH - 110))
-    tryCall(HUD_INST.hint, 'SetVisible', true)
-  end
+  -- ④ 引导/准备提示（hint）：**几何单源 = ui.lua 的 plan**（PC 双盘上带 / 手机双盘底部带）。
+  -- v6.16：这里原来写死 (0, -(halfH-110))，与 plan 打架——实测 plan 生效是因为 applyText 在其后跑，
+  -- 属于"靠调用顺序碰对"，不是契约。删掉本段，hint 位置只由 plan 决定。
+  if HUD_INST.hint then tryCall(HUD_INST.hint, 'SetVisible', true) end
   for _, t in ipairs(HUD_TEXT) do
     local box = t[3] and HUD_TEXT.boxOf(t[1]) or nil
     if box then tryCall(box, 'SetVisible', false) end
@@ -2504,6 +2582,11 @@ HUD_INST.build = function()
         end
         trySet(c, 'fontSize', fs)
         trySet(c, 'fontColor', THEME.textMain)
+        -- v6.11（用户 2026-11-02 图一修完暴露的第二层）：HUD 文字实例的**背景**必须显式透明。
+        -- 模板 stext 的 bgColor 缺省是 0xFFFFFF（不透明白），此前这些实例一直压在按钮那一行
+        -- 底下、白底被按钮盖住看不出来；把两行挪到按钮下方后，白底直接露成了一块块白斑。
+        -- 官方口径：Color(r,g,b,a) 省略 a = 255 不透明，要透明必须显式 a=0 ⇒ 0x00FFFFFF。
+        trySet(c, 'bgColor', 16777215)          -- 0x00FFFFFF：r/g/b 保留、alpha=0
         tryCall(c, 'SetSizeDelta', w, hh)
         -- 对齐必须显式（v3.5 ④ / v5.5：模板缺省 Top/Left 会裁掉字形，真机右侧被切半个字）
         trySet(c, 'verticalAlignment', 'Middle')
@@ -2515,7 +2598,17 @@ HUD_INST.build = function()
     if t[3] and box then tryCall(box, 'SetVisible', false) end   -- 断言读 text 字段，不受 visible 影响
   end
   local halfH = (CANVAS_H or 720) / 2
+  local halfW = (CANVAS_W or 1280) / 2
   local function put(nm, x, y) local c = HUD_INST[nm] if c then tryCall(c, 'SetAnchoredPosition', x, y) end end
+  -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」，红箭头指向左上「角色」胶囊）：
+  -- 左上空区同时挂着「角色」导航键（view_pad slot('roster')：中心 x=-halfW+18+58、高 56
+  -- ⇒ 占屏幕 y∈[18,74]），而「得分…」那行原在 y=40（屏幕 y∈[60,100]）⇒ 横向 20..460 与
+  -- 按钮 18..134 相交、纵向 60..100 与 18..74 相交 ⇒ 真的压上了。
+  -- 修法：把这两行挪到**按钮下沿之外**（首次 build 就在这里定，不靠进局那段补写——
+  -- 实例坐标是建时复制 textbox 的，等一下再改会露一帧旧位置）。
+  -- 几何判据（1280×720，屏幕坐标）：按钮底 74 ⇒ 首行中心 raw 250 = 屏幕 110（y∈[90,130]）。
+  put('hud', -(halfW - 230), 250)
+  put('best', -(halfW - 230), 202)
   put('topBanner', 0, halfH - 36)
   if HUD_INST.topBanner then trySet(HUD_INST.topBanner, 'fontSize', 34) end
   put('botBanner', 0, -(halfH - 40))          -- v5.4：离底缘 28px 会被裁 ⇒ 上移 12px
@@ -2559,11 +2652,15 @@ showPersistTip = function()
   --   coop       = P1（W/G）｜P2（←→/↓/X）（共盘）
   -- v4.0 ②：**移动端不能贴键盘键位**（用户 2026-10-29：「移动端没法操作」——底栏还在教键盘）。
   -- 触屏文案跟新的 7 键丝印走（左 ◀ ▶ 旋转 / 右 锁定 缓降 暂存 / 右上 说明），文案见 docs/copy-v4.md §5。
-  if IS_MOBILE and MODE == 'casual' then
-    PERSIST_TIP = '左：◀ ▶ 移动 · 旋转　右：锁定 · 缓降 · 暂存　右上：说明'
-    trySet(botBanner, 'fontSize', 18)
-    trySet(botBanner, 'fontColor', THEME.textSub)
-    setText(botBanner, PERSIST_TIP)
+  -- 🔴 v6.18（用户 2026-11-03 图一：手机 AI 对抗中缝冒出「← → 移动 · ↑ 旋转 · ↓ 软降 · 空格 直落 ·
+  -- G 暂存 · H 说明」）：旧判据是 `IS_MOBILE and MODE == 'casual'`——**只有休闲走触屏文案**，
+  -- 其余三个模式在手机上一律落到下面的 PC 键位串（手机没有空格/G/H 键，这串字是指不到的）。
+  -- 用户的裁决更彻底：「移动端这个简要的按键介绍其实不需要，因为移动端操控是用按钮点击的」
+  -- ⇒ 手机端**不显示任何键位教学**（按钮本身就是说明），四条模式统一按设备分流，
+  -- 不再让"模式"参与这条判据。PERSIST_TIP 置空 ⇒ 横幅恢复时也写空，不会漏一行旧文案。
+  if IS_MOBILE then
+    PERSIST_TIP = ''
+    setText(botBanner, '')
     return
   end
   PERSIST_TIP = (MODE == 'pvp')
@@ -3521,6 +3618,13 @@ restartMatch = function()
   MODE_OVER = false
   TK.state, TK.t = 'play', 0
   settleDestroy()
+  -- v6.17（用户 2026-11-03 图一①）：结算态的横幅/遮罩**先**清，再由各分支写回该有的文案。
+  -- 旧顺序是「分支写文案 → 函数末尾清 botBanner」，于是 casual 分支刚写好的常驻键位提示
+  -- 被本函数自己抹掉（实测重开后 ibotBanner 恒为空，而 ihint 因为有下一帧重写才活下来）。
+  -- 清场只做一次、放在写之前：这是"先复位再落值"的顺序，不是"落值再复位"。
+  setText(topBanner, '')
+  setText(botBanner, '')
+  if overlay then tryCall(overlay, 'SetVisible', false) end
   if mode == 'casual' then
     newGame()
     -- v3.5 ⑥：结算期下架的战况列在这里必须显式上架——casual 重开只走 newGame，
@@ -3550,9 +3654,6 @@ restartMatch = function()
     FN.enterMode()                           -- 重建对家盘 + 双屏布局
     startIfWaiting()                      -- 进模式开局引导（keys → 3-2-1）
   end
-  setText(topBanner, '')
-  setText(botBanner, '')
-  if overlay then tryCall(overlay, 'SetVisible', false) end
   -- 结算态改过横幅字号/颜色，重开必须还原：几何与样式只认 layout 这一份
   if CANVAS_W and CANVAS_H then
     local okL, errL = pcall(layout, CANVAS_W, CANVAS_H)
@@ -4320,6 +4421,8 @@ do
       end,
       party = function() return (SK and SK.party and #SK.party) or 1 end,
       sfx = function() sfx(SFX.press, true) end,
+      -- 触屏「抬起」：清 DAS 方向（与键盘 Up 同一条路径，见 ui.lua makeBtn 的 releaseDown）
+      release = function(action, id) if UI4.release then UI4.release(action, id) end end,
     })
     -- 触屏动作派发：本层先吃掉"本模块自己新增的 act"（关页/回标题/翻页/技能），其余交给 UI4.dispatch
     FN.U.dispatch = function(action, id, rep)
@@ -4486,78 +4589,47 @@ UI4.refreshHelpLabel = function(open)
 end
 
 -- ── 移动端「双人玩法请回 PC」引导浮层（原神风文案；点模式卡触发，不静默吞点击）──
--- 层序：每个实例建完立刻 SetAsFirstSibling（first sibling = 最上层，见 runtime.js injectKey 注释），
--- 于是最终顺序 = 按钮 > 正文 > 标题 > 装饰线 > 卡片 > 暗底 > 标题页 —— 与结算页同一套手法。
+-- v6.13：节点由 `lua/tetris/view_note.lua` 纯描述产出，本函数只负责"装配 + 日志"。
+-- 层序由语义层号决定（modal=90 压在 card/panel/hud 之上），不再靠"后建在上"的调用顺序；
+-- 旧实现的 SetAsFirstSibling 反而会把浮层压到标题页底下（官方 :4803「数值越大越靠上」）。
 UI4.noteOpen = function(which)
   if UI4.noteOn then return end
   local N = NUM.PAD_NOTE or {}
   local W, H = CANVAS_W or 1280, CANVAS_H or 720
-  local L = UI4.note
+  if not (NOTEV.S and NOTEV.R) then
+    print('pad note missing view_note :: which=' .. tostring(which))
+    return
+  end
   UI4.noteOn = true
-  -- 创建顺序 = 绘制顺序（D647 实测：运行时实例「后建在上」；SetAsFirstSibling 在模拟器不分层，
-  -- 而在真机 Unity 语义里 FirstSibling = 最底层 ⇒ 绝不能用它"置顶"）。
-  local function top(c) return c end
-  local cw = math.min(760, W - 120)
-  local tw = math.min(700, W - 160)
-  -- 点卡片外任意处也能关（触屏没有 Esc）：全屏 cursor 垫在最下，命中优先于标题页模式卡
-  L.block = top(UI4.hit('padNoteBlock', W + 40, H + 40))
-  if L.block then
-    addCursor(L.block, 'CursorDown', function()
-      print('pad note close which=' .. tostring(which) .. ' via=block')
-      UI4.noteClose()
-    end)
-  end
-  L.dim = top(UI4.pill('padNoteDim', W + 40, H + 40, C(160, 30, 46, 66)))
-  L.card = top(UI4.pill('padNoteCard', cw, 330, THEME.panel))
-  L.line = top(UI4.pill('padNoteLine', tw, 3, THEME.gold))
-  L.title = top(UI4.label('padNoteTitle', N.title or '旅行者，请回到更大的屏幕', tw, 60, 30, THEME.textMain))
-  L.b1 = top(UI4.label('padNoteB1', N.body1 or '', tw, 34, 20, THEME.textSub))
-  L.b2 = top(UI4.label('padNoteB2', N.body2 or '', tw, 34, 20, THEME.textMain))
-  L.b3 = top(UI4.label('padNoteB3', N.body3 or '', tw, 34, 18, THEME.textSub))
-  local bw, bh = 220, 60
-  L.btnBg = top(UI4.pill('padNoteBtnBg', bw, bh, THEME.gold))
-  L.btnTx = top(UI4.label('padNoteBtnTx', N.btn or '知道了', bw, bh, 24, THEME.textMain))
-  L.btn = top(UI4.hit('padNoteBtnHit', bw, bh))
-  UI4.regScreen('note')
-  UI4.regAdd('note.ok', L.btn, bw, bh)
-  if L.btn then
-    addCursor(L.btn, 'CursorDown', function()
+  NOTEV.which = which
+  -- v6.13（用户 2026-11-02：这个弹窗还没用我们的 ui 框架重做）：描述层 view_note 出节点，
+  -- 独立 render 实例应用（层号 modal=90 ⇒ 压在标题页模式卡/展台上，不再靠"后建在上"的调用顺序）。
+  local nodes = NOTEV.S.note {
+    canvas = { W, H },
+    text = { title = N.title, body1 = N.body1, body2 = N.body2, body3 = N.body3, btn = N.btn },
+    colors = { dim = C(160, 30, 46, 66), panel = THEME.panel, gold = THEME.gold,
+      main = THEME.textMain, sub = THEME.textSub },
+    onClose = function(via)
       sfx(SFX.press, true)
-      print('pad note close which=' .. tostring(which))
+      print('pad note close which=' .. tostring(which) .. ' via=' .. tostring(via))
       UI4.noteClose()
-    end)
-  end
-  local cy = 40
-  local function at(c, x, y, w, h)
-    if not c then return end
-    tryCall(c, 'SetSizeDelta', w, h)
-    tryCall(c, 'SetAnchoredPosition', x, y)
-  end
-  at(L.block, 0, 0, W + 40, H + 40)
-  at(L.dim, 0, 0, W + 40, H + 40)
-  at(L.card, 0, cy, cw, 330)
-  at(L.line, 0, cy + 128, tw, 3)
-  at(L.title, 0, cy + 92, tw, 60)
-  at(L.b1, 0, cy + 34, tw, 34)
-  at(L.b2, 0, cy - 2, tw, 34)
-  at(L.b3, 0, cy - 40, tw, 34)
-  at(L.btnBg, 0, cy - 108, bw, bh)
-  at(L.btnTx, 0, cy - 108, bw, bh)
-  at(L.btn, 0, cy - 108, bw, bh)
+    end,
+  }
+  NOTEV.R.clear()
+  NOTEV.R.apply(nodes)
+  NOTEV.live, NOTEV.n = true, #nodes
+  UI4.regScreen('note')
+  local hit = NOTEV.R.get('note.btnHit')   -- render 的 key 是描述节点 key（不是控件名）
+  if hit then UI4.regAdd('note.ok', hit, 220, 60) end
   UI4.dump('note')
-  print('pad note open which=' .. tostring(which))
+  print('pad note open which=' .. tostring(which) .. ' n=' .. #nodes)
 end
 
 UI4.noteClose = function()
   if not UI4.noteOn then return end
-  local L = UI4.note
-  for _, k in ipairs({ 'block', 'dim', 'card', 'line', 'title', 'b1', 'b2', 'b3', 'btnBg', 'btnTx', 'btn' }) do
-    if L[k] then
-      pcall(function() game.DestroyClientUIControl(L[k]) end)
-      L[k] = nil
-    end
-  end
   UI4.noteOn = false
+  if NOTEV.R then NOTEV.R.clear() end
+  NOTEV.live = false
   print('pad note close')
 end
 
@@ -4696,6 +4768,15 @@ function OnStart()
     print('v6 help view ok')
   else
     print('v6 help view MISSING: view_help/view_kit')
+  end
+  -- v6.13 手机「双人请回 PC」浮层装配（用户 2026-11-02：这个弹窗还没用框架重做）
+  if NOTEV.M and HLV.KIT and PT then
+    NOTEV.KIT = HLV.KIT
+    NOTEV.S = NOTEV.M.new({ layers = VIEW_LAYERS_M, kit = NOTEV.KIT })
+    NOTEV.R = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
+    print('v6 note view ok')
+  else
+    print('v6 note view MISSING: view_note（浮层退回旧路径）')
   end
   -- v6.4 标题屏装配：独立 kit + 独立 render 实例（与前两屏同一套手法，绝不复用 BR/SR/HLV.R）
   if TITLEV.M and TITLEV.KIT_M and PT then
@@ -4849,8 +4930,7 @@ function OnStart()
   setText(hint, '键盘操作')
   setText(topBanner, '俄罗斯方块')
   -- v2.1 ②：大视觉卡片承载模式选择；botBanner 呼吸提示改短句+H 说明入口
-  setText(botBanner, IS_MOBILE and '点卡片选模式 · 右上角：角色 · 说明'
-    or '按 1-4 选模式 · 任意键=休闲 · H 游戏说明')
+  setText(botBanner, CFG.copyOf('title', IS_MOBILE))
   local okCards, errCards = pcall(buildMenuCards)
   if not okCards then print('menu cards error :: ' .. tostring(errCards)) end
   pcall(HUD_INST.build)   -- v2.8 ⑤：HUD 实例层（压在背景池之上）
@@ -5051,22 +5131,17 @@ function OnStart()
     end
   end
   -- ===== v2.8 ④：结算三动作（键监听与鼠标热区共用）=====
-  SETTLE_ACT.restart = function()   -- = R 键体（重开/回菜单按模式）
+  -- v6.17（用户 2026-11-03 图一①②③）：本函数原先是 restartMatch 的**第二套实现**，
+  -- 三处与它不一致，全部由用户实测暴露：
+  --   ① casual 重开只走 newGame()，漏掉「战况列上架 + 左栏常驻文案」⇒ 重开后左栏整片空白
+  --      （restartMatch 在 v3.5 ⑥/v6.x 已补齐这两步并写明理由，这份副本没跟上）；
+  --   ② 非 casual 直接 exitToMenu() ⇒ 结算页点「再来一局」回主页，与按钮文案相反；
+  --   ③ 平局/暂停等分支靠 guideStage 判断，与键路径的 (g.gameOver or MODE_OVER) 口径不同。
+  -- 现在它就是 restartMatch 本身：一份实现，键/点/手柄三条入口共用，不会再漂。
+  SETTLE_ACT.restart = function()
     startIfWaiting()
     if guideStage == 2 then guideStage = 1 setText(hint, '') end
-    if MODE ~= 'casual' and guideStage == 1 then
-      FN.exitToMenu()
-      return
-    end
-    settleDestroy()
-    newGame()
-    setText(topBanner, '')
-    setText(botBanner, '')
-    if overlay then tryCall(overlay, 'SetVisible', false) end
-    if CANVAS_W and CANVAS_H then
-      local okRelayout, errRelayout = pcall(layout, CANVAS_W, CANVAS_H)
-      if not okRelayout then print('relayout error :: ' .. tostring(errRelayout)) end
-    end
+    restartMatch()
   end
   SETTLE_ACT.backHome = function()  -- = V 键体（含 keyConsumedFrame 防双触，core 修复保留）
     if guideStage ~= 1 then return end
@@ -5343,6 +5418,14 @@ function OnStart()
     return false
   end
 
+  -- 触屏键「抬起」入口（v6.12）：手机胶囊的 Up/CursorExit 走这里补派发一次 phase='up'，
+  -- 复用上面 dispatch 的 Up 分支（唯一清 `g.das.dir` 的地方）。没有对应键盘键的动作直接返回。
+  UI4.release = function(action)
+    local key = (INPUT_M and INPUT_M.PHONE and INPUT_M.PHONE[action]) or nil
+    if not key then return end
+    dispatch(action, key, 'up')
+  end
+
   if INPUT_M and PT then
     INPUT = INPUT_M.new({ platform = PT, log = function(m) print(m) end })
     INPUT:bindAll(dispatch, { padMoveKeys = false })   -- MoveLeft/MoveRight 是死映射，启用需同步 tests/48
@@ -5506,7 +5589,12 @@ function OnUpdate(dt)
     end
   end
   -- v2.8 ②：局内开帮助=游戏时停（重力/AI/接管计时全停；结算态不冻结）。关闭即恢复。
-  if helpOpen and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
+  -- v6.11（用户 2026-11-02 图一「角色点击之后应该暂停游戏，和右边的说明按钮一个逻辑」）：
+  -- 角色页同样算时停。此前只有 helpOpen 一条判据 ⇒ 局内点「角色」把角色页盖上来，
+  -- 而重力/AI/接管**照常推进**，玩家在翻档案时方块还在掉（比"没反应"更糟）。
+  -- ⚠ 判据必须与 FN.stageWanted 的"浮层"口径一致（下面另加的浮层类型要同步加进来）。
+  local paused = helpOpen or (ROSTER and ROSTER.on) or (UI4 and UI4.noteOn)
+  if paused and guideStage == 1 and not g.gameOver and not MODE_OVER then return end
   frameSeq = frameSeq + 1          -- 帧号：按键回调与本次 OnUpdate 同帧 ⇒ sfx 帧闸生效
   g = G[1]                         -- 主流程段（横幅/演出/自演）作用于主盘（v1 语义）
   if bannerTimer > 0 and not g.gameOver then

@@ -76,8 +76,47 @@ local function mockNode(spec, kind, parent, seq)
   function n.SetSizeDelta(self, w, h) self.sizeDeltaX, self.sizeDeltaY = w, h end
   function n.SetAnchoredPosition(self, x, y) self.anchoredPositionX, self.anchoredPositionY = x, y end
   function n.SetVisible(self, v) self.visible = v end
-  function n.SetAsLastSibling() end
-  function n.SetAsFirstSibling() end
+  -- ===== 同级排序（2026-11-02 修：此前这四个是**空函数**）=====
+  -- 事故：这两个方法原本写成 `function n.SetAsLastSibling() end`（空函数、无返回值），
+  -- 于是「调了没反应」被记成「本引擎 SetAsLastSibling 是空操作」，并写进了
+  -- view_layers.lua:5 / render.lua:9 / view_title.lua:12 / main.lua:1881 四处注释。
+  -- 真因是我们自己的 mock 把它实现成了 no-op。官方 rev223 声明：
+  --   GetSiblingIndex(): integer（0..子数-1）
+  --   SetSiblingIndex(index): boolean（数值越大通常越靠后、显示越靠上）
+  --   SetAsFirstSibling() / SetAsLastSibling(): boolean（后者置顶）
+  -- 且官方教程：月之六起「层级渲染(新)」按层级配置渲染、同级按创建时序（后创建在上）。
+  -- 本 mock 的 __children 数组**末尾 = 最上层**（与真机 SetAsLastSibling 置顶一致）。
+  function n.GetSiblingIndex(self)
+    local p = self.__parent
+    if not p then return 0 end
+    for i = 1, #p.__children do
+      if p.__children[i] == self then return i - 1 end
+    end
+    return 0
+  end
+  function n.SetSiblingIndex(self, index)
+    local p = self.__parent
+    if not p then return false end
+    local kids = p.__children
+    local n_ = #kids
+    local idx = tonumber(index)
+    -- 与官方一致：越界/非整数 ⇒ false（不静默夹取）
+    if not idx or idx ~= math.floor(idx) or idx < 0 or idx > n_ - 1 then return false end
+    local from = nil
+    for i = 1, n_ do if kids[i] == self then from = i break end end
+    if not from then return false end
+    table.remove(kids, from)
+    table.insert(kids, idx + 1, self)
+    return true
+  end
+  function n.SetAsLastSibling(self)
+    local p = self.__parent
+    if not p then return false end
+    return n.SetSiblingIndex(self, #p.__children - 1)
+  end
+  function n.SetAsFirstSibling(self)
+    return n.SetSiblingIndex(self, 0)
+  end
   function n.GetChild(self, name)
     for i = 1, #self.__children do
       if self.__children[i].name == name then return self.__children[i] end
@@ -163,6 +202,19 @@ M.new = function(spec)
     pcall(function() if ctl.imageColor ~= nil then image = true end end)
     pcall(function() if type(ctl.AddCursorEventListener) == 'function' then cursor = true end end)
     pcall(function() if ctl.text ~= nil then text = true end end)
+    -- 🔴 v6.20（2026-11-14 真机日志 22-19-07_3472 铁证）：真机上 textbox 的 `text` 字段**读不出来**
+    -- （访问即抛错，pcall 静默吞掉）⇒ 上面的 text 恒 false。
+    -- 后果链：rec45 探测 `tpl stext=1073742202` 通过（probeTextRaw 只要求"能实例化"），
+    -- 而 rec50 `platform fail inst:stext :: all candidates rejected`（accept 要求 text）。
+    -- **同一份代码两个判据**，真机上字面全灭：文字控件一个都建不出来、`bg pool n=0`（背景也没了）、
+    -- 结算页无字、开局面板无字——用户截图里的"全是 bug"就是这个。
+    -- 修法：text 判据加**结构特征兜底**。textbox 独有的可读字段（fontSize / textLayout /
+    -- SetText 之类）只要有一个在，就是文字控件；只有全读不到才认定"不是文字"。
+    if not text then
+      pcall(function() if ctl.fontSize ~= nil then text = true end end)
+      if not text then pcall(function() if ctl.textLayout ~= nil then text = true end end) end
+      if not text then pcall(function() if ctl.fontColor ~= nil then text = true end end) end
+    end
     return image, cursor, text
   end
 
@@ -175,6 +227,8 @@ M.new = function(spec)
     if need == 'text' then return text end
     return true
   end
+  -- 测试缝：把 accept 的判据暴露给契约测试（P7：真机 text 不可读时不得判死）
+  P.acceptForTest = accept
 
   -- 所有实例化路径（mock / 真机缓存 / 真机候选扫描）都收口到这里 ⇒ 台账不会漏计
   local function register(ctl)

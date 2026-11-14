@@ -441,15 +441,26 @@ M.new = function(spec)
       hitZone('helpNextHit', n.x, n.y, n.w, n.h, opts.onNext)
     end
 
-    -- ===== ⑦ 关闭入口（C2：PC = 透明热区 + 键位提示；mobile = 可见胶囊 + 热区）=====
+    -- ===== ⑦ 关闭入口：**两端共用一颗组件** =====
+    -- v6.15（用户 2026-11-02 图四「PC 打开帮助，合上的按钮不可见但可点击，又是走了不一样的分支」）：
+    -- 旧实现 C2 设备互斥 —— PC 只出透明热区 + 一行键位提示，mobile 才出可见胶囊。两种分支各自
+    -- 演进，就出现了"看得见点不到/点得到看不见"。现在两端都用 view_kit 的 K.button
+    -- （与角色页右上「合上」同一份实现：胶囊 + 文字 + 热区一起出），差别只剩键位提示那行文字。
     local c = M.CLOSE
-    if device == 'mobile' then
-      pill('helpClose', M.ROLE.close, c.x, c.y, c.w, c.h, GOLD)
-      pill('helpCloseIn', M.ROLE.close, c.x, c.y, c.w - c.inner * 2, c.h - c.inner * 2, CARD)
-      txt('helpCloseTx', M.LAYER.text, M.ROLE.close, c.label, c.x, c.y, c.w - c.inner * 2,
-        c.font, INK, 'Middle')
+    local closeNodes = K.button {
+      key = 'helpClose', x = u(c.x), y = u(c.y), w = u(c.w), h = u(c.h),
+      label = c.label, font = fs(c.font), fill = GOLD, ink = INK,
+      layer = M.LAYER.text, hitLayer = M.LAYER.hit,
+      hitPadW = u(M.HITPAD.w), hitPadH = u(M.HITPAD.h),
+      on = opts.onClose and { CursorClick = opts.onClose } or nil,
+    }
+    for i = 1, #closeNodes do
+      local node = closeNodes[i]
+      local isHit = tostring(node.key):sub(-3) == 'Hit'
+      node.role = isHit and M.ROLE.hit or M.ROLE.close
+      if isHit then node.cursor = { 'CursorClick' } end
+      add(node)
     end
-    hitZone('helpCloseHit', c.x, c.y, c.w, c.h, opts.onClose)
 
     return out
   end

@@ -150,6 +150,20 @@ M.new = function(spec)
   local function T(name, x, y, w, h, fs) return { name = name, x = x, y = y, w = w, h = h, fs = fs } end
   local function B(id, x, y, w, h, fs) return { id = id, x = x, y = y, w = w, h = h, fs = fs } end
 
+  -- 导航键（角色 / 说明）的**画布两角**：PC 与移动端同一份几何 ——
+  -- v6.12（用户 2026-11-02「pc 端没有移动端的角色和帮助按钮，需要统一」）：
+  -- 以前只有移动端 nav，PC 只能靠键盘 H / 名册键；现在两端都出这两颗胶囊（鼠标点 ≡ 键盘）。
+  local function navCorners(W, H)
+    local halfW, halfH = W / 2, H / 2
+    local nw, nh = (NUM.PHONE and NUM.PHONE.NAV_W) or 116, (NUM.PHONE and NUM.PHONE.NAV_H) or 56
+    local pad = KIT.MARGIN or 18
+    -- 左上 = 角色，右上 = 说明（两角对称；PC 的 topBanner 已按 W-180 宽留出 90px 边距 ⇒ 不压字）
+    return {
+      B('roster', -halfW + pad + nw / 2, halfH - pad - nh / 2, nw, nh, KIT.FS),
+      B('help', halfW - pad - nw / 2, halfH - pad - nh / 2, nw, nh, KIT.FS),
+    }
+  end
+
   -- PC：逐字保留 v4.0 `layout()` 的数值（PC 不许因为移动端改动而变样）
   local function planPC(W, H)
     local halfW, halfH = W / 2, H / 2
@@ -158,26 +172,33 @@ M.new = function(spec)
     local rightCX = halfW - panelW / 2 - 20
     local t = {
       title = T('title', leftCX, 130, panelW, 100),
-      hud = T('hud', leftCX, 40, panelW + 40, 40, 20),
-      best = T('best', leftCX, -10, panelW, 36, 20),
-      hint = T('hint', leftCX, -95, panelW, 150, 22),
+      -- v6.13（用户 2026-11-02「pc 和移动端除了操作逻辑，其他应该差不多」）：
+      -- 左栏 HUD 三行从"列中段"上移到**与移动端同一相对高度**（18.6% / 23.6% / 33%），
+      -- 技能卡移走后中段本来就空了；顶上是「角色」键（y∈[376,432]），hud 中心 283 不打架。
+      hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
+      best = T('best', leftCX, 238, panelW, 36, 20),
+      hint = T('hint', leftCX, 153, panelW, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 200, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
       keyC = T('keyC', rightCX, -120, panelW, 38, 22),
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
     }
     -- 实例份尺寸与 textbox 份不同（历史上按实测定的，见 v3.5 ④）：hudNext 240 / 其余同宽
     local ti = {
-      hud = T('hud', leftCX, 40, panelW + 40, 40, 20),
-      best = T('best', leftCX, -10, panelW, 36, 20),
-      hint = T('hint', leftCX, -95, panelW, 150, 22),
+      hud = T('hud', leftCX, 283, panelW + 40, 40, 20),
+      best = T('best', leftCX, 238, panelW, 36, 20),
+      hint = T('hint', leftCX, 153, panelW, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 240, 44, 22),
       keyA = T('keyA', rightCX, -40, panelW, 38, 22),
       keyB = T('keyB', rightCX, -80, panelW, 38, 22),
       keyC = T('keyC', rightCX, -120, panelW, 38, 22),
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
     }
     -- 技能 HUD（PC 也上屏：用户 2026-10-29「四个角色技能和没做没区别」）；摆在左栏 hint 下方
@@ -191,7 +212,7 @@ M.new = function(spec)
     sk.sk2state = T('sk2state', leftCX + 105, -284, 190, 36, 20)
     sk.sk2bar = T('sk2bar', leftCX - 95, -306, 220, 14)
     sk.sk2barBg = T('sk2barBg', leftCX - 95, -306, 220, 14)
-    return { text = t, inst = ti, slots = {}, nav = {}, acts = {}, skill = sk,
+    return { text = t, inst = ti, slots = {}, nav = navCorners(W, H), acts = {}, skill = sk,
              rightCX = rightCX, leftCX = leftCX, panelW = panelW }
   end
 
@@ -205,12 +226,14 @@ M.new = function(spec)
     local t = {
       hud = T('hud', gutterX, 250, 348, 40, 17),
       best = T('best', gutterX, 202, 330, 36, 20),
-      hint = T('hint', gutterX, -95, 330, 150, 22),
+      hint = T('hint', gutterX, -95, 330, 120, 22),
       hudNext = T('hudNext', rightCX, 255, 240, 44, 22),
       -- keyA-C 的 x 由 FN.layoutDual 负责；本模块只**改框高与行位**（qa-shots 实测 ikeyA 需高 73.3、
       -- ikeyB 需 51.7，而旧框都是 40 ⇒ 折行被裁）。coop 模式下这两行装的是协作键位说明（x=∓280），
       -- 位置由 coop 分支自己写，本模块一律不碰（用例 33 断言 keyA.x=-280）。
-      topBanner = T('topBanner', 0, halfH - 36, W - 180, 64, 34),
+      -- v6.14：横幅宽度扣掉两角导航键（角色/说明），否则胶囊与横幅盒相交（审计 2200px²/角）
+      topBanner = T('topBanner', 0, halfH - 36,
+        W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
       title = T('title', gutterX, 130, 420, 100),
     }
@@ -250,7 +273,7 @@ M.new = function(spec)
       sk2bar = T('sk2bar', gutterX, -306, 330, 12),
       sk2barBg = T('sk2barBg', gutterX, -306, 330, 12),
     }
-    return { text = t, inst = ti, slots = {}, nav = {}, acts = {}, skill = sk,
+    return { text = t, inst = ti, slots = {}, nav = navCorners(W, H), acts = {}, skill = sk,
              rightCX = rightCX, leftCX = gutterX, panelW = 420, dual = true }
   end
 
@@ -277,24 +300,40 @@ M.new = function(spec)
     local t, ti, slots, nav = {}, {}, {}, {}
     if not dual then
       -- ── 单盘：侧列放 HUD/技能/拇指簇；下带放技能行 + 导航；上带放常驻提示 ──
-      t.hud = T('hud', colL, halfH - 80, tw, 40, 20)
-      t.best = T('best', colL, halfH - 116, tw, 34, 20)
-      t.hint = T('hint', colL, halfH - 186, tw, 96, 20)
+      -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」，红箭头指向左上「角色」胶囊）：
+      -- 「角色」导航键占屏幕 y∈[18,74]（中心 raw -halfH+18+28、高 56），
+      -- 而 hud 原来在 halfH-80（1280×720 ⇒ 屏幕 y 中心 80、行高 40 ⇒ y∈[60,100]）——纵向压上。
+      -- 我们自己的审计早就报过：日志 `ui audit !! over-text:roster@hud`（没人处理，本轮修）。
+      -- 修法：整列下移到按钮下沿之外 ⇒ hud 中心 raw halfH-134（屏幕 y=134, 行 ∈[114,154]），
+      -- best 依次 -36，hint 跟着让位。留 40px 净空给按钮。
+      t.hud = T('hud', colL, halfH - 134, tw, 40, 20)
+      t.best = T('best', colL, halfH - 172, tw, 32, 20)
+      -- v6.14：提示盒宽度收到 300 —— 顶部横幅从 x=360 起，440 宽会与它相交 70px
+      t.hint = T('hint', colL, halfH - 240, math.min(tw, 240), 96, 20)
       -- 预览列心 RIGHT_CX 沿用 PC 公式（1280 → 410）：用例 15/16 断言预览块绝对 x，
       -- 擅自改成侧列中线 400 会让它们红（实测 400→390），且 410 仍在右列内。
+      -- ⚠ 2026-11-02 实测再证一次：把 rcx 从 halfW-230 改成 halfW-270 后
+      -- `15-next-preview` / `16-hold-swap` 立刻红（期望 400 实得 360）。**x 不许动**。
       local rcx = halfW - 230
-      t.hudNext = T('hudNext', rcx, halfH - 60, 240, 44, 22)
+      -- 原来 hudNext 在 halfH-60（屏幕 y∈[38,82]）与右上「说明」键（y∈[18,74]、x∈[1146,1262]）
+      -- 横向重叠 24px ⇒ 审计报 `over-text:help@hudNext`。改**纵向**下移 46px 让开（不动 x）。
+      t.hudNext = T('hudNext', rcx, halfH - 106, 240, 44, 22)
       -- v5.4（用户 2026-10-30 真机截图：手机上这条横幅横穿棋盘）：手机画布只有 720 高、
       -- 棋盘 600 高居中 ⇒ 顶部只剩 60px，横幅放不下，原来 y=+60（屏幕 y=300）正好压在棋盘腰部。
       -- 改到**画布底部中央**（棋盘下沿之下、两块拇指簇之间）：常驻键位提示仍在顶部，二者不再打架。
-      t.topBanner = T('topBanner', 0, -((H / 2) - 34), math.min(820, W - 200), 40, 22)
+      -- v6.11：底部这条仍然太宽——实测拇指簇 `ptpright` x∈[252,372]、`ptpsoft` x∈[908,1028]
+      -- 都在 y∈[624,696]，而横幅原宽 820（x∈[230,1050]）与两簇**双双重叠**，
+      -- 审计报 `over-text:right@topBanner` / `over-text:soft@topBanner`。
+      -- 收窄到两簇净空（372..908）以内并居中：宽 500 ⇒ x∈[390,890]，左右各留 18px。
+      t.topBanner = T('topBanner', 0, -((H / 2) - 34), math.min(500, W - 200), 40, 22)
       t.botBanner = T('botBanner', 0, g5.topY, W - 360, 44, 20)
       t.keyA = T('keyA', colR, -4000, tw, 34, 18)      -- 单盘无对家盘：挪出画布
       t.keyB = T('keyB', colR, -4000, tw, 34, 18)
       t.keyC = T('keyC', colR, -4000, tw, 34, 18)
       t.title = T('title', colL, -4000, tw, 80, 20)
       ti.hud, ti.best, ti.hint = t.hud, t.best, t.hint
-      ti.hudNext = T('hudNext', rcx, halfH - 60, 240, 44)
+      -- 实例份必须与 textbox 份同位（见上面 t.hudNext 的说明：纵向让开「说明」键）
+      ti.hudNext = T('hudNext', rcx, halfH - 106, 240, 44)
       ti.topBanner = T('topBanner', 0, 60, math.min(560, W - 160), 72)
       ti.botBanner = t.botBanner
       ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC
@@ -351,18 +390,44 @@ M.new = function(spec)
     -- 布局分区（自上而下，三个区互不重叠）：上带=战况一行 / 中缝列=横幅+技能行+技能HUD+导航 / 侧栏=标题+拇指簇
     local gutL, gutR = -(halfW - 103), halfW - 103
     t.hud = T('hud', 0, g5.topY, W - 360, 44, 20)
-    t.best = T('best', gutL, -4000, 200, 34, 18)   -- 顶部两角让给导航键（最高分已在底栏/结算页）
-    t.hint = T('hint', 0, -4000, 240, 96, 18)          -- 双盘局内 hint 由 layoutDual 自己藏（此处同口径）
-    t.hudNext = T('hudNext', gutR, -4000, 200, 40, 20)  -- 同 best：避免被右上角「说明」压住
-    t.topBanner = T('topBanner', 0, 250, 240, 60, 24)
-    t.botBanner = T('botBanner', 0, -4000, W - 40, 40, 18)   -- 底带让给拇指簇：手机上常驻键位提示本就不需要
-    -- 引导态（guideStage==3）keyA-C 装的是长句键位说明（24 全角 ≈ 430px），手机侧栏只有 200px
-    -- ⇒ 手机上「键位说明就是按钮本身」，这三行整体挪出画布；对局期它们换回 3 条短战况再回来。
-    local kx = -4000      -- 手机双盘侧栏 200px 装不下 2 行长句（lead 机检 ikeyA 需高 73.3）⇒ 三条全部不出；
-                          -- 手机上的"AI 盘战况"由两块棋盘本身可见，不需要文字复述
-    t.keyA = T('keyA', kx, 60, 200, 32, 18)
-    t.keyB = T('keyB', kx, 26, 200, 32, 18)
-    t.keyC = T('keyC', kx, -8, 200, 32, 18)
+    -- v6.16（用户 2026-11-02 图三「PC 有、手机没有」的同一族问题）：手机双盘左栏
+    -- y∈[285,575] 实测是空的（只有背景装饰），把「最高分」放回来。
+    -- 判据：node qxqy/visible-text.mjs 的两端清单里都要出现 ibest。
+    t.best = T('best', gutL, 110, 200, 32, 17)      -- raw；屏幕 y≈470（T 的 y 以画布中心为原点）
+    -- v6.16（用户 2026-11-02 图三「PC 第一次消除行有提示，移动端没有」）：
+    -- 教学提示走 setText(hint, …) 这条**两端共用**的逻辑，但手机双盘把 hint 停在 -4000
+    -- ⇒ 同一段代码在手机上是"写了但看不见"。凡"同一份逻辑、两个可见面"都是 bug。
+    -- 位置：两块棋盘之间的下带（拇指簇 x≤134 / x≥1117 之外的中段），实测该带无任何可见件。
+    t.hint = T('hint', 0, -(halfH - 28), math.min(W - 400, 880), 52, 18)
+    -- 右栏 y∈[280,420] 也空 ⇒ 「下一个」放回来（右上角「说明」在 y≈646 之外，不压）
+    t.hudNext = T('hudNext', gutR, -10, 200, 32, 17)  -- raw；屏幕 y≈350
+    -- v6.15（用户 2026-11-02 图一：横幅被裁成「准备开」）：240 宽装不下 12 个字，
+    -- 按设计单位放到 380（1280 宽下中缝两侧仍有余量），字号 24 不变。
+    t.topBanner = T('topBanner', 0, 250, math.min(380, W - 240), 60, 24)
+    -- 🔴 v6.17（用户 2026-11-03 图二②「PC 每次消除都有文案，移动端有时候没有」）：
+    -- 消行/连击/升级/T-spin 的横幅文案**只有一条写入路径**（main 的 clearLines → setText(botBanner, …)），
+    -- 两端共用；但这里把手机双盘的 botBanner 停在 -4000（画外）⇒ 手机双盘**永久看不到任何横幅文案**。
+    -- 🔴 v6.18（用户 2026-11-03 图一「中间的文字出现的位置很不对」+「和休闲模式单个屏幕展示的内容不一致」）：
+    -- v6.17 把它塞进中缝（168 宽）是**只求"看得见"**，代价是同一句消行文案在休闲是一条通栏、
+    -- 在双盘被挤成中缝里折行的窄条，位置还飘在两盘之间的棋盘高度上——用户一眼就看出不对。
+    -- 判据改成**与休闲同款**：手机横幅在**底部带**、整屏通栏居中，宽度取 W-400（避开两侧拇指簇）。
+    -- ⚠ 底部带的**首行**已经被 hint 占着（上面那行 `-(halfH-28)`，首次消行教学）⇒ 横幅是**第二条**，
+    -- 再往上让 34px（半行 + 净空），否则两条都会写进同一 ty，出图时两段字直接叠印
+    -- （实测：ibotBanner 与 ihint 同 ty=-452、同 screenY=932，是一团花字）。
+    -- 4:3（1280×960）下两盘下沿 751、画布底 960 ⇒ 底部带 209px，放两条仍有富余。
+    t.botBanner = T('botBanner', 0, -(H / 2 - 62), math.min(W - 400, 880), 44, 20)
+    -- inst 份与 text 份必须同位（main 的 HUD_INST.build 起手会按旧的 halfH-40 摆一次）
+    ti.botBanner = t.botBanner
+    -- 🔴 v6.17（用户 2026-11-03 图二①「移动端换了个模式设计就变了，你没同步过来」）：
+    -- 手机双盘的 keyA-C（「AI 盘 / 得分 N 消行 N / 等级 N 落块 N」）原先三条**全部**停在 x=-4000，
+    -- 而 PC 双盘同三行正常显示 ⇒ 同一个模式，PC 有对家战况、手机完全没有。这是"两套设计"的实例。
+    -- 实测左栏空带：ibest 占 y[234,266]，拇指簇从 y=442 起 ⇒ y[266,440] 有 174px 连续空白，
+    -- 正好容三行 30px（原 raw 60/26/-8 本就是照这条带摆的，只是 x 被挪出了画布）。
+    -- 手机文案来自 config.COPY_DEV（"点击盘面开始" / "AI 已就绪"，6 全角 ≈ 108px），200px 宽够用；
+    -- 对局期换成短战况（"得分 0　消行 0" / "等级 1　落块 0"）同样放得下。
+    t.keyA = T('keyA', gutL, 60, 200, 30, 15)
+    t.keyB = T('keyB', gutL, 26, 200, 30, 15)
+    t.keyC = T('keyC', gutL, -8, 200, 30, 15)
     t.title = T('title', gutL, -4000, 200, 80, 18)
     ti.hud, ti.best, ti.hint = t.hud, t.best, t.hint
     ti.hudNext = t.hudNext
@@ -371,7 +436,9 @@ M.new = function(spec)
     ti.keyA, ti.keyB, ti.keyC = t.keyA, t.keyB, t.keyC
     local bw, bh = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
     -- 拇指簇竖排：底边必须留 6px（首版直接放 botY=-330，72 高 ⇒ 底边 -366 出画布，审计抓到 oob）
-    local col0 = g5.botY + 6
+    -- v6.15（用户 2026-11-02 图一：最下方的 ◀ 贴着画布底边被切）：原来 botY+6 = -324，
+    -- 72 高的胶囊底边落在 -360 正好压画布边缘；上移 34 让三颗竖排整体在安全区内。
+    local col0 = g5.botY + 40
     slots[#slots + 1] = B('left', gutL, col0, bw, bh, KIT.FS)
     slots[#slots + 1] = B('right', gutL, col0 + 86, bw, bh, KIT.FS)
     slots[#slots + 1] = B('rot', gutL, col0 + 172, bw, bh, KIT.FS)
@@ -418,6 +485,18 @@ M.new = function(spec)
     local p
     if not isMobile then p = dual and planPCDual(W, H, guide) or planPC(W, H)
     else p = planMobile(W, H, dual, guide) end
+    -- 技能 UI 整组移走（config.NUM.SKILL_UI == false，用户 2026-11-02 要求；PC 与移动端一起）：
+    -- 清空 p.skill（角色名卡/能量条/技能状态行）并摘掉 skill1/skill2/switch 三个槽位 ——
+    -- 两者都走「不在 plan 里 ⇒ applyText/applyButtons 把它挪出画布」的同一条语义，
+    -- 不新开隐藏通道（真机 SetVisible 对实例不可靠，只有坐标这一种"藏"）。
+    if NUM.SKILL_UI == false then
+      p.skill = {}
+      local keep = {}
+      for _, r in ipairs(p.slots or {}) do
+        if r.id ~= 'skill1' and r.id ~= 'skill2' and r.id ~= 'switch' then keep[#keep + 1] = r end
+      end
+      p.slots = keep
+    end
     local halfW, halfH = W / 2, H / 2
     local nw, nh = NUM.PHONE and NUM.PHONE.NAV_W or 116, NUM.PHONE and NUM.PHONE.NAV_H or 56
     local pad = KIT.MARGIN or 18
@@ -450,7 +529,7 @@ M.new = function(spec)
       p.nav = isMobile and {
         B('page', -halfW + pad + nw / 2, -(halfH - pad - nh / 2), nw, nh, KIT.FS),
         B('home', -halfW + pad + nw / 2, -(halfH - pad - nh / 2) + 70, nw, nh, KIT.FS),
-      } or {}
+      } or navCorners(W, H)
       p.text.topBanner = T('topBanner', 0, -4000, W, 64, 34)
       p.inst.topBanner = T('topBanner', 0, -4000, W, 64)
       p.text.botBanner = T('botBanner', 0, -4000, W - 180, 48, 20)
@@ -542,10 +621,23 @@ M.new = function(spec)
       trySet(b.txt, 'verticalAlignment', 'Middle')
       trySet(b.txt, 'horizontalAlignment', 'Middle')
     end
+    -- v6.12（用户 2026-11-02「移动端还有严重 bug，左右移动点一下会一直移动」）：
+    -- 触屏以前只派发「按下」；键盘那侧的 Up（**唯一**清 `g.das.dir` 的地方）永远不会来
+    -- ⇒ 点一下，DAS 继续连走到 DAS_HOLD 上限。实测一次点按 = 3 格 + `das stop reason=timeout`。
+    -- 修法：按下置 b.down，抬起**补一次 release**，走与键盘 Up 同一条清 DAS 的路径；
+    -- 滑出（CursorExit）同样收口 —— 手指蹭出胶囊后重复派发不停，是同一个「一直移动」的另一入口。
+    -- release 只对真正按下过的键生效（纯悬停进出不会误清键盘按住的 DAS）。
+    local function releaseDown()
+      if not b.down then return end
+      b.down = false
+      U.stopRep(b)
+      if spec.release then spec.release(b.act, id) end
+    end
     addCursor(b.hit, 'CursorEnter', function() U.paint(b, 'hover') end)
-    addCursor(b.hit, 'CursorExit', function() U.paint(b, 'normal') end)
-    addCursor(b.hit, 'CursorUp', function() U.paint(b, 'hover') U.stopRep(b) end)
+    addCursor(b.hit, 'CursorExit', function() U.paint(b, 'normal') releaseDown() end)
+    addCursor(b.hit, 'CursorUp', function() U.paint(b, 'hover') releaseDown() end)
     addCursor(b.hit, 'CursorDown', function()
+      b.down = true
       if spec.sfx then spec.sfx() end
       U.paint(b, 'down')
       print('phone tap ' .. id)
@@ -599,21 +691,27 @@ M.new = function(spec)
   U.padBuildNow = function(isMobile)
     U.mobile = isMobile and true or false
     U.btns, U.navBtns, U.actBtns = {}, {}, {}
+    U.pageBtn = nil
     U.regScreen('play')
+    local n = 0
+    -- v6.12（用户 2026-11-02「pc 端……没有移动端的角色和帮助按钮」）：导航键**两种设备都建**。
+    -- 触屏靠它开角色/说明，PC 靠鼠标点（键盘 H / 名册键仍并行有效，dispatch 同一个动作）。
+    for _, it in ipairs(NUM.PHONE.nav or {}) do
+      local b = makeBtn(it, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
+      if b then U.navBtns[#U.navBtns + 1] = b n = n + 1 end
+    end
     if not U.mobile then
-      print('phone build skip device=pc')
+      U.allBtns = {}
+      for _, b in ipairs(U.navBtns) do U.allBtns[#U.allBtns + 1] = b end
+      U.reapply()
+      print('phone build skip device=pc nav=' .. #U.navBtns)
       return
     end
-    local n = 0
     for _, it in ipairs(NUM.PHONE.items or {}) do
       local w, h = NUM.PHONE.SIDE_W, NUM.PHONE.SIDE_H
       if it.slot and it.slot:sub(1, 1) == 'M' then w, h = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H end
       local b = makeBtn(it, w, h, KIT.FS, 'p')
       if b then b.slot = it.slot U.btns[#U.btns + 1] = b n = n + 1 end
-    end
-    for _, it in ipairs(NUM.PHONE.nav or {}) do
-      local b = makeBtn(it, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
-      if b then U.navBtns[#U.navBtns + 1] = b n = n + 1 end
     end
     -- 帮助页翻页键（第 2/2 页才标「次页」，U.sync 里改字）
     local pb = makeBtn({ id = 'page', label = '次页', act = 'page' }, NUM.PHONE.NAV_W, NUM.PHONE.NAV_H, KIT.FS, 'n')
@@ -679,7 +777,10 @@ M.new = function(spec)
 
   -- 按 id 找几何：先槽位键（游戏键）→ 导航键 → 结算键
   local function applyButtons(p)
-    if not U.mobile then return end
+    -- v6.12：PC 也走这里（U.allBtns 里只有角色/说明两颗导航键；触屏簇在 PC 上不建）
+    -- v6.14：登记表 = **本次 apply 的快照**。旧实现只在 padBuildNow 里清 ⇒ 同一颗键被登记
+    -- 两次，U.dump 打出 `overlap:phone.left∩phone.left`（10 条"自己压自己"的假重叠）。
+    U.regScreen(U.screen or 'play')
     local byId = {}
     for _, list in ipairs({ p.slots or {}, p.nav or {}, p.acts or {} }) do
       for _, r in ipairs(list) do byId[r.id] = r end
@@ -964,6 +1065,11 @@ M.new = function(spec)
   end
   U.regAdd = function(name, ctl, w, h)
     if not ctl then return end
+    -- v6.14：同名控件在同一屏只登记一次 —— 帮助页的 page/home 既在 p.nav 又在 U.navBtns 里，
+    -- 旧实现会登记两遍，U.dump 打出 `overlap:phone.home∩phone.home`（假重叠，掩盖真问题）。
+    for i = 1, #U.reg do
+      if U.reg[i].screen == U.cur and U.reg[i].name == name then return end
+    end
     U.reg[#U.reg + 1] = { screen = U.cur, name = name, ctl = ctl, w = w or 0, h = h or 0 }
   end
   U.pos = function(ctl)
