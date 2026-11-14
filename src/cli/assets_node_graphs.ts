@@ -1055,14 +1055,23 @@ function runNodes(bytes: Uint8Array, gil: string, args: Args): void {
   // 2026-08-31 用户强制更正：引擎单节点图上限 = 2000（第五轮实证 gameNodeCount 2465 拒载、
   // 2005 侥幸加载；此前 3000 口径作废）
   const LIMIT = 2000
+  // 公式 = 魔方 3x3 大图族上的线性拟合（graph_edit.ts:767，校准点 M∈[1610,1933]，
+  // 见 examples/rubik-3x3/PROGRESS.md Round 17）；域外外推会产出荒谬值（小图 → 负数，
+  // 截距 −596.1 主导）。2026-11-14 实证：足球内核图 M=1195（域外）预测 2446 标「拒载」
+  // 但真机日志正常执行——域外预测不可作判死依据，只当强警讯。
+  const CALIB_MIN = 1610
+  const inCalib = budget.mainExpanded >= CALIB_MIN
   if (args.json) {
-    console.log(JSON.stringify({ gil, rootGraphId: root, limit: LIMIT, ...budget }, null, 2))
+    console.log(JSON.stringify({ gil, rootGraphId: root, limit: LIMIT, inCalibDomain: inCalib, ...budget }, null, 2))
     return
   }
   const gameCount = Math.round(budget.gameNodeCount)
   const gameOk = gameCount <= LIMIT
   console.log(`节点预算（游戏“节点图数量”公式，限制 ${LIMIT}，rootGraphId=${root}）`)
-  console.log(`  游戏节点图数量(预测): ${budget.gameNodeCount.toFixed(2)} → round=${gameCount}  ${gameOk ? '✅ 可进游戏' : '❌ 游戏拒载'}`)
+  if (!inCalib) {
+    console.log(`  ⚠️ mainExpanded=${budget.mainExpanded} 在公式校准域 [${CALIB_MIN},1933] 外：预测为外推值，${gameCount > LIMIT ? '「拒载」结论不可作判死依据（先查真机日志该图有无执行记录）' : '仅供参考'}`)
+  }
+  console.log(`  游戏节点图数量(预测): ${budget.gameNodeCount.toFixed(2)} → round=${gameCount}${gameCount < 0 ? '（域外负值，按 0 计）' : ''}  ${gameCount < 0 ? '— 外推无效' : gameOk ? '✅ 可进游戏' : '❌ 游戏拒载'}`)
   console.log(`  根图展开(mainExpanded): ${budget.mainExpanded}`)
   console.log(`  可达 impl 展开之和(implTotal): ${budget.implTotal}`)
   console.log(`  根图直接节点: ${budget.direct}`)

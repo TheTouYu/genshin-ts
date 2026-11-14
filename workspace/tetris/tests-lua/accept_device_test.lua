@@ -51,5 +51,27 @@ ok(P.acceptForTest('hit', { AddCursorEventListener = function() end }) == true,
   'A7 cursor 模板判据不变')
 ok(P.acceptForTest('cell', { imageColor = 0 }) == true, 'A8 image 模板判据不变')
 
+-- A9/A10 真机 GUID 重编号：所有 cell/hit 实例都必须走**探测后的** TEMPLATES.*，
+-- 不能用 config 里的原始候选 Guids（真机导入后编辑器会重编号，原始值全部失效）。
+-- 事故实证：真机日志 rec48 `tpl cell ok guid=1073741849` 而 rec47 `bg pool n=0`
+-- —— 背景池用 TPL_GUIDS.cell 建，那不是探测出的 guid，于是 16 次全失败 ⇒ comps=0/14 ⇒ 背景全空。
+local src = assert(io.open(ROOT .. '/lua/main.lua')):read('*a')
+local rawCell, rawHit = {}, {}
+for line in src:gmatch('[^\n]+') do
+  -- 只算真正的**实例化**调用（instInto/InstantiateClientUIControl），注释与日志行不算
+  if not line:match('^%s*%-%-') and line:match('instInto%s*%(%s*TPL_GUIDS%.cell')
+     or line:match('InstantiateClientUIControl%s*%(%s*TPL_GUIDS%.cell') then
+    rawCell[#rawCell + 1] = line
+  end
+  if not line:match('^%s*%-%-') and line:match('instInto%s*%(%s*TPL_GUIDS%.hit') then
+    rawHit[#rawHit + 1] = line
+  end
+end
+ok(#rawCell == 0, 'A9 main.lua 不得用原始 Guids 实例化 cell（真机 guid 会重编号）', #rawCell .. ' 处：' .. table.concat(rawCell, ' | '))
+ok(#rawHit == 0, 'A10 main.lua 不得用原始 Guids 实例化 hit', #rawHit .. ' 处')
+
+-- A11 反向保护：探测后的 TEMPLATES.cell 必须真的被用到（否则是"删了但没接"）
+ok(src:match('TEMPLATES%.cell'), 'A11 实例化走 TEMPLATES.cell（探测结果）')
+
 print(string.format('\n== accept_device_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

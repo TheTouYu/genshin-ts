@@ -386,6 +386,17 @@ local function setText(ctl, value)
   if inst and inst ~= ctl then pcall(function() inst.text = value end) end
 end
 local probeTemplate, instInto, findIn = WIDGETS.probeTemplate, WIDGETS.instInto, WIDGETS.findIn
+-- 🔴 v6.21：cell 实例化的**唯一**候选构造。
+-- 真机导入后编辑器会给模板重编号 ⇒ config 里 TPL_GUIDS.cell 的原始值在真机全部失效，
+-- 只有 probeCell 探出来的 TEMPLATES.cell 有效。探测结果放首位、原始候选作兜底：
+-- 模拟器里两者相同（无副作用），真机上才能真的建出控件。
+local function cellCands()
+  local list = {}
+  if TEMPLATES and TEMPLATES.cell then list[#list + 1] = TEMPLATES.cell end
+  for i = 1, #(TPL_GUIDS.cell or {}) do list[#list + 1] = TPL_GUIDS.cell[i] end
+  return list
+end
+
 local AUDIO = loadModule('audio')
 if not AUDIO then error('tetris: 模块 audio 装载失败') end
 local AUDIO_ENGINE = AUDIO.new({ game = game, frameOf = function() return frameSeq end })
@@ -4374,7 +4385,9 @@ do
       end,
       instHud = function(nm) return HUD_INST[nm] end,
       instCell = function(nm)
-        local c = instInto(TPL_GUIDS.cell, root, nil)
+        -- 🔴 v6.21：必须走**探测后**的 TEMPLATES.cell。真机导入后编辑器会重编号，
+        -- TPL_GUIDS.cell 是 config 里的原始候选，真机上一个都不存在 ⇒ 静默返回 nil。
+        local c = instInto(cellCands(), root, nil)
         if c then c.name = nm end
         return c
       end,
@@ -4513,7 +4526,8 @@ UI4.clamp = function(v, lo, hi)
 end
 
 UI4.pill = function(name, w, h, color)
-  local c = instInto(TPL_GUIDS.cell, root, nil)
+  -- 🔴 v6.21：同 instCell —— 真机 guid 重编号，必须用探测结果
+  local c = instInto(cellCands(), root, nil)
   if not c then return nil end
   c.name = name
   tryCall(c, 'SetSizeDelta', w, h)
@@ -4859,7 +4873,11 @@ function OnStart()
   -- （运行中新建会盖住棋盘，真机 SetVisible(false) 藏不住运行时实例）。
   g.bgPool = {}
   for i = 1, (MODE_BG_POOL or 16) do
-    local ctl = instInto(TPL_GUIDS.cell, root, nil)
+    -- 🔴 v6.21 真机背景全灭的真因：这里原本用 TPL_GUIDS.cell（config 里的原始候选），
+    -- 而真机导入后 editor 会把模板重编号 ⇒ 16 次实例化全失败 ⇒ `bg pool n=0` ⇒
+    -- 14 条背景图元一个都建不出来（真机日志 comps=0/14）⇒ 背景露出原神大世界。
+    -- 模拟器测不出来，因为模拟器里 TPL_GUIDS.cell 恰好就是有效值。
+    local ctl = instInto(cellCands(), root, nil)
     if not ctl then break end
     ctl.name = 'bg' .. i
     tryCall(ctl, 'SetSizeDelta', 1, 1)
