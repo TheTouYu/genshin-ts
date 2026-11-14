@@ -482,10 +482,14 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       impY.set(0.0)
       impZ.set(0.0)
       const ballSpd0 = f._3dVectorModuloOperation(f.create3dVector(vx.value, vy.value, vz.value))
-      const hasBall = f.logicalAndOperation(
-        f.lessThan(distBP, DRIBBLE_R),
-        f.lessThan(ballSpd0, KICK_GATE_SPD)
-      )
+      // FREEZE-TEST（2026-11-14 用户令）：取消「靠近球(distBP<DRIBBLE_R)+球慢(<KICK_GATE_SPD)」
+      // 双门——冲量无数量与位置限制，任何位置任意次按键都生效。kickNow（按键序号新拍去重）
+      // 保留 = 一次按键只踢一脚。恢复：还原为下方 logicalAndOperation（distBP/ballSpd0 均在作用域）。
+      const hasBall = f.greaterThan(ballSpd0, -1.0) // 恒真（ballSpd0 ≥ 0）
+      // const hasBall = f.logicalAndOperation(
+      //   f.lessThan(distBP, DRIBBLE_R),
+      //   f.lessThan(ballSpd0, KICK_GATE_SPD)
+      // )
 
       f.doubleBranch(
         kickNow,

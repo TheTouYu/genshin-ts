@@ -309,7 +309,8 @@ function main(): void {
               5
             )
           })()
-    newBytes.copy(outBuf, p.at)
+    // Uint8Array.copy 不在当前 lib（TS2339）；set(src, off) 语义等价：把 newBytes 拷进 outBuf 的 p.at 起
+    outBuf.set(newBytes, p.at)
   }
 
   // ---- 自检 1：差异区间全部落在目标记录内（未涉及记录逐字节相同） ----
