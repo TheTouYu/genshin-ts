@@ -73,5 +73,26 @@ ok(#rawHit == 0, 'A10 main.lua 不得用原始 Guids 实例化 hit', #rawHit .. 
 -- A11 反向保护：探测后的 TEMPLATES.cell 必须真的被用到（否则是"删了但没接"）
 ok(src:match('TEMPLATES%.cell'), 'A11 实例化走 TEMPLATES.cell（探测结果）')
 
+-- A12/A13 别名：config 里文字模板候选表的键叫 `settleText`，而平台/渲染层用 tplKey `stext`。
+-- 真机日志 rec50 `platform fail inst:stext :: all candidates rejected` +
+-- `TPL_GUIDS.stext == nil` ⇒ 候选查成空表、兜底扫描区间又不含 1073742202 ⇒ 全灭。
+local CFGM = load('lua/tetris/config.lua')
+local G = CFGM.TPL_GUIDS or {}
+ok(G.stext ~= nil and G.stext == G.settleText and #G.stext > 0,
+  'A12 TPL_GUIDS.stext 必须是 settleText 的别名（单源，非空）',
+  'stext=' .. tostring(G.stext) .. ' settleText_n=' .. #(G.settleText or {}))
+
+-- A13 端到端：用真实 config 的模板表，P.inst('stext') 必须真的试到那张表的第一个候选
+local seen = {}
+local fakeGame = {
+  InstantiateClientUIControl = function(g) seen[#seen + 1] = g return nil end,
+  DestroyClientUIControl = function() end,
+}
+local P2 = platformM.new { game = fakeGame, root = {}, canvas = { 1280, 720 },
+  templates = G, logSink = function() end }
+P2.inst('stext', {})
+ok(seen[1] == G.settleText[1], 'A13 P.inst(stext) 必须尝试 settleText 首个候选',
+  '实际首个: ' .. tostring(seen[1]) .. '，期望: ' .. tostring(G.settleText[1]))
+
 print(string.format('\n== accept_device_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)
