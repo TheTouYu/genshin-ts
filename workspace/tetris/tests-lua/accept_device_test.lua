@@ -94,5 +94,18 @@ P2.inst('stext', {})
 ok(seen[1] == G.settleText[1], 'A13 P.inst(stext) 必须尝试 settleText 首个候选',
   '实际首个: ' .. tostring(seen[1]) .. '，期望: ' .. tostring(G.settleText[1]))
 
+-- A14 诊断可分性：候选表为空（配置/键名问题）必须打印出**已定义的键名**，
+-- 好让下一轮一眼看出是键名不匹配，而不是又去改能力判据（v6.20 就是这么白改一轮的）。
+local logs = {}
+local P3 = platformM.new { game = { InstantiateClientUIControl = function() return nil end,
+                                    DestroyClientUIControl = function() end },
+  root = {}, canvas = { 1280, 720 },
+  templates = { settleText = { 1 } },           -- 故意不放 stext
+  logSink = function(msg) logs[#logs + 1] = msg end }
+P3.inst('nosuchkey', {})
+local joined = table.concat(logs, '\n')
+ok(joined:find('cands=0', 1, true) ~= nil and joined:find('settleText', 1, true) ~= nil,
+  'A14 候选表为空时必须打出 cands=0 并列出已定义的键名', joined)
+
 print(string.format('\n== accept_device_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

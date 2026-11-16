@@ -256,6 +256,18 @@ M.new = function(spec)
       S.guidOf[tplKey] = nil
     end
     local cands = templates[tplKey] or {}
+    -- 🔴 v6.22 诊断（真机文字全灭第二次返工的产物）：**候选表为空**和**候选被试完**是两回事，
+    -- 前者是配置/键名问题（本次真因：config 叫 settleText、这里查 stext），后者才可能是能力判据问题。
+    -- 旧代码两者最终都只打一句 `all candidates rejected`，于是上一轮我按能力判据去修，白改一轮。
+    if #cands == 0 then
+      P.log('tpl ' .. tplKey .. ' cands=0 :: templates 里没有这个键（键名不匹配？已定义: '
+        .. (function()
+             local ks = {}
+             for k in pairs(templates) do ks[#ks + 1] = tostring(k) end
+             table.sort(ks)
+             return table.concat(ks, ',')
+           end)() .. '）')
+    end
     for i = 1, #cands do
       local g = cands[i]
       if type(g) == 'number' then
