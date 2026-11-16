@@ -14,8 +14,15 @@
 //   · key<0 Lua 时间同步 → fb_dt（内核时间改为固定 1/15 s + 球实体 fb_dt，不再读 Lua 帧长）
 import { g } from 'genshin-ts/runtime/core'
 
-import { fbWritePlayerPos } from './fb-composites.js'
+import { fbMirrorBall, fbWritePlayerPos } from './fb-composites.js'
 import { KitSignal } from './signals.js'
+
+// B 方案（2026-11-14 定谳「到达抖动是真凶」后用户裁决）：渲染图自主节拍（fb_rtick
+// 倒计时驱动），本图每拍 'B' 只做**数据落地 + 渲染时钟续命**：
+//   · 镜像 11 写进球实体（fbMirrorBall）——渲染图只读变量，与到达抖动解耦；
+//   · startGlobalTimer(fb_rtick)=重置 0.15s 倒计时：簇到达→不断重置→渲染不触发（去抖）；
+//     0.15s 无新拍→到期→渲染拍自主走；渲染图静止门不续命时，本行也是唤醒开关。
+const BALL_GUID = 1077936163n
 
 const graph = g
   .server({
@@ -74,6 +81,18 @@ const graph = g
         // ———— 每拍写玩家位置（内核下一拍差分算速度）————
         // 位置写回交给复合（名字即契约）：读角色实体位置 → 写 fbvx/fbvz/fbvy/fb_pos_tick
         f.callComposite(fbWritePlayerPos, { owner, char: cached, tick: evt.params.tick })
+        // ———— B 方案：球状态镜像 + 渲染时钟续命（2026-11-14）————
+        const ballE = f.queryEntityByGuid(BALL_GUID)
+        const tRecv = f.getCurrentGlobalTimerTime(ballE, 'fb_clk')
+        f.callComposite(fbMirrorBall, {
+          ball: ballE,
+          tick: evt.params.tick,
+          pos: evt.params.pos,
+          vel: evt.params.vel,
+          spin: evt.params.spin,
+          tRecv
+        })
+        f.startGlobalTimer(ballE, 'fb_rtick')
         // 整链通判据：日志里出现一次 kit-listener-armed + 至少一条 kit-p1
         f.doubleBranch(
           f.equal(evt.params.tick, 1n),

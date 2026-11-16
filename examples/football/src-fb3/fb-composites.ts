@@ -65,6 +65,48 @@ export const fbDriveBall = g.defineComposite('fb_drive_ball', {
   }
 })
 
+// ———— 复合 3：球状态镜像写入（B 方案：数据图每拍 'B' 调用）—————————————
+// 2026-11-14 定谳：'B' 信号到达节拍抖动（0.001~0.809s 成簇+空洞）是卡顿真凶 ⇒ 渲染图
+// 改为 fb_rtick 倒计时（0.15s）自主节拍，本复合把镜像 11 写落到**球实体变量**：
+//   pos/vel/spin 9 分量 + tick(int) + tRecv(fb_clk 正计时读数=接收时刻)。
+// 渲染图只读变量做 vel 外推 target=pos+vel×(now−tRecv)——到达抖动与渲染节拍解耦。
+export const fbMirrorBall = g.defineComposite('fb_mirror_ball', {
+  id: 1610700052,
+  inputs: {
+    ball: { type: 'entity' },
+    tick: { type: 'int' },
+    pos: { type: 'vec3' },
+    vel: { type: 'vec3' },
+    spin: { type: 'vec3' },
+    tRecv: { type: 'float' }
+  },
+  outputs: {},
+  outflows: ['done'],
+  build: ({ ball, tick, pos, vel, spin, tRecv }, f) => {
+    const p = f.split3dVector(pos)
+    const v = f.split3dVector(vel)
+    const s = f.split3dVector(spin)
+    f.setCustomVariable(ball, 'fb_rpx', p.xComponent, false)
+    f.setCustomVariable(ball, 'fb_rpy', p.yComponent, false)
+    f.setCustomVariable(ball, 'fb_rpz', p.zComponent, false)
+    f.setCustomVariable(ball, 'fb_rvx', v.xComponent, false)
+    f.setCustomVariable(ball, 'fb_rvy', v.yComponent, false)
+    f.setCustomVariable(ball, 'fb_rvz', v.zComponent, false)
+    f.setCustomVariable(ball, 'fb_rsx', s.xComponent, false)
+    f.setCustomVariable(ball, 'fb_rsy', s.yComponent, false)
+    f.setCustomVariable(ball, 'fb_rsz', s.zComponent, false)
+    f.setCustomVariable(ball, 'fb_rtrecv', tRecv, false)
+    const last = f.registerExecNode('set_custom_variable', [
+      ball,
+      new str('fb_rtick'),
+      tick,
+      new bool(false)
+    ])
+    f.outflow('done', last, 0)
+    return {}
+  }
+})
+
 // ———— 复合 2：把玩家角色坐标写进载体实体（kitListen 每拍调用）———————————————
 // 客户端内核首选是直读 `fbc_e`（选项卡锁存的真角色句柄）；这里写的是**兜底通道**。
 // 注：解析链可能给到恒在 (0,y,0) 的占位实体（无 GUID，D724）⇒ 会写 0；
