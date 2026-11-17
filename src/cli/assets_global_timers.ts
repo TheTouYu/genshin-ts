@@ -36,7 +36,7 @@ import {
 } from './static_assembly/wire.js'
 
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
-type Sub = 'list' | 'create' | 'attach'
+type Sub = 'list' | 'create' | 'attach' | 'set-duration'
 type Args = {
   sub: Sub
   gilPath?: string
@@ -58,13 +58,15 @@ function usage(exitCode = 1): never {
   const text = [
     'Manage global timers (root12 definitions + root5 entity component) from real GIL donors.',
     '',
-    'Usage: gsts assets:global-timers [list|create|attach] [options]',
+    'Usage: gsts assets:global-timers [list|create|attach|set-duration] [options]',
     '',
     '  list:   gsts assets:global-timers list [--gil <file>] [--json]',
     '  create: gsts assets:global-timers create --name <名> [--duration <float>] [--countdown|--positive]',
     '          [--gil <file>] [--output <file>|--write]',
     '  attach: gsts assets:global-timers attach --entity <场景实体ID> --name <计时器名>',
     '          [--gil <file>] [--output <file>|--write]',
+    '  set-duration: gsts assets:global-timers set-duration --name <计时器名> --duration <float>',
+    '          [--gil <file>] [--output <file>|--write]  （倒计时节拍周期的运行时真值）',
     '',
     'Notes:',
     '  - positive = f3 missing; countdown = f3=1',
@@ -79,7 +81,7 @@ function parseArgv(argv: readonly string[]): Args {
   const args: Args = { sub: 'list', write: false, json: false }
   const rest = [...argv]
   const sub = rest.shift()
-  if (sub === 'list' || sub === 'create' || sub === 'attach') {
+  if (sub === 'list' || sub === 'create' || sub === 'attach' || sub === 'set-duration') {
     args.sub = sub
   } else if (sub) {
     throw new Error(`[error] unknown subcommand: ${sub}`)
@@ -113,6 +115,9 @@ function parseArgv(argv: readonly string[]): Args {
   }
   if (args.sub === 'attach') {
     if (args.entityId === undefined || !args.name) usage()
+  }
+  if (args.sub === 'set-duration') {
+    if (!args.name || args.duration === undefined) usage()
   }
   if (args.write && args.outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   return args
@@ -232,6 +237,33 @@ export function buildCreateGlobalTimer(payload: Uint8Array, name: string, durati
   return emitWireMessage([...filtered, { number: ROOT12, wire: 2, value: newContainer }])
 }
 
+export function buildSetTimerDuration(payload: Uint8Array, timerName: string, duration: number): Uint8Array {
+  const container = parseContainer(payload, ROOT12)
+  if (!container) throw new Error('[error] root12 container not found')
+  let found = false
+  const newContainer = emitWireMessage(
+    container.map((f) => {
+      if (f.number !== 1 || f.wire !== 2) return f
+      const fields = parseWireMessage(f.value as Uint8Array)
+      if (!fields) return f
+      const name = str(fields.find((x) => x.number === 1 && x.wire === 2)?.value as Uint8Array ?? new Uint8Array())
+      if (name !== timerName) return f
+      found = true
+      // 保 f1/f3/f501 原样，f2 按号序插回（wire 顺序与编辑器产物一致）
+      const rebuilt: WireField[] = [
+        ...fields.filter((x) => x.number !== 2 && x.number < 2),
+        { number: 2, wire: 5, value: new Uint8Array(new Float32Array([duration]).buffer) },
+        ...fields.filter((x) => x.number > 2)
+      ]
+      return { ...f, value: emitWireMessage(rebuilt) }
+    })
+  )
+  if (!found) throw new Error(`[error] global timer not found: ${timerName}`)
+  const top = parseWireMessage(payload)!
+  const filtered = top.filter((f) => !(f.number === ROOT12 && f.wire === 2))
+  return emitWireMessage([...filtered, { number: ROOT12, wire: 2, value: newContainer }])
+}
+
 function buildAttachGlobalTimer(payload: Uint8Array, entityId: number, timerName: string): Uint8Array {
   const container = parseContainer(payload, ROOT5)
   if (!container) throw new Error('[error] root5 container not found')
@@ -297,7 +329,9 @@ export async function runAssetsGlobalTimers(
   const result =
     args.sub === 'create'
       ? buildCreateGlobalTimer(payload, args.name!, args.duration!, !!args.countdown)
-      : buildAttachGlobalTimer(payload, args.entityId!, args.name!)
+      : args.sub === 'set-duration'
+        ? buildSetTimerDuration(payload, args.name!, args.duration!)
+        : buildAttachGlobalTimer(payload, args.entityId!, args.name!)
   const header = {
     schema: readUint32BE(sourceBytes, 4),
     headTag: readUint32BE(sourceBytes, 8),

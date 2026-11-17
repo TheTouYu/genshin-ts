@@ -34,10 +34,11 @@ const EXTRAP_MAX = 0.45 // 外推上限：信号空洞 >0.45s 后目标冻结在
 const ALIVE_VEL = 0.08 // 休眠门：镜像速度 ≤ 此值且已到位 ⇒ 渲染休眠
 const ALIVE_OFF = 0.25 // 休眠门：|loc − pos| ≤ 此值 ⇒ 已到位
 const SPIN_EPS = 0.05 // 低于此角速度不发旋转设备（rad/s）
-const BALL_DUR_VAR = 'fb_dur' // 球实体上的段长参数（秒）
-const BALL_DUR_DEFAULT = 0.22 // 渲染节拍 0.15s × 1.47；fb_dur 调回 0.135 以下=更贴拍
+const BALL_DUR_VAR = 'fb_rdur' // 球实体上的段长参数（秒，2026-11-17 用户口径）
+const BALL_DUR_DEFAULT = 0.12 // 每段渲染持续时长：节拍 fb_rfreq=0.1 的 1.2× 覆盖差
+//   （防定时器实际 0.12s 才触发下一次时球冻结——段长 ≥ 实际触发间隔即无空洞）
 const FB_CLK = 'fb_clk' // 正计时秒表（接收时刻基准）
-const FB_RTICK = 'fb_rtick' // 0.15s 倒计时（本图节拍源）
+const FB_RTICK = 'fb_rtick' // 0.1s 倒计时（本图节拍源，= fb_rfreq 真值）
 
 g
   .server({
@@ -116,7 +117,7 @@ g
       laY.value,
       f.split3dVector(laRaw).zComponent
     )
-    // —— 段长：球实体 fb_dur（0.04~0.6 之外视为未配置）——
+    // —— 段长：球实体 fb_rdur（0.04~0.6 之外视为未配置，缺省 0.12=节拍 1.2×）——
     const durRaw = f.getCustomVariable(ball, BALL_DUR_VAR).asType('float')
     const dur = f.localVariable('float')
     f.doubleBranch(
