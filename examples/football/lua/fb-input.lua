@@ -1,10 +1,13 @@
 --[[==========================================================================
-fb-input.lua v2 —— 真实足球 v3 · 客户端 Lua（HUD 面板 + 按键 → 服务器信号）
-职责三件：
+fb-input.lua v3 —— 真实足球 v3 · 客户端 Lua（HUD 面板 + 按键 → 服务器信号 + 力输入套件）
+职责四件：
   ①HUD 排版：11 个 client-textbox 的字号/颜色/对齐/文案全部在运行时设
     （.gil 只管控件存在与初始位置尺寸；client-textbox 的文案/字号 CLI 改不了）
   ②本地计时：hud_timer 从 OnStart 起累计，按秒刷新
   ③按键 → 服务器信号 fb_input(key:int, state:int)，同时点亮横幅与状态行
+  ④力输入套件（2026-11-17，design/FORCE-KIT-DESIGN.md）：fk_* 面板渲染 +
+    23 个 cursor 热区（含 6 个叠在 hud_k1..k6 上的踢球热区=按键按钮化）→ fb_input；
+    FK 本地镜像与服务端 zz-force-kit.ts 双端同 clamp（aimPanel 漂移教训）
 【数据边界】比分写 hud_score，来源两路（都在 pcall 里，缺就不生效）：
   a) 全局自定义变量 fb_score_a / fb_score_b（Enum.CustomVariableEntityType.PlayerSelf）
      —— 服务端图「设置自定义变量」写玩家变量后，变化回调即刷新（待真机验证）
@@ -41,10 +44,10 @@ local KEYS = {
   { id = 4, names = { 'KeyboardCraftspersonKey4Down' }, line = '④ 短传（地滚）· 4' },
   { id = 5, names = { 'KeyboardCraftspersonKey5Down' }, line = '⑤ 弧线球  · 5' },
   { id = 6, names = { 'KeyboardCraftspersonKey6Down' }, line = '⑥ 球放回正前  · 6' },
-  -- 施力探针（只走独立服务端图 _GSTS_forceTest，不碰内核）
-  { id = 7, names = { 'KeyboardCraftspersonKey7Down' }, line = '⑦ 施力 +x（探针）· 7' },
-  { id = 8, names = { 'KeyboardCraftspersonKey8Down' }, line = '⑧ 施力 +y（探针）· 8' },
-  { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 清力（探针）· 9' },
+  -- 力输入套件（v3，design/FORCE-KIT-DESIGN.md；服务端 _GSTS_forceKit）
+  { id = 7, names = { 'KeyboardCraftspersonKey7Down' }, line = '⑦ 施力（力套件）· 7' },
+  { id = 8, names = { 'KeyboardCraftspersonKey8Down' }, line = '⑧ 清力（急停）· 8' },
+  { id = 9, names = { 'KeyboardCraftspersonKey9Down' }, line = '⑨ 套件复位 · 9' },
   -- —— 调参面板（2026-10-31 用户口径）：点一次永久累加，之后每脚踢球都按「朝向×力度 + 右偏/上偏」 ——
   { id = 23, names = { 'KeyboardCraftspersonKey23Down' }, line = '⚙ 力度 +5%   · F5',  panel = 'pow', m = 1.05 },
   { id = 24, names = { 'KeyboardCraftspersonKey24Down' }, line = '⚙ 力度 −5%   · F6',  panel = 'pow', m = 1 / 1.05 },
@@ -198,20 +201,7 @@ end
 
 -- 比分通道（未接线，标死）：服务端进球事件还没接到 HUD。
 -- 现只保留 setScore(a,b) 作为对外接口，等通道接上再调用；轮询全局变量的旧实现已删除（无消费者）。
-local function setStatic()
-  setText(STYLE.title.name, '⚽ 千星足球 · 技能演练')
-  for i, slot in ipairs(SLOTS) do
-    setText(STYLE[slot].name, KEYS[i].line)
-  end
-  renderScore()
-  renderTimer()
-  setText(STYLE.toast.name, '')
-  setState('技能演练 · 按 ①~⑥ 触发')
-end
-
-local function applyStyles()
-  for _, s in pairs(STYLE) do setStyle(s.name, s.fs, s.color) end
-end
+-- setStatic/applyStyles 定义已移到 FK 块之后（FKSTYLE/FKZONES 必须先于其词法位置，pairs(nil) 教训）
 
 -- —— 面板本地镜像（服务端 _GSTS_aimPanel 同步做同一组运算，clamp 边界逐字对齐 ⇒ 不漂）——
 -- S6（2026-11-02）：力度=百分比步进（×1.05 / ÷1.05，clamp [0.2,2.2]），右偏 m/s 改角度 ±5°（±75）。
@@ -239,17 +229,186 @@ local function panelApply(entry)
   setText(STYLE.k6.name, panelText())
 end
 
+-- —— 力输入套件（v3，design/FORCE-KIT-DESIGN.md §3/§5）——
+-- .gil 控件名对照：文本框 fk_* / 热区 fk_az_*（± 步进/预设/动作）+ fk_kick1..6（叠 hud_k1..k6）
+-- ⚠️ FK 镜像 clamp 必须与 zz-force-kit.ts 的 XYZ_LIM(±100)/S_MIN(0.1)/S_MAX(10) 逐字一致
+local FKSTYLE = {
+  title  = { name = 'fk_title',  fs = 22, color = COL.gold },
+  status = { name = 'fk_status', fs = 18, color = COL.gray },
+  vx = { name = 'fk_vx', fs = 20, color = COL.skill },
+  vy = { name = 'fk_vy', fs = 20, color = COL.skill },
+  vz = { name = 'fk_vz', fs = 20, color = COL.skill },
+  vs = { name = 'fk_vs', fs = 20, color = COL.skill },
+  xm = { name = 'fk_xm', fs = 20, color = COL.skill }, xp = { name = 'fk_xp', fs = 20, color = COL.skill },
+  ym = { name = 'fk_ym', fs = 20, color = COL.skill }, yp = { name = 'fk_yp', fs = 20, color = COL.skill },
+  zm = { name = 'fk_zm', fs = 20, color = COL.skill }, zp = { name = 'fk_zp', fs = 20, color = COL.skill },
+  sm = { name = 'fk_sm', fs = 20, color = COL.skill }, sp = { name = 'fk_sp', fs = 20, color = COL.skill },
+  p1 = { name = 'fk_p1', fs = 20, color = COL.skill }, p2 = { name = 'fk_p2', fs = 20, color = COL.skill },
+  p3 = { name = 'fk_p3', fs = 20, color = COL.skill }, p4 = { name = 'fk_p4', fs = 20, color = COL.skill },
+  p5 = { name = 'fk_p5', fs = 20, color = COL.skill },
+  apply = { name = 'fk_apply', fs = 20, color = COL.gold },
+  clear = { name = 'fk_clear', fs = 20, color = COL.skill },
+  reset = { name = 'fk_reset', fs = 20, color = COL.skill },
+  step  = { name = 'fk_step',  fs = 18, color = COL.skill }
+}
+
+-- FK 本地镜像（服务端 zz-force-kit.ts 持有真值，这里只做显示与即时反馈）
+local FK = { x = 1.0, y = 0.0, z = 0.0, s = 1.0, step = 1 }  -- step: 0=×0.1 1=×1 2=×10
+local FK_STEPS = { 0.1, 1, 10 }
+local FK_PRESETS = {
+  { 1.0, 0.0, 0.0, 1.0, '推射' },
+  { 1.0, 0.5, 0.0, 1.6, '抽射' },
+  { 0.5, 1.2, 0.0, 1.0, '吊射' },
+  { 1.0, 0.1, 0.0, 1.2, '短传' },
+  { 1.0, 0.25, 0.7, 1.4, '弧线' }
+}
+local FK_AXIS = { x = 'x 前后', y = 'y 上下', z = 'z 左右', s = 's 缩放' }
+
+local function fkClamp(v, lo, hi)
+  if v < lo then return lo elseif v > hi then return hi end
+  return v
+end
+
+local function fkRender()
+  setText(FKSTYLE.vx.name, string.format('%s %+.1f', FK_AXIS.x, FK.x))
+  setText(FKSTYLE.vy.name, string.format('%s %+.1f', FK_AXIS.y, FK.y))
+  setText(FKSTYLE.vz.name, string.format('%s %+.1f', FK_AXIS.z, FK.z))
+  setText(FKSTYLE.vs.name, string.format('%s %.1f', FK_AXIS.s, FK.s))
+  setText(FKSTYLE.step.name, '步进×' .. tostring(FK_STEPS[FK.step + 1]))
+end
+
+local function fkStatus(msg)
+  setText(FKSTYLE.status.name, msg)
+end
+
+-- 按键语义（与 zz-force-kit.ts multipleBranches 同表）：先更新本地镜像再发信号
+local function fkFire(key)
+  if key >= 31 and key <= 38 then
+    local axis = (key <= 32) and 'x' or ((key <= 34) and 'y' or ((key <= 36) and 'z' or 's'))
+    local sign = (key % 2 == 0) and 1 or -1  -- 偶数键=+，奇数键=−
+    local lo, hi = -100, 100
+    if axis == 's' then lo, hi = 0.1, 10 end
+    FK[axis] = fkClamp(FK[axis] + FK_STEPS[FK.step + 1] * sign, lo, hi)
+    fkStatus(string.format('%s %+0.1f（步进×%s）', FK_AXIS[axis], FK[axis], tostring(FK_STEPS[FK.step + 1])))
+  elseif key == 39 then
+    FK.step = (FK.step + 1) % 3
+    fkStatus('步进 → ×' .. tostring(FK_STEPS[FK.step + 1]))
+  elseif key >= 41 and key <= 45 then
+    local p = FK_PRESETS[key - 40]
+    FK.x, FK.y, FK.z, FK.s = p[1], p[2], p[3], p[4]
+    fkStatus(string.format('预设 %s (%.2f, %.2f, %.2f, s=%.1f)', p[5], p[1], p[2], p[3], p[4]))
+  elseif key == 9 then
+    FK.x, FK.y, FK.z, FK.s, FK.step = 1.0, 0.0, 0.0, 1.0, 1
+    fkStatus('套件复位 (1, 0, 0, s=1)')
+  end
+  fkRender()
+  send(key, 1)
+end
+
+-- 热区接线：动作挂 CursorClick（Down 会连发，tetris 结算键教训）；
+-- 枚举先行 string 兜底（AddKeyEventListener 同款真机纪律 D561）
+local function armZone(zoneName, fn)
+  local c = getCtl(zoneName)
+  if c == nil then return false end
+  local ok, err = pcall(function()
+    pcall(function() c.raycastTarget = true end)
+    local ev = nil
+    pcall(function() ev = Enum.CursorEventType.CursorClick end)
+    if ev ~= nil then
+      c:AddCursorEventListener(ev, function() fn() end)
+    else
+      c:AddCursorEventListener('CursorClick', function() fn() end)
+    end
+  end)
+  if ok then
+    log('zone ' .. zoneName .. ' armed')
+  else
+    log('zone fail ' .. zoneName .. ' ' .. tostring(err))
+  end
+  return ok
+end
+
+-- 热区表：t=视觉文本框名（setStatic 用），z=热区名，k=fb_input 键
+local FKZONES = {
+  { t = 'fk_xm', z = 'fk_az_xm', k = 31 }, { t = 'fk_xp', z = 'fk_az_xp', k = 32 },
+  { t = 'fk_ym', z = 'fk_az_ym', k = 33 }, { t = 'fk_yp', z = 'fk_az_yp', k = 34 },
+  { t = 'fk_zm', z = 'fk_az_zm', k = 35 }, { t = 'fk_zp', z = 'fk_az_zp', k = 36 },
+  { t = 'fk_sm', z = 'fk_az_sm', k = 37 }, { t = 'fk_sp', z = 'fk_az_sp', k = 38 },
+  { t = 'fk_p1', z = 'fk_az_p1', k = 41 }, { t = 'fk_p2', z = 'fk_az_p2', k = 42 },
+  { t = 'fk_p3', z = 'fk_az_p3', k = 43 }, { t = 'fk_p4', z = 'fk_az_p4', k = 44 },
+  { t = 'fk_p5', z = 'fk_az_p5', k = 45 },
+  { t = 'fk_apply', z = 'fk_az_apply', k = 7 },
+  { t = 'fk_clear', z = 'fk_az_clear', k = 8 },
+  { t = 'fk_reset', z = 'fk_az_reset', k = 9 },
+  { t = 'fk_step', z = 'fk_az_step', k = 39 }
+}
+
+local function setStatic()
+  setText(STYLE.title.name, '⚽ 千星足球 · 技能演练')
+  for i, slot in ipairs(SLOTS) do
+    setText(STYLE[slot].name, KEYS[i].line)
+  end
+  -- 力套件静态文案（数值行/步进由 fkRender 刷）
+  local FKBTN_TEXT = {
+    fk_xm = '−', fk_xp = '+', fk_ym = '−', fk_yp = '+',
+    fk_zm = '−', fk_zp = '+', fk_sm = '−', fk_sp = '+',
+    fk_p1 = '推射', fk_p2 = '抽射', fk_p3 = '吊射', fk_p4 = '短传', fk_p5 = '弧线',
+    fk_apply = '施力 7', fk_clear = '清力 8', fk_reset = '复位 9'
+  }
+  setText(FKSTYLE.title.name, '力输入试验台 · 7=施力')
+  for _, b in ipairs(FKZONES) do
+    setText(b.t, FKBTN_TEXT[b.t] or '')
+  end
+  renderScore()
+  renderTimer()
+  setText(STYLE.toast.name, '')
+  setState('技能演练 · 按 ①~⑥ 触发 · 左侧力试验台')
+end
+
+local function applyStyles()
+  for _, s in pairs(STYLE) do setStyle(s.name, s.fs, s.color) end
+  for _, s in pairs(FKSTYLE) do setStyle(s.name, s.fs, s.color) end
+end
+
+-- 统一开火：键盘 handler 与踢球热区共用（同一条日志/横幅/状态行路径）
+local function fireEntry(entry)
+  log('key ' .. tostring(entry.id))
+  if entry.panel ~= nil then
+    panelApply(entry)
+    showToast(entry.line, 0.8, COL.gold)
+  else
+    setState(entry.line .. ' · 已触发')
+    showToast(entry.line, 1.2, COL.hot)
+  end
+  send(entry.id, 1)
+end
+
+local function fireKey(i)
+  local entry = KEYS[i]
+  if entry ~= nil then fireEntry(entry) end
+end
+
+local function armForceKit()
+  local armed = 0
+  for _, b in ipairs(FKZONES) do
+    if armZone(b.z, function()
+      if b.k == 7 then
+        fkStatus(string.format('施力 (%+.1f, %+.1f, %+.1f, s=%.1f) → 沿连线', FK.x, FK.y, FK.z, FK.s))
+      end
+      fkFire(b.k)
+    end) then armed = armed + 1 end
+  end
+  -- 踢球热区：叠在 hud_k1..k6 上（按键 1-6 按钮化，移动端可用）
+  for i = 1, 6 do
+    local idx = i
+    if armZone(string.format('fk_kick%d', idx), function() fireKey(idx) end) then armed = armed + 1 end
+  end
+  return armed
+end
+
 local function makeHandler(entry)
   return function()
-    log('key ' .. tostring(entry.id))
-    if entry.panel ~= nil then
-      panelApply(entry)
-      showToast(entry.line, 0.8, COL.gold)
-    else
-      setState(entry.line .. ' · 已触发')
-      showToast(entry.line, 1.2, COL.hot)
-    end
-    send(entry.id, 1)
+    fireEntry(entry)
     return true
   end
 end
@@ -288,22 +447,27 @@ end
 function OnInit()
 end
 
--- HUD 控件命中数（0..11）：心跳自检用——服务端心跳分支按 state 打点，替代不落 .gia 的 print
+-- HUD 控件命中数（0..34 = STYLE 11 + FKSTYLE 23）：心跳自检用
 local function countHud()
   local n = 0
   for _, s in pairs(STYLE) do if getCtl(s.name) ~= nil then n = n + 1 end end
+  for _, s in pairs(FKSTYLE) do if getCtl(s.name) ~= nil then n = n + 1 end end
   return n
 end
 
 function OnStart()
-  log('onstart v2')
+  log('onstart v3')
   applyStyles()
   setStatic()
-  send(0, 100 + countHud())       -- 心跳 1：100+HUD 命中数（11 = 全部找到）
+  fkRender()
+  fkStatus('x/y/z 连线系 · z 侧向 · s 倍率')
+  send(0, 100 + countHud())       -- 心跳 1：100+HUD 命中数（34 = 全部找到）
   local n = 0
   for _, k in ipairs(KEYS) do if listen(k) then n = n + 1 end end
-  send(0, n)                      -- 心跳 2：成功注册的键数（6 = 六键全就位）
-  log('listen ok ' .. tostring(n) .. '/' .. tostring(#KEYS))
+  send(0, n)                      -- 心跳 2：成功注册的键数
+  local z = armForceKit()
+  send(0, 200 + z)                -- 心跳 3：200+热区接线数（23 = 全部就位）
+  log('listen ok ' .. tostring(n) .. '/' .. tostring(#KEYS) .. ' zones ' .. tostring(z) .. '/23')
 end
 
 function OnUpdate(dt)
