@@ -107,7 +107,7 @@ function flash(){ flashEl.style.opacity = 1; setTimeout(()=>flashEl.style.opacit
 /* 打点器 */
 let S = {};
 function resetStats(){ S = { ownSwitch:0, ownFrames:0, ownPrev:-1, touchBy:[0,0], tacklesTry:0, tackleOk:0, regainWithin3:0, lostAt:-1,
-  passes:0, passOk:0, catchTicks:[], passFly:0, goals:0 }; statTick0 = tick; }
+  passes:0, passOk:0, catchTicks:[], passFly:0, goals:0, pickCnt:[0,0,0], pickNone:0 }; statTick0 = tick; }
 
 /* ===== 场景 ===== */
 const SCENES = {
@@ -120,8 +120,8 @@ const SCENES = {
     ball.x=-20; ball.z=0.9; ball.y=P.ballR; ball.vx=ball.vz=0;
     ball.owner = 0; S.lostAt = -1;
   }},
-  S3: { name: 'S3 传接球链', desc: '短传 12m/s → 队友 2.4m 包络接球（AI 跟球）', init(){
-    players = [ mkPlayer(0,0, -30, 0, P1KEYS), mkPlayer(1,0, -10, 5, P2KEYS) ];
+  S3: { name: 'S3 传接球链', desc: '短传 K4：锥内选人(V0)→接球点；三球员两接应', init(){
+    players = [ mkPlayer(0,0, -30, 0, P1KEYS), mkPlayer(1,0, -22, 6, P2KEYS), mkPlayer(2,0, -24, -5, null) ];
     ball.x=-30; ball.z=0.9; ball.y=P.ballR; ball.vx=ball.vz=0;
   }},
   S4: { name: 'S4 全场攻防', desc: 'S1+S2+S3 综合（进球计分）', init(){
@@ -144,6 +144,7 @@ addEventListener('keyup', e => keysDown[e.code] = false);
 let p2Buf = []; // {move:[dx,dz], kick:idx|null}
 
 function readInput(pl){
+  if (!pl.keys) return null; // 无键位球员（NPC）由调用方驱动
   if (pl.id === 1) return null; // P2 延迟走缓冲
   const k = pl.keys;
   return { dx: (keysDown[k.right]?1:0)-(keysDown[k.left]?1:0), dz: (keysDown[k.down]?1:0)-(keysDown[k.up]?1:0),
@@ -160,9 +161,9 @@ function aiMove(pl){
   // 简单策略：有球权（最近有资格）→ 带向对方球门；无球 → 追球（S3 队友模式接应）
   const own = Math.hypot(pl.x-ball.x, pl.z-ball.z) < Math.hypot(players[0].x-ball.x, players[0].z-ball.z);
   let tx, tz;
-  if (scene==='S3') { // 队友：球静止/我传向它时跑接应点，否则保持 8m 距离跟随
-    if (ball.vx*ball.vx+ball.vz*ball.vz > 4 && S.passFly>0) { tx=ball.x+ball.vx*0.5; tz=ball.z+ball.vz*0.5; }
-    else { tx = players[0].x+8; tz = players[0].z; }
+  if (scene==='S3') { // 队友：球飞向我时跑截击点，否则跟随持球者并错位接应（P2 上路/P3 下路）
+    if (ball.vx*ball.vx+ball.vz*ball.vz > 4 && S.passFly>0 && S.passPick===pl.id) { tx=ball.x+ball.vx*0.5; tz=ball.z+ball.vz*0.5; }
+    else { tx = players[0].x+8; tz = players[0].z + (pl.id===1 ? 5 : -5); }
   } else if (own) { tx = FIELD.x; tz = ball.z*0.5; }         // 带球冲门
   else { tx = ball.x; tz = ball.z; }                          // 追球/防守
   let dx = tx-pl.x, dz = tz-pl.z; const d = Math.hypot(dx,dz)||1;
@@ -194,13 +195,37 @@ function stepPlayer(pl, inp){
 
 function distBP(pl){ return Math.hypot(ball.x-pl.x, ball.z-pl.z); }
 function ballSpd(){ return Math.hypot(ball.vx, ball.vy, ball.vz); }
-function kickBall(pl, def, isPass){
+/* V0 辅助传球选人（MULTIPLAYER-PLAN §六）：朝向±60°锥内同队距离最小者（Konami JP2008054760A 同构）。
+   返回目标球员或 null（null=锥内无队友，退化为原方向直塞=V2 手动语义） */
+function pickPassTarget(pl){
   const fx = Math.sin(pl.face), fz = Math.cos(pl.face);
+  let best = null, bestD = 1e9;
+  for (const q of players){
+    if (q.id === pl.id || q.team !== pl.team) continue;
+    const dx = q.x-pl.x, dz = q.z-pl.z, d = Math.hypot(dx,dz) || 1;
+    const cosA = (dx*fx + dz*fz)/d;                    // 朝向与目标方向夹角余弦
+    if (cosA < 0.5) continue;                          // ±60° 锥（cos60°=0.5）
+    if (d < bestD){ bestD = d; best = q; }
+  }
+  return best;
+}
+function kickBall(pl, def, isPass){
+  let fx = Math.sin(pl.face), fz = Math.cos(pl.face);
+  if (isPass){
+    const t = pickPassTarget(pl);
+    if (t){ // 射向接球点：目标移动后位置（WO2012172859A1 同构），t_lead=距离/球速
+      const lead = Math.hypot(t.x-pl.x, t.z-pl.z)/def.v;
+      const tx = t.x + t.vx*lead, tz = t.z + t.vz*lead;
+      const m = Math.hypot(tx-pl.x, tz-pl.z)||1;
+      fx = (tx-pl.x)/m; fz = (tz-pl.z)/m;
+      S.passPick = t.id; if (S.pickCnt) S.pickCnt[t.id] = (S.pickCnt[t.id]||0)+1;
+    } else { S.passPick = -1; if (S.pickNone!==undefined) S.pickNone++; }
+  }
   ball.vx = fx*def.v; ball.vz = fz*def.v; ball.vy = def.vy;
   ball.wy = def.wy ? def.wy*pl.spinSign : 0;
   if (def.wy) pl.spinSign *= -1;
   ball.owner = pl.id; pl.lastTouch = tick;
-  if (isPass){ S.passes++; S.passFly = 1; S.passTick0 = tick; S.passTarget = players.find(q=>q.id!==pl.id && q.team===pl.team); }
+  if (isPass){ S.passes++; S.passFly = 1; S.passTick0 = tick; S.passTarget = players.find(q=>q.id===S.passPick); }
 }
 
 function tryTouchDribble(){
@@ -356,7 +381,10 @@ function stepTick(){
   while (p2Buf.length > params.lag+1) p2Buf.shift();
   const p2inp = p2Buf[Math.max(0, p2Buf.length-1-params.lag)];
   for (const pl of players){
-    const inp = pl.id===1 ? (p2inp||{dx:0,dz:0,kick:-1}) : (readInput(pl)||{dx:0,dz:0,kick:-1});
+    let inp;
+    if (pl.id === 1) inp = p2inp || {dx:0,dz:0,kick:-1};                 // P2：人类(延迟缓冲)或 AI
+    else if (pl.id === 2 && scene==='S3') inp = aiMove(pl);             // P3：S3 场景 NPC 队友
+    else inp = readInput(pl) || {dx:0,dz:0,kick:-1};
     pl._kick = stepPlayer(pl, inp);
   }
   // 触碰式带球（先于显式动作：同拍都触发时显式踢覆盖）
@@ -433,7 +461,8 @@ function updateStats(){
     S2: [ ['抢断尝试/成功', S.tacklesTry+' / '+S.tackleOk],
           ['抢断成功率', (S.tackleOk/Math.max(1,S.tacklesTry)*100).toFixed(0)+'%'],
           ['被抢后3s内重控', S.regainWithin3] ],
-    S3: [ ['传球次数', S.passes], ['接住(触碰/踢)', S.catchTicks.length],
+    S3: [ ['传球次数', S.passes], ['选人 P2:P3:无', (S.pickCnt[1]||0)+':'+(S.pickCnt[2]||0)+':'+S.pickNone],
+          ['接住(触碰/踢)', S.catchTicks.length],
           ['平均接球拍数', S.catchTicks.length? (S.catchTicks.reduce((a,b)=>a+b,0)/S.catchTicks.length).toFixed(1) : '—'],
           ['接球率', (S.catchTicks.length/Math.max(1,S.passes)*100).toFixed(0)+'%'] ],
     S4: [ ['进球', S.goals], ['抢断成功', S.tackleOk], ['touch P1:P2', S.touchBy[0]+':'+S.touchBy[1] ] ],

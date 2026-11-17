@@ -25,7 +25,7 @@ global.setTimeout = (fn) => { timeouts.push(fn); return 0; };
 // ---- load：把测试钩子拼进同一作用域（页面脚本是 strict + const，跨 eval 不可见） ----
 const hooks = `
 ;globalThis.__T__ = {
-  scene, SCENES, resetStats, params,
+  scene, SCENES, resetStats, params, pickPassTarget,
   stepTick: () => stepTick(),
   ball: () => ball, players: () => players, stats: () => S,
   FIELD, setKey: (c, d) => { keysDown[c] = d; },
@@ -53,17 +53,17 @@ for (const sc of ['S1','S2','S3','S4']) {
   if (!ok) process.exit(1);
 }
 
-// ---- 定向测试 1：S3 短传 12m/s → AI 队友接球 ----
+// ---- 定向测试 1：S3 短传 12m/s → V0 选人后 NPC/P2 接球 ----
 {
   T.scene = 'S3'; T.SCENES.S3.init(); T.resetStats();
-  T.players()[0].face = Math.PI / 2; // P1 面向 +x（队友在 (-10,5) 方向近似）
+  T.players()[0].face = Math.PI / 2; // P1 面向 +x（P2(-22,6)/P3(-24,-5) 均在锥内，V0 选更近的 P3）
   T.setKey('Digit4', true); T.stepTick(); T.setKey('Digit4', false);
   const spd = T.kickSpd();
   const passOk1 = spd > 11 && spd < 13;
-  for (let i = 0; i < 150; i++) T.stepTick(); // 10s：AI 应接住
+  for (let i = 0; i < 150; i++) T.stepTick(); // 10s：接应队友应控住
   const st = T.stats();
   const caught = st.catchTicks.length >= 1;
-  console.log(`${passOk1 && caught ? 'ok ' : 'FAIL'} T1 短传: 出球速度=${spd.toFixed(1)}m/s(应≈12) 接住=${st.catchTicks.length}次 接球拍数=[${st.catchTicks}]`);
+  console.log(`${passOk1 && caught ? 'ok ' : 'FAIL'} T1 短传: 出球速度=${spd.toFixed(1)}m/s(应≈12) 选人P2:P3=${st.pickCnt[1]}:${st.pickCnt[2]} 接住=${st.catchTicks.length}次`);
   if (!passOk1 || !caught) process.exit(1);
 }
 
@@ -81,6 +81,43 @@ for (const sc of ['S1','S2','S3','S4']) {
   const spd = T.kickSpd();
   console.log(`${okTk ? 'ok ' : 'FAIL'} T2 抢断: 尝试=${st.tacklesTry} 成功=${st.tackleOk} 被抢者抑制拍=${p1.suppressed}(应=${T.params.sup}) 球权=${T.ball().owner} 出球速度=${spd.toFixed(1)}(应≈7)`);
   if (!okTk) process.exit(1);
+}
+
+// ---- 定向测试 5：V0 传球选人纯函数（锥内最近 / 挪近改选 / 全出锥退化 none） ----
+{
+  T.scene = 'S3'; T.SCENES.S3.init(); T.resetStats();
+  const [p1, p2, p3] = T.players();
+  p1.x = 0; p1.z = 0; p1.face = Math.PI / 2; p1.vx = p1.vz = 0;   // P1 原点朝 +x
+  T.ball().x = 0; T.ball().z = 0;
+  p2.x = 6; p2.z = 6; p2.vx = p2.vz = 0;                          // 锥内 45°, d≈8.5
+  p3.x = 10; p3.z = -2; p3.vx = p3.vz = 0;                        // 锥内, d≈10.2（更远）
+  const r1 = T.pickPassTarget(p1);
+  const okA = r1 && r1.id === 1;                                   // 选 P2（更近的锥内队友）
+  p3.x = 4.5; p3.z = -2;                                           // P3 挪近: d≈4.9
+  const r2 = T.pickPassTarget(p1);
+  const okB = r2 && r2.id === 2;                                   // 改选 P3
+  p2.x = -34; p2.z = 5; p3.x = -36; p3.z = -5;                       // 两人都摆到背后（锥外）
+  const r3 = T.pickPassTarget(p1);
+  const okC = r3 === null;                                         // 无队友 → none（V2 直塞语义）
+  console.log(`${okA && okB && okC ? 'ok ' : 'FAIL'} T5 V0选人: 近锥选P2=${okA} 挪近改选P3=${okB} 全出锥none=${okC}`);
+  if (!(okA && okB && okC)) process.exit(1);
+}
+
+// ---- 定向测试 6：V0 选人后球射向接球点（静止目标=当前位置方向） ----
+{
+  T.scene = 'S3'; T.SCENES.S3.init(); T.resetStats();
+  T.params.ai = false;
+  const [p1, p2, p3] = T.players();
+  p1.x = 0; p1.z = 0; p1.face = Math.PI / 2; p1.vx = p1.vz = 0;
+  T.ball().x = 0.5; T.ball().z = 0; T.ball().vx = T.ball().vz = T.ball().vy = 0;
+  p2.x = 10; p2.z = 6; p2.vx = p2.vz = 0;                          // 锥内但远
+  p3.x = 4.5; p3.z = -2; p3.vx = p3.vz = 0;                        // 锥内近（P1 正前偏下）
+  T.setKey('Digit4', true); T.stepTick(); T.setKey('Digit4', false);
+  const st = T.stats(), b = T.ball();
+  const picked = (st.pickCnt[2] || 0) === 1;
+  const aimOk = b.vx > 0 && b.vz < 0 && Math.abs(Math.abs(b.vx / b.vz) - 2.25) < 0.6;  // 方向≈(4.5,-2)，|vx/vz|≈2.25
+  console.log(`${picked && aimOk ? 'ok ' : 'FAIL'} T6 接球点瞄准: 选P3=${picked} 球初速=(${b.vx.toFixed(1)},${b.vz.toFixed(1)}) |vx/vz|=${Math.abs(b.vx/b.vz).toFixed(2)}(应≈2.25)`);
+  if (!(picked && aimOk)) process.exit(1);
 }
 
 console.log('SMOKE PASS');
