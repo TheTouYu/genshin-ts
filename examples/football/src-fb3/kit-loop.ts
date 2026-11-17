@@ -91,9 +91,11 @@ const G_DEFAULT = 9.8
 const E_DEFAULT = 0.5 // 触地法向反弹
 const MU_DEFAULT = 0.8 // 库仑摩擦系数（草皮量级）
 const ROLL_DEFAULT = 0.06 // 滚动阻力系数：减速度 = 0.06·g ≈ 0.59 m/s²
-const SPIN_DEFAULT = 0.15 // 竖直轴自旋（弧线）衰减速率 1/s
-const AIR_DEFAULT = 0.05 // 空气阻力速率 1/s（水平与垂直都作用）
-const MAGNUS_DEFAULT = 0.03 // 马格努斯系数 a = K·(ω×v)
+const SPIN_DEFAULT = 0.03 // 竖直轴自旋（弧线）衰减速率 1/s（真实足球空中近守恒：每秒几个百分点，D797）
+const AIR_DEFAULT = 0.05 // 空气阻力速率 1/s（水平与垂直都作用；@10-20m/s 与平方律分段 Cd 巧合
+//   接近——真实 a≈0.0104·Cd·v²，Cd 0.45(低速)/0.25(高速)，@10m/s=0.47/@20m/s=1.04，D797）
+const MAGNUS_DEFAULT = 0.006 // 马格努斯系数 a = K·(ω×v)（D797 真实量级：CL≤0.25 平方律
+//   ⇒ ω=5rad/s,v=15m/s 时 a≈0.45 m/s²；旧 0.08 会得 6 m/s²=0.6g 偏强 ~12×，弧线过弯太急）
 const MAXV_DEFAULT = 18.0 // 限速 m/s
 const REST_DEFAULT = 0.35 // 静止阈值 m/s
 const KICK_DEFAULT = 1.0 // 踢球力度倍率（活参数）
