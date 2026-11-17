@@ -164,6 +164,15 @@ export function buildStudio() {
     .replaceAll('__GUID_HIT__', String(hitGuid))
     .replaceAll('__GUID_SETTLE__', String(settleGuid))
     .replaceAll('__GUID_STEXT__', String(stextGuid))
+  // 🔴 v6.24 构建期闸门（真机文字全灭事故的同族防线）：
+  // 上面四个 replaceAll 只认得这四个占位符。**漏一个**（新增 __GUID_FOO__ 没在这里登记）
+  // 就会把字面量 "__GUID_FOO__" 原样写进 Lua，而 P.inst 只接受 number ⇒ 候选被**静默跳过**，
+  // 症状与本次事故完全一致（真机无字、模拟器靠兜底扫描恰好能跑）。
+  // 所以：任何残留占位符 / "undefined" / "nil" 字符串都必须让构建**当场失败**。
+  const assertNoPlaceholder = (text, where) => {
+    const m = text.match(/__GUID_[A-Z_]+__|String\(undefined\)|"undefined"|'undefined'/)
+    if (m) throw new Error(`未替换的模板占位符/${m[0]} 出现在 ${where} —— 检查 build.mjs 的 substGuids 与模板名`)
+  }
   // ===== 真机 Lua 5.3 编译闸门（2026-10-30 事故：main chunk 局部变量超 200 上限，
   // 模拟器能跑、真机报 `too many local variables (limit is 200) in main function` 拒载）。
   // 模拟器用 Fengari，不执行这条硬限 ⇒ 必须在构建期用真正的 luac5.3 过一遍。
@@ -198,6 +207,7 @@ export function buildStudio() {
     console.log('lua compile   : ok (' + files.length + ' files, luac5.3)')
   }
   const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))
+  assertNoPlaceholder(lua, 'lua/main.lua')
   patch({
     op: 'addScript',
     path: 'lua/main.lua',
@@ -216,7 +226,11 @@ export function buildStudio() {
       op: 'addScript',
       path: `lua/tetris/${file}`,
       name: `tetris_${name}`,
-      source: substGuids(readFileSync(join(moduleDir, file), 'utf8')),
+      source: (() => {
+        const src = substGuids(readFileSync(join(moduleDir, file), 'utf8'))
+        assertNoPlaceholder(src, `lua/tetris/${file}`)
+        return src
+      })(),
       // 不传 controlId = 未挂载：只注册成 require 模块，不跑 OnInit/OnStart
     })
   }
