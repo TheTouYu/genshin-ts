@@ -1,33 +1,39 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "name": "66 v5 ⑦pc-16-9 背景覆盖达标记（bg cover ok w=1600 h=900）",
- "dt": 0.016666666666666666,
- "canvasId": "pc-16-9",
- "events": [
-  {
-   "t": 0.8,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Down"
-  },
-  {
-   "t": 1.2,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey36Down"
-  }
- ],
- "asserts": [
-  {
-   "at": 2.6,
-   "kind": "log",
-   "contains": "bg cover ok bs=",
-   "source": "client"
-  },
-  {
-   "at": 2.6,
-   "kind": "lua",
-   "source": "local hit=nil for _,l in ipairs(query.logs()) do if l:find('bg cover ok',1,true) then hit=l end end assert(hit,'无 bg cover ok') local w=tonumber(hit:match('w=(%d+)')) local h=tonumber(hit:match('h=(%d+)')) assert(w==1600 and h==900, '画布尺寸不符 '..tostring(w)..'x'..tostring(h)) return true"
-  }
- ],
- "note": "逐画布一条：pc-16-9 期望 w=1600 h=900"
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "66 v5 ⑦pc-16-9 背景满幅（拉伸锚点 + 构图覆盖）（bg cover ok w=1600 h=900）",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.8,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey36Down"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.6,
+      "kind": "log",
+      "contains": "wash=stretch",
+      "source": "client"
+    },
+    {
+      "at": 2.6,
+      "kind": "log",
+      "contains": "bg cover ok bs=",
+      "source": "client"
+    },
+    {
+      "at": 2.6,
+      "kind": "lua",
+      "source": "local hit=nil for _,l in ipairs(query.logs()) do if l:find('bg cover ok',1,true) then hit=l end end assert(hit,'无 bg cover ok') local w=tonumber(hit:match('w=(%d+)')) local h=tonumber(hit:match('h=(%d+)')) assert(w==1600 and h==900, '画布尺寸不符 '..tostring(w)..'x'..tostring(h)) return true"
+    }
+  ],
+  "note": "逐画布一条：pc-16-9 期望 w=1600 h=900"
 }

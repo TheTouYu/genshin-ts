@@ -1,49 +1,55 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "name": "47 v4.0 宽画布背景满幅：mobile-19.5-9（1560×720）构图上 cover 缩放后必须盖到画布边沿 92%",
- "dt": 0.016666666666666666,
- "canvasId": "mobile-19.5-9",
- "events": [
-  {
-   "t": 0.5,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyDown"
-  },
-  {
-   "t": 0.6,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyUp"
-  },
-  {
-   "t": 1.2,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyDown"
-  },
-  {
-   "t": 1.3,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyUp"
-  }
- ],
- "asserts": [
-  {
-   "at": 0.4,
-   "kind": "log",
-   "contains": "phone layout w=1560 h=720",
-   "source": "client"
-  },
-  {
-   "at": 1.1,
-   "kind": "log",
-   "contains": "bg cover ok bs=1.22",
-   "source": "client"
-  },
-  {
-   "at": 2.0,
-   "kind": "log",
-   "contains": "mode theme=casual bg=14/14",
-   "source": "client"
-  }
- ]
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "47 v4.0 宽画布背景满幅：mobile-19.5-9（1560×720）构图上 cover 缩放后必须盖到画布边沿 92%",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-19.5-9",
+  "events": [
+    {
+      "t": 0.5,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 1.2,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.3,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "wash=stretch",
+      "source": "client"
+    },
+    {
+      "at": 0.4,
+      "kind": "log",
+      "contains": "phone layout w=1560 h=720",
+      "source": "client"
+    },
+    {
+      "at": 1.1,
+      "kind": "log",
+      "contains": "bg cover ok bs=1.22",
+      "source": "client"
+    },
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "mode theme=casual bg=14/14",
+      "source": "client"
+    }
+  ]
 }
