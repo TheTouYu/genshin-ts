@@ -125,7 +125,7 @@ const TOUCH_R = 1.2 // 触碰半径：玩家追到球 1.2m 内才「踢」它（
 const TV_K = 1.3 // 触碰后球速 = 玩家速+TV_K（球先快后慢，玩家追上再踢）
 const CATCH_K = 1.2 // 追赶模式期望速度增益 = clamp(差距·K, 0.5, 3.0)
 const DRIB_AHEAD_PARK = 0.9 // 原地停球目标：面朝前 0.9m
-const K_TOPSPIN = 0.01 // 上/下旋气动系数（独立于 fb_magnus：踢球 wx≈36 rad/s 是侧旋 2.6 倍，
+const K_TOPSPIN = 0.001 // 上/下旋气动系数（2026-11-17 量级修正 0.01→0.001：真实升降力上限≈1m/s²，
 //   复用 0.08 会得 52m/s²=5.3g 下压当场砸地；0.01 ⇒ 5-7 m/s² 量级，可感知不失控）
 const DRIB_VMAX = 4.0 // 带球助力给球的目标速度上限（相对玩家速度，m/s） // 带球助力加速度上限 m/s²（≈3g，追得上但不会瞬移）
 const SLIP_ROLL = 0.5 // 接触点滑移 < 此值视为纯滚动 m/s
@@ -854,17 +854,20 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // 复用 fb_magnus=0.08 ⇒ 52m/s²=5.3g 当场砸地；0.01 ⇒ 5-7m/s² 可感知不失控）。
           // 上旋（wx 与滚动同向）⇒ 分量负=下压更坠；下旋 ⇒ 抬升滞空。
           // 贴地滚动 wx=v/R≈40+ 进不了本分支（air-only 门），不会假砸地。
-          // ⚠️ 2026-11-17 数值审计定谳修复（票 27 #1）：原式 K_TOPSPIN×(wz·vx−wx·vz)
-          // 的 wz·vx 项是灾难——抽射瞬间 KICK_SPIN_SLIP 给 wz 注入滚动自旋 v/R≈−56
-          // rad/s（为贴地滚动设计），球升空后 air-only 门（判 y 不判 wz 来源）挡不住：
-          // 0.01×(−56×21)≈−12 m/s² 假重力=fb_g 的 3 倍，飞行全程下坠快 4 倍（日志
-          // 3496 帧[335] 0.01×(−1196.5)=−11.97 现行，Δvy 实测 −2.1 vs 期望 −0.55）。
-          // 真上/下旋只看 wx（绕横轴）；wz 的气动归马格努斯管。
+          // ⚠️ 2026-11-17 量级修正（用户裁决：上下旋影响落地是真实物理，修力度不除项）：
+          // 旧 K_TOPSPIN=0.01 在抽射场景（wz 带滚动自旋 v/R≈−56 rad/s 飞上空中，
+          // air-only 门判 y 挡不住它）给到 0.01×(−56×21)≈−12 m/s²=fb_g 的 3 倍假重力
+          // （日志 3496 Δvy 实测 −2.1 vs 理论 −0.55）。真实马格努斯升降力上限
+          // ≈1 m/s²（C_L 饱和 0.25，@20m/s，D797）⇒ 系数 0.01→0.001：
+          // 0.001×(−56×21)≈−1.2 m/s²，旋转影响可感知（乒乓球级）不再压扁抛物线。
           accY.set(f.addition(
             accY.value,
             f.multiplication(
               K_TOPSPIN,
-              f.multiplication(-1.0, f.multiplication(wx.value, vz.value))
+              f.subtraction(
+                f.multiplication(wz.value, vx.value),
+                f.multiplication(wx.value, vz.value)
+              )
             )
           ))
         },
