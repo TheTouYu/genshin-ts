@@ -854,14 +854,17 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           // 复用 fb_magnus=0.08 ⇒ 52m/s²=5.3g 当场砸地；0.01 ⇒ 5-7m/s² 可感知不失控）。
           // 上旋（wx 与滚动同向）⇒ 分量负=下压更坠；下旋 ⇒ 抬升滞空。
           // 贴地滚动 wx=v/R≈40+ 进不了本分支（air-only 门），不会假砸地。
+          // ⚠️ 2026-11-17 数值审计定谳修复（票 27 #1）：原式 K_TOPSPIN×(wz·vx−wx·vz)
+          // 的 wz·vx 项是灾难——抽射瞬间 KICK_SPIN_SLIP 给 wz 注入滚动自旋 v/R≈−56
+          // rad/s（为贴地滚动设计），球升空后 air-only 门（判 y 不判 wz 来源）挡不住：
+          // 0.01×(−56×21)≈−12 m/s² 假重力=fb_g 的 3 倍，飞行全程下坠快 4 倍（日志
+          // 3496 帧[335] 0.01×(−1196.5)=−11.97 现行，Δvy 实测 −2.1 vs 期望 −0.55）。
+          // 真上/下旋只看 wx（绕横轴）；wz 的气动归马格努斯管。
           accY.set(f.addition(
             accY.value,
             f.multiplication(
               K_TOPSPIN,
-              f.subtraction(
-                f.multiplication(wz.value, vx.value),
-                f.multiplication(wx.value, vz.value)
-              )
+              f.multiplication(-1.0, f.multiplication(wx.value, vz.value))
             )
           ))
         },
