@@ -71,16 +71,21 @@ g
   // 不发事件），且主体内已有双层 doubleBranch 嵌套，再包一层会踩 D625 三层嵌套坑。
   .on('whenGlobalTimerIsTriggered', (_evt: any, f: any) => {
     const ball = f.getSelfEntity()
-    // —— 渲染目标实体可切换（2026-11-17 用户指令：球实体变量 fb_rball_guid 存
-    //    「渲染用的足球模型 GUID」，0=用挂载实体自身）——物理球（镜像源）与
-    //    渲染球解耦：222 图元的真球实体每拍被设备驱动有装饰物过重嫌疑，
-    //    可切到简易模型对照（当前=1077936165）。——
-    const RBALL_VAR = 'fb_rball_guid'
-    const rGuid = f.getCustomVariable(ball, RBALL_VAR).asType('int')
+    // —— 渲染目标实体可切换（2026-11-17 用户指令；2026-11-18 修型）——
+    //    球实体变量 fb_rball_e 存「渲染用的足球模型实体」，无效(0)=用挂载实体自身
+    //    ——物理球（镜像源）与渲染球解耦：222 图元的真球实体每拍被设备驱动有
+    //    装饰物过重嫌疑，可切到简易模型对照。
+    //    旧 fb_rball_guid(int) 路线废弃：dataTypeConversion 无 'bigint' 目标
+    //    （DataTypeConversionMap 里 int 只能转 bool/float/str），int 运行时转
+    //    guid 喂 queryEntityByGuid 编译硬失败（ValueClassMap['bigint'] is not
+    //    a constructor）。改走 entity 型变量 Ety→Ety 直连，先例=fb_char_e/
+    //    fbc_e；有效性判据= queryGuidByEntity(实体)==0（kit-listen 同款）。
+    const RBALL_VAR = 'fb_rball_e'
+    const rEnt = f.getCustomVariable(ball, RBALL_VAR).asType('entity')
     const rball = f.localVariable('entity')
     f.doubleBranch(
-      f.greaterThan(rGuid, 0n),
-      () => { rball.set(f.queryEntityByGuid(f.dataTypeConversion(rGuid, 'bigint'))) },
+      f.logicalNotOperation(f.equal(f.queryGuidByEntity(rEnt), 0n)),
+      () => { rball.set(rEnt) },
       () => { rball.set(ball) }
     )
     // —— 读镜像 + 时钟（多消费点全部物化）——

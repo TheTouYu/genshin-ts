@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {
+      "id": 1077936167,
+      "name": "渲染足球R",
+      "definitionId": 1077936166,
+      "position": [0.3035277724266052, 0.25, -1.760223627090454],
+      "rotation": [0, 0, 0],
+      "scale": [0.25, 0.25, 0.25],
+      "components": [],
+      "auxIds": []
+    }
+  ]
+}

@@ -1,0 +1,317 @@
+{
+ "schemaVersion": 1,
+ "items": [
+  {
+   "resourceId": 10009002,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    2,
+    2,
+    2
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 12107976,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0,
+    0.44687144530126355,
+    0.7230531870992339
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0,
+    0.44687144530126355,
+    -0.7230531870992339
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0,
+    -0.44687144530126355,
+    0.7230531870992339
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0,
+    -0.44687144530126355,
+    -0.7230531870992339
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0.44687144530126355,
+    0.7230531870992339,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0.44687144530126355,
+    -0.7230531870992339,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -0.44687144530126355,
+    0.7230531870992339,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -0.44687144530126355,
+    -0.7230531870992339,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0.7230531870992339,
+    0,
+    0.44687144530126355
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    0.7230531870992339,
+    0,
+    -0.44687144530126355
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -0.7230531870992339,
+    0,
+    0.44687144530126355
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  },
+  {
+   "resourceId": 10009002,
+   "position": [
+    -0.7230531870992339,
+    0,
+    -0.44687144530126355
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.7,
+    0.7,
+    0.7
+   ],
+   "color": {
+    "enabled": true,
+    "rgb": 3825546,
+    "opacity": 100,
+    "overlay": "overwrite"
+   }
+  }
+ ]
+}
