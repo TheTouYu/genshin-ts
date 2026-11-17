@@ -1221,8 +1221,33 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         () => {
           const signZ = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bz.value, 0.0), () => { signZ.set(1.0) }, () => { signZ.set(-1.0) })
-          bz.set(f.multiplication(signZ.value, f.subtraction(PITCH_Z, f.addition(BALL_R, 0.05))))
-          vz.set(f.multiplication(vz.value, -WALL_E))
+          const wallZ = f.multiplication(signZ.value, f.subtraction(PITCH_Z, f.addition(BALL_R, 0.05)))
+          const vzOut = f.multiplication(vz.value, -WALL_E)
+          // 2026-11-17 反弹外推（票 27 #1 全量定谳）：旧「钳回贴墙」=位置回撤 0.3~0.8m
+          // +速度 160° 翻转同拍（日志 3489 二十拍 ratio 0.1~0.5 不自洽），渲染被甩开
+          // =缺帧瞬移第一现场。改 TOI 出射外推（同地面反弹法）：反弹点贴墙、剩余
+          // 时间沿出射方向前进，位置轨迹连续。
+          const tRawW = f.division(
+            f.subtraction(wallZ, bz0),
+            f.addition(f.subtraction(bz.value, bz0), 0.0001)
+          )
+          const tW = f.localVariable('float')
+          f.doubleBranch(
+            f.lessThan(tRawW, 0.0),
+            () => { tW.set(0.0) },
+            () => {
+              f.doubleBranch(
+                f.greaterThan(tRawW, 1.0),
+                () => { tW.set(1.0) },
+                () => { tW.set(tRawW) }
+              )
+            }
+          )
+          bz.set(f.addition(
+            wallZ,
+            f.multiplication(f.multiplication(vzOut, dt.value), f.subtraction(1.0, tW.value))
+          ))
+          vz.set(vzOut)
           vx.set(f.multiplication(vx.value, 0.9))
         },
         () => {}
@@ -1244,8 +1269,30 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
         () => {
           const signX = f.localVariable('float')
           f.doubleBranch(f.greaterThan(bx.value, 0.0), () => { signX.set(1.0) }, () => { signX.set(-1.0) })
-          bx.set(f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1))))
-          vx.set(f.multiplication(vx.value, -WALL_E))
+          const wallX = f.multiplication(signX.value, f.subtraction(PITCH_X, f.addition(BALL_R, 0.1)))
+          const vxOut = f.multiplication(vx.value, -WALL_E)
+          // 同 z 墙：TOI 出射外推防位置回撤（票 27 #1，tick679 在 x=-52.1 场角反弹）
+          const tRawX = f.division(
+            f.subtraction(wallX, bx0),
+            f.addition(f.subtraction(bx.value, bx0), 0.0001)
+          )
+          const tX = f.localVariable('float')
+          f.doubleBranch(
+            f.lessThan(tRawX, 0.0),
+            () => { tX.set(0.0) },
+            () => {
+              f.doubleBranch(
+                f.greaterThan(tRawX, 1.0),
+                () => { tX.set(1.0) },
+                () => { tX.set(tRawX) }
+              )
+            }
+          )
+          bx.set(f.addition(
+            wallX,
+            f.multiplication(f.multiplication(vxOut, dt.value), f.subtraction(1.0, tX.value))
+          ))
+          vx.set(vxOut)
           vz.set(f.multiplication(vz.value, 0.9))
         },
         () => {}
