@@ -1,74 +1,74 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "name": "44 v5 触屏长按连发：按住 ◀ 1.2s 应连发（phone tap/rep start/done），松手后停止",
- "dt": 0.016666666666666666,
- "canvasId": "mobile-16-9",
- "events": [
-  {
-   "t": 0.3,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Down"
-  },
-  {
-   "t": 0.32,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Up"
-  },
-  {
-   "t": 1.6,
-   "kind": "pointer",
-   "type": "move",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 1.65,
-   "kind": "pointer",
-   "type": "down",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 2.85,
-   "kind": "pointer",
-   "type": "up",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 3.5,
-   "kind": "pointer",
-   "type": "move",
-   "x": 640,
-   "y": 300
-  }
- ],
- "asserts": [
-  {
-   "at": 2.1,
-   "kind": "log",
-   "contains": "phone tap left",
-   "source": "client"
-  },
-  {
-   "at": 2.5,
-   "kind": "log",
-   "contains": "phone rep start id=left",
-   "source": "client"
-  },
-  {
-   "at": 3.0,
-   "kind": "log",
-   "contains": "phone rep done id=left",
-   "source": "client"
-  },
-  {
-   "at": 3.3,
-   "kind": "log",
-   "contains": "move x=",
-   "source": "client"
-  }
- ],
- "note": "v5.7：坐标改为当前拇指簇左键 (175,656)（旧 815,296 是上一版布局）。"
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "44 v5 触屏长按连发：按住 ◀ 1.2s 应连发（phone tap/rep start/done），松手后停止",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    },
+    {
+      "t": 1.6,
+      "kind": "pointer",
+      "type": "move",
+      "x": 276,
+      "y": 60
+    },
+    {
+      "t": 1.65,
+      "kind": "pointer",
+      "type": "down",
+      "x": 276,
+      "y": 60
+    },
+    {
+      "t": 2.85,
+      "kind": "pointer",
+      "type": "up",
+      "x": 276,
+      "y": 60
+    },
+    {
+      "t": 3.5,
+      "kind": "pointer",
+      "type": "move",
+      "x": 640,
+      "y": 300
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.1,
+      "kind": "log",
+      "contains": "phone tap left",
+      "source": "client"
+    },
+    {
+      "at": 2.5,
+      "kind": "log",
+      "contains": "phone rep start id=left",
+      "source": "client"
+    },
+    {
+      "at": 3.0,
+      "kind": "log",
+      "contains": "phone rep done id=left",
+      "source": "client"
+    },
+    {
+      "at": 3.3,
+      "kind": "log",
+      "contains": "move x=",
+      "source": "client"
+    }
+  ],
+  "note": "v5.7：坐标改为当前拇指簇左键 (175,656)（旧 815,296 是上一版布局）。"
 }

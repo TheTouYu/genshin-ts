@@ -2169,7 +2169,9 @@ TITLEV.opts = function()
     if helpOpen then closeHelp() else toggleHelp() end
   end
   return {
-    canvas = { CANVAS_W or 1280, CANVAS_H or 720 },
+    -- v6.30：标题屏也吃**设计空间缩放**（与 ui.lua 同一套 S）：描述按设计画布生成，渲染前整体乘 S。
+    -- 否则棋盘格按 S 放大而展台视窗还是 1280 设计值 ⇒ 2400 上棋子会掉到视窗外面（用户实测）。
+    canvas = { (CANVAS_W or 1280) / (VIEW_S or 1), (CANVAS_H or 720) / (VIEW_S or 1) },
     device = IS_MOBILE and 'mobile' or 'pc',
     active = TITLEV.sel, hover = TITLEV.hover, pressed = TITLEV.press,
     -- stage.mode ⇒ 模式名大字（MS.focusLock 的 0.5s 动画窗 = pendingMode 期）
@@ -2189,6 +2191,16 @@ TITLEV.apply = function()
   local R, S = TITLEV.R, TITLEV.S
   if not (R and S) then return false end
   local nodes = S.title(TITLEV.opts())
+  -- 设计空间缩放：pos/size/font 一起乘 S（节点 schema 只有这三个几何字段）
+  local vs = VIEW_S or 1
+  if vs ~= 1 then
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.pos then n.pos = { (n.pos[1] or 0) * vs, (n.pos[2] or 0) * vs } end
+      if n.size then n.size = { (n.size[1] or 0) * vs, (n.size[2] or 0) * vs } end
+      if type(n.font) == 'number' then n.font = math.max(12, math.floor(n.font * vs + 0.5)) end
+    end
+  end
   R.apply(nodes)                        -- 同 key 集 ⇒ 只写变化字段（不销毁重建）
   TITLEV.nodes, TITLEV.n = nodes, #nodes
   local zones = {}
@@ -2346,7 +2358,12 @@ TITLEV.tick = function()
       TITLEV.noteIdx = idx
       R.write('menuNote', 'text', rec.text)
       R.write('menuNote', 'fontColor', C(a, (cc // 65536) % 256, (cc // 256) % 256, cc % 256))
-      R.writePos('menuNote', -420, -215 + math.floor((255 - a) / 128))
+      -- v6.30：位置**不在这里写死**——锚点由 view_title.noteAnchor 给（设计空间），这里只加浮动并乘 S。
+      -- 旧代码写死 (-420,-215)：设计空间缩放后它把节点又拽回设计值，2400 上文字落到卡片后面。
+      local vs = VIEW_S or 1
+      local nh = (CANVAS_H or 720) / vs / 2
+      local nx, ny = TITLEV.M.noteAnchor(nh)
+      R.writePos('menuNote', nx * vs, (ny + math.floor((255 - a) / 128)) * vs)
     end
   end
 end

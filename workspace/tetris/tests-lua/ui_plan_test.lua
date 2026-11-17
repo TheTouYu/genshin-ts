@@ -38,6 +38,13 @@ local SCREENS = { 'title', 'game', 'settle' }
 
 local totalIssues = { P1 = 0, P2 = 0, P3 = 0, P4 = 0, P5 = 0 }
 local samples = {}
+-- v6.30 新增（用户：「移动端箭头左右反了」「按钮被画布边缘切掉」）：
+-- 触屏槽位（slots）与导航键（nav）**必须整体落在画布内**，且同一行两键不得重叠。
+-- lintPlan 只看文字表，槽位从来没被任何判据看过——本轮两起缺陷都落在它身上。
+local slotBad, slotWorst = 0, nil
+local overlapBad, overlapWorst = 0, nil
+local arrowBad, arrowWorst = 0, nil   -- ◀ 必须在 ▶ 左边：统计**违规**数（0 才算过）
+local arrowChecked = 0
 
 for _, cv in ipairs(CANVASES) do
   local W, H, dev = cv[1], cv[2], cv[3]
@@ -54,6 +61,46 @@ for _, cv in ipairs(CANVASES) do
       }
       local p = U.plan(screen, useDual, false)
       local tag = string.format('%s %dx%d %s', screen, W, H, useDual and 'dual' or 'single')
+      -- 槽位在画布内
+      for _, b in ipairs(p.slots or {}) do
+        local over = math.max(0, math.abs(b.x) + b.w / 2 - W / 2) + math.max(0, math.abs(b.y) + b.h / 2 - H / 2)
+        if over > 0.5 then
+          slotBad = slotBad + 1
+          slotWorst = slotWorst or string.format('%s slot=%s 出画布 %.0fpx (x=%.0f y=%.0f w=%.0f)', tag, tostring(b.id), over, b.x, b.y, b.w)
+        end
+      end
+      -- 同一行两键不得重叠（左右两列）
+      local byRow = {}
+      for _, b in ipairs(p.slots or {}) do
+        local k = math.floor((b.y or 0) / 10)
+        byRow[k] = byRow[k] or {}
+        table.insert(byRow[k], b)
+      end
+      for _, row in pairs(byRow) do
+        for i = 1, #row do
+          for j = i + 1, #row do
+            local a, b2 = row[i], row[j]
+            local ox = math.min(a.x + a.w / 2, b2.x + b2.w / 2) - math.max(a.x - a.w / 2, b2.x - b2.w / 2)
+            if ox > 1 then
+              overlapBad = overlapBad + 1
+              overlapWorst = overlapWorst or string.format('%s %s∩%s 重叠 %.0fpx', tag, tostring(a.id), tostring(b2.id), ox)
+            end
+          end
+        end
+      end
+      -- 方向键语义：◀ 必须比 ▶ 更靠左
+      local L, R
+      for _, b in ipairs(p.slots or {}) do
+        if b.id == 'left' then L = b end
+        if b.id == 'right' then R = b end
+      end
+      if L and R then
+        arrowChecked = arrowChecked + 1
+        if not (R.x > L.x) then
+          arrowBad = arrowBad + 1
+          arrowWorst = arrowWorst or string.format('%s ◀x=%.0f ▶x=%.0f', tag, L.x, R.x)
+        end
+      end
       local issues = VNODE.lintPlan(p, { canvas = { W, H }, parkedY = PARKED_Y })
       for _, it in ipairs(issues) do
         totalIssues[it.code] = (totalIssues[it.code] or 0) + 1
@@ -68,6 +115,11 @@ ok(totalIssues.P2 == 0, 'P2 两条文字不得占用同一矩形（叠印）', s
 ok(totalIssues.P3 == 0, 'P3 文字框高 ≥ 1.45×字号+4（否则整条不画）', samples.P3)
 ok(totalIssues.P4 == 0, 'P4 未停靠的矩形必须落在画布内', samples.P4)
 ok(totalIssues.P5 == 0, 'P5 条目必须带完整数值', samples.P5)
+
+ok(slotBad == 0, 'S1 触屏槽位必须整体落在画布内（v6.30 箭头被边缘切掉的守卫）', slotWorst)
+ok(overlapBad == 0, 'S2 同一行两键不得重叠（v6.30 按钮互压的守卫）', overlapWorst)
+ok(arrowBad == 0 and arrowChecked > 0,
+  string.format('S3 ◀ 必须在 ▶ 左边（%d 组检查，0 违规）', arrowChecked), arrowWorst)
 
 print(string.format('\n== ui_plan_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

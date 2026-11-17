@@ -19,105 +19,105 @@
       "t": 1.6,
       "kind": "pointer",
       "type": "move",
-      "x": 176,
+      "x": 276,
       "y": 60
     },
     {
       "t": 1.6500000000000001,
       "kind": "pointer",
       "type": "down",
-      "x": 176,
+      "x": 276,
       "y": 60
     },
     {
       "t": 1.7000000000000002,
       "kind": "pointer",
       "type": "up",
-      "x": 176,
+      "x": 276,
       "y": 60
     },
     {
       "t": 2.3,
       "kind": "pointer",
       "type": "move",
-      "x": 176,
+      "x": 412,
       "y": 152
     },
     {
       "t": 2.3499999999999996,
       "kind": "pointer",
       "type": "down",
-      "x": 176,
+      "x": 412,
       "y": 152
     },
     {
       "t": 2.4,
       "kind": "pointer",
       "type": "up",
-      "x": 176,
+      "x": 412,
       "y": 152
     },
     {
       "t": 3.0,
       "kind": "pointer",
       "type": "move",
-      "x": 1240,
+      "x": 1004,
       "y": 60
     },
     {
       "t": 3.05,
       "kind": "pointer",
       "type": "down",
-      "x": 1240,
+      "x": 1004,
       "y": 60
     },
     {
       "t": 3.1,
       "kind": "pointer",
       "type": "up",
-      "x": 1240,
+      "x": 1004,
       "y": 60
     },
     {
       "t": 3.7,
       "kind": "pointer",
       "type": "move",
-      "x": 1104,
+      "x": 868,
       "y": 60
     },
     {
       "t": 3.75,
       "kind": "pointer",
       "type": "down",
-      "x": 1104,
+      "x": 868,
       "y": 60
     },
     {
       "t": 3.8000000000000003,
       "kind": "pointer",
       "type": "up",
-      "x": 1104,
+      "x": 868,
       "y": 60
     },
     {
       "t": 4.4,
       "kind": "pointer",
       "type": "move",
-      "x": 1104,
+      "x": 868,
       "y": 152
     },
     {
       "t": 4.45,
       "kind": "pointer",
       "type": "down",
-      "x": 1104,
+      "x": 868,
       "y": 152
     },
     {
       "t": 4.5,
       "kind": "pointer",
       "type": "up",
-      "x": 1104,
+      "x": 868,
       "y": 152
     }
   ],

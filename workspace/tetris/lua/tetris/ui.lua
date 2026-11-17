@@ -381,8 +381,8 @@ M.new = function(spec)
   local CELL_, GAP_ = cfg.CELL or 28, cfg.GAP or 2
   local BOARD_HALF = 4.5 * (CELL_ + GAP_) + CELL_ / 2 + 1
   local CLUSTER_GAP = 18                                -- 簇与棋盘外沿的净空
-  local function clusterX(bw)                           -- 单侧簇的内列中心（相对盘心向外）
-    return BOARD_CX + BOARD_HALF + CLUSTER_GAP + bw / 2
+  local function clusterX(bw, boardCx)                  -- 相对**盘心**向外推：棋盘外沿 + 净空 + 半键宽
+    return (boardCx or BOARD_CX) + BOARD_HALF + CLUSTER_GAP + bw / 2
   end
 
   local function planMobile(W, H, dual, guide)
@@ -440,10 +440,11 @@ M.new = function(spec)
       -- 再加上描边外扩 2px ⇒ 相邻两键贴死甚至视觉重叠。改成 144/92（净距 20/16）。
       -- v6.28：两列簇改成**贴棋盘外沿**（原来用 colL±72 / colR±72，大画布上离盘 600+px）。
       -- 内列 = 棋盘外沿 + 18 净空 + 半键宽；外列再外推一个键宽 + 16 净距。
-      local cx0 = clusterX(bw)                 -- 单盘盘心 0 ⇒ 内侧列中心
+      local cx0 = clusterX(bw, 0)              -- 单盘盘心 0（原来误加 BOARD_CX=236 ⇒ 外列被推出画布）
       local cx1 = cx0 + bw + 16                -- 外侧列中心
-      slots[#slots + 1] = B('left', -cx0, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('right', -cx1, g5.botY + 30, bw, bh, KIT.FS)
+      -- v6.30（用户：「移动端箭头左右反过来了，你是右左」）：◀ 必须在外侧（屏幕更左）、▶ 在内侧。
+      slots[#slots + 1] = B('left', -cx1, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('right', -cx0, g5.botY + 30, bw, bh, KIT.FS)
       slots[#slots + 1] = B('rot', -cx0, g5.botY + 122, bw, bh, KIT.FS)
       slots[#slots + 1] = B('hold2', -cx1, g5.botY + 122, bw, bh, KIT.FS)
       slots[#slots + 1] = B('hard', cx1, g5.botY + 30, bw, bh, KIT.FS)
@@ -551,8 +552,8 @@ M.new = function(spec)
     local cIn = boardEdge + 8 + bw2 / 2               -- 内列（贴棋盘）
     local cOut = cIn + bw2 + gapX                     -- 外列
     local rowLo, rowHi = g5.botY + 30, g5.botY + 30 + bh + gapY
-    slots[#slots + 1] = B('left', -cIn, rowLo, bw2, bh, KIT.FS)
-    slots[#slots + 1] = B('right', -cOut, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('left', -cOut, rowLo, bw2, bh, KIT.FS)   -- ◀ 外侧（更左）
+    slots[#slots + 1] = B('right', -cIn, rowLo, bw2, bh, KIT.FS)   -- ▶ 内侧
     slots[#slots + 1] = B('rot', -cIn, rowHi, bw2, bh, KIT.FS)
     slots[#slots + 1] = B('hold2', -cOut, rowHi, bw2, bh, KIT.FS)
     slots[#slots + 1] = B('soft', cIn, rowLo, bw2, bh, KIT.FS)

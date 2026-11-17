@@ -5,14 +5,44 @@
   "dt": 0.016666666666666666,
   "canvasId": "mobile-16-9",
   "events": [
-    { "t": 0.2, "kind": "key", "typeName": "KeyboardJumpKeyDown" },
-    { "t": 0.28, "kind": "key", "typeName": "KeyboardJumpKeyUp" },
-    { "t": 1.4, "kind": "pointer", "type": "down", "x": 168, "y": 60 },
-    { "t": 1.55, "kind": "pointer", "type": "up", "x": 168, "y": 60 }
+    {
+      "t": 0.2,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 0.28,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 1.4,
+      "kind": "pointer",
+      "type": "down",
+      "x": 276,
+      "y": 60
+    },
+    {
+      "t": 1.55,
+      "kind": "pointer",
+      "type": "up",
+      "x": 276,
+      "y": 60
+    }
   ],
   "asserts": [
-    { "at": 1.3, "kind": "log", "contains": "screen=game", "source": "client" },
-    { "at": 1.45, "kind": "log", "contains": "phone tap left", "source": "client" },
+    {
+      "at": 1.3,
+      "kind": "log",
+      "contains": "screen=game",
+      "source": "client"
+    },
+    {
+      "at": 1.45,
+      "kind": "log",
+      "contains": "phone tap left",
+      "source": "client"
+    },
     {
       "at": 2.2,
       "kind": "lua",
