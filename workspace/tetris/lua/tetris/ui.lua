@@ -496,7 +496,9 @@ M.new = function(spec)
     -- 教学提示走 setText(hint, …) 这条**两端共用**的逻辑，但手机双盘把 hint 停在 -4000
     -- ⇒ 同一段代码在手机上是"写了但看不见"。凡"同一份逻辑、两个可见面"都是 bug。
     -- 位置：两块棋盘之间的下带（拇指簇 x≤134 / x≥1117 之外的中段），实测该带无任何可见件。
-    t.hint = T('hint', 0, -(halfH - 28), math.min(W - 400, 880), 52, 18)
+    -- v6.29（用户图一：底带文字压住棋盘/互相叠印）：两条底带各找**真正空的**位置——
+    -- 教学句挪到左栏空带（best 与拇指簇之间，y=-70）；通栏横幅放到棋盘下沿（-300）之外。
+    t.hint = T('hint', gutL, -70, 200, 40, 15)
     -- 右栏 y∈[280,420] 也空 ⇒ 「下一个」放回来（右上角「说明」在 y≈646 之外，不压）
     t.hudNext = T('hudNext', gutR, -10, 200, 32, 17)  -- raw；屏幕 y≈350
     -- v6.15（用户 2026-11-02 图一：横幅被裁成「准备开」）：240 宽装不下 12 个字，
@@ -513,7 +515,7 @@ M.new = function(spec)
     -- 再往上让 34px（半行 + 净空），否则两条都会写进同一 ty，出图时两段字直接叠印
     -- （实测：ibotBanner 与 ihint 同 ty=-452、同 screenY=932，是一团花字）。
     -- 4:3（1280×960）下两盘下沿 751、画布底 960 ⇒ 底部带 209px，放两条仍有富余。
-    t.botBanner = T('botBanner', 0, -(H / 2 - 62), math.min(W - 400, 880), 44, 20)
+    t.botBanner = T('botBanner', 0, -(halfH - 38), math.min(W - 400, 720), 44, 20)
     -- inst 份与 text 份必须同位（main 的 HUD_INST.build 起手会按旧的 halfH-40 摆一次）
     ti.botBanner = t.botBanner
     -- 🔴 v6.17（用户 2026-11-03 图二①「移动端换了个模式设计就变了，你没同步过来」）：
@@ -536,16 +538,27 @@ M.new = function(spec)
     -- 拇指簇竖排：底边必须留 6px（首版直接放 botY=-330，72 高 ⇒ 底边 -366 出画布，审计抓到 oob）
     -- v6.15（用户 2026-11-02 图一：最下方的 ◀ 贴着画布底边被切）：原来 botY+6 = -324，
     -- 72 高的胶囊底边落在 -360 正好压画布边缘；上移 34 让三颗竖排整体在安全区内。
-    local col0 = g5.botY + 40
-    -- v6.28：簇贴在**各自棋盘**外侧（左侧盘心 -236、右侧 +236），不再贴画布边缘。
-    -- 2400×1080 实测：旧写法把簇放在 ±1097（离盘 660px，且竖排一列），用户报「操作很不方便」。
-    local cx = clusterX(bw)
-    slots[#slots + 1] = B('left', -cx, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('right', -cx, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('rot', -cx, col0 + 172, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hard', cx, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('soft', cx, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hold', cx, col0 + 172, bw, bh, KIT.FS)
+    -- 🔴 v6.29（用户 2026-11-17 图一：「双盘这个按钮的设计不对，休闲模式的排列才是对的」）：
+    -- 双盘原来每个棋盘**竖排一列 3 颗**（左 ◀▶旋转 / 右 缓降锁定暂存），与休闲模式那套
+    -- **2×2（上排 旋转+暂存 / 下排 ◀▶ 或 缓降+锁定）**不是同一个设计。现在双盘也用休闲那套：
+    -- 每块棋盘配一套镜像的 2×2，放在棋盘外侧。
+    -- 键宽自适应：1280 双盘外侧只剩 254px（386..640），两列放不下 120 宽的键 ⇒ 收到 ~114；
+    -- 2400×1080 经设计缩放后设计空间更宽（800），仍是 120。
+    local boardEdge = BOARD_CX + BOARD_HALF          -- 386（design space）
+    local sideW = halfW - boardEdge
+    local gapX, gapY = 10, 16
+    local bw2 = math.min(bw, math.floor((sideW - 16 - gapX) / 2))
+    local cIn = boardEdge + 8 + bw2 / 2               -- 内列（贴棋盘）
+    local cOut = cIn + bw2 + gapX                     -- 外列
+    local rowLo, rowHi = g5.botY + 30, g5.botY + 30 + bh + gapY
+    slots[#slots + 1] = B('left', -cIn, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('right', -cOut, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('rot', -cIn, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hold2', -cOut, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('soft', cIn, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hard', cOut, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hold', cIn, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('rot2', cOut, rowHi, bw2, bh, KIT.FS)
     local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
     slots[#slots + 1] = B('skill1', 0, 150, sw, sh, KIT.FS)
     slots[#slots + 1] = B('skill2', 0, 80, sw, sh, KIT.FS)

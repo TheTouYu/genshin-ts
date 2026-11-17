@@ -1,58 +1,58 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "dt": 0.016666666666666666,
- "canvasId": "mobile-16-9",
- "name": "79 v6.17 手机双盘：消行/连击/升级横幅必须落在画布内（旧值 -4000 = 文案写了但永远看不见）",
- "events": [
-  {
-   "t": 0.3,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey2Down"
-  },
-  {
-   "t": 0.32,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey2Up"
-  },
-  {
-   "t": 1.0,
-   "kind": "key",
-   "typeName": "KeyboardMoveLeftKeyDown"
-  },
-  {
-   "t": 1.02,
-   "kind": "key",
-   "typeName": "KeyboardMoveLeftKeyUp"
-  }
- ],
- "asserts": [
-  {
-   "at": 2.0,
-   "kind": "log",
-   "contains": "screen=game",
-   "source": "client"
-  },
-  {
-   "at": 2.0,
-   "kind": "control",
-   "name": "botBanner",
-   "field": "anchoredPositionY",
-   "equals": -298
-  },
-  {
-   "at": 2.0,
-   "kind": "control",
-   "name": "botBanner",
-   "field": "sizeDeltaX",
-   "equals": 880
-  },
-  {
-   "at": 2.0,
-   "kind": "control",
-   "name": "hint",
-   "field": "anchoredPositionY",
-   "equals": -332
-  }
- ]
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "name": "79 v6.17 手机双盘：消行/连击/升级横幅必须落在画布内（旧值 -4000 = 文案写了但永远看不见）（v6.29 底带重排：横幅下移 720 宽、hint 移左栏）",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Up"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyDown"
+    },
+    {
+      "t": 1.02,
+      "kind": "key",
+      "typeName": "KeyboardMoveLeftKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "screen=game",
+      "source": "client"
+    },
+    {
+      "at": 2.0,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "anchoredPositionY",
+      "equals": -322
+    },
+    {
+      "at": 2.0,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "sizeDeltaX",
+      "equals": 720
+    },
+    {
+      "at": 2.0,
+      "kind": "control",
+      "name": "hint",
+      "field": "anchoredPositionY",
+      "equals": -70
+    }
+  ]
 }

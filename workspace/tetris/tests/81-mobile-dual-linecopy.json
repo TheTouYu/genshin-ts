@@ -1,80 +1,80 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "dt": 0.016666666666666666,
- "canvasId": "mobile-16-9",
- "name": "81 v6.18 手机双盘：横幅在底部带且能承载消行文案（v6.17 的中缝窄条约定已被 v6.18 推翻）",
- "events": [
-  {
-   "t": 0.3,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey2Down"
-  },
-  {
-   "t": 0.32,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey2Up"
-  },
-  {
-   "t": 1.0,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyDown"
-  },
-  {
-   "t": 1.02,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyUp"
-  },
-  {
-   "t": 2.0,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyDown"
-  },
-  {
-   "t": 2.02,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyUp"
-  },
-  {
-   "t": 3.0,
-   "kind": "key",
-   "typeName": "KeyboardCharacterSkill4KeyDown"
-  },
-  {
-   "t": 3.02,
-   "kind": "key",
-   "typeName": "KeyboardCharacterSkill4KeyUp"
-  },
-  {
-   "t": 3.6,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyDown"
-  },
-  {
-   "t": 3.62,
-   "kind": "key",
-   "typeName": "KeyboardJumpKeyUp"
-  }
- ],
- "asserts": [
-  {
-   "at": 4.1,
-   "kind": "control",
-   "name": "botBanner",
-   "field": "anchoredPositionY",
-   "equals": -298
-  },
-  {
-   "at": 4.1,
-   "kind": "control",
-   "name": "botBanner",
-   "field": "sizeDeltaX",
-   "equals": 880
-  },
-  {
-   "at": 4.1,
-   "kind": "lua",
-   "source": "local function t(n) local c=query.control(n) return (c and c.text) or '' end local s=t('botBanner') assert(s=='', '手机对局期横幅应无常驻教学，实得：'..s) return true"
-  }
- ]
+  "format": "qxqy-autotest",
+  "version": 1,
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "name": "81 v6.18 手机双盘：横幅在底部带且能承载消行文案（v6.17 的中缝窄条约定已被 v6.18 推翻）（v6.29 横幅下移/收窄）",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey2Up"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.02,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 2.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 2.02,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    },
+    {
+      "t": 3.0,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyDown"
+    },
+    {
+      "t": 3.02,
+      "kind": "key",
+      "typeName": "KeyboardCharacterSkill4KeyUp"
+    },
+    {
+      "t": 3.6,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 3.62,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 4.1,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "anchoredPositionY",
+      "equals": -322
+    },
+    {
+      "at": 4.1,
+      "kind": "control",
+      "name": "botBanner",
+      "field": "sizeDeltaX",
+      "equals": 720
+    },
+    {
+      "at": 4.1,
+      "kind": "lua",
+      "source": "local function t(n) local c=query.control(n) return (c and c.text) or '' end local s=t('botBanner') assert(s=='', '手机对局期横幅应无常驻教学，实得：'..s) return true"
+    }
+  ]
 }

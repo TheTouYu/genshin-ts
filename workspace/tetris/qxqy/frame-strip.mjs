@@ -310,6 +310,9 @@ export function checkSaveFreshness(save = null, root = PROJECT_ROOT) {
     for (let i = 0; i < n; i++) {
       if ((a[i] ?? '') === (b[i] ?? '')) continue
       if (PLACEHOLDER.test(a[i] ?? '') || PLACEHOLDER.test(b[i] ?? '')) continue
+      // BUILD_TAG 是**构建期注入**的（build.mjs 把 `v6.29` 换成 `v6.29 · <日期> <sha>`），
+      // 存档与磁盘必然在这一行不同 ⇒ 不排除它就是个永远响的假警报（"恒真项=判据报废"的镜像）。
+      if (/^BUILD_TAG = '/.test(a[i] ?? '') && /^BUILD_TAG = '/.test(b[i] ?? '')) continue
       diffLines.push(i + 1)
       if (diffLines.length >= 3) break
     }
