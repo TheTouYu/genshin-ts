@@ -13,9 +13,9 @@
 //   · tag='P' → kit_carrier/kit_has_carrier/kit_votes/kit_dup（无生产者）
 //   · key<0 Lua 时间同步 → fb_dt（内核时间改为固定 1/15 s + 球实体 fb_dt，不再读 Lua 帧长）
 import { g } from 'genshin-ts/runtime/core'
-import { str } from 'genshin-ts/runtime/value'
+import { str, float } from 'genshin-ts/runtime/value'
 
-import { fbMirrorBall, fbWritePlayerPos } from './fb-composites.js'
+import { fbDriveBall, fbMirrorBall, fbWritePlayerPos } from './fb-composites.js'
 import { KitSignal } from './signals.js'
 
 // B 方案（2026-11-14 定谳「到达抖动是真凶」后用户裁决）：渲染图自主节拍（fb_rtick
@@ -111,7 +111,11 @@ const graph = g
         f.doubleBranch(
           f.greaterThan(cLag, 0.8),
           () => {
-            // 服务端设备节点=底层 exec 注册（同 fbDriveBall 复合的 fb_movex 形态）
+            // 复用生产复合 fbDriveBall（spin=0+spinEps=1 ⇒ 只发线性设备，设备名
+            // fb_movex 同球——每实体独立设备槽互不干扰；直接 registerExecNode 在
+            // 图主体上下文会被 generic 匹配拒绝，复合内物化路径已生产验证）
+            const selfL = f.localVariable('entity')
+            selfL.set(f.getSelfEntity())
             const gap = f._3dVectorSubtraction(
               f.create3dVector(
                 f.getCustomVariable(owner, 'fbvx').asType('float'),
@@ -120,16 +124,18 @@ const graph = g
               ),
               cNow
             )
-            f.registerExecNode('add_uniform_basic_linear_motion_device', [
-              f.getSelfEntity(),
-              new str('fb_cmv'),
-              0.25,
-              f.create3dVector(
-                f.multiplication(f.split3dVector(gap).xComponent, 4.0),
-                0.0,
-                f.multiplication(f.split3dVector(gap).zComponent, 4.0)
-              )
-            ])
+            const velCmd = f.create3dVector(
+              f.multiplication(f.split3dVector(gap).xComponent, 4.0),
+              0.0,
+              f.multiplication(f.split3dVector(gap).zComponent, 4.0)
+            )
+            f.callComposite(fbDriveBall, {
+              ball: selfL.value,
+              dur: 0.25,
+              vel: velCmd,
+              spin: f.create3dVector(0.0, 0.0, 0.0),
+              spinEps: new float(1.0)
+            })
           },
           () => {}
         )
