@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
+import { buildTag } from './buildtag.mjs'
 import { fileURLToPath } from 'node:url'
 import { createStudio, importGia } from '/home/h/miliastra-beyond-simulator/studio/index.js'
 
@@ -206,7 +207,10 @@ export function buildStudio() {
     }
     console.log('lua compile   : ok (' + files.length + ' files, luac5.3)')
   }
+  const tag = buildTag(root)
   const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))
+    // 版本戳构建期注入：`v6.27` → `v6.27 · 11-17 16:2x 1e1eb43`（来源唯一：qxqy/buildtag.mjs）
+    .replace(/^BUILD_TAG = '[^']*'/m, `BUILD_TAG = '${tag}'`)
   assertNoPlaceholder(lua, 'lua/main.lua')
   patch({
     op: 'addScript',
@@ -259,8 +263,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // 存档自辨识（2026-10-31）：模拟器网页的存档选择器**只显示 meta.name**，不设就一律显示
   // 「未命名存档」——网盘里同时躺着霜华纪/花间茶会/足球等多份存档，接手时分不清哪份是本次构建。
   // 版本号直接取 main.lua 的 BUILD_TAG（唯一来源），别在这里另写一份。
-  const BUILD_TAG = (/^BUILD_TAG = '([^']*)'/m
-    .exec(readFileSync(join(root, 'lua/main.lua'), 'utf8')) || [])[1] || 'dev'
+  const BUILD_TAG = buildTag(root)   // 与注入进 main.lua 的是同一个函数、同一时刻
   const saveObj = JSON.parse(saveJson)
   saveObj.meta = Object.assign({}, saveObj.meta, { name: `俄罗斯方块 ${BUILD_TAG}` })
   writeFileSync(join(root, 'tetris.save.json'), JSON.stringify(saveObj))

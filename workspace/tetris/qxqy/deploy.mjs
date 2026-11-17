@@ -83,9 +83,9 @@ const save = studio.exportData('save')
   // ⚠ 版本号必须与 build.mjs 同源（main.lua 的 BUILD_TAG），别写死字面量。
   // 事故：这里曾硬编码存档名（含旧版本号 v4.0），网页工作区那份存档因此一直显示 v4.0，
   // 与仓库存档（build.mjs 写 BUILD_TAG）不同名，谁都分不清网页跑的是哪一版。
-  const buildTag = (/^BUILD_TAG = '([^']*)'/m
-    .exec(readFileSync(luaSource, 'utf8')) || [])[1] || 'dev'
-  saveObj.meta.name = opt('--title', `俄罗斯方块 ${buildTag}`)
+  // 与 build.mjs 同一个函数（qxqy/buildtag.mjs）——两处各读一次正则就是"同一事实两处表达"
+  const tagNow = buildTag(root)
+  saveObj.meta.name = opt('--title', `俄罗斯方块 ${tagNow}`)
   writeFileSync(join(root, 'tetris.save.json'), JSON.stringify(saveObj))
 }
 mkdirSync(join(root, 'device-package'), { recursive: true })

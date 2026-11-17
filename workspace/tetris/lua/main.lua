@@ -123,7 +123,8 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.10 · 11-02 16:5x'
+BUILD_TAG = 'v6.27'
+-- 上面只写**语义版本**；日期 + commit 由 qxqy/buildtag.mjs 在构建期注入（人手改日期必滞后 15 天）
 -- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
 -- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
 local RNG1 = CORE.RNG_M.new { bag = CFG.BAG, seed = 20261023 }
