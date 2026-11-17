@@ -117,6 +117,7 @@ assert(R.get('charPanelS').textLayout.visibleLineCount > 0)
 - **模拟器 pointer 坐标是左下原点**（y 向上）：逻辑 (x,y) → pointer (W/2+x, H/2+y)。
 - **`control.imageColor` 有符号**：0xFF71B65E 要写 `-9324962`。
 - **press 态断言必须夹在 down 与 up 之间**（CursorUp 会刷回 hover 色）。
+- **「浏览器里字消失、离线出图正常」先查静态烘焙，别改 Lua**（2026-11-02 结算胶囊悬停丢字）：浏览器渲染器会把稳定 8 帧的兄弟节点烤成一张 proxy 贴图；文本一旦被烤进去，相邻胶囊因悬停改色被踢出 run 单独绘制时就会盖掉 glyphs。判据三步：①同一 scene 用 `host-png` 出图对照（正常 ⇒ 不是描述/层序/颜色）；②`__staticRuns` 里看 `layer.children` 是否含 `textbox`；③`__dissolveRun(run)` 一试——文字回来即坐实。修法在渲染器侧「文本永不进烘焙」（`studio/play/pixi-renderer.js`，回归 `web/test/static-cache-browser.test.mjs`），不是项目代码。重建：`node scripts/build.mjs web`——`web/public/play-renderer.js` 是 gitignore 的构建物，只改产物会被下次构建冲掉。
 
 ## 8. 快速开始
 
@@ -181,6 +182,52 @@ cd /path/to/new-game && lua5.3 tests/run_all.lua   # 期望 ALL GREEN
 3. 单测证明的是"这段代码如果被调用会怎样"，**不证明它被调用**。
 
 **顺带一条设计结论**：把"每帧渲染"归口到一个 `tick` 的前提是——渲染调用是**一段连续的 phase**。若渲染是"状态写入的即时观察者"（散在条件分支里、注释写明要立刻刷），硬搬只有两条路：把条件判断搬进 tick（tick 变游戏逻辑）或延后到帧末（丢语义）。**先确认结构，再定架构**——否则会做出一层没人用的框架。
+
+## 8.9 真机与本地分叉的根因：同一事实两处表达（2026-11-16，代价三轮返工）
+
+连续三轮真机「全是 bug、模拟器全绿」，病根是同一条：**同一个事实被两处各自表达，其中一处漂移了**。
+
+| 事故 | 那个"事实" | A 处 | B 处 |
+|---|---|---|---|
+| 横幅位置 | 横幅该在哪 | `ui.lua` 的 plan | `main.lua` 的 layoutDual 硬编码坐标 |
+| 文字模板判据 | 什么算文字模板 | 探测 `probeTextRaw`（能建就行） | `accept`（必须读得到 text） |
+| 用哪个 guid | 拿什么建控件 | 探测结果 `TEMPLATES.cell` | 配置原始 `TPL_GUIDS.cell` |
+| 候选表键名 | 文字模板表叫什么 | `templates.lua` 知道 `stext→settleText` | `platform.lua` 不知道 |
+
+**为什么本地发现不了**：兜底/mock 把错误吸收了。
+- mock 节点走 `__kind` 分支，永远不走真机的字段探测分支；
+- 兜底扫描区间恰好包含模拟器的模板 guid，**错误被救场**（真机真实 guid 在区间外）。
+
+### 五条判据（可直接执行）
+
+1. **同一个事实只准有一个表达处**。看到两处都在算同一件事（坐标/判据/键名/guid），先合并再修 bug。
+2. **兜底必须大声**。降级分支要有专用日志词（如 `scan ok`），并且有门禁盯着它不出现。
+3. **"没打 reject" 是信息**。`候选表为空` 与 `候选被试完` 必须打**不同**的日志——
+   否则会像我一样按错的层修一轮（第一轮改能力判据，方向完全错）。
+4. **构建期能拦的绝不留给真机**。模板键契约（`tpl='xxx'` 必须在 config 里有同名候选表）
+   是纯静态、毫秒级的检查，直接对应第四例。
+5. **模拟器全绿 ≠ 真机能跑**。凡依赖"引擎给的 guid / 字段可读性 / 真实分辨率"的假设，
+   都要问：模拟器在这一层真的等价吗？
+
+### 真机日志的判据顺序（照着走，不要跳）
+
+```bash
+python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <log.gia> lua \
+  | grep -inE "platform fail|cands=0|scan ok|bg pool|bg cover"
+```
+1. 有 `tpl X reject` → **能力判据**问题（accept 依赖了真机读不到的字段）
+2. 只有 `all candidates rejected`、**无** reject → **候选表没查到**（键名/扫描范围）
+3. 出现 `scan ok` → 配置 guid 过期，被兜底救场，必须改配置
+
+### 本项目已有的机械防线（别再徒手查）
+
+| 层 | 防线 |
+|---|---|
+| 构建期 | `tests-lua/tpl_contract_test.lua`（模板键契约）· `qxqy/build.mjs` 的占位符残留闸门 |
+| 运行期 | `qxqy/scan-runtime-errors.mjs` 的 `CONFIG-DRIFT` / `TPL-KEY-MISS` |
+| 模拟器保真 | `playStart({ templateRenumber: N })` 模拟真机 guid 重编号（另一个仓库） |
+
+完整方案见 `workspace/tetris/docs/v624-error-prevention.md`。
 
 ## 9. 本框架**不**覆盖
 
