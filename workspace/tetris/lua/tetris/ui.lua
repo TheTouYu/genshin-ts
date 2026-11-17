@@ -235,7 +235,10 @@ M.new = function(spec)
       topBanner = T('topBanner', 0, halfH - 36,
         W - 2 * (((NUM.PHONE and NUM.PHONE.NAV_W) or 116) + (KIT.MARGIN or 18) + 16), 64, 34),
       botBanner = T('botBanner', 0, -(halfH - 28), W - 180, 48, 22),
-      title = T('title', gutterX, 130, 420, 100),
+      -- 🔴 v6.25（ui_plan_test P4 实测）：420 宽居中在 gutterX=-(halfW-186) ⇒ 1600 宽下左缘
+      -- -824 出画布 24px。本屏 title 恒为空串（main 的 setText(title,'')），属**潜在**裁切；
+      -- 收窄到与同栏 best/hint 一致的 330 即落在画布内，且保持与那一列对齐。
+      title = T('title', gutterX, 130, 330, 100),
     }
     if spec.mode and spec.mode() ~= 'coop' then
       if guide then
@@ -307,7 +310,9 @@ M.new = function(spec)
       -- 修法：整列下移到按钮下沿之外 ⇒ hud 中心 raw halfH-134（屏幕 y=134, 行 ∈[114,154]），
       -- best 依次 -36，hint 跟着让位。留 40px 净空给按钮。
       t.hud = T('hud', colL, halfH - 134, tw, 40, 20)
-      t.best = T('best', colL, halfH - 172, tw, 32, 20)
+      -- 🔴 v6.25（ui_plan_test P3 实测）：框高 32 < 引擎判据 1.45×20+4 = 33 ⇒ **整条一个字都不画**。
+      -- 这条判据是引擎行为（text-layout.js 的 requiredHeight），差 0.8px 也是零渲染。改 34 留 1px 余量。
+      t.best = T('best', colL, halfH - 172, tw, 34, 20)
       -- v6.14：提示盒宽度收到 300 —— 顶部横幅从 x=360 起，440 宽会与它相交 70px
       t.hint = T('hint', colL, halfH - 240, math.min(tw, 240), 96, 20)
       -- 预览列心 RIGHT_CX 沿用 PC 公式（1280 → 410）：用例 15/16 断言预览块绝对 x，

@@ -162,7 +162,11 @@ M.new = function(spec)
     for i = 1, #sorted do
       local n = sorted[i]
       -- L2 缺模板 / 缺尺寸
-      if not n.tpl then add('L2', n.key, '缺 tpl（实例化会失败）') end
+      -- ⚠ 判据边界（2026-11-17 复盘实测）：这里只判**字段在不在**，不判 tpl 的**键是否可解析**。
+      -- 实证：`tpl='definitely_missing_tpl'` 的节点本函数报 0 个问题——而旧文案写的是
+      -- 「缺模板（实例化会失败）」，会让人以为这层已经防住了。键的可用性由
+      -- `tests-lua/tpl_contract_test.lua` 单点负责（扫源码 × config 的候选表），不要在这里再写一份。
+      if not n.tpl then add('L2', n.key, '缺 tpl 字段（实例化会失败）') end
       if not n.size and not n.text then add('L2', n.key, '既无 size 也无 text') end
       -- L4 文字放不下
       if n.text and n.text ~= '' then
