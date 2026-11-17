@@ -136,7 +136,8 @@ const PLAYER_SPEED_CAP = 8.0 // 玩家速度上限（超过视为瞬移，置 0�
 const PLAYER_JUMP = 1.5 // 单拍玩家位移超过此值 = 瞬移（不产生速度）
 const CARRIER_GUID = 1082130445n
 const BALL_GUID = 1077936163n
-const CARRIER_Y = -4.21 // 载体停放高度（草地地基内部，永不入镜）
+const CARRIER_Y = -2.21 // 载体停放高度（2026-11-17 -4.21→-2.21：抬 2m 缩短与玩家的垂直距离提高施放
+// 频率（距离节流 D615：6.2m 垂距=7.4/s 贴身基线）；支撑平台盒 1077936164 pos y 同步 +2.0 保相对几何）
 
 // 五种出球：[水平速度, 上挑, 侧旋]
 const K1_SPD = 10.0
@@ -1308,7 +1309,10 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
     )
   )
   f.doubleBranch(
-    f.greaterThan(carrierLag, 1.5),
+    // 位移节流（2026-11-17 用户令：0.2s 一次）。moduloOperation 不在 20008 白名单（编译
+    // 实证拒绝），tick 奇偶门不可用 ⇒ 改 lag 门自适应降频：1.5→2.2m。玩家全速 ~7m/s
+    // 时瞬移最小间隔 = 2.2/7 ≈ 0.31s/次；慢走更稀；静止恒不移（lag 恒 <2.2）。
+    f.greaterThan(carrierLag, 2.2),
     () => {
       f.complexCreationTeleport(
         f.create3dVector(pPxV.value, CARRIER_Y, pPzV.value),

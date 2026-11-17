@@ -105,7 +105,7 @@ const PLAYER_SPEED_CAP = 8.0 // 玩家速度上限（超过视为瞬移，置 0�
 const PLAYER_JUMP = 1.5 // 单拍玩家位移超过此值 = 瞬移（不产生速度）
 const CARRIER_GUID = 1082130445n
 const BALL_GUID = 1077936135n
-const CARRIER_Y = -4.21 // 载体停放高度（草地地基内部，永不入镜）
+const CARRIER_Y = -2.21 // 载体停放高度（2026-11-17 抬 2m 缩短玩家垂距；平台盒 6164 同步 +2.0）
 
 // 五种出球：[水平速度, 上挑, 侧旋]
 const K1_SPD = 10.0
