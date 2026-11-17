@@ -16,7 +16,7 @@
    F7 结算页两种 style 都能出（text/pill），且设备互斥
 ========================================================================]]
 
-local ROOT = os.getenv('TETRIS_ROOT') or '.'
+local ROOT = os.getenv('QxqyUiRoot') or os.getenv('TETRIS_ROOT') or '.'
 local function load(path) return assert(loadfile(ROOT .. '/' .. path))() end
 
 local platformM = load('lua/qxqy_ui/platform.lua')

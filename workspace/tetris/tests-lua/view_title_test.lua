@@ -32,6 +32,11 @@ local PLATFORM = load('lua/tetris/platform.lua')
 local RENDERM = load('lua/tetris/render.lua')
 
 local V = VN.new { layers = L }
+-- 可用模板键集合＝config.TPL_GUIDS 的键（单源；别的项目换成自己的真源即可）
+local TPLKEYS = {}
+for k, v in pairs(cfg.TPL_GUIDS or {}) do
+  if type(v) == 'table' and #v > 0 then TPLKEYS[#TPLKEYS + 1] = k end
+end
 local KIT = KITM.new { layers = L }
 local T = TITLEM.new { config = cfg, layers = L, kit = KIT }
 
@@ -251,7 +256,9 @@ for _, cv in ipairs(canvases) do
       local o = { canvas = cv, device = dev }
       for k, v in pairs(st) do o[k] = v end
       local tree = T.title(o)
-      local is = V.lint(tree)
+      -- v6.26：接上框架的 L2t（模板键契约）。键集合是**这一个项目**的事实，所以从 config 派生，
+      -- 不写死在框架里 —— 框架提供判据，项目提供真源。
+      local is = V.lint(tree, { tplKeys = TPLKEYS })
       lintCount = lintCount + 1
       if #is > 0 then
         lintBad = cv[1] .. 'x' .. cv[2] .. ' ' .. dev

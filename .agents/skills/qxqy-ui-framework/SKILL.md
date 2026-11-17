@@ -256,6 +256,59 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <log.gia> lua \
 
 完整方案见 `workspace/tetris/docs/v624-error-prevention.md`。
 
+## 8.10 判据要"上移"：从项目测试变成框架能力
+
+2026-11-17 复盘发现的系统性短板：**框架带得走的是代码，带不走的是判据。**
+本框架 39 个模块里约 12 个是通用能力，而历次事故后补的闸门几乎全在项目层
+（`tests-lua/*.lua`、`qxqy/*.mjs`、`main.lua`、`config.lua`）。换个游戏，能力跟着走、
+闸门要重写 ⇒ 同一批坑重踩。
+
+### 三层上移法（按性价比排序）
+
+1. **把判据做成通用函数**（最高价值）
+   几何/结构类判据不含游戏语义，应当长在框架模块里（`frameworks/qxqy-ui/lua/qxqy_ui/`）：
+   - `V.lint(list, cfg)` —— view 节点表（L1–L6）
+   - `V.lintPlan(plan, cfg)` —— 布局表（P1–P5：重名 / 叠印 / 框高 / 出画布 / 缺数值）
+   - `V.lint(list, { tplKeys = ... })` —— 追加 `L2t`：tpl 键必须在给定集合内
+   新项目调一次就有，不用抄测试。**能力测试写在框架自己的 `tests/view_node_lint_test.lua`**，
+   随框架复制走；项目侧只留"把真源接进来"的那一点接线。
+
+2. **把"要不要跑"变成默认**
+   判据散在多处时，人（模型）一定会漏。收成**一条命令** `qxqy/check-framework.sh`
+   （6 项：tpl 契约 / UI 计划 lint / 设备适配 / headless 全量 / **框架本体自测** / 占位符静态检查），
+   再接进 `qxqy/tetris-guard.sh --fast` 的 4b 闸门 ⇒ **删除防护才需要显式动作**。
+
+### 框架副本的同步纪律（本仓特有，别绕过）
+
+框架实体在 `frameworks/qxqy-ui/`，参考实现在 `workspace/tetris/lua/tetris/`。两边**必须逐字节一致**：
+
+```bash
+bash frameworks/qxqy-ui/sync-check.sh          # 查漂移（guard 的闸门 2 就是在跑它）
+bash frameworks/qxqy-ui/sync-check.sh --sync   # 以 tetris 为准同步（tetris 先落地验证）
+lua5.3 frameworks/qxqy-ui/tests/run_all.lua    # 框架自测（换 cwd 也要过：根变量统一 QxqyUiRoot）
+```
+
+⚠ 框架测试的根变量必须只用 `QxqyUiRoot`（`TETRIS_ROOT` 仅作兼容回退）。历史上 `app_test`
+只认 `TETRIS_ROOT`，导致"在框架目录跑绿、从仓库根跑红"——同一个测试两个入口两种结论。
+
+3. **把"单一来源"变成可检测规则**
+   目前只防了已知的四个实例（tpl 键 / guid 来源 / 判据重复 / 布局坐标）。
+   纯字面量重复检测噪声太大、暂不做；可做的是**声明式事实注册**：
+   把"某事实只能出现在某文件"写成配置，由脚本核对。
+
+### 判别一个判据该不该上移
+
+问三句：
+- 它**依赖这局游戏的语义**吗（方块形状、技能名、关卡数值）？依赖 ⇒ 留在项目层。
+- 换一个游戏，这条判据**一个字都不用改**吗？是 ⇒ 应当进框架。
+- 它现在是"测试里的一段循环"还是"可直接调用的函数"？前者 ⇒ 先抽成后者。
+
+### 反面教材（本项目真实代价）
+
+`ui_plan_test.lua` 的 P1–P5 是纯几何判据，却以"一次性测试"的形式存在了很久，
+`ui.lua` 的 `U.plan`（对局/双盘布局）因此在 `tests-lua` 里**零引用**，
+四起真机事故之一就发生在那层。抽成 `V.lintPlan` 后，任何项目一行调用即可覆盖。
+
 ## 9. 本框架**不**覆盖
 
 字体真实折行（用保守估算）、音频时长/白名单、容器 Scroll/Grid 排版、Tween/动画/信号、真机差异（模板 guid 重编号、`SetVisible(false)` 对运行时实例无效、Enum 键位形态）。这些必须走 L1/L2。

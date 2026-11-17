@@ -18,6 +18,118 @@
 
 local M = {}
 
+-- ===== 布局层判据 lintPlan（P1–P5）=====
+-- 为什么在框架层：`V.lint` 的 L1–L6 作用于**描述层节点表**（view_*），
+-- 而 `ui.lua` 的 `U.plan`（对局屏/双盘屏的布局）产出的是**布局表**（name→rect），
+-- 四起真机事故里最贵的一起（双盘横幅位置）就发生在这一层且当时零判据。
+-- 入口分两个、别混：V.lint(list, cfg) 查节点表；V.lintPlan(plan, cfg) 查布局表。
+--
+-- 判据（搬自 tests-lua/ui_plan_test.lua，语义逐条对齐）：
+--   P1 同一 bucket 内控件名唯一（GetChild 按名寻址会歧义）
+--   P2 同一 bucket 内两条 rect 完全相同 = 叠印（停靠态 y==parkedY 除外）
+--   P3 文字框高 ≥ 1.45×字号+4（引擎判据；不足则整条一个字都不画）
+--   P4 未停靠的矩形必须落在画布内
+--   P5 条目必须带 x/y/w/h 数值（nil 会在 center() 里炸）
+--
+-- plan 形态：{ text = {name->rect}, inst = {...}, skill = {...} }
+--   · bucket 可以是 **map**（name→rect）也可以是 **array**（[{name=,x=,...}, ...]；
+--     数组形态才可能出现重名，map 形态天然不可能重复 ⇒ P1 只在数组形态有意义）
+-- rect 形态：{ x, y, w, h, fs }
+-- cfg：{ canvas = {W,H} | {W=,H=}, parkedY = -4000, buckets = {'text','inst','skill'} } 都有默认值
+-- 返回 issues[]，每项 { code = 'P1'..'P5', key = 控件名或 bucket, msg = 人话 }
+local DEFAULT_BUCKETS = { 'text', 'inst', 'skill' }
+
+local function planEntries(bucket, view)
+  -- 统一成 [{ name=, r= }]，数组与 map 两种形态都吃
+  local out = {}
+  if type(view) ~= 'table' then return out end
+  if #view > 0 then
+    for i = 1, #view do
+      local r = view[i]
+      if type(r) == 'table' then
+        out[#out + 1] = { name = r.name or r.key or ('[' .. i .. ']'), r = r }
+      else
+        out[#out + 1] = { name = '[' .. i .. ']', r = nil }
+      end
+    end
+  else
+    for name, r in pairs(view) do
+      out[#out + 1] = { name = tostring(name), r = r }
+    end
+  end
+  return out
+end
+
+local function cfgNums(cfg)
+  local cv = cfg.canvas or {}
+  local W = tonumber(cv.W or cv[1]) or 1600
+  local H = tonumber(cv.H or cv[2]) or 900
+  return W, H, tonumber(cfg.parkedY) or -4000
+end
+
+local function lintPlan(plan, cfg)
+  plan = plan or {}
+  cfg = cfg or {}
+  local W, H, parkedY = cfgNums(cfg)
+  local buckets = cfg.buckets or DEFAULT_BUCKETS
+  local issues = {}
+  local function add(code, key, msg) issues[#issues + 1] = { code = code, key = key, msg = msg } end
+
+  for _, bucket in ipairs(buckets) do
+    local list = planEntries(bucket, plan[bucket])
+    -- P1 重名（只有数组形态可能发生）
+    local seen = {}
+    for i = 1, #list do
+      local nm = list[i].name
+      if seen[nm] then
+        add('P1', nm, string.format('bucket=%s 内控件名重复（GetChild 按名寻址会歧义）', bucket))
+      end
+      seen[nm] = true
+    end
+    -- P5 数值完整（先跑：后面三条判据都要求 rect 是表）
+    local usable = {}
+    for i = 1, #list do
+      local r = list[i].r
+      if type(r) ~= 'table' or type(r.x) ~= 'number' or type(r.y) ~= 'number'
+        or type(r.w) ~= 'number' or type(r.h) ~= 'number' then
+        add('P5', list[i].name, string.format('bucket=%s 缺 x/y/w/h 数值（center() 会炸）', bucket))
+      else
+        usable[#usable + 1] = list[i]
+      end
+    end
+    -- P2 叠印 / P3 框高 / P4 出画布（停靠态一律跳过）
+    local seenRect = {}
+    for i = 1, #usable do
+      local e = usable[i]
+      local r = e.r
+      if r.y ~= parkedY then
+        local k = string.format('%.1f|%.1f|%.1f|%.1f', r.x, r.y, r.w, r.h)
+        if seenRect[k] then
+          add('P2', e.name, string.format('bucket=%s 与 %s 完全同矩形 (%s) = 叠印', bucket, seenRect[k], k))
+        else
+          seenRect[k] = e.name
+        end
+        if type(r.fs) == 'number' then
+          local need = 1.45 * r.fs + 4
+          if r.h + 0.01 < need then
+            add('P3', e.name, string.format('bucket=%s 框高 %.1f < 需 %.1f（fs=%d，整条不会画）',
+              bucket, r.h, need, r.fs))
+          end
+        end
+        local outX = (r.x - r.w / 2) < -W / 2 - 1 or (r.x + r.w / 2) > W / 2 + 1
+        local outY = (r.y - r.h / 2) < -H / 2 - 1 or (r.y + r.h / 2) > H / 2 + 1
+        if outX or outY then
+          add('P4', e.name, string.format('bucket=%s 出画布 x=%.0f y=%.0f w=%.0f h=%.0f（画布 %dx%d）',
+            bucket, r.x, r.y, r.w, r.h, W, H))
+        end
+      end
+    end
+  end
+  return issues
+end
+
+M.lintPlan = lintPlan
+
 local CJK_BYTES = {}
 
 M.new = function(spec)
@@ -138,6 +250,15 @@ M.new = function(spec)
     cfg = cfg or {}
     local minAlpha = cfg.minAlpha or 0x80
     local lightLuma = cfg.lightLuma or 200
+    -- v6.26：可选「可用模板键集合」。给了才判 L2t，不给则行为与旧版完全一致（12 个既有调用点零影响）。
+    -- 入参接受数组 {'cell','hit'} 或集合 {cell=true}，这里统一成集合。
+    local tplSet
+    if cfg.tplKeys then
+      tplSet = {}
+      for k, v in pairs(cfg.tplKeys) do
+        if type(k) == 'number' then tplSet[v] = true else tplSet[k] = true end
+      end
+    end
     local issues = {}
     local sorted = V.sort(list)
 
@@ -167,6 +288,17 @@ M.new = function(spec)
       -- 「缺模板（实例化会失败）」，会让人以为这层已经防住了。键的可用性由
       -- `tests-lua/tpl_contract_test.lua` 单点负责（扫源码 × config 的候选表），不要在这里再写一份。
       if not n.tpl then add('L2', n.key, '缺 tpl 字段（实例化会失败）') end
+      -- L2t：tpl 字段有值，但**这个键不在可用集合里**。这一条把"模板键契约"从
+      -- 「每个项目各写一份源码扫描测试」上移成框架能力：调用方把真实键集合传进来即可。
+      if tplSet and n.tpl and not tplSet[n.tpl] then
+        local keys = {}
+        for k in pairs(tplSet) do keys[#keys + 1] = tostring(k) end
+        table.sort(keys)
+        local shown = {}
+        for i = 1, math.min(#keys, 6) do shown[i] = keys[i] end
+        add('L2t', n.key, string.format('tpl 键 %q 不可用（已声明: %s%s）',
+          tostring(n.tpl), table.concat(shown, ','), #keys > 6 and ',…' or ''))
+      end
       if not n.size and not n.text then add('L2', n.key, '既无 size 也无 text') end
       -- L4 文字放不下
       if n.text and n.text ~= '' then
@@ -231,6 +363,9 @@ M.new = function(spec)
 
     return issues
   end
+
+  -- 布局层判据（与 V.lint 并列的第二个入口；实现见模块级 M.lintPlan）
+  V.lintPlan = lintPlan
 
   -- 便捷：把一组节点里某个 key 取出来
   function V.get(list, key)

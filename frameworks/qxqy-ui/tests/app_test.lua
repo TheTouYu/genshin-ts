@@ -14,7 +14,7 @@
    D 基础层注册（且不与覆盖屏抢实例）
 ========================================================================]]
 
-local ROOT = os.getenv('TETRIS_ROOT') or '.'
+local ROOT = os.getenv('QxqyUiRoot') or os.getenv('TETRIS_ROOT') or '.'
 local function load(path) return assert(loadfile(ROOT .. '/' .. path))() end
 
 local platformM = load('lua/qxqy_ui/platform.lua')

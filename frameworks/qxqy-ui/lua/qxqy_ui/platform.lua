@@ -202,6 +202,19 @@ M.new = function(spec)
     pcall(function() if ctl.imageColor ~= nil then image = true end end)
     pcall(function() if type(ctl.AddCursorEventListener) == 'function' then cursor = true end end)
     pcall(function() if ctl.text ~= nil then text = true end end)
+    -- 🔴 v6.20（2026-11-14 真机日志 22-19-07_3472 铁证）：真机上 textbox 的 `text` 字段**读不出来**
+    -- （访问即抛错，pcall 静默吞掉）⇒ 上面的 text 恒 false。
+    -- 后果链：rec45 探测 `tpl stext=1073742202` 通过（probeTextRaw 只要求"能实例化"），
+    -- 而 rec50 `platform fail inst:stext :: all candidates rejected`（accept 要求 text）。
+    -- **同一份代码两个判据**，真机上字面全灭：文字控件一个都建不出来、`bg pool n=0`（背景也没了）、
+    -- 结算页无字、开局面板无字——用户截图里的"全是 bug"就是这个。
+    -- 修法：text 判据加**结构特征兜底**。textbox 独有的可读字段（fontSize / textLayout /
+    -- SetText 之类）只要有一个在，就是文字控件；只有全读不到才认定"不是文字"。
+    if not text then
+      pcall(function() if ctl.fontSize ~= nil then text = true end end)
+      if not text then pcall(function() if ctl.textLayout ~= nil then text = true end end) end
+      if not text then pcall(function() if ctl.fontColor ~= nil then text = true end end) end
+    end
     return image, cursor, text
   end
 
@@ -214,6 +227,8 @@ M.new = function(spec)
     if need == 'text' then return text end
     return true
   end
+  -- 测试缝：把 accept 的判据暴露给契约测试（P7：真机 text 不可读时不得判死）
+  P.acceptForTest = accept
 
   -- 所有实例化路径（mock / 真机缓存 / 真机候选扫描）都收口到这里 ⇒ 台账不会漏计
   local function register(ctl)
@@ -241,6 +256,18 @@ M.new = function(spec)
       S.guidOf[tplKey] = nil
     end
     local cands = templates[tplKey] or {}
+    -- 🔴 v6.22 诊断（真机文字全灭第二次返工的产物）：**候选表为空**和**候选被试完**是两回事，
+    -- 前者是配置/键名问题（本次真因：config 叫 settleText、这里查 stext），后者才可能是能力判据问题。
+    -- 旧代码两者最终都只打一句 `all candidates rejected`，于是上一轮我按能力判据去修，白改一轮。
+    if #cands == 0 then
+      P.log('tpl ' .. tplKey .. ' cands=0 :: templates 里没有这个键（键名不匹配？已定义: '
+        .. (function()
+             local ks = {}
+             for k in pairs(templates) do ks[#ks + 1] = tostring(k) end
+             table.sort(ks)
+             return table.concat(ks, ',')
+           end)() .. '）')
+    end
     for i = 1, #cands do
       local g = cands[i]
       if type(g) == 'number' then
@@ -259,7 +286,10 @@ M.new = function(spec)
       end
     end
     -- 兜底扫描（只在候选全灭时发生一次；结果缓存）
-    local ranges = { { 1073741825, 1073741999 }, { 1073742100, 1073742180 } }
+    -- ⚠ v6.22：上限必须覆盖**真机实际模板区**。原区间只到 1073742180，而实测
+    -- 文字模板是 1073742202、容器模板 1073742210（真机日志 rec45/rec44）⇒ 探测失败时
+    -- 兜底扫描永远扫不到它们。这类"区间写死"的兜底只能当最后保险，主路径必须靠候选表命中。
+    local ranges = { { 1073741825, 1073741999 }, { 1073742100, 1073742299 } }
     for r = 1, #ranges do
       local rg = ranges[r]
       for g = rg[1], rg[2] do

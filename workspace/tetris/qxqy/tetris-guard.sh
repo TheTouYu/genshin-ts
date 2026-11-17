@@ -112,6 +112,17 @@ if lua5.3 tests-lua/run_all.lua > /tmp/guard-l0.log 2>&1; then
   ok "$(grep -o 'headless: [0-9]*/[0-9]* files green' /tmp/guard-l0.log | tail -1)"
 else bad "headless 单测有红：$(grep '^failed' /tmp/guard-l0.log | tail -1)"; fi
 
+echo "== 4b. 框架判据（check-framework.sh：契约/UI 计划/设备适配/占位符）=="
+# 事故（v6.24）：框架判据散在 4 处，跑不跑靠人记得 ⇒ 真机文字全灭那次，根因（模板键名错位 +
+# 占位符残留）在四处判据里其实都有对应检查，只是没被跑。现在收成一条命令 qxqy/check-framework.sh，
+# 由 guard 默认档（含 --fast）直接判：它红 ⇒ 这里红 ⇒ guard 整体 exit 1。
+# 说明：它内部的 run_all 与上面闸门 4 重复跑一次（约 1.8s），换来「单跑一条命令也能判全」。
+if out=$(bash qxqy/check-framework.sh 2>&1); then
+  ok "$(printf '%s' "$out" | grep -o 'FRAMEWORK-PASS [0-9]* 项' | tail -1)"
+else
+  bad "框架判据有红：$(printf '%s' "$out" | grep '^\[FAIL\]' | sed 's/^\[FAIL\] *//' | tr '\n' '; ')（单独跑 bash qxqy/check-framework.sh 看明细）"
+fi
+
 echo "== 5. 双通道口径（模拟器与 shim 暴露的控件字段必须一致）=="
 # 事故：两边都只给 9 个标量，读 imageColor 恒为 nil ⇒ 断言恒真（假绿）。
 sim_fields=$(grep -A20 'control(name) {' studio_dummy 2>/dev/null | grep -c 'imageColor:' || true)

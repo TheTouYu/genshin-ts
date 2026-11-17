@@ -26,6 +26,12 @@ end
 local cfg  = load('lua/tetris/config.lua')
 local L    = load('lua/tetris/view_layers.lua')
 local VN   = load('lua/tetris/view_node.lua')
+
+-- v6.26：可用模板键集合＝config.TPL_GUIDS 的键（单源，框架判 L2t 用）
+local TPLKEYS = {}
+for k, v in pairs(cfg.TPL_GUIDS or {}) do
+  if type(v) == 'table' and #v > 0 then TPLKEYS[#TPLKEYS + 1] = k end
+end
 local KITM = load('lua/tetris/view_kit.lua')
 local HELPM = load('lua/tetris/view_help.lua')
 local PLATFORM = load('lua/tetris/platform.lua')
@@ -173,7 +179,7 @@ for _, cv in ipairs({ { 1600, 900 }, { 1280, 720 }, { 2340, 1080 } }) do
   for _, dev in ipairs({ 'pc', 'mobile' }) do
     for _, pages in ipairs({ 1, 3 }) do
       local tree = H.help { canvas = cv, device = dev, page = 1, pages = pages }
-      local is = V.lint(tree)
+      local is = V.lint(tree, { tplKeys = TPLKEYS })
       lintCount = lintCount + 1
       if #is > 0 then
         lintBad = cv[1] .. 'x' .. cv[2] .. ' ' .. dev .. ' p' .. pages

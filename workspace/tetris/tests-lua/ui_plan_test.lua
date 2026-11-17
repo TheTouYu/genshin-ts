@@ -21,6 +21,10 @@ local function load(p) return assert(loadfile(ROOT .. '/' .. p))() end
 
 local CFG = load('lua/tetris/config.lua')
 local UIM = load('lua/tetris/ui.lua')
+-- v7.1：判据已上移进框架层（view_node.lintPlan）——本文件只剩"跑矩阵 + 断言零违规"。
+-- 两个入口别混：V.lint 查**节点表**（view_* 描述），V.lintPlan 查**布局表**（ui.lua 的 U.plan）。
+local VNODE = load('lua/tetris/view_node.lua')
+assert(type(VNODE.lintPlan) == 'function', 'view_node.lintPlan 缺失（框架层判据没上移成功）')
 
 local pass, fail = 0, 0
 local function ok(cond, name, extra)
@@ -31,16 +35,6 @@ end
 local PARKED_Y = -4000
 local CANVASES = { { 1600, 900, 'pc' }, { 1280, 720, 'mobile' }, { 1280, 960, 'mobile' }, { 1560, 720, 'mobile' } }
 local SCREENS = { 'title', 'game', 'settle' }
-
-local function entryList(p)
-  local out = {}
-  for _, bucket in ipairs({ 'text', 'inst', 'skill' }) do
-    for name, r in pairs(p[bucket] or {}) do
-      out[#out + 1] = { name = name, r = r, bucket = bucket }
-    end
-  end
-  return out
-end
 
 local totalIssues = { P1 = 0, P2 = 0, P3 = 0, P4 = 0, P5 = 0 }
 local samples = {}
@@ -59,74 +53,11 @@ for _, cv in ipairs(CANVASES) do
         log = function() end,
       }
       local p = U.plan(screen, useDual, false)
-      local list = entryList(p)
       local tag = string.format('%s %dx%d %s', screen, W, H, useDual and 'dual' or 'single')
-
-      -- P5 数值完整
-      local badNum = {}
-      for _, e in ipairs(list) do
-        local r = e.r
-        if type(r) ~= 'table' or type(r.x) ~= 'number' or type(r.y) ~= 'number'
-          or type(r.w) ~= 'number' or type(r.h) ~= 'number' then
-          badNum[#badNum + 1] = e.name
-        end
-      end
-      if #badNum > 0 then
-        totalIssues.P5 = totalIssues.P5 + #badNum
-        samples.P5 = samples.P5 or (tag .. ': ' .. table.concat(badNum, ','))
-      end
-
-      -- P1 名字唯一（同一个名字不能同时在 text 与 inst 里代表不同矩形是允许的——它们是一对孪生份；
-      -- 所以按 bucket 内判重）
-      for _, bucket in ipairs({ 'text', 'inst', 'skill' }) do
-        local seen = {}
-        for name in pairs(p[bucket] or {}) do
-          if seen[name] then
-            totalIssues.P1 = totalIssues.P1 + 1
-            samples.P1 = samples.P1 or (tag .. ':' .. bucket .. ':' .. name)
-          end
-          seen[name] = true
-        end
-      end
-
-      -- P2 文字不可叠印（同一个 bucket 内，两条 rect 完全相同且都未停靠）
-      local seenRect = {}
-      for _, e in ipairs(list) do
-        local r = e.r
-        if type(r) == 'table' and r.y ~= PARKED_Y then
-          local k = string.format('%s|%.1f|%.1f|%.1f|%.1f', e.bucket, r.x, r.y, r.w, r.h)
-          if seenRect[k] then
-            totalIssues.P2 = totalIssues.P2 + 1
-            samples.P2 = samples.P2 or (tag .. ' ' .. e.bucket .. ': ' .. seenRect[k] .. ' ≡ ' .. e.name)
-          else
-            seenRect[k] = e.name
-          end
-        end
-      end
-
-      -- P3 框高够一行（引擎判据 1.45f+4；不足则整条不画）
-      for _, e in ipairs(list) do
-        local r = e.r
-        if type(r) == 'table' and r.y ~= PARKED_Y and type(r.fs) == 'number' and type(r.h) == 'number' then
-          local need = 1.45 * r.fs + 4
-          if r.h + 0.01 < need then
-            totalIssues.P3 = totalIssues.P3 + 1
-            samples.P3 = samples.P3 or string.format('%s %s h=%.1f < 需 %.1f (fs=%d)', tag, e.name, r.h, need, r.fs)
-          end
-        end
-      end
-
-      -- P4 在画布内（停靠除外）
-      for _, e in ipairs(list) do
-        local r = e.r
-        if type(r) == 'table' and r.y ~= PARKED_Y then
-          local outX = (r.x - r.w / 2) < -W / 2 - 1 or (r.x + r.w / 2) > W / 2 + 1
-          local outY = (r.y - r.h / 2) < -H / 2 - 1 or (r.y + r.h / 2) > H / 2 + 1
-          if outX or outY then
-            totalIssues.P4 = totalIssues.P4 + 1
-            samples.P4 = samples.P4 or string.format('%s %s x=%.0f y=%.0f w=%.0f h=%.0f', tag, e.name, r.x, r.y, r.w, r.h)
-          end
-        end
+      local issues = VNODE.lintPlan(p, { canvas = { W, H }, parkedY = PARKED_Y })
+      for _, it in ipairs(issues) do
+        totalIssues[it.code] = (totalIssues[it.code] or 0) + 1
+        samples[it.code] = samples[it.code] or (tag .. ' ' .. tostring(it.key) .. ': ' .. tostring(it.msg))
       end
     end
   end

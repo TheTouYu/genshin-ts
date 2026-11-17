@@ -17,6 +17,12 @@ local function load(path) return assert(loadfile(ROOT .. '/' .. path))() end
 local cfg = load('lua/tetris/config.lua')
 local layers = load('lua/tetris/view_layers.lua')
 local vnode = load('lua/tetris/view_node.lua')
+
+-- v6.26：可用模板键集合＝config.TPL_GUIDS 的键（单源，框架判 L2t 用）
+local TPLKEYS = {}
+for k, v in pairs(cfg.TPL_GUIDS or {}) do
+  if type(v) == 'table' and #v > 0 then TPLKEYS[#TPLKEYS + 1] = k end
+end
 local vkit = load('lua/tetris/view_kit.lua')
 local platform = load('lua/tetris/platform.lua')
 local renderM = load('lua/tetris/render.lua')
@@ -539,7 +545,7 @@ do
       local a = V.overlap(opts[i], cn)
       if a > 0 then bad = cv[1] .. 'x' .. cv[2] .. ' ' .. opts[i].key .. '重叠 ' .. a .. 'px²' end
     end
-    local issues = V.lint(nodes)
+    local issues = V.lint(nodes, { tplKeys = TPLKEYS })
     if #issues > 0 then bad = 'lint ' .. issues[1].code .. ' ' .. issues[1].msg end
   end
   ok(bad == nil, 'E3 PC pill 支路：5 画布 0 重叠 + 0 lint issue（同一套卡底反解几何）', bad)
