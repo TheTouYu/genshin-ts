@@ -263,12 +263,29 @@ python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <log.gia> lua \
 （`tests-lua/*.lua`、`qxqy/*.mjs`、`main.lua`、`config.lua`）。换个游戏，能力跟着走、
 闸门要重写 ⇒ 同一批坑重踩。
 
+#### 判据的三个入口别混（各自看一层事实）
+
+| 入口 | 看什么 | 典型事故 |
+|---|---|---|
+| `V.lint` | 描述层节点表（view_*）| 字被裁、层序被盖、半透明隐形 |
+| `V.lintPlan` | 布局表（U.plan 的 name→rect）| 双盘横幅位置写错、两条文字叠印 |
+| `V.lintCover` | 背景构图数据（MODE_BG 的图元表）| 「背景两侧露白」而四道判据全绿 |
+
+**判据里混进恒真项 = 整条判据报废**（比"两处表达漂移"更隐蔽）：Tetris 旧版把整屏 wash 的
+外缘写进「四边 0 缺口」判据，wash 恒盖满 ⇒ 判据恒真，用户报露白时照样打印 ok。
+正确分层：**wash 守"底色铺满"（拉伸锚点 `anchorMin/Max` + `sizeDelta=0`，与画布无关）、
+构图守"有美术且画到边"（`lintCover` 守设计板不变量）**，两者不许合成一条判据。
+写这条守卫时用 **stub 宿主直接跑一遍 apply**，断言"wash 在 + 构图空 ⇒ 必须报缺口"——
+这是唯一能防复发的测法（见 `tests-lua/bg_cover_test.lua` 第四段）。
+
 ### 三层上移法（按性价比排序）
 
 1. **把判据做成通用函数**（最高价值）
    几何/结构类判据不含游戏语义，应当长在框架模块里（`frameworks/qxqy-ui/lua/qxqy_ui/`）：
    - `V.lint(list, cfg)` —— view 节点表（L1–L6）
    - `V.lintPlan(plan, cfg)` —— 布局表（P1–P5：重名 / 叠印 / 框高 / 出画布 / 缺数值）
+   - `V.lintCover(items, cfg)` —— **背景构图数据**（C1 图元并集 ⊇ 设计板 / C2 缺 x,y,w,h / C3 rot 非数）
+     ＋ `V.rectAABB(x,y,w,h,rot)` 旋转矩形真外接盒（判据与运行时日志共用，别抄第二份数学）
    - `V.lint(list, { tplKeys = ... })` —— 追加 `L2t`：tpl 键必须在给定集合内
    新项目调一次就有，不用抄测试。**能力测试写在框架自己的 `tests/view_node_lint_test.lua`**，
    随框架复制走；项目侧只留"把真源接进来"的那一点接线。
