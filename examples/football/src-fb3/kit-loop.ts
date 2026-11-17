@@ -1383,19 +1383,11 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.subtraction(pPzV.value, carrierNow.zComponent)
     )
   )
-  f.doubleBranch(
-    // 位移节流（2026-11-17 用户令：0.2s 一次）。moduloOperation 不在 20008 白名单（编译
-    // 实证拒绝），tick 奇偶门不可用 ⇒ 改 lag 门自适应降频：1.5→2.2m。玩家全速 ~7m/s
-    // 时瞬移最小间隔 = 2.2/7 ≈ 0.31s/次；慢走更稀；静止恒不移（lag 恒 <2.2）。
-    f.greaterThan(carrierLag, 2.2),
-    () => {
-      f.complexCreationTeleport(
-        f.create3dVector(pPxV.value, CARRIER_Y, pPzV.value),
-        f.create3dVector(0.0, 0.0, 0.0)
-      )
-    },
-    () => {}
-  )
+  // 2026-11-17 载体跟随整体迁出本图（用户令：瞬移打断施放要修）：complexCreationTeleport
+  // 瞬移=运动状态突变打断 20008 施放链（日志 3484/3496 的 3.3-4.2s 周期断流、内核
+  // 13.9→2/s 根因）；定点位移节点编译实证不在造物图白名单；写自定义变量被 20008 拒
+  // （客户端只读硬规则）⇒ 跟随逻辑搬到服务端 kit-listen（每拍 'B' 都在跑，用线性
+  // 运动设备 0.25s 段温和拖动载体）。本图从此不再移动载体。
 
   // ═════════════ 21. 回传（S3：静止跳发 + 15 拍心跳；进球额外一条 'G'）═════════════════
   // 心跳不是可选项：kit-listen 的 'B' 处理体里住着 fbc_e 解析、fb_yaw、玩家位置兜底三件事，

@@ -13,6 +13,7 @@
 //   · tag='P' → kit_carrier/kit_has_carrier/kit_votes/kit_dup（无生产者）
 //   · key<0 Lua 时间同步 → fb_dt（内核时间改为固定 1/15 s + 球实体 fb_dt，不再读 Lua 帧长）
 import { g } from 'genshin-ts/runtime/core'
+import { str } from 'genshin-ts/runtime/value'
 
 import { fbMirrorBall, fbWritePlayerPos } from './fb-composites.js'
 import { KitSignal } from './signals.js'
@@ -93,6 +94,45 @@ const graph = g
           tRecv
         })
         f.startGlobalTimer(ballE, 'fb_rtick')
+        // ———— 载体温和跟随（2026-11-17，票 27 #4）：替代内核 complexCreationTeleport
+        // 瞬移（打断 20008 施放链=3.3-4.2s 周期断流根因）。本图挂载体 1082130445，
+        // 每拍 'B' 时读自身位置 vs 玩家位（fbWritePlayerPos 刚写的 fbvx/fbvz），
+        // lag>0.8 就用线性运动设备 0.25s 段拖动自己——服务端设备驱动（球同款，
+        // 已验证节点），不触碰客户端施放链。
+        const cNow = f.getEntityLocationAndRotation(f.getSelfEntity()).location
+        const cLag = f._3dVectorModuloOperation(f._3dVectorSubtraction(
+          f.create3dVector(
+            f.getCustomVariable(owner, 'fbvx').asType('float'),
+            0.0,
+            f.getCustomVariable(owner, 'fbvz').asType('float')
+          ),
+          cNow
+        ))
+        f.doubleBranch(
+          f.greaterThan(cLag, 0.8),
+          () => {
+            // 服务端设备节点=底层 exec 注册（同 fbDriveBall 复合的 fb_movex 形态）
+            const gap = f._3dVectorSubtraction(
+              f.create3dVector(
+                f.getCustomVariable(owner, 'fbvx').asType('float'),
+                0.0,
+                f.getCustomVariable(owner, 'fbvz').asType('float')
+              ),
+              cNow
+            )
+            f.registerExecNode('add_uniform_basic_linear_motion_device', [
+              f.getSelfEntity(),
+              new str('fb_cmv'),
+              0.25,
+              f.create3dVector(
+                f.multiplication(f.split3dVector(gap).xComponent, 4.0),
+                0.0,
+                f.multiplication(f.split3dVector(gap).zComponent, 4.0)
+              )
+            ])
+          },
+          () => {}
+        )
         // 整链通判据：日志里出现一次 kit-listener-armed + 至少一条 kit-p1
         f.doubleBranch(
           f.equal(evt.params.tick, 1n),
