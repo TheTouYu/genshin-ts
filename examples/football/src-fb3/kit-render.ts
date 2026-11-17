@@ -71,6 +71,18 @@ g
   // 不发事件），且主体内已有双层 doubleBranch 嵌套，再包一层会踩 D625 三层嵌套坑。
   .on('whenGlobalTimerIsTriggered', (_evt: any, f: any) => {
     const ball = f.getSelfEntity()
+    // —— 渲染目标实体可切换（2026-11-17 用户指令：球实体变量 fb_rball_guid 存
+    //    「渲染用的足球模型 GUID」，0=用挂载实体自身）——物理球（镜像源）与
+    //    渲染球解耦：222 图元的真球实体每拍被设备驱动有装饰物过重嫌疑，
+    //    可切到简易模型对照（当前=1077936165）。——
+    const RBALL_VAR = 'fb_rball_guid'
+    const rGuid = f.getCustomVariable(ball, RBALL_VAR).asType('int')
+    const rball = f.localVariable('entity')
+    f.doubleBranch(
+      f.greaterThan(rGuid, 0n),
+      () => { rball.set(f.queryEntityByGuid(f.dataTypeConversion(rGuid, 'bigint'))) },
+      () => { rball.set(ball) }
+    )
     // —— 读镜像 + 时钟（多消费点全部物化）——
     const now = f.getCurrentGlobalTimerTime(ball, FB_CLK)
     f.set('fb_ts', f.queryTimestampUtc0())
@@ -126,7 +138,7 @@ g
       () => { dur.set(durRaw) },
       () => { dur.set(BALL_DUR_DEFAULT) }
     )
-    const loc = f.getEntityLocationAndRotation(ball).location
+    const loc = f.getEntityLocationAndRotation(rball.value).location
     // —— 数据跳变门：|pos − prevPos| > JUMP_DIST ⇒ 重置/回中 ⇒ 瞬移到外推位 ——
     const prevPos = f.create3dVector(f.get('fb_ppx'), f.get('fb_ppy'), f.get('fb_ppz'))
     const jump = f._3dVectorModuloOperation(f._3dVectorSubtraction(pos, prevPos))
@@ -136,7 +148,7 @@ g
         // InstantMovement（v2 fbTeleport 同款）：lockRotation=true 保留朝向；
         // 本分支不发旋转设备，与 §10 定点器+旋转冲突无关。
         f.activateFixedPointMotionDevice(
-          ball,
+          rball.value,
           'fb_movex',
           MovementMode.InstantMovement,
           0.0,
@@ -163,7 +175,7 @@ g
         )
         const velCmd = f._3dVectorZoom(velRaw2, velScale.value)
         f.callComposite(fbDriveBall, {
-          ball,
+          ball: rball.value,
           dur: dur.value,
           vel: velCmd,
           spin,
