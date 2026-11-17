@@ -1,7 +1,7 @@
 {
   "format": "qxqy-autotest",
   "version": 1,
-  "name": "85 v6.28 入口卡「角色档案/说明」hover 三态（框架 view_kit.stateColor 派生）",
+  "name": "85 v6.28 入口卡「角色档案/说明」hover 三态（框架 view_kit.stateColor 派生）（v6.31 PC 缩放后坐标重拍）",
   "dt": 0.016666666666666666,
   "canvasId": "pc-16-9",
   "events": [
@@ -9,15 +9,15 @@
       "t": 0.5,
       "kind": "pointer",
       "type": "move",
-      "x": 169,
-      "y": 752
+      "x": 211,
+      "y": 828
     },
     {
       "t": 1.2,
       "kind": "pointer",
       "type": "move",
-      "x": 1431,
-      "y": 752
+      "x": 1389,
+      "y": 828
     },
     {
       "t": 1.9,

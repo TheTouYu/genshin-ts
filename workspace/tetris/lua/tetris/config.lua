@@ -899,8 +899,7 @@ M.COLS, M.ROWS, M.CELL, M.GAP, M.PITCH, M.STEP = COLS, ROWS, CELL, GAP, PITCH, S
 -- 手机端把**整套内容**（棋盘格 / 拇指簇 / 侧栏文字）按 S 放大，PC 恒 1。
 -- **唯一真源**：main.lua（棋盘 CELL/PITCH）与 ui.lua（布局矩形）都调这一个函数——
 -- 两处各写一份公式就是"同一事实两处表达"，迟早漂移。
-function M.viewScale(W, H, isMobile)
-  if not isMobile then return 1 end
+function M.viewScale(W, H, isMobile)  -- isMobile 保留形参（调用处已传），PC 与手机同一条公式
   local s = math.min((W or 1280) / (M.NUM.BG_BASE_W or 1280), (H or 720) / (M.NUM.BG_BASE_H or 720))
   if s < 1 then return 1 elseif s > 2 then return 2 end
   return s
