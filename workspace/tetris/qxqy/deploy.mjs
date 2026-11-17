@@ -21,6 +21,7 @@ import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildStudio } from './build.mjs'
+import { buildTag } from './buildtag.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..')
