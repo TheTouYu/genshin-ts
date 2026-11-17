@@ -61,8 +61,13 @@ g
     )
   })
   // ———— 自主节拍：fb_rtick 倒计时到期驱动（B 方案核心）————
-  // fb_clk（正计时）不发事件，球实体上只有 fb_rtick 会触发本事件。
-  .on('whenTimerIsTriggered', (_evt: any, f: any) => {
+  // 事件名勘误（2026-11-17，日志 3480 定谳）：全局计时器（root12 资产 + startGlobalTimer）
+  // 到期发的是 whenGlobalTimerIsTriggered；whenTimerIsTriggered 是【图内定时器】
+  // （f.timers.setTimeout/setInterval 系）的事件——监听它 30 秒零触发（166 条全是
+  // 'G' 空转）。payload: eventSourceEntity/eventSourceGuid/timerName。
+  // 不做 timerName 过滤：球实体上唯一发事件的计时器就是 fb_rtick（fb_clk 正计时
+  // 不发事件），且主体内已有双层 doubleBranch 嵌套，再包一层会踩 D625 三层嵌套坑。
+  .on('whenGlobalTimerIsTriggered', (_evt: any, f: any) => {
     const ball = f.getSelfEntity()
     // —— 读镜像 + 时钟（多消费点全部物化）——
     const now = f.getCurrentGlobalTimerTime(ball, FB_CLK)
