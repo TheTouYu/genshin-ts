@@ -681,9 +681,14 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
       f.doubleBranch(
         f.logicalAndOperation(hitBody, f.logicalNotOperation(kickNow)),
         () => {
-          vx.set(f.multiplication(f.subtraction(vx.value, f.multiplication(f.multiplication(vDotN, 1.6), nX)), 0.7))
-          vz.set(f.multiplication(f.subtraction(vz.value, f.multiplication(f.multiplication(vDotN, 1.6), nZ)), 0.7))
-          vy.set(f.multiplication(vy.value, 0.7))
+          // 2026-11-17 拦截改卸力截停（票 27 #1 定谳：日志 3489 tick679 球 21.5m/s
+          // 贴地飞近玩家 0.55m，一拍 vx -21.3→+12.7 反号 164°——旧反射 e=0.6×0.7
+          // 把高速球猛烈弹回=「抽射后稳定复现的缺帧瞬移」，渲染层三次修复均未打中）。
+          // 新语义：球撞身体=截停挡下（e=0.2 反射×25% 保留）：21m/s 入射 → ~1m/s
+          // 掉脚边，真实足球「挡球」而非「弹床」。
+          vx.set(f.multiplication(f.subtraction(vx.value, f.multiplication(f.multiplication(vDotN, 1.2), nX)), 0.25))
+          vz.set(f.multiplication(f.subtraction(vz.value, f.multiplication(f.multiplication(vDotN, 1.2), nZ)), 0.25))
+          vy.set(f.multiplication(vy.value, 0.5))
         },
         () => {}
       )
