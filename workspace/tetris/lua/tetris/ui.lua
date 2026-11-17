@@ -24,6 +24,21 @@ M.new = function(spec)
   local NUM = cfg.NUM
   local KIT = NUM.UI_KIT or {}
   local COL = NUM.UI_COL or {}
+  -- v6.28（用户图一「说明和角色没有悬浮高亮，应该控件级别统一支持」）：
+  -- 胶囊**本来就有** hover 接线（makeBtn 挂 CursorEnter），真正的问题是调色板增量只有
+  -- btnBg(255,250,243) → btnHover(255,253,248) ≈ +2%，浅底上肉眼不可辨。
+  -- 现在三态色由**框架**派生（view_kit.stateColor，hover 向白 12% / pressed 向黑 20%），
+  -- 想调观感只改框架的 STATE_MIX 一个数，不再回头改 config 的共享色表。
+  local KITV = spec.kit
+  local function derived(base, state, fallback)
+    if KITV and KITV.stateColor and base ~= nil then
+      local c, okk = KITV.stateColor(base, state)
+      if okk and c ~= nil then return c end
+    end
+    return fallback
+  end
+  local HOVER = derived(COL.btnBg, 'hover', COL.btnHover)
+  local PRESS = derived(COL.btnBg, 'pressed', COL.btnPress)
   local C = cfg.C
   local WID = spec.widgets
   local trySet, tryCall, addCursor = WID.trySet, WID.tryCall, WID.addCursor
@@ -299,6 +314,48 @@ M.new = function(spec)
   end
 
   -- 移动端公共量：棋盘 300×600 居中 ⇒ 左右各一列、上下各一条 60px 带（720 画布）
+  -- v6.28（用户图六「2400×1080 明明空间足够，按钮排布却没按设计来」）：
+  -- **设计空间缩放**：手机端把整套内容按 `S = min(W/1280, H/720)`（夹在 1~2）放大，
+  -- 于是 2400×1080 上的棋盘/按键/字号与 1280×720 是**同一比例**，而不是"盘还是那么小、键飞得更远"。
+  -- 应用范围只有手机端：PC 布局用户没报问题，且改它会动到 1600/2100 上的一批断言。
+  -- 贴画布边缘的东西（导航键/横幅）在 `planScreen` 里按画布坐标重新摆，不吃这个缩放。
+  local DESIGN_W, DESIGN_H = NUM.BG_BASE_W or 1280, NUM.BG_BASE_H or 720
+  local function scaleOf(W, H)
+    -- 单一真源：config.viewScale（main 用它缩放棋盘格，这里用它缩放布局矩形）
+    if type(cfg.viewScale) == 'function' then return cfg.viewScale(W, H, true) end
+    local s = math.min(W / DESIGN_W, H / DESIGN_H)
+    if s < 1 then s = 1 elseif s > 2 then s = 2 end
+    return s
+  end
+  local function scalePlan(p, s)
+    if not p or s == 1 then if p then p.scale = s end return p end
+    local function one(r)
+      if type(r) ~= 'table' then return r end
+      local o = {}
+      for k, v in pairs(r) do o[k] = v end
+      for _, k in ipairs({ 'x', 'y', 'w', 'h' }) do
+        if type(o[k]) == 'number' then o[k] = o[k] * s end
+      end
+      -- 字号必须是整数（D722：小数 fontSize 静默失败 ⇒ 整行不画）
+      if type(o.fs) == 'number' then o.fs = math.max(12, math.floor(o.fs * s + 0.5)) end
+      return o
+    end
+    for _, grp in ipairs({ p.text, p.inst, p.skill }) do
+      if type(grp) == 'table' then for k, r in pairs(grp) do grp[k] = one(r) end end
+    end
+    for _, key in ipairs({ 'slots', 'nav', 'acts' }) do
+      local grp = p[key]
+      if type(grp) == 'table' then
+        for k, r in pairs(grp) do grp[k] = one(r) end
+      end
+    end
+    for _, k in ipairs({ 'rightCX', 'leftCX', 'panelW' }) do
+      if type(p[k]) == 'number' then p[k] = p[k] * s end
+    end
+    p.scale = s
+    return p
+  end
+
   local function bands(W, H)
     local halfW, halfH = W / 2, H / 2
     local pad = KIT.MARGIN or 18
@@ -312,6 +369,20 @@ M.new = function(spec)
       botY = -(halfH - 30),                     -- 下带中线（1280: -330）
       pad = pad,
     }
+  end
+
+  -- v6.28（用户真机图六「2400×1080 按钮排布没按设计，明明空间足够」）：
+  -- 病根是**拇指簇按画布边缘定位**（`gutL = -(halfW-103)`）：1280 宽时它恰好在棋盘外侧，
+  -- 画布一变大就被推到离棋盘 600+px 的屏幕角上，还要竖排一列——空间越大越难用。
+  -- 现在改成**按棋盘几何定位**：簇贴着各自棋盘外沿留 18px 净空，与画布尺寸无关。
+  -- 棋盘横向半宽 = 4.5*PITCH + CELL/2 + 1（view_board 的 frameX，1280 下 = 150）。
+  local BOARD_CX = 236                                  -- 双盘盘心（main.placeBoard 用同一数值）
+  -- 棋盘格几何来自 config 顶层（cfg.CELL / cfg.GAP），不在 NUM 里
+  local CELL_, GAP_ = cfg.CELL or 28, cfg.GAP or 2
+  local BOARD_HALF = 4.5 * (CELL_ + GAP_) + CELL_ / 2 + 1
+  local CLUSTER_GAP = 18                                -- 簇与棋盘外沿的净空
+  local function clusterX(bw)                           -- 单侧簇的内列中心（相对盘心向外）
+    return BOARD_CX + BOARD_HALF + CLUSTER_GAP + bw / 2
   end
 
   local function planMobile(W, H, dual, guide)
@@ -367,14 +438,18 @@ M.new = function(spec)
       --   两侧对称，单手都能按到；act 与主键相同，逻辑零改动。
       -- v5.35（用户：按钮直接重叠了）：原间距 130/76 对 120×72 的键只留 10/4px，
       -- 再加上描边外扩 2px ⇒ 相邻两键贴死甚至视觉重叠。改成 144/92（净距 20/16）。
-      slots[#slots + 1] = B('left', colL - 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('right', colL + 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot', colL - 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold2', colL + 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hard', colR + 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('soft', colR - 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold', colR - 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot2', colR + 72, g5.botY + 122, bw, bh, KIT.FS)
+      -- v6.28：两列簇改成**贴棋盘外沿**（原来用 colL±72 / colR±72，大画布上离盘 600+px）。
+      -- 内列 = 棋盘外沿 + 18 净空 + 半键宽；外列再外推一个键宽 + 16 净距。
+      local cx0 = clusterX(bw)                 -- 单盘盘心 0 ⇒ 内侧列中心
+      local cx1 = cx0 + bw + 16                -- 外侧列中心
+      slots[#slots + 1] = B('left', -cx0, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('right', -cx1, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot', -cx0, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold2', -cx1, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hard', cx1, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('soft', cx0, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold', cx0, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot2', cx1, g5.botY + 122, bw, bh, KIT.FS)
       -- 中下技能行（棋盘正下方 60px 带里）
       local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
       -- 技能三键：**右列竖排**（底部中间被 fx 的角色名卡占住 —— lead 2026-10-29 复核：
@@ -462,12 +537,15 @@ M.new = function(spec)
     -- v6.15（用户 2026-11-02 图一：最下方的 ◀ 贴着画布底边被切）：原来 botY+6 = -324，
     -- 72 高的胶囊底边落在 -360 正好压画布边缘；上移 34 让三颗竖排整体在安全区内。
     local col0 = g5.botY + 40
-    slots[#slots + 1] = B('left', gutL, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('right', gutL, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('rot', gutL, col0 + 172, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hard', gutR, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('soft', gutR, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hold', gutR, col0 + 172, bw, bh, KIT.FS)
+    -- v6.28：簇贴在**各自棋盘**外侧（左侧盘心 -236、右侧 +236），不再贴画布边缘。
+    -- 2400×1080 实测：旧写法把簇放在 ±1097（离盘 660px，且竖排一列），用户报「操作很不方便」。
+    local cx = clusterX(bw)
+    slots[#slots + 1] = B('left', -cx, col0, bw, bh, KIT.FS)
+    slots[#slots + 1] = B('right', -cx, col0 + 86, bw, bh, KIT.FS)
+    slots[#slots + 1] = B('rot', -cx, col0 + 172, bw, bh, KIT.FS)
+    slots[#slots + 1] = B('hard', cx, col0, bw, bh, KIT.FS)
+    slots[#slots + 1] = B('soft', cx, col0 + 86, bw, bh, KIT.FS)
+    slots[#slots + 1] = B('hold', cx, col0 + 172, bw, bh, KIT.FS)
     local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
     slots[#slots + 1] = B('skill1', 0, 150, sw, sh, KIT.FS)
     slots[#slots + 1] = B('skill2', 0, 80, sw, sh, KIT.FS)
@@ -507,7 +585,11 @@ M.new = function(spec)
   local function planScreen(screen, W, H, isMobile, dual, guide)
     local p
     if not isMobile then p = dual and planPCDual(W, H, guide) or planPC(W, H)
-    else p = planMobile(W, H, dual, guide) end
+    else
+      -- 手机端：布局在**设计画布**里算，算完整体放大 S（见 scaleOf/scalePlan 的说明）
+      local S = scaleOf(W, H)
+      p = scalePlan(planMobile(W / S, H / S, dual, guide), S)
+    end
     -- 技能 UI 整组移走（config.NUM.SKILL_UI == false，用户 2026-11-02 要求；PC 与移动端一起）：
     -- 清空 p.skill（角色名卡/能量条/技能状态行）并摘掉 skill1/skill2/switch 三个槽位 ——
     -- 两者都走「不在 plan 里 ⇒ applyText/applyButtons 把它挪出画布」的同一条语义，
@@ -687,7 +769,8 @@ M.new = function(spec)
     if not b then return end
     if b.bg and not aliveCtl(b.bg) then b.dead = true return end
     local col = COL.btnBg
-    if st == 'hover' then col = COL.btnHover elseif st == 'down' then col = COL.btnPress end
+    -- v6.28：三态色改由框架派生（见文件头的 HOVER/PRESS）；config 的旧色仅作兜底
+    if st == 'hover' then col = HOVER elseif st == 'down' or st == 'pressed' then col = PRESS end
     setPillColor(b.bg, col)
     local dy = (st == 'down') and -(KIT.PRESS_DY or 4) or 0
     if b.x then

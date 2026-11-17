@@ -346,9 +346,12 @@ M.new = function(spec)
           d.w or 0, d.h or 0, opaque(wall, d.c), d.s, d.rot)
       end
       -- 视窗内阴影（贴边内外各 10）：现网 alpha 26 直接贴 ⇒ 这里预混成不透明
-      shape('menuShadeT', M.ROLE.shade, M.LAYER.stage, 0, winTop - ST.shade.out,
+      -- v6.28（用户真机图一「最下面一行被截断」）：上下两条阴影带原来落在**视窗内**
+      -- （winTop-10 / winBot+10 ⇒ 各占视窗 20 单位），正好压在棋盘第一行/最后一行的下半截。
+      -- 左右两条本来就在窗外（±(winHalf+10)）；这里改成一并放窗外，四条对称、不再压格子。
+      shape('menuShadeT', M.ROLE.shade, M.LAYER.stage, 0, winTop + ST.shade.out,
         2 * winHalf + ST.shade.pad, ST.shade.w, shadeC)
-      shape('menuShadeB', M.ROLE.shade, M.LAYER.stage, 0, winBot + ST.shade.out,
+      shape('menuShadeB', M.ROLE.shade, M.LAYER.stage, 0, winBot - ST.shade.out,
         2 * winHalf + ST.shade.pad, ST.shade.w, shadeC)
       shape('menuShadeL', M.ROLE.shade, M.LAYER.stage, -winHalf - ST.shade.out, sideCY,
         ST.shade.w, sideH + 8, shadeC)

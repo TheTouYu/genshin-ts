@@ -18,14 +18,15 @@ const here = dirname(fileURLToPath(import.meta.url))
 export const PROJECT_ROOT = resolve(here, '..')
 export const SAVE_PATH = join(PROJECT_ROOT, 'tetris.save.json')
 
-// 画布预设真值来自 /home/h/miliastra-beyond-simulator/studio/constants.js 的 CANVAS_PRESETS。
-export const CANVAS_PRESETS = {
-  'pc-16-9': { width: 1600, height: 900, mobile: false },
-  'pc-21-9': { width: 2100, height: 900, mobile: false },
-  'mobile-16-9': { width: 1280, height: 720, mobile: true },
-  'mobile-19.5-9': { width: 1560, height: 720, mobile: true },
-  'mobile-4-3': { width: 1280, height: 960, mobile: true },
-}
+// 画布预设真值 = 模拟器 studio/constants.js 的 CANVAS_PRESETS（**直接引用，不抄一份**）。
+// 为什么改：这里原来手抄 5 张，而模拟器有 7 张——漏掉的恰好是用户真机的两张
+// （pc-3440-1440 / mobile-2400-1080）。用户报「2400×1080 按钮排布全乱」时，
+// 我们的出图矩阵里根本没有那张画布 ⇒ 判据永远看不见（同一事实两处表达的又一例）。
+import { CANVAS_PRESETS as STUDIO_CANVAS_PRESETS } from '/home/h/miliastra-beyond-simulator/studio/constants.js'
+
+export const CANVAS_PRESETS = Object.fromEntries(
+  Object.entries(STUDIO_CANVAS_PRESETS).map(([id, p]) => [id, { width: p.width, height: p.height, mobile: p.device === 'mobile' }]),
+)
 export const CANVAS_IDS = Object.keys(CANVAS_PRESETS)
 export const SCREENS = ['title', 'game', 'help', 'settle', 'roster', 'dual']
 

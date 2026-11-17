@@ -250,7 +250,10 @@ local CW = C(255, 255, 255, 255)
 -- 13~14 条图元/模式；云与光斑用**不透明预混色**（多件重叠拼形状，半透明会叠出接缝）。
 local function skyBase(t, base, accent)
   local cl = blend(base, CW, 0.74)
-  put(t, cloud(-488, 296, 320, cl))            -- 左上云
+  -- v6.28（用户真机图二「白色的方块是多余设计」）：**整朵左上云删掉**。
+  -- 它的矩形块是 320*0.62 × 76 = 198×76 的**74% 白实心色**，压在左上导航区（角色胶囊右侧），
+  -- 真机上就是那块多余的白方块；只删矩形改留两团圆云实测**更糟**（覆盖 41.6% → 94.5%，
+  -- 因为两圆直径 122/160 比矩形还大）⇒ 三件一并删，右下的对称云保留。
   put(t, cloud(488, -296, 320, cl))            -- 右下云
   t[#t + 1] = Ring(0, 0, 520, A(42, accent))   -- 棋盘后的元素环（只露四边）
   t[#t + 1] = Ring(0, 0, 700, A(18, accent))
@@ -891,6 +894,17 @@ NUM.AI_TUNE = {
 
 -- ===== 导出（main.lua 按名取用；新增字段记得同步导出）=====
 M.COLS, M.ROWS, M.CELL, M.GAP, M.PITCH, M.STEP = COLS, ROWS, CELL, GAP, PITCH, STEP
+
+-- v6.28 设计空间缩放（用户真机图六「2400×1080 明明空间足够」的框架式解）：
+-- 手机端把**整套内容**（棋盘格 / 拇指簇 / 侧栏文字）按 S 放大，PC 恒 1。
+-- **唯一真源**：main.lua（棋盘 CELL/PITCH）与 ui.lua（布局矩形）都调这一个函数——
+-- 两处各写一份公式就是"同一事实两处表达"，迟早漂移。
+function M.viewScale(W, H, isMobile)
+  if not isMobile then return 1 end
+  local s = math.min((W or 1280) / (M.NUM.BG_BASE_W or 1280), (H or 720) / (M.NUM.BG_BASE_H or 720))
+  if s < 1 then return 1 elseif s > 2 then return 2 end
+  return s
+end
 M.TPL_GUIDS, M.NUM, M.C = TPL_GUIDS, NUM, C
 M.SHAPES, M.BAG = SHAPES, BAG
 M.THEME, M.MODE_INFO, M.MODE_TITLE, M.MODE_THEME = THEME, MODE_INFO, MODE_TITLE, MODE_THEME

@@ -35,6 +35,9 @@ local CANVAS_PRESETS = {
   ['mobile-16-9'] = { width = 1280, height = 720, device = 'Mobile', platform = 'TOUCHSCREEN' },
   ['mobile-19.5-9'] = { width = 1560, height = 720, device = 'Mobile', platform = 'TOUCHSCREEN' },
   ['mobile-4-3'] = { width = 1280, height = 960, device = 'Mobile', platform = 'TOUCHSCREEN' },
+  -- v6.28：用户真机的两张画布（模拟器 constants.js 里有，这里原来漏抄 ⇒ 用例跑不了那张画布）
+  ['pc-3440-1440'] = { width = 3440, height = 1440, device = 'KeyboardAndMouse', platform = 'KEYBOARD' },
+  ['mobile-2400-1080'] = { width = 2400, height = 1080, device = 'Mobile', platform = 'TOUCHSCREEN' },
 }
 M.CANVAS_PRESETS = CANVAS_PRESETS
 M.DEFAULT_CANVAS = 'pc-16-9'

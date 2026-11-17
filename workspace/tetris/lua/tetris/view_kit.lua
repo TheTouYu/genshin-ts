@@ -20,6 +20,18 @@
 
 local M = {}
 
+-- ===== 三态派生比例（模块顶部常量；判据：hover 必须比 normal 亮、pressed 必须比 normal 暗）=====
+-- 为什么是「往白/往黑混」而不是「乘一个亮度系数」：乘系数在深色底上会把 RGB 压到 0（三态撞车），
+-- 往白/往黑混对任意底色都单调可分，且与 K.over 的线性混合口径一致（alpha 保留原值）。
+M.STATE_MIX = { hover = 0.12, press = 0.20 }
+-- 三态与 normal 的最小**感知**亮度差（2026-11-17 真机教训）：底色 0xFFF5F0F1（近白卡片）
+-- 往白混 12% 只加 +1/+7/+2 ⇒ 用户原话「没有悬浮高亮」。方向服从可感知性：
+-- hover 在浅底上改为**往黑混**（视觉上"压暗一点"），保证差值 ≥ MIN_DELTA。
+-- pressed 永远是"更暗"，不参与翻转（它的语义就是按下变深，深色底上差值小是可接受的）。
+M.STATE_MIN_DELTA = 12
+M.STATE_NAMES = { 'normal', 'hover', 'pressed' }
+local STATE_WHITE, STATE_BLACK = 16777215, 0
+
 M.new = function(spec)
   spec = spec or {}
   local L = assert(spec.layers, 'view_kit: 需要 spec.layers')
@@ -36,6 +48,136 @@ M.new = function(spec)
       math.floor(br + (r - br) * k + 0.5),
       math.floor(bg + (g - bg) * k + 0.5),
       math.floor(bb + (b - bb) * k + 0.5))
+  end
+
+  -- ===== 三态颜色（纯函数，headless 可断言）=====
+  local mix = spec.stateMix or {}
+
+  function K.stateMix()
+    return {
+      hover = mix.hover or M.STATE_MIX.hover,
+      press = mix.press or M.STATE_MIX.press,
+    }
+  end
+
+  -- 0..255 的感知亮度（只用于判据与测试：断言 hover 亮、pressed 暗）
+  function K.lum(color)
+    local r, g, b = (color // 65536) % 256, (color // 256) % 256, color % 256
+    return 0.299 * r + 0.587 * g + 0.114 * b
+  end
+
+  -- 三态色：'normal' 原样；'hover' 往白混；'pressed' 往黑混；未知状态名**回落到 normal**并回报
+  -- 返回 (color, ok, why)：ok=false 时调用方应当把状态名当错误处理（但颜色仍可用）
+  function K.stateColor(base, state)
+    state = state or 'normal'
+    if type(state) ~= 'string' or base == nil then return base, false, 'bad-args' end
+    if state == 'normal' then return base, true end
+    local k = nil
+    if state == 'hover' then k = K.stateMix().hover
+    elseif state == 'pressed' then k = K.stateMix().press
+    else return base, false, 'unknown-state:' .. state end
+    local a = base // 16777216                     -- 保留原 alpha（K.over 恒返回 255）
+    local target = (state == 'hover') and STATE_WHITE or STATE_BLACK
+    local mixed = K.over(base, target, k)
+    local color = (mixed % 16777216) + a * 16777216
+    -- hover 的可感知性兜底：浅底往白混看不出来 ⇒ 换方向（往黑）并保证差值 ≥ STATE_MIN_DELTA
+    if state == 'hover' then
+      local lum = K.lum(base)
+      if math.abs(K.lum(color) - lum) < M.STATE_MIN_DELTA then
+        local other = (target == STATE_WHITE) and STATE_BLACK or STATE_WHITE
+        local reach = (other == STATE_WHITE) and (255 - lum) or lum
+        if reach > 0 then
+          local kk = math.max(k, math.min(1, M.STATE_MIN_DELTA / reach))
+          local mixed2 = K.over(base, other, kk)
+          color = (mixed2 % 16777216) + a * 16777216
+        end
+      end
+    end
+    return color, true
+  end
+
+  -- 三色表：给 base 就派生，给了 hover/press 就用死值（项目侧可覆盖个别状态）
+  function K.stateColors(o)
+    o = o or {}
+    local base = o.base or K.C(255, 240, 240, 240)
+    return {
+      normal = base,
+      hover = o.hover or K.stateColor(base, 'hover'),
+      pressed = o.press or o.pressed or K.stateColor(base, 'pressed'),
+    }
+  end
+
+  -- 把 render 实例包成 onChange：项目侧一行接上（onChange = K.repainter(R)）
+  -- R 只需有 write(key, field, value)；没给 R 时安全空转（headless 里常这样用）
+  function K.repainter(R, field)
+    field = field or 'imageColor'
+    return function(state, color, keys)
+      if not (R and R.write) then return 0 end
+      for i = 1, #keys do R.write(keys[i], field, color) end
+      return #keys
+    end
+  end
+
+  -- ===== 状态机（框架持有；项目侧只提供 onChange）=====
+  -- 两个布尔位（inside / down）+ 一个派生状态，转移表：
+  --   enter: inside=1 → down? pressed : hover      leave: inside=0 → down? pressed : normal
+  --   down : down=1  → pressed                     up   : down=0  → inside? hover : normal
+  --   click: 不改状态（点击的语义是"动作"，不是"外观"）
+  -- 幂等：同状态重复事件不触发 onChange（鼠标扫过一排按钮不会闪）
+  function K.states(o)
+    o = o or {}
+    local cols = K.stateColors(o)
+    local keys = {}
+    for i = 1, #(o.keys or {}) do keys[i] = o.keys[i] end
+    -- 注意：按下位叫 held，不能叫 down —— 方法 S:down 会把它覆盖成函数（踩过：enter 直接进 pressed）
+    local S = {
+      state = 'normal', inside = false, held = false,
+      keys = keys, colors = cols, onChange = o.onChange,
+      changes = 0, last = nil, name = o.key,
+    }
+    local function fire(why)
+      S.changes = S.changes + 1
+      S.last = why
+      if S.onChange then S.onChange(S.state, cols[S.state], keys) end
+    end
+    function S:current() return self.state end
+    function S:color() return cols[self.state] end
+    local function set(st, why)
+      if S.state == st then return false end
+      S.state = st
+      fire(why)
+      return true
+    end
+    function S:enter()
+      S.inside = true
+      return set(S.held and 'pressed' or 'hover', 'enter')
+    end
+    function S:leave()
+      S.inside = false
+      return set(S.held and 'pressed' or 'normal', 'leave')
+    end
+    function S:down()
+      S.held = true
+      return set('pressed', 'down')
+    end
+    function S:up()
+      S.held = false
+      return set(S.inside and 'hover' or 'normal', 'up')
+    end
+    function S:click() return false end
+    function S:reset()
+      S.inside, S.held, S.state = false, false, 'normal'
+      return self
+    end
+    -- 一次性重涂：把当前色写给 keys 里的每个控件（项目侧一行接上 render.write）
+    function S:apply(writeFn, field)
+      if not writeFn then return 0 end
+      field = field or 'imageColor'
+      local c = cols[self.state]
+      for i = 1, #keys do writeFn(keys[i], field, c) end
+      return #keys
+    end
+    return S
   end
 
   -- 三套预置语汇：静止底 / 悬停 / 按下 / 墨色（都是不透明色）
@@ -152,13 +294,33 @@ M.new = function(spec)
       for i = 1, #cap do out[#out + 1] = cap[i] end
     end
     -- 热区：y 与视觉同号（取负=镜像到画布另一侧，实测「看得见点不到」的真因）
+    local hitOn = o.on
+    local st = nil
+    if o.states then
+      -- 三态：状态机由框架建并持有；项目侧只给 onChange（重涂），自己的 CursorXxx 照样回调
+      local spec = o.states
+      local vkeys = spec.keys or { key .. 'B', key .. 'L', key .. 'R' }
+      st = K.states {
+        key = key, keys = vkeys, base = spec.base or fill,
+        hover = spec.hover, press = spec.press, onChange = spec.onChange,
+      }
+      local user = o.on or {}
+      hitOn = {
+        CursorClick = user.CursorClick,
+        CursorEnter = function(...) if user.CursorEnter then user.CursorEnter(...) end st:enter() end,
+        CursorExit = function(...) if user.CursorExit then user.CursorExit(...) end st:leave() end,
+        CursorDown = function(...) if user.CursorDown then user.CursorDown(...) end st:down() end,
+        CursorUp = function(...) if user.CursorUp then user.CursorUp(...) end st:up() end,
+      }
+    end
     out[#out + 1] = {
       key = key .. 'Hit', layer = o.hitLayer or 'touch', tpl = o.hitTpl or 'hit',
       name = key .. 'Hit', parentKey = o.parentKey, pos = { x, y },
       size = { w + (o.hitPadW or K.METRIC.hitPadW), h + (o.hitPadH or K.METRIC.hitPadH) },
       cursor = { 'CursorEnter', 'CursorExit', 'CursorDown', 'CursorUp', 'CursorClick' },
-      on = o.on,
+      on = hitOn,
     }
+    if st then out.state = st end     -- 数组附带的状态机（#out 不受影响）
     return out
   end
 
@@ -204,12 +366,33 @@ M.new = function(spec)
   end
 
   -- 纯热区（只要可点、不要可见件时用）
+  -- o.states 给了就把三态挂上（画面由别处画，keys 指出要重涂的控件键）
   function K.hit(o)
     local key = assert(o.key, 'hit: 需要 key')
+    local on = o.on
+    local st = nil
+    if o.states then
+      local spec = o.states
+      st = K.states {
+        key = key, keys = spec.keys or { key }, base = spec.base,
+        hover = spec.hover, press = spec.press, onChange = spec.onChange,
+      }
+      local user = o.on or {}
+      on = {
+        CursorClick = user.CursorClick,
+        CursorEnter = function(...) if user.CursorEnter then user.CursorEnter(...) end st:enter() end,
+        CursorExit = function(...) if user.CursorExit then user.CursorExit(...) end st:leave() end,
+        CursorDown = function(...) if user.CursorDown then user.CursorDown(...) end st:down() end,
+        CursorUp = function(...) if user.CursorUp then user.CursorUp(...) end st:up() end,
+      }
+    end
     return {
       key = key, layer = o.layer or 'touch', tpl = o.tpl or 'hit', name = o.name or key,
       parentKey = o.parentKey, pos = { o.x or 0, o.y or 0 },
-      size = { o.w or 100, o.h or 100 }, cursor = { 'CursorClick' }, on = o.on,
+      size = { o.w or 100, o.h or 100 },
+      cursor = st and { 'CursorEnter', 'CursorExit', 'CursorDown', 'CursorUp', 'CursorClick' }
+        or { 'CursorClick' },
+      on = on, state = st,
     }
   end
 

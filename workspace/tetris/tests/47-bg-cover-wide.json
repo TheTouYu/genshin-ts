@@ -48,7 +48,7 @@
     {
       "at": 2.0,
       "kind": "log",
-      "contains": "mode theme=casual bg=14/14",
+      "contains": "mode theme=casual bg=11/11",
       "source": "client"
     }
   ]

@@ -151,3 +151,73 @@ A.tick(1/60)
 - `.agents/skills/qxqy-ui-framework`：本框架的使用方法与踩坑清单（触发词："声明式 UI / 层序 / 字被裁 / 控件隐形 / headless 复现"）
 - `.agents/skills/lua-2d-ui-game-build`：从 0 做 2D UI 游戏的阶段门与真机踩坑
 - `.agents/skills/simulator-2d-route`：模拟器生产线的选型与工具细节
+
+## 11. 三态按钮（hover / pressed）
+
+用户报过「导航胶囊没有悬浮高亮」。当时每个项目各写一套，于是有的屏有、有的屏没有，配色也不一致。
+v6.28 起这一层收到框架里：**颜色派生 + 状态机都在框架，项目侧只提供"怎么重涂"**。
+
+```lua
+-- A. 按钮自带三态（最省事）：胶囊 + 文字 + 热区，Enter/Exit/Down/Up 自动接管
+local nodes = K.button {
+  key = 'navHelp', x = 560, y = 300, w = 180, h = 56, label = '说明', preset = 'gold',
+  states = { onChange = K.repainter(R) },        -- 一行接上：把新色写进引擎（R 需要 write(key, field, value)）
+  on = { CursorClick = function() openHelp() end },   -- 点击回调不受影响
+}
+-- nodes.state 是状态机：nodes.state:current() -> 'normal' | 'hover' | 'pressed'
+
+-- B. 画面由别处画、只要热区带三态：给出要重涂的控件键
+local hit = K.hit {
+  key = 'navHelpHit', x = 560, y = 300, w = 220, h = 80,
+  states = { keys = { 'navHelpB', 'navHelpL', 'navHelpR' }, base = 0xFFF0D696,
+             onChange = K.repainter(R) },
+}
+
+-- C. 纯函数（不建控件，headless 直接断言）
+local c = K.stateColors { base = 0xFFF0D696 }    -- { normal=, hover=, pressed= }
+K.stateColor(base, 'hover')                       -- (color, ok, why)；未知状态名 ⇒ 回落 normal + ok=false
+```
+
+**判据（`tests/view_kit_test.lua` 的 J 段，25 条）**
+
+| # | 判据 |
+|---|---|
+| J1–J3 | 三态色两两不同；hover 亮于 normal；pressed 暗于 normal（用 `K.lum` 判，不是看字符串） |
+| J4–J6 | 缺省派生确定性；`kitM.new{ stateMix = … }` 覆盖生效；显式 hover/press 覆盖派生 |
+| J7 | 非法状态名回落 normal **并回报**（不抛错、不静默） |
+| J8–J10 | enter ⇒ hover、leave ⇒ normal（收敛）；重复 enter 不重复回调（鼠标扫一排按钮不会闪） |
+| J11–J15 | down ⇒ pressed；按住移出仍是 pressed；区间外松手回 normal；区内松手回 hover；click 不改外观 |
+| J16–J21 | 带三态的按钮**节点数不变**（不新开渲染通道）；热区五事件齐；点击仍走用户回调；`state:apply(writeFn)` 一行重涂 |
+| J22–J23 | `K.hit + states` 同样可用（纯热区入口） |
+| J28–J29 | `K.repainter(R)` 一行接线；没给 R 时安全空转（headless 可用） |
+| J24 | 派生比例置 0 ⇒ 三态同色（**证明 J1–J3 真的依赖比例，改常量必红**） |
+| J25 | 不给 `states` ⇒ 完全旧行为（零回归） |
+
+**两条设计口径**（改之前先读）
+
+1. **往白/往黑混，不乘亮度系数**：乘系数在深色底上会把 RGB 压到 0（三态撞车）；混色对任意底色都单调可分，且与 `K.over` 同一口径，alpha 保留原值。比例在模块顶部 `M.STATE_MIX`（默认 hover 0.12 / press 0.20）。
+2. **状态机持有两个布尔位（inside / held），状态是派生值**：`down → leave` 不应丢按下态（按住拖出按钮再拖回，视觉不能跳）；`click` 不改外观（点击是动作，不是样式）。同一状态重复事件不触发回调——否则鼠标扫过一排按钮会连闪。
+
+**未覆盖**：`CursorLeave` 这个事件名本引擎不存在（真机/模拟器都是 `CursorExit`）；触屏没有 hover，`K.states` 在 `down` 之后自动回 `normal`，观感等价于"按下变深、抬起复原"。
+
+### 11.1 判据是"看得见"，不是"往白混"（2026-11-17 真机教训）
+
+用户报「导航胶囊没有悬浮高亮」时，胶囊**本来就接了** `CursorEnter → 改色`；看不见的真因是
+调色板增量只有 `btnBg(255,250,243) → btnHover(255,253,248)` ≈ **+2%**，近白卡片上不可辨。
+
+固定"往白混"在近白底上永远救不回来（最多 +10 就到顶）。因此：
+
+```lua
+M.STATE_MIX       = { hover = 0.12, press = 0.20 }   -- 派生强度
+M.STATE_MIN_DELTA = 12                                -- 与 normal 的**最小感知亮度差**
+-- hover：先往白混；若 |ΔL| < MIN_DELTA ⇒ 翻向压暗并把差值顶到 MIN_DELTA
+-- pressed：恒往黑混（"按下变深"是硬语义，不翻转）
+```
+
+- 浅底（如真机卡片 `0xFFF5F0F1`）hover = **压暗**；深底 hover = **提亮**。
+- 判据（`tests/view_kit_test.lua` J2a/J2b/J2c）：|ΔL| ≥ MIN_DELTA、近白底压暗、深底提亮。
+- 想调观感只改 `STATE_MIN_DELTA` / `STATE_MIX` 两个框架常量，**不要回头改项目调色板**。
+
+⚠ 两个静默坑：
+1. 胶囊在渲染层是**三块**（`key..'B'/'L'/'R'`）。给状态机的 `keys` 只写基名 ⇒ `R.write` 什么也没写、**不报错**。
+2. `readField` 读回的 `imageColor` 是**有符号 int32**（如 `-657679`），比较前先 `+2^32`。

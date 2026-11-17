@@ -8,14 +8,18 @@
    它不在 scene/framework 里，所以：改样式要摸 main.lua、层序靠调用顺序、
    没有 lint、也没法 headless 断言。这里把它变成一份数据。
 
- 结构（与旧实现同几何，逐值照抄 UI4.noteOpen，观感零变化）：
+ 结构（与旧实现同几何，逐值照抄 UI4.noteOpen；**唯一差异** = v6.28 删掉 ④ 金色分隔线）：
    ① padNoteBlock  全屏热区（点卡片外任意处关闭；modal 层 ⇒ 命中优先于标题页模式卡）
    ② padNoteDim    全屏暗底
    ③ padNoteCard   卡片胶囊（760×330，view_kit.pill = 中段矩形 + 左右半圆）
-   ④ padNoteLine   分隔线（tw×3，金色）
-   ⑤ padNoteTitle  标题（30 号）
-   ⑥ padNoteB1/B2/B3  三行正文（20/20/18 号）
-   ⑦ padNoteBtnBg/Tx/Hit  「知道了」按钮（220×60）+ 热区
+   ④ padNoteTitle  标题（30 号）
+   ⑤ padNoteB1/B2/B3  三行正文（20/20/18 号）
+   ⑥ padNoteBtnBg/Tx/Hit  「知道了」按钮（220×60）+ 热区
+
+ v6.28 删分隔线（用户 2026-11-17 真机截图返工①）：「移动端这个页面的这条线不好看，多余了」。
+ 它几何上横贯卡片 700/760 宽、贴在标题上方（pos.y = cy+128；标题中心 cy+92、框高 60 ⇒ 标题顶边
+ cy+122），把卡片横切成两段，且与「知道了」按钮的金色撞色 —— 装饰线在这张卡里没有信息量。
+ 删掉后标题顶边到卡片顶边（cy+122..cy+165）是纯底色，view_note_test §F 用结构断言钉住这段空区。
 
  层号：整屏都进 `modal`(90) —— 它必须压在标题页展台/模式卡与 HUD 之上（层级渲染新存档：
   layer 越大越靠上，同层回退创建序），不再依赖"后建在上"的调用顺序。
@@ -53,10 +57,7 @@ M.new = function(spec)
     -- ③ 卡片
     for _, n in ipairs(KIT.pill { key = 'note.card', x = 0, y = cy, w = cw, h = 330,
       color = C.panel, layer = 'modal' }) do add(n) end
-    -- ④ 分隔线
-    add { key = 'note.line', layer = 'modal', tpl = 'cell', name = 'padNoteLine',
-      pos = { 0, cy + 128 }, size = { tw, 3 }, color = C.gold, image = { s = 'rect' } }
-    -- ⑤ 标题 + ⑥ 三行正文
+    -- ④ 标题 + ⑤ 三行正文（v6.28：原「④ 分隔线 padNoteLine」已删，用户返工①）
     add(KIT.text { key = 'note.title', name = 'padNoteTitle', x = 0, y = cy + 92, w = tw, h = 60,
       text = T.title or '', font = 30, color = C.main, layer = 'modal' })
     add(KIT.text { key = 'note.b1', name = 'padNoteB1', x = 0, y = cy + 34, w = tw, h = 34,

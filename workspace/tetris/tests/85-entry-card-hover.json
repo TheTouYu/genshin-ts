@@ -1,0 +1,45 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "85 v6.28 入口卡「角色档案/说明」hover 三态（框架 view_kit.stateColor 派生）",
+  "dt": 0.016666666666666666,
+  "canvasId": "pc-16-9",
+  "events": [
+    {
+      "t": 0.5,
+      "kind": "pointer",
+      "type": "move",
+      "x": 1320,
+      "y": 752
+    },
+    {
+      "t": 1.2,
+      "kind": "pointer",
+      "type": "move",
+      "x": 1080,
+      "y": 752
+    },
+    {
+      "t": 1.9,
+      "kind": "pointer",
+      "type": "move",
+      "x": 800,
+      "y": 450
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.0,
+      "kind": "log",
+      "contains": "entry hover roster",
+      "source": "client"
+    },
+    {
+      "at": 1.7,
+      "kind": "log",
+      "contains": "entry hover help",
+      "source": "client"
+    }
+  ],
+  "note": "指针坐标左下原点（D766）；判据读 main 的 entry hover 日志锚，颜色差由 headless view_kit_test J2a/J2b 看住"
+}

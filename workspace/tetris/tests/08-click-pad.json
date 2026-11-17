@@ -1,187 +1,187 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "name": "08 移动端拇指键：点 ◀/旋转/锁定/缓降/暂存 全部打到 act 链（phone tap 锚）",
- "dt": 0.016666666666666666,
- "canvasId": "mobile-16-9",
- "events": [
-  {
-   "t": 0.3,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Down"
-  },
-  {
-   "t": 0.32,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Up"
-  },
-  {
-   "t": 1.6,
-   "kind": "pointer",
-   "type": "move",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 1.6500000000000001,
-   "kind": "pointer",
-   "type": "down",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 1.7000000000000002,
-   "kind": "pointer",
-   "type": "up",
-   "x": 175,
-   "y": 64
-  },
-  {
-   "t": 2.3,
-   "kind": "pointer",
-   "type": "move",
-   "x": 168,
-   "y": 152
-  },
-  {
-   "t": 2.3499999999999996,
-   "kind": "pointer",
-   "type": "down",
-   "x": 168,
-   "y": 152
-  },
-  {
-   "t": 2.4,
-   "kind": "pointer",
-   "type": "up",
-   "x": 168,
-   "y": 152
-  },
-  {
-   "t": 3.0,
-   "kind": "pointer",
-   "type": "move",
-   "x": 1105,
-   "y": 64
-  },
-  {
-   "t": 3.05,
-   "kind": "pointer",
-   "type": "down",
-   "x": 1105,
-   "y": 64
-  },
-  {
-   "t": 3.1,
-   "kind": "pointer",
-   "type": "up",
-   "x": 1105,
-   "y": 64
-  },
-  {
-   "t": 3.7,
-   "kind": "pointer",
-   "type": "move",
-   "x": 975,
-   "y": 64
-  },
-  {
-   "t": 3.75,
-   "kind": "pointer",
-   "type": "down",
-   "x": 975,
-   "y": 64
-  },
-  {
-   "t": 3.8000000000000003,
-   "kind": "pointer",
-   "type": "up",
-   "x": 975,
-   "y": 64
-  },
-  {
-   "t": 4.4,
-   "kind": "pointer",
-   "type": "move",
-   "x": 968,
-   "y": 152
-  },
-  {
-   "t": 4.45,
-   "kind": "pointer",
-   "type": "down",
-   "x": 968,
-   "y": 152
-  },
-  {
-   "t": 4.5,
-   "kind": "pointer",
-   "type": "up",
-   "x": 968,
-   "y": 152
-  }
- ],
- "asserts": [
-  {
-   "at": 0.5,
-   "kind": "log",
-   "contains": "phone build n=19",
-   "source": "client"
-  },
-  {
-   "at": 0.5,
-   "kind": "log",
-   "contains": "phone layout w=1280 h=720",
-   "source": "client"
-  },
-  {
-   "at": 2.0,
-   "kind": "log",
-   "contains": "phone tap left",
-   "source": "client"
-  },
-  {
-   "at": 2.7,
-   "kind": "log",
-   "contains": "phone tap rot",
-   "source": "client"
-  },
-  {
-   "at": 2.7,
-   "kind": "log",
-   "contains": "rotate",
-   "source": "client"
-  },
-  {
-   "at": 3.4,
-   "kind": "log",
-   "contains": "phone tap hard",
-   "source": "client"
-  },
-  {
-   "at": 3.4,
-   "kind": "log",
-   "contains": "harddrop rows=",
-   "source": "client"
-  },
-  {
-   "at": 4.1,
-   "kind": "log",
-   "contains": "phone tap soft",
-   "source": "client"
-  },
-  {
-   "at": 4.8,
-   "kind": "log",
-   "contains": "phone tap hold",
-   "source": "client"
-  },
-  {
-   "at": 4.8,
-   "kind": "log",
-   "contains": "hold in=",
-   "source": "client"
-  }
- ],
- "note": "v5.7：坐标按当前布局重算（colL/colR/botY 由 ui.lua bands() 推导）；进入游戏用键盘 1（casual），再点拇指簇。"
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "08 移动端拇指键：点 ◀/旋转/锁定/缓降/暂存 全部打到 act 链（phone tap 锚）（v6.28 簇贴棋盘后坐标重拍）",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-16-9",
+  "events": [
+    {
+      "t": 0.3,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 0.32,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    },
+    {
+      "t": 1.6,
+      "kind": "pointer",
+      "type": "move",
+      "x": 176,
+      "y": 60
+    },
+    {
+      "t": 1.6500000000000001,
+      "kind": "pointer",
+      "type": "down",
+      "x": 176,
+      "y": 60
+    },
+    {
+      "t": 1.7000000000000002,
+      "kind": "pointer",
+      "type": "up",
+      "x": 176,
+      "y": 60
+    },
+    {
+      "t": 2.3,
+      "kind": "pointer",
+      "type": "move",
+      "x": 176,
+      "y": 152
+    },
+    {
+      "t": 2.3499999999999996,
+      "kind": "pointer",
+      "type": "down",
+      "x": 176,
+      "y": 152
+    },
+    {
+      "t": 2.4,
+      "kind": "pointer",
+      "type": "up",
+      "x": 176,
+      "y": 152
+    },
+    {
+      "t": 3.0,
+      "kind": "pointer",
+      "type": "move",
+      "x": 1240,
+      "y": 60
+    },
+    {
+      "t": 3.05,
+      "kind": "pointer",
+      "type": "down",
+      "x": 1240,
+      "y": 60
+    },
+    {
+      "t": 3.1,
+      "kind": "pointer",
+      "type": "up",
+      "x": 1240,
+      "y": 60
+    },
+    {
+      "t": 3.7,
+      "kind": "pointer",
+      "type": "move",
+      "x": 1104,
+      "y": 60
+    },
+    {
+      "t": 3.75,
+      "kind": "pointer",
+      "type": "down",
+      "x": 1104,
+      "y": 60
+    },
+    {
+      "t": 3.8000000000000003,
+      "kind": "pointer",
+      "type": "up",
+      "x": 1104,
+      "y": 60
+    },
+    {
+      "t": 4.4,
+      "kind": "pointer",
+      "type": "move",
+      "x": 1104,
+      "y": 152
+    },
+    {
+      "t": 4.45,
+      "kind": "pointer",
+      "type": "down",
+      "x": 1104,
+      "y": 152
+    },
+    {
+      "t": 4.5,
+      "kind": "pointer",
+      "type": "up",
+      "x": 1104,
+      "y": 152
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "phone build n=19",
+      "source": "client"
+    },
+    {
+      "at": 0.5,
+      "kind": "log",
+      "contains": "phone layout w=1280 h=720",
+      "source": "client"
+    },
+    {
+      "at": 2.0,
+      "kind": "log",
+      "contains": "phone tap left",
+      "source": "client"
+    },
+    {
+      "at": 2.7,
+      "kind": "log",
+      "contains": "phone tap rot",
+      "source": "client"
+    },
+    {
+      "at": 2.7,
+      "kind": "log",
+      "contains": "rotate",
+      "source": "client"
+    },
+    {
+      "at": 3.4,
+      "kind": "log",
+      "contains": "phone tap hard",
+      "source": "client"
+    },
+    {
+      "at": 3.4,
+      "kind": "log",
+      "contains": "harddrop rows=",
+      "source": "client"
+    },
+    {
+      "at": 4.1,
+      "kind": "log",
+      "contains": "phone tap soft",
+      "source": "client"
+    },
+    {
+      "at": 4.8,
+      "kind": "log",
+      "contains": "phone tap hold",
+      "source": "client"
+    },
+    {
+      "at": 4.8,
+      "kind": "log",
+      "contains": "hold in=",
+      "source": "client"
+    }
+  ],
+  "note": "v5.7：坐标按当前布局重算（colL/colR/botY 由 ui.lua bands() 推导）；进入游戏用键盘 1（casual），再点拇指簇。"
 }

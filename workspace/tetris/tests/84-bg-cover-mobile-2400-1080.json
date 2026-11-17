@@ -1,0 +1,45 @@
+{
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "84 v6.28 mobile-2400-1080 背景满幅（拉伸锚点）+ 设计空间缩放",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-2400-1080",
+  "events": [
+    {
+      "t": 0.8,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyDown"
+    },
+    {
+      "t": 1.0,
+      "kind": "key",
+      "typeName": "KeyboardJumpKeyUp"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 0.6,
+      "kind": "log",
+      "contains": "phone layout w=2400 h=1080",
+      "source": "client"
+    },
+    {
+      "at": 1.6,
+      "kind": "log",
+      "contains": "bg cover ok",
+      "source": "client"
+    },
+    {
+      "at": 1.6,
+      "kind": "log",
+      "contains": "wash=stretch",
+      "source": "client"
+    },
+    {
+      "at": 2.2,
+      "kind": "lua",
+      "source": "local hit=nil for _,l in ipairs(query.logs()) do if l:find('bg cover ok',1,true) then hit=l end end assert(hit,'无 bg cover ok') local w=tonumber(hit:match('w=(%d+)')) local h=tonumber(hit:match('h=(%d+)')) assert(w==2400 and h==1080,'画布尺寸不符 '..tostring(w)..'x'..tostring(h)) -- 设计空间缩放生效的证据：comps 全部贴出（11/11），且构图外缘按 bs 盖满\nassert(hit:find('comps=11/11',1,true),'构图没全部创建 '..tostring(hit)) return true"
+    }
+  ],
+  "note": "用户 2026-11-17 图六点名：2400×1080 是重点关注分辨率；本用例把该画布纳入回归矩阵"
+}
