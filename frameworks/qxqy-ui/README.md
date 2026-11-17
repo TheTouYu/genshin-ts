@@ -39,7 +39,7 @@
 |---|---|---|
 | `platform` | 引擎访问唯一通道；`mock=true` 时用假控件 | `P.inst/set/call/onCursor/destroy/find/bindKey/setImage/setRotation` |
 | `view_layers` | 语义层号 | `L.order('card')`；未知层名**抛错**（防拼错） |
-| `view_node` | 节点 schema 校验 + 静态检查 | `V.lint(list)` → `{code='L1..L6'}`；`V.textNeed(text,font,w)` |
+| `view_node` | 节点 schema 校验 + 静态检查 | `V.lint(list)` → `L1..L6`；`V.lintPlan(plan)` → `P1..P5`；`V.lintCover(items)` → `C1..C3`；`V.rectAABB(x,y,w,h,rot)`；`V.textNeed(text,font,w)` |
 | `render` | 描述→控件：按层号创建、值变才写、不在列表即销毁 | `R.apply(list)` / `R.write(k,f,v)` / `R.writePos(k,x,y)` / `R.clear()` / `R.live()` |
 | `scenes` | 场景栈：push/pop/replace、opaque 截断、输入按栈分发 | `S.push(name)` / `S.view()` / `S.onAction(action)` |
 | `app` | 连接层：tick=update+view+apply；覆盖屏 | `A.start/tick/render/dispatch/openOverlay/closeOverlay` |
@@ -77,6 +77,23 @@
    这一层能抓住"估算放过了、引擎却判不画"的边界（我们真踩过：估算留 1px 余量，22.85 vs 22 就漏了）。
 | L5 | 交互控件被上层覆盖 | 结算卡压住触控胶囊 2870px² |
 | L6 | 交互控件层号低于 panel | 面板挡住点击 |
+
+## 5.5 另外两个入口：布局表与背景构图
+
+`V.lint` 只看**描述层节点表**。项目里还有两类几何事实住在别处，各自有过一次用户可见事故：
+
+| 入口 | 查什么 | 事故 |
+|---|---|---|
+| `V.lintPlan(plan, cfg)` | P1 控件名重复 / P2 同矩形叠印 / P3 文字框高 ≥1.45f+4 / P4 出画布 / P5 缺数值 | 双盘横幅坐标写错、两条文字叠印 |
+| `V.lintCover(items, cfg)` | C1 图元并集 ⊇ **设计板** / C2 缺 x,y,w,h / C3 rot 非数值 | 「背景两侧露白」而四道判据全绿 |
+
+**C1 为什么查"设计板覆盖"而不是"画布覆盖"**：实现用 cover 缩放 `bs=max(W/baseW,H/baseH)`，
+于是 像素外缘 ≥ (baseW/2)·bs ≥ W/2 且 ≥ (baseH/2)·bs ≥ H/2 ⇒ **任意画布**四边 0 缺口。
+所以设计板盖满就够，不必每张画布各验一次；反过来画布上量到缺口，说明数据本身没盖满。
+
+**⚠ 判据别把恒真项算进去**：Tetris 旧版把整屏 wash（纯色底）也计入背景外缘，
+wash 恒盖满 ⇒ 「四边 0 缺口」判据恒真，用户报露白时它照样打印 ok。
+正确分层是：**wash 守"底色铺满"（用拉伸锚点，与画布无关），构图守"有美术且画到边"（lintCover 守数据）**。
 
 ## 6. 三条硬约束（踩过才写下的）
 

@@ -349,6 +349,9 @@ local WIDGETS = UI.new({
 })
 local noteFail, trySet, tryCall, addCursor = WIDGETS.noteFail, WIDGETS.trySet, WIDGETS.tryCall, WIDGETS.addCursor
 local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
+-- v6.27：全屏铺满（拉伸锚点）与背景外缘判据都走框架层，别在游戏侧再写第二份数学
+local fillFull = WIDGETS.fill
+local VNODE_M = loadModule('view_node')   -- 只要 M.rectAABB / M.lintCover（纯函数，不建实例）
 -- v3.5 ①：HUD 常量文字的**实例份兜底**（层序铁律：服务端 textbox 永远在运行时实例之下）
 -- 背景池 wash／棋盘格都是运行时实例，textbox 份被压在下面看不见 ⇒ v3.3 把 textbox 份
 -- SetVisible(false) 之后，全仓 40+ 处 `setText(botBanner/hint/topBanner, …)` 变成「写了但看不见」
@@ -4353,6 +4356,8 @@ do
       game = game,
       cfg = CFG,
       widgets = WIDGETS,
+      -- 旋转矩形真 AABB（框架层唯一实现）：背景外缘日志用它算，不再在 ui.lua 里抄一份公式
+      aabb = VNODE_M and VNODE_M.rectAABB,
       canvas = function() return CANVAS_W or 1280, CANVAS_H or 720 end,
       mobile = function() return IS_MOBILE end,
       pool = function() local inst = G[1] or g return inst and inst.bgPool end,
@@ -4887,8 +4892,14 @@ function OnStart()
   end
   local wash = g.bgPool[1]
   if wash then
-    tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-    tryCall(wash, 'SetAnchoredPosition', 0, 0)
+    -- v6.27：整屏底色走**拉伸锚点**（先铺一次，避免第一帧 bgApply 之前露底色）。
+    -- 旧写法 SetSizeDelta(W+20, H+20) 把尺寸写死在 GetUICanvasSize 上；真机报 2030×900
+    -- 而屏幕 3440×1440 ⇒ 我们猜的数一旦不等于父容器就露缝。锚点表达式与画布无关。
+    if not fillFull(wash, 0.01) then
+      tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+      tryCall(wash, 'SetAnchoredPosition', 0, 0)
+      print('bg wash stretch=0（宿主不认锚点 ⇒ 回落像素尺寸）')
+    end
     trySet(wash, 'imageColor', MODE_THEME.casual.bg)
   end
   print('bg pool n=' .. #g.bgPool)

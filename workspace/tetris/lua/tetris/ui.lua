@@ -67,44 +67,61 @@ M.new = function(spec)
     return true
   end
 
-  -- 五屏共用同一条背景路径：wash（整屏不透明底，保证四边 0 缺口）+ cover 构图（保证有美术）
+  -- 五屏共用同一条背景路径：两层各守一件事，**别再混成一条判据**
+  --   ① wash（整屏底色）：走**拉伸锚点**铺满父容器 ⇒ 与 GetUICanvasSize 无关，四边必然满；
+  --   ② 构图（cfg.MODE_BG）：cover 缩放 bs = max(W/baseW, H/baseH) ⇒ 保证屏幕上有美术。
+  -- v6.27 的关键修正：旧判据把 wash 的外缘也计入"四边 0 缺口"（wash 恒盖满 ⇒ 判据恒真），
+  -- 于是"构图根本没画到边"永远测不出来（真机 comps=0/14 那次是 wash 也 nil 才偶然报红）。
+  -- 现在 wash 只报 stretch=1/0，缺口判据**只看构图**；构图的数据不变量由框架
+  -- view_node.lintCover（C1 设计板覆盖）在 headless 层看住，运行时不变量退化成实测读数。
   U.bgApply = function(mode, screen)
     local m = mode or 'casual'
     local t = cfg.MODE_THEME[m] or cfg.MODE_THEME.casual
     local specs = cfg.MODE_BG[m] or cfg.MODE_BG.casual
     local pool = spec.pool()
     local W, H = canvas()
-    local bs = math.max(W / (NUM.BG_BASE_W or 1280), H / (NUM.BG_BASE_H or 720))
+    local baseW = NUM.BG_BASE_W or 1280
+    local baseH = NUM.BG_BASE_H or 720
+    local bs = math.max(W / baseW, H / baseH)
     local n = 0
     local extL, extR, extB, extT = 0, 0, 0, 0
+    local washState = 'none'
+    -- 旋转矩形 AABB：框架层唯一实现（spec.aabb）；没接上就按**未旋转**算 —— 宁可漏报也不谎报
+    local aabb = spec.aabb
+    if not aabb then
+      aabb = function(x, y, w, h) return x - w / 2, y - h / 2, x + w / 2, y + h / 2 end
+      if not U.aabbWarned then
+        U.aabbWarned = true
+        log('bg aabb=fallback（spec.aabb 未注入 ⇒ 旋转图元按未旋转算，判据偏严）')
+      end
+    end
     if pool then
       local wash = pool[1]
       if wash then
-        -- wash 比画布大 20px：抗锯齿边缘不留 1px 缝
-        tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-        tryCall(wash, 'SetAnchoredPosition', 0, 0)
+        local okFill = WID.fill and WID.fill(wash, 0.01)
+        if not okFill then
+          -- 宿主不认锚点：回落像素尺寸（仍比什么都不铺强），并把读数打出来别静默
+          tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+          tryCall(wash, 'SetAnchoredPosition', 0, 0)
+          washState = 'px'
+        else
+          washState = 'stretch'
+        end
         trySet(wash, 'imageColor', t.bg)
-        extL, extR, extB, extT = -(W / 2 + 10), (W / 2 + 10), -(H / 2 + 10), (H / 2 + 10)
       end
       for i = 1, #pool - 1 do
         local sp0 = specs[i]
         local ctl = pool[i + 1]
         if sp0 then
-          -- 外接圆半径按**缩放后**尺寸算（旋转矩形用外接圆是保守上界，不会高估覆盖）
           local sp = { s = sp0.s, x = (sp0.x or 0) * bs, y = (sp0.y or 0) * bs,
                        w = (sp0.w or 0) * bs, h = (sp0.h or 0) * bs, c = sp0.c, rot = sp0.rot }
           if skinItem(ctl, sp) then
             n = n + 1
-            -- 旋转矩形的 AABB（旧实现用**外接圆**：1760×44 的云带 y 方向被高估成 ±880，
-            -- 于是判据永远"过"或永远"不过"，两头都不可信）。ex/ey 是半宽/半高。
-            local rad = math.rad(sp.rot or 0)
-            local ca, sa = math.abs(math.cos(rad)), math.abs(math.sin(rad))
-            local ex = (sp.w / 2) * ca + (sp.h / 2) * sa
-            local ey = (sp.w / 2) * sa + (sp.h / 2) * ca
-            if sp.x - ex < extL then extL = sp.x - ex end
-            if sp.x + ex > extR then extR = sp.x + ex end
-            if sp.y - ey < extB then extB = sp.y - ey end
-            if sp.y + ey > extT then extT = sp.y + ey end
+            local x0, y0, x1, y1 = aabb(sp.x, sp.y, sp.w, sp.h, sp.rot)
+            if x0 < extL then extL = x0 end
+            if x1 > extR then extR = x1 end
+            if y0 < extB then extB = y0 end
+            if y1 > extT then extT = y1 end
           end
         elseif ctl then
           -- 空槽：缩 1×1 挪出画布（真机 SetVisible 对实例不可靠 ⇒ 只信坐标）
@@ -126,20 +143,21 @@ M.new = function(spec)
         end
       end
     end
-    -- 判据（用户/lead 2026-10-29 定）：**四边 0 缺口**，不是 92%
+    -- 判据（用户/lead 2026-10-29 定）：**四边 0 缺口**——但只许由**构图**满足
     local needX, needY = W / 2, H / 2
     local scr = screen or U.screen or '?'
-    if extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
+    local comps = n .. '/' .. #specs
+    if n > 0 and extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
       log('bg cover ok bs=' .. f1(bs) .. ' w=' .. math.floor(W) .. ' h=' .. math.floor(H)
-        .. ' screen=' .. scr .. ' comps=' .. n .. '/' .. #specs .. ' wash=' .. (pool and pool[1] and 1 or 0)
+        .. ' screen=' .. scr .. ' comps=' .. comps .. ' wash=' .. washState
         .. ' ext=' .. math.floor(extL) .. ',' .. math.floor(extR) .. ',' .. math.floor(extB) .. ',' .. math.floor(extT))
     else
       log('bg cover GAP bs=' .. f1(bs) .. ' screen=' .. scr
         .. ' dxL=' .. math.floor(-needX - extL) .. ' dxR=' .. math.floor(needX - extR)
         .. ' dyB=' .. math.floor(-needY - extB) .. ' dyT=' .. math.floor(needY - extT)
-        .. ' comps=' .. n .. '/' .. #specs)
+        .. ' comps=' .. comps .. ' wash=' .. washState)
     end
-    log('mode theme=' .. tostring(m) .. ' bg=' .. n .. '/' .. #specs)
+    log('mode theme=' .. tostring(m) .. ' bg=' .. comps .. ' wash=' .. washState)
     return n
   end
 

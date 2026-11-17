@@ -22,7 +22,8 @@ local M = {}
 -- 为什么在框架层：`V.lint` 的 L1–L6 作用于**描述层节点表**（view_*），
 -- 而 `ui.lua` 的 `U.plan`（对局屏/双盘屏的布局）产出的是**布局表**（name→rect），
 -- 四起真机事故里最贵的一起（双盘横幅位置）就发生在这一层且当时零判据。
--- 入口分两个、别混：V.lint(list, cfg) 查节点表；V.lintPlan(plan, cfg) 查布局表。
+-- 入口分三个、别混：V.lint(list, cfg) 查节点表；V.lintPlan(plan, cfg) 查布局表；
+-- V.lintCover(items, cfg) 查**背景构图数据**（C1–C3，见本文件下端）。
 --
 -- 判据（搬自 tests-lua/ui_plan_test.lua，语义逐条对齐）：
 --   P1 同一 bucket 内控件名唯一（GetChild 按名寻址会歧义）
@@ -129,6 +130,79 @@ local function lintPlan(plan, cfg)
 end
 
 M.lintPlan = lintPlan
+
+-- ===== 背景铺满判据 lintCover（C1–C3）+ 旋转外接盒 rectAABB =====
+-- 为什么第三个入口必须存在：背景构图是一张**数据表**（一组 {x,y,w,h,rot} 图元，见
+-- `cfg.MODE_BG`），它既不进 `V.lint`（描述层节点表）也不进 `V.lintPlan`（布局表），
+-- 于是 Tetris v6.2 出现过「用户报两侧露白」而四道判据全绿的局面：运行时那条
+-- `bg cover ok` 把**整屏 wash** 也算进外缘，而 wash 恒盖满 ⇒ 判据恒真（假绿）。
+-- 现在把判据钉在**数据不变量**上，运行时只负责报告实测外缘。
+--
+--   C1 图元并集 AABB ⊇ 设计板 [-baseW/2, baseW/2] × [-baseH/2, baseH/2]
+--   C2 每条图元必须有 x/y/w/h 数值（nil 会让 SetSizeDelta 静默拿到 0 ⇒ 画成一个点）
+--   C3 rot 若给就必须是数值（真机 SetLocalRotation 三参，nil 会抛）
+--
+-- 为什么 C1 查"设计板覆盖"而不是"画布覆盖"（可证，且与画布无关）：
+--   实现用 cover 缩放 `bs = max(W/baseW, H/baseH)` ⇒ 像素外缘 ≥ (baseW/2)·bs ≥ W/2，
+--   且 ≥ (baseH/2)·bs ≥ H/2 ⇒ **任意画布**四边 0 缺口。所以数据在设计板上盖满就够了，
+--   不必在每张画布上各验一次；反过来，某张画布上量到缺口，说明数据本身没盖满。
+local function rectAABB(x, y, w, h, rot)
+  local rad = math.rad(rot or 0)
+  local ca, sa = math.abs(math.cos(rad)), math.abs(math.sin(rad))
+  local ex = (w / 2) * ca + (h / 2) * sa
+  local ey = (w / 2) * sa + (h / 2) * ca
+  return x - ex, y - ey, x + ex, y + ey
+end
+
+local function lintCover(items, cfg)
+  items = items or {}
+  cfg = cfg or {}
+  local base = cfg.base or {}
+  local baseW = tonumber(base.W or base[1]) or tonumber(cfg.baseW) or 1280
+  local baseH = tonumber(base.H or base[2]) or tonumber(cfg.baseH) or 720
+  local tol = tonumber(cfg.tol) or 0
+  local issues = {}
+  local function add(code, key, msg) issues[#issues + 1] = { code = code, key = key, msg = msg } end
+
+  local L, R, B, T = math.huge, -math.huge, math.huge, -math.huge
+  local n = 0
+  for i = 1, #items do
+    local it = items[i]
+    local key = (type(it) == 'table' and (it.name or it.k)) or ('[' .. i .. ']')
+    if type(it) ~= 'table' or type(it.x) ~= 'number' or type(it.y) ~= 'number'
+      or type(it.w) ~= 'number' or type(it.h) ~= 'number' then
+      add('C2', key, '缺 x/y/w/h 数值（SetSizeDelta 会静默拿到 0，画出来是个点）')
+    elseif it.rot ~= nil and type(it.rot) ~= 'number' then
+      add('C3', key, string.format('rot 不是数值（%s），真机 SetLocalRotation 会抛', tostring(it.rot)))
+    else
+      local x0, y0, x1, y1 = rectAABB(it.x, it.y, it.w, it.h, it.rot)
+      if x0 < L then L = x0 end
+      if x1 > R then R = x1 end
+      if y0 < B then B = y0 end
+      if y1 > T then T = y1 end
+      n = n + 1
+    end
+  end
+
+  local needX, needY = baseW / 2, baseH / 2
+  local ext = { L = L, R = R, B = B, T = T, n = n, baseW = baseW, baseH = baseH }
+  if n == 0 then
+    add('C1', '(empty)', string.format('没有任何可用图元（设计板 %dx%d 无人覆盖）', baseW, baseH))
+    return issues, ext
+  end
+  local dxL, dxR, dyB, dyT = -needX - L, R - needX, -needY - B, T - needY
+  ext.dxL, ext.dxR, ext.dyB, ext.dyT = dxL, dxR, dyB, dyT
+  if dxL < -tol or dxR < -tol or dyB < -tol or dyT < -tol then
+    add('C1', '设计板缺口', string.format(
+      '构图没画到设计板边沿：左缺 %.0f 右缺 %.0f 下缺 %.0f 上缺 %.0f（设计板 %dx%d，%d 条图元 ext=%.0f,%.0f,%.0f,%.0f）',
+      math.max(0, -dxL), math.max(0, -dxR), math.max(0, -dyB), math.max(0, -dyT),
+      baseW, baseH, n, L, R, B, T))
+  end
+  return issues, ext
+end
+
+M.rectAABB = rectAABB
+M.lintCover = lintCover
 
 local CJK_BYTES = {}
 
@@ -366,6 +440,9 @@ M.new = function(spec)
 
   -- 布局层判据（与 V.lint 并列的第二个入口；实现见模块级 M.lintPlan）
   V.lintPlan = lintPlan
+  -- 背景铺满判据 + 旋转外接盒（第三个入口；实现见模块级 M.lintCover / M.rectAABB）
+  V.lintCover = lintCover
+  V.rectAABB = rectAABB
 
   -- 便捷：把一组节点里某个 key 取出来
   function V.get(list, key)
