@@ -98,7 +98,7 @@ const MAGNUS_DEFAULT = 0.006 // 马格努斯系数 a = K·(ω×v)（D797 真实�
 //   ⇒ ω=5rad/s,v=15m/s 时 a≈0.45 m/s²；旧 0.08 会得 6 m/s²=0.6g 偏强 ~12×，弧线过弯太急）
 const MAXV_DEFAULT = 18.0 // 限速 m/s
 const REST_DEFAULT = 0.35 // 静止阈值 m/s
-const KICK_DEFAULT = 1.0 // 踢球力度倍率（活参数）
+const KICK_DEFAULT = 0.8 // 踢球力度倍率（活参数；2026-11-17 用户「调小整体施加的运动」9.0→5.0 配套降 20%）
 // 面板力度硬边界（内核侧夹）：面板图只做累加，实测连按 14 次 → 3.8，
 // 水平冲量 38 m/s 被限速夹到 18 而自旋按 38 算 ⇒ 球打滑注能、越跑越快。
 // ⚠️ 上限必须 ≤ 球实体 fb_maxv/K1_SPD（22/10 = 2.2），否则超出部分完全无效：
@@ -149,7 +149,7 @@ const K2_SPD = 16.0
 const K2_LIFT = 4.5
 const K2_SPIN = 10.0
 const K3_SPD = 7.0
-const K3_LIFT = 9.0
+const K3_LIFT = 5.0 // 2026-11-17 用户反馈吊球过高调低（9.0→5.0：高度∝lift² 降 ~55%）
 const K4_SPD = 12.0
 const K4_LIFT = 0.8
 const K5_SPD = 14.0
@@ -805,12 +805,15 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
             () => {
               const target = f.addition(pPxV.value, f.multiplication(aimX.value, DRIB_AHEAD_PARK))
               const err = f.subtraction(target, bx.value)
+              // 2026-11-17 单侧弹簧（票 27 #4 带球回头）：球越过停球目标（err<0）时
+              // 不回拉——dv 钳 ≥0，靠摩擦自然停。旧双侧弹簧把前方的球往玩家身前拖
+              // =「玩家停了球往回走」。加速度=(0−vx)/0.32 仍把它减速到停。
               const dv = f.localVariable('float')
               f.doubleBranch(f.greaterThan(f.multiplication(err, 0.45), 1.5),
                 () => { dv.set(1.5) },
                 () => {
-                  f.doubleBranch(f.lessThan(f.multiplication(err, 0.45), -1.5),
-                    () => { dv.set(-1.5) },
+                  f.doubleBranch(f.lessThan(f.multiplication(err, 0.45), 0.0),
+                    () => { dv.set(0.0) },
                     () => { dv.set(f.multiplication(err, 0.45)) })
                 })
               // z 向用 aimZ 同式
@@ -820,8 +823,8 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
               f.doubleBranch(f.greaterThan(f.multiplication(errZ, 0.45), 1.5),
                 () => { dvz.set(1.5) },
                 () => {
-                  f.doubleBranch(f.lessThan(f.multiplication(errZ, 0.45), -1.5),
-                    () => { dvz.set(-1.5) },
+                  f.doubleBranch(f.lessThan(f.multiplication(errZ, 0.45), 0.0),
+                    () => { dvz.set(0.0) },
                     () => { dvz.set(f.multiplication(errZ, 0.45)) })
                 })
               accX.set(f.addition(accX.value, f.division(f.subtraction(dv.value, vx.value), 0.32)))
@@ -934,7 +937,18 @@ g.creationSkill({ id: 1082130436, name: '_GSTS_kitLoop' }).on('start', (_evt: an
           const vyHitV = f.localVariable('float')
           vyHitV.set(f.subtraction(vy.value, f.multiplication(f.multiplication(accY.value, dt.value), f.subtraction(1.0, tHit.value))))
           const vyOut = f.multiplication(f.multiplication(vyHitV.value, -1.0), E)
-          by.set(f.addition(GROUND_Y, f.multiplication(f.multiplication(vyOut, dt.value), f.subtraction(1.0, tHit.value))))
+          by.set(f.addition(GROUND_Y, f.multiplication(
+            f.multiplication(vyOut, dt.value),
+            f.subtraction(1.0, tHit.value)
+          )))
+          // 2026-11-17 反弹高度封顶（票 27 #3 空中反弹）：dt 粗拍下强弹一步抬
+          // vyOut·dt·(1−t*) 可达 0.56m（日志 3489：反弹点 y 最高 0.81）——视觉=没
+          // 落地就在半空弹起。钳 0.18（≈一拍正常上升量），弹起交给下一拍积分。
+          f.doubleBranch(
+            f.greaterThan(by.value, f.addition(GROUND_Y, 0.18)),
+            () => { by.set(f.addition(GROUND_Y, 0.18)) },
+            () => {}
+          )
           vy.set(vyOut)
           jn.set(f.multiplication(f.multiplication(vyHitV.value, -1.0), f.addition(1.0, E)))
           contact.set(2n)

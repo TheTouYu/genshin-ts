@@ -28,7 +28,8 @@ import { MovementMode, FixedMotionParameterType } from 'genshin-ts/definitions/e
 
 const GRAPH_ID = 1073741828
 const GROUND_Y_MIN = 0.25 // 内核物理已保证 y ≥ 0.25；外推下落段压低目标时钳回地面
-const VEL_CAP = 30.0 // 插值分支位移速度上限（内核限速 22，留追赶余量）
+const VEL_CAP = 45.0 // 插值分支位移速度上限（2026-11-17 30→45：内核限速 22+信号空洞追赶需
+// (gap+前瞻)/0.12 可达 40+，被 30 钳住=高速球渲染追不上内核球，视觉滞后累积后跳变——票 27 #1）
 const JUMP_DIST = 5.0 // 数据跳变门：单拍镜像位移超过此值 = 重置/回中（非物理）
 const EXTRAP_MAX = 0.45 // 外推上限：信号空洞 >0.45s 后目标冻结在 0.45s 外推位
 const ALIVE_VEL = 0.08 // 休眠门：镜像速度 ≤ 此值且已到位 ⇒ 渲染休眠
