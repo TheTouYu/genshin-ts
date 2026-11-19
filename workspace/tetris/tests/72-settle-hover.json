@@ -1,7 +1,7 @@
 {
  "format": "qxqy-autotest",
  "version": 1,
- "name": "72 v6.3 结算三胶囊 三态+音效：hover 播 50870 且 imageColor 0xFF7FCF6A→0xFF71B65E →复位；press 播 50884 + 改色下沉；按 Q 明细不退出结算",
+ "name": "72 v6.3 结算三胶囊 三态+音效：hover 播 50870 且 imageColor 0xFF7FCF6A→0xFF71B65E →复位；press 播 50884 + 改色下沉；按「结算」胶囊发真结算信号（2026-11-20：结算=玩家主动上报，不再自动）",
  "dt": 0.016666666666666666,
  "canvasId": "pc-16-9",
  "events": [
@@ -466,7 +466,7 @@
   {
    "at": 11.8,
    "kind": "log",
-   "contains": "settle detail on",
+   "contains": "settle signal sent",
    "source": "client"
   }
  ],

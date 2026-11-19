@@ -1,0 +1,431 @@
+{
+ "format": "qxqy-autotest",
+ "version": 1,
+ "name": "87 结算只在按「结算」时上报：顶死后**不自动**发信号（撤销 f987c418 的「结算页建好即发」），按结算胶囊才 sent",
+ "dt": 0.016666666666666666,
+ "canvasId": "pc-16-9",
+ "events": [
+  {
+   "t": 0.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 0.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 0.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 1.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 1.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 2.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 2.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 3.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 3.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 4.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 4.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 5.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 5.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.6,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.61,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 6.8,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 6.81,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.0,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.01,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.2,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.21,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 7.4,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyDown"
+  },
+  {
+   "t": 7.41,
+   "kind": "key",
+   "typeName": "KeyboardJumpKeyUp"
+  },
+  {
+   "t": 8.6,
+   "kind": "pointer",
+   "type": "move",
+   "x": 1075,
+   "y": 204
+  },
+  {
+   "t": 8.7,
+   "kind": "pointer",
+   "type": "down",
+   "x": 1075,
+   "y": 204
+  },
+  {
+   "t": 8.9,
+   "kind": "pointer",
+   "type": "up",
+   "x": 1075,
+   "y": 204
+  }
+ ],
+ "asserts": [
+  {
+   "at": 8.4,
+   "kind": "log",
+   "contains": "gameover",
+   "source": "client"
+  },
+  {
+   "at": 8.4,
+   "kind": "log",
+   "contains": "settle hotzones n=3",
+   "source": "client"
+  },
+  {
+   "at": 8.4,
+   "kind": "lua",
+   "source": "if query.logContains('settle signal sent') then return false end\nreturn 'no auto settle signal at gameover'"
+  },
+  {
+   "at": 9.4,
+   "kind": "log",
+   "contains": "settle signal sent",
+   "source": "client"
+  },
+  {
+   "at": 9.4,
+   "kind": "log",
+   "contains": "settle reported score=",
+   "source": "client"
+  }
+ ]
+}

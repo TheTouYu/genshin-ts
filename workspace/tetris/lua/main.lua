@@ -123,7 +123,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.31'
+BUILD_TAG = 'v6.32'
 -- 上面只写**语义版本**；日期 + commit 由 qxqy/buildtag.mjs 在构建期注入（人手改日期必滞后 15 天）
 -- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
 -- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
@@ -772,6 +772,23 @@ local function sendSettleSignal()
   return false
 end
 
+-- 真结算的**唯一入口**（2026-11-20 用户裁决恢复 10-25 dbec3b15 原设计）。
+-- 背景：commit f987c418 为了修「7 次结算只发 1 次」改成「结算页建好即上报」，副作用是
+-- **一局结束就结算关卡 ⇒ 关卡直接退出**（真机反馈「玩一把就自动结算退出了」）。
+-- 现在只有玩家主动按「结算」（键盘 Q / 结算页第三颗胶囊）才上报；游戏结束就停在结算页，
+-- 三选一：再来一局（R）继续玩、回主页（V）回标题、结算（Q）结束关卡并上报。
+-- 每局最多上报一次（newGame 复位 g.settleSignaled），重复按不会重复发信号。
+local function trySettle()
+  if not (g.gameOver or MODE_OVER) then return false end
+  if g.settleSignaled then return true end       -- 本局已上报过：视为已完成，不再重复发
+  if sendSettleSignal() then
+    g.settleSignaled = true
+    print('settle reported score=' .. tostring(g.score) .. ' lines=' .. tostring(g.lines))
+    return true
+  end
+  return false                                   -- 本机无信号通道 ⇒ 调用方退回旧的「明细」行为
+end
+
 function probeTextRaw()
   for _, g in ipairs(TPL_GUIDS.settleText) do
     local ok, ctl = pcall(function() return game.InstantiateClientUIControl(g, root) end)
@@ -994,10 +1011,10 @@ SETTLEV.open = function(overTitle)
   -- 契约锚（tests/37 逐字断言这一行；tests/40 只断言前缀 'settle hotzones n=3'）
   print('settle hotzones n=' .. made .. ' v=' .. tostring(optv.variant or 'P'):upper())
   UI4.dump('settle')
-  if not g.settleSignaled then
-    g.settleSignaled = true
-    sendSettleSignal()                     -- 建好即上报一次（原 buildSettleLayer 的责任）
-  end
+  -- 2026-11-20（用户真机反馈「玩一把就自动结算退出了」）：这里**不再**自动发结算信号。
+  -- 历史：f987c418 为修「7 次结算只发 1 次」把上报挪到「结算页建好即发」，副作用是
+  -- 一局结束就调结算关卡 ⇒ 关卡退出，玩家没法再来一局。现在上报只由玩家按「结算」触发
+  -- （trySettle：键盘 Q / 结算页第三颗胶囊两条入口同一份实现）。
   -- 旧实现的那条日志锚（tests/40-ai-takeover-death 逐字断言它）⇒ v2 也照打，
   -- 但含义变成「描述已落地成控件」；紧跟着的 v2 专用锚才是"新路径真的在跑"的证明。
   print('settle build ok n=' .. #nodes)
@@ -5232,8 +5249,8 @@ function OnStart()
   local function actSettleQ()
     startIfWaiting()
     if not (g.gameOver or MODE_OVER) then return end
-    -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
-    if sendSettleSignal() then return end
+    -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页（唯一入口，见 trySettle）
+    if trySettle() then return end
     -- ② 本机 Lua 无信号通道时的退路：原来的「结算明细」开关
     settleOpen = not g.settleOpen
     local mins = math.floor(g.elapsed / 60)
@@ -5279,11 +5296,15 @@ function OnStart()
       FN.exitToMenu()
     end
   end
-  SETTLE_ACT.detail = function()    -- = Q 键体核心（明细切换；结算信号优先路径保留在键监听）
+  SETTLE_ACT.detail = function()    -- 结算页第三颗胶囊「结算」：先真结算，发不出去才退回明细
     -- v5.5 修用户 2026-10-30 二轮反馈：「点 Q / 按 Q 都不触发结算」。
     -- 真机日志铁证：连续 `hot settle Q` 但**零条** `settle detail on` ⇒ 被这个 guard 挡掉。
     -- 双盘（pvp/coop/ai-battle）终局置的是 MODE_OVER，g.gameOver 仍是 false ⇒ 三个结算键全部空转。
     if not (g.gameOver or MODE_OVER) then return end
+    -- 2026-11-20：这颗胶囊的标签是「结算」（v6.11 用户要求），但实现一直只切明细 ——
+    -- 手机端因此**没有任何结算入口**（自动上报被删掉后更是如此）。现在与键盘 Q 同一条判据：
+    -- ① 真结算（trySettle，每局一次）→ 关卡结束；② 本机无信号通道才退回明细开关。
+    if trySettle() then return end
     g.settleOpen = not g.settleOpen
     local mins = math.floor(g.elapsed / 60)
     local secs = math.floor(g.elapsed % 60)

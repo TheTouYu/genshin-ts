@@ -732,7 +732,34 @@ M.new = function(spec)
     -- 巡检抓到两个不同坐标（qa-shots 报 `phhome×2`）
     b.edge = pill('pe' .. gp .. id, w + (KIT.EDGE or 3) * 2, h + (KIT.EDGE or 3) * 2, COL.btnEdge)
     b.bg = pill('pb' .. gp .. id, w, h, COL.btnBg)
-    b.txt = spec.instText('pt' .. gp .. id, def.label, w, h, fs)
+    if def.icon then
+      -- 2026-11-20（真机：左簇下排两颗**空胶囊**）：`◀`/`▶` 是 U+25C0/U+25B6，真机字体没有这两个字形
+      -- ⇒ 文本控件一个 glyph 都画不出来；模拟器有回退字体，所以出图/`textLayout.fits` 一直是绿的。
+      -- 现在改画**内置图元** 100003=triangle（顶点朝上），SetLocalRotation 正角逆时针 ⇒ +90 指左、−90 指右。
+      -- 图元建不出来就退回中文单字（同一字形族已在真机截图里验证可显示），不留空白。
+      b.icon = spec.instCell('pi' .. gp .. id)
+      if b.icon then
+        tryCall(b.icon, 'SetSizeDelta', def.iw or 20, def.ih or 24)
+        trySet(b.icon, 'imageColor', COL.btnText or THEMEDARK)
+        local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
+        local okImg = false
+        if enumT and enumT.StaticReference ~= nil then
+          okImg = pcall(function() b.icon:SetImage(enumT.StaticReference, def.icon) end)
+        end
+        if not okImg then
+          okImg = pcall(function() b.icon:SetImage('StaticReference', def.icon) end)
+        end
+        local okRot = pcall(function() b.icon:SetLocalRotation(0, 0, def.rot or 0) end)
+        if not okRot then pcall(function() b.icon:SetLocalRotation(0, 0) end) end
+        -- 读数锚（真机核验用）：三件事必须同时为 true 才是三角，否则退化成方块/不转
+        print('phone icon id=' .. tostring(id) .. ' img=' .. tostring(okImg)
+          .. ' rot=' .. tostring(okRot) .. ' r=' .. tostring(def.rot or 0))
+      else
+        b.txt = spec.instText('pt' .. gp .. id, def.fallback or '', w, h, fs)
+      end
+    else
+      b.txt = spec.instText('pt' .. gp .. id, def.label, w, h, fs)
+    end
     -- 热区最后建（层序惯例：后建在上，命中优先）
     b.hit = (spec.instHit2 or spec.instHit)('ph' .. gp .. id, w, h)
     if not (b.bg and b.hit) then return nil end
@@ -790,6 +817,7 @@ M.new = function(spec)
     if b.x then
       placePill(b.bg, b.x, b.y + dy)
       if b.txt then tryCall(b.txt, 'SetAnchoredPosition', b.x, b.y + dy) end
+      if b.icon then tryCall(b.icon, 'SetAnchoredPosition', b.x, b.y + dy) end
     end
   end
 
@@ -876,6 +904,8 @@ M.new = function(spec)
       tryCall(b.txt, 'SetAnchoredPosition', x, y)
       if b.label then pcall(function() b.txt.text = b.label end) end
     end
+    -- 图元标签（箭头）：尺寸在创建时定（旋转后占 ih×iw），这里只跟位置走
+    if b.icon then tryCall(b.icon, 'SetAnchoredPosition', x, y) end
     if b.hit then
       tryCall(b.hit, 'SetSizeDelta', w, h)
       tryCall(b.hit, 'SetAnchoredPosition', x, y)
@@ -927,6 +957,14 @@ M.new = function(spec)
   U.skillBuild = function()
     if U.skill then return end
     if not spec.instText then return end
+    -- 2026-11-20：SKILL_UI=false 时**这 11 件控件一件都不建**。
+    -- 它们本来就不参与布局（帧快照里 pos=None 的孤儿），但 4px 宽的 sk1name 会被出图质检
+    -- 判成「文字被裁」（真实读数：textWidth=4 ⇒ '纳西妲' 折 3 行 ⇒ 需高 73.3），
+    -- 且白占 11 个运行时控件实例名额。技能**逻辑**与技能 HUD 数据接口不依赖这里（有 `if U.skill` 守卫）。
+    if NUM.SKILL_UI == false then
+      print('skill hud skip (SKILL_UI=false)')
+      return
+    end
     U.skill = {}
     -- 层序铁律：运行时实例**后建在上** ⇒ 卡底/竖条/条底必须先建，文字与能量条后建，
     -- 否则白卡把角色名/状态/条全盖住（lead 2026-10-29 复核："技能 HUD 变成一块空白白条"）。

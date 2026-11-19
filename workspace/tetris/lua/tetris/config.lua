@@ -781,9 +781,15 @@ NUM.PHONE = {
   SKILL_W = 100, SKILL_H = 58,    -- 中下技能行（≥96×56）
   NAV_W = 116, NAV_H = 56,        -- 说明/名册/合上/回标题
   ACT_W = 208, ACT_H = 64,        -- 结算三键（再来一局/回主页/明细）
+  -- 2026-11-20（真机截图：左簇下排两颗空胶囊）：`◀`/`▶` 是 U+25C0/U+25B6，**真机字体没有这两个字形**
+  -- ⇒ 文本控件一个 glyph 都画不出来（模拟器有回退字体，所以出图与 `textLayout.fits` 一直是对的）。
+  -- 现在箭头走**内置图元**：100003=triangle（顶点朝上），SetLocalRotation 正角逆时针 ⇒ +90 指左、−90 指右。
+  -- label 保留为语义名（日志/测试/文档读它）；fallback 是图元建不出来时的中文单字退路——绝不留空白胶囊。
   items = {
-    { id = 'left',   label = '◀',    act = 'left',   slot = 'L1', rep = true },
-    { id = 'right',  label = '▶',    act = 'right',  slot = 'L2', rep = true },
+    { id = 'left',   label = '◀',    act = 'left',   slot = 'L1', rep = true,
+      icon = 100003, rot = 90,  iw = 20, ih = 24, fallback = '左' },
+    { id = 'right',  label = '▶',    act = 'right',  slot = 'L2', rep = true,
+      icon = 100003, rot = -90, iw = 20, ih = 24, fallback = '右' },
     { id = 'rot',    label = '旋转', act = 'rot',    slot = 'L3' },
     { id = 'hard',   label = '锁定', act = 'hard',   slot = 'R1' },
     { id = 'soft',   label = '缓降', act = 'soft',   slot = 'R2', rep = true },
