@@ -45,6 +45,7 @@ local slotBad, slotWorst = 0, nil
 local overlapBad, overlapWorst = 0, nil
 local arrowBad, arrowWorst = 0, nil   -- ◀ 必须在 ▶ 左边：统计**违规**数（0 才算过）
 local arrowChecked = 0
+local colBad, colWorst, colChecked = 0, nil, 0
 
 for _, cv in ipairs(CANVASES) do
   local W, H, dev = cv[1], cv[2], cv[3]
@@ -101,6 +102,22 @@ for _, cv in ipairs(CANVASES) do
           arrowWorst = arrowWorst or string.format('%s ◀x=%.0f ▶x=%.0f', tag, L.x, R.x)
         end
       end
+      -- S4（v6.33）：拇指簇必须是**一套网格**——同一列的两颗键 x 必须相等。
+      -- 真机 2026-11-20 形态：「缓降」留在上一套布局的 +228，而同列「暂存」在 +454。
+      -- 这是"布局被应用一半"的现象；plan 层守住它，运行时冷冻（placeBtnNow 跳过）另有用例 U1。
+      local col = {}
+      for _, b in ipairs(p.slots or {}) do col[b.id] = b end
+      local pairs4 = { { 'soft', 'hold' }, { 'hard', 'rot2' }, { 'left', 'hold2' }, { 'right', 'rot' } }
+      for _, pr in ipairs(pairs4) do
+        local a, b2 = col[pr[1]], col[pr[2]]
+        if a and b2 then
+          colChecked = colChecked + 1
+          if math.abs(a.x - b2.x) > 0.5 then
+            colBad = colBad + 1
+            colWorst = colWorst or string.format('%s %s.x=%.0f ≠ %s.x=%.0f', tag, pr[1], a.x, pr[2], b2.x)
+          end
+        end
+      end
       local issues = VNODE.lintPlan(p, { canvas = { W, H }, parkedY = PARKED_Y })
       for _, it in ipairs(issues) do
         totalIssues[it.code] = (totalIssues[it.code] or 0) + 1
@@ -118,6 +135,8 @@ ok(totalIssues.P5 == 0, 'P5 条目必须带完整数值', samples.P5)
 
 ok(slotBad == 0, 'S1 触屏槽位必须整体落在画布内（v6.30 箭头被边缘切掉的守卫）', slotWorst)
 ok(overlapBad == 0, 'S2 同一行两键不得重叠（v6.30 按钮互压的守卫）', overlapWorst)
+ok(colBad == 0 and colChecked > 0,
+  string.format('S4 拇指簇同列必须同 x（%d 组检查，0 违规）', colChecked), colWorst)
 ok(arrowBad == 0 and arrowChecked > 0,
   string.format('S3 ◀ 必须在 ▶ 左边（%d 组检查，0 违规）', arrowChecked), arrowWorst)
 

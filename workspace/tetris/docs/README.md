@@ -144,6 +144,28 @@ node qxqy/probe-audio.mjs
 - 修改游戏逻辑后 **先改 `lua/main.lua`，再 `node qxqy/build.mjs`**（存档里的脚本源码是构建时内联进去的，
   只改 `.lua` 不会让旧存档变）。
 
+### 5.1 验证顺序（v6.33 定，防返工）
+
+全量 runner 一轮 ≈ **6 分钟**，所以它只跑**一次**，放在最后。顺序固定：
+
+```
+1) 改代码 + 补用例 + 定 BUILD_TAG          ← 三件事全部定稿，之后只允许改 bug
+2) lua5.3 tests-lua/run_all.lua            ← 秒级：纯逻辑/几何/层序
+3) lua5.3 tests-lua/run_cases.lua --jobs=8 ← 6 秒：用例表（唯一允许的红是 57-copy-garbage 位宽差异）
+4) node qxqy/shots-v5.mjs --all && node qxqy/shot-audit.mjs   ← 20 秒：**先看出图质检**
+5) node qxqy/runner.mjs                    ← 6 分钟，**只跑这一次**
+6) bash qxqy/tetris-guard.sh --fast         ← 交付门；第 9 项红=还没 deploy，跑完 deploy 即绿
+7) node qxqy/deploy.mjs [--device]          ← **最后一步**，之后不要再提交（改了 HEAD 门禁又红）
+```
+
+两条踩过的坑（照做即可避开）：
+
+- **别在第一次 runner 之后再改代码/用例/版本号**——每改一次就再花 6 分钟（v6.32 实测跑了 4 次 ≈ 23 分钟）。
+- **出图质检（第 4 步）要提前**：它读的是上轮留下的 `.scratch/lead/shots/final`，会**假绿**；
+  只有重新出图才暴露存量问题（v6.32 的孤儿技能 HUD 控件就是这么晚才浮出来的）。
+
+真机读数前另行取一次「跑的是这份构建吗」的证据（新版独有的打印锚），文件里有没有新字符串不算证据。
+
 ## 6. 用例（`tests/`，**44 条**；下表是 v1 的 10 条核心用例，v2 起的 34 条见 §6.1）
 
 | 用例 | 覆盖 | 关键断言 |

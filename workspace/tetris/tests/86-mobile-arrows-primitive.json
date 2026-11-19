@@ -1,64 +1,50 @@
 {
- "format": "qxqy-autotest",
- "version": 1,
- "name": "86 手机箭头键改图元画：pipleft/pipright = image·triangle（旋转 ±90 由 SetLocalRotation，日志锚 rot=true r=±90）；旧文本件 ptpleft/ptpright 不再创建",
- "dt": 0.016666666666666666,
- "canvasId": "mobile-19.5-9",
- "events": [
-  {
-   "t": 0.6,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Down"
-  },
-  {
-   "t": 0.65,
-   "kind": "key",
-   "typeName": "KeyboardCraftspersonKey1Up"
-  }
- ],
- "asserts": [
-  {
-   "at": 1.0,
-   "kind": "control",
-   "name": "pipleft",
-   "field": "primitive",
-   "equals": "triangle"
-  },
-  {
-   "at": 1.0,
-   "kind": "control",
-   "name": "pipright",
-   "field": "primitive",
-   "equals": "triangle"
-  },
-  {
-   "at": 1.0,
-   "kind": "tree",
-   "name": "ptpleft",
-   "exists": false
-  },
-  {
-   "at": 1.0,
-   "kind": "tree",
-   "name": "ptpright",
-   "exists": false
-  },
-  {
-   "at": 1.0,
-   "kind": "log",
-   "contains": "phone icon id=left img=true rot=true",
-   "source": "client"
-  },
-  {
-   "at": 1.0,
-   "kind": "log",
-   "contains": "phone icon id=right img=true rot=true r=-90",
-   "source": "client"
-  },
-  {
-   "at": 1.0,
-   "kind": "lua",
-   "source": "local L,R=nil,nil\nfor _,l in ipairs(query.logs()) do\n  if l:find('phone icon id=left',1,true) then L=l end\n  if l:find('phone icon id=right',1,true) then R=l end\nend\nassert(L and L:find('img=true rot=true r=90',1,true), '左箭头图元/旋转没成功：'..tostring(L))\nassert(R and R:find('img=true rot=true r=-90',1,true), '右箭头图元/旋转没成功：'..tostring(R))\nreturn true"
-  }
- ]
+  "format": "qxqy-autotest",
+  "version": 1,
+  "name": "86 手机箭头键改图元画：pipleft/pipright = image·triangle（旋转 ±90 由 SetLocalRotation，日志锚 rot=true r=±90）；旧文本件 ptpleft/ptpright 不再创建",
+  "dt": 0.016666666666666666,
+  "canvasId": "mobile-19.5-9",
+  "events": [
+    {
+      "t": 0.6,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Down"
+    },
+    {
+      "t": 0.65,
+      "kind": "key",
+      "typeName": "KeyboardCraftspersonKey1Up"
+    }
+  ],
+  "asserts": [
+    {
+      "at": 1.0,
+      "kind": "tree",
+      "name": "ptpleft",
+      "exists": false
+    },
+    {
+      "at": 1.0,
+      "kind": "tree",
+      "name": "ptpright",
+      "exists": false
+    },
+    {
+      "at": 1.0,
+      "kind": "log",
+      "contains": "phone icon id=left img=true rot=true",
+      "source": "client"
+    },
+    {
+      "at": 1.0,
+      "kind": "log",
+      "contains": "phone icon id=right img=true rot=true r=-90",
+      "source": "client"
+    },
+    {
+      "at": 1.0,
+      "kind": "lua",
+      "source": "local L,R=nil,nil\nfor _,l in ipairs(query.logs()) do\n  if l:find('phone icon id=left',1,true) then L=l end\n  if l:find('phone icon id=right',1,true) then R=l end\nend\nassert(L and L:find('img=true rot=true r=90',1,true), '左箭头图元/旋转没成功：'..tostring(L))\nassert(R and R:find('img=true rot=true r=-90',1,true), '右箭头图元/旋转没成功：'..tostring(R))\nreturn true"
+    }
+  ]
 }

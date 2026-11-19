@@ -804,6 +804,12 @@ M.new = function(spec)
   -- 涂之前先探测活（只读），失效静默跳过。
   local function aliveCtl(ctl)
     if not ctl then return false end
+    -- 🔴 v6.33：胶囊是 `{ parts = {body, capL, capR}, ... }` **包装表**，不是引擎控件。
+    -- 旧实现直接把包装表拿去 `:GetAnchoredPosition()` ⇒ 恒抛错 ⇒ aliveCtl 恒 false ⇒
+    -- ① `U.paint` 每次涂色都提前 return（悬停/按下高亮从来没生效）
+    -- ② 顺手把 `b.dead = true`（真机 2026-11-20：那颗被碰过的「缓降」坐标从此冻结）。
+    if ctl.parts then ctl = ctl.parts[1] end
+    if not ctl then return false end
     return (pcall(function() return ctl:GetAnchoredPosition() end))
   end
   U.paint = function(b, st)
@@ -893,7 +899,14 @@ M.new = function(spec)
     return okk
   end
   placeBtnNow = function(b, hidden)
-    if not b or b.dead then return end
+    if not b then return end
+    -- 🔴 v6.33（真机 2026-11-20 01:40：「缓降」停在上一套布局的 +228，其余 7 颗随切盘移到 +454/584）：
+    -- `b.dead` 原本由 U.paint 置真（它只是"这只控件已经销毁，别涂三态"），却被这里当成**永久**跳过
+    -- ⇒ 任何一次 paint 探测失败就把这颗键的坐标永久冻结在当时那套布局上，之后 apply 再也摆不动它。
+    -- 判据：paint 的死只是"涂色"层面的，不是"摆位"层面的；控件活回来就清标记继续摆（只读探测）。
+    if b.dead then
+      if b.bg and aliveCtl(b.bg) then b.dead = nil else return end
+    end
     local x = b.gx or 0
     local y = hidden and PARK_Y or (b.gy or 0)
     local w, h = b.gw or 120, b.gh or 56
@@ -944,7 +957,14 @@ M.new = function(spec)
       placeBtn(b, r)
       -- 注册到巡检表：`ctl dump screen=game` 会打印每颗拇指键的**实际屏幕坐标**
       -- （测试拿它算点击坐标，别再手写会漂移的魔数）
-      if r and b.hit then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
+      if r and b.hit and not b.dead then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
+      -- v6.33 诊断锚：槽位有几何但控件已销毁 ⇒ 这颗键会被跳过（真机 2026-11-20 的「缓降错位」形态）。
+      -- 只在异常时打一行，正常局零噪声。
+      if r and b.dead then
+        print('phone place skip id=' .. tostring(b.id) .. ' alive=' .. tostring(aliveCtl(b.bg))
+          .. ' want=' .. math.floor((r.x or 0) + 0.5) .. ',' .. math.floor((r.y or 0) + 0.5)
+          .. ' now=' .. math.floor((b.x or 0) + 0.5) .. ',' .. math.floor((b.y or 0) + 0.5))
+      end
     end
     -- 唯一收口：任何一次摆位（apply/reapply/navRecreate 都走这里）之后，若浮层开着就再收一次。
     if U.padHidden and U.padVisible then U.padVisible(false) end
@@ -1146,6 +1166,13 @@ M.new = function(spec)
     if screen then U.screen = screen end
     local W, H = canvas()
     local p = U.plan(U.screen, dual, guide)
+    -- v6.33 诊断锚：双盘几何只在 dual 变化时打一行。真机 2026-11-20 的「休闲模式拇指簇被推到
+    -- 双盘位置」无法从日志区分是 U.enter 还是 UI4.layout 触发的（后者不打 layout 行）⇒ 这里补上。
+    if U.appliedDual ~= (dual and true or false) then
+      U.appliedDual = dual and true or false
+      print('phone dual=' .. tostring(U.appliedDual) .. ' screen=' .. tostring(U.screen)
+        .. ' via=' .. tostring(U.lastVia or '?'))
+    end
     applyText(p)
     U.lastPlan = p
     applyButtons(p)
@@ -1181,6 +1208,19 @@ M.new = function(spec)
       pcall(U.padBuildNow, want)
       pcall(U.skillBuild)
       U.sig = nil
+    end
+    -- v6.33：帧率探针（用户 2026-11-20「感觉很卡」——现有 .gia 日志里没有帧率维度，
+    -- 引擎负载读数又偏低，只能自己量）。每 5 秒一行，config.NUM.FPS_PROBE 关闭即零开销。
+    if NUM and NUM.FPS_PROBE then
+      local f = U.fps or { t0 = 0, n = 0, worst = 0 }
+      U.fps = f
+      f.n = f.n + 1
+      f.t0 = f.t0 + (dt or 0)
+      if (dt or 0) > f.worst then f.worst = dt or 0 end
+      if f.t0 >= 5 then
+        print(string.format('fps=%.1f n=%d worst=%.0fms', f.n / f.t0, f.n, f.worst * 1000))
+        f.t0, f.n, f.worst = 0, 0, 0
+      end
     end
     local st = spec.state and spec.state() or {}
     local sc = 'game'
