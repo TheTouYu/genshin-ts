@@ -21,7 +21,7 @@ import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildStudio } from './build.mjs'
-import { buildTag } from './buildtag.mjs'
+import { buildTag, moduleFingerprint } from './buildtag.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..')
@@ -93,11 +93,18 @@ mkdirSync(join(root, 'device-package'), { recursive: true })
 const gia = Buffer.from(studio.exportData('gia-combined').data, 'base64')
 writeFileSync(join(root, 'device-package/tetris-整合包.gia'), gia)
 // 注入过 guid 的 Lua（与 GIA 内联源码一致）：外部脚本同步路径也拿同一份
+// v6.34：这里也注入版本戳 + 模块指纹（与 build.mjs 同源：buildTag / moduleFingerprint 同一份实现）。
+// 旧实现只做 GUID 替换 ⇒ 真机拿到的是 `BUILD_TAG='v6.34'`（没有日期/commit）和 `fp=00000000`，
+// 于是"启动打印的构建身份"在两条部署路上不一致 —— 正是当日误判的病根之一。
+const { fp: DEPLOY_FP, count: DEPLOY_N } = moduleFingerprint(root)
 const injectedLua = readFileSync(luaSource, 'utf8')
   .replaceAll('__GUID_CELL__', String(cellGuid))
   .replaceAll('__GUID_HIT__', String(hitGuid))
   .replaceAll('__GUID_SETTLE__', String(settleGuid))
   .replaceAll('__GUID_STEXT__', String(stextGuid))
+  .replace(/^BUILD_TAG = '[^']*'/m, `BUILD_TAG = '${buildTag(root)}'`)
+  .replace(/^MODULE_FP = '[^']*'/m, `MODULE_FP = '${DEPLOY_FP}'`)
+  .replace(/^MODULE_N = '\d+'/m, `MODULE_N = '${DEPLOY_N}'`)
 
 // 网页试玩工作区：模拟器存档扫描 policy.symlinks=false（studio/host/workspace.js:170）
 // ⇒ 软链不会被列出，必须实体复制；每次 rebuild 后自动同步一次

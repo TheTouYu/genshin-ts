@@ -3,8 +3,9 @@
 // 用法：node qxqy/build.mjs
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { dirname, join } from 'node:path'
-import { buildTag } from './buildtag.mjs'
+import { buildTag, moduleFingerprint } from './buildtag.mjs'
 import { fileURLToPath } from 'node:url'
 import { createStudio, importGia } from '/home/h/miliastra-beyond-simulator/studio/index.js'
 
@@ -208,9 +209,15 @@ export function buildStudio() {
     console.log('lua compile   : ok (' + files.length + ' files, luac5.3)')
   }
   const tag = buildTag(root)
+  // v6.34：模块指纹（真机"跑的是哪份代码"的唯一判据）。把 lua/ 下全部 .lua 的源码按路径排序拼起来
+  // 取 sha256 前 8 位 ⇒ 任何模块有差异指纹就变，不必逐模块核对。
+  // 2026-11-20 实证代价：没有它时，我花 40 分钟在"文件里有没有新字符串 vs 打印锚缺失"之间误判两次。
+  const { fp: MODULE_FP, count: MODULE_N } = moduleFingerprint(root)
   const lua = substGuids(readFileSync(join(root, 'lua/main.lua'), 'utf8'))
     // 版本戳构建期注入：`v6.27` → `v6.27 · 11-17 16:2x 1e1eb43`（来源唯一：qxqy/buildtag.mjs）
     .replace(/^BUILD_TAG = '[^']*'/m, `BUILD_TAG = '${tag}'`)
+    .replace(/^MODULE_FP = '[^']*'/m, `MODULE_FP = '${MODULE_FP}'`)
+    .replace(/^MODULE_N = '\d+'/m, `MODULE_N = '${MODULE_N}'`)
   assertNoPlaceholder(lua, 'lua/main.lua')
   patch({
     op: 'addScript',

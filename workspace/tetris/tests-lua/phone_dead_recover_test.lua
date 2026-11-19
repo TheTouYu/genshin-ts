@@ -61,7 +61,6 @@ local function build(W, H)
     instText = function(nm) local c = mk(nm); c.text = '' return c end,
     instHit = function(nm) return mk(nm) end,
     mode = function() return 'casual' end,
-    state = function() return { dual = false, mode = 'casual' } end,
   }
   local U = UIM.new(spec)
   U.padBuildNow(true)

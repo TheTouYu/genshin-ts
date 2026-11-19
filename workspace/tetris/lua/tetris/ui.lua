@@ -679,7 +679,14 @@ M.new = function(spec)
 
   U.plan = function(screen, dual, guide)
     local W, H = canvas()
-    return planScreen(screen or U.screen, W, H, mobile(), dual, guide)
+    -- v6.34：`dual` 的**唯一真源 = spec.state().dual**。以前有两个入口各传一次
+    -- （U.enter 传 st.dual；main 的 UI4.layout 传 (G[2] ~= nil)），只有一个打日志 ⇒
+    -- 真机「休闲单盘却用了双盘几何」时无法从日志判断是谁干的（2026-11-20，排查 40 分钟）。
+    -- 参数只在 spec.state 缺失（headless 用例直接调 plan）时兜底。
+    local st = spec.state and spec.state() or {}
+    local d = st.dual
+    if d == nil then d = dual end
+    return planScreen(screen or U.screen, W, H, mobile(), d, guide)
   end
 
   ----------------------------------------------------------------------------

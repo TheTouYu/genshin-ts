@@ -123,7 +123,11 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.33'
+BUILD_TAG = 'v6.34'
+-- v6.34：**模块指纹**（构建期由 qxqy/build.mjs 注入 sha256 前 8 位，覆盖 lua/ 下全部 .lua）。
+-- 判据：真机上看到这一行，才能确认跑的是这份代码；文件里有新字符串不算证据（2026-11-20 误判两次）。
+MODULE_FP = '00000000'
+MODULE_N = '0'
 -- 上面只写**语义版本**；日期 + commit 由 qxqy/buildtag.mjs 在构建期注入（人手改日期必滞后 15 天）
 -- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
 -- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
@@ -4889,7 +4893,8 @@ function OnStart()
     PT = PLATFORM_M.new({ game = game, root = root, templates = TPL_GUIDS })
     BR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
     VB = VIEW_BOARD_M.new({ config = VCFG })
-    print('v6 boot platform+render+view_board ok')
+    print('build ' .. tostring(BUILD_TAG) .. ' fp=' .. tostring(MODULE_FP) .. ' modules=' .. tostring(MODULE_N))
+  print('v6 boot platform+render+view_board ok')
   end
   -- v6.5 预览列装配（S1 只装配；S2 起 renderNext 改走描述，旧 12 颗手建实例删除）
   if PVW.M and PT and VIEW_LAYERS_M and RENDER_M then
