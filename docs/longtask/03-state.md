@@ -89,7 +89,7 @@ git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此�
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
 4. `[global]` `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回三游戏伞目标前必须刷新）。
 5. `[sim-2d]` 真机导入目录现为 4 个文件（`hmlt-qixia-整合包.gia` 93,202 B + 2 个 baseline + `tetris-整合包.gia`）——导入时**别选错**。
-6. `[global]` Win11 上 PATH 无 `python3`：提交钩子（doc_health）与 `tools/gil-guard.py` 等不能直接跑——暂用 DSH 运行时 python + `BASH_ENV` 注入（§四），跑门禁须 `PYTHONUTF8=1`（否则子进程输出按 GBK 解码抛异常、FAIL 文本会丢）；钩子已三次实测真实执行并放行（`99774abd` / `929bec4d` / `b80a16a0`）；**未固化成仓库件，待用户裁决**（固化前先定谁拥有·怎么生效·规范在哪）。
+6. `[global]` Win11 上 PATH 无 `python3`：提交钩子（doc_health）与 `tools/gil-guard.py` 等不能直接跑——暂用 DSH 运行时 python + `BASH_ENV` 注入（§四），跑门禁须 `PYTHONUTF8=1`（否则子进程输出按 GBK 解码抛异常、FAIL 文本会丢）；钩子已八次实测真实执行并放行（`99774abd` / `929bec4d` / `b80a16a0` / `b6da5110` / `f3169792` 及复盘批）；`failure-ledger dashboard/add/list` 与 `scripts/skill-salvage.py` 可跑（后者路径分隔符已修），`check` 的 gate 编排不可运行；复盘 `docs/maintenance/retrospective-2026-11-25-win11-migration-toolchain.md`；**未固化成仓库件，待用户裁决**（固化前先定谁拥有·怎么生效·规范在哪）。
 7. `[global]` `node_modules` 是 Linux 装的（仅 linux-x64 esbuild）：Win11 上跑 `gsts` 须 `ESBUILD_BINARY_PATH` 指向同版本 win32 esbuild.exe，而它现在放在 `%TEMP%`（可能被清理）——清理后按 2D 游戏技能 `12-deploy.md` §6 重新解包。
 8. `[global]` `cmdmon` 耗时监控未安装：根 AGENTS.md「耗时监控」要求的开工/收轮读数（`~/.dsh/cmdlog/last-coach.md`）在 Win11 上取不到；Linux 侧 GUI/试玩工具链（`tools/ys-editor/`、`ys-lookd`）未迁移。
 
