@@ -20,7 +20,7 @@
 - **CLI 走包装**：`node examples/football/gsts-win.mjs <子命令…>`（自动补 `GSTS_LOCALLOW_DIR` 与
   `ESBUILD_BINARY_PATH`——`node_modules` 是 Linux 装的，只有 linux-x64 esbuild）。裸跑 `bin/gsts.mjs` 须先自己设这两个变量。
 - **Python**：PATH 里没有 `python3`/`python`；`gil-guard.py` / `gil-header-check.py` / `doc_health.py` 用
-  `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`。
+  `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`，并设 `$env:PYTHONUTF8='1'`（跑门禁必需）。
 - **提交**：pre-commit 钩子（bash）调 `python3`，Win11 上须让钩子进程拿到 `python3`（做法见
   `DEPLOY-WIN11-20261125.md`「Win11 上提交」）；**不要 `--no-verify`**。
 - 存档双地址：`…\Beyond_Local_Save_Level\<id>\<id>.gil`（同级带 `external_lua_file\`）+ `…\Temp\<id>.gil`
