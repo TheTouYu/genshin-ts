@@ -116,6 +116,13 @@ grep -E '/cell = \{ [0-9]+/' <注入版.lua>
 
 ## 6. 环境变量（两个口径，会连着踩两次）
 
+**跨系统迁移（2026-11-25，Linux/Wine → Win11，已验写盘与回读，游戏行为待验）**：
+- 先按当前系统探测真实存档根；本轮 Windows 为 `C:/Users/Administrator/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/`。游戏安装在 E 盘不代表存档也在 E 盘；下方 Wine 路径只适用于旧 Linux 环境。
+- 已有可用部署版可整体迁移 `<mapId>/`（`.gil` + 完整 `external_lua_file/`），保留已校准 GUID；先查目标 ID 无冲突、备份目标玩家目录，禁止整份覆盖 Windows 玩家 `.gip`。
+- 复制后用 Windows 存档根运行 `maps:resync --map-id <id>`，合并注册列表并同步 Temp；逐文件 SHA 对账、`assets:scripts list/mounts` 回读、`gil-guard.py --temp` 验收。保留原部署版无需重建玩法。
+- 共享 Linux `node_modules` 会报 esbuild 平台不匹配；可独立解包**与当前 esbuild 同版本**的 `@esbuild/win32-x64` 到 Windows 临时工具目录，用 `ESBUILD_BINARY_PATH` 指向其 `esbuild.exe`，避免重装覆盖 Linux 依赖。
+- 本轮完整记录：`workspace/tetris/docs/deploy-win11-20261125.md`。磁盘迁移通过仍需用户重新进入地图；编辑器已打开时勿保存旧内存覆盖新注册表。
+
 ```bash
 # CLI（gsts assets:*）要的是 LocalLow 这一层
 export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow
