@@ -42,3 +42,13 @@
 ## 2026-11-25 22:0x 用户裁决：Win11 适配要固化（跨线环境）
 - 用户原话（对我报告的三件事逐条回复）：「1. 需要固化，我们目前切换到了win11，首次是需要花时间来优化的，这些是后续其他人工作的保障。2. 配合我看一起看，然后优化瘦身 3. 目前不需要。」
 - 对应：① Win11 上提交门禁 / Python 件的跑法**固化成仓库件**（不再靠临时 `BASH_ENV` 注入）⇒ **已落地**（`scripts/py.mjs` 统一找 Python、钩子改走它、`scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；提交零设置）；② 根 `AGENTS.md` / `CLAUDE.md` 瘦身 ⇒ **已落地**（用户逐项选定 7 项；`AGENTS.md` 16,282→14,946 B、`CLAUDE.md` 12,281→11,223 B，规则零删除、三条下沉到技能；提交 `78d2da98`）；③ 判读新调试日志 ⇒ 暂不做。
+
+## 2026-11-26 00:1x 分支收口：工作切回 `master` 并推送（用户令）
+- 用户原话：「这个分支早名字就过时了，直接推送到主分支吧」（指 `feat/composite-and-project-knowledge`）。
+- 做了什么：本地 `master` 快进到 `e60037d1`（该分支顶端；`master` 是它的祖先，中间 **3,461 个提交**），`git push origin master` 快进 `9cb31c87..e60037d1`（65 s）；
+  工作树 HEAD 已指向 `master`（两分支同一提交，**未触碰任何文件**；并行的 tetris 会话共用此工作树，之后的提交自然落在 `master`）。
+  旧分支本地保留（与 `master` 同提交），远端旧分支停在 `6743bc1f` 未动——是否删除待用户定。
+- 踩到的两件既有事（**均未改，待用户裁决**）：
+  ① `.git/config` 里有 `core.sshCommand = ssh -F /dev/null`，让 ssh 读不到 `~/.ssh/config` 里配好的 key ⇒ `Permission denied (publickey)`；本次用环境变量 `GIT_SSH_COMMAND=ssh` 临时覆盖。
+  ② 仓库里有文件名含冒号的文件 `workspace/ganyu/tests/17-4:3-画布-1280x960.json`，Windows 无法检出 ⇒ `git switch` / `read-tree` 报 `invalid path`；
+  故改用 `git symbolic-ref HEAD refs/heads/master` 切换。同一原因会让本机的 `checkout` / `merge` / `stash pop` 都失败（提交与推送不受影响）。

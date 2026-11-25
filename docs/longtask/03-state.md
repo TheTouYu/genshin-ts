@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-11-25 21:2x（**平台已换：Win11 原生**——§四 加 Win11 读数、§五 加三条 `[global]` 环境缺口、§三 加 `[football]` 迁移读数并订正一行过期读数；`[gui-agi]` / `[sim-2d]` 行未动）
+> 最近校验：2026-11-26 00:1x（§四 补 git 分支/ssh/冒号文件三条读数、§六 补 11-25 关键提交；2026-11-25：平台已换 Win11 原生，§三 加 `[football]` 迁移读数并订正一行过期读数；`[gui-agi]` / `[sim-2d]` 行未动）
 > 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
@@ -58,6 +58,9 @@
 ```text
 主机           WIN-P2NOTOGSUFS（用户 Administrator）；仓库仍在原 Linux 家目录 H:\@home\h\genshin-ts（属主 SID S-1-22-1-1000）
 git            2.56.1.windows.1（PortableGit，E:\tools\PortableGit）——首次使用须 git config --global --add safe.directory H:/@home/h/genshin-ts
+git（续）       当前分支 master（2026-11-26 起，与 origin/master 同步 @ e60037d1；旧分支 feat/composite-and-project-knowledge 同提交、保留）；
+               .git/config 有 core.sshCommand=ssh -F /dev/null ⇒ 推送须先 $env:GIT_SSH_COMMAND='ssh' 覆盖（否则 publickey 被拒）；
+               仓库含冒号文件名 workspace/ganyu/tests/17-4:3-…json ⇒ switch/checkout/merge/read-tree 在本机报 invalid path（提交/推送不受影响）
 node / npm     v24.9.0 / 11.6.0；dist/src/cli/gsts.js 构建于 2026-11-17 23:12
 原神           在跑：E:\ys\Genshin Impact Game\YuanShen.exe（7.2.0）；BeyondEditor.exe ×2 已自动连接（uid 110170759）
 存档根         C:\Users\Administrator\AppData\LocalLow\miHoYo\原神\BeyondLocal\110170759\（地图 1073741825 / 1073741834 方块大战 / 1073741827 真实足球v3）
@@ -98,6 +101,10 @@ git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此�
 
 | commit | 线 | 内容 |
 |---|---|---|
+| `e60037d1` | football | 交接文档（真实足球迁入 Win11 + 仓库 Win11 开箱就绪） |
+| `78d2da98` | global | 根注入文件瘦身 + Win11 口径同步（用户逐项选定），三条规则下沉到技能 |
+| `96e11909` | global | Win11 开箱就绪件：`scripts/py.mjs` 统一找 Python、提交钩子改走它、`setup-win-esbuild.mjs` |
+| `929bec4d` | football | 真实足球v3 迁入 Win11 存档（1073741827）+ CLI 包装 `gsts-win.mjs` |
 | `33ea9db6` | sim-2d | tetris v2：8 点反馈任务拆分文档（T0-T9+四波次+协作纪律），组建三队友团队 |
 | `1f43f0e1` | sim-2d | 复盘：模拟器 demo→真机落地（8 错谱系/3 根因）+ gil-guard 检查器与门禁 + 两条技能新节 |
 | `2bb8dbf1` | sim-2d | 档案：模拟器升 2.2.1，补「spawn 隔离故游戏侧无需更新」与 4173 重启 |
