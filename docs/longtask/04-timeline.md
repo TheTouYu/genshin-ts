@@ -41,4 +41,4 @@
 
 ## 2026-11-25 22:0x 用户裁决：Win11 适配要固化（跨线环境）
 - 用户原话（对我报告的三件事逐条回复）：「1. 需要固化，我们目前切换到了win11，首次是需要花时间来优化的，这些是后续其他人工作的保障。2. 配合我看一起看，然后优化瘦身 3. 目前不需要。」
-- 对应：① Win11 上提交门禁 / Python 件的跑法**固化成仓库件**（不再靠临时 `BASH_ENV` 注入）⇒ **已落地**（`scripts/py.mjs` 统一找 Python、钩子改走它、`scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；提交零设置）；② 根 `AGENTS.md` / `CLAUDE.md`（余量 102 B / 7 B）瘦身 ⇒ 与用户一起看后再做；③ 判读新调试日志 ⇒ 暂不做。
+- 对应：① Win11 上提交门禁 / Python 件的跑法**固化成仓库件**（不再靠临时 `BASH_ENV` 注入）⇒ **已落地**（`scripts/py.mjs` 统一找 Python、钩子改走它、`scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；提交零设置）；② 根 `AGENTS.md` / `CLAUDE.md` 瘦身 ⇒ **已落地**（用户逐项选定 7 项；`AGENTS.md` 16,282→14,946 B、`CLAUDE.md` 12,281→11,223 B，规则零删除、三条下沉到技能；提交 `78d2da98`）；③ 判读新调试日志 ⇒ 暂不做。
