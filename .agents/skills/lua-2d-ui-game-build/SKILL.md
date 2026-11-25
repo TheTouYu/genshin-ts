@@ -112,11 +112,11 @@ description: 从空工程做到「能玩、能结算、有数值、有反馈、�
 
 ## 5. 环境速查 + 静态审计
 
-- Arch + Wine prefix；真机存档根 `…/AppData/LocalLow/miHoYo/原神/BeyondLocal/`（uid=110170759）。
-- **环境变量两口径**：CLI `export GSTS_LOCALLOW_DIR=…/AppData/LocalLow` + `unset LOCALAPPDATA`；`deploy.mjs` 要 `…/LocalLow/miHoYo/原神`。
+- **先按当前系统定位**（2026-11-25 起 **Win11 原生**；Arch + Wine prefix 为历史）：真机存档根 `<LocalLow>/miHoYo/原神/BeyondLocal/`（uid=110170759）——Win11 为 `C:\Users\<用户>\AppData\LocalLow\…`（游戏装在别盘不代表存档也在那）。跨机迁移地图、Win11 上跑 CLI 与提交门禁见 `references/12-deploy.md` §6。
+- **环境变量两口径**：CLI `export GSTS_LOCALLOW_DIR=…/AppData/LocalLow` + `unset LOCALAPPDATA`；`deploy.mjs` 要 `…/LocalLow/miHoYo/原神`。（Win11：PowerShell 里 `$env:GSTS_LOCALLOW_DIR="$env:USERPROFILE\AppData\LocalLow"`，另需 `ESBUILD_BINARY_PATH`。）
 - 画布：`pc-16-9`=1600×900（用户主画布）、`mobile-16-9`=1280×720（用例基线）；网页 4173 读 `~/qxqy-workspace/<proj>.save.json`。
 - 构建/用例/出图（实测）：`node qxqy/build.mjs`（1.4s）→ `node qxqy/runner.mjs`（**45/45, 88.6s, exit 0**）/ `node qxqy/runner.mjs <子串>`（~5s，**子串 OR 匹配**，同号不同名文件写全前缀）→ `node qxqy/shot-style.mjs all`（**退出码恒 0，必须 grep `✗`**）。
-- 技能体检：`python3 scripts/skills-health.py` → 期望 `结果：PASS（37 技能引用全部可解析，0 悬空链接…）`。
+- 技能体检：`python3 scripts/skills-health.py` → 期望 `结果：PASS（37 技能引用全部可解析，0 悬空链接…）`。（Win11 的 PATH 里没有 `python3`：用 DSH 运行时 python.exe 并设 `PYTHONUTF8=1`。）
 
 ```bash
 # 静态审计（11 项机械判据；双向实测过）

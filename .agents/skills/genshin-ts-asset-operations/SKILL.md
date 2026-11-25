@@ -71,7 +71,7 @@ compatibility: Genshin-TS repository with node, tsx, `gsts assets:*` CLI (assets
 
 CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺序走：
 
-0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——游戏地图在本机 **Wine prefix**：`/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow/miHoYo/原神/BeyondLocal/<uid>/Beyond_Local_Save_Level/`（uid=110170759），Temp 缓存在同级 `../Temp/`；`/mnt/wingames` 是只读旧 Windows 镜像，**不要写**。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
+0. **地图定位（资产任务第一步，2026-09-03 用户点名固化）**：`node ./bin/gsts.mjs maps` 一次列出全部游戏地图+目录——**先按当前系统定位存档根**（2026-11-25 起 **Win11 原生**）：`GSTS_LOCALLOW_DIR=<用户>\AppData\LocalLow` ⇒ `…\miHoYo\原神\BeyondLocal\<uid>\Beyond_Local_Save_Level\`（uid=110170759；有 `LOCALAPPDATA` 时可省，CLI 自己推），Temp 在同级 `..\Temp\`；**游戏装在哪个盘不代表存档也在那**。`node_modules` 是 Linux 装的时候裸跑 CLI 还须给 `ESBUILD_BINARY_PATH`（同版本 win32 esbuild；football 用 `examples/football/gsts-win.mjs`）。**Linux/wine（2026-10-12～11-20，历史）**：`export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`；`/mnt/wingames` 是只读旧 Windows 镜像，**不要写**。新版地图是子目录式 `Save_Level/<id>/<id>.gil`＋同级 `external_lua_file/`（跨机搬运见 `lua-2d-ui-game-build` 的 `12-deploy.md` §6）。**禁止 glob 摸索地图路径**（09-03 实证白耗多轮）。tsx 沙箱故障（`Cannot resolve tsconfig`）时 `node ./bin/gsts.mjs`（不走 tsx loader）是稳定替代通道。
 1. **只读盘点并锁定源 SHA**：`sha256sum <map.gil>`，导出当前相关资源（变量 `--list`、挂载 `assets:mounts list`、UI `assets:ui list`、实体 `assets:entities --format json`），确认目标 ID 空闲、类型/容器正确。ID 分配遵守 `static-gil-model-builder` 的 ID 纪律（新元件/实体 ID 必须 ≥1077936129，且 root4/5/6 双查）。
 1b. **"要用户在编辑器新建 X"前先跑同类盘点（2026-09-04 票 20 E0 实证，省一轮用户动作）**：
    `npx tsx .agents/skills/genshin-ts-asset-operations/references/scripts/audit-map-assets.ts <map.gil>` 只读输出 A) 技能变量配置 ID 哪些在位/
@@ -341,7 +341,7 @@ CLI 的 `--write` 不是“自动安全”的免检口。每次都按同一顺�
 ### G. 三个易漏命令：地图骨架 / Temp 同步 / 变量核验
 
 - `maps:init --map-id <id> --write`：**新地图首次保存门槛**——`maps:create` 只写基础 root，缺 root 7 地形与 root 3/9/11-49；`maps:init` 从 `resources/first-save-template.gil` 复制骨架，免人工首次保存（2026-08-21 实证）
-- `maps:resync --map-id <id>`：磁盘 .gil → 编辑器 `Temp/` 活动副本 + gip 注册（修「编辑器看不到地图」）；**每次写回地图后都要做**
+- `maps:resync --map-id <id>`：磁盘 .gil → 编辑器 `Temp/` 活动副本 + gip 注册（修「编辑器看不到地图」）；**每次写回地图后都要做**。它是**合并**语义（只在「未分类页签」追加链接＋追加/替换该图条目，「最近地图」不动），幂等。**注册成功看字节不看大小**（2026-11-25 实证）：写前备份两个 `.gip`（玩家级＋`Temp\`）→ resync → 把结果去掉「链接 11 B＋条目」后与写前逐字节比较，只允许差 4 个长度字段；编辑器开着时引擎会重写 `.gip`，写后要复核条目仍在（列表看不到就重跑 resync）。
 - `variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all]`：按已闭合规律表**逐字节**核验变量 wire（只读，PASS/DIFF，退出码 0/1）
 
 > ⚠ **CLI 可发现性坑（2026-10-17 实测）**：`gsts` 全部注册为 commander **叶子命令**，子动作是**位置参数** ⇒
