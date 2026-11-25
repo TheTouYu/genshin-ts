@@ -130,64 +130,8 @@ M.DEFAULT_ROLES = { 'nahida', 'keqing', 'ganyu', 'girl' }   -- copy.ROLES 的四
 M.DEFAULT_PARTY_MAX = 2                                     -- SKILLS.NUM.PARTY_MAX 现网值
 
 -- ===========================================================================
--- 文字量算（模块级；不依赖 K，测试可直接调）
---   与 view_node.glyphWidth 的差别是刻意的：view_node 只把 0xE4..0xE9 开头当全角，
---   于是 '　'（U+3000 → E3）与 '·'（U+00B7 → C2）会被算窄 ⇒ lint 会漏报「引擎其实折行」。
---   本模块把任何多字节字符一律按全宽（更严），ASCII 才按 0.55/0.32 折算：
---   这样折出来的每一行在**引擎**侧也放得下（不会出现"框够高但引擎自己又折一次"）。
+-- 历史估算公式仅用于旧故障的回归；生产文字高度/折行以 view_kit 为单一来源。
 -- ===========================================================================
-local function glyphW(ch, font)
-  local b = string.byte(ch, 1)
-  if b and b < 0x80 then
-    if ch == ' ' then return font * 0.32 end
-    return font * 0.55
-  end
-  return font
-end
-
--- CJK 折行（引擎的单行 textbox 不自动换行，多行必须自己给 '\n'）
-local function wrap(text, font, maxW)
-  local out, line, w = {}, {}, 0
-  local function flush()
-    if #line > 0 then out[#out + 1] = table.concat(line) end
-    line, w = {}, 0
-  end
-  local str = tostring(text or '')
-  local i, n = 1, #str
-  while i <= n do
-    local b = string.byte(str, i)
-    local len = 1
-    if b >= 0xF0 then len = 4 elseif b >= 0xE0 then len = 3 elseif b >= 0xC0 then len = 2 end
-    local ch = str:sub(i, i + len - 1)
-    i = i + len
-    if ch == '\n' then
-      flush()
-    else
-      local cw = glyphW(ch, font)
-      if w + cw > maxW and #line > 0 then
-        -- 断行禁则：行尾的 ASCII 词整体挪到下一行（'skills' 不许断成 'ski'/'lls'）
-        local tail, back = {}, 0
-        while #line - back > 0 do
-          local c = line[#line - back]
-          if c:match('[%w%%%.]') then back = back + 1 else break end
-        end
-        if back > 0 and back < #line then
-          for k = #line - back + 1, #line do tail[#tail + 1] = line[k] end
-          for k = #line, #line - back + 1, -1 do line[k] = nil end
-        end
-        flush()
-        line, w = tail, 0
-        for k = 1, #tail do w = w + glyphW(tail[k], font) end
-      end
-      line[#line + 1] = ch
-      w = w + cw
-    end
-  end
-  flush()
-  if #out == 0 then out[1] = '' end
-  return out
-end
-
 -- 引擎 requiredHeight（studio/play/text-layout.js；main.lua MS.addText 注释抄了同一条）
 local function engineReqH(font, lines)
   return M.ENGINE.lineH * font * lines + (M.ENGINE.inset * font + M.ENGINE.insetAdd)
@@ -204,7 +148,8 @@ local function boxH(font, lines)
   return (a > b) and a or b
 end
 
-M.glyphW, M.wrap, M.engineReqH, M.viewNeedH, M.boxH = glyphW, wrap, engineReqH, viewNeedH, boxH
+-- 旧量算仅供历史回归；生产布局一律用注入的 view_kit。
+M.engineReqH, M.viewNeedH, M.boxH = engineReqH, viewNeedH, boxH
 
 -- 台词行色：前两行正文色，后两行次色（与现网 4 行台词区的层次一致）
 local function lineInk(i, THEME)
@@ -265,6 +210,9 @@ M.new = function(spec)
   local cfg = assert(spec.config, 'view_roster: 需要 spec.config')
   local L = assert(spec.layers, 'view_roster: 需要 spec.layers（view_layers）')
   local K = assert(spec.kit, 'view_roster: 需要 spec.kit（view_kit）')
+  -- 与按钮副标共用框架文字合同；旧正文另算 +4，而按钮用 +6，手机只有正文空白。
+  local boxH = K.textMinH
+  local function wrap(str, font, width) return K.wrapText(str, font, width) end
   local COPY = assert(spec.copy, 'view_roster: 需要 spec.copy（copy.lua：文案唯一真源）')
   local ROSTER = spec.roster or {}          -- 会话侧状态：{ unlocked, party, lv, cnt, roles }
   local THEME = assert(cfg.THEME, 'view_roster: config.THEME 必须是 THEME（= STYLE.chrome）')

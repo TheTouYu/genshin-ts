@@ -122,7 +122,7 @@ do
       local w = n.size[1]
       local needH, _, wrapped = V.textNeed(n.text, n.font, w)
       local explicit = linesOf(n.text)
-      if n.measured and math.abs(n.size[2] - M.boxH(n.font, explicit)) > 0.001 then
+      if n.measured and math.abs(n.size[2] - K.textMinH(n.font, explicit)) > 0.001 then
         bad = n.key .. ' h=' .. n.size[2] .. ' ≠ boxH(' .. n.font .. ',' .. explicit .. ')'
       elseif n.size[2] + 1 < needH then
         bad = n.key .. ' h=' .. n.size[2] .. ' < viewNeed ' .. string.format('%.1f', needH)
@@ -160,7 +160,7 @@ do
   local long = '满足下面任意一条即可缔结：累计消行 40 行，或总局数 3 局，或对战局数 1 局；'
     .. '缔结之后会立刻写进本局存档，重开也不会丢，换存档才会重置。'
   local f = 14
-  local wide, narrow = #M.wrap(long, f, 500), #M.wrap(long, f, 240)
+  local wide, narrow = #K.wrapText(long, f, 500), #K.wrapText(long, f, 240)
   ok(narrow > wide and M.boxH(f, narrow) > M.boxH(f, wide),
     'A4 同一文案：宽 500 ⇒ ' .. wide .. ' 行/h=' .. M.boxH(f, wide)
       .. '；宽 240 ⇒ ' .. narrow .. ' 行/h=' .. M.boxH(f, narrow) .. '（框高随内容反推）')
@@ -443,7 +443,7 @@ do
       .. '，与实测 51.7/46.4 同源', #iss)
 end
 
--- E2 把宽度写死成 PC 值（不按设备重算）⇒ 同一批描述在窄槽里必须报 L4/L4w
+-- E2 主动缩窄到 35%，却保留单行高度：检测器必须识别真实不足的负样本。
 do
   local pcNodes = build('pc')
   local mbNodes = build('mobile')
@@ -455,7 +455,7 @@ do
         -- ⚠ view_node.lint 的 L4/L4w 用 %d 打 h/w（浮点会抛「no integer representation」），
         -- 所以负样本这里取整；那条 format 缺陷已记进交付报告。
         { key = key .. 'Legacy', name = key .. 'Legacy', tpl = 'stext', layer = 'card',
-          pos = { 0, 0 }, size = { math.floor(b.size[1]), math.floor(a.size[2]) },
+          pos = { 0, 0 }, size = { math.floor(b.size[1] * 0.35), math.floor(a.font * 1.45 + 4) },
           text = a.text, font = a.font },
       }
       local iss = V.lint(one)
@@ -465,7 +465,7 @@ do
     end
   end
   ok(reported >= 2,
-    'E2 【缺陷①回归】"宽度按设备、框高抄 PC 写死" ⇒ ' .. reported .. ' 条 L4/L4w（现网就是这么裁掉的）',
+    'E2 【缺陷①回归】"宽度缩窄、框高仍按单行写死" ⇒ ' .. reported .. ' 条 L4/L4w（故意构造不足，不作为本次手机引擎归因）',
     reported)
 end
 

@@ -88,6 +88,19 @@ assert(R.get('charPanelS').textLayout.visibleLineCount > 0)
 实测锚：18 号/宽 240/高 32 → 2 行、需 51.7、fits=false；16 号/宽 200/高 46 → 需 46.4、fits=false。
 只做描述层会漏掉"估算放过、引擎判不画"的边界——这类"整条文字消失"的 bug 靠人眼极难定位。
 
+### 正文与按钮使用同一文字合同（2026-11-25）
+
+角色档案曾另算 `ceil(1.45f+4)`，按钮副标却用 `K.textMinH` 的 `+6`。
+用户手机截图正文空白、副标存在；这是已证实的代码口径分叉，手机引擎精确原因仍待真机确认。
+正文统一调用 `K.textMinH(font, lines)`、`K.wrapText(text,font,width)`，不得另抄估算公式。
+`K.text` 默认显式 `valign='Middle'`，未传高度时按实际换行数计算；显式高度仍由调用方负责。
+`wrapText` 给左右合计 4px 留白，保留显式空白行；它是保守估算，不能替代实际字体检测。
+
+回归必须同时跑描述→真实 render→mock 字段，以及实际模拟器字体矩阵，防止两份公式互证假绿。
+参考入口：`tests-lua/roster_text_contract_test.lua`（自动被 run_all 发现）、
+`qxqy/roster-text-audit.mjs`（4画布×4角色×5页签，校验内嵌源码未过期，支持输出 JSON）。
+模拟器通过不等于手机真机通过；仍需用同角色同页签在手机确认。
+
 ### 4.1 这套判据的**覆盖边界**（2026-11-17 复盘，重要）
 
 L1–L6 全部作用于 **`view_*` 描述层的节点表**。而 `ui.lua` 的 `U.plan`

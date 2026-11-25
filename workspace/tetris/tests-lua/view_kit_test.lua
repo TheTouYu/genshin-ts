@@ -114,5 +114,20 @@ ok(#panel == 10, 'I1 面板节点数 = 10', #panel)
 local pIssues = V.lint(panel)
 ok(#pIssues == 0, 'I2 面板 lint 0 issue', #pIssues > 0 and pIssues[1].msg or '')
 
+-- 共享正文合同：不继承模板对齐；换行保留空白行与宿主左右内边距。
+ok(K.text{key='body',text='正文',font=12}.valign == 'Middle', 'J1 默认显式垂直居中')
+ok(K.text{key='body',text='正文',font=12,valign='Top'}.valign == 'Top', 'J2 保留显式对齐')
+ok(K.text{key='multi',text='甲\n乙',font=12}.size[2] == K.textMinH(12,2), 'J4 未指定高度时按实际换行计算')
+local cases = {
+  {'', 12, 100, ''}, {'甲乙丙', 12, 28, '甲乙\n丙'},
+  {'a\n\nb\n', 12, 100, 'a\n\nb\n'},
+  {'abcdef', 10, 24, 'abc\ndef'},
+  {'甲乙 skills', 10, 64, '甲乙 \nskills'},
+  {'日本語한글', 10, 34, '日本語\n한글'},
+}
+for i,c in ipairs(cases) do
+  ok(table.concat(K.wrapText(c[1],c[2],c[3]),'\n') == c[4], 'J3 换行合同 '..i)
+end
+
 print(string.format('\n== view_kit_test: %d passed, %d failed ==', pass, fail))
 os.exit(fail == 0 and 0 or 1)

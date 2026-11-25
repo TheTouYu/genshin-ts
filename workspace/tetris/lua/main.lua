@@ -123,7 +123,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.35'
+BUILD_TAG = 'v6.36'
 -- v6.34：**模块指纹**（构建期由 qxqy/build.mjs 注入 sha256 前 8 位，覆盖 lua/ 下全部 .lua）。
 -- 判据：真机上看到这一行，才能确认跑的是这份代码；文件里有新字符串不算证据（2026-11-20 误判两次）。
 MODULE_FP = '00000000'

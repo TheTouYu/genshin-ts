@@ -196,6 +196,62 @@ M.new = function(spec)
     }
   end
 
+  -- 文字内容宽度预留宿主两侧内边距；ASCII 保守按 0.65em，避免再次自动折行。
+  local function glyphW(ch, font)
+    local b = string.byte(ch, 1)
+    if b and b < 0x80 then
+      if ch == ' ' then return font * 0.55 end
+      return font * 0.65
+    end
+    return font
+  end
+
+  -- CJK 折行（引擎的单行 textbox 不自动换行，多行必须自己给 '\n'）
+  function K.wrapText(text, font, maxW)
+    maxW = math.max(1, (maxW or 200) - 4)
+    local out, line, w = {}, {}, 0
+    local function flush(force)
+      if force or #line > 0 then out[#out + 1] = table.concat(line) end
+      line, w = {}, 0
+    end
+    local str = tostring(text or '')
+    local i, n = 1, #str
+    while i <= n do
+      local b = string.byte(str, i)
+      local len = 1
+      if b >= 0xF0 then len = 4 elseif b >= 0xE0 then len = 3 elseif b >= 0xC0 then len = 2 end
+      local ch = str:sub(i, i + len - 1)
+      i = i + len
+      if ch == '\n' then
+        flush(true)
+      else
+        local cw = glyphW(ch, font)
+        if w + cw > maxW and #line > 0 then
+          -- 断行禁则：行尾的 ASCII 词整体挪到下一行（'skills' 不许断成 'ski'/'lls'）
+          local tail, back = {}, 0
+          while #line - back > 0 do
+            local c = line[#line - back]
+            if c:match('[%w%%%.]') then back = back + 1 else break end
+          end
+          if back > 0 and back < #line then
+            for k = #line - back + 1, #line do tail[#tail + 1] = line[k] end
+            for k = #line, #line - back + 1, -1 do line[k] = nil end
+          end
+          flush()
+          line, w = tail, 0
+          for k = 1, #tail do w = w + glyphW(tail[k], font) end
+        end
+        line[#line + 1] = ch
+        w = w + cw
+      end
+    end
+    flush(str:sub(-1) == '\n')
+    if #out == 0 then out[1] = '' end
+    return out
+  end
+
+
+
   -- 文字框最小高度（引擎判据）：低于它 textbox 会 fits=false 整条不画
   function K.textMinH(font, lines)
     return math.ceil((font or 16) * 1.45 + 6) * (lines or 1)
@@ -231,14 +287,13 @@ M.new = function(spec)
   function K.text(o)
     local key = assert(o.key, 'text: 需要 key')
     local font = o.font or 22
-    local lines = 1
-    if o.h and o.h > 0 then lines = math.max(1, math.floor(o.h / K.textMinH(font))) end
+    local lines = select(2, tostring(o.text or ''):gsub('\n', '')) + 1
     local h = o.h or K.textMinH(font, lines)
     return {
       key = key, layer = o.layer or 'card', tpl = o.tpl or 'stext', name = o.name or key,
       parentKey = o.parentKey, pos = { o.x or 0, o.y or 0 }, size = { o.w or 200, h },
       text = o.text or '', font = font, fcolor = o.color, bg = o.bg,
-      align = o.align or 'Middle', valign = o.valign,
+      align = o.align or 'Middle', valign = o.valign or 'Middle',
       visible = o.visible,
     }
   end
