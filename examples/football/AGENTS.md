@@ -1,6 +1,6 @@
 # football 目录规则（探索本目录时自动注入）
 
-> doc-type: R · status: active · updated: 2026-10-24
+> doc-type: R · status: active · updated: 2026-11-25
 > **v3 现役地图（2026-10-12 起）：1073741827「真实足球v3」**（票 25 A 批已落场地；旧图
 > 1825「真实足球」=票 24 照抄终版退役备件；复测前先确认进对图——2026-08-31 曾因进错图白测一轮）。
 > **当前主线（2026-10-12）**：票 25 v3 从零重构（减法路线，交接文档=`REBUILD-HANDOFF.md`，
@@ -12,14 +12,23 @@
 > **并行线定位（2026-10-24 起）**：本目录 = 线 `football`（线表/谁在推：`docs/longtask/LINES.md` §二；
 > 本线现状与断点：`docs/longtask/dossiers/football-v3.md`）。另有 `sim-2d`、`gui-agi` 两条线并行，别混进度。
 
-## 〇、换机环境（Arch+wine，票 24 §A 开放项 2026-10-12 落地）
+## 〇、运行环境（2026-11-25 起 **Win11 原生**；Linux/wine 降为历史，见本节末）
 
-- **每条新 shell 命令都要先带**：
+- **Win11（现行）**：游戏 `E:\ys\Genshin Impact Game\YuanShen.exe`（编辑器 `BeyondEditor.exe` 自动连接）；
+  存档根 `C:\Users\Administrator\AppData\LocalLow\miHoYo\原神\BeyondLocal\110170759\`——**游戏装在 E 盘、
+  存档在用户 LocalLow，两者分开定位**；仓库仍在原 Linux 家目录 `H:\@home\h\genshin-ts`。
+- **CLI 走包装**：`node examples/football/gsts-win.mjs <子命令…>`（自动补 `GSTS_LOCALLOW_DIR` 与
+  `ESBUILD_BINARY_PATH`——`node_modules` 是 Linux 装的，只有 linux-x64 esbuild）。裸跑 `bin/gsts.mjs` 须先自己设这两个变量。
+- **Python**：PATH 里没有 `python3`/`python`；`gil-guard.py` / `gil-header-check.py` / `doc_health.py` 用
+  `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`。
+- **提交**：pre-commit 钩子（bash）调 `python3`，Win11 上须让钩子进程拿到 `python3`（做法见
+  `DEPLOY-WIN11-20261125.md`「Win11 上提交」）；**不要 `--no-verify`**。
+- 存档双地址：`…\Beyond_Local_Save_Level\<id>\<id>.gil`（同级带 `external_lua_file\`）+ `…\Temp\<id>.gil`
+  ——任何写回后必查双址 SHA 一致（`maps:resync` 同步 Temp 并注册 `.gip`；terrain set-range 不自动同步 Temp）。
+- 迁移流程、逐文件对账与试玩取证入口：`DEPLOY-WIN11-20261125.md`；通用规则＝2D 游戏技能 `references/12-deploy.md` §6。
+- **历史（Arch+wine，2026-10-12～11-20）**：每条 shell 先
   `export GSTS_LOCALLOW_DIR=/home/h/.local/share/anime-game-launcher/prefix/drive_c/users/h/AppData/LocalLow`
-  （不 export 则 gsts 报 `LOCALAPPDATA not found`；dsh 沙箱对存档目录默认只读报 EROFS，需放行）。
-- 存档双地址：`…/BeyondLocal/110170759/Beyond_Local_Save_Level/<id>.gil`（平铺，maps:create
-  产物）或 `…/Beyond_Local_Save_Level/<id>/<id>.gil`（子目录式，1825 布局）+ `…/Temp/<id>.gil`——
-  任何写回后必查双址 SHA 一致（terrain set-range 不自动同步 Temp，其余 --write 多已内置）。
+  （不 export 则 gsts 报 `LOCALAPPDATA not found`）；该 prefix 存档原样留在 `H:\@home\h\.local\share\anime-game-launcher\prefix\…`，只读参照。
 - donor 3231 只读行为基线（`.scratch/_archive/football-v2/evidence/ab-22/`），禁止写入；
   资产完备性判据=票 24 §C 分类表。**GIL 顶层是容器分块表（非裸 protobuf），仓库无 root
   枚举工具——手写 varint walker 必败，勿再自建**。
