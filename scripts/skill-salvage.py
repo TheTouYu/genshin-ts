@@ -49,10 +49,13 @@ TOKEN_RES = [
 
 
 def carrier_text() -> str:
+    # 按根目录求相对模式再 glob：别用字符串替换剥前缀——Windows 上 str(REPO) 是反斜杠而
+    # 拼接出的 glob 是正斜杠，剥不掉就变成「绝对路径模式」，pathlib 直接抛
+    # NotImplementedError（2026-11-25 Win11 实证）。
     parts = []
     for g in CARRIER_GLOBS:
-        for p in REPO.glob(str(g).replace(str(REPO) + "/", "")) if str(g).startswith(str(REPO)) \
-                else HOME.glob(str(g).replace(str(HOME) + "/", "")):
+        root = REPO if g == REPO or REPO in g.parents else HOME
+        for p in root.glob(g.relative_to(root).as_posix()):
             try:
                 parts.append(p.read_text(encoding="utf-8", errors="ignore"))
             except OSError:

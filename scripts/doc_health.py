@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -95,7 +96,10 @@ SIZE_LIMITS = {
 
 
 def git(*args: str) -> str:
-    return subprocess.check_output(["git", *args], cwd=REPO_ROOT, text=True).strip()
+    # 显式 UTF-8：git 输出按系统 locale（Win11 默认 GBK）解码会在含中文路径时抛错
+    return subprocess.check_output(
+        ["git", *args], cwd=REPO_ROOT, encoding="utf-8", errors="replace"
+    ).strip()
 
 
 def staged_files() -> set[str]:
@@ -254,15 +258,112 @@ def longtask_dirs() -> list[Path]:
 
 
 def _run_script(script: Path, argv: list[str]) -> list[str]:
+    # 子进程的 stdio 与这里的解码都显式 UTF-8，不看系统 locale（Win11 默认 GBK），也不看调用者的
+    # PYTHONIOENCODING。2026-11-25 Win11 实证：旧实现（text=True）在只设 PYTHONIOENCODING=utf-8 时读取线程
+    # 抛 UnicodeDecodeError，之后 proc.stdout/stderr 为 None，子检查一旦 FAIL 本函数直接 TypeError（门禁自身崩溃）。
+    # 判定器自证见 --selftest-utf8（门禁 doc-health-utf8）。
+    env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run(
-        [sys.executable, str(script), *argv], cwd=REPO_ROOT, text=True, capture_output=True
+        [sys.executable, str(script), *argv],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
     )
     if proc.returncode == 0:
         return []
-    lines = [ln.strip() for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()]
+    lines = [ln.strip() for ln in ((proc.stdout or "") + (proc.stderr or "")).splitlines() if ln.strip()]
     return [
         ln for ln in lines if not ln.startswith("体检目录") and not ln.startswith("RESULT:")
     ] or [f"{script.name} 退出码 {proc.returncode}"]
+
+
+def selftest_utf8() -> int:
+    """判定器自证：子进程的中文输出必须原样读回，不依赖调用者的编码环境变量。
+
+    2026-11-25 Win11 实证：子进程继承 PYTHONIOENCODING=utf-8 按 UTF-8 输出，而本脚本用
+    subprocess(text=True) 按系统 GBK 解码 ⇒ 读取线程抛 UnicodeDecodeError，真 FAIL 的具体文本被吞
+    （判定按退出码走、不会假 PASS，但问题原因全丢）。
+    """
+    import tempfile
+
+    keys = ("PYTHONUTF8", "PYTHONIOENCODING")
+    saved = {k: os.environ.get(k) for k in keys}
+    problems: list[str] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        child = Path(tmp) / "child_with_cjk_output.py"
+        child.write_text(
+            "import sys\n"
+            "print('体检目录：自测夹具')\n"
+            "print('FAIL 中文原因：判断器自述', file=sys.stderr)\n"
+            "sys.exit(1)\n",
+            encoding="utf-8",
+        )
+        try:
+            for label, override in (
+                ("默认环境", {}),
+                ("PYTHONIOENCODING=utf-8", {"PYTHONIOENCODING": "utf-8"}),
+                ("PYTHONIOENCODING=gbk", {"PYTHONIOENCODING": "gbk"}),
+            ):
+                for k in keys:
+                    os.environ.pop(k, None)
+                os.environ.update(override)
+                try:
+                    out = _run_script(child, [])
+                except (UnicodeDecodeError, TypeError) as exc:
+                    # 旧实现在 utf-8 用例的两种失败形态：读取线程抛 UnicodeDecodeError；
+                    # 线程崩了之后 proc.stdout 为 None，拼接时 TypeError（门禁自身崩溃）
+                    problems.append(f"{label}: {type(exc).__name__} {exc}")
+                    continue
+                if not any("FAIL 中文原因：判断器自述" in ln for ln in out):
+                    problems.append(f"{label}: 子进程输出未原样读回，得到 {out!r}")
+        finally:
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+    for p in problems:
+        print(f"FAIL  doc_health --selftest-utf8  {p}")
+    print("SELFTEST doc_health utf8:", "FAIL" if problems else "PASS")
+    return 1 if problems else 0
+
+
+def _legacy_run_script(script: Path, argv: list[str]) -> list[str]:
+    """2026-11-25 之前的 _run_script 形态，只供注入用例 --inject-legacy 使用。
+
+    解码按 GBK 严格模式＝模拟 Win11 的系统 locale（cp936）；这样「子进程 UTF-8 输出、父进程按系统
+    编码解码」的故障在 UTF-8 locale 的 Linux 上也能复现，而不是只在出过事的机器上才红。
+    """
+    proc = subprocess.run(
+        [sys.executable, str(script), *argv], cwd=REPO_ROOT, capture_output=True, encoding="gbk"
+    )
+    if proc.returncode == 0:
+        return []
+    lines = [ln.strip() for ln in ((proc.stdout or "") + (proc.stderr or "")).splitlines() if ln.strip()]
+    return [
+        ln for ln in lines if not ln.startswith("体检目录") and not ln.startswith("RESULT:")
+    ] or [f"{script.name} 退出码 {proc.returncode}"]
+
+
+def selftest_inject_legacy() -> int:
+    """注入用例（失败账本用）：把 _run_script 换回旧实现，自测必须报红——证明门禁不是空转。"""
+    import threading
+
+    global _run_script
+    real, real_hook = _run_script, threading.excepthook
+    _run_script = _legacy_run_script
+    threading.excepthook = lambda args: None  # 旧实现下读取线程的异常栈是预期噪音
+    try:
+        rc = selftest_utf8()
+    finally:
+        _run_script, threading.excepthook = real, real_hook
+    if rc == 0:
+        print("INJECT doc_health utf8: NOT-CAUGHT（旧实现下自测仍绿 ⇒ 自测空转）")
+        return 1
+    print("INJECT doc_health utf8: CAUGHT（旧实现被自测抓到）")
+    return 0
 
 
 def check_longtask() -> list[str]:
@@ -290,7 +391,17 @@ def check_longtask() -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staged", action="store_true", help="只检查 git 暂存区文件（pre-commit）")
+    parser.add_argument(
+        "--selftest-utf8", action="store_true", help="自测：子进程的中文输出必须原样读回（不依赖编码环境变量）"
+    )
+    parser.add_argument(
+        "--inject-legacy", action="store_true", help="注入用例：换回旧版 _run_script，自测必须报红（失败账本用）"
+    )
     args = parser.parse_args()
+    if args.selftest_utf8:
+        return selftest_utf8()
+    if args.inject_legacy:
+        return selftest_inject_legacy()
 
     raw_staged: list[str] = []
     if args.staged:
