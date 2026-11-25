@@ -38,3 +38,7 @@
 ## 2026-11-25 21:0x 平台迁移：Linux（Arch+wine）→ Win11 原生（跨线环境事件：三条线的「真机在哪」同时改变）
 - 用户原话：「我们之前在Linux系统上用这个项目加2d lua游戏技能创建做了真实足球，并部署到了Linux上wine运行的游戏上面，现在我们回到了win11，游戏我已经打开，它的目录有变化，不过我们可以继续使用原来的linux的文件系统。你先把真实足球给我部署到win11游戏目录。」
 - 影响：仓库仍在原 Linux 家目录（`H:\@home\h\genshin-ts`）；游戏与存档改到 Win11（`E:\ys\…` / 用户 LocalLow）；Linux 侧 GUI/试玩工具链与常驻服务未迁移。读数见 `03-state.md` §四；迁移规则见 2D 游戏技能 `12-deploy.md` §6；足球迁移记录 `examples/football/DEPLOY-WIN11-20261125.md`。
+
+## 2026-11-25 22:0x 用户裁决：Win11 适配要固化（跨线环境）
+- 用户原话（对我报告的三件事逐条回复）：「1. 需要固化，我们目前切换到了win11，首次是需要花时间来优化的，这些是后续其他人工作的保障。2. 配合我看一起看，然后优化瘦身 3. 目前不需要。」
+- 对应：① Win11 上提交门禁 / Python 件的跑法**固化成仓库件**（不再靠临时 `BASH_ENV` 注入）⇒ **已落地**（`scripts/py.mjs` 统一找 Python、钩子改走它、`scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；提交零设置）；② 根 `AGENTS.md` / `CLAUDE.md`（余量 102 B / 7 B）瘦身 ⇒ 与用户一起看后再做；③ 判读新调试日志 ⇒ 暂不做。

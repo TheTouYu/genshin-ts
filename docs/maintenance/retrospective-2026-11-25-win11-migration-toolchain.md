@@ -65,3 +65,27 @@
   `b6da5110` / `f3169792`（`PYTHONUTF8=1` 修正）、以及本复盘所在提交（门禁修复／技能回灌／账本与本文）。
 - 新增可执行件：`deploy-map-dir.ps1`、`gsts-win.mjs`、`doc_health.py --selftest-utf8` 与 `--inject-legacy`、gate `doc-health-utf8`。
 - 文档：`examples/football/DEPLOY-WIN11-20261125.md`；`docs/longtask/`（LINES / dossier / 03-state / 04-timeline / INDEX）只改了 football 行与共享段。
+
+---
+
+## 第二部：固化落地（2026-11-25 晚，用户裁决后）
+
+用户裁决（原话）：「1. 需要固化，我们目前切换到了win11，首次是需要花时间来优化的，这些是后续其他人工作的保障。」——
+第一部里「不固化、交用户裁决」的决定作废。新的 Win11 机器首次就绪＝下面前两条命令。
+
+| 要做的事 | 命令 | 它解决了什么 | 验证 |
+|---|---|---|---|
+| 装提交钩子 | `bash scripts/install-git-hooks.sh` | 把 `scripts/git-hooks/pre-commit` 装进 `.git/hooks/`；Windows 上关 `core.filemode` 噪音；末尾自检「钩子可运行」 | 安装件与源哈希一致；自检通过 |
+| 装 win32 esbuild | `node scripts/setup-win-esbuild.mjs` | 与 `node_modules/esbuild` 同版本的官方 `esbuild.exe` 装到 `node_modules/.cache/gsts/`，不碰依赖树；幂等；sha512 校验 | 复制路径 2 s / registry 路径 54 s，两条路径装出的二进制 sha256 相同 |
+| 跑任何仓库 Python 件 | `node scripts/py.mjs <脚本.py> [参数]` | 自动找 Python（`GSTS_PYTHON` → `python3`/`python`/`py -3` → DSH 运行时），子进程固定 UTF-8 | `--selftest` 含负例 PASS |
+| 提交 | `git commit` | 钩子经 `py.mjs` 找 Python，**零环境变量** | 固化后的真实提交由新钩子放行（见 `git log`） |
+
+新门禁：`hook-python-resolve`（`node scripts/py.mjs --check`，注入 `--selftest`）；`doc-health-utf8` 的命令改经 `py.mjs`（跨平台）。
+账本 `F-20261125-93` 由 open 转 prevented（未建防线 15 → 14）。
+
+**又被自测抓到的一个错误假设**：我原以为「子进程不传 `USERPROFILE` 就没有 home」——实测 Windows 会给子进程自动补回
+`USERPROFILE` / `PATH` / `HOMEDRIVE` 等 7 个用户级变量（只传 6 个系统变量，子进程里却有 13 个），负例第一次因此假红。
+修正＝把这几个变量**显式**指向空目录。已写进 `py.mjs` 头注与部署记录。
+
+仍未闭合：`failure-ledger check` 的 gate 编排在 Win11 不可运行（gate 多为 bash/ys-* 件）；根注入文件瘦身与 Win11 口径同步（与用户一起做）；
+Linux 侧未复跑（改动是把 UTF-8 locale 下的既有行为显式化，或新增件）。

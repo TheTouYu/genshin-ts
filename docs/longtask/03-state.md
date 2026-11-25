@@ -61,9 +61,9 @@ git            2.56.1.windows.1（PortableGit，E:\tools\PortableGit）——首
 node / npm     v24.9.0 / 11.6.0；dist/src/cli/gsts.js 构建于 2026-11-17 23:12
 原神           在跑：E:\ys\Genshin Impact Game\YuanShen.exe（7.2.0）；BeyondEditor.exe ×2 已自动连接（uid 110170759）
 存档根         C:\Users\Administrator\AppData\LocalLow\miHoYo\原神\BeyondLocal\110170759\（地图 1073741825 / 1073741834 方块大战 / 1073741827 真实足球v3）
-Python         PATH 无 python / python3 / py；可用 DSH 运行时 %USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe（3.12.14）
-esbuild        node_modules/@esbuild 只有 linux-x64（esbuild 0.25.12）；win32 同版本 esbuild.exe 在 %LOCALAPPDATA%\Temp\genshin-ts-win-deploy\package\
-提交钩子       .git/hooks/pre-commit 调 python3 → Win11 上须 BASH_ENV 注入（做法见 examples/football/DEPLOY-WIN11-20261125.md）
+Python         PATH 无 python / python3 / py；仓库 Python 件一律 node scripts/py.mjs <脚本>（自动解析到 DSH 运行时 3.12.14；2026-11-25 固化）
+esbuild        node_modules/@esbuild 只有 linux-x64（esbuild 0.25.12）；win32 同版本已装到 node_modules/.cache/gsts/esbuild-win32-x64-0.25.12/（node scripts/setup-win-esbuild.mjs，幂等；sha256 cae1bbc8…）
+提交钩子       .git/hooks/pre-commit 经 scripts/py.mjs 找 Python（2026-11-25 固化）；提交时无需任何设置；core.filemode=false（install 脚本在 Windows 上自动设）
 未迁移         dsh-embed / dsh-decision / dsh-game-mode / dsh-sentinel / ys-lookd / cmdmon（~/.dsh/cmdlog/last-coach.md 不存在）；模拟器 web 4173 未监听（[sim-2d]）
 ```
 
@@ -89,8 +89,8 @@ git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此�
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
 4. `[global]` `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回三游戏伞目标前必须刷新）。
 5. `[sim-2d]` 真机导入目录现为 4 个文件（`hmlt-qixia-整合包.gia` 93,202 B + 2 个 baseline + `tetris-整合包.gia`）——导入时**别选错**。
-6. `[global]` Win11 上 PATH 无 `python3`：提交钩子（doc_health）与 `tools/gil-guard.py` 等不能直接跑——暂用 DSH 运行时 python + `BASH_ENV` 注入（§四），跑门禁须 `PYTHONUTF8=1`（否则子进程输出按 GBK 解码抛异常、FAIL 文本会丢）；钩子已八次实测真实执行并放行（`99774abd` / `929bec4d` / `b80a16a0` / `b6da5110` / `f3169792` 及复盘批）；`failure-ledger dashboard/add/list` 与 `scripts/skill-salvage.py` 可跑（后者路径分隔符已修），`check` 的 gate 编排不可运行；复盘 `docs/maintenance/retrospective-2026-11-25-win11-migration-toolchain.md`；**未固化成仓库件，待用户裁决**（固化前先定谁拥有·怎么生效·规范在哪）。
-7. `[global]` `node_modules` 是 Linux 装的（仅 linux-x64 esbuild）：Win11 上跑 `gsts` 须 `ESBUILD_BINARY_PATH` 指向同版本 win32 esbuild.exe，而它现在放在 `%TEMP%`（可能被清理）——清理后按 2D 游戏技能 `12-deploy.md` §6 重新解包。
+6. `[global]` Win11 环境适配（用户 2026-11-25 裁决「需要固化」）——**已固化**：Python 件统一入口 `node scripts/py.mjs`、钩子经它找 Python（提交零设置）、`node scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；门禁 `hook-python-resolve`。**仍留的缺口**：`failure-ledger check` 的 gate 编排在 Win11 不可运行（gate 多为 bash/ys-* 件）；根注入文件已写满，Win11 口径待瘦身时同步；复盘 `docs/maintenance/retrospective-2026-11-25-win11-migration-toolchain.md`。
+7. `[global]` esbuild：win32 同版本二进制已持久化到 `node_modules/.cache/gsts/`（一条命令可重装：`node scripts/setup-win-esbuild.mjs`，先复用副本、否则从 npm registry 下载并校验 sha512）；换 esbuild 版本（改 `package.json` 后重装依赖）后要重跑一次，`gsts-win.mjs` 按版本号找目录。
 8. `[global]` `cmdmon` 耗时监控未安装：根 AGENTS.md「耗时监控」要求的开工/收轮读数（`~/.dsh/cmdlog/last-coach.md`）在 Win11 上取不到；Linux 侧 GUI/试玩工具链（`tools/ys-editor/`、`ys-lookd`）未迁移。
 
 ## 六、最近提交（滚动保留；跨线都记，标线 id）
