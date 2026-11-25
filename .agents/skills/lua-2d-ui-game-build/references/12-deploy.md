@@ -122,6 +122,17 @@ grep -E '/cell = \{ [0-9]+/' <注入版.lua>
 - 复制后用 Windows 存档根运行 `maps:resync --map-id <id>`，合并注册列表并同步 Temp；逐文件 SHA 对账、`assets:scripts list/mounts` 回读、`gil-guard.py --temp` 验收。保留原部署版无需重建玩法。
 - 共享 Linux `node_modules` 会报 esbuild 平台不匹配；可独立解包**与当前 esbuild 同版本**的 `@esbuild/win32-x64` 到 Windows 临时工具目录，用 `ESBUILD_BINARY_PATH` 指向其 `esbuild.exe`，避免重装覆盖 Linux 依赖。
 - 本轮完整记录：`workspace/tetris/docs/deploy-win11-20261125.md`。磁盘迁移通过仍需用户重新进入地图；编辑器已打开时勿保存旧内存覆盖新注册表。
+- **搬运脚本（同日足球二次实证，`examples/football/DEPLOY-WIN11-20261125.md`）**：`scripts/deploy-map-dir.ps1` —— fail-closed（目标 `<mapId>/` 已存在即拒绝，不做覆盖式更新）；先落 `<mapId>.deploy-tmp/` 逐文件校验 SHA256，全过才同卷原子改名；只搬地图目录、不碰 `.gip`/Temp（`maps:resync` 是独立的下一步）；`-DryRun` 只盘点，`-ManifestPath` 写逐文件清单。`.gsts/`（CLI 备份历史）不搬——游戏不读，CLI 下次写回自建。
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/scripts/deploy-map-dir.ps1 `
+    -SourceSaveLevel <源>/Beyond_Local_Save_Level -TargetSaveLevel <目标>/Beyond_Local_Save_Level `
+    -MapId <id> -ManifestPath <备份目录>/deployment-manifest.json [-DryRun]
+  ```
+  系统执行策略为 Restricted 时 `.ps1` 一律被拦：`-ExecutionPolicy Bypass` **只对该子进程生效**，不改系统设置。
+- **`.gip` 验收升级为字节级**（别再用"大小变了"当注册成功）：写前备份玩家级与 Temp 两个 `.gip` → `maps:resync` → 把写后文件去掉「页签链接 `2A 09 08 C0 0C 10 <图ID varint>`（11 B）」与「新增条目 `12 <len> …`」后与写前逐字节比较，**只允许差 4 个长度字段**（文件总长 / payload 长 / field1 长 / 「未分类页签」容器长）；旧条目与 field 3「最近地图」必须原样。足球实测 153→194 B＝11＋30（条目＝2＋6 id＋2＋名字 UTF-8＋6 时间戳）。`maps:resync` 幂等，重跑只刷新该图条目的时间戳。
+- **编辑器开着时的竞争**：引擎进图/退图会重写 `.gip`（实测 21:07:22）。CLI 注册后要复核条目仍在；它能否扛过引擎的下一次重写**尚无读数**——地图列表看不到就重跑 resync，或退出千星编辑器再进。
+- **Win11 跑仓库的 Python 件**：PATH 无 `python3`/`python`，`gil-guard.py` / `gil-header-check.py` / `doc_health.py` 用 DSH 运行时 `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`（3.12）。提交钩子（bash）里的 `python3` 用 `BASH_ENV` 注入 shell 函数解决，做法与实测见 `examples/football/DEPLOY-WIN11-20261125.md`「Win11 上提交」；禁止 `--no-verify`。
+- CLI 环境包装范例：`examples/football/gsts-win.mjs`（football 专用；别的工程照抄改路径）——免得每条命令重复两个环境变量。
 
 ```bash
 # CLI（gsts assets:*）要的是 LocalLow 这一层
