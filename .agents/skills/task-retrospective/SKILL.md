@@ -127,12 +127,14 @@ tools/failure-ledger dashboard     # 19 条账目 → 类别分布 + 未建防�
 tools/failure-ledger check         # 真跑每条账目引用的门禁，任何 FAIL → 退出码 1
 ```
 
-> **Win11（2026-11-25 实证）**：账本、`scripts/skill-salvage.py` 都是 `python3` 件而 PATH 里没有 `python3` —— 用 DSH 运行时
-> `python.exe` 并设 `PYTHONUTF8=1` 可跑 `dashboard` / `add` / `list` 与 skill-salvage（不带 `--bucket`：记忆河流的桶目录已是哈希名，
-> `--bucket <桶名>` 的路径推导与它不符）；`check` 的 gate 命令靠 shell 起子进程，在 Win11 上**整体不可编排**——如实报告
-> 「gate 已在本机等价执行、`check` 未跑」，不得写成防线已验证。`gates.tsv` 新行的 `requires` 列留空时**不要**以制表符结尾
-> （`git diff --check` 判尾随空白）。`prevented` 条目要同时给 `--inject`（范本：`scripts/doc_health.py --selftest-utf8` ＋
-> `--inject-legacy`——注入用例要把故障做成**跨平台可复现**的形态，而不是只在出过事的机器上才红）。
+> **Win11（2026-11-25 实证；同日已按用户裁决固化）**：仓库的 Python 件（账本、`scripts/skill-salvage.py`、`doc_health.py`…）一律
+> **`node scripts/py.mjs <脚本> [参数]`**（自动找 python3 / python / py -3 / DSH 运行时，子进程固定 UTF-8）；提交钩子已走同一条路，
+> 新机器先 `bash scripts/install-git-hooks.sh`。`failure-ledger dashboard/add/list` 与 skill-salvage（不带 `--bucket`：记忆河流的桶目录
+> 已是哈希名，`--bucket <桶名>` 的路径推导与它不符）可这样跑；`check` 的 gate 命令靠 shell 起子进程且多为 bash/ys-* 件，在 Win11 上
+> **整体不可编排**——如实报告「gate 已在本机等价执行、`check` 未跑」，不得写成防线已验证。`gates.tsv` 新行的 `requires` 列留空时
+> **不要**以制表符结尾（`git diff --check` 判尾随空白）。`prevented` 条目要同时给 `--inject`（范本一：
+> `node scripts/py.mjs scripts/doc_health.py --selftest-utf8` ＋ `--inject-legacy`；范本二：`node scripts/py.mjs --check` ＋ `--selftest`）——
+> 注入用例要把故障做成**跨平台可复现**的形态，而不是只在出过事的机器上才红。
 
 **规矩**：复盘文档的第一屏是这张仪表盘，不是叙述。每条新失败必须
 `tools/failure-ledger add` 入账，并**二选一**：

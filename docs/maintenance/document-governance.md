@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：足球项目文档审计（2026-09-05，40 份文件逐文档体检）
-> 最近校验：2026-09-05
+> 最近校验：2026-11-25（§9 强制门禁补「钩子经 scripts/py.mjs 找 Python」与各平台一致的手动入口）
 > 适用范围：仓库注入文档 + examples/football 文档/票档案 + 源码注释
 > 补充说明：本文件是根 [`documentation-governance.md`](../documentation-governance.md) 的**操作补充**，不取代根规则；根规则负责状态标签/来源分级/归档原则，本文件补充“文档类型模型、启动读取协议、足球项目 P0-P2 执行路线”。
 
@@ -122,6 +122,10 @@
 
 - `scripts/doc_health.py` 已支持自动目录扫描与 `--staged` 模式。
 - 仓库安装 `scripts/git-hooks/pre-commit` 后，**每次 git commit 都会自动运行 `doc_health.py --staged`**；范围文件有问题时提交被拒绝。
-- 安装命令：`bash scripts/install-git-hooks.sh`。
-- 新 clone/新环境必须先安装 hook；未安装时全量体检命令仍可手动运行：`python3 scripts/doc_health.py`。
+- 安装命令：`bash scripts/install-git-hooks.sh`（Win11 用 PortableGit 自带的 bash 跑同一条；脚本末尾自检「钩子可运行」，并在 Windows 上关掉 `core.filemode` 噪音）。
+- **钩子经 `scripts/py.mjs` 找 Python**（2026-11-25 起，不再写死 `python3`——Win11 的 PATH 里一个入口都没有，写死会让钩子以 127 拦下全部提交）：
+  `GSTS_PYTHON`（显式指定，坏了直接报错、不静默换人）→ PATH 里的 `python3` / `python` / `py -3` → DSH 运行时；每个候选都用 `--version` 实测，
+  子进程固定 `PYTHONUTF8=1`。门禁 `hook-python-resolve`＝`node scripts/py.mjs --check`，注入用例＝`--selftest`（含「无候选必须 127 并给指引」的负例）。
+- 手动跑任何仓库 Python 件走同一个入口，各平台一致：`node scripts/py.mjs scripts/doc_health.py`。
+- 新 clone/新环境必须先安装 hook。
 - 禁止用 `git commit --no-verify` 绕过文档门禁。

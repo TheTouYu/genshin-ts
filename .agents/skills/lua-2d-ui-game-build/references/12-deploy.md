@@ -120,7 +120,7 @@ grep -E '/cell = \{ [0-9]+/' <注入版.lua>
 - 先按当前系统探测真实存档根；本轮 Windows 为 `C:/Users/Administrator/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/`。游戏安装在 E 盘不代表存档也在 E 盘；下方 Wine 路径只适用于旧 Linux 环境。
 - 已有可用部署版可整体迁移 `<mapId>/`（`.gil` + 完整 `external_lua_file/`），保留已校准 GUID；先查目标 ID 无冲突、备份目标玩家目录，禁止整份覆盖 Windows 玩家 `.gip`。
 - 复制后用 Windows 存档根运行 `maps:resync --map-id <id>`，合并注册列表并同步 Temp；逐文件 SHA 对账、`assets:scripts list/mounts` 回读、`gil-guard.py --temp` 验收。保留原部署版无需重建玩法。
-- 共享 Linux `node_modules` 会报 esbuild 平台不匹配；可独立解包**与当前 esbuild 同版本**的 `@esbuild/win32-x64` 到 Windows 临时工具目录，用 `ESBUILD_BINARY_PATH` 指向其 `esbuild.exe`，避免重装覆盖 Linux 依赖。
+- `node_modules` 是 Linux 装的（只有 linux-x64 esbuild）⇒ Windows 上跑 `gsts` 前执行一次 **`node scripts/setup-win-esbuild.mjs`**（幂等，`--check` 可查）：把与 `node_modules/esbuild` 同版本的官方 win32 `esbuild.exe` 装到 `node_modules/.cache/gsts/esbuild-win32-x64-<版本>/`，不碰依赖树（先复用已有副本，否则从 npm registry 下载并按元数据校验 sha512）；`ESBUILD_BINARY_PATH` 可覆盖。别再手工解包到 `%TEMP%`（会被清理）。
 - 本轮完整记录：`workspace/tetris/docs/deploy-win11-20261125.md`。磁盘迁移通过仍需用户重新进入地图；编辑器已打开时勿保存旧内存覆盖新注册表。
 - **搬运脚本（同日足球二次实证，`examples/football/DEPLOY-WIN11-20261125.md`）**：`scripts/deploy-map-dir.ps1` —— fail-closed（目标 `<mapId>/` 已存在即拒绝，不做覆盖式更新）；先落 `<mapId>.deploy-tmp/` 逐文件校验 SHA256，全过才同卷原子改名；只搬地图目录、不碰 `.gip`/Temp（`maps:resync` 是独立的下一步）；`-DryRun` 只盘点，`-ManifestPath` 写逐文件清单。`.gsts/`（CLI 备份历史）不搬——游戏不读，CLI 下次写回自建。
   ```powershell
@@ -130,9 +130,9 @@ grep -E '/cell = \{ [0-9]+/' <注入版.lua>
   ```
   系统执行策略为 Restricted 时 `.ps1` 一律被拦：`-ExecutionPolicy Bypass` **只对该子进程生效**，不改系统设置。
 - **`.gip` 验收升级为字节级**（别再用"大小变了"当注册成功）：写前备份玩家级与 Temp 两个 `.gip` → `maps:resync` → 把写后文件去掉「页签链接 `2A 09 08 C0 0C 10 <图ID varint>`（11 B）」与「新增条目 `12 <len> …`」后与写前逐字节比较，**只允许差 4 个长度字段**（文件总长 / payload 长 / field1 长 / 「未分类页签」容器长）；旧条目与 field 3「最近地图」必须原样。足球实测 153→194 B＝11＋30（条目＝2＋6 id＋2＋名字 UTF-8＋6 时间戳）。`maps:resync` 幂等，重跑只刷新该图条目的时间戳。
-- **编辑器开着时的竞争**：引擎进图/退图会重写 `.gip`（实测 21:07:22）。CLI 注册后要复核条目仍在；它能否扛过引擎的下一次重写**尚无读数**——地图列表看不到就重跑 resync，或退出千星编辑器再进。
-- **Win11 跑仓库的 Python 件**：PATH 无 `python3`/`python`，`gil-guard.py` / `gil-header-check.py` / `doc_health.py` 用 DSH 运行时 `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`（3.12），并设 `PYTHONUTF8=1`（只设 `PYTHONIOENCODING=utf-8` 会让门禁的子进程读取线程抛 `UnicodeDecodeError`——子进程按 UTF-8 输出、父进程 `subprocess.run(text=True)` 按系统 GBK 解码；判定仍按退出码，但 FAIL 文本会丢）。提交钩子（bash）里的 `python3` 用 `BASH_ENV` 注入 shell 函数解决，做法与实测见 `examples/football/DEPLOY-WIN11-20261125.md`「Win11 上提交」；禁止 `--no-verify`。
-- CLI 环境包装范例：`examples/football/gsts-win.mjs`（football 专用；别的工程照抄改路径）——免得每条命令重复两个环境变量。
+- **编辑器开着时的竞争**：引擎进图/退图会重写 `.gip`（实测 21:07:22 / 21:26:40 / 21:41:46 三次）。CLI 注册后要复核条目仍在——足球实测条目扛过了后两次重写（194 B，逐字节含条目），但只证明这一种重写路径；列表看不到就重跑 resync，或退出千星编辑器再进。
+- **Win11 跑仓库的 Python 件**：PATH 里没有 `python3`/`python` ⇒ 一律 **`node scripts/py.mjs <脚本.py> [参数]`**（`GSTS_PYTHON` → PATH 里的 python3 / python / py -3 → DSH 运行时，逐个 `--version` 实测，子进程固定 `PYTHONUTF8=1`）。提交钩子已走同一条路——新机器先 `bash scripts/install-git-hooks.sh`，提交时无需任何设置；禁止 `--no-verify`。教训：只设 `PYTHONIOENCODING=utf-8` 会让门禁子进程读取线程抛 `UnicodeDecodeError`，旧实现下子检查 FAIL 时门禁自身崩溃（账本 F-20261125-96，门禁 `doc-health-utf8`）。
+- CLI 环境包装范例：`examples/football/gsts-win.mjs`（football 专用；别的工程照抄改路径）——免得每条命令重复两个环境变量。新 Win11 机器的首次就绪＝两条命令：`bash scripts/install-git-hooks.sh` ＋ `node scripts/setup-win-esbuild.mjs`。
 
 ```bash
 # CLI（gsts assets:*）要的是 LocalLow 这一层

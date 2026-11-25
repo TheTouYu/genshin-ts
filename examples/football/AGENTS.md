@@ -18,11 +18,11 @@
   存档根 `C:\Users\Administrator\AppData\LocalLow\miHoYo\原神\BeyondLocal\110170759\`——**游戏装在 E 盘、
   存档在用户 LocalLow，两者分开定位**；仓库仍在原 Linux 家目录 `H:\@home\h\genshin-ts`。
 - **CLI 走包装**：`node examples/football/gsts-win.mjs <子命令…>`（自动补 `GSTS_LOCALLOW_DIR` 与
-  `ESBUILD_BINARY_PATH`——`node_modules` 是 Linux 装的，只有 linux-x64 esbuild）。裸跑 `bin/gsts.mjs` 须先自己设这两个变量。
-- **Python**：PATH 里没有 `python3`/`python`；`gil-guard.py` / `gil-header-check.py` / `doc_health.py` 用
-  `%USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe`，并设 `$env:PYTHONUTF8='1'`（跑门禁必需）。
-- **提交**：pre-commit 钩子（bash）调 `python3`，Win11 上须让钩子进程拿到 `python3`（做法见
-  `DEPLOY-WIN11-20261125.md`「Win11 上提交」）；**不要 `--no-verify`**。
+  `ESBUILD_BINARY_PATH`——`node_modules` 是 Linux 装的，只有 linux-x64 esbuild；首次先 `node scripts/setup-win-esbuild.mjs`）。裸跑 `bin/gsts.mjs` 须先自己设这两个变量。
+- **Python 件一律** `node scripts/py.mjs <脚本.py> [参数]`（自动找 python3 / python / py / DSH 运行时，可用 `GSTS_PYTHON` 指定；子进程固定 UTF-8）——
+  `gil-guard.py` / `gil-header-check.py` / `doc_health.py` / `failure-ledger` 都这样跑，别再去找 `python3`。
+- **提交**：钩子经 `scripts/py.mjs` 找 Python，提交时**无需任何设置**；新机器 / 新克隆先 `bash scripts/install-git-hooks.sh`（Win11 用 PortableGit 的 bash）。
+  **不要 `--no-verify`**。
 - 存档双地址：`…\Beyond_Local_Save_Level\<id>\<id>.gil`（同级带 `external_lua_file\`）+ `…\Temp\<id>.gil`
   ——任何写回后必查双址 SHA 一致（`maps:resync` 同步 Temp 并注册 `.gip`；terrain set-range 不自动同步 Temp）。
 - 迁移流程、逐文件对账与试玩取证入口：`DEPLOY-WIN11-20261125.md`；通用规则＝2D 游戏技能 `references/12-deploy.md` §6。
