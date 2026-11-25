@@ -2,6 +2,8 @@
 
 > 本文件与根 `CLAUDE.md` 每次会话都会注入模型上下文，务必精简。本文件只放**行为纪律**：
 > 仓库架构/命令/代码边界见 `CLAUDE.md`；领域细节按下方路由加载技能本体，不要在此展开。
+> **运行环境**：本机自 2026-11-25 起为 **Win11**——仓库 Python 件一律 `node scripts/py.mjs <脚本>`；提交钩子经它找 Python（提交零设置）；
+> 新机器首次就绪：`bash scripts/install-git-hooks.sh` ＋ `node scripts/setup-win-esbuild.mjs`；PKC 与 `cmdmon` 在 Win11 尚不可用（命令见 `CLAUDE.md`）。
 
 ## 项目愿景（2026-08-14 用户定义，详见 docs/project-vision.md）
 
@@ -23,13 +25,9 @@
 
 ## 仪器优先（2026-10-17 用户令）
 
-> 关键 GUI/自动化模块**没过五条门槛，不进下游任务**（仪器的不确定会原样转嫁成返工：实测一轮 426s 里 92% 是仪器开销）。全景图 `docs/maintenance/ys-editor-system-map.html`；门槛表与细节见 `device-playtest-loop` 技能。
-
-**五条门槛**：①判定 回归 ≥16 张（含 5 负样本）两条独立通道 100%；②假成功 注入 3 类失败，执行器 ≤10s 停止并报「哪条断言为假 + 观测值」；③性能 写盘轮 ≤90s / 纯试玩轮 ≤40s / 取帧 ≤12 次 / 取焦点 1 次 / 固定 `sleep` 0 条；④证据 只给 `round.json` + 引用帧 + `.gia` 能重算出结论；⑤可维护 界面态判定全仓只有一处实现。
-
-**四条纪律**：状态判定单一源（新脚本向 `ysd` 查，不自己写判据）；等待用 `wait_until` 不用 `sleep`；每步有前置断言，为假即停并记账；证据=能重推结论的最小集（截图不是证据）。
-
-**耗时监控（2026-10-18 用户令：有命令 ≠ 会起作用）**：开工前与收轮前各读一次 `~/.dsh/cmdlog/last-coach.md`（`cmdmon` 常驻每 5 分钟自动刷新，不靠记得跑它）；判据见 `device-playtest-loop`「命令耗时监控」。**新监控件必须同轮接进主链**——"只写不接"已两次。
+关键 GUI/自动化模块**没过五条门槛，不进下游任务**（仪器的不确定会原样转嫁成返工）。五条门槛、四条纪律（状态判定单一源 / 等待用判据不用时长 / 每步前置断言 / 证据＝能重推结论的最小集）
+与耗时监控见 `device-playtest-loop` 技能；全景图 `docs/maintenance/ys-editor-system-map.html`。**新监控件必须同轮接进主链**（"只写不接"已两次）。
+耗时监控（开工前与收轮前各读一次 `~/.dsh/cmdlog/last-coach.md`）在 Win11 尚未安装——取不到读数时如实报告。
 
 ## 自进化与反思（每轮闭环）
 
@@ -43,7 +41,7 @@
 5. **迭代一轮写知识树**：可复用规则录入 PKC（`pkc-project-operator`），不只写文档。
 6. **多轮任务走票据驱动**（2026-09-03）：先建票建看板（`/to-tickets`，规范 `docs/maintenance/ticket-driven-workflow.md`），收轮三件套（勾票 + PROGRESS 下一步 + 精确 commit）。
 
-- **记忆纪律（2026-09-16 用户定义；三条并列，must 主动不等提醒）**：① **写日记**（`memo_write`）——关键知识变长期记忆、相关时自动召回；一个可归因小点闭环即写，不攒到最后。② **压缩**（`compress`）——消费冗余提高容量；已消费的工具输出/探索过程/中间步骤即压，用户消息、当前步骤在用、需逐字引用者**不压**；**自写摘要比自动压缩保真**；AGENTS.md 重注入行挡住的区间压了不回收。③ **Tag 卫生**——回注的**枢纽告警（某 Tag ≥1/3 篇）是功能失效非美学提示**：锚覆盖 1/3 语料就区分不了任何两篇，**等于没响**，挂它的记忆渐渐召不回。**见到必当轮处理**（我连续三次只记录不处理，被用户点破）。天生会涨的四类（来源/项目/元属性/超大领域）都在描述"谁在说"而非"在说什么"；枢纽通常是**若干篇挂错**而非某篇挂多，逐篇问"主题真的是它吗"；**换锚优于删锚**；**"为连通性搭桥"是反模式**；改完**必看连通分量=1**。实证 `GIL资产操作` 10/25→7/26。
+- **记忆纪律（2026-09-16 用户定义；三条并列，must 主动不等提醒）**：① **写日记**（`memo_write`）——关键知识变长期记忆、相关时自动召回；一个可归因小点闭环即写，不攒到最后。② **压缩**（`compress`）——已消费的工具输出/探索过程/中间步骤即压；用户消息、当前步骤在用、需逐字引用者**不压**；自写摘要比自动压缩保真；AGENTS.md 重注入行挡住的区间压了不回收。③ **Tag 卫生**——回注的**枢纽告警（某 Tag ≥1/3 篇）是功能失效**：锚覆盖 1/3 语料就区分不了任何两篇，**见到必当轮处理**：天生会涨的四类（来源/项目/元属性/超大领域）描述的是"谁在说"；逐篇问"主题真的是它吗"（通常是若干篇挂错）；**换锚优于删锚**；**"为连通性搭桥"是反模式**；改完**必看连通分量=1**。
 - **复盘**：一波任务闭环后，用 `task-retrospective` 系统复盘（历史检索 → 错误谱系 → 复盘文档 → 迭代），防止经验流失。
 - **知识落盘**：可复用的引擎规则/方法论落盘到 `docs/game-engine-knowledge/` 与 PKC 知识树（`pkc-project-operator`）；只写已证实、可复用、可行动的规则，更新到适用范围最小的文件。
 - **技能迭代**：复盘沉淀的流程/经验用 `skill-creator` 回灌到对应技能，让下次同类任务自动按新流程执行。
@@ -51,9 +49,9 @@
 
 ## 信息检索优先级（缺关键信息/上下文/历史记忆时，2026-08-22 强制）
 
-**高频触发——节点预算/帧数超限（先查规则再动刀）**：遇到节点数超限/拒载/图预算超限，第一步**先查规则**：`pkc query` 读硬限与公式口径（命令见 CLAUDE「PKC 查询」），再 `dsh-session-history` 找该地图历史定稿公式；本地测量是第二取证动作。**引擎单图上限=2000（生产红线），超 2000 直接按职责拆新图**；单 tick 帧数预算 <3000 帧/记录。旧 3000 阈值已作废。
-
-**负载设计铁律（2026-08-24 用户定义）**：按「事件驱动 → 低频定时器（0.7~1s）→ 高频轮询」选择；0.06s 级触发本身即高负载，禁止长期运行；定时器必须有停止条件；单 tick 内重计算拆成小复合，禁止多个有限循环叠在一条链上。写图前算两笔账：`assets:node-graphs nodes` 节点预算 + 单 tick 帧数预算（<3000 帧/记录）。**打印纪律（2026-09-03）**：print 只留关键状态入口（生命周期/任务唤醒/异常标记），高频路径零 print；完整数据让用户按图开详情日志。
+**节点预算与负载（先查规则再动刀）**：单图上限 **2000**（生产红线，超限按职责拆图）、单 tick 帧数预算 <3000 帧/记录，写图前先算这两笔账；
+0.06s 级触发本身即高负载、定时器必须有停止条件、print 只留关键状态入口——规则全文见 `dsl-nodegraph-development` 技能「跨图拆分逻辑」节。
+历史定稿公式先 `pkc query`（PKC 不可用时退到 `docs/game-engine-knowledge/`），再 `dsh-session-history`；本地测量是第二取证动作。
 
 1. **先查知识树 PKC**（只读）：命令与 context 清单见 `CLAUDE.md`「PKC 知识树查询」；`query` 必须带 `--level 2`，中英多关键词召回更高。
 2. `progressive-query` 报 coverage gap → 降级 `query`（多关键词/中英混排）→ `knowledge-search --semantic`；**bounded miss ≠ 仓库级缺失**。
@@ -76,13 +74,13 @@
 | 写 DSL / 修编译生成图 | `dsl-nodegraph-development` |
 | 客户端节点图（调用客户端图／技能实例／不触发／信号回传） | `client-nodegraph-development` |
 | 编辑器规则探索（最小差分实验） | `editor-incremental-gia-investigator` |
-| UI 命令层／写屏幕控件、悬浮页、页签、素材 | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md`（W1 事故回灌） |
+| UI 命令层／写屏幕控件、悬浮页、页签、素材 | `ui/AGENTS.md` + `ui/mappings.md` + `references/ui-controls.md` |
 | 游戏内最小注入核验 | `verify-injection` |
 | 技能配置／客户端图资产（模板矩阵） | `genshin-ts-asset-operations` |
 | Composite/GIA 文档导航 | `composite-docs-navigator` / `composite-docs-maintainer`（直接 read） |
 | 千星知识库/节点用法查询 | `miliastra-knowledge` |
 | **千星模拟器 2D UI+Lua 路线** | `simulator-2d-route` + 插件技能 `qxqy-simulator` |
-| 2D 小游戏 / 3D 界面层（HUD·结算·浮层·引导）／**客户端控件容器一条龙**（`assets:ui container`，`12-deploy.md` §9） | `lua-2d-ui-game-build`（阶段门；工具细节走 `simulator-2d-route`） |
+| 2D 小游戏 / 3D 界面层（HUD·结算·浮层·引导）／**客户端控件容器一条龙** | `lua-2d-ui-game-build`（阶段门；工具细节走 `simulator-2d-route`） |
 | 音效选型/接入/验证（BGM·SFX·PlayAudio2D·挑音网页） | `game-sfx-kit` |
 | 项目记忆／领域知识路由 | `genshin-ts-project-adapter` |
 | 知识树/PKC 查询与录入维护（缺信息先查） | `pkc-project-operator`（全局技能） |
@@ -97,7 +95,7 @@
 | 复盘/追溯历史会话 | `task-retrospective` / `dsh-session-history` |
 | Beyond 语义资源（effectID→TextMapHash／状态效果名／IL2CPP） | `beyond-semantic-resource-reverse` |
 | 差分+抓包学 wire／扩展 `gsts assets:*` | `diff-capture-cli-builder` |
-| 技能加载失败/怀疑技能体系受损/「优化了还报错」 | 先跑 `python3 scripts/skills-health.py`；**同名技能只准一份实体（2026-10-26 用户令）**：实体留在本仓 `.agents/skills/<name>`，`~/.agents/skills/<name>` 必须是软链，体检报 `DUP` 即违规。删除技能或改链接结构属破坏性操作，须确认。**技能加载失败=基础设施故障，当轮报告并附报错原文** |
+| 技能加载失败/怀疑技能体系受损/「优化了还报错」 | 先跑 `node scripts/py.mjs scripts/skills-health.py`；**同名技能只准一份实体**（2026-10-26 用户令，规则与处置见 `agents-md-auditor`）；技能加载失败=基础设施故障，当轮报告并附报错原文 |
 
 ## 写回真实地图红线（高频违规点）
 

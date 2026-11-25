@@ -89,9 +89,10 @@ git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此�
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
 4. `[global]` `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回三游戏伞目标前必须刷新）。
 5. `[sim-2d]` 真机导入目录现为 4 个文件（`hmlt-qixia-整合包.gia` 93,202 B + 2 个 baseline + `tetris-整合包.gia`）——导入时**别选错**。
-6. `[global]` Win11 环境适配（用户 2026-11-25 裁决「需要固化」）——**已固化**：Python 件统一入口 `node scripts/py.mjs`、钩子经它找 Python（提交零设置）、`node scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；门禁 `hook-python-resolve`。**仍留的缺口**：`failure-ledger check` 的 gate 编排在 Win11 不可运行（gate 多为 bash/ys-* 件）；根注入文件已写满，Win11 口径待瘦身时同步；复盘 `docs/maintenance/retrospective-2026-11-25-win11-migration-toolchain.md`。
+6. `[global]` Win11 环境适配（用户 2026-11-25 裁决「需要固化」）——**已固化**：Python 件统一入口 `node scripts/py.mjs`、钩子经它找 Python（提交零设置）、`node scripts/setup-win-esbuild.mjs`、`install-git-hooks.sh` 在 Windows 关 `core.filemode` 噪音；门禁 `hook-python-resolve`。**仍留的缺口**：`failure-ledger check` 的 gate 编排在 Win11 不可运行（gate 多为 bash/ys-* 件）；根注入文件已瘦身并同步 Win11 口径（`AGENTS.md` 余 1,438 B / `CLAUDE.md` 余 1,065 B，用户逐项选定范围）；复盘 `docs/maintenance/retrospective-2026-11-25-win11-migration-toolchain.md`。
 7. `[global]` esbuild：win32 同版本二进制已持久化到 `node_modules/.cache/gsts/`（一条命令可重装：`node scripts/setup-win-esbuild.mjs`，先复用副本、否则从 npm registry 下载并校验 sha512）；换 esbuild 版本（改 `package.json` 后重装依赖）后要重跑一次，`gsts-win.mjs` 按版本号找目录。
 8. `[global]` `cmdmon` 耗时监控未安装：根 AGENTS.md「耗时监控」要求的开工/收轮读数（`~/.dsh/cmdlog/last-coach.md`）在 Win11 上取不到；Linux 侧 GUI/试玩工具链（`tools/ys-editor/`、`ys-lookd`）未迁移。
+9. `[global]` 路由表引用的 **6 个全局技能在本机不存在**（`bilibili-learn` / `isolated-model-evaluator` / `oneshot-prompt-builder` / `pkc-project-operator` / `qxqy-simulator` / `task-command-center`；`~/.agents/skills` 目录不存在）⇒ `node scripts/py.mjs scripts/skills-health.py` 报 6 死引用；PKC 录入与「派独立模型」在 Win11 走不了。处置待用户裁决（迁移全局技能 / 标 Linux-only）；删除或改链接属破坏性操作。
 
 ## 六、最近提交（滚动保留；跨线都记，标线 id）
 

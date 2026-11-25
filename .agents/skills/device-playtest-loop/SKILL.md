@@ -610,6 +610,8 @@ SHA 变化也**不能**当判据——编辑器内存与磁盘一致时，离开
 > 机制：`tools/cmdmon`（常驻 `cmdmon.service`，2s 增量）→ `~/.dsh/cmdlog/commands.jsonl` →
 > `tools/agent-coach` 生成 3~5 条可省时间建议 → daemon **每 5 分钟自动刷新** `~/.dsh/cmdlog/last-coach.md`。
 > **这是设计保障，不是纪律提醒**：卡片不靠模型记得跑，也跑不掉（daemon 自己在刷）。
+> **Win11（2026-11-25 实测）**：本机未安装 `cmdmon` / `agent-coach`（`~/.dsh/cmdlog/last-coach.md` 不存在）——
+> 取不到读数时**如实报告「未安装」**，不得凭印象写耗时；迁移这两个件之前，耗时判据在这台机器上不成立。
 
 **为什么必须做成设计**（本节的来历，别再重犯）：`cmdmon`（采集）+ `agent-coach`（生成）两天前就建好了、
 daemon 一直在跑、账本一直在写，但设计文档里最后一步写的是「**模型侧约定：每阶段自查一次 agent-coach**」——

@@ -14,9 +14,14 @@
 
 ## 常用命令
 
+**运行环境**：本机自 2026-11-25 起为 **Win11**（Linux/wine 路径为历史）。仓库的 Python 件一律 `node scripts/py.mjs <脚本> [参数]`
+（自动找 Python、子进程 UTF-8）；提交钩子经它找 Python，提交无需任何设置；新机器首次就绪两条命令：
+`bash scripts/install-git-hooks.sh`、`node scripts/setup-win-esbuild.mjs`。PKC（`tools/pkc.py`）与耗时监控（`cmdmon`）在 Win11 **尚不可用**。
+游戏存档根见 `examples/football/AGENTS.md` §〇，机器读数见 `docs/longtask/03-state.md` §四。
+
 ```bash
 npm run build                        # tsc 编译（prebuild：ambient 守卫 → 清空 dist.tmp 并从 dist 播种；
-                                     #   成功后 dist.tmp→dist。增量缓存见「类型与运行时单副本」节，改一个文件约 7~8 秒）
+                                      #   成功后 dist.tmp→dist。增量缓存见「类型与运行时单副本」节，改一个文件约 7~8 秒）
 node dist/src/cli/gsts.js --config <cfg> --noinject   # 客户端图编译必须用 dist CLI（npx tsx src/cli ⇒ IR 恒 []、假绿）
 npm run build:clean                  # 精确构建（先删 dist + 增量缓存再全量，约 66 秒；发布/交付用）
 npm test                             # 构建 + 生成测试用例 + 完整 GIA 测试配置（--noinject）
@@ -34,19 +39,19 @@ GIA/GIL 只读工具（`npx tsx tools/<file>.ts <样本>`）：
 ```bash
 npm run gia:decode / gia:inspect / gia:compare / gia:diff   # GIA 解码/检查/比较/差异
 npm run gil:parse-node-graph / gil:trace-exec / gil:trace-dataflow  # 真实 .gil 图分析
-python3 .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> records|frames|perf|ops   # 调试日志分析（records --summary 聚合 / ops 操作时间线 / perf 每秒负载）
-python3 .agents/skills/debug-log-investigator/scripts/gia_log_flow.py <日志.gia> --gil <地图.gil> --rec N [--client] [--trace-node I]   # 事件线视图（循环折叠×N）+ 数据倒查（服务端/客户端双模式）
-npx tsx src/cli/gsts.ts variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all] [--entity <id>] [--graph <id>]  # 变量 wire 照规律表逐字节核验（tests/fixtures/variables-wire-rules.json，只读 PASS/DIFF）
+node scripts/py.mjs .agents/skills/debug-log-investigator/scripts/gia_log.py <日志.gia> records|frames|perf|ops   # 调试日志分析（records --summary 聚合 / ops 操作时间线 / perf 每秒负载）
+node scripts/py.mjs .agents/skills/debug-log-investigator/scripts/gia_log_flow.py <日志.gia> --gil <地图.gil> --rec N [--client] [--trace-node I]   # 事件线视图（循环折叠×N）+ 数据倒查（服务端/客户端双模式）
+npx tsx src/cli/gsts.ts variables:verify --gil <file> [--scope assets|graph|local-server|local-client|all] [--entity <id>] [--graph <id>]  # 变量 wire 照规律表逐字节核验（tests/fixtures/variables-wire-rules.json，只读 PASS/DIFF)
 ```
 
-PKC 知识树（长期记忆）查询（`python tools/pkc.py`，只读；缺关键信息先查它，见根 `AGENTS.md`）：
+PKC 知识树（长期记忆）查询（`node scripts/py.mjs tools/pkc.py`，只读；缺关键信息先查它，见根 `AGENTS.md`）：
 
 ```bash
-python tools/pkc.py query "<关键词1 关键词2 关键词3>" --level 2   # 全库 claim 检索；必须带 --level 2（默认 level 1 只搜节点标题，不搜 claim 内容）
-python tools/pkc.py progressive-query --context <ctx> --intent "<问题>" --max-level 2 --limit 3 --check-authority
-python tools/pkc.py tree                                      # 看全部 topic 与 keywords（可当查询词）
-python tools/pkc.py knowledge-search --status any "<词>"      # 含 pending_review 的检索
-python tools/pkc.py knowledge-search --semantic "<完整问题>"   # 向量化语义检索（hybrid）；中文长句/coverage gap 时用
+node scripts/py.mjs tools/pkc.py query "<关键词1 关键词2 关键词3>" --level 2   # 全库 claim 检索；必须带 --level 2（默认 level 1 只搜节点标题，不搜 claim 内容）
+node scripts/py.mjs tools/pkc.py progressive-query --context <ctx> --intent "<问题>" --max-level 2 --limit 3 --check-authority
+node scripts/py.mjs tools/pkc.py tree                                      # 看全部 topic 与 keywords（可当查询词）
+node scripts/py.mjs tools/pkc.py knowledge-search --status any "<词>"      # 含 pending_review 的检索
+node scripts/py.mjs tools/pkc.py knowledge-search --semantic "<完整问题>"   # 向量化语义检索（hybrid）；中文长句/coverage gap 时用
 # context 清单（project-intelligence.json → memory.contexts）：
 #   compiler-diagnostics / static-gil-assembly-production / official-guide / game-engine-rules（游戏引擎实测规则，2026-08-29 新增）
 # progressive-query 命中结果在响应的 `claims` 字段（`results` 键只用于 knowledge-search）。
@@ -70,21 +75,14 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
    布局、Composite），批量输出 `.gia`。
 4. `src/injector/` 读取和修改 GIA/GIL 资源：节点图发现、资源/文件夹定位、信号节点与二进制补丁注入；不是编译阶段替代品。
 
-主要源码区域：
+主要源码区域（细节见各目录自己的 `AGENTS.md`，进入目录会自动注入）：
 
-- `src/compiler/`: 三阶段管线（TS→GS→IR→GIA）及布局；跨阶段契约 `src/runtime/IR.d.ts`。
-- `src/runtime/`: DSL 运行时值、核心 API、服务端图运行时和全局定义。
-- `src/definitions/`: 由资源/第三方节点定义生成的事件、函数、类型和别名（含 `client_*` 客户端节点图定义）；不手改，用 `npm run gen`。
-- `src/cli/`: `gsts` 命令行入口（`gsts.ts`）与各资产子命令（`assets_*.ts`、`gil_*.ts`、`maps.ts`），处理构建/地图/注入/写回。
-- `src/injector/`: GIA/GIL 解析、图/资源定位及安全注入。
-- `src/eslint/`: 针对 Genshin-TS DSL 语义限制的 ESLint 插件。
-- `src/thirdparty/`: 第三方 GIA/节点编辑器定义及 protobuf 数据；不手改，走 vendor 同步（`src/compiler/gia_vendor.ts`）。
-- `tests/`: 编译、节点定义、运行时语义及 GIA 输出测试；`tests/composite/` 为专项分析/复现工具，默认不纳入主测试配置。
-- `scripts/`: 定义生成、测试生成、构建后处理、client/server 节点图元数据与断言脚本。
-- `tools/`: 只读 GIA/GIL 分析工具（decode/parse/explain/diff 等，`npx tsx` 运行，不写游戏文件）。
-- `configs/`、`types/`、`types-local/`: 发布配置、公共声明及本地 TS 类型支持。
-- `docs/architecture/`: 编译器、IR、注入器、DSL、布局、client-gia-encoding 设计文档；跨模块问题优先查对应文档。
-- `examples/`: 可玩 demo 项目（rubik-2x2、rubik-3x3、lights-out、football、cube-replica-c4），各带独立配置与 PROGRESS 文档。
+- `src/compiler/`：三阶段管线（TS→GS→IR→GIA）及布局；跨阶段契约 `src/runtime/IR.d.ts`。`src/runtime/`：DSL 运行时值、核心 API、服务端图运行时和全局定义。
+- `src/definitions/`：生成的事件、函数、类型和别名（不手改，用 `npm run gen`）；`src/thirdparty/`：第三方定义与 protobuf 数据（不手改，走 vendor 同步 `src/compiler/gia_vendor.ts`）。
+- `src/cli/`：`gsts` 入口与各资产子命令（`assets_*.ts`、`gil_*.ts`、`maps.ts`）；`src/injector/`：GIA/GIL 解析、资源定位及安全注入；`src/eslint/`：DSL 语义限制的 ESLint 插件。
+- `tests/`：编译、节点定义、运行时语义及 GIA 输出测试（`tests/composite/` 为专项工具，默认不入主配置）；`scripts/`：定义与测试生成、构建后处理、元数据与断言脚本。
+- `tools/`：只读 GIA/GIL 分析工具（`npx tsx` 运行，不写游戏文件）；`configs/`、`types/`、`types-local/`：发布配置、公共声明及本地类型支持。
+- `docs/architecture/`：编译器、IR、注入器、DSL、布局、client-gia-encoding 设计文档，跨模块问题优先查；`examples/`：可玩 demo，清单见 `examples/AGENTS.md` 路由表。
 
 ## DSL 语法速记
 
@@ -95,36 +93,18 @@ TypeScript 工具链 npm 包：把 Miliastra Wonderland 的 TS 用户逻辑编�
 
 ## 类型与运行时单副本（2026-08-30 修复，改类型/构建配置必读）
 
-- **构建增量缓存（2026-09-16 修，改这一节前务必读完）**：tsbuildinfo 落在
-  **`node_modules/.cache/gsts/tsconfig.tsbuildinfo`**（不在 `dist.tmp/` 里）。
-  **实测**：改一个文件后 `npm run build` **67 秒 → 7~8 秒**；冷构建仍 ~66 秒。
-  **安全前提已验证**：增量构建照常抓类型错误（注入 `TS2322` 后 exit=2 并逐行报出）。
-  - ⚠️ **必须「播种」——这是本优化最反直觉的一点**：
-    tsc 的增量 emit **只写变更过的文件**。若 `dist.tmp` 从空开始，它可能只产出 2 个文件；
-    而 build 结尾是 **整目录替换**（`dist.tmp → dist`）→ **dist 会被换成一个残目录**
-    （实测发生过：dist 只剩 2 个 js，且改名失败后 dist 直接丢失）。
-    因此 `prebuild` 里先把 **`dist` 整个 `cpSync` 到 `dist.tmp`** 再让 tsc 增量更新，
-    保证被替换的始终是完整目录。
-  - ⚠️ **`dist` 缺失时必须清缓存**：否则 tsc 认为「输出已是最新」不 emit，
-    而 dist.tmp 又是空的 → 同样丢产物。`scripts/build.mjs` 里已加该分支（缺失则删 tsbuildinfo 强制全量）。
-  - 🔴 **增量状态必须与 `dist` 描述同一份产物（2026-09-16 修复的静默丢改动事故，改构建入口前必读）**：
-    原先 `tsc ... && rm -rf dist && rename` 的链里，**tsc 失败时仍会推进 tsbuildinfo**，
-    而 prebuild 下次会删掉 dist.tmp 重新从**旧的 dist** 播种 →
-    下一次构建信任 tsbuildinfo 而**跳过 emit** → 整目录替换后，
-    **被丢弃的那次 emit 永久消失，且构建报成功**。
-    复现：改源码 A + 引入一个**其它文件**的类型错误 → 构建失败 → 修掉错误 → 再构建
-    → A 的改动不在 dist（实测 `grep -c` = 0）。
-    → 修复：**`tsc` 写暂存增量态（staging），只有 `dist.tmp → dist` 替换成功后才提升为提交态**；
-    任何一步失败即丢弃 staging，提交态始终精确描述当前 `dist`，下次构建会**重新 emit** 变更文件。
-    实现见 `scripts/build.mjs`（构建链已从 package.json 内联 shell 迁到该脚本）。
-  - ⚠️ **已知代价：陈旧产物会残留**（删掉某个 .ts 后，它旧的 .js 仍留在 dist，因为增量 emit 不删输出）。
-    需要**精确**的产物树时用 **`npm run build:clean`**（先删 dist + 缓存再全量构建，~66 秒）。
-    发布/交付走 clean，日常迭代走 `build`。
-  - 清缓存请只删 `node_modules/.cache/gsts/`（下次构建会重建，代价是一次冷构建 66 秒）。
 - tsc 类型检查统一走 **src 单副本**；tsx 运行时统一走 **dist 单副本**（src/dist 双副本会导致 branded 类型不兼容）。
 - 新增 tsx spawn / CLI 入口必须给 runner 注入 `TSX_TSCONFIG_PATH=tsconfig.tsx.json`，路径用 `resolveTsxConfigPath(__dirname)`，不要写死相对层级。
 - 改 tsconfig/类型配置后验证解析方向：`node --import tsx -e "console.log(import.meta.resolve('genshin-ts/runtime/core'))"`——输出 `src/...`=类型检查侧；`dist/...`=运行时侧。
 - 完整根因（888 错、`kCtxStack` 分裂、`Cannot resolve tsconfig`）见 `docs/maintenance/retrospective-2026-08-30-build-gate-and-dual-copy.md`。
+
+**构建增量缓存五条规则**（2026-09-16 修；机制与事故复盘见 `scripts/build.mjs` 头注，改构建入口前先读）：
+
+1. tsbuildinfo 在 `node_modules/.cache/gsts/`（不在 `dist.tmp/`）；改一个文件后 `npm run build` 约 7~8 秒，冷构建约 66 秒；增量构建照常抓类型错误。
+2. **必须「播种」**：tsc 增量只写变更文件，而 build 结尾是整目录替换 `dist.tmp → dist`——`prebuild` 先把 `dist` 整个拷进 `dist.tmp`，否则 dist 会被换成残目录。
+3. **`dist` 缺失时必须清缓存**（否则 tsc 认为输出已最新而不 emit，dist.tmp 又是空的 → 丢产物）；`scripts/build.mjs` 已处理。
+4. **增量态先写 staging，`dist.tmp → dist` 替换成功后才提升为提交态**，任何一步失败即丢弃 staging——否则 tsc 失败时已推进的 tsbuildinfo 会让下一次构建跳过 emit，被丢的改动永久消失且构建报成功。
+5. **已知代价：陈旧产物残留**（删掉 .ts 后旧 .js 仍在 dist）。要精确产物树用 `npm run build:clean`（发布/交付走 clean，日常迭代走 `build`）；清缓存只删 `node_modules/.cache/gsts/`。
 
 ## 修改约束
 
