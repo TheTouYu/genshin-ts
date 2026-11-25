@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-10-29 14:2x（新增 `[football]` 结构自检与行为层零证据读数；共享面未变）
+> 最近校验：2026-11-25 21:2x（**平台已换：Win11 原生**——§四 加 Win11 读数、§五 加三条 `[global]` 环境缺口、§三 加 `[football]` 迁移读数并订正一行过期读数；`[gui-agi]` / `[sim-2d]` 行未动）
 > 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
@@ -46,10 +46,28 @@
 | `[football]` | 地图 1073741827 结构自检（`assets:ui list` / `assets:scripts mounts` / `sha256sum`） | 11 个 client-textbox 位置尺寸一致；mounts=1；Save_Level==Temp sha `7893105f…`；Lua 静态审计 PASS | 2026-10-29 14:2x |
 | `[football]` | 物理引擎 v3 离线验收（`node .scratch/football-phys-audit/sim-v3.mjs`，exit 0） | 弹跳峰高误差 <3%（解析 0.688/0.172/0.043）；滑行 7.84 m/s²；纯滚动 8m/s 9.93s 停；带球稳态 0.98m/4.97m/s；门柱 z=3.3 擦柱不进、z=2.9 进；18m/s 无隧穿 | 2026-10-31 18:0x |
 | `[football]` | 引擎 v3 结构层（`gsts --config gsts.kit3.config.ts --noinject`，exit 0） | kit-loop **979** 节点（原 645）/ test 1123 / render 66（原 118）/ listen 73（原 228）；`GSTS-DUPLICATE-EXEC-INPUT` 全是「多来源同出口」启发式（同来源双写 = 0）；Lua 单测 29 PASS / 0 FAIL | 2026-10-31 18:0x |
-| `[football]` | 行为层（真机试玩日志） | **9 份近期日志 `[fb-in]` 命中 0**（Lua 从未在带日志试玩中跑过）⇒ 物理/输入/HUD 三层行为证据为零 | 2026-10-29 14:2x |
+| `[football]` | 行为层（真机试玩日志） | ~~9 份近期日志 `[fb-in]` 命中 0~~（**已过期**：那是读错字段——Lua print 落 f23；2026-10-30 起行为层读数齐备，见 dossier 10-30 节） | 2026-10-29 14:2x，2026-11-25 订正 |
+| `[football]` | 地图 1073741827 迁入 Win11（技能脚本 `deploy-map-dir.ps1` + `maps:resync`；记录 `examples/football/DEPLOY-WIN11-20261125.md`） | 3 文件 SHA 与 Linux 源相等；Save_Level==Temp `4bbdfef4…` 874,585 B；`.gip` 153→194 B（链接 11＋条目 30，其余字节不变）；`gil-header-check` 0 问题；`gil-guard.py --temp` PASS；CLI 回读（脚本 1 / 挂载 1 / UI 81 行 / 图 12·定义 15·实体 27）与源全等 | 2026-11-25 21:11 |
+| `[football]` | 行为层（Win11） | **玩法行为零证据**——引擎 21:26 已加载并回写该图（结构层间接证据：与源仅 42 B 差异、读数全等；`.gip` 条目经引擎重写仍在），但没有该图的试玩日志 | 2026-11-25 21:34 |
 | `[global]` | `npm run build` / `npm run quicktest` | 未在本轮复跑（本轮只改文档） | 2026-10-24 |
 
-## 四、机器与常驻服务（只读实测，2026-10-24 11:5x）
+## 四、机器与常驻服务
+
+**`[global]` 2026-11-25 21:2x 平台切换：Linux（Arch+wine）→ Win11 原生**（用户原话见 `04-timeline.md` 11-25 行）。当前机器只读实测：
+
+```text
+主机           WIN-P2NOTOGSUFS（用户 Administrator）；仓库仍在原 Linux 家目录 H:\@home\h\genshin-ts（属主 SID S-1-22-1-1000）
+git            2.56.1.windows.1（PortableGit，E:\tools\PortableGit）——首次使用须 git config --global --add safe.directory H:/@home/h/genshin-ts
+node / npm     v24.9.0 / 11.6.0；dist/src/cli/gsts.js 构建于 2026-11-17 23:12
+原神           在跑：E:\ys\Genshin Impact Game\YuanShen.exe（7.2.0）；BeyondEditor.exe ×2 已自动连接（uid 110170759）
+存档根         C:\Users\Administrator\AppData\LocalLow\miHoYo\原神\BeyondLocal\110170759\（地图 1073741825 / 1073741834 方块大战 / 1073741827 真实足球v3）
+Python         PATH 无 python / python3 / py；可用 DSH 运行时 %USERPROFILE%\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe（3.12.14）
+esbuild        node_modules/@esbuild 只有 linux-x64（esbuild 0.25.12）；win32 同版本 esbuild.exe 在 %LOCALAPPDATA%\Temp\genshin-ts-win-deploy\package\
+提交钩子       .git/hooks/pre-commit 调 python3 → Win11 上须 BASH_ENV 注入（做法见 examples/football/DEPLOY-WIN11-20261125.md）
+未迁移         dsh-embed / dsh-decision / dsh-game-mode / dsh-sentinel / ys-lookd / cmdmon（~/.dsh/cmdlog/last-coach.md 不存在）；模拟器 web 4173 未监听（[sim-2d]）
+```
+
+历史读数：**Linux 主机（2026-10-24 11:5x）——已不是当前机器，仅供回到 Linux 时对照**：
 
 ```
 原神           在跑：bwrap 包装 pid 2903042 → 子进程 2903045 命令行含 YuanShen.exe
@@ -71,6 +89,9 @@ git                        HEAD 33ea9db6（sim-2d tetris v2 拆分落盘；此�
 3. `--format png` fail-closed：不命中预编码就 `FORMAT_NOT_READY`。
 4. `[global]` `.scratch/three-games/BOARD.md` 状态表停在 10-17 04:00（回三游戏伞目标前必须刷新）。
 5. `[sim-2d]` 真机导入目录现为 4 个文件（`hmlt-qixia-整合包.gia` 93,202 B + 2 个 baseline + `tetris-整合包.gia`）——导入时**别选错**。
+6. `[global]` Win11 上 PATH 无 `python3`：提交钩子（doc_health）与 `tools/gil-guard.py` 等不能直接跑——暂用 DSH 运行时 python + `BASH_ENV` 注入（§四）；**未固化成仓库件，待用户裁决**（固化前先定谁拥有·怎么生效·规范在哪）。
+7. `[global]` `node_modules` 是 Linux 装的（仅 linux-x64 esbuild）：Win11 上跑 `gsts` 须 `ESBUILD_BINARY_PATH` 指向同版本 win32 esbuild.exe，而它现在放在 `%TEMP%`（可能被清理）——清理后按 2D 游戏技能 `12-deploy.md` §6 重新解包。
+8. `[global]` `cmdmon` 耗时监控未安装：根 AGENTS.md「耗时监控」要求的开工/收轮读数（`~/.dsh/cmdlog/last-coach.md`）在 Win11 上取不到；Linux 侧 GUI/试玩工具链（`tools/ys-editor/`、`ys-lookd`）未迁移。
 
 ## 六、最近提交（滚动保留；跨线都记，标线 id）
 
