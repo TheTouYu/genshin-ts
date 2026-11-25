@@ -75,6 +75,9 @@ local function mockNode(spec, kind, parent, seq)
   end })
   function n.SetSizeDelta(self, w, h) self.sizeDeltaX, self.sizeDeltaY = w, h end
   function n.SetAnchoredPosition(self, x, y) self.anchoredPositionX, self.anchoredPositionY = x, y end
+  function n.SetAnchorMin(self, x, y) self.anchorMinX, self.anchorMinY = x, y end
+  function n.SetAnchorMax(self, x, y) self.anchorMaxX, self.anchorMaxY = x, y end
+  function n.SetPivot(self, x, y) self.pivotX, self.pivotY = x, y end
   function n.SetVisible(self, v) self.visible = v end
   -- ===== 同级排序（2026-11-02 修：此前这四个是**空函数**）=====
   -- 事故：这两个方法原本写成 `function n.SetAsLastSibling() end`（空函数、无返回值），
@@ -164,6 +167,33 @@ M.new = function(spec)
   end
 
   local P = { mock = mock, root = root }
+
+  -- 非交互底色与内容布局分开：父画布可能窄于可见窗口，stretch 不能证明全屏。
+  -- 每侧出血 H/8（可配置），覆盖窗口相对父中心每侧最多该距离的偏差。
+  -- 未读取物理 viewport；返回值只证明控件几何写入并完整读回，不证明真机像素。
+  function P.fillBackdrop(ctl, w, h, bleed)
+    if not ctl or not w or not h or w <= 0 or h <= 0 then return false end
+    local pad = bleed or h / 8
+    if pad < 0 then return false end
+    local fields = { anchorMinX=.5, anchorMinY=.5, anchorMaxX=.5, anchorMaxY=.5,
+      pivotX=.5, pivotY=.5, anchoredPositionX=0, anchoredPositionY=0,
+      sizeDeltaX=w+2*pad, sizeDeltaY=h+2*pad }
+    local wrote = pcall(function()
+      ctl:SetAnchorMin(.5, .5)
+      ctl:SetAnchorMax(.5, .5)
+      ctl:SetPivot(.5, .5)
+      ctl:SetSizeDelta(w+2*pad, h+2*pad)
+      ctl:SetAnchoredPosition(0, 0)
+    end)
+    if not wrote then return false end
+    for k, expected in pairs(fields) do
+      local ok, actual = pcall(function() return ctl[k] end)
+      if not ok or type(actual) ~= 'number' or math.abs(actual-expected) > .01 then
+        return false
+      end
+    end
+    return true, pad
+  end
 
   -- ===== 全局实例台账 =====
   -- 引擎的实例上限（约 430）是**整个脚本**的总量，不是单个 render 实例的量。

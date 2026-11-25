@@ -83,11 +83,11 @@ M.new = function(spec)
   end
 
   -- 五屏共用同一条背景路径：两层各守一件事，**别再混成一条判据**
-  --   ① wash（整屏底色）：走**拉伸锚点**铺满父容器 ⇒ 与 GetUICanvasSize 无关，四边必然满；
+  --   ① wash（整屏底色）：走框架 fillBackdrop，以高度比例出血覆盖父画布外的边缘；真机像素仍须截图验收；
   --   ② 构图（cfg.MODE_BG）：cover 缩放 bs = max(W/baseW, H/baseH) ⇒ 保证屏幕上有美术。
   -- v6.27 的关键修正：旧判据把 wash 的外缘也计入"四边 0 缺口"（wash 恒盖满 ⇒ 判据恒真），
   -- 于是"构图根本没画到边"永远测不出来（真机 comps=0/14 那次是 wash 也 nil 才偶然报红）。
-  -- 现在 wash 只报 stretch=1/0，缺口判据**只看构图**；构图的数据不变量由框架
+  -- 现在 wash 报几何读回与出血量（不是 viewport 像素证明），缺口判据**只看构图**；构图的数据不变量由框架
   -- view_node.lintCover（C1 设计板覆盖）在 headless 层看住，运行时不变量退化成实测读数。
   U.bgApply = function(mode, screen)
     local m = mode or 'casual'
@@ -113,15 +113,9 @@ M.new = function(spec)
     if pool then
       local wash = pool[1]
       if wash then
-        local okFill = WID.fill and WID.fill(wash, 0.01)
-        if not okFill then
-          -- 宿主不认锚点：回落像素尺寸（仍比什么都不铺强），并把读数打出来别静默
-          tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-          tryCall(wash, 'SetAnchoredPosition', 0, 0)
-          washState = 'px'
-        else
-          washState = 'stretch'
-        end
+        local okFill, pad = false, nil
+        if spec.backdrop then okFill, pad = spec.backdrop(wash, W, H) end
+        washState = okFill and ('bleed:' .. f1(pad)) or 'FAILED'
         trySet(wash, 'imageColor', t.bg)
       end
       for i = 1, #pool - 1 do

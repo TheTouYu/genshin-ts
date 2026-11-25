@@ -123,13 +123,16 @@ local function capture(fn)
 end
 local function stubUI(bgItems, fillOK)
   local WID = stubWidgets(fillOK)
+  local P = load('lua/tetris/platform.lua').new{mock=true,templates={cell={kind='image'}}}
   local pool = {}
   for i = 1, #bgItems + 1 do pool[i] = {} end   -- [1]=wash，其余是构图槽（槽位要与条目数匹配）
+  pool[1] = P.inst('cell', P.root)
   return UIM.new {
     game = {}, cfg = { NUM = { BG_BASE_W = BASE_W, BG_BASE_H = BASE_H },
                        MODE_THEME = { casual = { bg = 0xFF000000, plate = 0xFF000000, frame = 0xFF000000 } },
                        MODE_BG = { casual = bgItems }, THEME = { textMain = 0xFF000000 } },
     widgets = WID, canvas = function() return 1280, 720 end,
+    backdrop = function(c,w,h) if not fillOK then return false end return P.fillBackdrop(c,w,h) end,
     mobile = function() return false end,
     pool = function() return pool end,
     aabb = VNODE.rectAABB,
@@ -141,7 +144,7 @@ local Ua = stubUI({}, true)
 local outA = capture(function() Ua.bgApply('casual', 'title') end)
 ok(outA:find('bg cover GAP', 1, true) ~= nil,
   'C4 构图空 + wash 铺满 ⇒ 仍必须报 GAP（wash 不得掩盖缺口）', outA)
-ok(outA:find('wash=stretch', 1, true) ~= nil, 'C4 锚点生效时日志须标 wash=stretch', outA)
+ok(outA:find('wash=bleed:90.00', 1, true) ~= nil, 'C4 底色完整读回并报告出血范围', outA)
 
 -- 4b 构图齐 ⇒ ok，且 comps=N/N
 local Ub = stubUI(CFG.MODE_BG.casual, true)
@@ -153,7 +156,7 @@ ok(outB:find(string.format('comps=%d/%d', #CFG.MODE_BG.casual, #CFG.MODE_BG.casu
 -- 4c 宿主不认锚点 ⇒ 回落像素尺寸，且日志必须暴露（wash=px），不许静默
 local Uc = stubUI(CFG.MODE_BG.casual, false)
 local outC = capture(function() Uc.bgApply('casual', 'title') end)
-ok(outC:find('wash=px', 1, true) ~= nil, 'C4 锚点不可用 ⇒ 回落像素尺寸并记 wash=px', outC)
+ok(outC:find('wash=FAILED', 1, true) ~= nil, 'C4 底色写入失败必须报 FAILED', outC)
 
 print(string.format('\n%d passed, %d failed', pass, fail))
 if fail > 0 then os.exit(1) end

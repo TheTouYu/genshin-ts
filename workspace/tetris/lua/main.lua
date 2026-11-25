@@ -123,7 +123,7 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.34'
+BUILD_TAG = 'v6.35'
 -- v6.34：**模块指纹**（构建期由 qxqy/build.mjs 注入 sha256 前 8 位，覆盖 lua/ 下全部 .lua）。
 -- 判据：真机上看到这一行，才能确认跑的是这份代码；文件里有新字符串不算证据（2026-11-20 误判两次）。
 MODULE_FP = '00000000'
@@ -359,7 +359,6 @@ local WIDGETS = UI.new({
 local noteFail, trySet, tryCall, addCursor = WIDGETS.noteFail, WIDGETS.trySet, WIDGETS.tryCall, WIDGETS.addCursor
 local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
 -- v6.27：全屏铺满（拉伸锚点）与背景外缘判据都走框架层，别在游戏侧再写第二份数学
-local fillFull = WIDGETS.fill
 local VNODE_M = loadModule('view_node')   -- 只要 M.rectAABB / M.lintCover（纯函数，不建实例）
 -- v3.5 ①：HUD 常量文字的**实例份兜底**（层序铁律：服务端 textbox 永远在运行时实例之下）
 -- 背景池 wash／棋盘格都是运行时实例，textbox 份被压在下面看不见 ⇒ v3.3 把 textbox 份
@@ -4463,6 +4462,10 @@ do
       -- 旋转矩形真 AABB（框架层唯一实现）：背景外缘日志用它算，不再在 ui.lua 里抄一份公式
       aabb = VNODE_M and VNODE_M.rectAABB,
       canvas = function() return CANVAS_W or 1280, CANVAS_H or 720 end,
+      backdrop = function(c, w, h)
+        if PT then return PT.fillBackdrop(c, w, h) end
+        return false
+      end,
       mobile = function() return IS_MOBILE end,
       pool = function() local inst = G[1] or g return inst and inst.bgPool end,
       plate = function() local inst = G[1] or g return inst and inst.plate end,
@@ -5013,14 +5016,8 @@ function OnStart()
   end
   local wash = g.bgPool[1]
   if wash then
-    -- v6.27：整屏底色走**拉伸锚点**（先铺一次，避免第一帧 bgApply 之前露底色）。
-    -- 旧写法 SetSizeDelta(W+20, H+20) 把尺寸写死在 GetUICanvasSize 上；真机报 2030×900
-    -- 而屏幕 3440×1440 ⇒ 我们猜的数一旦不等于父容器就露缝。锚点表达式与画布无关。
-    if not fillFull(wash, 0.01) then
-      tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-      tryCall(wash, 'SetAnchoredPosition', 0, 0)
-      print('bg wash stretch=0（宿主不认锚点 ⇒ 回落像素尺寸）')
-    end
+    -- 第一帧与后续主题切换共用框架的全出血底色几何。
+    if not PT.fillBackdrop(wash, W, H) then print('bg wash geometry=FAILED') end
     trySet(wash, 'imageColor', MODE_THEME.casual.bg)
   end
   print('bg pool n=' .. #g.bgPool)
@@ -5133,6 +5130,24 @@ function OnStart()
     if isP1Key then return action == 'rot' or action == 'hold'
     else return action == 'left' or action == 'right' or action == 'soft' or action == 'hard' end
   end
+  local function readyPlayer(keyName)
+    local p2 = (MODE == 'pvp' or MODE == 'coop') and isP2(keyName)
+    if p2 then GK.p2ready = true else GK.p1ready = true end
+    if MODE == 'ai-battle' then GK.p2ready = true end
+    if GK.p1ready then HUD_INST.txt(keyA, 'P1 准备好了 ✓') end
+    if GK.p2ready and MODE ~= 'ai-battle' then HUD_INST.txt(keyB, 'P2 准备好了 ✓') end
+    setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
+      or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))
+    print('guide ready ' .. (p2 and 'p2' or 'p1'))
+    if GK.p1ready and GK.p2ready then
+      GK.phase, GK.t = 'count', 0
+      setText(topBanner, '')
+      setText(botBanner, '')
+      destroyCountBig()
+      CNT = buildCountBig('3')
+      print('guide count 3')
+    end
+  end
   local function act(keyName, fn)
     return function()
       -- v2.7：说明页开着时任意游戏键=先关页（不动作、不开局）——关页优先级高于一切玩法动作
@@ -5150,23 +5165,7 @@ function OnStart()
       end
       startIfWaiting()
       if guideStage == 3 and GK.phase == 'keys' then
-        -- v2.5 ①：双人双方分别 ready（P2 键组=P2 准备 pvp/coop 同判；ai-battle AI 预置就绪）
-        if isP2(keyName) then GK.p2ready = true
-        else GK.p1ready = true end
-        if MODE == 'ai-battle' then GK.p2ready = true end
-        if GK.p1ready then HUD_INST.txt(keyA, 'P1 准备好了 ✓') end
-        if GK.p2ready and MODE ~= 'ai-battle' then HUD_INST.txt(keyB, 'P2 准备好了 ✓') end
-        setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！'
-          or (GK.p1ready and '等待 P2 准备…' or '等待 P1 准备…'))   -- v2.8 ① ready 进度
-        print('guide ready ' .. (isP2(keyName) and 'p2' or 'p1'))
-        if GK.p1ready and GK.p2ready then
-          GK.phase, GK.t = 'count', 0
-          setText(topBanner, '')
-          setText(botBanner, '')
-          destroyCountBig()
-          CNT = buildCountBig('3')
-          print('guide count 3')
-        end
+        readyPlayer(keyName)
         return
       end
       if guideStage == 2 or guideStage == 3 then return end
@@ -5505,19 +5504,7 @@ function OnStart()
     if keyConsumedFrame == frameSeq then return end     -- 同一帧已被真动作消费 ⇒ 兜底让位
     if guideStage == 0 then startIfWaiting() end
     if guideStage == 3 and GK.phase == 'keys' then
-      GK.p1ready = true
-      if MODE == 'ai-battle' then GK.p2ready = true end
-      HUD_INST.txt(keyA, 'P1 准备好了 ✓')
-      setText(hint, (GK.p1ready and GK.p2ready) and '都准备好了！' or '等待 P2 准备…')
-      print('guide ready p1')
-      if GK.p1ready and GK.p2ready then
-        GK.phase, GK.t = 'count', 0
-        setText(topBanner, '')
-        setText(botBanner, '')
-        destroyCountBig()
-        CNT = buildCountBig('3')
-        print('guide count 3')
-      end
+      readyPlayer(nil)
     end
   end
 
