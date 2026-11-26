@@ -1,0 +1,67 @@
+#!/bin/bash
+# ys-death-snap — 卡死瞬间线程级快照（两次采样，判别自旋 vs 阻塞）
+#
+# 与 ys-stuck-report 的分工：那个抓"窗口/连接/日志"层，本工具抓"线程/调度"层。
+# 判据：
+#   - 两次采样间 utime+stime 明显增长 → 该线程在跑（自旋/忙等）
+#   - 不增长且 state=S 且 wchan 非 0    → 阻塞在等待（futex/read/pipe）
+#   - state=T                          → 被信号停了
+#   - state=D                          → IO 等待
+#
+# 用法：ys-death-snap [输出目录]     退出码：0 抓到 / 3 没找到编辑器进程
+set -u
+OUT=${1:-$HOME/.cache/ys-stuck/death-$(date +%F_%H%M%S)}
+mkdir -p "$OUT"
+
+mapfile -t PIDS < <(pgrep -f 'BeyondEditor\.exe|beyondeditor\.exe' 2>/dev/null)
+if [ ${#PIDS[@]} -eq 0 ]; then
+  echo "[ys-death-snap] ✗ 没有 BeyondEditor 进程" >&2
+  exit 3
+fi
+
+dump_threads() {  # 输出到 stdout，调用方重定向
+  local p t tid stat comm state ut st wchan syscall
+  for p in "${PIDS[@]}"; do
+    if [ ! -d "/proc/$p" ]; then echo "pid=$p 已消失"; continue; fi
+    echo "--- pid=$p $(tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null | cut -c1-110)"
+    echo "    线程数=$(ls "/proc/$p/task" 2>/dev/null | wc -l)"
+    for t in /proc/$p/task/*; do
+      tid=${t##*/}
+      stat=$(cat "$t/stat" 2>/dev/null) || continue
+      comm=${stat#*(}; comm=${comm%)*}; comm=${comm:0:22}
+      rest=${stat##*)}   # 剥掉 "pid (comm)"，剩余字段从 state 开始
+      state=$(awk '{print $1}' <<<"$rest")
+      ut=$(awk '{print $12}' <<<"$rest"); st=$(awk '{print $13}' <<<"$rest")
+      wchan=$(cat "$t/wchan" 2>/dev/null); [ -z "$wchan" ] && wchan="?"
+      syscall=$(awk '{print $1}' "$t/syscall" 2>/dev/null); [ -z "$syscall" ] && syscall="?"
+      printf 'tid=%-8s st=%-2s cpu=%-6s wchan=%-24s sys=%-4s comm=%s\n' \
+        "$tid" "$state" "$((ut+st))" "$wchan" "$syscall" "$comm"
+    done
+    grep -E '^(VmRSS|VmSize|Threads|voluntary_ctxt_switches|nonvoluntary_ctxt_switches)' "/proc/$p/status" 2>/dev/null | sed 's/^/    /'
+  done
+}
+
+dump_threads > "$OUT/snap1.txt" 2>&1
+sleep 2
+dump_threads > "$OUT/snap2.txt" 2>&1
+
+# 增量：按 tid 对齐两次的 cpu
+awk '
+  FNR==NR { if (match($0,/tid=([0-9]+) st=([A-Z]) cpu=([0-9]+)/,m)) c1[m[1]]=m[3]; next }
+  match($0,/tid=([0-9]+) st=([A-Z]) cpu=([0-9]+).*comm=(.*)/,m) {
+    d = m[3] - (c1[m[1]]==""?m[3]:c1[m[1]]);
+    printf "  tid=%-8s Δcpu=%-4s st=%s  %s\n", m[1], d, m[2], m[4]
+  }
+' "$OUT/snap1.txt" "$OUT/snap2.txt" 2>/dev/null | sort -t= -k3 -rn > "$OUT/delta.txt"
+
+{
+  echo "=== TCP（编辑器/酒服务相关）==="
+  ss -tanp 2>/dev/null | grep -iE 'beyond|wineserver' | head -30
+  echo "=== 本机回环连接（自环/连到谁）==="
+  ss -tan 2>/dev/null | awk '$5 ~ /^127\.0\.0\.1:/' | head -30
+  echo "=== 焦点/鼠标埋点日志尺寸 ==="
+  stat -c '%n %s' /tmp/wine11-*.log 2>/dev/null
+} > "$OUT/net.txt" 2>&1
+
+echo "[ys-death-snap] 已写入 $OUT"
+echo "--- Δcpu 前 15 行 ---"; head -15 "$OUT/delta.txt" 2>/dev/null

@@ -1,0 +1,31 @@
+#!/bin/bash
+# 连续采样「日志」子窗口的 X 状态 + 主线程状态 + 驱动探针，用于抓「不重绘直到全屏」这种定格。
+# 用法: ys-logwin-watch [秒数=600]；输出 .scratch/fake-death/logwin-<ts>.csv
+set -u
+. "$(dirname "$0")/ys-env.sh" >/dev/null 2>&1 || true
+export DISPLAY XAUTHORITY
+cd "$(dirname "$0")/../.." || exit 1
+DUR=${1:-600}; OUT=".scratch/fake-death/logwin-$(date +%H%M%S).csv"
+echo "t,win,map_state,geom,override,net_wm_state,wm_state,probe_age,main_state,main_sys,main_ticks" > "$OUT"
+end=$(( $(date +%s) + DUR ))
+while [ "$(date +%s)" -lt "$end" ]; do
+  export LC_ALL=C
+  p=$(pgrep -f 'BeyondEditor\.exe' | tail -1)
+  w=$(wmctrl -l 2>/dev/null | awk '/日志/ {print $1; exit}')
+  if [ -n "$w" ]; then
+    # 机器上没有 xwininfo：用 wmctrl -lG 取几何 + xprop 取 WM_STATE/_NET_WM_STATE
+    geo="n/a"   # wmctrl -lG 被 ys-shim 拦（几何类调用必须走 ys-gui-slot），这里只用只读属性
+    wms=$(xprop -id "$w" WM_STATE 2>/dev/null | awk -F': ' '/window state/ {print $2}' | tr -d ' \t')
+    net=$(xprop -id "$w" _NET_WM_STATE 2>/dev/null | cut -d= -f2 | tr -d ' \t')
+    act=$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | awk -F'# ' '{print $2}' | tr -d ' \t')
+    ms="act=$act"
+    gm="$geo"; ov=""
+  else ms=""; gm=""; ov=""; net=""; wms=""; fi
+  pa=$(( $(date +%s) - $(stat -c %Y /tmp/wine11-proc.log 2>/dev/null || date +%s) ))
+  st=$(awk '{print $3}' /proc/$p/stat 2>/dev/null)
+  sy=$(head -c 12 /proc/$p/syscall 2>/dev/null | awk '{print $1}')
+  tk=$(awk '{print $14+$15}' /proc/$p/stat 2>/dev/null)
+  echo "$(date +%H:%M:%S),$w,$ms,$gm,$ov,$net,$wms,$pa,$st,$sy,$tk" >> "$OUT"
+  sleep 1
+done
+echo "$OUT"

@@ -1,0 +1,353 @@
+#!/usr/bin/env python3
+"""ys-wheel — 把「滚轮」这条移动路径做成**可精确到行**的（标定 → 闭环移动 → 定点到达）。
+
+## 为什么单独做（三种移动路径各管一段）
+| 路径 | 适用 | 精度来源 |
+|---|---|---|
+| 键盘 W/S | 列表有键提示（语音页/图鉴） | 一条一按，天然精确（`list-collect.py`） |
+| 拖条（`ys_scrollbar.py` / `--drag`） | 有可视滚动条 | 内容 1:1 跟手 |
+| **滚轮（本工具）** | **没有键提示、也没有拖条** | 本工具：先标定 px/格，再用**行 OCR 闭环**校正到「恰好 N 行」 |
+
+历史坑（都实测过）：
+- 滚轮**非线性**：一次注入的格数越多，每格位移越小（加速/被吞）；`--delay 8ms` 会明显加速。
+- 只判「画面变了」会被入场动画骗（帧差变了、文本逐字相同）。
+- 只按固定系数换算（如 `20px/格` 或 `102px/行`）会累积漂移——所以**每步都要读回真值再校正**。
+
+## 判据（本工具的契约）
+- 真值 = 列表区的**行 OCR**（标题序列 + 行中心 y）；位移 = 标题序列的最佳循环位移 `k`（行）。
+- `move` 成功 = `done == rows`（整数行，**0 漂移**），不是"大概动了"。
+- 到底 = 连续注入后 `content.id` 不前进（不是 `moved_px` 小）。
+
+## 用法（**必须在 ys-gui-slot 槽内**；工具自己不取焦点/不抬窗）
+    ys-wheel calibrate --at 300,700 --region 140 250 340 1020
+    ys-wheel move      --at 300,700 --rows 5 --region 140 250 340 1020
+    ys-wheel goto      --at 300,700 --text '关于风停的地方…' --region 140 250 340 1020
+    ys-wheel --json …        # 机器可读回执
+    ys-wheel --dry …         # 只打印计划，不注入
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+CAP = os.path.join(ROOT, 'tools/ys-editor/ys-capture')
+YSTEXT = os.path.join(ROOT, 'tools/ys-editor/ys-text')
+CALIB = os.path.expanduser('~/.dsh/ys-wheel-calib.json')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ys_env                                     # noqa: E402  X 会话环境唯一入口（tools/AGENTS.md）
+
+BMP = '/tmp/ys-wheel.bmp'
+JS = '/tmp/ys-wheel.json'
+NOISE = re.compile(r'^[\sA-Za-z]{1,2}')
+
+
+# ── 帧通道 ────────────────────────────────────────────────────────────────
+def grab(allow_bg=False):
+    cmd = [CAP, 'latest', '--out', BMP, '--format', 'bmp']
+    if allow_bg:
+        cmd.append('--allow-background')
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return {'ok': False, 'err': (r.stdout or r.stderr).strip()[:200]}
+    d = json.loads(r.stdout)
+    f = d.get('frame', {})
+    c = d.get('content', {})
+    return {'ok': True, 'content_id': c.get('id'), 'static_ms': c.get('static_ms'),
+            'seq': f.get('seq'), 'age_ms': f.get('age_ms'), 'channel': d.get('channel')}
+
+
+def norm(s):
+    s = NOISE.sub('', s or '')
+    return re.sub(r'[^0-9A-Za-z\u4e00-\u9fff]', '', s).lower()
+
+
+def ocr_rows(region):
+    """列表区 OCR → [{text, cy, h}]（按 y 排序；只留像"列表行"的条目）。"""
+    r = subprocess.run([YSTEXT, BMP, '--region', ' '.join(map(str, region)),
+                        '--only', 'lines', '--no-row-merge', '--json-out', JS],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return []
+    try:
+        lines = json.load(open(JS)).get('lines', [])
+    except Exception:
+        return []
+    rows = []
+    for l in lines:
+        x0, y0, x1, y1 = l['bbox']
+        h = y1 - y0
+        if not (18 <= h <= 80):
+            continue
+        t = (l['text'] or '').strip()
+        if len(norm(t)) < 2:
+            continue
+        rows.append({'text': t, 'cy': (y0 + y1) / 2.0, 'h': h})
+    rows.sort(key=lambda r: r['cy'])
+    return rows
+
+
+def pitch_of(rows):
+    if len(rows) < 3:
+        return None
+    d = [rows[i + 1]['cy'] - rows[i]['cy'] for i in range(len(rows) - 1)]
+    d = sorted(x for x in d if 40 <= x <= 200)
+    return d[len(d) // 2] if d else None
+
+
+def moved_rows(before, after):
+    """标题序列的最佳位移 k（正 = 内容上移 = 向下滚了 k 行）；不够证据返回 None。"""
+    a = [norm(r['text']) for r in before]
+    b = [norm(r['text']) for r in after]
+    if len(a) < 3 or len(b) < 3:
+        return None
+    best = (0, 0)
+    for k in range(-len(a), len(b)):
+        cnt = sum(1 for i in range(len(a)) if 0 <= i + k < len(b) and a[i] == b[i + k])
+        if cnt > best[0]:
+            best = (cnt, k)
+    cnt, k = best
+    need = max(3, min(len(a), len(b)) // 2)
+    return k if cnt >= need else None
+
+
+# ── 注入 ─────────────────────────────────────────────────────────────────
+def wheel(at, n, delay, direction='down'):
+    btn = 5 if direction == 'down' else 4
+    env = ys_env.env(YS_SLOT_ACTIVE='1')           # 环境只从 ys_env 取，不自己读 os.environ
+    r = subprocess.run(['xdotool', 'mousemove', '--sync', str(at[0]), str(at[1])],
+                       capture_output=True, env=env)
+    if r.returncode != 0:
+        raise RuntimeError(f'xdotool mousemove 失败 rc={r.returncode} '
+                           f'{(r.stderr or b"").decode()[:120]} ' + ys_env.explain())
+    subprocess.run(['xdotool', 'click', '--repeat', str(n), '--delay', str(delay), str(btn)],
+                   capture_output=True, timeout=60, env=env)
+
+
+def settle(prev_id, timeout=1.6, poll=0.03):
+    """等 content.id 前进（画面真变了）；返回 (changed, new_id, waited_s)。"""
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        g = grab()
+        if not g['ok']:
+            return False, prev_id, time.time() - t0
+        if prev_id is None or (g['content_id'] is not None and g['content_id'] != prev_id):
+            time.sleep(0.12)                       # 让文字落位
+            g2 = grab()
+            return True, g2.get('content_id', g['content_id']), time.time() - t0
+        time.sleep(poll)
+    return False, prev_id, time.time() - t0
+
+
+# ── 子命令 ───────────────────────────────────────────────────────────────
+def cmd_calibrate(a):
+    out = {'mode': 'calibrate', 'at': a.at, 'region': a.region, 'delay': a.delay, 'samples': []}
+    g = grab()
+    if not g['ok']:
+        out.update(ok=False, err=g['err'])
+        return out
+    rows = ocr_rows(a.region)
+    pitch = pitch_of(rows)
+    out['rows_visible'] = len(rows)
+    out['pitch_px'] = round(pitch, 1) if pitch else None
+    out['baseline'] = [r['text'] for r in rows]
+    if not pitch:
+        out.update(ok=False, err='行 OCR 不足，无法标定（检查 --region 是否盖住列表文字）')
+        return out
+    for k in a.clicks_list:
+        g0 = grab()
+        wheel(a.at, k, a.delay, 'down')
+        changed, cid, waited = settle(g0.get('content_id'))
+        rows2 = ocr_rows(a.region)
+        dm = moved_rows(rows, rows2) if changed else None
+        px = None if dm is None else dm * pitch
+        out['samples'].append({'clicks': k, 'content_changed': changed, 'waited_s': round(waited, 2),
+                               'rows_moved': dm, 'px_moved': None if px is None else round(px, 1),
+                               'px_per_click': None if px is None else round(px / k, 2)})
+        rows = rows2
+        time.sleep(0.15)
+    good = [s for s in out['samples'] if s['rows_moved']]
+    if good:
+        tot_c = sum(s['clicks'] for s in good)
+        tot_r = sum(s['rows_moved'] for s in good)
+        out['rows_per_click'] = round(tot_r / tot_c, 3) if tot_c else None
+        out['clicks_per_row'] = round(tot_c / tot_r, 3) if tot_r else None
+        out['px_per_click'] = round(tot_r * pitch / tot_c, 2) if tot_c else None
+        out['ok'] = True
+        os.makedirs(os.path.dirname(CALIB), exist_ok=True)
+        prev = {}
+        if os.path.exists(CALIB):
+            try:
+                prev = json.load(open(CALIB))
+            except Exception:
+                prev = {}
+        prev.update({'rows_per_click': out['rows_per_click'], 'clicks_per_row': out['clicks_per_row'],
+                     'px_per_click': out['px_per_click'], 'pitch_px': out['pitch_px'],
+                     'delay': a.delay, 'region': a.region, 'at': a.at,
+                     'at_ts': time.strftime('%Y-%m-%dT%H:%M:%S')})
+        json.dump(prev, open(CALIB, 'w'), ensure_ascii=False, indent=1)
+    else:
+        out.update(ok=False, err='所有样本都没测到位移（可能焦点不在列表 / 已经到底）')
+    return out
+
+
+def cmd_move(a):
+    calib = {}
+    if os.path.exists(CALIB):
+        try:
+            calib = json.load(open(CALIB))
+        except Exception:
+            calib = {}
+    cpr = a.clicks_per_row or calib.get('clicks_per_row')
+    out = {'mode': 'move', 'target_rows': a.rows, 'clicks_per_row': cpr, 'tries': []}
+    if not cpr:
+        out.update(ok=False, err='没有标定（先跑 calibrate，或用 --clicks-per-row 指定）')
+        return out
+    g = grab()
+    if not g['ok']:
+        out.update(ok=False, err=g['err'])
+        return out
+    rows = ocr_rows(a.region)
+    pitch = pitch_of(rows) or calib.get('pitch_px')
+    done = 0
+    for i in range(a.max_tries):
+        need = a.rows - done
+        if need == 0:
+            break
+        n = max(1, int(round(abs(need) * cpr)))
+        direction = 'down' if need > 0 else 'up'
+        g0 = grab()
+        wheel(a.at, n, a.delay, direction)
+        changed, cid, waited = settle(g0.get('content_id'))
+        rows2 = ocr_rows(a.region)
+        dm = moved_rows(rows, rows2)
+        got = 0 if dm is None else (dm if direction == 'down' else -dm)
+        out['tries'].append({'try': i + 1, 'want': need, 'clicks': n, 'dir': direction,
+                             'changed': changed, 'waited_s': round(waited, 2), 'got_rows': got})
+        if not changed and got == 0:
+            out['at_edge'] = True
+            break
+        done += got
+        rows = rows2
+        if got == 0:
+            # 一格都没动：加大格数再试（受 a.max_clicks 限）
+            cpr = max(cpr * 1.6, cpr + 1)
+            out['clicks_per_row'] = round(cpr, 3)
+    out['done_rows'] = done
+    out['exact'] = (done == a.rows)
+    out['residual_rows'] = a.rows - done
+    out['pitch_px'] = round(pitch, 1) if pitch else None
+    out['ok'] = out['exact']
+    return out
+
+
+def cmd_goto(a):
+    calib = {}
+    if os.path.exists(CALIB):
+        try:
+            calib = json.load(open(CALIB))
+        except Exception:
+            calib = {}
+    cpr = a.clicks_per_row or calib.get('clicks_per_row')
+    out = {'mode': 'goto', 'text': a.text, 'clicks_per_row': cpr, 'tries': []}
+    if not cpr:
+        out.update(ok=False, err='没有标定（先跑 calibrate）')
+        return out
+    want = norm(a.text)
+    rows = ocr_rows(a.region)
+    pitch = pitch_of(rows) or calib.get('pitch_px') or 100
+    for i in range(a.max_tries):
+        hit = next(((idx, r) for idx, r in enumerate(rows) if norm(r['text']).startswith(want[:8])
+                    or want.startswith(norm(r['text'])[:8])), None)
+        if hit and not a.visible_only:
+            idx, r = hit
+            # 目标已在视野：把它对齐到「距顶 a.row_band 行内」即可（够精确就停）
+            if abs(idx - a.row_band) <= a.tol_rows:
+                out.update(ok=True, found_at_index=idx, found_text=r['text'],
+                           cy=round(r['cy'], 1), tries_n=i)
+                return out
+            move_rows = idx - a.row_band
+            n = max(1, int(round(abs(move_rows) * cpr)))
+            g0 = grab()
+            wheel(a.at, n, a.delay, 'up' if move_rows > 0 else 'down')   # 目标在上方 ⇒ 向上滚
+            changed, _, waited = settle(g0.get('content_id'))
+            out['tries'].append({'try': i + 1, 'phase': 'align', 'move_rows': move_rows,
+                                 'clicks': n, 'changed': changed, 'waited_s': round(waited, 2)})
+        else:
+            # 没看见：按一屏推进
+            page = max(2, len(rows) - 2)
+            n = max(1, int(round(page * cpr)))
+            g0 = grab()
+            wheel(a.at, n, a.delay, a.dir)
+            changed, _, waited = settle(g0.get('content_id'))
+            out['tries'].append({'try': i + 1, 'phase': 'page', 'clicks': n,
+                                 'changed': changed, 'waited_s': round(waited, 2)})
+            if not changed:
+                out.update(ok=False, err='到底/无响应（content.id 未前进）', tries_n=i + 1)
+                return out
+        rows = ocr_rows(a.region)
+    out['ok'] = False
+    out['err'] = f'{a.max_tries} 次内没到达'
+    out['last_rows'] = [r['text'] for r in rows]
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description='滚轮精确移动：标定 → 闭环 N 行 → 定点到达')
+    ap.add_argument('cmd', choices=['calibrate', 'move', 'goto'])
+    ap.add_argument('--at', default='300,700', help='滚动位置（帧坐标 x,y；指针空间=帧空间）')
+    ap.add_argument('--region', default='140 250 340 1020', help='列表区 OCR（帧坐标 x y w h）')
+    ap.add_argument('--delay', type=int, default=35, help='每格间隔 ms（8ms 会非线性加速）')
+    ap.add_argument('--clicks-list', default='1,2,4,8,16', help='calibrate 的样本格数')
+    ap.add_argument('--clicks-per-row', type=float, default=0.0, help='跳过标定，直接指定')
+    ap.add_argument('--rows', type=int, default=5, help='move 的目标行数（负数=向上）')
+    ap.add_argument('--text', default='', help='goto 的目标行标题（可截断，归一化后前缀匹配）')
+    ap.add_argument('--row-band', type=int, default=1, help='goto 对齐到「距顶第几行」')
+    ap.add_argument('--tol-rows', type=float, default=0.5, help='goto 的对齐容差（行）')
+    ap.add_argument('--visible-only', action='store_true', help='goto 只在当前视野内找')
+    ap.add_argument('--dir', default='down', choices=['down', 'up'], help='goto 翻页方向')
+    ap.add_argument('--max-tries', type=int, default=4)
+    ap.add_argument('--max-clicks', type=int, default=120)
+    ap.add_argument('--dry', action='store_true', help='只打印计划，不注入')
+    ap.add_argument('--json', action='store_true')
+    a = ap.parse_args()
+
+    a.at = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.at) if t)[:2]
+    a.region = tuple(int(float(t)) for t in re.split(r'[ ,]+', a.region) if t)[:4]
+    a.clicks_list = [int(float(t)) for t in re.split(r'[ ,]+', a.clicks_list) if t]
+
+    if not os.environ.get('YS_SLOT_ACTIVE'):
+        print('[ys-wheel] 拒绝执行：必须在 ys-gui-slot 槽内运行（它会注入滚轮事件）。'
+              '参考：ys-screen-grant grant …; ys-gui-slot "$(ys-win-id)" 90 bash -c "…"',
+              file=sys.stderr)
+        return 2
+    if a.dry:
+        plan = {'plan': {'cmd': a.cmd, 'at': a.at, 'region': a.region, 'delay': a.delay,
+                         'rows': a.rows, 'text': a.text, 'in_slot': True,
+                         'calib': json.load(open(CALIB)) if os.path.exists(CALIB) else None}}
+        print(json.dumps(plan, ensure_ascii=False, indent=1))
+        return 0
+
+    res = {'calibrate': cmd_calibrate, 'move': cmd_move, 'goto': cmd_goto}[a.cmd](a)
+    if a.json:
+        print(json.dumps(res, ensure_ascii=False, indent=1))
+    else:
+        print(f"# ys-wheel {a.cmd}  ok={res.get('ok')}")
+        for k, v in res.items():
+            if k in ('samples', 'tries', 'baseline', 'last_rows'):
+                continue
+            print(f"  {k}: {v}")
+        for s in res.get('samples', []):
+            print(f"  · clicks={s['clicks']:<3} rows={s['rows_moved']} px/click={s['px_per_click']} "
+                  f"changed={s['content_changed']} waited={s['waited_s']}s")
+        for t in res.get('tries', []):
+            print(f"  · try={t['try']} {t.get('phase','')} want={t.get('want')} / move={t.get('move_rows')} "
+                  f"clicks={t['clicks']} got={t.get('got_rows')} changed={t['changed']}")
+    return 0 if res.get('ok') else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

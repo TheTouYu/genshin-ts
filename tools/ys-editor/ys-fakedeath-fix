@@ -69,7 +69,7 @@ UNIXDIR="$RUNNER/lib/wine/x86_64-unix"
 
 art_verify() { # 只读：比对 runner 当前 .so 与工件哈希；漂移返回 1
   local fail=0
-  for pair in "winex11.so winex11.so.patched" "win32u.so win32u.so.patched"; do
+  for pair in "winex11.so winex11.so.patched" "win32u.so win32u.so.patched" "ntdll.so ntdll.so.patched"; do
     local live="${pair%% *}" want="${pair##* }"
     [ -f "$ARTIFACTS/$want" ] || { echo "✗ 缺工件 $ARTIFACTS/$want"; fail=1; continue; }
     if [ ! -f "$UNIXDIR/$live" ]; then echo "✗ runner 无 $live"; fail=1; continue; fi
@@ -129,8 +129,25 @@ case "${1:-}" in
     echo "—— apply-all 完成，校验："
     art_verify && echo "✓ 两件补丁均在役"
     ;;
+  ntdll-install)
+    U="$UNIXDIR/ntdll.so"; B="$U.bak-fakedeath-20261025"
+    src="$REPO/.scratch/fake-death/wine-build/dlls/ntdll/ntdll.so"
+    [ -f "$src" ] || src="$ARTIFACTS/ntdll.so.patched"
+    [ -f "$src" ] || { echo "✗ 找不到 ntdll 构建产物"; exit 3; }
+    [ -f "$B" ] || cp -a "$U" "$B"
+    install -m 755 "$src" "$U"
+    echo "已安装 ntdll: $src -> $U（备份 $B）"
+    grep -qa "multi-infinite" "$U" && echo "✓ 校验：含无限等待探针"
+    ;;
+  ntdll-revert)
+    U="$UNIXDIR/ntdll.so"; B="$U.bak-fakedeath-20261025"
+    [ -f "$B" ] || { echo "✗ 无备份"; exit 3; }
+    install -m 755 "$B" "$U"
+    cmp -s "$U" "$B" && echo "已还原 ntdll（字节相同）" || { echo "✗ 还原后不一致"; exit 3; }
+    rm -f /tmp/wine-ntdll-wait.log
+    ;;
   revert-all)
-    "$0" revert && "$0" win32u-revert
+    "$0" revert && "$0" win32u-revert && "$0" ntdll-revert
     ;;
   verify)
     art_verify; rc=$?
