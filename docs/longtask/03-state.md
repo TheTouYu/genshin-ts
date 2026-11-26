@@ -2,7 +2,7 @@
 
 > 状态：当前实现（**读数以本文件为准；改动后立刻更新，过期读数比没有更危险**）
 > 来源：只读实测（进程/窗口/门禁/工具自报），每条注明测量时间
-> 最近校验：2026-11-26 00:1x（§四 补 git 分支/ssh/冒号文件三条读数、§六 补 11-25 关键提交；2026-11-25：平台已换 Win11 原生，§三 加 `[football]` 迁移读数并订正一行过期读数；`[gui-agi]` / `[sim-2d]` 行未动）
+> 最近校验：2026-11-26 21:5x（§一 `gui-agi` 行标迁出、指向权威仓 `TheTouYu/gui-agi`；同日 00:1x：§四 补 git 分支/ssh/冒号文件三条读数、§六 补 11-25 关键提交；2026-11-25：平台已换 Win11 原生，§三 加 `[football]` 迁移读数并订正一行过期读数；`[gui-agi]` / `[sim-2d]` 行未动）
 > 读法：先看 §一 找"我这条线的读数在哪" → 只读本文件里属于你那条线的分节，别改别线的
 
 ---
@@ -13,7 +13,7 @@
 |---|---|---|
 | `football` | [`dossiers/football-v3.md`](dossiers/football-v3.md) §三/§五 | §三 标 `[football]` 的行 |
 | `sim-2d` | [`dossiers/simulator-2d.md`](dossiers/simulator-2d.md) §三/§五 | §三 标 `[sim-2d]` 的行 |
-| `gui-agi` | [`dossiers/gui-agi.md`](dossiers/gui-agi.md) + `.scratch/gui-stack/STATE.md` | §二 全部、§三 标 `[gui-agi]` 的行、§五 |
+| `gui-agi` | **已迁出**（11-26，权威仓 `TheTouYu/gui-agi`）：[`dossiers/gui-agi.md`](dossiers/gui-agi.md) §〇；本仓 `.scratch/gui-stack/STATE.md` 是冻结快照 | §二 全部、§三 标 `[gui-agi]` 的行、§五 |
 
 > 规矩：本文件新增分线读数**必须带线 id**；收尾只改自己那条线的分节（`LINES.md` §四）。
 

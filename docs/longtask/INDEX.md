@@ -2,7 +2,7 @@
 
 > 状态：当前推荐（新会话第一个读的文档）
 > 来源：用户 2026-10-17～2026-10-24 的原始消息 + 仓库落盘物（逐条标了出处）
-> 最近校验：2026-11-25（§二 加 11-25 football 读数与平台切换；2026-10-24 多线并行改造：新增 `LINES.md`，§二 改为"线表快照"，不再声明唯一在跑的线）
+> 最近校验：2026-11-26（§二/§三 只动 `gui-agi` 两处：标迁出、入口改指权威仓 `TheTouYu/gui-agi`，其余行沿用 football 会话的读数；2026-11-25：§二 加 11-25 football 读数与平台切换；2026-10-24 多线并行改造：新增 `LINES.md`，§二 改为"线表快照"，不再声明唯一在跑的线）
 > 维护：收轮时更新本文件的「现在在哪」与本线在 `LINES.md` 的那一行，其余按 §四 的分工改
 
 ---
@@ -18,7 +18,7 @@
 
 | 项 | 读数（2026-11-25 21:2x，仅 `football` 相关行更新；其余行沿用旧读数） |
 |---|---|
-| **并行线（3 条）** | [`LINES.md`](LINES.md) §二 是唯一权威。快照：`football` **活跃** ｜ `sim-2d` 等用户 ｜ `gui-agi` 暂停 |
+| **并行线（3 条）** | [`LINES.md`](LINES.md) §二 是唯一权威。快照：`football` **活跃** ｜ `sim-2d` 等用户 ｜ `gui-agi` 暂停（11-26 已迁出，权威仓 `TheTouYu/gui-agi`） |
 | **本会话在哪条线** | `football`（用户 2026-11-25 指定：「你先把真实足球给我部署到win11游戏目录」）；断点见 [`dossiers/football-v3.md`](dossiers/football-v3.md) 文末 11-25 节 |
 | 共享资源 | 真机/编辑器/焦点是**独占**资源，动手前看 `LINES.md` §三 有没有别线持有 |
 | 共享读数 | 机器、常驻服务、门禁读数在 [`03-state.md`](03-state.md)（该文件只放共享面 + 标了线 id 的分节） |
@@ -37,7 +37,7 @@
 | 看还剩什么没做 / 什么被否决过 | [`05-open.md`](05-open.md)（每条标了线 id） | ≤150 行 |
 | **做足球线**（三游戏之①：造物已完成、手感/玩法未到） | [`dossiers/football-v3.md`](dossiers/football-v3.md) | ≤120 行 |
 | **做模拟器 2D 线**（Lua / UI 控件 / 真机导入 / 素材） | [`dossiers/simulator-2d.md`](dossiers/simulator-2d.md) | ≤120 行 |
-| **做 GUI 线**（感知/动作/验收） | [`dossiers/gui-agi.md`](dossiers/gui-agi.md) → 权威 `../.scratch/gui-stack/AGI-BAR.md` | ≤200 行 |
+| **做 GUI 线**（感知/动作/验收） | **已迁出**：权威仓 `TheTouYu/gui-agi`（私有）；本仓入口 [`dossiers/gui-agi.md`](dossiers/gui-agi.md) §〇 | ≤200 行 |
 | 做足球里的造物 / 技能链 / 元件删除 | [`dossiers/creation-skill-line.md`](dossiers/creation-skill-line.md)（本块已闭环） | ≤120 行 |
 | 看三个游戏这个**伞目标**（不是一条线） | [`dossiers/three-games.md`](dossiers/three-games.md) → `../maintenance/three-games-mission.md` | ≤120 行 |
 | 动仪器/门禁/回归 | [`dossiers/toolchain.md`](dossiers/toolchain.md) | ≤120 行 |

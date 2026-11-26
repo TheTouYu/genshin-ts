@@ -1,11 +1,18 @@
 # 档案：GUI AGI 模块（L3）
 
-> 状态：当前实现（**并行线之一 `gui-agi`：暂停**——等用户选 C 的第一个能力点；线表见 [`../LINES.md`](../LINES.md) §二。摘要 + 指针；判据细节以 `AGI-BAR.md` 为准，读数以 `STATE.md` 为准）
-> 来源：`.scratch/gui-stack/AGI-BAR.md`、`STATE.md`、`tools/ys-editor/`、失败账本
-> 最近校验：2026-10-24（改为并行线口径；读数仍为 10-22）
+> 状态：历史记录（**本线已迁出本仓，权威仓 = `TheTouYu/gui-agi`（私有）**——2026-11-26 用户裁定「以新库为准」。本仓里 `.scratch/gui-*`、`tools/ys-*`、`tools/ys-editor/` 的同路径副本是冻结快照：文件没动，但不再在这里开发。并行线之一 `gui-agi` 仍是暂停——等用户选 C 的第一个能力点；线表见 [`../LINES.md`](../LINES.md) §二。下面各节的读数是迁出前的；判据细节以 `AGI-BAR.md` 为准，读数以 `STATE.md` 为准）
+> 来源：`.scratch/gui-stack/AGI-BAR.md`、`STATE.md`、`tools/ys-editor/`、失败账本；迁出来源见 §〇
+> 最近校验：2026-11-26（迁出独立仓并登记；各节读数仍是迁出前的——§二为 10-18，其余多为 10-22）
 > 读法：做 GUI 相关任务时读本文件 → 再按 §六 指针读权威文件，别在归档文档里找现状
 
 ---
+
+## 〇、迁出说明（2026-11-26）
+
+- **权威仓**：`TheTouYu/gui-agi`（私有，`git@github.com:TheTouYu/gui-agi.git`，本机 `/home/h/gui-agi`）。从本仓提交 `773a218d` 抽取，布局原样（`.scratch/gui-*`、`tools/ys-*`、`tools/ys-editor/`、`docs/`）。入口先读新仓的 `README.md`；来源与相对本仓的全部改动见新仓的 `PROVENANCE.md`。
+- **为什么**：用户要把这个模块带到 Win11 上继续（思想不变、后端要换），需要一个独立、干净、自洽的仓。
+- **本仓副本的状态**：冻结快照。文件一个没动——本机常驻的 `ys_lookd` 等守护进程和 `device-playtest-loop` 技能还在用这些路径，所以没有删除。**改动请去新仓改**，别在两边各改一份。
+- **训练权重**：`gui-detect/train-*/` 的 26 个 `.pt` 在新仓经 Git LFS 入库；本仓里它们仍未入库（被 `.gitignore` 的 `/.scratch/gui-detect/` 忽略）。
 
 ## 一、这个模块要做什么
 
@@ -54,6 +61,7 @@
 
 ## 六、权威指针
 
+- **权威仓（2026-11-26 起）**：`TheTouYu/gui-agi`（私有）。下面这些指针在本仓里是冻结快照，在新仓的同路径下才是活的。
 - 判据：`.scratch/gui-stack/AGI-BAR.md`（六层 + 四条口径 + 预算表 + 已证伪路线）
 - 现状：`.scratch/gui-stack/STATE.md`（组件版本、工作线、读数）
 - 恢复报告：`.scratch/gui-stack/CONTEXT-2026-10-22.md`；交接：`HANDOFF-C-2026-10-22.md`
