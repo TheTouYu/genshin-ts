@@ -117,3 +117,38 @@ tools/ys-editor/.ys-*.js
 tools/ys-editor/ys-xrec
 # 工具自己的临时工作目录
 tools/ys-editor/.scratch/
+
+# GUI 测试运行时产物（每次跑测试生成 10.5MB/张 的截图，实测 gui-test/.03 堆到 5.6GB）
+# 2026-10-24 加：这些未被忽略的文件会被 dsh-workspace-changes 的 `git add --all`
+# 每轮完整读一遍（实测 98 MB/s 持续读），是整机 I/O 停顿的主因。
+/gui-test/.03/
+
+# 以下 .scratch 子目录是运行时生成的数据集/证据（非源码）。
+# 2026-10-24 加：未忽略时 dsh-workspace-changes 的 `git add --all` 每轮要读 1.18GB，
+# 实测一次 git add 耗时 35 秒（修复前含 gui-test/.03 共 7.23GB / 150 秒）。
+/.scratch/gui-corpus/
+/.scratch/gui-service/
+/.scratch/gui-detect/
+/.scratch/gui-feedback/
+/.scratch/gui-stack/
+/.scratch/gui-collect/
+/.scratch/ocr-precision/pylibs/
+/.scratch/ocr-precision/models/
+/.scratch/ocr-precision/models_src/
+/.scratch/ocr-precision/vl_*/
+
+# 测试帧 / 证据截图：二进制，不入库（2026-10-24 用户裁定）
+# 已 git rm --cached 取消跟踪 113 个 PNG，文件保留在磁盘供文档/测试本地引用。
+/gui-test/**/*.png
+
+# .scratch 下的二进制数据/证据一律不入库（2026-10-24 用户裁定）
+# 已 git rm --cached 641 个文件（磁盘保留），累计取消跟踪 754 个二进制。
+/.scratch/**/*.png
+/.scratch/**/*.jpg
+/.scratch/**/*.jpeg
+/.scratch/**/*.bmp
+/.scratch/**/*.pt
+/.scratch/**/*.onnx
+
+# luac 编译产物（`luac -p` / `luac -o` 的默认落点；2026-11-26 加）
+luac.out
