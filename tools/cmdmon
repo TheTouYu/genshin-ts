@@ -115,21 +115,32 @@ def decode(path):
     return out
 
 
+_STATE_MTIME = 0.0   # 2026-10-28 IO 优化：state.json 1.4MB，每 2s 整读曾占 ~0.7MB/s 读盘
+
+
 def load_state():
+    global _STATE_MTIME
     try:
+        _STATE_MTIME = os.path.getmtime(STATE)
         return json.load(open(STATE))
     except Exception:
+        _STATE_MTIME = 0.0
         return {'seen': [], 'path': None}
 
 
 def save_state(st):
     # 账本 F-1-07 根因：seen 被截断到 8000 ⇒ parse_session 每次全文重扫时，被截掉的 callId
     # 又"看起来是新的" ⇒ 重复记账（实测同一条重复 24 次）。改为全量保留（10k 条 ≈ 1MB）。
-    st['seen'] = st['seen'][-200000:]
+    st['seen'] = st['seen'][-50000:]   # 50k ≈ 2MB；会话文件内 call 数 ~2-5k，足够跨会话去重
     tmp = STATE + '.tmp'
     with open(tmp, 'w') as f:
         json.dump(st, f)
     os.replace(tmp, STATE)
+    global _STATE_MTIME
+    try:
+        _STATE_MTIME = os.path.getmtime(STATE)
+    except OSError:
+        pass
 
 
 def parse_session(events):
@@ -164,7 +175,13 @@ def ingest(rows, st):
     lock = open(os.path.join(LOGDIR, 'ledger.lock'), 'w')
     fcntl.flock(lock, fcntl.LOCK_EX)
     try:
-        st.update(load_state())
+        # 2026-10-28 IO 优化：只有别的进程改过 state.json 才重读（之前每 2s 整读 1.4MB）
+        try:
+            _m = os.path.getmtime(STATE)
+        except OSError:
+            _m = 0.0
+        if _m != _STATE_MTIME:
+            st.update(load_state())
         return _ingest_locked(rows, st)
     finally:
         fcntl.flock(lock, fcntl.LOCK_UN)
@@ -314,41 +331,57 @@ def cmd_daemon(args):
     #   模型侧只要读 ~/.dsh/cmdlog/last-coach.md（AGENTS.md 里指了一次），就永远看到当下读数。
     coach_every = max(60, int(getattr(args, 'coach_every', 300) or 300))
     last_coach = 0.0
+    # 2026-10-28 IO 优化：会话文件 4~5MB，旧实现每 2s 整读+zstd 解压+JSON 解析一次
+    # （实测 cmdmon 占 ~2.9MB/s 读盘、~25% 核 CPU）。改为「文件签名变化才处理」：
+    # 签名 = (path, size, mtime)。文件没变时循环只做一次 stat + glob。
+    last_sig = None
+    st = load_state()          # 2026-10-28：状态常驻内存；只有别的进程改过 state.json 才在 ingest 里重读
+    last_path = st.get('path')
+    last_save = 0.0
     try:
         while True:
             path = latest_session(args.workspace)
             if path:
-                st = load_state()
-                if path != last_path:
-                    last_path = path
-                    if st.get('path') == path:
-                        st['seen'] = st.get('seen', [])
-                    else:
-                        # 账本 F-1-07：切换会话/状态丢失时不能把 seen 清空重灌（会重复记账 20×）
-                        # ⇒ 先从既有 commands.jsonl 重建 seen，再继续增量
-                        seen0 = set()
-                        try:
-                            with open(COMMANDS, 'rb') as _fh:
-                                _fh.seek(0, os.SEEK_END)
-                                _fh.seek(max(0, _fh.tell() - 8 * 1024 * 1024))
-                                for _ln in _fh.read().decode('utf-8', 'replace').splitlines():
-                                    if '"callId"' in _ln:
-                                        try:
-                                            seen0.add(json.loads(_ln).get('callId'))
-                                        except Exception:
-                                            pass
-                        except Exception:
-                            pass
-                        st['seen'] = [c for c in seen0 if c][-8000:]
-                    st['path'] = path
-                    print(f'[{time.strftime("%H:%M:%S")}] 跟踪 {path}', file=log)
-                new = ingest(parse_session(decode(path)), st)
-                if new:
-                    alerts = detect(new)
-                    append_alerts(alerts)
-                    save_state(st)
-                    for a in alerts:
-                        print(f'[{time.strftime("%H:%M:%S")}] ALERT {a}', file=log)
+                try:
+                    sig = (path, os.path.getsize(path), os.path.getmtime(path))
+                except OSError:
+                    sig = (path, 0, 0.0)
+                if sig != last_sig:
+                    last_sig = sig
+                    if path != last_path:
+                        last_path = path
+                        if st.get('seen'):
+                            pass   # 2026-10-28：状态里有 seen 就复用（旧实现每次切会话都从账本重建并截断到 8000 ⇒ 重复记账）
+                        else:
+                            # 账本 F-1-07：切换会话/状态丢失时不能把 seen 清空重灌（会重复记账 20×）
+                            # ⇒ 先从既有 commands.jsonl 重建 seen，再继续增量
+                            seen0 = set()
+                            try:
+                                with open(COMMANDS, 'rb') as _fh:
+                                    _fh.seek(0, os.SEEK_END)
+                                    _fh.seek(max(0, _fh.tell() - 8 * 1024 * 1024))
+                                    for _ln in _fh.read().decode('utf-8', 'replace').splitlines():
+                                        if '"callId"' in _ln:
+                                            try:
+                                                seen0.add(json.loads(_ln).get('callId'))
+                                            except Exception:
+                                                pass
+                            except Exception:
+                                pass
+                            st['seen'] = [c for c in seen0 if c][-50000:]
+                        st['path'] = path
+                        print(f'[{time.strftime("%H:%M:%S")}] 跟踪 {path}', file=log)
+                    new = ingest(parse_session(decode(path)), st)
+                    if new:
+                        alerts = detect(new)
+                        append_alerts(alerts)
+                        # 2026-10-28 IO 优化：state.json ~2MB，旧实现每条新记录整写一次；
+                        # 改 10s 节流（崩溃最多丢 10s 的去重集，重复行由 callId 去重兜底）
+                        if time.time() - last_save >= 10 or len(new) >= 50:
+                            save_state(st)
+                            last_save = time.time()
+                        for a in alerts:
+                            print(f'[{time.strftime("%H:%M:%S")}] ALERT {a}', file=log)
             # 教练卡：按时间节律重算（与 ingest 解耦，没有新调用也会刷新，保证读数不过期）
             if time.time() - last_coach >= coach_every:
                 last_coach = time.time()
@@ -369,6 +402,11 @@ def cmd_daemon(args):
             time.sleep(args.interval)
     except KeyboardInterrupt:
         print(f'[{time.strftime("%H:%M:%S")}] 退出', file=log)
+    finally:
+        try:
+            save_state(st)   # 退出前落一次去重集（节流期间可能还有未落盘的 seen）
+        except Exception:
+            pass
     return 0
 
 

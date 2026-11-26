@@ -37,20 +37,49 @@ def parse_window(s):
                 {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[m.group(2)]) * 1000)
 
 
+TAIL_CHUNK = 8 * 1024 * 1024        # 首轮读尾 8MB（≈ 数小时记录），不够再翻倍
+TAIL_CHUNK_MAX = 256 * 1024 * 1024  # 上限：再大就整读（账本应在此之前被轮转）
+
+
 def load(since_ms):
     """读窗口内记录。按 callId 去重（守护与手动 scan 并发时账本偶有重复行，
-    保留每个 callId 最后一条）。"""
+    保留每个 callId 最后一条）。
+
+    2026-10-28（磁盘 IO 优化）：账本已到 ~900MB，旧实现每 5 分钟整读一次
+    ⇒ 单次 ~900MB 读、把页缓存冲掉、5~10 分钟一次 PSI io full 尖峰。
+    记录按追加时间近似有序，因此从文件尾部按块回读：块的**最早 ts** ≤ 窗口起点
+    即证明覆盖完整；否则块翻倍，直到 256MB 上限才退化为整读。
+    """
     by_id = {}
     if not os.path.exists(COMMANDS):
         return []
-    with open(COMMANDS, errors='replace') as f:
-        for line in f:
+    size = os.path.getsize(COMMANDS)
+    chunk = TAIL_CHUNK
+    while True:
+        start = max(0, size - chunk)
+        with open(COMMANDS, 'rb') as f:
+            f.seek(start)
+            text = f.read().decode('utf-8', 'replace')
+        lines = text.split('\n')
+        if start > 0:
+            lines = lines[1:]  # 首行可能被截断，丢弃
+        oldest = None
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
             try:
                 o = json.loads(line)
             except Exception:
                 continue
-            if o.get('ts', 0) >= since_ms:
+            ts = o.get('ts', 0)
+            if oldest is None or ts < oldest:
+                oldest = ts
+            if ts >= since_ms:
                 by_id[o['callId']] = o
+        if start == 0 or (oldest is not None and oldest <= since_ms) or chunk >= TAIL_CHUNK_MAX:
+            break
+        chunk *= 2
     return sorted(by_id.values(), key=lambda r: r['ts'])
 
 
