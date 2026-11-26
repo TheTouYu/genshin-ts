@@ -8,7 +8,7 @@
 T = T or {}
 
 T.VERSION = '1.0.0'
-T.BUILD_ID = 'device-1793147587498'
+T.BUILD_ID = 'device-1793236874437'
 T.DESIGN_W, T.DESIGN_H = 1280, 720
 T.DEBUG = false
 
@@ -181,7 +181,7 @@ T.SHAPE_ID = {
 -- 因此每屏顺序固定：背景图 → 内容图 → 全部文字 → hits → 焦点框。
 -- ============================================================================
 T = T or {}
-T.tpl = { prim = 1073741910, label = 1073741911, hit = 1073741912 }
+T.tpl = { prim = 1073741847, label = 1073741848, hit = 1073741849 }
 T.ev = {}
 T.controls, T.texts, T.items, T.hits, T.tweens, T.anims = {}, {}, {}, {}, {}, {}
 T.overlays = {}
@@ -247,7 +247,13 @@ T.tryCall = function(ctl, method, a, b)
   if b ~= nil then ok, err = pcall(function() ctl[method](ctl, a, b) end)
   elseif a ~= nil then ok, err = pcall(function() ctl[method](ctl, a) end)
   else ok, err = pcall(function() ctl[method](ctl) end) end
-  if not ok then T.warn('call ' .. tostring(method) .. ' :: ' .. tostring(err)) end
+  if not ok then
+    local msg = tostring(err)
+    -- 屏幕上已销毁的旧动画引用会每帧刷同一条 invalid object；不刷屏，避免日志把主线程拖死
+    if not msg:find('invalid object', 1, true) then
+      T.warn('call ' .. tostring(method) .. ' :: ' .. msg)
+    end
+  end
   return ok
 end
 T.destroy = function(ctl)
@@ -371,10 +377,17 @@ T.tick = function(dt)
     if tw and not (paused and not tw.ui) then
       tw.t = tw.t + dt
       local k = math.min(1, tw.t / tw.dur)
-      local keep = tw.fn(tw.ease(k), k)
-      if k >= 1 or keep == false then
+      -- 补间回调也必须 pcall：一个回调抛错会打断 OnUpdate，表现为动画/棋盘永久冻结
+      local okTw, keep = pcall(tw.fn, tw.ease(k), k)
+      if not okTw then
+        T.warn('tween error :: ' .. tostring(keep))
         list[i] = nil
-        if tw.done then tw.done() end
+      elseif k >= 1 or keep == false then
+        list[i] = nil
+        if tw.done then
+          local okDone, errDone = pcall(tw.done)
+          if not okDone then T.warn('tween done error :: ' .. tostring(errDone)) end
+        end
       end
     end
   end
@@ -708,6 +721,7 @@ T.openOverlay = function(name, builder, opts)
   local base = {
     items = T.items, hits = T.hits, focus = T.focus, focusFrame = T.focusFrame,
     screen = T.screen, mode = T.mode, controlsStart = #T.controls + 1,
+    tweensStart = #T.tweens + 1, animsStart = #T.anims + 1,
     name = name, pausesGame = opts.pausesGame, onClose = opts.onClose,
   }
   T.overlays[#T.overlays + 1] = base
@@ -735,6 +749,8 @@ T.closeOverlay = function()
     if ctl then pcall(function() game.DestroyClientUIControl(ctl) end) end
     T.controls[i] = nil
   end
+  for i = #T.tweens, o.tweensStart or (#T.tweens + 1), -1 do T.tweens[i] = nil end
+  for i = #T.anims, o.animsStart or (#T.anims + 1), -1 do T.anims[i] = nil end
   T.items, T.hits, T.focus, T.focusFrame = o.items, o.hits, o.focus, o.focusFrame
   T.screen, T.mode = o.screen, o.mode
   T.overlay = T.overlays[#T.overlays] or nil
@@ -2563,17 +2579,16 @@ T.gFinish = function(win)
   T.sfx(win and T.SFX.win or T.SFX.lose, true)
   local data = { chapter = chId, win = win, score = g.score, best = T.records.best[chId],
     stars = stars, moves = g.moves, maxCombo = g.maxCombo or 0, cleared = g.cleared or 0 }
-  T.after(0.45, function()
-    if not T.game or T.game ~= g then return end
-    T.openResult(data)
-    if win then T.unlock('first_tea') end
-    if (g.maxCombo or 0) >= 3 then T.unlock('combo3') end
-    if g.score >= 3000 then T.unlock('score3000') end
-    if stars == 3 then T.unlock('perfect') end
-    local all = true
-    for i = 1, #T.chapters do if not T.records.visited[i] then all = false end end
-    if all then T.unlock('all_chapters') end
-  end)
+  -- 直接结算：之前 T.after 在部分真机会话里不触发，表现为赢了以后永远停在棋盘
+  if T.overlay then T.closeAllOverlays() end
+  T.openResult(data)
+  if win then T.unlock('first_tea') end
+  if (g.maxCombo or 0) >= 3 then T.unlock('combo3') end
+  if g.score >= 3000 then T.unlock('score3000') end
+  if stars == 3 then T.unlock('perfect') end
+  local all = true
+  for i = 1, #T.chapters do if not T.records.visited[i] then all = false end end
+  if all then T.unlock('all_chapters') end
 end
 
 -- ---------- 提示 / 更新 ----------
@@ -2590,9 +2605,47 @@ T.gameHint = function()
   T.sfx(T.SFX.hover)
   T.log('hint r=' .. move.a.r .. ' c=' .. move.a.c .. ' -> r=' .. move.b.r .. ' c=' .. move.b.c)
 end
+T.gRecover = function(g)
+  -- 动画/回调异常后的兜底：让棋盘数据和可见图元重新一致，解除 busy
+  local repaired = 0
+  for r = 1, T.G.N do
+    for c = 1, T.G.N do
+      local tile = g.tiles[r][c]
+      if not tile or not tile.parts or #tile.parts == 0 then
+        local typ = g.board[r][c]
+        if not typ or typ == 0 then
+          typ = T.rand(5)
+          g.board[r][c] = typ
+        end
+        local x, y = T.gpos(r, c)
+        if tile then T.gDestroyTile(tile) end
+        g.tiles[r][c] = T.gMakeTile(r, c, typ, x, y)
+        repaired = repaired + 1
+      end
+    end
+  end
+  g.busy = false
+  g.busyT = 0
+  g.sel = nil
+  g.dragFrom, g.dragTo = nil, nil
+  T.gRingHide(g.selRing)
+  T.gHud(g)
+  T.log('game recover repaired=' .. repaired)
+end
+
 T.gTick = function(dt)
   local g = T.game
   if not g or g.phase ~= 'play' then return end
+  if g.busy then
+    g.busyT = (g.busyT or 0) + dt
+    if g.busyT > 1.5 then
+      T.warn('game busy timeout :: repair board')
+      T.gRecover(g)
+      return
+    end
+  else
+    g.busyT = 0
+  end
   local pulse = 1 + math.sin(T.time * 4.2) * 0.045
   if g.sel then T.gRingAt(g.selRing, g.sel.r, g.sel.c, 64 * pulse) end
   if g.hintT > 0 then
@@ -2914,8 +2967,9 @@ function OnStart()
     T.probeTemplates()
     T.setSeed(20261028)
     -- 键位注册：枚举优先，字符串回落
-    if type(Enum) == 'table' and Enum.KeyCode then
-      T.keyEnum = Enum.KeyCode
+    -- 真机 AddKeyEventListener 第一参要求 KeyEventType 枚举；Enum.KeyCode 是另一套命名空间
+    if type(Enum) == 'table' and Enum.KeyEventType then
+      T.keyEnum = Enum.KeyEventType
     end
     for raw, action in pairs(T.keyMap) do
       local okKey, errKey
