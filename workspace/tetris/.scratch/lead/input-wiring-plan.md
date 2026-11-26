@@ -340,3 +340,23 @@ node qxqy/runner.mjs 61                          # 手机按钮建出
 3. **`INPUT:dispatch` 的返回值语义**：`true` = 已消费；**`nil` 也算已消费**（兼容 main 现有无返回值回调）；
    只有显式 `false` 才继续往栈下传。栈：`INPUT:push('help'|'roster'|'settle'|'game', handler)`，
    handler 返回 true 即"关页且不动作"——替代 6040-6052 那两段 if。
+
+---
+
+## 7. 执行状态（2026-10-31 18:45 收表完成）
+
+| 步 | 状态 | 读数 |
+|---|---|---|
+| Step 1 扩 mapped 6 条 | ✅ 已提交 `b6086e75` | listen ok **90 → 84**；runner 08/44/48/61/02/03/05 **7/7**；run_cases 69/70 |
+| Step 2 收表（listen→dispatch） | ✅ 已提交 `2aa98849` | 全量 runner **70/70 · 375.1s · exit 0**；run_cases 69/70；locals 154→155 |
+| Step 3 删 mapped + 43 键循环 | ✅ 并入 Step 2（INPUT:bindAll 的落点正是兜底循环的位置） | 兜底池 27 条由 `fallbackPool()` 自动派生；`listen ok` 仍 84 |
+| Step 4a 手柄收表 | ✅ 并入 Step 2（`UI4.padBind` 退役） | `pad bind n=24`（14 映射 + 10 探针）一字未变；tests/48 全绿 |
+| Step 4b 触屏描述通道 | ⏸ 未做（需动 ui.lua 布局段 = 场景栈那一波） | input_map_test 的 B21 已是 PENDING 双口径 |
+
+**顺带交付的仪器**：`.scratch/lead/count-listen.lua` —— 用 engine_shim 起一次 `load_main()` 数 `engine.logs`
+里的 `listen ok/fail`、`pad bind n=`，**秒级**，不必跑 350s 的 runner（runner 不把客户端 print 打到 stdout）。
+
+**收表后 main.lua 的输入段形态**（给下一位接线者）：
+`dispatch(action, keyName, phase)` 一张派发表 + `INPUT:bindAll(dispatch, {padMoveKeys=false})` 一次注册；
+手柄分支先打 `pad ev` 再走 `UI4.padAct`（菜单焦点/帮助/runAct 三支不变）；
+玩法六动作 Down 走 `act()+doPlay`，Up 用 `keyName:gsub('Up$','Down')` 还原对应 Down 键再 `routePlayer`（P2 路由依赖键名）。

@@ -146,6 +146,12 @@ M.TAG = { w = 220, h = 25, font = 13, xInset = 120, yInset = 16, text = 'v6 · t
 -- 旅行者手记（一行；轮播是状态，交接线方按帧号换 noteIdx）
 M.NOTE = { x = -420, y = -215, w = 380, h = 40, font = 18 }
 
+-- v6.30：轮播旁白（旅行者手记）的锚点**只在这里算一次**。
+-- 之前 view_title 用 M.NOTE.y=-215 出节点、main 的轮播又用写死的 (-420,-215) 覆盖一次
+-- ⇒ 两处数字各写一遍：改了一处另一处照旧（本轮就是 main 那份把缩放后的位置又拽回设计值，
+-- 于是文字落到 2 号卡后面被压掉一半）。现在 main 调这个函数取锚点。
+function M.noteAnchor(halfH) return M.NOTE.x, -(halfH - 62) end
+
 -- 层名（语义层号来自 view_layers；这里只写名字，数字不重复出现）
 M.LAYER = { stage = 'bg', hud = 'hud', card = 'card', hit = 'touch' }
 
@@ -346,9 +352,12 @@ M.new = function(spec)
           d.w or 0, d.h or 0, opaque(wall, d.c), d.s, d.rot)
       end
       -- 视窗内阴影（贴边内外各 10）：现网 alpha 26 直接贴 ⇒ 这里预混成不透明
-      shape('menuShadeT', M.ROLE.shade, M.LAYER.stage, 0, winTop - ST.shade.out,
+      -- v6.28（用户真机图一「最下面一行被截断」）：上下两条阴影带原来落在**视窗内**
+      -- （winTop-10 / winBot+10 ⇒ 各占视窗 20 单位），正好压在棋盘第一行/最后一行的下半截。
+      -- 左右两条本来就在窗外（±(winHalf+10)）；这里改成一并放窗外，四条对称、不再压格子。
+      shape('menuShadeT', M.ROLE.shade, M.LAYER.stage, 0, winTop + ST.shade.out,
         2 * winHalf + ST.shade.pad, ST.shade.w, shadeC)
-      shape('menuShadeB', M.ROLE.shade, M.LAYER.stage, 0, winBot + ST.shade.out,
+      shape('menuShadeB', M.ROLE.shade, M.LAYER.stage, 0, winBot - ST.shade.out,
         2 * winHalf + ST.shade.pad, ST.shade.w, shadeC)
       shape('menuShadeL', M.ROLE.shade, M.LAYER.stage, -winHalf - ST.shade.out, sideCY,
         ST.shade.w, sideH + 8, shadeC)
@@ -441,7 +450,10 @@ M.new = function(spec)
           local a = math.max(0, math.min(255, math.floor(opts.noteAlpha)))
           cc = K.C(a, r, g, b)
         end
-        txt('menuNote', M.ROLE.note, M.LAYER.hud, noteText, M.NOTE.x, M.NOTE.y,
+        -- v6.30：这句「旅行者…」原来钉在 M.NOTE.y=-215，设计空间缩放后正好落到 2 号卡后面
+        -- （2400 实测：文字被卡片压掉一半）。改成**贴着底部提示条上方**，任何画布都在空带里。
+        local nx, ny = M.noteAnchor(halfH)
+        txt('menuNote', M.ROLE.note, M.LAYER.hud, noteText, nx, ny,
           M.NOTE.w, M.NOTE.h, M.NOTE.font, cc)
       end
     end
@@ -511,9 +523,13 @@ M.new = function(spec)
 
     -- ===== ⑦ 两张入口卡（角色档案 / 说明，card 层）=====
     local EN = M.ENTRY
-    local ex = math.min(EN.exMax, halfW - EN.exInset)
+    -- v6.30（用户 2026-11-17「首页那里明显重叠」）：入口卡从「贴着标题右侧」改成**左上 / 右上两个角**。
+    -- 旧算法 `min(exMax=520, halfW-169)` 在 1280 上算出 471 ⇒ 卡左缘 799 与标题胶囊右缘 970 相交 144px；
+    -- 2400 上更糟（卡 [1436,1524] vs 胶囊 [870,1530]，重叠 88px）。改成贴角后与标题、与棋盘视窗都不相交，
+    -- 而且与对局屏的「角色 / 说明」导航键同位置（同一个心智模型）。
+    local ex = -(halfW - EN.exInset)
     local ey = (device == 'mobile') and (halfH - EN.eyMobileInset) or EN.eyPc
-    local hx = ex + EN.helpDx
+    local hx = halfW - EN.exInset      -- 说明：右上角（原来是 ex + helpDx，跟着角色卡往右排）
     local entryFill = K.over(wall, gold, 0.12)      -- controls.lua PRESET.gold.base
 
     local r = EN.roster

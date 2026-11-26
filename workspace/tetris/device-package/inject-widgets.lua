@@ -180,10 +180,34 @@ local function findIn(node, names)
   return nil
 end
 
+-- ===== 全屏铺满（拉伸锚点）：一套语义、一处实现 =====
+-- 为什么不能用 SetSizeDelta(W, H)：那是把尺寸**写死成我们猜的画布尺寸**。
+-- 真机 3440×1440 屏幕报 canvas 2030×900（宽被单独截短 192px/侧），我们算的 W 一旦不等于
+-- 父容器真实尺寸就露缝。官方 API 的锚点才是适配机制（`anchorMinX/Y`、`anchorMaxX/Y`
+-- 四个可读写字段 + `SetAnchorMin/SetAnchorMax` 方法；模拟器 `studio/ui/layout.js` 与
+-- `client/lua-runtime/src/scene.js` 是同一套 RectTransform 语义）：
+--   width = (anchorMax - anchorMin) * parentWidth + sizeDelta
+--   拉伸判据：|anchorMax-anchorMin| > EPS 且 |sizeDelta| <= EPS
+-- overscan（缺省 0.01 = 每边多铺 1%）吃掉抗锯齿与取整的 1px 缝。
+-- 返回 true = 锚点已生效（读回校验过）；false = 宿主不认锚点，调用方回落到像素尺寸。
+local function fill(ctl, overscan)
+  if not ctl then return false end
+  local o = overscan or 0.01
+  if not tryCall(ctl, 'SetAnchorMin', -o, -o) then return false end
+  if not tryCall(ctl, 'SetAnchorMax', 1 + o, 1 + o) then return false end
+  if not tryCall(ctl, 'SetSizeDelta', 0, 0) then return false end
+  if not tryCall(ctl, 'SetAnchoredPosition', 0, 0) then return false end
+  -- 读回校验：锚点是字段（白名单 anchorMinX…）。读不到就当没生效——别假设，别静默。
+  local ok, v = pcall(function() return ctl.anchorMinX end)
+  if not ok or type(v) ~= 'number' then return false end
+  return math.abs(v + o) < 1e-3
+end
+
   return {
     noteFail = noteFail, trySet = trySet, tryCall = tryCall, addCursor = addCursor,
     find = find, setText = setText, applyStyle = applyStyle,
     probeTemplate = probeTemplate, instInto = instInto, findIn = findIn, capOf = capOf,
+    fill = fill,
   }
 end
 

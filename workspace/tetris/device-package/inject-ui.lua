@@ -24,6 +24,21 @@ M.new = function(spec)
   local NUM = cfg.NUM
   local KIT = NUM.UI_KIT or {}
   local COL = NUM.UI_COL or {}
+  -- v6.28（用户图一「说明和角色没有悬浮高亮，应该控件级别统一支持」）：
+  -- 胶囊**本来就有** hover 接线（makeBtn 挂 CursorEnter），真正的问题是调色板增量只有
+  -- btnBg(255,250,243) → btnHover(255,253,248) ≈ +2%，浅底上肉眼不可辨。
+  -- 现在三态色由**框架**派生（view_kit.stateColor，hover 向白 12% / pressed 向黑 20%），
+  -- 想调观感只改框架的 STATE_MIX 一个数，不再回头改 config 的共享色表。
+  local KITV = spec.kit
+  local function derived(base, state, fallback)
+    if KITV and KITV.stateColor and base ~= nil then
+      local c, okk = KITV.stateColor(base, state)
+      if okk and c ~= nil then return c end
+    end
+    return fallback
+  end
+  local HOVER = derived(COL.btnBg, 'hover', COL.btnHover)
+  local PRESS = derived(COL.btnBg, 'pressed', COL.btnPress)
   local C = cfg.C
   local WID = spec.widgets
   local trySet, tryCall, addCursor = WID.trySet, WID.tryCall, WID.addCursor
@@ -67,44 +82,61 @@ M.new = function(spec)
     return true
   end
 
-  -- 五屏共用同一条背景路径：wash（整屏不透明底，保证四边 0 缺口）+ cover 构图（保证有美术）
+  -- 五屏共用同一条背景路径：两层各守一件事，**别再混成一条判据**
+  --   ① wash（整屏底色）：走**拉伸锚点**铺满父容器 ⇒ 与 GetUICanvasSize 无关，四边必然满；
+  --   ② 构图（cfg.MODE_BG）：cover 缩放 bs = max(W/baseW, H/baseH) ⇒ 保证屏幕上有美术。
+  -- v6.27 的关键修正：旧判据把 wash 的外缘也计入"四边 0 缺口"（wash 恒盖满 ⇒ 判据恒真），
+  -- 于是"构图根本没画到边"永远测不出来（真机 comps=0/14 那次是 wash 也 nil 才偶然报红）。
+  -- 现在 wash 只报 stretch=1/0，缺口判据**只看构图**；构图的数据不变量由框架
+  -- view_node.lintCover（C1 设计板覆盖）在 headless 层看住，运行时不变量退化成实测读数。
   U.bgApply = function(mode, screen)
     local m = mode or 'casual'
     local t = cfg.MODE_THEME[m] or cfg.MODE_THEME.casual
     local specs = cfg.MODE_BG[m] or cfg.MODE_BG.casual
     local pool = spec.pool()
     local W, H = canvas()
-    local bs = math.max(W / (NUM.BG_BASE_W or 1280), H / (NUM.BG_BASE_H or 720))
+    local baseW = NUM.BG_BASE_W or 1280
+    local baseH = NUM.BG_BASE_H or 720
+    local bs = math.max(W / baseW, H / baseH)
     local n = 0
     local extL, extR, extB, extT = 0, 0, 0, 0
+    local washState = 'none'
+    -- 旋转矩形 AABB：框架层唯一实现（spec.aabb）；没接上就按**未旋转**算 —— 宁可漏报也不谎报
+    local aabb = spec.aabb
+    if not aabb then
+      aabb = function(x, y, w, h) return x - w / 2, y - h / 2, x + w / 2, y + h / 2 end
+      if not U.aabbWarned then
+        U.aabbWarned = true
+        log('bg aabb=fallback（spec.aabb 未注入 ⇒ 旋转图元按未旋转算，判据偏严）')
+      end
+    end
     if pool then
       local wash = pool[1]
       if wash then
-        -- wash 比画布大 20px：抗锯齿边缘不留 1px 缝
-        tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-        tryCall(wash, 'SetAnchoredPosition', 0, 0)
+        local okFill = WID.fill and WID.fill(wash, 0.01)
+        if not okFill then
+          -- 宿主不认锚点：回落像素尺寸（仍比什么都不铺强），并把读数打出来别静默
+          tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+          tryCall(wash, 'SetAnchoredPosition', 0, 0)
+          washState = 'px'
+        else
+          washState = 'stretch'
+        end
         trySet(wash, 'imageColor', t.bg)
-        extL, extR, extB, extT = -(W / 2 + 10), (W / 2 + 10), -(H / 2 + 10), (H / 2 + 10)
       end
       for i = 1, #pool - 1 do
         local sp0 = specs[i]
         local ctl = pool[i + 1]
         if sp0 then
-          -- 外接圆半径按**缩放后**尺寸算（旋转矩形用外接圆是保守上界，不会高估覆盖）
           local sp = { s = sp0.s, x = (sp0.x or 0) * bs, y = (sp0.y or 0) * bs,
                        w = (sp0.w or 0) * bs, h = (sp0.h or 0) * bs, c = sp0.c, rot = sp0.rot }
           if skinItem(ctl, sp) then
             n = n + 1
-            -- 旋转矩形的 AABB（旧实现用**外接圆**：1760×44 的云带 y 方向被高估成 ±880，
-            -- 于是判据永远"过"或永远"不过"，两头都不可信）。ex/ey 是半宽/半高。
-            local rad = math.rad(sp.rot or 0)
-            local ca, sa = math.abs(math.cos(rad)), math.abs(math.sin(rad))
-            local ex = (sp.w / 2) * ca + (sp.h / 2) * sa
-            local ey = (sp.w / 2) * sa + (sp.h / 2) * ca
-            if sp.x - ex < extL then extL = sp.x - ex end
-            if sp.x + ex > extR then extR = sp.x + ex end
-            if sp.y - ey < extB then extB = sp.y - ey end
-            if sp.y + ey > extT then extT = sp.y + ey end
+            local x0, y0, x1, y1 = aabb(sp.x, sp.y, sp.w, sp.h, sp.rot)
+            if x0 < extL then extL = x0 end
+            if x1 > extR then extR = x1 end
+            if y0 < extB then extB = y0 end
+            if y1 > extT then extT = y1 end
           end
         elseif ctl then
           -- 空槽：缩 1×1 挪出画布（真机 SetVisible 对实例不可靠 ⇒ 只信坐标）
@@ -126,20 +158,21 @@ M.new = function(spec)
         end
       end
     end
-    -- 判据（用户/lead 2026-10-29 定）：**四边 0 缺口**，不是 92%
+    -- 判据（用户/lead 2026-10-29 定）：**四边 0 缺口**——但只许由**构图**满足
     local needX, needY = W / 2, H / 2
     local scr = screen or U.screen or '?'
-    if extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
+    local comps = n .. '/' .. #specs
+    if n > 0 and extL <= -needX and extR >= needX and extB <= -needY and extT >= needY then
       log('bg cover ok bs=' .. f1(bs) .. ' w=' .. math.floor(W) .. ' h=' .. math.floor(H)
-        .. ' screen=' .. scr .. ' comps=' .. n .. '/' .. #specs .. ' wash=' .. (pool and pool[1] and 1 or 0)
+        .. ' screen=' .. scr .. ' comps=' .. comps .. ' wash=' .. washState
         .. ' ext=' .. math.floor(extL) .. ',' .. math.floor(extR) .. ',' .. math.floor(extB) .. ',' .. math.floor(extT))
     else
       log('bg cover GAP bs=' .. f1(bs) .. ' screen=' .. scr
         .. ' dxL=' .. math.floor(-needX - extL) .. ' dxR=' .. math.floor(needX - extR)
         .. ' dyB=' .. math.floor(-needY - extB) .. ' dyT=' .. math.floor(needY - extT)
-        .. ' comps=' .. n .. '/' .. #specs)
+        .. ' comps=' .. comps .. ' wash=' .. washState)
     end
-    log('mode theme=' .. tostring(m) .. ' bg=' .. n .. '/' .. #specs)
+    log('mode theme=' .. tostring(m) .. ' bg=' .. comps .. ' wash=' .. washState)
     return n
   end
 
@@ -281,6 +314,48 @@ M.new = function(spec)
   end
 
   -- 移动端公共量：棋盘 300×600 居中 ⇒ 左右各一列、上下各一条 60px 带（720 画布）
+  -- v6.28（用户图六「2400×1080 明明空间足够，按钮排布却没按设计来」）：
+  -- **设计空间缩放**：手机端把整套内容按 `S = min(W/1280, H/720)`（夹在 1~2）放大，
+  -- 于是 2400×1080 上的棋盘/按键/字号与 1280×720 是**同一比例**，而不是"盘还是那么小、键飞得更远"。
+  -- 应用范围只有手机端：PC 布局用户没报问题，且改它会动到 1600/2100 上的一批断言。
+  -- 贴画布边缘的东西（导航键/横幅）在 `planScreen` 里按画布坐标重新摆，不吃这个缩放。
+  local DESIGN_W, DESIGN_H = NUM.BG_BASE_W or 1280, NUM.BG_BASE_H or 720
+  local function scaleOf(W, H)
+    -- 单一真源：config.viewScale（main 用它缩放棋盘格，这里用它缩放布局矩形）
+    if type(cfg.viewScale) == 'function' then return cfg.viewScale(W, H, true) end
+    local s = math.min(W / DESIGN_W, H / DESIGN_H)
+    if s < 1 then s = 1 elseif s > 2 then s = 2 end
+    return s
+  end
+  local function scalePlan(p, s)
+    if not p or s == 1 then if p then p.scale = s end return p end
+    local function one(r)
+      if type(r) ~= 'table' then return r end
+      local o = {}
+      for k, v in pairs(r) do o[k] = v end
+      for _, k in ipairs({ 'x', 'y', 'w', 'h' }) do
+        if type(o[k]) == 'number' then o[k] = o[k] * s end
+      end
+      -- 字号必须是整数（D722：小数 fontSize 静默失败 ⇒ 整行不画）
+      if type(o.fs) == 'number' then o.fs = math.max(12, math.floor(o.fs * s + 0.5)) end
+      return o
+    end
+    for _, grp in ipairs({ p.text, p.inst, p.skill }) do
+      if type(grp) == 'table' then for k, r in pairs(grp) do grp[k] = one(r) end end
+    end
+    for _, key in ipairs({ 'slots', 'nav', 'acts' }) do
+      local grp = p[key]
+      if type(grp) == 'table' then
+        for k, r in pairs(grp) do grp[k] = one(r) end
+      end
+    end
+    for _, k in ipairs({ 'rightCX', 'leftCX', 'panelW' }) do
+      if type(p[k]) == 'number' then p[k] = p[k] * s end
+    end
+    p.scale = s
+    return p
+  end
+
   local function bands(W, H)
     local halfW, halfH = W / 2, H / 2
     local pad = KIT.MARGIN or 18
@@ -294,6 +369,20 @@ M.new = function(spec)
       botY = -(halfH - 30),                     -- 下带中线（1280: -330）
       pad = pad,
     }
+  end
+
+  -- v6.28（用户真机图六「2400×1080 按钮排布没按设计，明明空间足够」）：
+  -- 病根是**拇指簇按画布边缘定位**（`gutL = -(halfW-103)`）：1280 宽时它恰好在棋盘外侧，
+  -- 画布一变大就被推到离棋盘 600+px 的屏幕角上，还要竖排一列——空间越大越难用。
+  -- 现在改成**按棋盘几何定位**：簇贴着各自棋盘外沿留 18px 净空，与画布尺寸无关。
+  -- 棋盘横向半宽 = 4.5*PITCH + CELL/2 + 1（view_board 的 frameX，1280 下 = 150）。
+  local BOARD_CX = 236                                  -- 双盘盘心（main.placeBoard 用同一数值）
+  -- 棋盘格几何来自 config 顶层（cfg.CELL / cfg.GAP），不在 NUM 里
+  local CELL_, GAP_ = cfg.CELL or 28, cfg.GAP or 2
+  local BOARD_HALF = 4.5 * (CELL_ + GAP_) + CELL_ / 2 + 1
+  local CLUSTER_GAP = 18                                -- 簇与棋盘外沿的净空
+  local function clusterX(bw, boardCx)                  -- 相对**盘心**向外推：棋盘外沿 + 净空 + 半键宽
+    return (boardCx or BOARD_CX) + BOARD_HALF + CLUSTER_GAP + bw / 2
   end
 
   local function planMobile(W, H, dual, guide)
@@ -349,14 +438,19 @@ M.new = function(spec)
       --   两侧对称，单手都能按到；act 与主键相同，逻辑零改动。
       -- v5.35（用户：按钮直接重叠了）：原间距 130/76 对 120×72 的键只留 10/4px，
       -- 再加上描边外扩 2px ⇒ 相邻两键贴死甚至视觉重叠。改成 144/92（净距 20/16）。
-      slots[#slots + 1] = B('left', colL - 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('right', colL + 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot', colL - 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold2', colL + 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hard', colR + 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('soft', colR - 72, g5.botY + 30, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('hold', colR - 72, g5.botY + 122, bw, bh, KIT.FS)
-      slots[#slots + 1] = B('rot2', colR + 72, g5.botY + 122, bw, bh, KIT.FS)
+      -- v6.28：两列簇改成**贴棋盘外沿**（原来用 colL±72 / colR±72，大画布上离盘 600+px）。
+      -- 内列 = 棋盘外沿 + 18 净空 + 半键宽；外列再外推一个键宽 + 16 净距。
+      local cx0 = clusterX(bw, 0)              -- 单盘盘心 0（原来误加 BOARD_CX=236 ⇒ 外列被推出画布）
+      local cx1 = cx0 + bw + 16                -- 外侧列中心
+      -- v6.30（用户：「移动端箭头左右反过来了，你是右左」）：◀ 必须在外侧（屏幕更左）、▶ 在内侧。
+      slots[#slots + 1] = B('left', -cx1, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('right', -cx0, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot', -cx0, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold2', -cx1, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hard', cx1, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('soft', cx0, g5.botY + 30, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('hold', cx0, g5.botY + 122, bw, bh, KIT.FS)
+      slots[#slots + 1] = B('rot2', cx1, g5.botY + 122, bw, bh, KIT.FS)
       -- 中下技能行（棋盘正下方 60px 带里）
       local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
       -- 技能三键：**右列竖排**（底部中间被 fx 的角色名卡占住 —— lead 2026-10-29 复核：
@@ -403,7 +497,9 @@ M.new = function(spec)
     -- 教学提示走 setText(hint, …) 这条**两端共用**的逻辑，但手机双盘把 hint 停在 -4000
     -- ⇒ 同一段代码在手机上是"写了但看不见"。凡"同一份逻辑、两个可见面"都是 bug。
     -- 位置：两块棋盘之间的下带（拇指簇 x≤134 / x≥1117 之外的中段），实测该带无任何可见件。
-    t.hint = T('hint', 0, -(halfH - 28), math.min(W - 400, 880), 52, 18)
+    -- v6.29（用户图一：底带文字压住棋盘/互相叠印）：两条底带各找**真正空的**位置——
+    -- 教学句挪到左栏空带（best 与拇指簇之间，y=-70）；通栏横幅放到棋盘下沿（-300）之外。
+    t.hint = T('hint', gutL, -70, 200, 40, 15)
     -- 右栏 y∈[280,420] 也空 ⇒ 「下一个」放回来（右上角「说明」在 y≈646 之外，不压）
     t.hudNext = T('hudNext', gutR, -10, 200, 32, 17)  -- raw；屏幕 y≈350
     -- v6.15（用户 2026-11-02 图一：横幅被裁成「准备开」）：240 宽装不下 12 个字，
@@ -420,7 +516,7 @@ M.new = function(spec)
     -- 再往上让 34px（半行 + 净空），否则两条都会写进同一 ty，出图时两段字直接叠印
     -- （实测：ibotBanner 与 ihint 同 ty=-452、同 screenY=932，是一团花字）。
     -- 4:3（1280×960）下两盘下沿 751、画布底 960 ⇒ 底部带 209px，放两条仍有富余。
-    t.botBanner = T('botBanner', 0, -(H / 2 - 62), math.min(W - 400, 880), 44, 20)
+    t.botBanner = T('botBanner', 0, -(halfH - 38), math.min(W - 400, 720), 44, 20)
     -- inst 份与 text 份必须同位（main 的 HUD_INST.build 起手会按旧的 halfH-40 摆一次）
     ti.botBanner = t.botBanner
     -- 🔴 v6.17（用户 2026-11-03 图二①「移动端换了个模式设计就变了，你没同步过来」）：
@@ -443,13 +539,27 @@ M.new = function(spec)
     -- 拇指簇竖排：底边必须留 6px（首版直接放 botY=-330，72 高 ⇒ 底边 -366 出画布，审计抓到 oob）
     -- v6.15（用户 2026-11-02 图一：最下方的 ◀ 贴着画布底边被切）：原来 botY+6 = -324，
     -- 72 高的胶囊底边落在 -360 正好压画布边缘；上移 34 让三颗竖排整体在安全区内。
-    local col0 = g5.botY + 40
-    slots[#slots + 1] = B('left', gutL, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('right', gutL, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('rot', gutL, col0 + 172, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hard', gutR, col0, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('soft', gutR, col0 + 86, bw, bh, KIT.FS)
-    slots[#slots + 1] = B('hold', gutR, col0 + 172, bw, bh, KIT.FS)
+    -- 🔴 v6.29（用户 2026-11-17 图一：「双盘这个按钮的设计不对，休闲模式的排列才是对的」）：
+    -- 双盘原来每个棋盘**竖排一列 3 颗**（左 ◀▶旋转 / 右 缓降锁定暂存），与休闲模式那套
+    -- **2×2（上排 旋转+暂存 / 下排 ◀▶ 或 缓降+锁定）**不是同一个设计。现在双盘也用休闲那套：
+    -- 每块棋盘配一套镜像的 2×2，放在棋盘外侧。
+    -- 键宽自适应：1280 双盘外侧只剩 254px（386..640），两列放不下 120 宽的键 ⇒ 收到 ~114；
+    -- 2400×1080 经设计缩放后设计空间更宽（800），仍是 120。
+    local boardEdge = BOARD_CX + BOARD_HALF          -- 386（design space）
+    local sideW = halfW - boardEdge
+    local gapX, gapY = 10, 16
+    local bw2 = math.min(bw, math.floor((sideW - 16 - gapX) / 2))
+    local cIn = boardEdge + 8 + bw2 / 2               -- 内列（贴棋盘）
+    local cOut = cIn + bw2 + gapX                     -- 外列
+    local rowLo, rowHi = g5.botY + 30, g5.botY + 30 + bh + gapY
+    slots[#slots + 1] = B('left', -cOut, rowLo, bw2, bh, KIT.FS)   -- ◀ 外侧（更左）
+    slots[#slots + 1] = B('right', -cIn, rowLo, bw2, bh, KIT.FS)   -- ▶ 内侧
+    slots[#slots + 1] = B('rot', -cIn, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hold2', -cOut, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('soft', cIn, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hard', cOut, rowLo, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('hold', cIn, rowHi, bw2, bh, KIT.FS)
+    slots[#slots + 1] = B('rot2', cOut, rowHi, bw2, bh, KIT.FS)
     local sw, sh = NUM.PHONE.SKILL_W, NUM.PHONE.SKILL_H
     slots[#slots + 1] = B('skill1', 0, 150, sw, sh, KIT.FS)
     slots[#slots + 1] = B('skill2', 0, 80, sw, sh, KIT.FS)
@@ -489,7 +599,11 @@ M.new = function(spec)
   local function planScreen(screen, W, H, isMobile, dual, guide)
     local p
     if not isMobile then p = dual and planPCDual(W, H, guide) or planPC(W, H)
-    else p = planMobile(W, H, dual, guide) end
+    else
+      -- 手机端：布局在**设计画布**里算，算完整体放大 S（见 scaleOf/scalePlan 的说明）
+      local S = scaleOf(W, H)
+      p = scalePlan(planMobile(W / S, H / S, dual, guide), S)
+    end
     -- 技能 UI 整组移走（config.NUM.SKILL_UI == false，用户 2026-11-02 要求；PC 与移动端一起）：
     -- 清空 p.skill（角色名卡/能量条/技能状态行）并摘掉 skill1/skill2/switch 三个槽位 ——
     -- 两者都走「不在 plan 里 ⇒ applyText/applyButtons 把它挪出画布」的同一条语义，
@@ -565,7 +679,14 @@ M.new = function(spec)
 
   U.plan = function(screen, dual, guide)
     local W, H = canvas()
-    return planScreen(screen or U.screen, W, H, mobile(), dual, guide)
+    -- v6.34：`dual` 的**唯一真源 = spec.state().dual**。以前有两个入口各传一次
+    -- （U.enter 传 st.dual；main 的 UI4.layout 传 (G[2] ~= nil)），只有一个打日志 ⇒
+    -- 真机「休闲单盘却用了双盘几何」时无法从日志判断是谁干的（2026-11-20，排查 40 分钟）。
+    -- 参数只在 spec.state 缺失（headless 用例直接调 plan）时兜底。
+    local st = spec.state and spec.state() or {}
+    local d = st.dual
+    if d == nil then d = dual end
+    return planScreen(screen or U.screen, W, H, mobile(), d, guide)
   end
 
   ----------------------------------------------------------------------------
@@ -618,7 +739,34 @@ M.new = function(spec)
     -- 巡检抓到两个不同坐标（qa-shots 报 `phhome×2`）
     b.edge = pill('pe' .. gp .. id, w + (KIT.EDGE or 3) * 2, h + (KIT.EDGE or 3) * 2, COL.btnEdge)
     b.bg = pill('pb' .. gp .. id, w, h, COL.btnBg)
-    b.txt = spec.instText('pt' .. gp .. id, def.label, w, h, fs)
+    if def.icon then
+      -- 2026-11-20（真机：左簇下排两颗**空胶囊**）：`◀`/`▶` 是 U+25C0/U+25B6，真机字体没有这两个字形
+      -- ⇒ 文本控件一个 glyph 都画不出来；模拟器有回退字体，所以出图/`textLayout.fits` 一直是绿的。
+      -- 现在改画**内置图元** 100003=triangle（顶点朝上），SetLocalRotation 正角逆时针 ⇒ +90 指左、−90 指右。
+      -- 图元建不出来就退回中文单字（同一字形族已在真机截图里验证可显示），不留空白。
+      b.icon = spec.instCell('pi' .. gp .. id)
+      if b.icon then
+        tryCall(b.icon, 'SetSizeDelta', def.iw or 20, def.ih or 24)
+        trySet(b.icon, 'imageColor', COL.btnText or THEMEDARK)
+        local enumT = (type(Enum) == 'table' and Enum.ImageSource) or nil
+        local okImg = false
+        if enumT and enumT.StaticReference ~= nil then
+          okImg = pcall(function() b.icon:SetImage(enumT.StaticReference, def.icon) end)
+        end
+        if not okImg then
+          okImg = pcall(function() b.icon:SetImage('StaticReference', def.icon) end)
+        end
+        local okRot = pcall(function() b.icon:SetLocalRotation(0, 0, def.rot or 0) end)
+        if not okRot then pcall(function() b.icon:SetLocalRotation(0, 0) end) end
+        -- 读数锚（真机核验用）：三件事必须同时为 true 才是三角，否则退化成方块/不转
+        print('phone icon id=' .. tostring(id) .. ' img=' .. tostring(okImg)
+          .. ' rot=' .. tostring(okRot) .. ' r=' .. tostring(def.rot or 0))
+      else
+        b.txt = spec.instText('pt' .. gp .. id, def.fallback or '', w, h, fs)
+      end
+    else
+      b.txt = spec.instText('pt' .. gp .. id, def.label, w, h, fs)
+    end
     -- 热区最后建（层序惯例：后建在上，命中优先）
     b.hit = (spec.instHit2 or spec.instHit)('ph' .. gp .. id, w, h)
     if not (b.bg and b.hit) then return nil end
@@ -663,18 +811,26 @@ M.new = function(spec)
   -- 涂之前先探测活（只读），失效静默跳过。
   local function aliveCtl(ctl)
     if not ctl then return false end
+    -- 🔴 v6.33：胶囊是 `{ parts = {body, capL, capR}, ... }` **包装表**，不是引擎控件。
+    -- 旧实现直接把包装表拿去 `:GetAnchoredPosition()` ⇒ 恒抛错 ⇒ aliveCtl 恒 false ⇒
+    -- ① `U.paint` 每次涂色都提前 return（悬停/按下高亮从来没生效）
+    -- ② 顺手把 `b.dead = true`（真机 2026-11-20：那颗被碰过的「缓降」坐标从此冻结）。
+    if ctl.parts then ctl = ctl.parts[1] end
+    if not ctl then return false end
     return (pcall(function() return ctl:GetAnchoredPosition() end))
   end
   U.paint = function(b, st)
     if not b then return end
     if b.bg and not aliveCtl(b.bg) then b.dead = true return end
     local col = COL.btnBg
-    if st == 'hover' then col = COL.btnHover elseif st == 'down' then col = COL.btnPress end
+    -- v6.28：三态色改由框架派生（见文件头的 HOVER/PRESS）；config 的旧色仅作兜底
+    if st == 'hover' then col = HOVER elseif st == 'down' or st == 'pressed' then col = PRESS end
     setPillColor(b.bg, col)
     local dy = (st == 'down') and -(KIT.PRESS_DY or 4) or 0
     if b.x then
       placePill(b.bg, b.x, b.y + dy)
       if b.txt then tryCall(b.txt, 'SetAnchoredPosition', b.x, b.y + dy) end
+      if b.icon then tryCall(b.icon, 'SetAnchoredPosition', b.x, b.y + dy) end
     end
   end
 
@@ -750,7 +906,14 @@ M.new = function(spec)
     return okk
   end
   placeBtnNow = function(b, hidden)
-    if not b or b.dead then return end
+    if not b then return end
+    -- 🔴 v6.33（真机 2026-11-20 01:40：「缓降」停在上一套布局的 +228，其余 7 颗随切盘移到 +454/584）：
+    -- `b.dead` 原本由 U.paint 置真（它只是"这只控件已经销毁，别涂三态"），却被这里当成**永久**跳过
+    -- ⇒ 任何一次 paint 探测失败就把这颗键的坐标永久冻结在当时那套布局上，之后 apply 再也摆不动它。
+    -- 判据：paint 的死只是"涂色"层面的，不是"摆位"层面的；控件活回来就清标记继续摆（只读探测）。
+    if b.dead then
+      if b.bg and aliveCtl(b.bg) then b.dead = nil else return end
+    end
     local x = b.gx or 0
     local y = hidden and PARK_Y or (b.gy or 0)
     local w, h = b.gw or 120, b.gh or 56
@@ -761,6 +924,8 @@ M.new = function(spec)
       tryCall(b.txt, 'SetAnchoredPosition', x, y)
       if b.label then pcall(function() b.txt.text = b.label end) end
     end
+    -- 图元标签（箭头）：尺寸在创建时定（旋转后占 ih×iw），这里只跟位置走
+    if b.icon then tryCall(b.icon, 'SetAnchoredPosition', x, y) end
     if b.hit then
       tryCall(b.hit, 'SetSizeDelta', w, h)
       tryCall(b.hit, 'SetAnchoredPosition', x, y)
@@ -799,7 +964,14 @@ M.new = function(spec)
       placeBtn(b, r)
       -- 注册到巡检表：`ctl dump screen=game` 会打印每颗拇指键的**实际屏幕坐标**
       -- （测试拿它算点击坐标，别再手写会漂移的魔数）
-      if r and b.hit then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
+      if r and b.hit and not b.dead then U.regAdd('phone.' .. tostring(b.id), b.hit, r.w, r.h) end
+      -- v6.33 诊断锚：槽位有几何但控件已销毁 ⇒ 这颗键会被跳过（真机 2026-11-20 的「缓降错位」形态）。
+      -- 只在异常时打一行，正常局零噪声。
+      if r and b.dead then
+        print('phone place skip id=' .. tostring(b.id) .. ' alive=' .. tostring(aliveCtl(b.bg))
+          .. ' want=' .. math.floor((r.x or 0) + 0.5) .. ',' .. math.floor((r.y or 0) + 0.5)
+          .. ' now=' .. math.floor((b.x or 0) + 0.5) .. ',' .. math.floor((b.y or 0) + 0.5))
+      end
     end
     -- 唯一收口：任何一次摆位（apply/reapply/navRecreate 都走这里）之后，若浮层开着就再收一次。
     if U.padHidden and U.padVisible then U.padVisible(false) end
@@ -812,6 +984,14 @@ M.new = function(spec)
   U.skillBuild = function()
     if U.skill then return end
     if not spec.instText then return end
+    -- 2026-11-20：SKILL_UI=false 时**这 11 件控件一件都不建**。
+    -- 它们本来就不参与布局（帧快照里 pos=None 的孤儿），但 4px 宽的 sk1name 会被出图质检
+    -- 判成「文字被裁」（真实读数：textWidth=4 ⇒ '纳西妲' 折 3 行 ⇒ 需高 73.3），
+    -- 且白占 11 个运行时控件实例名额。技能**逻辑**与技能 HUD 数据接口不依赖这里（有 `if U.skill` 守卫）。
+    if NUM.SKILL_UI == false then
+      print('skill hud skip (SKILL_UI=false)')
+      return
+    end
     U.skill = {}
     -- 层序铁律：运行时实例**后建在上** ⇒ 卡底/竖条/条底必须先建，文字与能量条后建，
     -- 否则白卡把角色名/状态/条全盖住（lead 2026-10-29 复核："技能 HUD 变成一块空白白条"）。
@@ -993,6 +1173,13 @@ M.new = function(spec)
     if screen then U.screen = screen end
     local W, H = canvas()
     local p = U.plan(U.screen, dual, guide)
+    -- v6.33 诊断锚：双盘几何只在 dual 变化时打一行。真机 2026-11-20 的「休闲模式拇指簇被推到
+    -- 双盘位置」无法从日志区分是 U.enter 还是 UI4.layout 触发的（后者不打 layout 行）⇒ 这里补上。
+    if U.appliedDual ~= (dual and true or false) then
+      U.appliedDual = dual and true or false
+      print('phone dual=' .. tostring(U.appliedDual) .. ' screen=' .. tostring(U.screen)
+        .. ' via=' .. tostring(U.lastVia or '?'))
+    end
     applyText(p)
     U.lastPlan = p
     applyButtons(p)
@@ -1028,6 +1215,19 @@ M.new = function(spec)
       pcall(U.padBuildNow, want)
       pcall(U.skillBuild)
       U.sig = nil
+    end
+    -- v6.33：帧率探针（用户 2026-11-20「感觉很卡」——现有 .gia 日志里没有帧率维度，
+    -- 引擎负载读数又偏低，只能自己量）。每 5 秒一行，config.NUM.FPS_PROBE 关闭即零开销。
+    if NUM and NUM.FPS_PROBE then
+      local f = U.fps or { t0 = 0, n = 0, worst = 0 }
+      U.fps = f
+      f.n = f.n + 1
+      f.t0 = f.t0 + (dt or 0)
+      if (dt or 0) > f.worst then f.worst = dt or 0 end
+      if f.t0 >= 5 then
+        print(string.format('fps=%.1f n=%d worst=%.0fms', f.n / f.t0, f.n, f.worst * 1000))
+        f.t0, f.n, f.worst = 0, 0, 0
+      end
     end
     local st = spec.state and spec.state() or {}
     local sc = 'game'

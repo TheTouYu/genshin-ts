@@ -123,7 +123,12 @@ local BG_IMG = { rect = 100001, circle = 100002, triangle = 100003, fourstar = 1
 -- 版本号唯一真源：qxqy/build.mjs 与 deploy.mjs 都读这一行（正则 `^BUILD_TAG = '...'`），
 -- 别在别处另写一份（deploy.mjs 曾写死 'v4.0' ⇒ 网页存档下拉里显示的还是旧版本）。
 -- 规则：每轮交付改这一行；取值 = lua/ 里最大注释标记 v6.x 的下一个。
-BUILD_TAG = 'v6.10 · 11-02 16:5x'
+BUILD_TAG = 'v6.34 · 11-20 03:03 7cbe4731'
+-- v6.34：**模块指纹**（构建期由 qxqy/build.mjs 注入 sha256 前 8 位，覆盖 lua/ 下全部 .lua）。
+-- 判据：真机上看到这一行，才能确认跑的是这份代码；文件里有新字符串不算证据（2026-11-20 误判两次）。
+MODULE_FP = '474bce0b'
+MODULE_N = '40'
+-- 上面只写**语义版本**；日期 + commit 由 qxqy/buildtag.mjs 在构建期注入（人手改日期必滞后 15 天）
 -- v6：确定性随机源搬到 core_rng（纯模块：同种子 ⇒ 同序列，headless 对拍过生产前 14 块）。
 -- RNG1 = 主盘；CORE.rngP2 = 双屏第二盘（必须与 aiRand 共用同一条流，见 core_rng 头注释陷阱 3）。
 local RNG1 = CORE.RNG_M.new { bag = CFG.BAG, seed = 20261023 }
@@ -297,6 +302,10 @@ guideStage, bannerTimer = 0, 0    -- 全局流程阶段（0=AI 演出/1=游戏/2
 introT, overlay = nil, nil
 introFont, introPulse = nil, nil
 CANVAS_W, CANVAS_H = 1280, 720                -- layout() 记录，懒创建结算层时要用（全局单画布）
+VIEW_S = 1                                   -- v6.28 设计空间缩放（手机端按画布放大；PC=1）
+-- 双盘盘心（设计值 236）× 设计缩放。棋盘格放大后盘心必须同步外移，
+-- 否则两盘在中缝叠在一起（2400×1080 实测：盘宽 300→450，盘心仍在 ±236 ⇒ 重叠）。
+DUAL_CX = function() return math.floor(236 * (VIEW_S or 1) + 0.5) end
 local settleDestroy                   -- 定义见「结算层」段（前向声明；v6.2 只剩它）
 local layout                              -- 布局函数前向声明（exitToMenu 在它定义之前就调用）
 bestScore = 0                                  -- 历史最佳（全局共享，裁决⑥）
@@ -349,6 +358,9 @@ local WIDGETS = UI.new({
 })
 local noteFail, trySet, tryCall, addCursor = WIDGETS.noteFail, WIDGETS.trySet, WIDGETS.tryCall, WIDGETS.addCursor
 local find, setTextRaw, applyStyle = WIDGETS.find, WIDGETS.setText, WIDGETS.applyStyle
+-- v6.27：全屏铺满（拉伸锚点）与背景外缘判据都走框架层，别在游戏侧再写第二份数学
+local fillFull = WIDGETS.fill
+local VNODE_M = loadModule('view_node')   -- 只要 M.rectAABB / M.lintCover（纯函数，不建实例）
 -- v3.5 ①：HUD 常量文字的**实例份兜底**（层序铁律：服务端 textbox 永远在运行时实例之下）
 -- 背景池 wash／棋盘格都是运行时实例，textbox 份被压在下面看不见 ⇒ v3.3 把 textbox 份
 -- SetVisible(false) 之后，全仓 40+ 处 `setText(botBanner/hint/topBanner, …)` 变成「写了但看不见」
@@ -643,7 +655,15 @@ CORE.dispatch = function(ev)
         .. ' inst=' .. ((G[2] and g == G[2]) and 'p2' or 'p1'))
       sfx(SFX.over, true)
       if not g.autoDriving then updateBest() end
-      showGameOver()
+      -- v6.28 兜底闸：标题页自演期（guideStage==0 且非玩家盘）不弹结算页。
+      -- 正常路径自演顶死走 demoLoopReset（清盘不复位），这条只是"第二道闸"——
+      -- 之前 showGameOver 对 gameover **无条件**触发，结构上一旦自演 spawn 冲突就会在标题页弹结算。
+      if guideStage == 0 and not g.autoDriving then
+        print('gameover ignored (title stage)')
+        if demoLoopReset then pcall(demoLoopReset) end
+      else
+        showGameOver()
+      end
     end
   end
   if hadLock then
@@ -754,6 +774,23 @@ local function sendSettleSignal()
   print('settle signal unavailable :: ' .. tostring(err2))
   settleSignalState = 'none'
   return false
+end
+
+-- 真结算的**唯一入口**（2026-11-20 用户裁决恢复 10-25 dbec3b15 原设计）。
+-- 背景：commit f987c418 为了修「7 次结算只发 1 次」改成「结算页建好即上报」，副作用是
+-- **一局结束就结算关卡 ⇒ 关卡直接退出**（真机反馈「玩一把就自动结算退出了」）。
+-- 现在只有玩家主动按「结算」（键盘 Q / 结算页第三颗胶囊）才上报；游戏结束就停在结算页，
+-- 三选一：再来一局（R）继续玩、回主页（V）回标题、结算（Q）结束关卡并上报。
+-- 每局最多上报一次（newGame 复位 g.settleSignaled），重复按不会重复发信号。
+local function trySettle()
+  if not (g.gameOver or MODE_OVER) then return false end
+  if g.settleSignaled then return true end       -- 本局已上报过：视为已完成，不再重复发
+  if sendSettleSignal() then
+    g.settleSignaled = true
+    print('settle reported score=' .. tostring(g.score) .. ' lines=' .. tostring(g.lines))
+    return true
+  end
+  return false                                   -- 本机无信号通道 ⇒ 调用方退回旧的「明细」行为
 end
 
 function probeTextRaw()
@@ -978,10 +1015,10 @@ SETTLEV.open = function(overTitle)
   -- 契约锚（tests/37 逐字断言这一行；tests/40 只断言前缀 'settle hotzones n=3'）
   print('settle hotzones n=' .. made .. ' v=' .. tostring(optv.variant or 'P'):upper())
   UI4.dump('settle')
-  if not g.settleSignaled then
-    g.settleSignaled = true
-    sendSettleSignal()                     -- 建好即上报一次（原 buildSettleLayer 的责任）
-  end
+  -- 2026-11-20（用户真机反馈「玩一把就自动结算退出了」）：这里**不再**自动发结算信号。
+  -- 历史：f987c418 为修「7 次结算只发 1 次」把上报挪到「结算页建好即发」，副作用是
+  -- 一局结束就调结算关卡 ⇒ 关卡退出，玩家没法再来一局。现在上报只由玩家按「结算」触发
+  -- （trySettle：键盘 Q / 结算页第三颗胶囊两条入口同一份实现）。
   -- 旧实现的那条日志锚（tests/40-ai-takeover-death 逐字断言它）⇒ v2 也照打，
   -- 但含义变成「描述已落地成控件」；紧跟着的 v2 专用锚才是"新路径真的在跑"的证明。
   print('settle build ok n=' .. #nodes)
@@ -1278,6 +1315,18 @@ local function startIfWaiting()
     FN.skillUnlockTick()
   end
   pendingMode = nil                    -- v2.1 ②：任何开局路径都清动画窗状态
+  -- v6.28（用户真机图三「出现这个页面直接就结算了……这是 bug，是我们在赶玩家走」）：
+  -- 旧行为是 casual **接管**标题页 AI 自演的盘面（v2.3 注释「casual 接管不 newGame」）。
+  -- 代价实测：自演 40s 后按开始，日志只有 `mode=casual` + `bag=4 piece=Z`（无 newgame），
+  -- 玩家接手的是一堵 ~79 格（约 8 行）的墙 ⇒ 放 7 块就顶死、立刻弹结算页。
+  -- 现在：**进局即从空盘开始**（"随时接管"改为"随时开始"）。自演仍是标题页的展示，不影响玩法。
+  -- ⚠ 只清**盘面**、不重置袋序：整局重开（newGame）会把出块序列改掉，实测打红
+  -- 05/07/08/11/12 等断言序列的用例；而玩家要的是"别接手一堵墙"，不是"换一副牌"。
+  -- （第一版写成 rawget(_G,'newGame') 拿到 nil ⇒ 静默不执行，HUD 仍读到 demo 留下的已填 10。）
+  if MODE == 'casual' and g and g.core and g.core.clearBoard then
+    local okClr, errClr = pcall(function() g.core.clearBoard(g) end)
+    if not okClr then print('casual clearBoard fail :: ' .. tostring(errClr)) end
+  end
   destroyMenuCards()                   -- v2.1 ②：开局销毁菜单卡片（任意键直开时卡片也要撤）
   MS.teardown()                        -- v2.4 ①：展台退场（墙/框/标题/提示条一次性拆干净）
   setText(topBanner, '')
@@ -1290,6 +1339,9 @@ local function startIfWaiting()
   end
   -- v2.9 ②：实例 HUD 同步单屏位（与 layout 的 textbox 位一致，防 dual/单屏切换后叠两行）
   -- v2.9 ③：进局恢复实例 HUD 显示（标题页藏过的还原；双屏 keyA-C 由 layoutDual 摆位）
+  -- v6.28：HUD 实例的摆位常量是**设计空间**数值（与 ui.planMobile 的 ti.* 同源），
+  -- 手机端放大 S 后必须一起乘，否则 2400 宽上文字层级与实例层级会错位。
+  local function UX(n) return math.floor(n * (VIEW_S or 1) + 0.5) end
   if HUD_INST.hud then
     local halfW = (CANVAS_W or 1280) / 2
     -- v6.11（用户 2026-11-02 图一「这里和文字部分重叠了」）：左上空区同时挂着「角色」导航键
@@ -1297,8 +1349,8 @@ local function startIfWaiting()
     -- 而 HUD 两行原在 y=40/-10（1280×720 ⇒ raw 400/350）正好压进按钮的行高里。
     -- 几何判据（1280×720）：按钮底边 raw y=286；HUD 首行中心 250、次行 202 ⇒ 净空 36px。
     -- ⚠ 这一对数值与 layoutDual(gutterX/250/202) 是**同一份几何的两处写法**：改一处必须改两处。
-    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - 230), 250)
-    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - 230), 202)
+    tryCall(HUD_INST.hud, 'SetAnchoredPosition', -(halfW - UX(230)), UX(250))
+    tryCall(HUD_INST.best, 'SetAnchoredPosition', -(halfW - UX(230)), UX(202))
     tryCall(HUD_INST.hud, 'SetVisible', true)
     tryCall(HUD_INST.best, 'SetVisible', true)
   end
@@ -1310,22 +1362,22 @@ local function startIfWaiting()
   -- v3.5 ④：进局即亮「下一个」实例份（标题页藏过并挪到画布外 ⇒ 位与显一起还原）
   local hw_, hh_ = (CANVAS_W or 1280) / 2, (CANVAS_H or 720) / 2
   if HUD_INST.hudNext then
-    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (hw_ - 230), 255)
+    tryCall(HUD_INST.hudNext, 'SetAnchoredPosition', RIGHT_CX or (hw_ - UX(230)), UX(255))
     tryCall(HUD_INST.hudNext, 'SetVisible', true)
     tryCall(hudNext, 'SetVisible', false)
   end
   -- v3.5 ④：标题页一并下架的横幅/提示实例，进局还原「位 + 显」（只还原显 = 文字留在画布外）
   if HUD_INST.topBanner then
-    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, hh_ - 36)
+    tryCall(HUD_INST.topBanner, 'SetAnchoredPosition', 0, hh_ - UX(36))
     tryCall(HUD_INST.topBanner, 'SetVisible', true)
   end
   if HUD_INST.botBanner then
-    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(hh_ - 28))
+    tryCall(HUD_INST.botBanner, 'SetAnchoredPosition', 0, -(hh_ - UX(28)))
     tryCall(HUD_INST.botBanner, 'SetVisible', true)
   end
   if HUD_INST.hint then
-    tryCall(HUD_INST.hint, 'SetSizeDelta', 420, 150)
-    tryCall(HUD_INST.hint, 'SetAnchoredPosition', -(hw_ - 230), -95)
+    tryCall(HUD_INST.hint, 'SetSizeDelta', UX(420), UX(150))
+    tryCall(HUD_INST.hint, 'SetAnchoredPosition', -(hw_ - UX(230)), -UX(95))
     tryCall(HUD_INST.hint, 'SetVisible', true)
   end
   trySet(topBanner, 'fontSize', 34)
@@ -2138,7 +2190,9 @@ TITLEV.opts = function()
     if helpOpen then closeHelp() else toggleHelp() end
   end
   return {
-    canvas = { CANVAS_W or 1280, CANVAS_H or 720 },
+    -- v6.30：标题屏也吃**设计空间缩放**（与 ui.lua 同一套 S）：描述按设计画布生成，渲染前整体乘 S。
+    -- 否则棋盘格按 S 放大而展台视窗还是 1280 设计值 ⇒ 2400 上棋子会掉到视窗外面（用户实测）。
+    canvas = { (CANVAS_W or 1280) / (VIEW_S or 1), (CANVAS_H or 720) / (VIEW_S or 1) },
     device = IS_MOBILE and 'mobile' or 'pc',
     active = TITLEV.sel, hover = TITLEV.hover, pressed = TITLEV.press,
     -- stage.mode ⇒ 模式名大字（MS.focusLock 的 0.5s 动画窗 = pendingMode 期）
@@ -2158,6 +2212,16 @@ TITLEV.apply = function()
   local R, S = TITLEV.R, TITLEV.S
   if not (R and S) then return false end
   local nodes = S.title(TITLEV.opts())
+  -- 设计空间缩放：pos/size/font 一起乘 S（节点 schema 只有这三个几何字段）
+  local vs = VIEW_S or 1
+  if vs ~= 1 then
+    for i = 1, #nodes do
+      local n = nodes[i]
+      if n.pos then n.pos = { (n.pos[1] or 0) * vs, (n.pos[2] or 0) * vs } end
+      if n.size then n.size = { (n.size[1] or 0) * vs, (n.size[2] or 0) * vs } end
+      if type(n.font) == 'number' then n.font = math.max(12, math.floor(n.font * vs + 0.5)) end
+    end
+  end
   R.apply(nodes)                        -- 同 key 集 ⇒ 只写变化字段（不销毁重建）
   TITLEV.nodes, TITLEV.n = nodes, #nodes
   local zones = {}
@@ -2185,10 +2249,46 @@ TITLEV.bindZones = function()
       n = n + 1
     end
   end
-  -- 入口卡：现网有 hover 音与日志，行为保留（三态色不跟，按钮语汇已收进描述）
+  -- 入口卡「角色档案 / 说明」（用户 2026-11-17 图一②「没有悬浮高亮，应该控件级别统一支持」）：
+  -- 旧实现只有 hover 音与日志，卡面色不变（注释原文「三态色不跟」）⇒ 用户看到的"没有高亮"。
+  -- v6.28：三态色交给**框架**（view_kit.states + repainter），base 色直接从引擎读回当前值，
+  -- 不在这里抄一份调色板（那是"同一事实两处表达"的老病）。
+  local KITV = TITLEV.KIT
+  local function baseColorOf(ctl)
+    if not ctl then return nil end
+    local okv, v = pcall(function() return ctl.imageColor end)
+    if not okv or type(v) ~= 'number' then return nil end
+    if v < 0 then v = v + 4294967296 end   -- 真机/模拟器读回是有符号 int32（D766）
+    return v
+  end
+  -- 胶囊在渲染层是**三块**（中段 B + 左右端 L/R，见 view_kit.lua:283），
+  -- 只写基名等于什么也没写——这是"名字对不上"的静默失败，必须按真实控件名给全。
+  local function entryStates(base_key)
+    if not (KITV and KITV.states) then return nil end
+    local keys = { base_key .. 'B', base_key .. 'L', base_key .. 'R' }
+    local base = baseColorOf(R.get(keys[1]))
+    if not base then return nil end
+    return KITV.states { keys = keys, base = base, onChange = KITV.repainter(R) }
+  end
+  local rsStates = entryStates('menuEntryRoster')
+  local hsStates = entryStates('menuEntryHelp')
   local rz, hz = R.get('menuRosterZone'), R.get('menuHelpZone')
-  if rz then PT.onCursor(rz, 'CursorEnter', function() sfx(SFX.hover, true) print('entry hover roster') end) end
-  if hz then PT.onCursor(hz, 'CursorEnter', function() sfx(SFX.hover, true) print('entry hover help') end) end
+  if rz then
+    PT.onCursor(rz, 'CursorEnter', function()
+      sfx(SFX.hover, true) print('entry hover roster') if rsStates then rsStates:enter() end
+    end)
+    PT.onCursor(rz, 'CursorExit', function() if rsStates then rsStates:leave() end end)
+    PT.onCursor(rz, 'CursorDown', function() if rsStates then rsStates:down() end end)
+    PT.onCursor(rz, 'CursorUp', function() if rsStates then rsStates:up() end end)
+  end
+  if hz then
+    PT.onCursor(hz, 'CursorEnter', function()
+      sfx(SFX.hover, true) print('entry hover help') if hsStates then hsStates:enter() end
+    end)
+    PT.onCursor(hz, 'CursorExit', function() if hsStates then hsStates:leave() end end)
+    PT.onCursor(hz, 'CursorDown', function() if hsStates then hsStates:down() end end)
+    PT.onCursor(hz, 'CursorUp', function() if hsStates then hsStates:up() end end)
+  end
   return n
 end
 
@@ -2279,7 +2379,12 @@ TITLEV.tick = function()
       TITLEV.noteIdx = idx
       R.write('menuNote', 'text', rec.text)
       R.write('menuNote', 'fontColor', C(a, (cc // 65536) % 256, (cc // 256) % 256, cc % 256))
-      R.writePos('menuNote', -420, -215 + math.floor((255 - a) / 128))
+      -- v6.30：位置**不在这里写死**——锚点由 view_title.noteAnchor 给（设计空间），这里只加浮动并乘 S。
+      -- 旧代码写死 (-420,-215)：设计空间缩放后它把节点又拽回设计值，2400 上文字落到卡片后面。
+      local vs = VIEW_S or 1
+      local nh = (CANVAS_H or 720) / vs / 2
+      local nx, ny = TITLEV.M.noteAnchor(nh)
+      R.writePos('menuNote', nx * vs, (ny + math.floor((255 - a) / 128)) * vs)
     end
   end
 end
@@ -2433,7 +2538,7 @@ end
 -- 双屏布局：G[1] 棋盘移左（-320）、G[2] 移右（+320）；G[1] preview 重排（next 上移棋盘上方两排、
 -- hold 左栏竖排）；服务端 title/hint 藏（左栏让位），keyA-C 征用为 AI 盘战况（renderHud 双屏分支）。
 FN.layoutDual = function()
-  placeBoard(G[1], -236)
+  placeBoard(G[1], -DUAL_CX())
   -- v2.4 ③ 双屏读图读数（v23-pvp.png）：两侧各 300+px 空区没有归属物，左栏 HUD 压在左盘边上，
   -- 两盘除了位置没有任何席位标识。做法：棋盘框按席位染色 + 左栏战况回归左空区 + 中缝一条细线。
   -- v3.0 浅底席位色：取四角色色的深色档（原霓虹青/玫红在浅底上太扎眼）
@@ -2452,7 +2557,7 @@ FN.layoutDual = function()
   tryCall(title, 'SetVisible', false)
   tryCall(hint, 'SetVisible', false)
   for _, c in ipairs({ keyA, keyB, keyC }) do tryCall(c, 'SetVisible', true) end
-  placeBoard(G[2], 236)
+  placeBoard(G[2], DUAL_CX())
   -- 中缝装饰（v6.6）：改由 view_board.dualDeco 出描述 + BR.spawn 按需建（despawn 退场时删）。
   -- 为什么不用整表 apply：那会把 200 格颜色重置成底色；为什么不能常驻隐藏：
   -- 真机 SetVisible(false) 对运行时实例不生效（D581），单人局会露出来。
@@ -2776,7 +2881,7 @@ end
 
 -- 特效基准 x：单人=0；双盘时玩家盘在左（±280），特效跟着走，否则会炸在中缝
 FN.fxBoardX = function()
-  if ACTIVE and ACTIVE[2] and G[ACTIVE[1]] == G[1] then return -236 end
+  if ACTIVE and ACTIVE[2] and G[ACTIVE[1]] == G[1] then return -DUAL_CX() end
   return 0
 end
 
@@ -4350,9 +4455,13 @@ do
   local uimod = loadModule('ui')
   if uimod and uimod.new then
     FN.U = uimod.new({
+      -- v6.28：三态色由框架派生（view_kit.stateColor），ui.lua 用它算 hover/pressed
+      kit = SETTLEV.KIT,
       game = game,
       cfg = CFG,
       widgets = WIDGETS,
+      -- 旋转矩形真 AABB（框架层唯一实现）：背景外缘日志用它算，不再在 ui.lua 里抄一份公式
+      aabb = VNODE_M and VNODE_M.rectAABB,
       canvas = function() return CANVAS_W or 1280, CANVAS_H or 720 end,
       mobile = function() return IS_MOBILE end,
       pool = function() local inst = G[1] or g return inst and inst.bgPool end,
@@ -4749,12 +4858,43 @@ function OnStart()
   local W, H = game.GetUICanvasSize()
   print('canvas ' .. tostring(W) .. 'x' .. tostring(H))
 
+  -- v6.28：设备探测必须**在装配之前**（棋盘格缩放要靠它决定 S）。
+  -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
+  local isMobile = true
+  do
+    local okDev, dev = pcall(function() return game.GetDevice() end)
+    if okDev and type(Enum) == 'table' and Enum.Device then
+      isMobile = (dev == Enum.Device.Mobile or dev == Enum.Device.MobileController)
+      UI4.isPad = (dev == Enum.Device.Controller or dev == Enum.Device.MobileController)
+      print('device=' .. tostring(dev) .. ' mobile=' .. tostring(isMobile)
+        .. ' pad=' .. tostring(UI4.isPad))
+    else
+      print('device=unknown（按移动端处理，按钮可见）')
+    end
+  end
+  IS_MOBILE = isMobile     -- v2.7：菜单选择/热区等模块级函数要读它（local 外提一份）
+
+  -- 设计空间缩放（v6.28，用户真机图六「2400×1080 明明空间足够」）：
+  -- 手机端 S = min(W/1280, H/720)（夹 1~2）；棋盘格与 UI 一起放大，比例与 1280×720 一致。
+  -- 单一真源 = CFG.viewScale（ui.lua 调同一个函数算布局矩形）。
+  VIEW_S = (CFG.viewScale and CFG.viewScale(W, H, isMobile)) or 1
+  if VIEW_S ~= 1 then
+    CELL = math.floor(CELL * VIEW_S + 0.5)
+    GAP = math.floor(GAP * VIEW_S + 0.5)
+    PITCH = CELL + GAP                      -- 必须由缩放后的两者相加，别单独四舍五入
+    STEP = PITCH
+    print('view scale S=' .. string.format('%.2f', VIEW_S) .. ' cell=' .. CELL .. ' pitch=' .. PITCH)
+  end
+  -- 棋盘几何的唯一消费者是 view_board：给它一份**缩放后**的 config 视图（不改原表）
+  local VCFG = setmetatable({ CELL = CELL, PITCH = PITCH, GAP = GAP }, { __index = CFG })
+
   -- v6：装配引擎适配层与渲染协调器（platform 是唯一直接调 game.* 的地方）
   if PLATFORM_M and VIEW_LAYERS_M and RENDER_M and VIEW_BOARD_M then
     PT = PLATFORM_M.new({ game = game, root = root, templates = TPL_GUIDS })
     BR = RENDER_M.new({ platform = PT, layers = VIEW_LAYERS_M, log = function(m) print(m) end })
-    VB = VIEW_BOARD_M.new({ config = CFG })
-    print('v6 boot platform+render+view_board ok')
+    VB = VIEW_BOARD_M.new({ config = VCFG })
+    print('build ' .. tostring(BUILD_TAG) .. ' fp=' .. tostring(MODULE_FP) .. ' modules=' .. tostring(MODULE_N))
+  print('v6 boot platform+render+view_board ok')
   end
   -- v6.5 预览列装配（S1 只装配；S2 起 renderNext 改走描述，旧 12 颗手建实例删除）
   if PVW.M and PT and VIEW_LAYERS_M and RENDER_M then
@@ -4810,20 +4950,6 @@ function OnStart()
   ROSTER_ENV.kit = SETTLEV.KIT        -- 复用结算屏那份 kit 实例（省一次实例化）
   ROSTER_ENV.app = APP                -- v6.8：档案页也走场景栈（openOverlay/closeOverlay）
 
-  -- 平台：移动/触屏才显示可点按钮（PC 端键位卡够了）
-  local isMobile = true
-  do
-    local okDev, dev = pcall(function() return game.GetDevice() end)
-    if okDev and type(Enum) == 'table' and Enum.Device then
-      isMobile = (dev == Enum.Device.Mobile or dev == Enum.Device.MobileController)
-      UI4.isPad = (dev == Enum.Device.Controller or dev == Enum.Device.MobileController)
-      print('device=' .. tostring(dev) .. ' mobile=' .. tostring(isMobile)
-        .. ' pad=' .. tostring(UI4.isPad))
-    else
-      print('device=unknown（按移动端处理，按钮可见）')
-    end
-  end
-  IS_MOBILE = isMobile     -- v2.7：菜单选择/热区等模块级函数要读它（local 外提一份）
   -- v4.0 ④：AI 调参锚（用例断言"三档都不再故意失误"）
   do
     local lv1, lv2, lv3 = NUM.AI_LEVELS[1], NUM.AI_LEVELS[2], NUM.AI_LEVELS[3]
@@ -4887,8 +5013,14 @@ function OnStart()
   end
   local wash = g.bgPool[1]
   if wash then
-    tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
-    tryCall(wash, 'SetAnchoredPosition', 0, 0)
+    -- v6.27：整屏底色走**拉伸锚点**（先铺一次，避免第一帧 bgApply 之前露底色）。
+    -- 旧写法 SetSizeDelta(W+20, H+20) 把尺寸写死在 GetUICanvasSize 上；真机报 2030×900
+    -- 而屏幕 3440×1440 ⇒ 我们猜的数一旦不等于父容器就露缝。锚点表达式与画布无关。
+    if not fillFull(wash, 0.01) then
+      tryCall(wash, 'SetSizeDelta', W + 20, H + 20)
+      tryCall(wash, 'SetAnchoredPosition', 0, 0)
+      print('bg wash stretch=0（宿主不认锚点 ⇒ 回落像素尺寸）')
+    end
     trySet(wash, 'imageColor', MODE_THEME.casual.bg)
   end
   print('bg pool n=' .. #g.bgPool)
@@ -5122,8 +5254,8 @@ function OnStart()
   local function actSettleQ()
     startIfWaiting()
     if not (g.gameOver or MODE_OVER) then return end
-    -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页
-    if sendSettleSignal() then return end
+    -- ① 真结算优先：发信号 → 服务端图 1082130480 → 官方结算页（唯一入口，见 trySettle）
+    if trySettle() then return end
     -- ② 本机 Lua 无信号通道时的退路：原来的「结算明细」开关
     settleOpen = not g.settleOpen
     local mins = math.floor(g.elapsed / 60)
@@ -5169,11 +5301,15 @@ function OnStart()
       FN.exitToMenu()
     end
   end
-  SETTLE_ACT.detail = function()    -- = Q 键体核心（明细切换；结算信号优先路径保留在键监听）
+  SETTLE_ACT.detail = function()    -- 结算页第三颗胶囊「结算」：先真结算，发不出去才退回明细
     -- v5.5 修用户 2026-10-30 二轮反馈：「点 Q / 按 Q 都不触发结算」。
     -- 真机日志铁证：连续 `hot settle Q` 但**零条** `settle detail on` ⇒ 被这个 guard 挡掉。
     -- 双盘（pvp/coop/ai-battle）终局置的是 MODE_OVER，g.gameOver 仍是 false ⇒ 三个结算键全部空转。
     if not (g.gameOver or MODE_OVER) then return end
+    -- 2026-11-20：这颗胶囊的标签是「结算」（v6.11 用户要求），但实现一直只切明细 ——
+    -- 手机端因此**没有任何结算入口**（自动上报被删掉后更是如此）。现在与键盘 Q 同一条判据：
+    -- ① 真结算（trySettle，每局一次）→ 关卡结束；② 本机无信号通道才退回明细开关。
+    if trySettle() then return end
     g.settleOpen = not g.settleOpen
     local mins = math.floor(g.elapsed / 60)
     local secs = math.floor(g.elapsed % 60)

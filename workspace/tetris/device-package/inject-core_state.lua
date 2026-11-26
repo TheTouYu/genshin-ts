@@ -373,6 +373,22 @@ function M.new(spec)
 
   -- ===== 新一局（main.lua:1436-1489）=====
   -- 只重置**玩法**字段；结算层/抖动/HUD 等表现态由接线方自己清（那不属于 core）。
+  -- v6.28：只清**盘面与账本**，不动袋序/当前块。
+  -- 为什么需要它：标题页 AI 自演的盘面会被玩家接管（startIfWaiting 的 casual 分支），旧行为
+  -- 让玩家继承一堵 ~8 行的墙 ⇒ 放几块就顶死、立刻弹结算。清盘解决体验问题，但不重置袋序
+  -- 才能保住那批"断言出块序列"的用例（实测：用 newGame 会打红 05/07/08/11/12 等）。
+  function S.clearBoard(s)
+    s.board = B.newBoard()
+    s.score, s.lines, s.level = 0, 0, 1
+    s.pieceCount = 0
+    s.combo, s.maxCombo, s.b2b = 0, 0, false
+    s.elapsed = 0
+    s.gameOver = false
+    s.dryness = 0
+    s.flashT = 0
+    return s
+  end
+
   function S.newGame(opts)
     opts = opts or {}
     local s = opts.state or S.newState()

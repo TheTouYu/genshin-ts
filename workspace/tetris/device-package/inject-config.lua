@@ -250,7 +250,10 @@ local CW = C(255, 255, 255, 255)
 -- 13~14 条图元/模式；云与光斑用**不透明预混色**（多件重叠拼形状，半透明会叠出接缝）。
 local function skyBase(t, base, accent)
   local cl = blend(base, CW, 0.74)
-  put(t, cloud(-488, 296, 320, cl))            -- 左上云
+  -- v6.28（用户真机图二「白色的方块是多余设计」）：**整朵左上云删掉**。
+  -- 它的矩形块是 320*0.62 × 76 = 198×76 的**74% 白实心色**，压在左上导航区（角色胶囊右侧），
+  -- 真机上就是那块多余的白方块；只删矩形改留两团圆云实测**更糟**（覆盖 41.6% → 94.5%，
+  -- 因为两圆直径 122/160 比矩形还大）⇒ 三件一并删，右下的对称云保留。
   put(t, cloud(488, -296, 320, cl))            -- 右下云
   t[#t + 1] = Ring(0, 0, 520, A(42, accent))   -- 棋盘后的元素环（只露四边）
   t[#t + 1] = Ring(0, 0, 700, A(18, accent))
@@ -768,6 +771,8 @@ NUM.UI_COL = {
 -- **游戏逻辑不删**：键盘 Z/U/Y 施放、技能状态机、音效文案都照常跑（tests/63 仍断言技能施放）。
 -- 重新设计时改回 true 再改 plan 里的几何即可，不用去翻一堆调用点。
 NUM.SKILL_UI = false
+-- v6.33：帧率探针（真机排查「卡」时打开；日志每 5 秒一行 fps=/n=/worst=ms，关闭即零开销）
+NUM.FPS_PROBE = true   -- 本轮取读数临时打开，收轮改回 false
 
 -- ── 移动端操作控件（9 键；slot = 语义位，几何由 ui.lua 按屏现算）────────────────
 -- slot：L1..L3 左手簇（离拇指最近的先 L1）· R1..R3 右手簇 · M1..M3 中下技能行
@@ -778,9 +783,15 @@ NUM.PHONE = {
   SKILL_W = 100, SKILL_H = 58,    -- 中下技能行（≥96×56）
   NAV_W = 116, NAV_H = 56,        -- 说明/名册/合上/回标题
   ACT_W = 208, ACT_H = 64,        -- 结算三键（再来一局/回主页/明细）
+  -- 2026-11-20（真机截图：左簇下排两颗空胶囊）：`◀`/`▶` 是 U+25C0/U+25B6，**真机字体没有这两个字形**
+  -- ⇒ 文本控件一个 glyph 都画不出来（模拟器有回退字体，所以出图与 `textLayout.fits` 一直是对的）。
+  -- 现在箭头走**内置图元**：100003=triangle（顶点朝上），SetLocalRotation 正角逆时针 ⇒ +90 指左、−90 指右。
+  -- label 保留为语义名（日志/测试/文档读它）；fallback 是图元建不出来时的中文单字退路——绝不留空白胶囊。
   items = {
-    { id = 'left',   label = '◀',    act = 'left',   slot = 'L1', rep = true },
-    { id = 'right',  label = '▶',    act = 'right',  slot = 'L2', rep = true },
+    { id = 'left',   label = '◀',    act = 'left',   slot = 'L1', rep = true,
+      icon = 100003, rot = 90,  iw = 20, ih = 24, fallback = '左' },
+    { id = 'right',  label = '▶',    act = 'right',  slot = 'L2', rep = true,
+      icon = 100003, rot = -90, iw = 20, ih = 24, fallback = '右' },
     { id = 'rot',    label = '旋转', act = 'rot',    slot = 'L3' },
     { id = 'hard',   label = '锁定', act = 'hard',   slot = 'R1' },
     { id = 'soft',   label = '缓降', act = 'soft',   slot = 'R2', rep = true },
@@ -891,6 +902,16 @@ NUM.AI_TUNE = {
 
 -- ===== 导出（main.lua 按名取用；新增字段记得同步导出）=====
 M.COLS, M.ROWS, M.CELL, M.GAP, M.PITCH, M.STEP = COLS, ROWS, CELL, GAP, PITCH, STEP
+
+-- v6.28 设计空间缩放（用户真机图六「2400×1080 明明空间足够」的框架式解）：
+-- 手机端把**整套内容**（棋盘格 / 拇指簇 / 侧栏文字）按 S 放大，PC 恒 1。
+-- **唯一真源**：main.lua（棋盘 CELL/PITCH）与 ui.lua（布局矩形）都调这一个函数——
+-- 两处各写一份公式就是"同一事实两处表达"，迟早漂移。
+function M.viewScale(W, H, isMobile)  -- isMobile 保留形参（调用处已传），PC 与手机同一条公式
+  local s = math.min((W or 1280) / (M.NUM.BG_BASE_W or 1280), (H or 720) / (M.NUM.BG_BASE_H or 720))
+  if s < 1 then return 1 elseif s > 2 then return 2 end
+  return s
+end
 M.TPL_GUIDS, M.NUM, M.C = TPL_GUIDS, NUM, C
 M.SHAPES, M.BAG = SHAPES, BAG
 M.THEME, M.MODE_INFO, M.MODE_TITLE, M.MODE_THEME = THEME, MODE_INFO, MODE_TITLE, MODE_THEME
