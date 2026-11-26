@@ -4,15 +4,15 @@
  "skipped": 0,
  "only": [],
  "total": 123,
- "cold_look_ms": 318.4,
- "cold_look_no_cache_ms": 1128.2,
+ "cold_look_ms": 1069.0,
+ "cold_look_no_cache_ms": 8870.6,
  "cache_hit_ms": [
   1.6,
   1.4,
-  1.6
+  1.4
  ],
- "daemon_world": "cold=671.0ms hits=[1.8, 1.5, 1.4]",
- "wall_s": 19.7,
+ "daemon_world": "cold=1164.1ms hits=[1.5, 1.3, 1.3]",
+ "wall_s": 28.3,
  "results": [
   {
    "name": "schema/状态名词表读自 ys-state",
@@ -42,7 +42,7 @@
    "name": "schema/合法世界状态通过校验",
    "ok": true,
    "detail": "",
-   "ms": 0.4
+   "ms": 0.1
   },
   {
    "name": "schema/缺 evidence 被拒",
@@ -90,7 +90,7 @@
    "name": "三态/capabilities 列出两个后端的 flag 支持",
    "ok": true,
    "detail": "['cli', 'daemon-world']",
-   "ms": 77.3
+   "ms": 66.1
   },
   {
    "name": "三态/daemon 后端声明 allow-background 为 honored",
@@ -108,7 +108,7 @@
    "name": "三态/act+后台帧 rc=2 明确拒绝",
    "ok": true,
    "detail": "rc=2",
-   "ms": 75.5
+   "ms": 65.4
   },
   {
    "name": "三件套/拒绝带 observed",
@@ -144,7 +144,7 @@
    "name": "look/状态来自 ys-state（GAME_PAIMON）",
    "ok": true,
    "detail": "GAME_PAIMON",
-   "ms": 318.6
+   "ms": 1069.2
   },
   {
    "name": "look/对象表非空",
@@ -179,13 +179,13 @@
   {
    "name": "look/缓存命中 ≤5ms（进程内）",
    "ok": true,
-   "detail": "[1.6, 1.4, 1.6]",
-   "ms": 4.6
+   "detail": "[1.6, 1.4, 1.4]",
+   "ms": 4.4
   },
   {
    "name": "look/缓存命中标注 cache.hit",
    "ok": true,
-   "detail": "{'hit': True, 'layer': 'memory', 'hit_ms': 0.58}",
+   "detail": "{'hit': True, 'layer': 'memory', 'hit_ms': 0.54}",
    "ms": 0.0
   },
   {
@@ -198,42 +198,42 @@
    "name": "S4/超预算不再写 degraded（BUDGET_EXCEEDED 已出队）",
    "ok": true,
    "detail": "['FRAME_PINNED', 'FREE_TEXT_UNOWNED', 'KIND_UNKNOWN', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED']",
-   "ms": 1128.3
+   "ms": 8870.6
   },
   {
    "name": "S4/超预算写 timing_ms.budget.exceeded",
    "ok": true,
-   "detail": "{'total_ms': 1127.0, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 1127.0, 'source': 'computed'}",
+   "detail": "{'total_ms': 8869.5, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 8869.5, 'source': 'computed'}",
    "ms": 0.0
   },
   {
    "name": "look/冷路径实测 >50ms（预算确实超了，读数如实）",
    "ok": true,
-   "detail": "1128.2ms",
+   "detail": "8870.6ms",
    "ms": 0.0
   },
   {
    "name": "look/冷路径 state/objects 分项计时都有",
    "ok": true,
-   "detail": "{'state': 816.0, 'objects': 307.8, 'validate': 0.59, 'total': 1127.0, 'budget': {'total_ms': 1127.0, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 1127.0, 'source': 'computed'}}",
+   "detail": "{'state': 8561.4, 'objects': 305.1, 'validate': 0.44, 'total': 8869.5, 'budget': {'total_ms': 8869.5, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 8869.5, 'source': 'computed'}}",
    "ms": 0.0
   },
   {
    "name": "S1/同帧冷热两次 degraded 集合相同",
    "ok": true,
    "detail": "cold=['FRAME_PINNED', 'FREE_TEXT_UNOWNED', 'KIND_UNKNOWN', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED'] hot=['FRAME_PINNED', 'FREE_TEXT_UNOWNED', 'KIND_UNKNOWN', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED']",
-   "ms": 969.1
+   "ms": 522.4
   },
   {
    "name": "S1/第一次真冷（miss）、第二次真热（memory 命中）",
    "ok": true,
-   "detail": "cold={'hit': False, 'layer': 'miss'} hot={'hit': True, 'layer': 'memory', 'hit_ms': 0.55}",
+   "detail": "cold={'hit': False, 'layer': 'miss'} hot={'hit': True, 'layer': 'memory', 'hit_ms': 0.54}",
    "ms": 0.0
   },
   {
    "name": "S1/冷热都给 timing_ms.budget{total_ms,budget_ms,exceeded}",
    "ok": true,
-   "detail": "{'total_ms': 964.9, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 0.6, 'source': 'cache'}",
+   "detail": "{'total_ms': 518.2, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 0.5, 'source': 'cache'}",
    "ms": 0.0
   },
   {
@@ -258,7 +258,7 @@
    "name": "S3/离线帧 vs 复用帧：degraded 差异只允许 FRAME_PINNED/STALE_FRAME",
    "ok": true,
    "detail": "diff=['FRAME_PINNED', 'STALE_FRAME'] latest=['FREE_TEXT_UNOWNED', 'KIND_UNKNOWN', 'L2_NOT_IMPLEMENTED', 'L3_NOT_IMPLEMENTED', 'STALE_FRAME']",
-   "ms": 1.8
+   "ms": 1.5
   },
   {
    "name": "P3/summary.state 是对象 {name,confidence,novel,match}",
@@ -324,7 +324,7 @@
    "name": "缓存/陈旧 v0 条目命中后自动重算（不抛 SchemaError）",
    "ok": true,
    "detail": "GAME_PAIMON",
-   "ms": 977.6
+   "ms": 520.5
   },
   {
    "name": "缓存/重算后的 degraded 与冷路径一致",
@@ -341,14 +341,14 @@
   {
    "name": "缓存/key 含契约命名空间（换版本 ⇒ 旧 key 自然读不到）",
    "ok": true,
-   "detail": "world-a63e3e57520918a2-ab68cd301dca-gui-world-state_1.json",
+   "detail": "world-a63e3e57520918a2-9fe2cf19cb43-gui-world-state_1.json",
    "ms": 0.0
   },
   {
    "name": "act/不带 expect 被拒（ACT_EXPECT_REQUIRED）",
    "ok": true,
    "detail": "",
-   "ms": 6.3
+   "ms": 1.9
   },
   {
    "name": "act/dry-run 状态=dry_run",
@@ -384,13 +384,13 @@
    "name": "act/未命中 fail-closed（resolve_fail）",
    "ok": true,
    "detail": "",
-   "ms": 539.1
+   "ms": 3.7
   },
   {
    "name": "act/free_text 命中 → 整帧 OCR 兜底解析出坐标",
    "ok": true,
    "detail": "status=dry_run channel=ocr_frame at=[467, 82]",
-   "ms": 524.5
+   "ms": 2.0
   },
   {
    "name": "act/回执自洽：resolved 与 resolution.status 一致",
@@ -408,7 +408,7 @@
    "name": "act/注入未授权被拒（INJECTION_BLOCKED）",
    "ok": true,
    "detail": "{'code': 'INJECTION_BLOCKED', 'detail': '注入需用户在环授权（--live / allow_inject=True）', 'rc': 5, 'next_action': None, 'next_actions': None, 'observed': None}",
-   "ms": 1.7
+   "ms": 1.4
   },
   {
    "name": "act/意图需焦点被拒（FOCUS_REQUIRED/INJECTION_BLOCKED）",
@@ -456,13 +456,13 @@
    "name": "expect/region_text_set_changed 正例（网格区变了）",
    "ok": true,
    "detail": "{\"jaccard\": 0.3333, \"delta\": 0.6667, \"min_jaccard_delta\": 0.15, \"before_n\": 19, \"after_n\": 17, \"added\": [\"祈愿\", \"纪行\", \"多人游戏\", \"反馈\", \"官方社区\", \"版本热点\", \"周边商城\", \"问卷\"], \"removed\": [\"队伍配置\", \"成就\", \"好友\", \"角色图鉴\", \"提升指南\", \"角色\", \"日\", \"任务\", \"活动\", \"地图\"], \"changed\": 0, \"source\": \"ys-watch/slots\"}",
-   "ms": 1229.8
+   "ms": 1108.6
   },
   {
    "name": "expect/region_text_set_changed 负例（详情区没变）",
    "ok": true,
    "detail": "{\"jaccard\": 0.0, \"delta\": 0.0, \"min_jaccard_delta\": 0.15, \"before_n\": 0, \"after_n\": 0, \"added\": [], \"removed\": [], \"changed\": 0, \"source\": \"ys-watch/slots\"}",
-   "ms": 845.7
+   "ms": 689.1
   },
   {
    "name": "expect/负例 detail 明确说『不是我期待的区域』",
@@ -474,25 +474,25 @@
    "name": "expect/pixel_delta 正例（0→24% 级变化）",
    "ok": true,
    "detail": "{\"pixels_changed_pct\": 24.51, \"mean_delta\": 71.8, \"px_thr\": 10.0, \"threshold_pct\": 5.0, \"calibration\": \"ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节\"}",
-   "ms": 434.5
+   "ms": 378.6
   },
   {
    "name": "expect/pixel_delta 负例（详情区 0%）",
    "ok": true,
    "detail": "{\"pixels_changed_pct\": 0.0, \"mean_delta\": 0.0, \"px_thr\": 10.0, \"threshold_pct\": 5.0, \"calibration\": \"ys-watch color_delta 口径：逐通道平均 |Δ| > px_thr（缺省 10）的变化像素占比；阈值依据见 docs/architecture/gui-world-state.md「act 的语义期待 expect」节\"}",
-   "ms": 399.2
+   "ms": 343.8
   },
   {
    "name": "expect/state_in 正例（复用 ys-state 判据）",
    "ok": true,
    "detail": "{'state': 'GAME_PAIMON', 'expected': ['GAME_PAIMON'], 'via': 'daemon/world', 'confidence': 1.0}",
-   "ms": 713.1
+   "ms": 1220.2
   },
   {
    "name": "expect/state_in 负例",
    "ok": true,
    "detail": "{'state': 'GAME_PAIMON', 'expected': ['PLAYTEST'], 'via': 'daemon/world', 'confidence': 1.0}",
-   "ms": 1.3
+   "ms": 0.8
   },
   {
    "name": "expect/text_added 正例（祈愿）",
@@ -504,7 +504,7 @@
    "name": "expect/text_added 负例",
    "ok": true,
    "detail": "期待出现：绝对不存在的文本ZZZ —— 不成立（实际出现：['祈愿', '纪行', '多人游戏', '反馈', '官方社区', '版本热点', '周边商城', '问卷']；最接近：[{'want': '绝对不存在的文本zzz', 'closest': '版本热点'}]）",
-   "ms": 1.6
+   "ms": 1.1
   },
   {
    "name": "expect/text_removed 正例（队伍配置）",
@@ -522,7 +522,7 @@
    "name": "act/离线模拟正例 → ok",
    "ok": true,
    "detail": "None",
-   "ms": 1784.0
+   "ms": 2096.2
   },
   {
    "name": "act/证据三件套 + meta 存在",
@@ -534,7 +534,7 @@
    "name": "act/离线模拟负例 → expect_failed（画面变了但不是我期待的区域）",
    "ok": true,
    "detail": "{'code': 'ACT_EXPECT_FAILED', 'detail': '**变化不是我期待的区域**：期待 [1770, 150, 630, 650]，实际变化集中在 [300, 369, 1200, 631]（占全帧 6.38%，与期待区 IoU=0.0）。区域文本集合变化 delta=0.000 < 0.15（变化的不是我期待的区域 / 没达到集合变化阈值）'}",
-   "ms": 1756.7
+   "ms": 2566.4
   },
   {
    "name": "act/负例证据也落盘（before/after/detail）",
@@ -564,7 +564,7 @@
    "name": "act/归还失败 + expect 成立 → status=ok（不因 rc=5 报 INJECT_FAILED）",
    "ok": true,
    "detail": "None",
-   "ms": 1582.2
+   "ms": 1851.6
   },
   {
    "name": "act/归还失败单独记 LEASE_RESTORE_FAILED",
@@ -576,7 +576,7 @@
    "name": "act/归还失败 + expect 不成立 → expect_failed（不是 INJECT_FAILED）",
    "ok": true,
    "detail": "{'code': 'ACT_EXPECT_FAILED', 'detail': '**变化不是我期待的区域**：期待 [1770, 150, 630, 650]，实际变化集中在 [300, 369, 1200, 631]（占全帧 6.38%，与期待区 IoU=0.0）。区域文本集合变化 delta=0.000 < 0.15（变化的不是我期待的区域 / 没达到集合变化阈值）'}",
-   "ms": 1780.8
+   "ms": 2377.8
   },
   {
    "name": "act/真注入失败仍判死（release_ok=true → ok=False）",
@@ -588,13 +588,13 @@
    "name": "act/真注入失败 → INJECT_FAILED + rc=8",
    "ok": true,
    "detail": "{'code': 'INJECT_FAILED', 'detail': 'scroll 注入失败 rc=5：inject failed', 'rc': 8, 'next_action': None, 'next_actions': None, 'observed': None}",
-   "ms": 2.7
+   "ms": 2.2
   },
   {
    "name": "wait/reached（三态之一）",
    "ok": true,
    "detail": "reached",
-   "ms": 1.9
+   "ms": 1.5
   },
   {
    "name": "wait/reached 带观测值",
@@ -618,13 +618,13 @@
    "name": "wait/violated（forbid 命中立即停）",
    "ok": true,
    "detail": "violated",
-   "ms": 1.5
+   "ms": 1.4
   },
   {
    "name": "wait/text_absent 达成但降级标注（单帧否定）",
    "ok": true,
    "detail": "",
-   "ms": 1.6
+   "ms": 1.4
   },
   {
    "name": "wait/非法判据 fail-closed",
@@ -636,19 +636,19 @@
    "name": "wait/frame_changed（帧序列：第二次 look 换了帧）",
    "ok": true,
    "detail": "reached polls=1 observed={'all_ok': True, 'forbid_hit': False, 'checks': [{'check': 'frame_changed', 'ok': True, 'observed': {'baseline': 'sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60', 'actual': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}}], 'state': 'GAME_ACTIVITY', 'objects': 3, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817', 'degraded': []}",
-   "ms": 234.0
+   "ms": 576.6
   },
   {
    "name": "wait/状态转移进账本（transitions）",
    "ok": true,
-   "detail": "[{'from': 'GAME_PAIMON', 'to': 'GAME_ACTIVITY', 'ms': 229, 'at_ms': 1792653815207, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}]",
+   "detail": "[{'from': 'GAME_PAIMON', 'to': 'GAME_ACTIVITY', 'ms': 572, 'at_ms': 1795696645791, 'frame_id': 'sha256:e89ed9439e882517828ce89da9a8ecd7d3b61df946d4139b58716bcbbd948817'}]",
    "ms": 0.0
   },
   {
    "name": "daemon-world/state 与 cli 一致",
    "ok": true,
    "detail": "GAME_PAIMON != GAME_PAIMON",
-   "ms": 671.1
+   "ms": 1164.1
   },
   {
    "name": "daemon-world/对象来源与两源数量可见",
@@ -665,7 +665,7 @@
   {
    "name": "daemon-world/timing 含 judge_ms/ocr_ms（禁两层缓存后直取原始回执）",
    "ok": true,
-   "detail": "{'load_ms': 100.0, 'structure_ms': 6.5, 'detector_ms': 30.2, 'structure': 37.0, 'ocr_ms': 283.9, 'state_ms': 29.4, 'judge_ms': 29.1, 'objects_ms': 36.1, 'total_ms': 449.5, 'total_full_ms': 486.5, 'frame_source': 'frame', 'objects_reuse': None, 'structure_reuse': None, 'page_diff': None, 'structure_auto': False, 'ocr_source': 'objects', 'ocr_n': 40, 'ocr_err': None, 'cache_hit': False, 'attribution_ms': None, 'total': 669.5, 'rpc': 666.1, 'budget': {'total_ms': 486.5, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 669.5, 'source': 'computed'}}",
+   "detail": "{'load_ms': 95.9, 'structure_ms': 6.7, 'detector_ms': 29.0, 'structure': 36.0, 'ocr_ms': 229.6, 'state_ms': 29.3, 'judge_ms': 29.0, 'objects_ms': 607.7, 'total_ms': 962.6, 'total_full_ms': 998.6, 'frame_source': 'frame', 'objects_reuse': None, 'structure_reuse': None, 'page_diff': None, 'structure_auto': False, 'ocr_source': 'objects', 'ocr_n': 40, 'ocr_err': None, 'cache_hit': False, 'attribution_ms': None, 'total': 1162.7, 'rpc': 1159.9, 'budget': {'total_ms': 998.6, 'budget_ms': 50.0, 'value': 'exceeded', 'exceeded': True, 'call_ms': 1162.7, 'source': 'computed'}}",
    "ms": 0.0
   },
   {
@@ -677,14 +677,14 @@
   {
    "name": "daemon-world/缓存命中 ≤5ms（进程内）",
    "ok": true,
-   "detail": "[1.8, 1.5, 1.4]",
-   "ms": 9.2
+   "detail": "[1.5, 1.3, 1.3]",
+   "ms": 7.9
   },
   {
    "name": "CLI/look --backend daemon-world rc=0",
    "ok": true,
    "detail": "rc=0 {\n \"frame_id\": \"sha256:a63e3e57520918a243091fe287cb573eab79ebbaf6655523c3087b93718bcc60\",\n \"state\": {\n  \"name\": \"GAME_PAIMON\",\n  \"confidence\": 1.0,\n  \"novel\": false,\n  \"novel_reason\": null,\n  \"candida",
-   "ms": 412.7
+   "ms": 310.9
   },
   {
    "name": "cache/key 含帧 sha 前缀 + 仪器指纹",
@@ -707,50 +707,50 @@
   {
    "name": "CLI/act 未命中 → rc=3",
    "ok": true,
-   "detail": "rc=3 864.9ms",
-   "ms": 864.9
+   "detail": "rc=3 310.2ms",
+   "ms": 310.2
   },
   {
    "name": "CLI/act 缺 --expect → rc=2（必填）",
    "ok": true,
-   "detail": "rc=2 83.3ms",
-   "ms": 83.4
+   "detail": "rc=2 66.8ms",
+   "ms": 66.9
   },
   {
    "name": "CLI/act dry-run 带 expect → rc=0",
    "ok": true,
-   "detail": "rc=0 361.1ms",
-   "ms": 361.1
+   "detail": "rc=0 303.7ms",
+   "ms": 303.8
   },
   {
    "name": "CLI/wait 超时 → rc=6",
    "ok": true,
-   "detail": "rc=6 595.2ms",
-   "ms": 595.3
+   "detail": "rc=6 579.0ms",
+   "ms": 579.1
   },
   {
    "name": "CLI/wait violated → rc=7",
    "ok": true,
-   "detail": "rc=7 348.2ms",
-   "ms": 348.2
+   "detail": "rc=7 320.4ms",
+   "ms": 320.5
   },
   {
    "name": "CLI/look 帧不存在 → rc=8",
    "ok": true,
-   "detail": "rc=8 78.2ms",
-   "ms": 78.3
+   "detail": "rc=8 73.6ms",
+   "ms": 73.7
   },
   {
-   "name": "CLI/look --live 不在栈顶 → rc=5（fail-closed，不抬窗）",
+   "name": "CLI/look --live 不可用 → rc=5（fail-closed，不抬窗）",
    "ok": true,
-   "detail": "rc=5 96.1ms",
-   "ms": 96.2
+   "detail": "rc=5 80.9ms",
+   "ms": 80.9
   },
   {
    "name": "CLI/vocab 打印单一源名词表",
    "ok": true,
    "detail": "",
-   "ms": 74.5
+   "ms": 66.2
   }
  ]
 }
