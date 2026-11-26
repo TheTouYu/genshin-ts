@@ -235,7 +235,7 @@ SELFTEST_CASES = [
     ),
     (
         "line-entry-unreachable",
-        lambda d: _sub(d / "LINES.md", "](dossiers/football-v3.md)", "](dossiers/nope.md)"),
+        lambda d: _sub(d / "LINES.md", "](dossiers/l1.md)", "](dossiers/nope.md)"),
         "恢复入口不可达",
     ),
     (
@@ -245,7 +245,7 @@ SELFTEST_CASES = [
     ),
     (
         "open-row-missing-line-tag",
-        lambda d: _sub(d / "05-open.md", "| `[football]` | 造物技能链", "| football | 造物技能链"),
+        lambda d: _sub(d / "05-open.md", "| `[l1]` | 造物技能链", "| l1 | 造物技能链"),
         "缺线 id 标注",
     ),
     (
@@ -271,15 +271,50 @@ def _sub(path: Path, old: str, new: str) -> None:
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
-def selftest(root: Path) -> int:
-    """判定器自证：基线必须 PASS，每类注入必须被抓到（抓不到=门禁空转）。"""
-    if not root.is_dir():
-        print(f"FAIL 自测源目录不存在：{root}")
-        return 1
+def _make_fixture(root: Path) -> None:
+    """自建最小合法档案（2026-10-28：自测不再依赖某个真实档案目录）。
+
+    旧版 selftest 直接 copytree(--dir) 再改真实内容，换一个任务目录就「夹具失效」——
+    多任务模型下 --selftest 必须与具体目录无关。
+    """
+    head = "> 状态：自测夹具\n> 来源：selftest\n> 最近校验：2026-10-28\n"
+    (root / "dossiers").mkdir(parents=True, exist_ok=True)
+    (root / "INDEX.md").write_text(
+        "# 自测档案\n\n" + head + "\n## 三、指针\n"
+        + "".join(f"- [{n}]({n})\n" for n in REQUIRED[1:]),
+        encoding="utf-8",
+    )
+    for name in ("01-charter.md", "02-xinfa.md", "03-state.md", "04-timeline.md"):
+        (root / name).write_text("# 自测\n\n" + head, encoding="utf-8")
+    (root / "LINES.md").write_text(
+        "# 线表\n\n" + head
+        + "\n## 二、线表\n\n"
+        + "| 线 id | 名称 | 目标 | 判据 | 状态 | 断点 | 恢复入口 | 上次读数 |\n"
+        + "|---|---|---|---|---|---|---|---|\n"
+        + "| `l1` | 线一 | 目标 | 判据 | **活跃** | 断点 | [dossiers/l1.md](dossiers/l1.md) | 2026-10-28 |\n"
+        + "| `l2` | 线二 | 目标 | 判据 | 等用户 | 断点 | [dossiers/l2.md](dossiers/l2.md) | 2026-10-28 |\n",
+        encoding="utf-8",
+    )
+    for n in ("l1", "l2"):
+        (root / "dossiers" / f"{n}.md").write_text("# 档案\n\n" + head, encoding="utf-8")
+    (root / "05-open.md").write_text(
+        "# 缺口\n\n" + head
+        + "\n## A. 用户诉求\n\n"
+        + "| 编号 | 线 | 诉求 | 状态 | 说明 |\n|---|---|---|---|---|\n"
+        + "| O-2026-10-28-1 | `[l1]` | 造物技能链 | ⬜ | x |\n",
+        encoding="utf-8",
+    )
+
+
+def selftest(root: Path | None = None) -> int:
+    """判定器自证：基线必须 PASS，每类注入必须被抓到（抓不到=门禁空转）。
+
+    夹具自建（`_make_fixture`），与传入目录无关——多任务模型下任何 `--dir` 跑 `--selftest` 都应 PASS。
+    """
     bad = 0
     with tempfile.TemporaryDirectory(prefix="longtask-selftest-") as tmp:
         base = Path(tmp) / "base"
-        shutil.copytree(root, base)
+        _make_fixture(base)
         fails, _ = check(base, 14)
         if fails:
             bad += 1
@@ -288,7 +323,7 @@ def selftest(root: Path) -> int:
             print("PASS baseline")
         for name, mutate, expect in SELFTEST_CASES:
             case = Path(tmp) / name
-            shutil.copytree(root, case)
+            _make_fixture(case)
             try:
                 mutate(case)
             except AssertionError as e:
