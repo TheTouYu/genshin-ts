@@ -516,9 +516,9 @@ def main(argv=None):
         other = Image.open(ALT_FRAME).convert("RGB")
         grid_box = (300, 200, 1500, 1000)
         base.save(before)
-        a = base.copy()
-        a.paste(other.crop(grid_box), (grid_box[0], grid_box[1]))
-        a.save(after_grid)
+        im = base.copy()
+        im.paste(other.crop(grid_box), (grid_box[0], grid_box[1]))
+        im.save(after_grid)
     GRID = [300, 200, 1200, 800]
     DETAIL = [1770, 150, 630, 650]
     ev = maybe("region_text_set_changed 正例", svc.evaluate_expect,
